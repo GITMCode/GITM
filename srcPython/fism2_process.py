@@ -120,6 +120,8 @@ def read_euv_csv_file(file):
     fpin = open(file, 'r')
 
     iFound = 0
+    afac = []
+    f74113 = []
     for line in fpin:
         aline = line.split(',')
         s = aline[-1].strip().split('.')[0]
@@ -134,13 +136,53 @@ def read_euv_csv_file(file):
                 long = np.asarray(aline[5:], dtype = float)
             else:
                 long = np.asarray(aline[5:-1], dtype = float)
+        if (aline[0].strip() == "F74113"):
+            if (s.isnumeric()):
+                f74113 = np.asarray(aline[5:], dtype = float)
+            else:
+                f74113 = np.asarray(aline[5:-1], dtype = float)
             iFound += 1
-        if (iFound == 2):
-            break
-    wavelengths = {'short': short,
-                   'long': long}
+        if (aline[0].strip() == "AFAC"):
+            if (s.isnumeric()):
+                afac = np.asarray(aline[5:], dtype = float)
+            else:
+                afac = np.asarray(aline[5:-1], dtype = float)
+            iFound += 1
+    # Save and convert from Angstroms to nm (FISM is in nm)
+    wavelengths = {'short': short/10.0,
+                   'long': long/10.0,
+                   'afac': afac,
+                   'f74113': f74113}
     return wavelengths
-    
+
+
+#------------------------------------------------------------------------------
+# calculate the energy fluxes for euvac
+#------------------------------------------------------------------------------
+
+def calc_euvac(wavelengths, f107, f107a):
+
+    euvac = []
+    if (len(wavelengths['afac']) > 0):
+        afac = wavelengths['afac']
+        f74113 = wavelengths['f74113']
+        f107bar = (f107 + f107a)/2
+        slope = 1.0 + afac * (f107bar - 80.0)
+        slope[slope < 0.8] = 0.8
+        # in photons/cm2/s
+        intensity = f74113 * slope * 1e9
+        # convert to /m2
+        intensity = intensity * 1e4
+
+        # assume nm, convert to m:
+        ave_wave = (wavelengths['long'] + wavelengths['short'])/2.0 * 1e-9
+        # wavelength to energy:
+        energy = 6.62607015e-34 * 2.99792e8 / ave_wave
+        # convert from photons/s/m2 to W/m2:
+        euvac = intensity * energy
+        
+    return euvac
+
 #------------------------------------------------------------------------------
 # read fism2 csv file
 #------------------------------------------------------------------------------
@@ -218,11 +260,60 @@ def read_fism_csv_file(file):
     fism_data = {'vars': vars,
                  'time': times,
                  'nTimes': nTimes,
-                 'wave': np.array(wavelengths)*10.0,  # convert to Angstroms
+                 'wave': np.array(wavelengths),
                  'irr': irradiance,
                  'unc': uncertainty}
             
     return fism_data
+
+#------------------------------------------------------------------------------
+# 
+#------------------------------------------------------------------------------
+
+def find_index_from_time(data, timeToFind):
+    tInDays = (timeToFind - data['times'][0]).total_seconds()/86400.0
+    dist = np.abs(data['timesInDays'] - tInDays)
+    iMin = np.argmin(dist)
+    return iMin
+
+#------------------------------------------------------------------------------
+# 
+#------------------------------------------------------------------------------
+
+def read_ap107_file(local_file = "apf107_temp.txt"):
+
+    times = []
+    timesInDays = []
+    f107 = []
+    if (os.path.exists(local_file)):
+        print(' -> Reading file : ', local_file)
+        fpin = open(local_file, 'r')
+        for iPt, line in enumerate(fpin):
+            iYear = int(line[1:3])
+            if (iYear > 50):
+                iYear += 1900
+            else:
+                iYear += 2000
+            iMonth = int(line[4:6])
+            iDay = int(line[7:9])
+            iF107 = float(line[39:44])
+            times.append(dt.datetime(iYear, iMonth, iDay))
+            if (iPt > 0):
+                timesInDays.append((times[-1] - times[0]).total_seconds()/86400.0)
+            else:
+                timesInDays.append(0.0)
+            f107.append(iF107)
+        fpin.close()
+    else:
+        print('f107 read failed...')
+        print("Can't seem to find file : " + local_file)
+        print("download probably didn't work!")
+
+    data = {'times' : np.array(times),
+            'timesInDays' : np.array(timesInDays),
+            'f107' : np.array(f107)}
+
+    return data
 
 #------------------------------------------------------------------------------
 # rebin FISM data into new wavelength bins
@@ -244,7 +335,7 @@ def rebin_fism(fism_waves, fism_vals, wavelengths):
             d = np.abs(fism_waves - short)
             i = np.argmin(d)
             new_irr[iWave] = fism_vals[i] * \
-                    ((fism_waves[i+1] - fism_waves[i])/10.0)
+                (fism_waves[i+1] - fism_waves[i])
             # zero out bin so we don't double count it.
             # fism_vals[i] = 0.0
 
@@ -260,8 +351,8 @@ def rebin_fism(fism_waves, fism_vals, wavelengths):
             wave_int = 0.0
             for i in range(iStart+1, iEnd+1):
                 new_irr[iWave] += fism_vals[i] * \
-                    ((fism_waves[i+1] - fism_waves[i])/10.0)
-                wave_int += (fism_waves[i+1] - fism_waves[i])/10.0
+                    (fism_waves[i+1] - fism_waves[i])
+                wave_int += (fism_waves[i+1] - fism_waves[i])
     return new_irr, ave_wav
 
 #------------------------------------------------------------------------------
@@ -333,7 +424,7 @@ for iTime, time in enumerate(fism['time']):
     if (args.gitm):
         ave_wav = np.flip(ave_wav)
         new_irr = np.flip(new_irr)
-    ax.scatter(ave_wav, new_irr)
+    ax.scatter(ave_wav, np.log10(new_irr))
 
     sTime = time.strftime(' %Y %m %d %H %M %S')
     sData = ' '
@@ -344,8 +435,29 @@ for iTime, time in enumerate(fism['time']):
 
 fp.close()
 
-ax.set_xlabel('Wavelength (A)')
-ax.set_ylabel(fism['vars'][2])
+f107Data = read_ap107_file(local_file = "apf107_temp.txt")
+if (len(f107Data['times']) > 0):
+    iMid = int(len(fism['time'])/2)
+    tMid = fism['time'][iMid]
+    tLower = tMid - dt.timedelta(days = 40)
+    tUpper = tMid + dt.timedelta(days = 40)
+
+    iLower = find_index_from_time(f107Data, tLower)
+    iMid = find_index_from_time(f107Data, tMid)
+    iUpper = find_index_from_time(f107Data, tUpper)
+
+    f107 = f107Data['f107'][iMid]
+    f107a = np.mean(f107Data['f107'][iLower:iUpper+1])
+
+    euvac = calc_euvac(wavelengths, f107, f107a)
+
+    if (len(euvac) > 0):
+        ave_wave = (wavelengths['long'] + wavelengths['short'])/2.0
+        ax.plot(ave_wave, np.log10(euvac), label = 'EUVAC')
+        ax.legend()
+
+ax.set_xlabel('Wavelength (nm)')
+ax.set_ylabel('log(W/m2)')
 
 plotfile = filestart + '.png'
 print('writing : ',plotfile)    
