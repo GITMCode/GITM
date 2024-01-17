@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import datetime as dt
 import numpy as np
@@ -7,6 +7,7 @@ import matplotlib.dates as dates
 import argparse
 import os
 import re
+import juliandate as jd
 
 # ----------------------------------------------------------------------
 # Function to parse input arguments
@@ -174,6 +175,10 @@ def read_fism_csv_file(file):
     for line in fpin:
         aline = line.split(',')
         yearday = float(aline[0])
+        if (yearday/1000 > 2100):
+            isJulian = True
+        else:
+            isJulian = False
         irradiance.append(float(aline[2]))
         uncertainty.append(float(aline[3]))
         if (iRow == 0):
@@ -181,10 +186,16 @@ def read_fism_csv_file(file):
 
         if (yearday > oldtime):
             nWaves = 1
-            if isSeconds:
-                times.append(convert_time_seconds(oldtime))
+            if (isJulian):
+                iTime = jd.to_gregorian(yearday)
+                current = dt.datetime(iTime[0], iTime[1], iTime[2],
+                                      iTime[3], iTime[4], iTime[5], iTime[6])
+                times.append(current)
             else:
-                times.append(convert_time(oldtime))
+                if isSeconds:
+                    times.append(convert_time_seconds(oldtime))
+                else:
+                    times.append(convert_time(oldtime))
             oldtime = yearday
             nTimes = nTimes + 1
         else:
