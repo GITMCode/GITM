@@ -110,6 +110,24 @@ def check_inputs(user, server, dir):
 # Check the test file to see if it is good
 # ----------------------------------------------------------------------
 
+def check_for_stop_file(stopFile = 'stop', delete = False):
+    if (os.path.exists(stopFile)):
+        DoesExist = True
+        print("  --> Stop file exists...")
+        if (delete):
+            print("  --> Removing Stop file")
+            command = "/bin/rm -f " + stopFile
+            DidWork = run_command(command)
+            # Recheck to see if the stop file still exists...
+            DoesExist = os.path.exists(stopFile)
+    else:
+        DoesExist = False
+    return DoesExist
+
+# ----------------------------------------------------------------------
+# Check the test file to see if it is good
+# ----------------------------------------------------------------------
+
 def parse_test_file(file):
 
     if (os.path.exists(file)):
@@ -229,6 +247,13 @@ def tar_and_zip_gitm():
         DidWork = run_command(command)
         command = 'cd ' + data_here + ' ; rm -f ' + baseFile + '.sat ; cd ../..'
         DidWork = run_command(command)
+
+        # There are times when you want to break out of this loop,
+        # so allow user to break loop if stop file exists:
+        stopCheck = check_for_stop_file()
+        if (stopCheck):
+            print("  --> Stopping!")
+            break
 
     DidWork = True
         
@@ -365,33 +390,45 @@ def transfer_model_output_files(user, server, dir):
 def do_loop(doTarZip, user, server, dir, IsRemote):
 
     DidWork = True
-    
+
+    # 1 - check to see if the remote directory exists:
     if (IsRemote):
         DidWork = test_if_remote_exists(user, server, dir)
         if (not DidWork):
-            return DidWork
+            # if the directory doesn't exist, try to make it:
+            DidWork = make_remote_dir(user, server, dir)
+            # then check again to see if it exists:
+            DidWork = test_if_remote_exists(user, server, dir)
+            if (not DidWork):
+                return DidWork
 
+    # 2 - push log files
     if (IsRemote and DidWork):
         DidWork = transfer_log_files(user, server, dir)
         if (not DidWork):
             return DidWork
 
-    # Post process GITM files:
+    # 3 - Post process GITM files:
     print('Post Processing GITM files...')
     if (doTarZip):
         DidWork = tar_and_zip_gitm()
     else:
         DidWork = post_process_gitm()
         
-    # Check if remote data directory exists, make it if it doesn't:
+    # 4 - Check if remote data directory exists, make it if it doesn't:
     data_remote = '/data'
     if (IsRemote and DidWork):
         dir = dir + data_remote
         DidWork = test_if_remote_exists(user, server, dir)
         if (not DidWork):
             DidWork = make_remote_dir(user, server, dir)
-            
-    DidWork = transfer_model_output_files(user, server, dir)
+            DidWork = test_if_remote_exists(user, server, dir)
+            if (not DidWork):
+                return DidWork
+
+    # 5 - transfer output file:
+    if (IsRemote and DidWork):
+        DidWork = transfer_model_output_files(user, server, dir)
     
     return DidWork
 
@@ -403,14 +440,14 @@ if __name__ == '__main__':  # main code block
 
     args = parse_args_post()
 
+    # make local variables for arguments:
     doTarZip = args.tgz
-
     file = args.file
-
     IsVerbose = not args.q
     if (args.norm):
         DoRm = False
 
+    # figure out remote system information:
     if (os.path.exists(file)):
         print('Found file: ', file)
         remote = parse_remote_file(file)
@@ -422,13 +459,24 @@ if __name__ == '__main__':  # main code block
         server = args.server
         dir = args.dir
 
-    # Check inputs:
+    # Check remote system inputs:
     IsRemote = check_inputs(user, server, dir)
 
+    # Check if stop file exists:
+    check_for_stop_file(delete = True)
+
+    # Very simple main loop - run forever
     DidWork = True
-    
     while DidWork:
         DidWork = do_loop(doTarZip, user, server, dir, IsRemote)
         if (DidWork):
-            print('Sleeping ... ', args.sleep, ' sec.')
-            time.sleep(args.sleep)
+            # Check if stop file exists:
+            stopCheck = check_for_stop_file()
+            if (stopCheck):
+                print("  --> Stopping!")
+                # want to break out of loop, so set loop breaking condition:
+                DidWork = False
+            else:
+                # everything ok, go to sleep for a bit
+                print('Sleeping ... ', args.sleep, ' sec.')
+                time.sleep(args.sleep)
