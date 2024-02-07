@@ -96,8 +96,8 @@ for iFile, file in enumerate(headers["filename"]):
     eDensity = np.array(data[ie_])
 
     # 1e21/m2 is the integration boundary.  
-    n2Int = vertically_integrate(oDensity, Alts3d, calc3D = True)
-    oInt = vertically_integrate(n2Density, Alts3d, calc3D = True)
+    n2Int = vertically_integrate(n2Density, Alts3d, calc3D = True)
+    oInt = vertically_integrate(oDensity, Alts3d, calc3D = True)
     tec = vertically_integrate(eDensity, Alts3d)/1e16
 
     on2 = np.zeros((nLons, nLats))
