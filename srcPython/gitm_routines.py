@@ -11,6 +11,63 @@ from pylab import cm
 import os
 
 
+#-----------------------------------------------------------------------------
+# remap gitm variables
+#-----------------------------------------------------------------------------
+
+def remap_variable_names(varsIn):
+
+    mapVars = {
+        '[O(!U3!NP)]': '[O] (/m3)',
+        '[O!D2!N]': '[O2] (/m3)',
+        '[N!D2!N]': '[N2] (/m3)',
+        '[N(!U4!NS)]': '[N] (/m3)',
+        '[NO]': '[NO] (/m3)',
+        '[He]': '[He] (/m3)',
+        '[N(!U2!ND)]': '[N_2D] (/m3)',
+        '[N(!U2!NP)]': '[N_2P] (/m3)',
+        '[H]': '[H] (/m3)',
+        '[CO!D2!N]': '[CO2] (/m3)',
+        '[O(!U1!ND)]': '[O_1D] (/m3)',
+        'Temperature': 'Tn (K)',
+        'V!Dn!N(east)': 'Ve (m/s)',
+        'V!Dn!N(north)': 'Vn (m/s)',
+        'V!Dn!N(up)': 'Vv (m/s)',
+        'V!Dn!N(up,O(!U3!NP))': 'Vv_O (m/s)',
+        'V!Dn!N(up,O!D2!N)': 'Vv_O2 (m/s)',
+        'V!Dn!N(up,N!D2!N)': 'Vv_N2 (m/s)',
+        'V!Dn!N(up,N(!U4!NS))': 'Vv_N (m/s)',
+        'V!Dn!N(up,NO)': 'Vv_NO (m/s)',
+        'V!Dn!N(up,He)': 'Vv_He (m/s)',
+        '[O_4SP_!U+!N]': '[O+] (/m3)',
+        '[NO!U+!N]': '[NO+] (/m3)',
+        '[O!D2!U+!N]': '[O2+] (/m3)',
+        '[N!D2!U+!N]': '[N2+] (/m3)',
+        '[N!U+!N]': '[N+] (/m3)',
+        '[O(!U2!ND)!U+!N]': '[O_2D+] (/m3)',
+        '[O(!U2!NP)!U+!N]': '[O_2P+] (/m3)',
+        '[H!U+!N]': '[H+] (/m3)',
+        '[He!U+!N]': '[He+] (/m3)',
+        '[e-]': '[e-] (/m3)',
+        'eTemperature': 'Te (K)', 
+        'iTemperature': 'Ti (K)',
+        'V!Di!N(east)': 'Vie (m/s)',
+        'V!Di!N(north)': 'Vin (m/s)',
+        'V!Di!N(up)': 'Viv (m/s)'}
+
+    varsOut = []
+
+    for var in varsIn:
+        if (var in mapVars):
+            varsOut.append(mapVars[var])
+        else:
+            varsOut.append(var)
+    return varsOut
+
+#-----------------------------------------------------------------------------
+# Write a single ascii line out to an already opened file
+#-----------------------------------------------------------------------------
+
 def write_line(fp, sLine):
     sLineN = sLine + '\n'
     fp.write(sLineN.encode())
