@@ -388,6 +388,7 @@ subroutine write_code_information(dir)
      write(iCodeInfoFileUnit_,*) UseMSISTides
      write(iCodeInfoFileUnit_,*) UseGSWMTides
      write(iCodeInfoFileUnit_,*) UseWACCMTides
+     write(iCodeInfoFileUnit_,*) UseHmeTides
      write(iCodeInfoFileUnit_,*) ""
 
      write(iCodeInfoFileUnit_,*) "#DUSTDATA"
