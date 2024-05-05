@@ -678,10 +678,10 @@ subroutine set_inputs
         case ("#AURORA")
            call read_in_string(cAuroralModel, iError)
 
-           
         case ("#AURORAMODS")
            HasSetAuroraMods = .true.
            call read_in_logical(NormalizeAuroraToHP, iError)
+           call read_in_logical(DoSeparateHPI, iError)
            call read_in_real(AveEFactor, iError)
            call read_in_logical(IsKappaAurora, iError)
            call read_in_real(AuroraKappa, iError)
@@ -691,12 +691,15 @@ subroutine set_inputs
               write(*,*) 'NormalizeAuroraToHP variable calculates the '
               write(*,*) 'modeled hemispheric power and then normalizes it'
               write(*,*) 'the hemispheric power read in. '
+              write(*,*) 'DoSeparateHPI scales  e- flux by each hemispheres'
+              write(*,*) 'power independently, rather than avg HP.'
               write(*,*) 'AveEFactor - changes the aveE of the aurora by factor'
               write(*,*) 'IsKappaAurora - use a kappa instead of Maxwellian'
               write(*,*) 'AuroraKappa - kappa to use in the distribution'
               write(*,*) ''
               write(*,*) '#AURORAMODS'
               write(*,*) 'NormalizeAuroraToHP     (logical)'
+              write(*,*) 'DoSeparateHPI     (logical)'
               write(*,*) 'AveEFactor    (real)'
               write(*,*) 'IsKappaAurora     (logical)'
               write(*,*) 'AuroraKappa    (real)'

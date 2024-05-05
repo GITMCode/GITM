@@ -16,11 +16,12 @@ subroutine aurora(iBlock)
 
   integer, intent(in) :: iBlock
 
-  real :: alat, hpi, ped, hal, av_kev, eflx_ergs, a,b, maxi
+  real :: alat, ped, hal, av_kev, eflx_ergs, a,b, maxi
   real :: ion_av_kev, ion_eflx_ergs, ion_eflux, ion_avee
   real :: Factor,temp_ED, avee, eflux, p, E0, Q0, E0i, Q0i, ai
   integer :: i, j, k, n, iAlt, iError, iED, iErr, iEnergy
   logical :: IsDone, IsTop, HasSomeAurora, UseMono, UseWave
+  real :: hpi, hpi_SH
 
   real, dimension(nLons,nLats,nAlts) :: temp, AuroralBulkIonRate, &
        IonPrecipitationBulkIonRate, IonPrecipitationHeatingRate
@@ -32,7 +33,7 @@ subroutine aurora(iBlock)
   real :: f1, f2, f3, f4, f5, power
   real :: de1, de2, de3, de4, de5, detotal, h
 
-  real :: LocalVar, HPn, HPs, avepower, ratio
+  real :: LocalVar, HPn, HPs, avepower, avepower_sh, ratio, ratio_sh
 
   real :: Fang_Pij(8,4), Ci(8), Fang_de = 0.035
   data Fang_Pij(1,:) /1.25E+00,1.45903,-2.42E-01,5.95E-02/
@@ -173,35 +174,61 @@ subroutine aurora(iBlock)
      call MPI_REDUCE(LocalVar, HPs, 1, MPI_REAL, MPI_SUM, &
           0, iCommGITM, iError)
 
-     ! Average north and south together
+     if (DoSeparateHPI) then
+      avepower = HPn ! avepower = HP_north
+      avepower_sh = HPs ! avepower_south = HP_south
+      call MPI_Bcast(avepower_sh,1,MPI_Real,0,iCommGITM,ierror)
 
-     avepower = (HPn+HPs)/2.0
-
-     ! If we are only have one hemisphere or the other, assign to avepower
-     if (HPs < 0.1*HPn) avepower = HPn
-     if (HPn < 0.1*HPs) avepower = HPs
-
+     else ! Average north and south together, same as before
+      avepower = (HPn+HPs)/2.0
+      if (HPs < 0.1*HPn) avepower = HPn
+      if (HPn < 0.1*HPs) avepower = HPs
+     endif
      call MPI_Bcast(avepower,1,MPI_Real,0,iCommGITM,ierror)
 
      call get_hpi(CurrentTime,Hpi,iError)
-     ratio = Hpi/avepower
+     if (ierror /= 0) call stop_gitm("Error finding HPI!")
+     ratio = Hpi/avepower ! If *not* doing DoSeparateHPIs, this is both hemis
+
+     if (DoSeparateHPI) then ! If DoSeparateHPIs, this is south; `ratio` is North
+        call get_hpi_s(CurrentTime,Hpi_SH,ierror)
+        if (ierror /= 0) call stop_gitm("Error finding HPI in SH")
+        ratio_sh = Hpi_SH/avepower_sh
+     endif
+     
 
      if (iDebugLevel >= 0) then
-        if ((iDebugLevel == 0) .and. IsFirstTime(iBlock)) then
+        if ((iDebugLevel == 0) .and. IsFirstTime(iBlock) .and. .not. DoSeparateHPI) then
            write(*,*) '---------------------------------------------------'
            write(*,*) 'Using auroral normalizing ratios!!! '
            write(*,*) 'no longer reporting!'
            write(*,*) '---------------------------------------------------'
+         elseif ((iDebugLevel >= 0) .and. IsFirstTime(iBlock) .and. DoSeparateHPI) then
+            write(*,*) '---------------------------------------------------'
+            write(*,*) 'Using HPI from each hemisphere to normalize aurora!!'
+            write(*,*) 'no longer reporting!'
+            write(*,*) '---------------------------------------------------'
         else
-           if (iDebugLevel >= 1) &
-              write(*,*) 'auroral normalizing ratio: ', Hpi, avepower, ratio
+           if (iDebugLevel >= 1) then
+              if (DoSeparateHPI) then
+               write(*,*) 'auroral normalizing ratio: ', Hpi, avepower, ratio
+              else
+               write(*,*) 'auroral normalizing ratios: '
+               write(*,*) 'Hpi(NH)', 'HPI(SH)', 'HPI(NH-modeled)', 'HPI(SH-modeled)', 'ratio_n', 'ratio_s'
+               write(*,*) Hpi, Hpi_SH, HPn, HPs, ratio, ratio_sh
+              endif
+           endif
         endif
      endif
      do i=1,nLats
         do j=1,nLons
            if (ElectronEnergyFlux(j,i)>0.1) then
-              ElectronEnergyFlux(j,i) = ElectronEnergyFlux(j,i)*ratio
-           endif
+              if (latitude(i,iBlock) < 0.0) then
+                 ElectronEnergyFlux(j,i) = ElectronEnergyFlux(j,i)*ratio_sh
+              else
+                 ElectronEnergyFlux(j,i) = ElectronEnergyFlux(j,i)*ratio
+              endif
+         endif
         enddo
      enddo
 

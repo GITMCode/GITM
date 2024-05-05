@@ -421,6 +421,7 @@ subroutine write_code_information(dir)
 
      write(iCodeInfoFileUnit_,*) "#AURORAMODS"
      write(iCodeInfoFileUnit_,*) NormalizeAuroraToHP
+     write(iCodeInfoFileUnit_,*) DoSeparateHPI
      write(iCodeInfoFileUnit_,*) AveEFactor
      write(iCodeInfoFileUnit_,*) IsKappaAurora
      write(iCodeInfoFileUnit_,*) AuroraKappa

@@ -902,6 +902,45 @@ subroutine get_hpi_norm_wotime(value, iOutputError)
   
 end subroutine get_hpi_norm_wotime
 
+! ~~~~~~~~ HPI SH ~~~~~~~~ !
+subroutine get_hpi_s_wtime(TimeIn, value, iOutputError)
+
+   use ModKind
+   use ModIndices
+ 
+   implicit none
+ 
+   real (Real8_), intent(in) :: TimeIn
+   real, intent(out)               :: value
+   integer, intent(out)            :: iOutputError
+ 
+   call get_index(hpi_sh_, TimeIn, 0, value, iOutputError)
+
+ end subroutine get_hpi_s_wtime
+ 
+ subroutine get_hpi_s_wotime(value, iOutputError)
+ 
+   use ModKind
+   use ModIndices
+ 
+   implicit none
+ 
+   real, intent(out)    :: value
+   integer, intent(out) :: iOutputError
+ 
+   iOutputError = 0
+ 
+   if (SavedTime < 0.0) then
+      value = -1.0e32
+      iOutputError = 3
+      return
+   else
+      value = SavedIndices_V(hpi_sh_)
+      iOutputError = SavedErrors_V(hpi_sh_)
+   endif
+   
+ end subroutine get_hpi_s_wotime
+
 !------------------------------------------------------------------------------
 ! kp
 !------------------------------------------------------------------------------

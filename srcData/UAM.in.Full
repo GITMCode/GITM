@@ -124,6 +124,7 @@ F		Add a cusp to the electron precipitation
 This will modify the auroral inputs, experimental:
 #AURORAMODS
 F		normalize to hemispheric power
+F   normalize to separate HPI in each hemisphere
 1.0		avee factor (1 is no mod)
 F		iskappa
 4.0		kappa (3 min; higher is maxwellian)
