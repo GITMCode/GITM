@@ -6,9 +6,10 @@ import urllib.request
 # require SSL certs for web fetches.  If you need this, install certifi
 # (pip install certifi)
 import importlib
-certspec = importlib.util.find_spec("certifi")
-found = certspec is not None
-if found: import certifi
+#certspec = importlib.util.find_spec("certifi")
+#found = certspec is not None
+#if found: import certifi
+
 
 import pandas as pd  # dataframes and also to_datetime
 import json
