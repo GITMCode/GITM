@@ -46,9 +46,9 @@ def write_derived_hp(time_array, hp,
         savedir = './hp_from_ae'
         if not os.path.exists(savedir):
             os.mkdir(savedir)
-        output_filename = savedir + \
+        output_filename = os.path.join(savedir,
             'power_from_ae_{0:%Y%m%d}'.format(time_array[0]) + \
-            '_to_{0:%Y%m%d}.txt'.format(time_array[-1])
+            '_to_{0:%Y%m%d}.txt'.format(time_array[-1]))
 
     output_file = open(output_filename, 'w')
 
@@ -134,7 +134,7 @@ if __name__ == '__main__':
                         ' Default is 20180901')
     parser.add_argument('-out', type=str,
                         help='Name of output file. Defaults to '
-                              'hp_from_aepower_from_ae_[start]_to_[end].txt')
+                              'hp_from_ae/power_from_ae_[start]_to_[end].txt')
     parser.add_argument('--add_season', action='store_true', default=None,
                         help='Add a 10%% seasonal factor to hp? Default is False.'
                         ' Include this flag to enable.')

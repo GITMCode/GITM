@@ -32,6 +32,11 @@ def parse_args_omni():
                         help='output AU, AL, AE in SME format', \
                         action="store_true")
 
+    parser.add_argument('-hemi', \
+                        help='Adjust hp by season? (must be run with -hp)', \
+                        action="store_true")
+
+
     args = parser.parse_args()
 
     return args
@@ -59,6 +64,12 @@ if __name__ == '__main__':
     if (not np.isscalar(end)):
         end = end[0]
 
+
+    if args.hemi and not args.hp:
+        raise ValueError(
+            'To split HP by hemisphere, option to write Hemispheric '
+            'Power must be enabled.')
+
     print("-> Downloading OMNI data using ", start, " -> ", end)
     results = download_omni_data(start, end, "-all")
     print("-> Parsing data")
@@ -81,7 +92,8 @@ if __name__ == '__main__':
 
         hp = calculate_hp_from_ae(np.array(data["ae"]))
         print("-> Writing hemispheric power type of file: ", fileout)
-        write_derived_hp(data["times"], hp, output_filename = fileout)
+        write_derived_hp(data["times"], hp, output_filename = fileout,
+                        add_seasonal_dependence=args.hemi)
 
     if (args.ae):
         message = "Data downloaded from OMNIWeb and written in SME format\n"
