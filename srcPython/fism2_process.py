@@ -307,7 +307,7 @@ def read_ap107_file(local_file = "apf107_temp.txt"):
     else:
         print('f107 read failed...')
         print("Can't seem to find file : " + local_file)
-        print("download probably didn't work!")
+        print("won't plot f107 stuff...")
 
     data = {'times' : np.array(times),
             'timesInDays' : np.array(timesInDays),
