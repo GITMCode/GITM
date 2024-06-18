@@ -103,6 +103,12 @@ F		IncludeCowling
 40.0		LongitudinalAveraging
 F               UseNewTrace
 
+The default is to have apex off, since other planets don't have
+apex, so need to turn apex on!
+
+#APEX
+T
+
 -----------------------------------------------------------------
 Some new features:
 
