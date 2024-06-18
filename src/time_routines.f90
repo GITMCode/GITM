@@ -58,7 +58,7 @@ integer function jday(year, mon, day) result(Julian_Day)
   dayofmon(11) = 30
   dayofmon(12) = 31
 
-  if (mod(year,4).eq.0) dayofmon(2) = dayofmon(1) + 1
+  if (mod(year,4).eq.0) dayofmon(2) = dayofmon(2) + 1
   Julian_Day = 0
   do i = 1, mon-1
      Julian_Day = Julian_Day + dayofmon(i)
