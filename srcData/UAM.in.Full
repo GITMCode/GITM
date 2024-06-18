@@ -103,11 +103,6 @@ New auroral model from Wu and Ridley, which is driven by AU/AL/AE
 #FTAMODEL
 T                 Use FTA model of the aurora
 
-Can download AU/AL/AE indices from SuperMAG and use them here:
-SME_INDICES
-sme_2010.txt      SME Filename
-none              onset time delay file
-
 This is for OVATION-PRIME:
 #NEWELLAURORA
 F                 Use Newell Ovation model of the aurora
@@ -128,6 +123,15 @@ F   normalize to separate HPI in each hemisphere
 1.0		avee factor (1 is no mod)
 F		iskappa
 4.0		kappa (3 min; higher is maxwellian)
+
+Can download AU/AL/AE indices from SuperMAG and use them here:
+! GITM will go check to make sure the correct option is set in #AURORAMODS,
+! so we will define this after #AURORAMODS.
+#SME_INDICES
+sme_2010.txt      SME Filename
+none              onset time delay file
+T                 Use AE-derived Hemispheric Power?
+T                 Apply a 10% seasonal correction factor to this HP?
 
 #IONPRECIPITATION
 F		If ions are included in the AMIE file, use them. FangEnergy=T!

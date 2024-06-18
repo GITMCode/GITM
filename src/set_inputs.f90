@@ -33,7 +33,7 @@ subroutine set_inputs
 
   integer, dimension(7) :: iEndTime
 
-  logical :: IsDone, IsStartFound, doUseAeForHp
+  logical :: IsDone, IsStartFound, doUseAeForHp, doSeasonallyCorrectAE
   integer :: iDebugProc=0
   character (len=iCharLen_) :: cLine
   integer :: iLine, iSpecies, iSat
@@ -689,10 +689,10 @@ subroutine set_inputs
               write(*,*) 'Incorrect format for #AURORAMODS'
               write(*,*) 'This is for modifying the aurora a bit.  The'
               write(*,*) 'NormalizeAuroraToHP variable calculates the '
-              write(*,*) 'modeled hemispheric power and then normalizes it'
-              write(*,*) 'the hemispheric power read in. '
-              write(*,*) 'DoSeparateHPI scales  e- flux by each hemispheres'
-              write(*,*) 'power independently, rather than avg HP.'
+              write(*,*) ' modeled hemispheric power and then normalizes it'
+              write(*,*) ' the hemispheric power read in. '
+              write(*,*) "DoSeparateHPI scales e- flux by each hemispheres'"
+              write(*,*) ' power independently, rather than by avg HP.'
               write(*,*) 'AveEFactor - changes the aveE of the aurora by factor'
               write(*,*) 'IsKappaAurora - use a kappa instead of Maxwellian'
               write(*,*) 'AuroraKappa - kappa to use in the distribution'
@@ -1808,13 +1808,40 @@ subroutine set_inputs
               write(*,*) "----------------------------------------------"
               iError = 0
            endif
+
+           doSeasonallyCorrectAE = .false.
+           call read_in_logical(doSeasonallyCorrectAE, iError)
+           if ((iError /= 0) .and. (iDebugProc == iProc)) then
+              write(*,*) "----------------------------------------------"
+              write(*,*) "GITM also allows you to use AE to set the HP,"
+              write(*,*) "and include a 10% seasonal correction factor too."
+              write(*,*) "Put another T after the SME file if you want, "
+              write(*,*) "or put a F if you don't."
+              write(*,*) "----------------------------------------------"
+              iError = 0
+           endif
+
+           if (doSeasonallyCorrectAE .and. .not. HasSetAuroraMods .and. (iDebugProc == iProc)) then
+              write(*,*) "SME Indices are likely defined before #AURORAMODS."
+              write(*,*) "GITM cannot check if the appropriate DoSeparateHPI"
+              write(*,*) "was set in #AURORAMODS, so the AE-derived HP may be wrong"
+           else if (doSeasonallyCorrectAE .and. .not. DoSeparateHPI .and. (iDebugProc == iProc)) then
+              write(*,*) "=============================================="
+              write(*,*) "You have requested to add a seasonal scale to HP"
+              write(*,*) "derived from AE, but told GITM not to use them."
+              write(*,*) "This can be set in #AURORAMODS. Your aurora WILL"
+              write(*,*) "be wrong! Continuing in case you meant to do this..."
+              write(*,*) "=============================================="
+           endif
+
            cTempLines(4) = " "
            cTempLines(5) = "#END"
 
            call IO_set_inputs(cTempLines)
            call read_sme(iError, &
                 CurrentTime+TimeDelayHighLat, &
-                EndTime+TimeDelayHighLat, doUseAeForHp)
+                EndTime+TimeDelayHighLat, doUseAeForHp, &
+                doSeasonallyCorrectAE)
 
            if (iError /= 0) then
               write(*,*) "read indices was NOT successful (SME file)"
