@@ -126,6 +126,12 @@ subroutine read_NOAAHPI_Indices_new(iOutputError,StartTime,EndTime)
          endif
         enddo
 
+        ! Check to make sure some points were actually read from southern hemi
+        ! If not, throw an error. Set required number of pts to 5 for margin of error...
+        if (npts_south <= 5) then
+         call stop_gitm("Not enough southern hemisphere points in NOAA HPI file")
+        endif
+
         call Insert_into_Indices_Array(tmp_north(:,:npts_north), hpi_)
         call Insert_into_Indices_Array(tmp_south(:,:npts_south), hpi_sh_)
 

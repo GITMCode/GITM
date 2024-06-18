@@ -79,8 +79,9 @@ def write_derived_hp(time_array, hp,
             day_of_year = dtime_to_doy(time_array[i])
 
             # Ten percent correction factor (by *roughly* day of year)
-            # This has a 360 day period, not 365, but close enough.
-            ten_percent_corr = .1 * np.cos(np.deg2rad(day_of_year))
+            # Leap years would be off by 1 day, but that is OK.
+            # From (https://doi.org/10.1029/2006GL028444)
+            ten_percent_corr = .1 * np.cos(2 * np.pi * day_of_year/365)
 
             # Northern hemisphere
             line_north = fmt_line.format(time_array[i], 

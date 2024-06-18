@@ -190,9 +190,9 @@ subroutine aurora(iBlock)
      if (ierror /= 0) call stop_gitm("Error finding HPI!")
      ratio = Hpi/avepower ! If *not* doing DoSeparateHPIs, this is both hemis
 
-     if (DoSeparateHPI) then ! If DoSeparateHPIs, this is south; `ratio` is North
-        call get_hpi_s(CurrentTime,Hpi_SH,ierror)
-        if (ierror /= 0) call stop_gitm("Error finding HPI in SH")
+     if (DoSeparateHPI) then !If DoSeparateHPIs, this is south; `ratio` is North
+        call get_hpi_s(CurrentTime,Hpi_SH,iError)
+        if (ierror /= 0) call stop_gitm("Error finding HPI in southern hemisphere! hint: check your power file or #SME_INDICES arguments.")
         ratio_sh = Hpi_SH/avepower_sh
      endif
      
@@ -203,22 +203,22 @@ subroutine aurora(iBlock)
            write(*,*) 'Using auroral normalizing ratios!!! '
            write(*,*) 'no longer reporting!'
            write(*,*) '---------------------------------------------------'
-         elseif ((iDebugLevel >= 0) .and. IsFirstTime(iBlock) .and. DoSeparateHPI) then
+         elseif ((iDebugLevel == 0) .and. IsFirstTime(iBlock) .and. DoSeparateHPI) then
             write(*,*) '---------------------------------------------------'
             write(*,*) 'Using HPI from each hemisphere to normalize aurora!!'
             write(*,*) 'no longer reporting!'
             write(*,*) '---------------------------------------------------'
-        else
-           if (iDebugLevel >= 1) then
-              if (DoSeparateHPI) then
-               write(*,*) 'auroral normalizing ratio: ', Hpi, avepower, ratio
-              else
-               write(*,*) 'auroral normalizing ratios: '
-               write(*,*) 'Hpi(NH)', 'HPI(SH)', 'HPI(NH-modeled)', 'HPI(SH-modeled)', 'ratio_n', 'ratio_s'
-               write(*,*) Hpi, Hpi_SH, HPn, HPs, ratio, ratio_sh
-              endif
-           endif
         endif
+        if (iDebugLevel >= 1) then
+           if (DoSeparateHPI) then
+             write(*,*) 'Auroral normalizing ratio: ', Hpi, avepower, ratio
+           else
+             write(*,*) 'Auroral normalizing ratios: '
+             write(*,*) 'Hpi(NH)  HPI(SH)  HPI(NH-modeled)  HPI(SH-modeled)  ratio_n  ratio_s'
+             write(*,*) Hpi, Hpi_SH, HPn, HPs, ratio, ratio_sh
+        endif
+      endif
+   
      endif
      do i=1,nLats
         do j=1,nLons
