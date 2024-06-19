@@ -3,16 +3,17 @@
 
 !==============================================================================
 
-subroutine read_NOAAHPI_Indices_new(iOutputError,StartTime,EndTime)
+subroutine read_NOAAHPI_Indices_new(iOutputError,StartTime,EndTime,doSeparateHPI)
 
   use ModKind
   use ModIndices
-  use ModInputs
+!   use ModInputs
 
   implicit none
 
   integer, intent(out) :: iOutputError
   real(Real8_), intent(in) :: EndTime, StartTime
+  logical, intent(in) :: doSeparateHPI
 
   integer :: ierror, i, j, npts, npts_hpi, k
   integer :: datatype
@@ -50,6 +51,20 @@ subroutine read_NOAAHPI_Indices_new(iOutputError,StartTime,EndTime)
 
   if (NameOfHPIFile == "none") return
   if (nIndices_V(hpi_) == 1) return
+
+!   ! ALB addition: check if HPI values have already been read in with read_sme
+!   ! If so, let use user know and exit.
+
+!   if (nIndices_V(hpi_) >= 5) then
+!    ! if (iProc == iDebugProc) then
+!      write(*,*) "----------------------------------------------"
+!      write(*,*) "HPI values already exist in memory!"
+!      write(*,*) "These were likely read in along with SME indices."
+!      write(*,*) "Refusing to overwrite. Using both is not supported."
+!      write(*,*) "----------------------------------------------"
+!    ! endif
+!   return
+!   endif
 
   call init_mod_indices
 
@@ -113,7 +128,7 @@ subroutine read_NOAAHPI_Indices_new(iOutputError,StartTime,EndTime)
 
      ! If we are splitting HPI by hemi, put tmp into tmp_n/tmp_s
      ! Then these are put into the correct place
-     if (DoSeparateHPI) then
+     if (doSeparateHPI) then
         do i=1,npts_hpi
          if (hemi(i) == "(N)") then
             tmp_north(:,npts_north) = tmp(:,i)
@@ -140,7 +155,7 @@ subroutine read_NOAAHPI_Indices_new(iOutputError,StartTime,EndTime)
       endif
 
      nIndices_V(hpi_norm_) = nIndices_V(hpi_) 
-     if (DoSeparateHPI) nIndices_V(hpi_sh_) = nIndices_V(hpi_sh_) ! Only do South if we have to
+     if (doSeparateHPI) nIndices_V(hpi_sh_) = nIndices_V(hpi_sh_) ! Only do South if we have to
 
      do i=1,nIndices_V(hpi_norm_)
 

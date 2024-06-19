@@ -128,7 +128,7 @@ end subroutine read_al_onset_list
 
 !==============================================================================
 
-subroutine read_sme(iOutputError, StartTime, EndTime, doUseAeForHp, doSeasonallyCorrectAE)
+subroutine read_sme(iOutputError, StartTime, EndTime, doUseAeForHp, doSeparateHPI)
 
   use ModKind
   use ModIndices
@@ -136,7 +136,7 @@ subroutine read_sme(iOutputError, StartTime, EndTime, doUseAeForHp, doSeasonally
 
   integer, intent(out)     :: iOutputError
   real(Real8_), intent(in) :: EndTime, StartTime
-  logical, intent(in) :: doUseAeForHp, doSeasonallyCorrectAE
+  logical, intent(in) :: doUseAeForHp, doSeparateHPI
   
   integer :: ierror, iAE, j, npts
   logical :: IsDone
@@ -160,6 +160,20 @@ subroutine read_sme(iOutputError, StartTime, EndTime, doUseAeForHp, doSeasonally
   TimeDelay = 0.0
 
   if (NameOfIndexFile == "none" .and. nIndices_V(ae_) == 1) return
+
+!   ! ALB addition: check if HPI values have already been read in with 
+!   ! read_NOAAHPI. If so, let use user know and exit.
+
+!   if (nIndices_V(hpi_) >= 5) then
+!    ! if (iProc == iDebugProc) then
+!      write(*,*) "----------------------------------------------"
+!      write(*,*) "HPI values already exist in memory!"
+!      write(*,*) "These were likely read in from NOAA data."
+!      write(*,*) "Refusing to overwrite. Using both is not supported."
+!      write(*,*) "----------------------------------------------"
+!    ! endif
+!   return
+!   endif
 
   call init_mod_indices
 
@@ -237,7 +251,7 @@ subroutine read_sme(iOutputError, StartTime, EndTime, doUseAeForHp, doSeasonally
            
            if (doUseAeForHp) then
               hp = 0.102 * Indices_TV(iAE, ae_) + 8.953
-              if (doSeasonallyCorrectAE) then
+              if (doSeparateHPI) then
                ! If we are doing separate HPI's in North & South hemisphere,
                ! Apply a 10% seasonal offset to the values
                ! (From: https://doi.org/10.1029/2006GL028444)
@@ -284,7 +298,7 @@ subroutine read_sme(iOutputError, StartTime, EndTime, doUseAeForHp, doSeasonally
   nIndices_V(au_) = iAE - 2
   nIndices_V(al_) = iAE - 2
   nIndices_V(hpi_) = iAE - 2
-  if (doSeasonallyCorrectAE)  nIndices_V(hpi_sh_) = iAE - 2
+  if (doSeparateHPI)  nIndices_V(hpi_sh_) = iAE - 2
   
 end subroutine read_sme
 

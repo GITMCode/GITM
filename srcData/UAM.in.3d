@@ -98,6 +98,7 @@ or
 # the hemispheric power is not really available after 2013
 NOAAHPI_INDICES
 power file
+F                 When scaling aurora (#AURORAMODS), treat N/S hemi separately?
 
 New auroral model from Wu and Ridley, which is driven by AU/AL/AE
 #FTAMODEL
@@ -126,7 +127,6 @@ F		Add a cusp to the electron precipitation
 This will modify the auroral inputs, experimental:
 #AURORAMODS
 F		normalize to hemispheric power
-F   normalize to separate HPI in each hemisphere
 1.0		avee factor (1 is no mod)
 F		iskappa
 4.0		kappa (3 min; higher is maxwellian)

@@ -334,8 +334,7 @@ This input option allows GITM to use an appropriate F$_{10.7}$ for each day that
 
 This allows users to input AE/AU/AL indices data. These data can be downloaded online, for example, from \url{https://wdc.kugi.kyoto-u.ac.jp/aeasy/index.html}.
 
-GITM also allows users to derive Hemispheric power from the AE index, but to also add a 10\% seasonal scaling factor to these hemispheric power, as discussed here \url{https://doi.org/10.1029/2006GL028444}. 
-Note that, to use the seasonal scaling, DoSeparateHPIs must be set in #AURORAMODS \ref{auroramods.sec}.
+GITM also allows users to derive Hemispheric power from the AE index, and to optionally add a 10\% seasonal scaling factor to these hemispheric power, as discussed here \url{https://doi.org/10.1029/2006GL028444}. 
 
 \begin{verbatim}
 #SME_INDICES
@@ -373,6 +372,7 @@ This option is not well described in set\_inputs.f90.
 \begin{verbatim}
 #NOAAHPI_INDICES
 (string) NOAA HPI filename
+(logical) If scaling aurora by HP (#AURORAMODS), treat N/S hemisphere independently?
 \end{verbatim}
 
 \subsubsection{KP}
@@ -550,7 +550,6 @@ A switch to add heating to the atmosphere.  This was primarily used to explore g
 \begin{verbatim}
 #AURORAMODS
 (logical) Normalize Aurora to Hemispheric Power
-(logical) Use each hemisphere's power independently
 (real) Auroral Height Factor
 (logical) Use Kappa aurora
 (real) Aurora kappa factor (3 min; higher is maxwellian)

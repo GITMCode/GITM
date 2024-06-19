@@ -174,7 +174,7 @@ subroutine aurora(iBlock)
      call MPI_REDUCE(LocalVar, HPs, 1, MPI_REAL, MPI_SUM, &
           0, iCommGITM, iError)
 
-     if (DoSeparateHPI) then
+     if (doSeparateHPI) then
       avepower = HPn ! avepower = HP_north
       avepower_sh = HPs ! avepower_south = HP_south
       call MPI_Bcast(avepower_sh,1,MPI_Real,0,iCommGITM,ierror)
@@ -190,7 +190,7 @@ subroutine aurora(iBlock)
      if (ierror /= 0) call stop_gitm("Error finding HPI!")
      ratio = Hpi/avepower ! If *not* doing DoSeparateHPIs, this is both hemis
 
-     if (DoSeparateHPI) then !If DoSeparateHPIs, this is south; `ratio` is North
+     if (doSeparateHPI) then !If DoSeparateHPIs, this is south; `ratio` is North
         call get_hpi_s(CurrentTime,Hpi_SH,iError)
         if (ierror /= 0) call stop_gitm("Error finding HPI in southern hemisphere! hint: check your power file or #SME_INDICES arguments.")
         ratio_sh = Hpi_SH/avepower_sh
@@ -198,19 +198,19 @@ subroutine aurora(iBlock)
      
 
      if (iDebugLevel >= 0) then
-        if ((iDebugLevel == 0) .and. IsFirstTime(iBlock) .and. .not. DoSeparateHPI) then
+        if ((iDebugLevel == 0) .and. IsFirstTime(iBlock) .and. .not. doSeparateHPI) then
            write(*,*) '---------------------------------------------------'
            write(*,*) 'Using auroral normalizing ratios!!! '
            write(*,*) 'no longer reporting!'
            write(*,*) '---------------------------------------------------'
-         elseif ((iDebugLevel == 0) .and. IsFirstTime(iBlock) .and. DoSeparateHPI) then
+         elseif ((iDebugLevel == 0) .and. IsFirstTime(iBlock) .and. doSeparateHPI) then
             write(*,*) '---------------------------------------------------'
             write(*,*) 'Using HPI from each hemisphere to normalize aurora!!'
             write(*,*) 'no longer reporting!'
             write(*,*) '---------------------------------------------------'
         endif
         if (iDebugLevel >= 1) then
-           if (DoSeparateHPI) then
+           if (doSeparateHPI) then
              write(*,*) 'Auroral normalizing ratio: ', Hpi, avepower, ratio
            else
              write(*,*) 'Auroral normalizing ratios: '
