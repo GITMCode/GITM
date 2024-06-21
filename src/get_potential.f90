@@ -201,7 +201,8 @@ subroutine set_indices
      call read_NOAAHPI_Indices_new( &
           iError, &
           CurrentTime+TimeDelayHighLat, &
-          EndTime+TimeDelayHighLat)
+          EndTime+TimeDelayHighLat, &
+          DoSeparateHPI)
      call read_MHDIMF_Indices_new( &
           iError, &
           CurrentTime+TimeDelayHighLat, &

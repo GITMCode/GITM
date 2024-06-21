@@ -81,6 +81,8 @@ srcPython/supermag_download_ae.py 20021221 20021222
 #SME_INDICES
 UA/DataIn/ae_20021221.txt		SME Filename
 none              		onset time delay file
+F                 Use AE-derived hemispheric power?
+F                 (only if above is T) Scale each hemisphere 10% by season?
 
 ------------ E-Field Drivers ------------
 

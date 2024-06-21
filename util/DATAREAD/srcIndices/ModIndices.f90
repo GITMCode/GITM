@@ -41,9 +41,10 @@ Module ModIndices
   integer, parameter :: onsetut_  = 24
   integer, parameter :: onsetmlat_= 25
   integer, parameter :: onsetmlt_ = 26
+  integer, parameter :: hpi_sh_  = 27
 
   integer, parameter :: MaxIndicesEntries = 60000
-  integer, parameter :: nIndices  = onsetmlt_
+  integer, parameter :: nIndices  = hpi_sh_ 
 
   real, allocatable           :: Indices_TV(:,:)
   integer, dimension(nIndices)                           :: nIndices_V=0

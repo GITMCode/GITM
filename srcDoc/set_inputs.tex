@@ -332,12 +332,16 @@ This input option allows GITM to use an appropriate F$_{10.7}$ for each day that
 \subsubsection{SME\_INDICES}
 \label{sme_indices.sec}
 
-This option is not well described in set\_inputs.f90.
+This allows users to input AE/AU/AL indices data. These data can be downloaded online, for example, from \url{https://wdc.kugi.kyoto-u.ac.jp/aeasy/index.html}.
+
+GITM also allows users to derive Hemispheric power from the AE index, and to optionally add a 10\% seasonal scaling factor to these hemispheric power, as discussed here \url{https://doi.org/10.1029/2006GL028444}. 
 
 \begin{verbatim}
 #SME_INDICES
-(string) Mystery input number one
-(string) Mystery input number two
+(string) path to SME file
+(string) path to time delay file. Set to "none" if you do not have one
+(logical) Use AE to derive HP data?
+(logical) Apply seasonal scaling to this AE?
 \end{verbatim}
 
 \subsubsection{ACE\_DATA}
@@ -368,6 +372,7 @@ This option is not well described in set\_inputs.f90.
 \begin{verbatim}
 #NOAAHPI_INDICES
 (string) NOAA HPI filename
+(logical) If scaling aurora by HP (#AURORAMODS), treat N/S hemisphere independently?
 \end{verbatim}
 
 \subsubsection{KP}
@@ -477,6 +482,7 @@ When running with the MSIS or WACCM tides, no additional input files are needed.
 (logical) UseMSISTides      
 (logical) UseGSWMTides     
 (logical) UseWACCMTides    
+(logical) UseHmeTides
 \end{verbatim}
 
 \subsubsection{DUSTDATA}
@@ -545,6 +551,8 @@ A switch to add heating to the atmosphere.  This was primarily used to explore g
 #AURORAMODS
 (logical) Normalize Aurora to Hemispheric Power
 (real) Auroral Height Factor
+(logical) Use Kappa aurora
+(real) Aurora kappa factor (3 min; higher is maxwellian)
 \end{verbatim}
 
 \subsubsection{NEWELLAURORA}

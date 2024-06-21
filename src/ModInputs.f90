@@ -89,6 +89,10 @@ module ModInputs
   ! This is true because FR&E is default.
   logical :: NormalizeAuroraToHP = .true.
 
+  ! Option to use separate HPI in N/S hemispheres:
+  ! Used when reading NOAA or SME hemispheric power
+  logical :: DoSeparateHPI = .false.
+
   logical :: UseCusp = .false.
   real :: CuspAveE = 0.1
   real :: CuspEFlux = 2.0

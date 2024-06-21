@@ -33,7 +33,7 @@ subroutine set_inputs
 
   integer, dimension(7) :: iEndTime
 
-  logical :: IsDone, IsStartFound, doUseAeForHp
+  logical :: IsDone, IsStartFound, doUseAeForHp, didDeclareHP=.false.
   integer :: iDebugProc=0
   character (len=iCharLen_) :: cLine
   integer :: iLine, iSpecies, iSat
@@ -678,7 +678,6 @@ subroutine set_inputs
         case ("#AURORA")
            call read_in_string(cAuroralModel, iError)
 
-           
         case ("#AURORAMODS")
            HasSetAuroraMods = .true.
            call read_in_logical(NormalizeAuroraToHP, iError)
@@ -689,8 +688,8 @@ subroutine set_inputs
               write(*,*) 'Incorrect format for #AURORAMODS'
               write(*,*) 'This is for modifying the aurora a bit.  The'
               write(*,*) 'NormalizeAuroraToHP variable calculates the '
-              write(*,*) 'modeled hemispheric power and then normalizes it'
-              write(*,*) 'the hemispheric power read in. '
+              write(*,*) ' modeled hemispheric power and then normalizes it'
+              write(*,*) ' the hemispheric power read in. '
               write(*,*) 'AveEFactor - changes the aveE of the aurora by factor'
               write(*,*) 'IsKappaAurora - use a kappa instead of Maxwellian'
               write(*,*) 'AuroraKappa - kappa to use in the distribution'
@@ -1805,13 +1804,33 @@ subroutine set_inputs
               write(*,*) "----------------------------------------------"
               iError = 0
            endif
+
+           call read_in_logical(doSeparateHPI, iError)
+           if ((iError /= 0) .and. (iDebugProc == iProc)) then
+              write(*,*) "----------------------------------------------"
+              write(*,*) "GITM also allows the use of a 10% seasonal "
+              write(*,*) "correction factor in this calculation."
+              write(*,*) "Put another T after the SME file if you want, "
+              write(*,*) "or put a F if you don't."
+              write(*,*) "----------------------------------------------"
+              iError = 0
+           endif
+
+
+           ! ALB: Check if HPI was read with SME, print error if so:
+           if (didDeclareHP .and. doUseAeForHp .and. (iDebugProc == iProc)) then
+            write(*,*) "HPI defined twice. Using AE-derived values."
+           endif
+           if (doUseAeForHp) didDeclareHP = .true.
+
            cTempLines(4) = " "
            cTempLines(5) = "#END"
 
            call IO_set_inputs(cTempLines)
            call read_sme(iError, &
                 CurrentTime+TimeDelayHighLat, &
-                EndTime+TimeDelayHighLat, doUseAeForHp)
+                EndTime+TimeDelayHighLat, doUseAeForHp, &
+                doSeparateHPI)
 
            if (iError /= 0) then
               write(*,*) "read indices was NOT successful (SME file)"
@@ -1872,12 +1891,27 @@ subroutine set_inputs
         case ("#NOAAHPI_INDICES")
            cTempLines(1) = cLine
            call read_in_string(cTempLine, iError)
+
+           call read_in_logical(doSeparateHPI, iError)
+           if ((iError /= 0) .and. (iDebugProc == iProc)) then
+              write(*,*) "----------------------------------------------"
+              write(*,*) "GITM now allows you to scale the aurora by hemispheric"
+              write(*,*) "power independently in each hemisphere. To enable this,"
+              write(*,*) "put a T after your HPI file, or put a F to silence."
+              write(*,*) "----------------------------------------------"
+              iError = 0
+           endif
+
            cTempLines(2) = cTempLine
            cTempLines(3) = " "
            cTempLines(4) = "#END"
 
            call IO_set_inputs(cTempLines)
-           call read_NOAAHPI_Indices_new(iError,StartTime,EndTime)
+           call read_NOAAHPI_Indices_new(iError,StartTime,EndTime,doSeparateHPI)
+
+           ! ALB: Check if HPI was read with SME, print error if so:
+           if (didDeclareHP) write(*,*) "HPI defined twice. Using NOAA values."
+           didDeclareHP = .true.
 
            if (iError /= 0) then 
               write(*,*) "read indices was NOT successful (NOAA HPI file)"
