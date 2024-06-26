@@ -271,7 +271,8 @@ def read_f107(file):
     f107 = {
         'times': [],
         'f107': [] }
-    
+
+    print('--> Reading F107 file : ', file)
     fpin = open(file, 'r')
     lines = fpin.readlines()
     fpin.close()
@@ -290,6 +291,8 @@ def read_f107(file):
         mi = int(int(hms[1]))
         s = int(int(hms[2]))
         f107['times'].append(datetime(y, m, d, h, mi, s))
+
+    print(' --> Last time in F107 file : ', f107['times'][-1])
 
     return f107
         
@@ -479,6 +482,18 @@ diff = (end - start).total_seconds()
 mid = start + timedelta(seconds = diff/2)
 
 f107file = 'UA/DataIn/f107_adjusted.txt'
+if (not os.path.exists(f107file)):
+    print("--> F107 file is not here : ", f107file)
+    f107file = '../srcData/f107_adjusted.txt'
+    if (not os.path.exists(f107file)):
+        print("--> F107 file is not here : ", f107file)
+        f107file = './f107_adjusted.txt'
+        if (not os.path.exists(f107file)):
+            print("--> F107 file is not here : ", f107file)
+            print('I cant seem to find the f107 file!')
+            print("giving up...")
+            exit()
+
 f107data = read_f107(f107file)
 
 f107, i = find_value_at_time(f107data, 'f107', mid)
