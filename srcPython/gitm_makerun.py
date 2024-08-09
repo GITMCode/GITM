@@ -279,9 +279,16 @@ def read_f107(file):
     lines = lines[15:]
 
     for line in lines:
-        tv = line.split(';')
-        f107['f107'].append(float(tv[1]))
-        dt = tv[0].split(' ')
+        line = line.replace('   ',' ')
+        line = line.replace('  ',' ')
+        if (';' in line):
+            tv = line.split(';')
+            f107['f107'].append(float(tv[1]))
+            dt = tv[0].split(' ')
+        else:
+            dt = line.split(' ')
+            f107['f107'].append(float(dt[2]))
+            
         ymd = dt[0].split('-')
         hms = dt[1].split(':')
         y = int(int(ymd[0]))
@@ -289,7 +296,10 @@ def read_f107(file):
         d = int(int(ymd[2]))
         h = int(int(hms[0]))
         mi = int(int(hms[1]))
-        s = int(int(hms[2]))
+        if (len(hms) > 2):
+            s = int(int(hms[2]))
+        else:
+            s = 0
         f107['times'].append(datetime(y, m, d, h, mi, s))
 
     print(' --> Last time in F107 file : ', f107['times'][-1])
@@ -481,13 +491,13 @@ if (args.imf):
 diff = (end - start).total_seconds()
 mid = start + timedelta(seconds = diff/2)
 
-f107file = 'UA/DataIn/f107_adjusted.txt'
+f107file = 'UA/DataIn/f107.txt'
 if (not os.path.exists(f107file)):
     print("--> F107 file is not here : ", f107file)
-    f107file = '../srcData/f107_adjusted.txt'
+    f107file = '../srcData/f107.txt'
     if (not os.path.exists(f107file)):
         print("--> F107 file is not here : ", f107file)
-        f107file = './f107_adjusted.txt'
+        f107file = './f107.txt'
         if (not os.path.exists(f107file)):
             print("--> F107 file is not here : ", f107file)
             print('I cant seem to find the f107 file!')
