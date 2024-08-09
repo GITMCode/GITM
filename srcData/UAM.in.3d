@@ -107,6 +107,7 @@ Can download AU/AL/AE indices from SuperMAG and use them here:
 SME_INDICES
 sme_2010.txt      SME Filename
 none              onset time delay file
+T		  convert SME to Hemispheric Power
 
 This is for OVATION-PRIME:
 #NEWELLAURORA
