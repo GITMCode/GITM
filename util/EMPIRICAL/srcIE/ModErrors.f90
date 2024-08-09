@@ -24,6 +24,8 @@ module ModErrors
 
   character (len=iCharLenIE_), dimension(nErrorsMax) :: cErrorCodes
 
+  logical :: isOk
+
 contains
 
   subroutine set_error_codes
@@ -46,6 +48,8 @@ contains
     cErrorCodes(ecAuroralModelNotFound_) = &
          "The Selected Auroral model is unknown"
     cErrorCodes(ecSWNNotSet_)       = "Solar Wind N has not been set"
+
+    isOk = .true.
 
   end subroutine set_error_codes
 
