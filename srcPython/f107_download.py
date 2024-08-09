@@ -79,7 +79,7 @@ def write_f107_file(data, message = "none", fileout = "none"):
     for i, t in enumerate(data['times']):
         f107 = data['f107'][i]
         out = " %6.1f    ''   ''" % (f107)
-        ymdhm = t.strftime('%Y-%m-%d %H-%M')
+        ymdhm = t.strftime('%Y-%m-%d %H:%M')
         line = ymdhm + out + "\n"
         fp.write(line.encode())
 
