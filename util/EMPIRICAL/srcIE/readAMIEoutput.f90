@@ -1,6 +1,46 @@
 !  Copyright (C) 2002 Regents of the University of Michigan, portions used with permission 
 !  For more information, see http://csem.engin.umich.edu/tools/swmf
-subroutine readAMIEoutput(iBLK, IsMirror, iError)
+
+
+subroutine readAMIEvariables(AmieFile, nVars, varNames, iDebugLevel)
+
+  use ModCharSize
+  implicit none
+  integer, parameter :: nFieldsMax = 100
+  character (len=iCharLenIE_), intent(in) :: AmieFile
+  integer, intent(out) :: nVars
+  character (len=30), dimension(nFieldsMax), intent(out) :: varNames
+  integer, intent(in) :: iDebugLevel
+  
+  integer :: iUnitTmp_ = 77
+  integer :: iError = 0, iVar, i
+  real*4 :: dummy(1000)
+  
+  integer :: nlats, nmlts, ntimes
+  open(iUnitTmp_, &
+       file = AmieFile, &
+       status = 'old', &
+       form = 'UNFORMATTED', &
+       iostat = iError)
+  read(iUnitTmp_) nlats, nmlts, ntimes
+  read(iUnitTmp_) (dummy(i), i = 1, nlats)
+  read(iUnitTmp_) (dummy(i), i = 1, nmlts)
+  read(iUnitTmp_) nVars
+  do iVar = 1, nVars
+     read(iUnitTmp_) varNames(iVar)
+  enddo
+  close(iUnitTmp_)
+
+  if (iDebugLevel > 1) then
+     write(*, *) "AMIE Variables : " 
+     do iVar = 1, nVars
+        write(*,*) iVar, '. ', trim(varNames(iVar))
+     enddo
+  endif
+  return
+end subroutine readAMIEvariables
+
+subroutine readAMIEoutput(iBLK, IsMirror, iDebugGitm, iError)
 
   use ModAMIE_Interface
   use ModEIEFiles
@@ -11,11 +51,16 @@ subroutine readAMIEoutput(iBLK, IsMirror, iError)
   integer, intent(out) :: iError
   logical, intent(in)  :: IsMirror
   integer, intent(in)  :: iBLK
+  integer, intent(in)  :: iDebugGitm
 
   integer :: iTime, nTimesBig, nTimesTotal
   integer :: nfields
   integer :: ntemp, iyr, imo, ida, ihr, imi
-  integer :: i,j, iField, iPot_, iAveE_, iEFlux_, iPotY_
+  integer :: i,j, iField, iVal, iPot_, iAveE_, iEFlux_, iPotY_
+  integer :: ieleMonoEFlux_ = -1
+  integer :: ieleMonoAveE_ = -1
+  integer :: ieleWaveEFlux_ = -1
+  integer :: ieleWaveAveE_ = -1
   integer :: iIonEFlux_ = -1
   integer :: iIonAveE_ = -1
   real*4  :: swv,bx,by,bz,aei,ae,au,al,dsti,dst,hpi,sjh,pot
@@ -30,21 +75,29 @@ subroutine readAMIEoutput(iBLK, IsMirror, iError)
   logical :: IsBinary, energyfluxconvert, ReverseLats = .false.
 
   real :: dPotential, dPotentialY
-  integer :: nCellsPad, n
+  integer :: n
 
-  nTimesBig=0
-  nTimesTotal=0
+  real :: factor
+  nTimesBig = 0
+  nTimesTotal = 0
+  
+  AMIE_iDebugLevel = iDebugGitm
 
   iError = 0
-  open(UnitTmp_, file=AMIE_FileName, status='old',form='UNFORMATTED',iostat=iError)
+  if (AMIE_iDebugLevel >= 0) write(*,*) '> reading AMIE file : ', trim(AMIE_FileName)
+  open(UnitTmp_, &
+       file=AMIE_FileName, &
+       status='old', &
+       form='UNFORMATTED', &
+       iostat=iError)
   if (iError.ne.0) then
-     write(*,*) "Error opening file:", AMIE_FileName
+     write(*,*) "Error opening file:", trim(AMIE_FileName)
      stop
   endif
   AMIE_nLats = 0
   IsBinary = .true.
 
-  read(UnitTmp_,iostat=iError) AMIE_nlats,AMIE_nmlts,AMIE_ntimes
+  read(UnitTmp_, iostat = iError) AMIE_nlats, AMIE_nmlts, AMIE_ntimes
   if ((iError.ne.0).or.(AMIE_nlats.gt.500)) then
      write(*,*) "Error reading variables AMIE_nlats, AMIE_nmlts, AMIE_ntimes"
      IsBinary = .false.
@@ -52,11 +105,15 @@ subroutine readAMIEoutput(iBLK, IsMirror, iError)
   close(UnitTmp_)
 
   if (IsBinary) then
-     open(UnitTmp_, file=AMIE_FileName, status='old',form='UNFORMATTED')
-     read(UnitTmp_) AMIE_nlats,AMIE_nmlts,AMIE_ntimes
+     call AMIE_link_variable_names()
+     call readAMIEvariables(AMIE_FileName, nFields, Fields, AMIE_iDebugLevel)
+     call AMIE_link_vars_to_keys(nFields, Fields)
+     
+     open(UnitTmp_, file = AMIE_FileName, status='old', form='UNFORMATTED')
+     read(UnitTmp_) AMIE_nlats, AMIE_nmlts, AMIE_ntimes
   else
-     open(UnitTmp_, file=AMIE_FileName, status='old')
-     read(UnitTmp_,*) AMIE_nlats,AMIE_nmlts,AMIE_ntimes
+     open(UnitTmp_, file = AMIE_FileName, status='old')
+     read(UnitTmp_,*) AMIE_nlats, AMIE_nmlts, AMIE_ntimes
   endif
 
   !\
@@ -65,7 +122,7 @@ subroutine readAMIEoutput(iBLK, IsMirror, iError)
   ! high.  This means that the gradient in the potential will be
   ! large - meaning that very strong flows can exist in this last
   ! cell.  This is not good.
-  ! To rectify this, we will pad the AMIE results by 5 grid cells, and
+  ! To rectify this, we will pad the AMIE results by 15 grid cells, and
   ! force the potential to go to zero linearly from the last cell to the
   ! new last cell.
   ! Since it is assumed that all of the AMIE quantities are on the same
@@ -75,117 +132,46 @@ subroutine readAMIEoutput(iBLK, IsMirror, iError)
   !/
 
   nCellsPad = 15
+  AMIE_nBlks = 2
+  
+  if (.not.allocated(AMIE_Storage)) call AMIE_allocate_variables()
 
-  if (allocated(AMIE_Lats)) deallocate(AMIE_Lats)
-  allocate(AMIE_Lats(AMIE_nLats+nCellsPad), stat=iError)
+  ! these are local variables:
+
+  if (allocated(AllData)) deallocate(AllData)
+  allocate(AllData(AMIE_nMlts, AMIE_nLats, nFields), stat=iError)
   if (iError /= 0) then
-     write(*,*) "Error in allocating array AMIE_Lats in "
+     write(*,*) "Error in allocating array AllData in "
      stop
   endif
 
-  if (allocated(AMIE_Mlts)) deallocate(AMIE_Mlts)
-  allocate(AMIE_Mlts(AMIE_nMlts), stat=iError)
-  if (iError /= 0) then
-     write(*,*) "Error in allocating array Mlts in "
-     stop
-  endif
+  ! ---------------------------------------------------------------
+  ! Read and extrapolate AMIE grid
 
-  if (.not.allocated(AMIE_Potential)) then
-
-     allocate(AMIE_Potential(AMIE_nMlts,AMIE_nLats+nCellsPad, &
-                             AMIE_nTimes,2), stat=iError)
-     if (iError /= 0) then
-        write(*,*) "Error in allocating array AMIE_Potential in "
-        stop
-     endif
-
-     ! ------------------------
-     ! Electron Energy Flux:
-
-     allocate(AMIE_EFlux(AMIE_nMlts,AMIE_nLats+nCellsPad, &
-                         AMIE_nTimes,2), stat=iError)
-     if (iError /= 0) then
-        write(*,*) "Error in allocating array AMIE_EFlux in "
-        stop
-     endif
-
-     AMIE_EFlux = 0.0
-
-     ! ------------------------
-     ! Electron Average Energy:
-
-     allocate(AMIE_AveE(AMIE_nMlts,AMIE_nLats+nCellsPad, &
-                        AMIE_nTimes,2), stat=iError)
-     if (iError /= 0) then
-        write(*,*) "Error in allocating array AMIE_AveE in "
-        stop
-     endif
-
-     AMIE_AveE = 0.0
-
-     ! ------------------------
-     ! Ion Energy Flux:
-
-     allocate(AMIE_IonEFlux(AMIE_nMlts,AMIE_nLats+nCellsPad, &
-          AMIE_nTimes,2), stat=iError)
-     if (iError /= 0) then
-        write(*,*) "Error in allocating array AMIE_IonEFlux in "
-        stop
-     endif
-
-     AMIE_IonEFlux = 0.0
-
-     ! ------------------------
-     ! Ion Average Energy:
-
-     allocate(AMIE_IonAveE(AMIE_nMlts,AMIE_nLats+nCellsPad, &
-          AMIE_nTimes,2), stat=iError)
-     if (iError /= 0) then
-        write(*,*) "Error in allocating array AMIE_IonAveE in "
-        stop
-     endif
-
-     AMIE_IonAveE = 0.0
-
-     ! ------------------------
-     ! Generic AMIE Value:
-
-     allocate(AMIE_Value(AMIE_nMlts,AMIE_nLats+nCellsPad, &
-                         AMIE_nTimes,2), stat=iError)
-     if (iError /= 0) then
-        write(*,*) "Error in allocating array AMIE_Value in "
-        stop
-     endif
-
-     AMIE_Value = 0.0
-
-     ! ------------------------
-     ! Time:
-
-     allocate(AMIE_Time(AMIE_nTimes,2), stat=iError)
-     if (iError /= 0) then
-        write(*,*) "Error in allocating array AMIETimes in "
-        stop
-     endif
-
-  endif
-
+  if (AMIE_iDebugLevel > 1) write(*,*) 'Reading AMIE grid'
+  
   if (IsBinary) then
-     read(UnitTmp_) (AMIE_Lats(i),i=1,AMIE_nLats)
-     read(UnitTmp_) (AMIE_Mlts(i),i=1,AMIE_nMlts)
+     read(UnitTmp_) (AMIE_Lats(i), i = 1, AMIE_nLats)
+     read(UnitTmp_) (AMIE_Mlts(i), i = 1, AMIE_nMlts)
      read(UnitTmp_) nFields
   else
-     read(UnitTmp_,*) (AMIE_Lats(i),i=1,AMIE_nLats)
-     read(UnitTmp_,*) (AMIE_Mlts(i),i=1,AMIE_nMlts)
+     read(UnitTmp_,*) (AMIE_Lats(i), i = 1, AMIE_nLats)
+     read(UnitTmp_,*) (AMIE_Mlts(i), i = 1, AMIE_nMlts)
      read(UnitTmp_,*) nFields
   endif
 
+  if (nFields > nFieldsMax) then
+     write(*,*) "Maximum number of fields in AMIE is ",nFieldsMax
+     stop
+  endif
+  
   AMIE_Lats = 90.0 - AMIE_Lats
 
   !\
   ! Extrapolate the latitude grid
   !/
 
+  if (AMIE_iDebugLevel > 1) write(*,*) 'Extrapolating AMIE grid'
   if (AMIE_Lats(AMIE_nLats) > AMIE_Lats(1)) then
      ! The AMIE data is in reverse order than what we want, so let's reverse it
      if (allocated(TempLats)) deallocate(TempLats)
@@ -199,25 +185,13 @@ subroutine readAMIEoutput(iBLK, IsMirror, iError)
         AMIE_Lats(i) = TempLats(AMIE_nLats+1-i)
      enddo
      ReverseLats = .true.
+     deallocate(TempLats)
   endif
 
   do i=AMIE_nLats+1,AMIE_nLats+nCellsPad
      AMIE_Lats(i) = AMIE_Lats(i-1) + &
           (AMIE_Lats(AMIE_nLats) - AMIE_Lats(AMIE_nLats-1))
   enddo
-
-  if (nFields > nFieldsMax) then
-     write(*,*) "Maximum number of fields in AMIE is ",nFieldsMax
-     stop
-  endif
-
-  allocate(AllData(AMIE_nMlts,AMIE_nLats,nFields), stat=iError)
-  if (iError /= 0) then
-     write(*,*) "Error in allocating array AllData in "
-     stop
-  endif
-
-  AMIE_iDebugLevel = 0
 
   energyfluxconvert = .false.
 
@@ -227,65 +201,24 @@ subroutine readAMIEoutput(iBLK, IsMirror, iError)
      else
         read(UnitTmp_,'(a)') Fields(iField)
      endif
-
-     if (AMIE_iDebugLevel > 1) write(*,*) Fields(iField)
-
-     if ((index(Fields(iField),"Potential") > 0).and. &
-         (index(Fields(iField),"odel") < 1) .and. &
-         (index(Fields(iField),"PotentialY") < 1)) then
-        iPot_ = iField
-        if (AMIE_iDebugLevel > 1) write(*,*) "<--- Potential Found", iPot_
-     endif
-
-     !!! Xing Meng Jan 2019 to read AMIE output with two potentials
-     ! for two-potentials, the above if-statement deals with PotentialX, 
-     ! now check PotentialY
-     if ((index(Fields(iField),"PotentialY") > 0).and. &
-         (index(Fields(iField),"odel") < 1)) then
-        iPotY_ = iField
-        if (AMIE_iDebugLevel > 1) write(*,*) "<--- PotentialY Found", iPotY_
-        if (.not.allocated(AMIE_PotentialY)) then
-           allocate(AMIE_PotentialY(AMIE_nMlts,AMIE_nLats+nCellsPad, &
-                AMIE_nTimes,2), stat=iError)
-           if (iError /= 0) then
-              write(*,*) "Error in allocating array AMIE_PotentialY in "
-              stop
-           endif           
-        endif
-     endif
-
-     if ((index(Fields(iField),"Mean Energy") > 0) .and. &
-          (index(Fields(iField),"Ion") < 1) .and. &
-          (index(Fields(iField),"odel") < 1)) then
-        iAveE_ = iField
-        if (AMIE_iDebugLevel > 1) write(*,*) "<--- Electron Mean Energy Found", iAveE_
-     endif
-
-     if ((index(Fields(iField),"Ion Mean Energy") > 0) .and. &
-         (index(Fields(iField),"odel") < 1)) then
-        iIonAveE_ = iField
-        if (AMIE_iDebugLevel > 1) write(*,*) "<--- Ion Mean Energy Found", iIonAveE_
-     endif
-
-     if ((index(Fields(iField),"Energy Flux") > 0) .and. &
-          (index(Fields(iField),"Ion") < 1) .and. &
-          (index(Fields(iField),"odel") < 1)) then
-        if (index(Fields(iField),"w/m2") > 0) energyfluxconvert = .true.
-        iEFlux_ = iField
-        if (AMIE_iDebugLevel > 1) write(*,*) "<--- Electron Energy Flux Found", iEFlux_, &
-             Fields(iField)
-     endif
-     if ((index(Fields(iField),"Ion Energy Flux") > 0) .and. &
-          (index(Fields(iField),"odel") < 1)) then
-        iIonEFlux_ = iField
-        if (AMIE_iDebugLevel > 1) write(*,*) "<--- Ion Energy Flux Found", iIonEFlux_, &
-             Fields(iField)
-     endif
-
   enddo
 
+  ! Need to convert from W/m^2 to erg/cm2/s
+  factor = 1.0
+  if (energyfluxconvert) then
+     factor = 1.0 / (1.0e-7 * 100.0 * 100.0)
+     unitConvert(iEle_diff_eflux_) = factor
+     unitConvert(iIon_diff_eflux_) = factor
+     unitConvert(iEle_mono_eflux_) = factor
+     unitConvert(iEle_wave_eflux_) = factor
+  endif
+
+  if (AMIE_iDebugLevel > 1) write(*,*) 'Reading AMIE data now...'
+    
   do iTime=1,AMIE_ntimes
 
+     if (AMIE_iDebugLevel > 1) write(*,*) ' --> iTime : ', iTime
+     
      if (IsBinary) then
 
         read(UnitTmp_) ntemp,iyr,imo,ida,ihr,imi
@@ -325,184 +258,80 @@ subroutine readAMIEoutput(iBLK, IsMirror, iError)
      itime_i(5) = imi
      itime_i(6) = 0
      itime_i(7) = 0
-     call time_int_to_real(itime_i,rtime)
+     call time_int_to_real(itime_i,rtime)     
      AMIE_Time(iTime,iBLK) = rtime
 
      ! We need Potential to be in Volts
      !         AveE to be in keV
      !         EFlux to be in W/m2
 
-     if (.not.IsMirror) then
-        AMIE_Potential(:,1:AMIE_nLats,iTime,iBLK) = &
-             AllData(:,1:AMIE_nLats,iPot_)
-     else
-        ! This is typically done for the Southern Hemisphere, when we don't
-        ! have Southern Hemisphere Runs.
-        do i=1,AMIE_nMlts
-           AMIE_Potential(i,1:AMIE_nLats,iTime,iBLK) = &
-                -AllData(AMIE_nMlts+1 - i,1:AMIE_nLats,iPot_)
-        enddo
-     endif
-
-     AMIE_AveE(:,1:AMIE_nLats,iTime,iBLK) = AllData(:,1:AMIE_nLats,iAveE_)
-
-     if (iIonAveE_ > -1) &
-          AMIE_IonAveE(:,1:AMIE_nLats,iTime,iBLK) = AllData(:,1:AMIE_nLats,iIonAveE_)
-
-     ! Need to convert from W/m^2 to erg/cm2/s
-
-     if (energyfluxconvert) then
-        AMIE_EFlux(:,1:AMIE_nLats,iTime,iBLK)     = &
-             AllData(:,1:AMIE_nLats,iEFlux_) / (1.0e-7 * 100.0 * 100.0)
-        if (iIonEFlux_ > -1) &
-             AMIE_IonEFlux(:,1:AMIE_nLats,iTime,iBLK)     = &
-             AllData(:,1:AMIE_nLats,iIonEFlux_) / (1.0e-7 * 100.0 * 100.0)
-     else
-        AMIE_EFlux(:,1:AMIE_nLats,iTime,iBLK)     = & 
-             AllData(:,1:AMIE_nLats,iEFlux_)
-        if (iIonEFlux_ > -1) &
-             AMIE_IonEFlux(:,1:AMIE_nLats,iTime,iBLK)     = & 
-             AllData(:,1:AMIE_nLats,iIonEFlux_)
-     endif
-
-     do i=1,AMIE_nMlts
-
-        dPotential = AMIE_Potential(i,AMIE_nLats,iTime,iBLK)/nCellsPad
-
-        do j=AMIE_nLats+1, AMIE_nLats+nCellsPad
-
-           AMIE_AveE(i,j,iTime,iBLK)  = &
-                minval(AMIE_AveE(:,1:AMIE_nLats,iTime,iBLK))
-           AMIE_EFlux(i,j,iTime,iBLK) = &
-                minval(AMIE_EFlux(:,1:AMIE_nLats,iTime,iBLK))
-
-           if (iIonAveE_ > -1) &
-                AMIE_IonAveE(i,j,iTime,iBLK)  = &
-                minval(AMIE_IonAveE(:,1:AMIE_nLats,iTime,iBLK))
-           if (iIonEFlux_ > -1) &
-                AMIE_IonEFlux(i,j,iTime,iBLK) = &
-                minval(AMIE_IonEFlux(:,1:AMIE_nLats,iTime,iBLK))
-
-
-           AMIE_Potential(i,j,iTime,iBLK) = &
-                AMIE_Potential(i,j-1,iTime,iBLK) - dPotential
-
-        enddo
-     enddo
-
-     ! One problem with the extension to lower latitudes is that the 
-     ! potential can start having large differences in MLT, giving rise
-     ! to large eastward electric fields.  We will try to compensate
-     ! for this by averaging a bit...
-
-     do j=AMIE_nLats+1, AMIE_nLats+nCellsPad
-     
-        ! We are going to smooth more and more as we go down in latitude
-
-        do n = 1, j-AMIE_nLats
-
-           i = 1
-           AMIE_Potential(i,j,iTime,iBLK) = &
-                (AMIE_Potential(AMIE_nMlts-1,j,iTime,iBLK) + &
-                2*AMIE_Potential(i,j,iTime,iBLK) + &
-                AMIE_Potential(i+1,j,iTime,iBLK))/4.0
-
-           do i=2,AMIE_nMlts-1
-              AMIE_Potential(i,j,iTime,iBLK) = &
-                   (AMIE_Potential(i-1,j,iTime,iBLK) + &
-                    2*AMIE_Potential(i,j,iTime,iBLK) + &
-                    AMIE_Potential(i+1,j,iTime,iBLK))/4.0
-              if (AMIE_EFlux(i,j,iTime,iBLK) > 1000.0) &
-                   nTimesBig = nTimesBig+1
-              nTimesTotal = nTimesTotal + 1
-           enddo
-
-           i = AMIE_nMlts
-           AMIE_Potential(i,j,iTime,iBLK) = &
-                (AMIE_Potential(i-1,j,iTime,iBLK) + &
-                2*AMIE_Potential(i,j,iTime,iBLK) + &
-                AMIE_Potential(2,j,iTime,iBLK))/4.0
-
-        enddo
-     enddo
-
-     if (allocated(AMIE_PotentialY)) then
-        if (.not.IsMirror) then
-           AMIE_PotentialY(:,1:AMIE_nLats,iTime,iBLK) = &
-                AllData(:,1:AMIE_nLats,iPotY_)
-        else
-           ! This is typically done for the Southern Hemisphere, when we don't
-           ! have Southern Hemisphere Runs.
-           do i=1,AMIE_nMlts
-              AMIE_PotentialY(i,1:AMIE_nLats,iTime,iBLK) = &
-                   -AllData(AMIE_nMlts+1 - i,1:AMIE_nLats,iPotY_)
-           enddo
-        endif
-        
-        do i=1,AMIE_nMlts
-           dPotentialY = AMIE_PotentialY(i,AMIE_nLats,iTime,iBLK)/nCellsPad
-           do j=AMIE_nLats+1, AMIE_nLats+nCellsPad
-              AMIE_PotentialY(i,j,iTime,iBLK) = &
-                   AMIE_PotentialY(i,j-1,iTime,iBLK) - dPotentialY
-           enddo
-        enddo
-
-        do j=AMIE_nLats+1, AMIE_nLats+nCellsPad
-           do n = 1, j-AMIE_nLats
-
-              i = 1
-              AMIE_PotentialY(i,j,iTime,iBLK) = &
-                   (AMIE_PotentialY(AMIE_nMlts-1,j,iTime,iBLK) + &
-                   2*AMIE_PotentialY(i,j,iTime,iBLK) + &
-                   AMIE_PotentialY(i+1,j,iTime,iBLK))/4.0
-
-              do i=2,AMIE_nMlts-1
-                 AMIE_PotentialY(i,j,iTime,iBLK) = &
-                      (AMIE_PotentialY(i-1,j,iTime,iBLK) + &
-                      2*AMIE_PotentialY(i,j,iTime,iBLK) + &
-                      AMIE_PotentialY(i+1,j,iTime,iBLK))/4.0
-                 if (AMIE_EFlux(i,j,iTime,iBLK) > 1000.0) &
-                      nTimesBig = nTimesBig+1
-                 nTimesTotal = nTimesTotal + 1
+     if (AMIE_iDebugLevel > 1) write(*,*) '  --> Pushing in to storage '
+     do iVal = 1, nValues
+        if (iMap_(iVal) > 0) then
+           ! if we are mirroring, we need to do something special
+           !  but only if we are talking about the potential:
+           if ((IsMirror) .and. &
+                ((iVal == iPotential_) .or. (iVal == iPotentialY_))) then
+              do i=1,AMIE_nMlts
+                 AMIE_Storage(iVal, i, 1:AMIE_nLats, iTime, iBLK) = &
+                      - AllData(AMIE_nMlts+1 - i, 1:AMIE_nLats, iMap_(iVal))
               enddo
+           else
+              ! This is the default :
+              !    (need loop for optimization issues in gfortran...)
+              do i=1,AMIE_nMlts
+                 AMIE_Storage(iVal, i, 1:AMIE_nLats, iTime, iBLK) = &
+                      AllData(i, 1:AMIE_nLats, iMap_(iVal))
+              enddo
+           endif
 
-              i = AMIE_nMlts
-              AMIE_PotentialY(i,j,iTime,iBLK) = &
-                   (AMIE_PotentialY(i-1,j,iTime,iBLK) + &
-                   2*AMIE_PotentialY(i,j,iTime,iBLK) + &
-                   AMIE_PotentialY(2,j,iTime,iBLK))/4.0
+           ! If the variable is the potential, linearly interpolate it to lower
+           ! latitudes, and then smooth it in mlt:
+           if ((iVal == iPotential_) .or. (iVal == iPotentialY_)) then
+              ! First extend the potential:
+              do i=1,AMIE_nMlts
+                 dPotential = AMIE_Storage(iVal, i, AMIE_nLats, iTime, iBLK) / nCellsPad
+                 do j=AMIE_nLats+1, AMIE_nLats+nCellsPad
+                    AMIE_Storage(iVal, i, j, iTime, iBLK) = &
+                         AMIE_Storage(iVal, i, j-1, iTime, iBLK) - dPotential
+                 enddo
+              enddo
+              ! Then smooth the extension in MLT:
+              do j=AMIE_nLats+1, AMIE_nLats+nCellsPad
+                 ! We are going to smooth more and more as we go down in latitude
+                 do n = 1, j-AMIE_nLats
+                    i = 1
+                    AMIE_Storage(iVal, i, j, iTime, iBLK) = &
+                         (AMIE_Storage(iVal, AMIE_nMlts-1, j, iTime, iBLK) + &
+                         2*AMIE_Storage(iVal, i, j, iTime, iBLK) + &
+                         AMIE_Storage(iVal, i+1, j, iTime, iBLK))/4.0
 
-           enddo
-        enddo
+                    do i=2,AMIE_nMlts-1
+                       AMIE_Storage(iVal, i,j,iTime,iBLK) = &
+                            (AMIE_Storage(iVal, i-1, j, iTime, iBLK) + &
+                            2*AMIE_Storage(iVal, i, j, iTime, iBLK) + &
+                            AMIE_Storage(iVal, i+1, j, iTime, iBLK))/4.0
+                    enddo
 
-     endif
+                    i = AMIE_nMlts
+                    AMIE_Storage(iVal, i, j, iTime, iBLK) = &
+                         (AMIE_Storage(iVal, i-1, j, iTime, iBLK) + &
+                         2*AMIE_Storage(iVal, i, j, iTime, iBLK) + &
+                         AMIE_Storage(iVal, 2, j, iTime, iBLK))/4.0
 
-  enddo
-
-  if (nTimesBig > nTimesTotal*0.1) then
-     AMIE_EFlux(:,:,:,iBLK) = &
-          AMIE_EFlux(:,:,:,iBLK) * (1.0e-7 * 100.0 * 100.0)
-     write(*,*) "nTimesBig is rather large, so I think that we need to "
-     write(*,*) "convert the eflux data to w/m2."
-  endif
-
-  do iTime=1,AMIE_ntimes
-     do j=1, AMIE_nLats+nCellsPad
-        do i=1,AMIE_nMlts
-           if (AMIE_EFlux(i,j,iTime,iBLK) > 100.0) &
-                AMIE_EFlux(i,j,iTime,iBLK) = 100.0
-        enddo
+                 enddo
+              enddo
+           endif
+        endif
      enddo
+     if (AMIE_iDebugLevel > 1) write(*,*) '  --> Done with time '
   enddo
-
-  if (iIonAveE_ == -1 .or. iIonEFlux_ == -1) then
-     AMIE_IonAveE = 0.0
-     AMIE_IonEFlux = 0.0
-  endif
-                
-  AMIE_nLats = AMIE_nLats + nCellsPad
-
+  
+  if (AMIE_iDebugLevel > 1) write(*,*) 'Done Reading AMIE file '
   close(UnitTmp_)
+
+  ! update the number of latitudes to include padded cells
+  AMIE_nLats = AMIE_nLats + nCellsPad
 
   deallocate(AllData, stat=iError)
 
