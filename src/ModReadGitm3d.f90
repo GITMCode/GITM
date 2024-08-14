@@ -328,7 +328,7 @@ contains
     close(iGitmUnit)
 
     if (nGitmFiles == 0) then
-       ! First try 3DALL files:
+       ! Second try LST files:
        call system('ls -1 '//GitmDir//'3DLST*.bin > .list_of_gitm_files 2> .gitm_err')
        nGitmFiles = 0
        open(iGitmUnit, file = '.list_of_gitm_files', status = 'old')
@@ -499,8 +499,6 @@ contains
     deallocate(GitmInLats)
     deallocate(GitmInAlts)
     deallocate(GitmOutData)
-
-
     
   end subroutine GitmShutDown
 
