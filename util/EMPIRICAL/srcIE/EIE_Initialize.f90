@@ -169,14 +169,14 @@ subroutine EIE_Initialize(iOutputError)
      UAl_UseGridBasedEIE = .true.
 
      call AMIE_SetFileName(AMIEFileNorth)
-     call readAMIEOutput(North_, .false., iError)
+     call readAMIEOutput(North_, .false., iDebugLevel, iError)
 
      if (index(AMIEFileSouth,'mirror') > 0) then
         call AMIE_SetFileName(AMIEFileNorth)
-        call readAMIEOutput(South_, .true., iError)
+        call readAMIEOutput(South_, .true., iDebugLevel, iError)
      else
         call AMIE_SetFileName(AMIEFileSouth)
-        call readAMIEOutput(South_, .false., iError)
+        call readAMIEOutput(South_, .false., iDebugLevel, iError)
      endif
 
      call AMIE_GetnLats(nAmieLats)
@@ -184,12 +184,8 @@ subroutine EIE_Initialize(iOutputError)
      nAmieBlocks = 2
 
      call EIE_InitGrid(nAmieLats, nAmieMlts, nAmieBlocks, iOutputError)
-
-     call AMIE_GetLats(EIEi_HavenMlts,EIEi_HavenLats,EIEi_HavenBLKs,&
-          EIEr3_HaveLats,iError)
-
-     call AMIE_GetMLTs(EIEi_HavenMlts,EIEi_HavenLats,EIEi_HavenBLKs,&
-          EIEr3_HaveMLTs,iError)
+     call AMIE_GetLats(EIEr3_HaveLats)
+     call AMIE_GetMLTs(EIEr3_HaveMLTs)
 
      return
 
@@ -277,6 +273,34 @@ subroutine EIE_InitGrid(nLats, nMlts, nBlocks, iOutputError)
        stat=iError)
   if (iError /= 0) then
      write(*,*) "Error in allocating array EIEr3_HaveAveE in Interface"
+     stop
+  endif
+
+  allocate(EIEr3_HaveMonoEFlux(EIEi_HavenMlts,EIEi_HavenLats,EIEi_HavenBLKs), &
+       stat=iError)
+  if (iError /= 0) then
+     write(*,*) "Error in allocating array EIEr3_HaveMonoEFlux in Interface"
+     stop
+  endif
+
+  allocate(EIEr3_HaveMonoAveE(EIEi_HavenMlts,EIEi_HavenLats,EIEi_HavenBLKs), &
+       stat=iError)
+  if (iError /= 0) then
+     write(*,*) "Error in allocating array EIEr3_HaveMonoAveE in Interface"
+     stop
+  endif
+
+  allocate(EIEr3_HaveWaveEFlux(EIEi_HavenMlts,EIEi_HavenLats,EIEi_HavenBLKs), &
+       stat=iError)
+  if (iError /= 0) then
+     write(*,*) "Error in allocating array EIEr3_HaveWaveEFlux in Interface"
+     stop
+  endif
+
+  allocate(EIEr3_HaveWaveAveE(EIEi_HavenMlts,EIEi_HavenLats,EIEi_HavenBLKs), &
+       stat=iError)
+  if (iError /= 0) then
+     write(*,*) "Error in allocating array EIEr3_HaveWaveAveE in Interface"
      stop
   endif
 

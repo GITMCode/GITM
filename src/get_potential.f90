@@ -19,6 +19,7 @@ subroutine init_get_potential
   character (len=iCharLen_), dimension(100) :: Lines
   character (len=iCharLen_) :: TimeLine
   real    :: bz
+  character (len=2) :: cDebugLevel
 
   logical :: IsFirstTime = .true.
   integer :: iError
@@ -110,7 +111,8 @@ subroutine init_get_potential
   endif
 
   Lines(7) = "#DEBUG"
-  Lines(8) = "0"
+  call i2s(iDebugLevel, cDebugLevel, 2)
+  Lines(8) = cDebugLevel
   Lines(9) = "0"
   Lines(10) = ""
 
@@ -127,7 +129,9 @@ subroutine init_get_potential
 
   call EIE_set_inputs(Lines)
 
+  if (UseBarriers) call MPI_BARRIER(iCommGITM,iError)
   call EIE_Initialize(iError)
+  if (UseBarriers) call MPI_BARRIER(iCommGITM,iError)
   if (iError /= 0) then
      write(*,*) &
           "Code Error in IE_Initialize called from get_potential.f90"
@@ -138,7 +142,7 @@ subroutine init_get_potential
   if (UseRegionalAMIE) then
      !!! read AMIE files
      call AMIE_SetFileName(cAMIEFileNorth)
-     call readAMIEOutput(2, .false., iError)
+     call readAMIEOutput(2, .false., iDebugLevel, iError)
      if (iError /= 0) then
         write(*,*) &
              "Code Error in readAMIEOutput called from get_potential.f90"
@@ -146,12 +150,14 @@ subroutine init_get_potential
         call stop_gitm("Stopping in get_potential")
      endif
 
+     write(*,*) 'done with reading amie north!'
+     
      if (index(cAMIEFileSouth,'mirror') > 0) then
         call AMIE_SetFileName(cAMIEFileNorth)
-        call readAMIEOutput(1, .true., iError)
+        call readAMIEOutput(1, .true., iDebugLevel, iError)
      else
         call AMIE_SetFileName(cAMIEFileSouth)
-        call readAMIEOutput(1, .false., iError)
+        call readAMIEOutput(1, .false., iDebugLevel, iError)
      endif
 
      call AMIE_GetnLats(nAmieLats)
@@ -166,11 +172,8 @@ subroutine init_get_potential
         call stop_gitm("Stopping in get_potential")
      endif
 
-     call AMIE_GetLats(nAmieMlts,nAmieLats,nAmieBlocks, &
-          EIEr3_HaveLats,iError)     
-
-     call AMIE_GetMLTs(nAmieMlts,nAmieLats,nAmieBlocks, &
-          EIEr3_HaveMLTs,iError)
+     call AMIE_GetLats(EIEr3_HaveLats)
+     call AMIE_GetMLTs(EIEr3_HaveMLTs)
 
   endif
 

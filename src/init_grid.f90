@@ -58,8 +58,15 @@ subroutine init_grid
              ok=IsOk)
      endif
 
-     if (.not.IsOk) call stop_gitm("Error in trying to create grid.")
-
+     if (.not.IsOk) then
+        if (iProc == 0) then
+           write(*, *) "--> nBlocksLon, nBlocksLat : ", nBlocksLon, nBlocksLat
+           write(*, *) "--> Therefore need nProcs = ", nBlocksLon * nBlocksLat
+           write(*, *) "--> nProcs = ", nProcs
+        endif
+        call stop_gitm("Error in trying to create grid.")
+     endif
+     
      call UAM_XFER_create(ok=IsOk)
      if (.not. IsOk) then
         call UAM_write_error()

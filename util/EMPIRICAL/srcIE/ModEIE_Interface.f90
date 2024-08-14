@@ -9,8 +9,15 @@ module ModEIE_Interface
   real, allocatable, dimension(:,:,:) :: EIEr3_HavePotential
   real, allocatable, dimension(:,:,:) :: EIEr3_HaveEFlux
   real, allocatable, dimension(:,:,:) :: EIEr3_HaveAveE
+  logical :: useIons
   real, allocatable, dimension(:,:,:) :: EIEr3_HaveIonEFlux
   real, allocatable, dimension(:,:,:) :: EIEr3_HaveIonAveE
+  logical :: useMono
+  real, allocatable, dimension(:,:,:) :: EIEr3_HaveMonoEFlux
+  real, allocatable, dimension(:,:,:) :: EIEr3_HaveMonoAveE
+  logical :: useWave
+  real, allocatable, dimension(:,:,:) :: EIEr3_HaveWaveEFlux
+  real, allocatable, dimension(:,:,:) :: EIEr3_HaveWaveAveE
 
   real (Real8_)       :: EIEd_CurrentTime
   integer             :: EIEi_HavenLats
@@ -69,5 +76,9 @@ module ModEIE_Interface
   logical :: UseGridBasedEIE
 
   logical :: IsFixedTilt = .false.
+
+  real :: EIE_fill_eFlux = 1.0e-6 ! in W/m2
+  real :: EIE_fill_AveE = 2.0 ! in keV
+  real :: EIE_fill_IonAveE = 20.0 ! in keV
 
 end module ModEIE_Interface
