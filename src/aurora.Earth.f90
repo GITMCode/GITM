@@ -33,56 +33,65 @@ subroutine aurora(iBlock)
 
    real :: LocalVar, HPn, HPs, avepower, ratio
 
-   HPn = 0.0
-   HPs = 0.0
-
    if (IsFirstTime(iBlock)) then
 
       if (UseFangEnergyDeposition) then
-         write(*,*) "trying to start Fang"
-
          call initialize_fang
-
       endif
-
    else
       if (floor((tSimulation - dT)/dTAurora) == &
          floor(tSimulation/dTAurora)) return
    endif
 
-
+   AuroralBulkIonRate               = 0.0
+   AuroralHeatingRate(:,:,:,iBlock) = 0.0
+   AuroralIonRateS = 0.0
 
    call report("Aurora",1)
    call start_timing("Aurora")
 
-   ! in: iBlock, out: avepower
-   call calculate_HP(iBlock)
-
-   ! send out w MPI
-   call MPI_Bcast(avepower,1,MPI_Real,0,iCommGITM,ierror)
-
-   ! With Hpi, call get_hpi (read from indices)
-   call get_hpi(CurrentTime,Hpi,iError)
-   ratio = Hpi/avepower ! HPI (calculated from AE or from NOAA) / modeled
-
-   if (iDebugLevel >= 0) then
-      if ((iDebugLevel == 0) .and. IsFirstTime(iBlock)) then
-         write(*,*) '---------------------------------------------------'
-         write(*,*) 'Using auroral normalizing ratios!!! '
-         write(*,*) 'no longer reporting!'
-         write(*,*) '---------------------------------------------------'
-      else
-         if (iDebugLevel >= 1) &
-            write(*,*) 'auroral normalizing ratio: ', Hpi, avepower, ratio
-      endif
+   if (iBlock == 1) then
+      HemisphericPowerNorth = 0.0
+      HemisphericPowerSouth = 0.0
    endif
-   do i=1,nLats
-      do j=1,nLons
-         if (ElectronEnergyFlux(j,i)>0.1) then
-            ElectronEnergyFlux(j,i) = ElectronEnergyFlux(j,i)*ratio
+
+   if (NormalizeAuroraToHP) then
+
+      ! Calculate HP from e- flux
+      call calculate_HP(iBlock, HPn, HPs)
+
+      ! Set avepower
+      avepower = (HPn+HPs)/2.0
+      ! If we are only have one hemisphere or the other, assign to avepower
+      if (HPs < 0.1*HPn) avepower = HPn
+      if (HPn < 0.1*HPs) avepower = HPs
+
+      ! send out w MPI
+      call MPI_Bcast(avepower,1,MPI_Real,0,iCommGITM,ierror)
+
+      ! Call get_hpi (read from indices), return HPI (from sme or NOAA)
+      call get_hpi(CurrentTime,Hpi,iError)
+      ratio = Hpi/((HPn + HPs)/2) ! HPI (calculated from AE or from NOAA) / modeled
+
+      if (iDebugLevel >= 0) then
+         if ((iDebugLevel == 0) .and. IsFirstTime(iBlock)) then
+            write(*,*) '---------------------------------------------------'
+            write(*,*) 'Using auroral normalizing ratios!!! '
+            write(*,*) 'no longer reporting!'
+            write(*,*) '---------------------------------------------------'
+         else
+            if (iDebugLevel >= 0) &
+               write(*,*) 'auroral normalizing ratio: ', Hpi, HPn, HPs, avepower, ratio
          endif
+      endif
+      do i=1,nLats
+         do j=1,nLons
+            if (ElectronEnergyFlux(j,i)>0.1) then
+               ElectronEnergyFlux(j,i) = ElectronEnergyFlux(j,i)*ratio
+            endif
+         enddo
       enddo
-   enddo
+   endif
 
    ! Reset the hemispheric power
 
@@ -294,7 +303,7 @@ subroutine aurora(iBlock)
          if (HasSomeAurora) then
 
             if (UseFangEnergyDeposition) then
-               call calc_fang_rates(j, i)
+               call calc_fang_rates(j, i, iBlock, AuroralBulkIonRate)
             else
 
                call R_ELEC_EDEP (ED_Flux, 15, ED_Energies, 3, ED_Ion, 7)
@@ -382,6 +391,8 @@ subroutine aurora(iBlock)
 end subroutine aurora
 
 subroutine initialize_fang
+! Allocate variables necessary for Fang Energy Deposition
+
    use ModInputs
    use ModSources
 
@@ -462,17 +473,22 @@ subroutine initialize_fang
 
 end subroutine initialize_fang
 
-subroutine calc_fang_rates(j,i)
+
+
+subroutine calc_fang_rates(j,i, iBlock, AuroralBulkIonRate)
+   ! Given (j,i), on an iBlock, calculate AuroralBulkIonRate
+
+
    use ModInputs
    use ModSources
    use ModGITM
 
-   integer, intent(in) :: i, j
+   integer, intent(in) :: i, j, iBlock
+   real, dimension(nLons,nLats,nAlts), intent(out) :: AuroralBulkIonRate
    real :: BulkScaleHeight1d(nAlts)
    real :: fac(nAlts)
    real :: Ci(8) ! e-
    real :: Ion_Ci(8) ! ions
-   real, dimension(nLons,nLats,nAlts) :: AuroralBulkIonRate
 
    BulkScaleHeight1d = &
       Temperature(j,i,1:nAlts,iBlock) &
@@ -533,71 +549,52 @@ subroutine calc_fang_rates(j,i)
 
    enddo
 
-   AuroralHeatingRate(j,i,1:nAlts,iBlock) = 0.0 ! ?? what is this for? move back to "main"?
+   AuroralHeatingRate(j,i,1:nAlts,iBlock) = 0.0 ! ?? what is this for? move back to "main"? - maybe?
 
 end subroutine calc_fang_rates
 
-subroutine calculate_HP(iBlock)
-
+subroutine calculate_HP(iBlock, HPn, HPs)
+   ! Calculate n/s hemispheric power
+   
    use ModGITM
-   use ModInputs
    use ModUserGITM
    use ModSources
    use ModIndicesInterfaces
+   use ModInputs
    use ModMpi
-   ! use aurora
 
-
-   integer, intent(in) :: iBlock
-
-   real, dimension(nLons,nLats,nAlts) :: temp, AuroralBulkIonRate, &
-      IonPrecipitationBulkIonRate, IonPrecipitationHeatingRate
    real :: LocalVar
-
-
-   AuroralBulkIonRate               = 0.0
-   AuroralHeatingRate(:,:,:,iBlock) = 0.0
-   AuroralIonRateS = 0.0
-
-   if (iBlock == 1) then
-      HemisphericPowerNorth = 0.0
-      HemisphericPowerSouth = 0.0
-   endif
-
-
+   real, intent(out) :: HPn, HPs
+   integer, intent(in) :: iBlock
    ! Let's scale our hemispheric power so it is roughly the same as what
    ! is measured.
 
-   if (NormalizeAuroraToHP) then
+   do i=1,nLats
+      do j=1,nLons
 
-      do i=1,nLats
-         do j=1,nLons
+         eflx_ergs = ElectronEnergyFlux(j,i) !/ (1.0e-7 * 100.0 * 100.0)
 
-            eflx_ergs = ElectronEnergyFlux(j,i) !/ (1.0e-7 * 100.0 * 100.0)
+         if (eflx_ergs > 0.1) then
+            eflux = eflx_ergs * 6.242e11  ! ergs/cm2/s -> eV/cm2/s
 
-            if (eflx_ergs > 0.1) then
-               eflux = eflx_ergs * 6.242e11  ! ergs/cm2/s -> eV/cm2/s
+            !(eV/cm2/s -> J/m2/s)
+            power = eflux * Element_Charge*100.0*100.0 * &
+               dLatDist_FB(j, i, nAlts, iBlock) * &
+               dLonDist_FB(j, i, nAlts, iBlock)
 
-               !(eV/cm2/s -> J/m2/s)
-               power = eflux * Element_Charge*100.0*100.0 * &
-                  dLatDist_FB(j, i, nAlts, iBlock) * &
-                  dLonDist_FB(j, i, nAlts, iBlock)
-
-               if (latitude(i,iBlock) < 0.0) then
-                  HemisphericPowerSouth = HemisphericPowerSouth + power
-               else
-                  HemisphericPowerNorth = HemisphericPowerNorth + power
-               endif
-
+            if (latitude(i,iBlock) < 0.0) then
+               HemisphericPowerSouth = HemisphericPowerSouth + power
+            else
+               HemisphericPowerNorth = HemisphericPowerNorth + power
             endif
 
-         enddo
-      enddo
+         endif
 
-   endif
+      enddo
+   enddo
 
    ! Collect all of the powers by summing them together
-
+   ! HPn and HPs are returned.
    LocalVar = HemisphericPowerNorth/1.0e9
    call MPI_REDUCE(LocalVar, HPn, 1, MPI_REAL, MPI_SUM, &
       0, iCommGITM, iError)
@@ -605,14 +602,6 @@ subroutine calculate_HP(iBlock)
    LocalVar = HemisphericPowerSouth/1.0e9
    call MPI_REDUCE(LocalVar, HPs, 1, MPI_REAL, MPI_SUM, &
       0, iCommGITM, iError)
-
-   ! Average north and south together
-
-   avepower = (HPn+HPs)/2.0
-
-   ! If we are only have one hemisphere or the other, assign to avepower
-   if (HPs < 0.1*HPn) avepower = HPn
-   if (HPn < 0.1*HPs) avepower = HPs
 
 end subroutine calculate_HP
 
