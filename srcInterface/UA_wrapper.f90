@@ -56,7 +56,7 @@ contains
 
     use ModTime, ONLY: StartTime, tSimulation, CurrentTime
     use ModInputs, only: iStartTime, IsFramework, iOutputUnit_, set_defaults, &
-         nInputLines
+         nInputLines, DynamoHighLatBoundary
     use ModTimeConvert, ONLY: time_real_to_int
     use CON_physics,    ONLY: get_time
     use ModIoUnit
@@ -111,6 +111,9 @@ contains
        nInputLines=n_line_read()+1
 
        call set_inputs
+
+       ! Parameters required for SWMF coupling:
+       DynamoHighLatBoundary = 88.0
 
     case('CHECK')
 

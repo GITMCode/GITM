@@ -40,8 +40,8 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
 
   integer :: i,j,k,bs, iError, iBlock, iDir, iLon, iLat, iAlt, ip, im, iOff
 
-  integer :: iEquator, nLatsToSolve
-  
+  integer :: iEquator
+
   real :: GeoLat, GeoLon, GeoAlt, xAlt, len, ped, hal
   real :: sp_d1d1_d, sp_d2d2_d, sp_d1d2_d, sh
   real :: xmag, ymag, zmag, bmag, signz, magpot, lShell
@@ -92,19 +92,16 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
   call report("UA_calc_electrodynamics",1)
   call start_timing("calc_electrodyn")
 
-  ! 88.0 is the DynamoHighLatBoundary value required for
-  ! coupling with SWMF.  Need to make this flexible for
-  ! non-SWMF coupling situations.
-  ! Permanently extends latitudinal span that pot solver
-  ! is solving over.
-  iEquator = 88.0/MagLatRes + 1
+  ! DynamoHighLatBoundary now set in UA_Wrapper.f90 to enable
+  ! inter-compatibility with standalone GITM.
+  iEquator = DynamoHighLatBoundary/MagLatRes + 1
   iAve = (DynamoLonAverage/2) / MagLonRes
 
   if (IsFirstTime) then
 
      IsFirstTime = .false.
 
-     nMagLats = (2*88.0)/MagLatRes+1 !! 88.0 == DynaamoHighLatBoundary
+     nMagLats = (2*DynamoHighLatBoundary)/MagLatRes+1
      nMagLons = 360.0 / MagLonRes
 
      allocate(DivJuAltMC(nMagLons+1,nMagLats), &
@@ -216,7 +213,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
              write(*,*) "==> Calculating Apex->Geo", i, iStart, iEnd
         do j=1,nMagLats
 
-           MagLatMC(i,j)     = float(j-1) * MagLatRes - 88.0 !! 88.0 == DynaamoHighLatBoundary
+           MagLatMC(i,j)     = float(j-1) * MagLatRes - DynamoHighLatBoundary
 
            MagLonMC(i,j)     = 360.0 * float(i-1) / float(nMagLons)
 
@@ -370,7 +367,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
      VeOe = Ve**2 + e_gyro**2
      ViOi = Vi**2 + i_gyro**2
 
-     Sigma_0 = q2 * E_Density * (1.0/MeVen + 1.0/MiVin)  !! should be multiplication
+     Sigma_0 = q2 * E_Density * (1.0/MeVen + 1.0/MiVin)
 
      Sigma_Pedersen = ((1.0/MeVen) * (Ve*Ve/VeOe) + &
           (1.0/MiVin) * (Vi*Vi/ViOi)) * E_Density * q2
@@ -1404,12 +1401,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
   ! Fill in the diagonal vectors
   iI = 0
 
-
-  iStart = (88.0 - DynamoHighLatBoundary)/MagLatRes + 1 !! 88.0 == DynaamoHighLatBoundary
-  iEnd   = nMagLats - iStart + 1
-  nLatsToSolve = iEnd - iStart + 1
-  !write(*,*)'iStart,iEnd,nLatsToSolve,nMagLons: ',iStart,iEnd,nLatsToSolve,nMagLons
-  nX = (nLatsToSolve-2) * (nMagLons)
+  nX = (nMagLats-2) * (nMagLons)
 
   allocate( x(nX), y(nX), rhs(nX), b(nX), &
        d_I(nX), e_I(nX), e1_I(nX), f_I(nX), f1_I(nX) )
@@ -1439,7 +1431,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
      SmallPotentialMC = 0.0
   endif
 
-  do iLat=iStart+1,iEnd-1
+  do iLat=2,nMagLats-1
      do iLon=1,nMagLons
 
         iI = iI + 1
@@ -1466,12 +1458,12 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
         f1_I(iI) = solver_b_mc(iLon, iLat)+solver_d_mc(iLon, iLat)
   
 
-        if (iLat == iStart+1) then
+        if (iLat == 2) then
            b(iI) = b(iI)-(solver_b_mc(iLon, iLat)-solver_d_mc(iLon, iLat)) * &
                 SmallPotentialMC(iLon, 1)
            e1_I(iI) = 0.0
         endif
-        if (iLat == iEnd-1) then
+        if (iLat == nMagLats-1) then
            b(iI) = b(iI)-(solver_b_mc(iLon, iLat)+solver_d_mc(iLon, iLat)) * &
                 SmallPotentialMC(iLon, 2)
            f1_I(iI) = 0.0
@@ -1521,7 +1513,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
        write(*,*) "=> gmres : ",MaxIteration,Residual, nIteration, iError
 
   iI = 0
-  do iLat=iStart+1,iEnd-1
+  do iLat=2,nMagLats-1
      do iLon=1,nMagLons
         iI = iI + 1
         DynamoPotentialMC(iLon, iLat) = x(iI)
@@ -1529,6 +1521,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
   enddo
 
   !----------- Subtract the equatorial average dynamo potential ---------
+  ! Why? - (alb)
   AvgDyn = SUM(DynamoPotentialMC(:,iEquator))/SIZE(DynamoPotentialMC(:,iEquator))  ! use as the equatorial average 
   do iLat=iStart+1,iEnd-1
      do iLon=1,nMagLons
