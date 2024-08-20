@@ -1,6 +1,6 @@
 
 module ModCharSize
 
-  integer, parameter :: iCharLenIE_     = 400
+  integer, parameter :: iCharLenIE_     = 600
 
 end module ModCharSize

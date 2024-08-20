@@ -8,7 +8,7 @@ Module ModIndices
 
   implicit none
 
-  integer, parameter :: iCharLenIndices_     = 400
+  integer, parameter :: iCharLenIndices_     = 600
   
   integer, parameter :: MaxInputLines=10000
 
