@@ -16,8 +16,7 @@ subroutine read_OMNIWEB_Ap_Indices_new(iOutputError, StartTime, EndTime)
   logical :: done
 
   ! One line of input
-  integer, parameter :: iCharLenGitm = 400
-  character (len=iCharLenGitm) :: line
+  character (len=iCharLenIndices_) :: line
 
   real (Real8_) :: BufferTime
 
