@@ -488,7 +488,7 @@ subroutine calc_fang_rates(j,i, iBlock, AuroralBulkIonRate)
    real :: BulkScaleHeight1d(nAlts)
    real :: fac(nAlts)
    real :: Ci(8) ! e-
-   real :: Ion_Ci(8) ! ions
+   real :: Ion_Ci(12) ! ions
 
    BulkScaleHeight1d = &
       Temperature(j,i,1:nAlts,iBlock) &
