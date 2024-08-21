@@ -23,7 +23,8 @@ subroutine read_NOAAHPI_Indices_new(iOutputError,StartTime,EndTime,doSeparateHPI
   character (len=iCharLenIndices_) :: line
 
   real, dimension(6,MaxIndicesEntries) :: tmp, tmp_north, tmp_south
-  ! Add character var with hemi fron NOAA HPI file & 1/2 flag for n/s hemi
+  ! Add character var with hemisphere fron NOAA HPI file 
+  ! And an integer (1/2) flag for n/s hemi, respectively
   character(len=3), dimension(MaxIndicesEntries) :: hemi
   integer, dimension(MaxIndicesEntries) :: i_hemi
   integer :: npts_north, npts_south
@@ -51,20 +52,6 @@ subroutine read_NOAAHPI_Indices_new(iOutputError,StartTime,EndTime,doSeparateHPI
 
   if (NameOfHPIFile == "none") return
   if (nIndices_V(hpi_) == 1) return
-
-!   ! ALB addition: check if HPI values have already been read in with read_sme
-!   ! If so, let use user know and exit.
-
-!   if (nIndices_V(hpi_) >= 5) then
-!    ! if (iProc == iDebugProc) then
-!      write(*,*) "----------------------------------------------"
-!      write(*,*) "HPI values already exist in memory!"
-!      write(*,*) "These were likely read in along with SME indices."
-!      write(*,*) "Refusing to overwrite. Using both is not supported."
-!      write(*,*) "----------------------------------------------"
-!    ! endif
-!   return
-!   endif
 
   call init_mod_indices
 
@@ -137,7 +124,7 @@ subroutine read_NOAAHPI_Indices_new(iOutputError,StartTime,EndTime,doSeparateHPI
             tmp_south(:,npts_south) = tmp(:,i)
             npts_south = npts_south + 1
          else
-            call stop_gitm("HEMI flag is wrong somewhere")
+            call stop_gitm("Hemisphere flag in NOAA HPI file is wrong somewhere.")
          endif
         enddo
 

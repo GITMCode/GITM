@@ -689,7 +689,7 @@ subroutine set_inputs
               write(*,*) 'This is for modifying the aurora a bit.  The'
               write(*,*) 'NormalizeAuroraToHP variable calculates the '
               write(*,*) ' modeled hemispheric power and then normalizes it'
-              write(*,*) ' the hemispheric power read in. '
+              write(*,*) ' to the hemispheric power read in. '
               write(*,*) 'AveEFactor - changes the aveE of the aurora by factor'
               write(*,*) 'IsKappaAurora - use a kappa instead of Maxwellian'
               write(*,*) 'AuroraKappa - kappa to use in the distribution'
@@ -1806,20 +1806,20 @@ subroutine set_inputs
            endif
 
            call read_in_logical(doSeparateHPI, iError)
-           if ((iError /= 0) .and. (iDebugProc == iProc)) then
+           if ((iError /= 0) .and. (iDebugProc == iProc) .and. doUseAeForHp) then
               write(*,*) "----------------------------------------------"
-              write(*,*) "GITM also allows the use of a 10% seasonal "
-              write(*,*) "correction factor in this calculation."
-              write(*,*) "Put another T after the SME file if you want, "
+              write(*,*) "GITM  allows the use of a 10% seasonal "
+              write(*,*) "correction factor in the conversion of AE to HP"
+              write(*,*) "Put another T after the onset file if you want this,"
               write(*,*) "or put a F if you don't."
               write(*,*) "----------------------------------------------"
               iError = 0
            endif
 
 
-           ! ALB: Check if HPI was read with SME, print error if so:
+           ! Check if HPI was read with SME, print warning if so:
            if (didDeclareHP .and. doUseAeForHp .and. (iDebugProc == iProc)) then
-            write(*,*) "HPI defined twice. Using AE-derived values."
+            write(*,*) "--> HPI defined twice. Only using one is supported. <--"
            endif
            if (doUseAeForHp) didDeclareHP = .true.
 
@@ -1909,8 +1909,8 @@ subroutine set_inputs
            call IO_set_inputs(cTempLines)
            call read_NOAAHPI_Indices_new(iError,StartTime,EndTime,doSeparateHPI)
 
-           ! ALB: Check if HPI was read with SME, print error if so:
-           if (didDeclareHP) write(*,*) "HPI defined twice. Using NOAA values."
+           ! Check if HPI was made from SME, print warning if so:
+           if (didDeclareHP) write(*,*) "--> HPI defined twice. Only using one is supported. <--"
            didDeclareHP = .true.
 
            if (iError /= 0) then 

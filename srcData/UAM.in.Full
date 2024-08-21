@@ -98,7 +98,7 @@ or
 # the hemispheric power is not really available after 2013
 NOAAHPI_INDICES
 power file
-T                 When scaling aurora (#AURORAMODS), treat N/S hemi separately?
+F                 When scaling aurora (in #AURORAMODS), treat N/S hemi separately?
 
 New auroral model from Wu and Ridley, which is driven by AU/AL/AE
 #FTAMODEL

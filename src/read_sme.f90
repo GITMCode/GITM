@@ -161,20 +161,6 @@ subroutine read_sme(iOutputError, StartTime, EndTime, doUseAeForHp, doSeparateHP
 
   if (NameOfIndexFile == "none" .and. nIndices_V(ae_) == 1) return
 
-!   ! ALB addition: check if HPI values have already been read in with 
-!   ! read_NOAAHPI. If so, let use user know and exit.
-
-!   if (nIndices_V(hpi_) >= 5) then
-!    ! if (iProc == iDebugProc) then
-!      write(*,*) "----------------------------------------------"
-!      write(*,*) "HPI values already exist in memory!"
-!      write(*,*) "These were likely read in from NOAA data."
-!      write(*,*) "Refusing to overwrite. Using both is not supported."
-!      write(*,*) "----------------------------------------------"
-!    ! endif
-!   return
-!   endif
-
   call init_mod_indices
 
   ! If we have been here before and we read the entire file, leave

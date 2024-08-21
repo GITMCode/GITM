@@ -192,7 +192,7 @@ subroutine aurora(iBlock)
 
      if (doSeparateHPI) then !If DoSeparateHPIs, this is south; `ratio` is North
         call get_hpi_s(CurrentTime,Hpi_SH,iError)
-        if (ierror /= 0) call stop_gitm("Error finding HPI in southern hemisphere! hint: check your power file or #SME_INDICES arguments.")
+        if (ierror /= 0) call stop_gitm("Error finding HPI in southern hemisphere! Check input files.")
         ratio_sh = Hpi_SH/avepower_sh
      endif
      
