@@ -1891,7 +1891,8 @@ subroutine set_inputs
         case ("#NOAAHPI_INDICES")
            cTempLines(1) = cLine
            call read_in_string(cTempLine, iError)
-
+           cTempLines(2) = cTempLine
+           
            call read_in_logical(doSeparateHPI, iError)
            if ((iError /= 0) .and. (iDebugProc == iProc)) then
               write(*,*) "----------------------------------------------"
@@ -1902,12 +1903,10 @@ subroutine set_inputs
               iError = 0
            endif
 
-           cTempLines(2) = cTempLine
            cTempLines(3) = " "
            cTempLines(4) = "#END"
-
            call IO_set_inputs(cTempLines)
-           call read_NOAAHPI_Indices_new(iError,StartTime,EndTime,doSeparateHPI)
+           call read_NOAAHPI_Indices_new(iError,StartTime,EndTime,DoSeparateHPI)
 
            ! Check if HPI was made from SME, print warning if so:
            if (didDeclareHP) write(*,*) "--> HPI defined twice. Only using one is supported. <--"
