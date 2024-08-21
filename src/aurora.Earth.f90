@@ -57,6 +57,9 @@ subroutine aurora(iBlock)
 
    if (NormalizeAuroraToHP) then
 
+      ! Let's scale our hemispheric power so it is roughly the same as what
+      ! is measured.
+
       ! Calculate HP from e- flux
       call calculate_HP(iBlock, HPn, HPs)
 
@@ -69,9 +72,9 @@ subroutine aurora(iBlock)
       ! send out w MPI
       call MPI_Bcast(avepower,1,MPI_Real,0,iCommGITM,ierror)
 
-      ! Call get_hpi (read from indices), return HPI (from sme or NOAA)
+      ! Call get_hpi (read from sme or NOAA)
       call get_hpi(CurrentTime,Hpi,iError)
-      ratio = Hpi/((HPn + HPs)/2) ! HPI (calculated from AE or from NOAA) / modeled
+      ratio = Hpi/(avepower) ! HPI (calculated) / modeled
 
       if (iDebugLevel >= 0) then
          if ((iDebugLevel == 0) .and. IsFirstTime(iBlock)) then
@@ -549,12 +552,13 @@ subroutine calc_fang_rates(j,i, iBlock, AuroralBulkIonRate)
 
    enddo
 
-   AuroralHeatingRate(j,i,1:nAlts,iBlock) = 0.0 ! ?? what is this for? move back to "main"? - maybe?
+   AuroralHeatingRate(j,i,1:nAlts,iBlock) = 0.0 ! ?? what is this for? move back to aurora?
 
 end subroutine calc_fang_rates
 
 subroutine calculate_HP(iBlock, HPn, HPs)
-   ! Calculate n/s hemispheric power
+   ! Calculate hemispheric power in n/s (NPn, HPs)
+   ! Scaling is done in aurora
    
    use ModGITM
    use ModUserGITM
@@ -566,8 +570,6 @@ subroutine calculate_HP(iBlock, HPn, HPs)
    real :: LocalVar
    real, intent(out) :: HPn, HPs
    integer, intent(in) :: iBlock
-   ! Let's scale our hemispheric power so it is roughly the same as what
-   ! is measured.
 
    do i=1,nLats
       do j=1,nLons
