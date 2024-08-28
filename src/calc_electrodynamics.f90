@@ -66,7 +66,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
   
   real :: aLat, aLon, gLat, gLon, Date, sLat, sLon, gLatMC, gLonMC
 
-  real :: residual, oldresidual, a, tmp, AvgDyn
+  real :: residual, oldresidual, a, tmp
 
   logical :: IsDone, IsFirstTime = .true., DoTestMe, Debug=.False.
 
@@ -1409,10 +1409,10 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
   call UA_SetnMLTs(nMagLons+1)
   call UA_SetnLats(2)
      
-  SmallMagLocTimeMC(:,1) = MagLocTimeMC(:,iStart)
-  SmallMagLocTimeMC(:,2) = MagLocTimeMC(:,iEnd)
-  SmallMagLatMC(:,1)     = MagLatMC(:,iStart)
-  SmallMagLatMC(:,2)     = MagLatMC(:,iEnd)
+  SmallMagLocTimeMC(:,1) = MagLocTimeMC(:,1)
+  SmallMagLocTimeMC(:,2) = MagLocTimeMC(:,nMagLats)
+  SmallMagLatMC(:,1)     = MagLatMC(:,1)
+  SmallMagLatMC(:,2)     = MagLatMC(:,nMagLats)
   iError = 0
   call UA_SetGrid(SmallMagLocTimeMC, SmallMagLatMC, iError)
   if (iError /= 0) then
@@ -1520,23 +1520,13 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
      enddo
   enddo
 
-  !----------- Subtract the equatorial average dynamo potential ---------
-  ! Why? - (alb)
-  AvgDyn = SUM(DynamoPotentialMC(:,iEquator))/SIZE(DynamoPotentialMC(:,iEquator))  ! use as the equatorial average 
-  do iLat=iStart+1,iEnd-1
-     do iLon=1,nMagLons
-!        DynamoPotentialMC(iLon, iLat) = 0.0                                 ! for run_test14
-        DynamoPotentialMC(iLon, iLat) = DynamoPotentialMC(iLon, iLat) - AvgDyn ! for run_test15, use this for now
-     enddo
-  enddo
-  !----------------------------------------------------------------------
-
-  DynamoPotentialMC(:, iStart) = 0 ! SmallPotentialMC(:,1) ! github version uses 0
-  DynamoPotentialMC(:, iEnd) = 0   ! SmallPotentialMC(:,2)
-
+  
+  DynamoPotentialMC(:,        1) = 0.0
+  DynamoPotentialMC(:, nMagLats) = 0.0
+  
   ! --------------------------------------------------------------------------
   ! This is mapping the northern hemisphere onto the southern hemisphere.
-  ! Should we really be doing this?????
+  ! Should we really be doing this????? -dw
   OldPotMC = DynamoPotentialMC
 
   do iLat=2,nMagLats/2
@@ -1552,7 +1542,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
   if(allocated(b)) deallocate(x, y, b, rhs, d_I, e_I, f_I, e1_I, f1_I)
 ! Electric fields
 
-  do j=iStart,iEnd
+  do j=1,nMagLats
      do i=2,nMagLons
         Ed1new(i,j) = -(1/(RBody*cos(MagLatMC(i,j)*pi/180))) * &
              0.5 * (DynamoPotentialMC(i+1,j)-DynamoPotentialMC(i-1,j))/deltapmc(i,j)
@@ -1563,21 +1553,21 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
   enddo
 
   do i=1,nMagLons+1
-     do j=iStart+1,iEnd-1
+     do j=2,nMagLats-1
         sinim = abs(2.0 * sin(MagLatMC(i,j)*pi/180) / &
              sqrt(4.0 - 3.0 * cos(MagLatMC(i,j)*pi/180)))+1e-6
         Ed2new(i,j) = (1/(RBody*sinIm))*   &
              0.5 * (DynamoPotentialMC(i,j+1)-DynamoPotentialMC(i,j-1))/deltalmc(i,j)
      enddo
-     sinim = abs(2.0 * sin(MagLatMC(i,iStart)*pi/180) / &
-          sqrt(4.0 - 3.0 * cos(MagLatMC(i,iStart)*pi/180)))+1e-6
-     Ed2new(i,iStart) = (1/(RBody*sinIm))*   &
-          (DynamoPotentialMC(i,iStart+1)-DynamoPotentialMC(i,iStart))/deltalmc(i,iStart)
+     sinim = abs(2.0 * sin(MagLatMC(i,1)*pi/180) / &
+          sqrt(4.0 - 3.0 * cos(MagLatMC(i,1)*pi/180)))+1e-6
+     Ed2new(i,1) = (1/(RBody*sinIm))*   &
+          (DynamoPotentialMC(i,2)-DynamoPotentialMC(i,1))/deltalmc(i,1)
 
-     sinim = abs(2.0 * sin(MagLatMC(i,iEnd)*pi/180) / &
-          sqrt(4.0 - 3.0 * cos(MagLatMC(i,iEnd)*pi/180)))+1e-6
-     Ed2new(i,iEnd) = (1/(RBody*sinIm))*   &
-          (DynamoPotentialMC(i,iEnd)-DynamoPotentialMC(i,iEnd-1))/deltalmc(i,iEnd)
+     sinim = abs(2.0 * sin(MagLatMC(i,nMagLats)*pi/180) / &
+          sqrt(4.0 - 3.0 * cos(MagLatMC(i,nMagLats)*pi/180)))+1e-6
+     Ed2new(i,nMagLats) = (1/(RBody*sinIm))*   &
+          (DynamoPotentialMC(i,nMagLats)-DynamoPotentialMC(i,nMagLats-1))/deltalmc(i,nMagLats)
 
   enddo
 ! End Electric field
