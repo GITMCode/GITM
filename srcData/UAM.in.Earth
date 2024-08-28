@@ -80,7 +80,8 @@ srcPython/supermag_download_ae.py 20021221 20021222
 
 #SME_INDICES
 UA/DataIn/ae_20021221.txt		SME Filename
-none              		onset time delay file
+none              			onset time delay file
+T					convert SME to Hemispheric Power
 
 ------------ E-Field Drivers ------------
 
@@ -100,6 +101,12 @@ F		UseDynamo
 F		IncludeCowling
 40.0		LongitudinalAveraging
 F               UseNewTrace
+
+The default is to have apex off, since other planets don't have
+apex, so need to turn apex on!
+
+#APEX
+T
 
 -----------------------------------------------------------------
 Some new features:

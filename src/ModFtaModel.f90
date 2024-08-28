@@ -66,8 +66,18 @@ contains
     call get_au(GitmCurrentTime+TimeDelayHighLat, au, iError)
     call get_al(GitmCurrentTime+TimeDelayHighLat, al, iError)
 
+    ! ------------------------------------------------------------------------------
+    ! Limits of FTA model:
+    ! If AL is greater (less) than -25 (-1200) nT, AL is equal to -25 (-1200) nT;
+    ! If AU is less than 25 nT or 0.12*|AL|, AU is equal to the larger value of them;
+    ! If AU is greater than 400 nT, AU is equal to 400 nT.
+    ! ------------------------------------------------------------------------------
+    
+    if (al > -25.0) al = -25.0
+    if (al < -1200.0) al = -1200.0
+    if (au < 0.12 * abs(al)) au = 0.12 * abs(al)
     if (au < 25.0) au = 25.0
-    if (abs(au/al) < 0.12) al = -au / 0.12
+    if (au > 400.0) au = 400.0
     ae = au - al
 
     emis_type = 'lbhl'

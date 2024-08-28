@@ -37,7 +37,7 @@ def parse_args_omni():
     return args
 
 def write_omni_file(lines, fileout):
-
+    print("--> Writing file : ", fileout)
     with open(fileout, "w") as file:
         file.writelines("%s" % l for l in lines)
 
@@ -59,13 +59,17 @@ if __name__ == '__main__':
     if (not np.isscalar(end)):
         end = end[0]
 
+    print("-> Downloading OMNI data using ", start, " -> ", end)
     results = download_omni_data(start, end, "-all")
+    print("-> Parsing data")
     omniDirty = parse_omni_data(results)
+    print("-> Cleaning data")
     data = clean_omni(omniDirty)
 
     if (args.swmf):
         fileout = data["times"][0].strftime('imf%Y%m%d.dat')
         message = "Data downloaded from OMNIWeb and processed by omniweb_read.py\n"
+        print("-> Writing SWMF style output: ", fileout)
         write_swmf_imf_file(data, fileout, message)
     else:
         fileout = data["times"][0].strftime('omni_%Y%m%d.txt')
@@ -76,11 +80,13 @@ if __name__ == '__main__':
         message = "Data downloaded from OMNIWeb and processed by create_fake_noaa_hpi_input\n"
 
         hp = calculate_hp_from_ae(np.array(data["ae"]))
+        print("-> Writing hemispheric power type of file: ", fileout)
         write_derived_hp(data["times"], hp, output_filename = fileout)
 
     if (args.ae):
         message = "Data downloaded from OMNIWeb and written in SME format\n"
+        print("-> Writing SME type of file")
         write_sme_file(data, message = message)
 
-    
+    print("-> Plotting data")
     plot_imf(data)
