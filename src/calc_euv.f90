@@ -827,7 +827,7 @@ subroutine Set_Euv(iError, StartTime, EndTime)
 
   real (Real8_) :: TimeDelay, BufferTime = 86400.0
 
-  logical :: NotDone
+  logical :: NotDone, IsThere
   integer :: i, iline, ioerror, nline, nILine = 1, iErrortemp = 0
 
   iError = 0
@@ -848,7 +848,11 @@ subroutine Set_Euv(iError, StartTime, EndTime)
 
   cline = ' '
 
-  open(unit = iInputUnit_, file=cEUVFile, IOSTAT = iError)
+  inquire(file=cEUVFile,EXIST=IsThere)
+  if (.not.IsThere) &
+       call stop_gitm(cEUVFile//" cannot be found by read_inputs")
+
+  open(unit = iInputUnit_, file=cEUVFile, status="old", IOSTAT = iError)
 
   if (iError /= 0) then
      write(*,*) "Error in opening EUV file  Is this set?"
@@ -936,7 +940,7 @@ subroutine read_euv_waves(iError)
   
   call report("read_euv_waves",2)
 
-  open(unit = iInputUnit_, file=cRidleyEUVFile, IOSTAT = iError)
+  open(unit = iInputUnit_, file=cRidleyEUVFile, status="old", IOSTAT = iError)
 
   if (iError /= 0) then
      write(*,*) "Error in opening RidleyEUVFile  Is this set?"
