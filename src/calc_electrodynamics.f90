@@ -16,7 +16,7 @@ subroutine UA_fill_electrodynamics(UAr2_fac, UAr2_ped, UAr2_hal, &
   UAr2_Hal  = SigmaHallMC
   UAr2_lats = MagLatMC
   UAr2_mlts = MagLocTimeMC
-
+  
 end subroutine UA_fill_electrodynamics
 
 !\
@@ -41,7 +41,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
   integer :: i,j,k,bs, iError, iBlock, iDir, iLon, iLat, iAlt, ip, im, iOff
 
   integer :: iEquator
-  
+
   real :: GeoLat, GeoLon, GeoAlt, xAlt, len, ped, hal
   real :: sp_d1d1_d, sp_d2d2_d, sp_d1d2_d, sh
   real :: xmag, ymag, zmag, bmag, signz, magpot, lShell
@@ -92,9 +92,11 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
   call report("UA_calc_electrodynamics",1)
   call start_timing("calc_electrodyn")
 
+  ! DynamoHighLatBoundary now set in UA_Wrapper.f90 to enable
+  ! inter-compatibility with standalone GITM.
   iEquator = DynamoHighLatBoundary/MagLatRes + 1
   iAve = (DynamoLonAverage/2) / MagLonRes
-     
+
   if (IsFirstTime) then
 
      IsFirstTime = .false.
@@ -192,7 +194,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
      OldPotMC = 0.0
 
      if (iError /= 0) then
-        call CON_stop("Error allocating array DivJuAltMC")
+        call stop_gitm("Error allocating array DivJuAltMC")
      endif
 
      date = iStartTime(1) + float(iJulianDay)/float(jday(iStartTime(1),12,31))
@@ -211,13 +213,12 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
              write(*,*) "==> Calculating Apex->Geo", i, iStart, iEnd
         do j=1,nMagLats
 
-           MagLatMC(i,j)     = float(j-1) * MagLatRes &
-                - DynamoHighLatBoundary
+           MagLatMC(i,j)     = float(j-1) * MagLatRes - DynamoHighLatBoundary
 
            MagLonMC(i,j)     = 360.0 * float(i-1) / float(nMagLons)
 
-           if (UseApex) then 
-
+           if (UseApex) then
+              
               aLat = MagLatMC(i,j)
               aLon = MagLonMC(i,j)
 
@@ -230,7 +231,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
               else
                  sLat = -100.0
               endif
-
+              
               ReferenceAlt = Altitude_GB(1,1,0,1)/1000.0
               AltMinIono = ReferenceAlt
 
@@ -253,7 +254,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
               GeoLonMC(i,j) = gLon*pi/180.0
 
            endif
-
+           
         enddo
      enddo
 
@@ -301,7 +302,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
      
   endif
 
-  if(UseApex .and. IsEarth) then
+  if((UseApex .and. IsEarth) .or. IsFramework) then
 
      do i=1,nMagLons+1
         do j=1,nMagLats
@@ -366,7 +367,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
      VeOe = Ve**2 + e_gyro**2
      ViOi = Vi**2 + i_gyro**2
 
-     Sigma_0 = q2 * E_Density / (1.0/MeVen + 1.0/MiVin)
+     Sigma_0 = q2 * E_Density * (1.0/MeVen + 1.0/MiVin)
 
      Sigma_Pedersen = ((1.0/MeVen) * (Ve*Ve/VeOe) + &
           (1.0/MiVin) * (Vi*Vi/ViOi)) * E_Density * q2
@@ -1518,9 +1519,14 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
         DynamoPotentialMC(iLon, iLat) = x(iI)
      enddo
   enddo
+
+  
   DynamoPotentialMC(:,        1) = 0.0
   DynamoPotentialMC(:, nMagLats) = 0.0
-
+  
+  ! --------------------------------------------------------------------------
+  ! This is mapping the northern hemisphere onto the southern hemisphere.
+  ! Should we really be doing this????? -dw
   OldPotMC = DynamoPotentialMC
 
   do iLat=2,nMagLats/2
@@ -1529,6 +1535,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
         DynamoPotentialMC(iLon, iLat) = OldPotMC(iLon,iI) 
      enddo
   enddo
+  ! --------------------------------------------------------------------------
 
   DynamoPotentialMC(nMagLons+1,:) = DynamoPotentialMC(1,:)
 

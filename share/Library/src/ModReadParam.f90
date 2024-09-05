@@ -138,6 +138,7 @@ module ModReadParam
 
   !USES:
   use ModMpi
+  use ModUtilities, ONLY: CON_stop
   use ModIoUnit, ONLY: io_unit_new, StdIn_, StdOut_
 
   implicit none
@@ -147,7 +148,7 @@ module ModReadParam
   private ! except
 
   !PUBLIC DATA MEMBERS:
-  integer, parameter, public :: lStringLine=400 ! Max length of input lines
+  integer, parameter, public :: lStringLine=600 ! Max length of input lines
 
   !PUBLIC MEMBER FUNCTIONS:
   public :: read_file         ! Read text string from parameter file and bcast

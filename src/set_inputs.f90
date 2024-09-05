@@ -43,7 +43,7 @@ subroutine set_inputs
 
   character (len=iCharLen_)                 :: cTempLine
   character (len=iCharLen_)                 :: sIonChemistry, sNeutralChemistry
-  character (len=iCharLen_), dimension(100) :: cTempLines
+  character (len=iCharlen_), dimension(100) :: cTempLines
 
   real :: Vx, Bx, Bz, By, Kp, HemisphericPower, tsim_temp
   real :: EDC_est_tmp
@@ -62,14 +62,19 @@ subroutine set_inputs
 
      cLine = cInputText(iLine)
 
+     ! If in framework, echo lines to stdout:
+     if(IsFramework .and. iProc==0 .and. len(trim(cLine))>0) &
+          write(*,'(a)') "UA: "//trim(cline)
+     
      if (cLine(1:1) == "#") then
 
         ! Remove anything after a space or TAB
         i=index(cLine,' '); if(i>0)cLine(i:len(cLine))=' '
         i=index(cLine,char(9)); if(i>0)cLine(i:len(cLine))=' '
 
+        ! If debug level is high, echo lines to stdout:
         if (iDebugLevel > 3) write(*,*) "====> cLine : ",cLine(1:40)
-
+        
         select case (cLine)
 
         case ("#TIMESTART","#STARTTIME")

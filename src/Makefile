@@ -135,10 +135,10 @@ OBJECTS_EXE  = main.o ${OBJECTS} ${MODULES}
 OBJECTS_SAMI = ${OBJECTS} ${MODULES} ${SAMI_EXTRAS}
 
 DEPEND:
-	@${SCRIPTDIR}/depend.pl ${SEARCH} ${OBJECTS_EXE}
+	@perl ${SCRIPTDIR}/depend.pl ${SEARCH} ${OBJECTS_EXE}
 
 DEPENDSAMI:
-	@${SCRIPTDIR}/depend.pl ${SEARCH} ${OBJECTS_EXE}
+	@perl ${SCRIPTDIR}/depend.pl ${SEARCH} ${OBJECTS_EXE}
 
 EXE = ${BINDIR}/GITM.exe
 
@@ -199,6 +199,9 @@ ${MY_LIB}: ${LIBPREV} ${MF} ${MODULES} ${OBJECTS}
 	cp -f ${LIBPREV} ${MY_LIB}
 	${AR} ${MY_LIB} ${OBJECTS} ${MODULES}
 
+
+clean:
+	rm -f *~ core *.o *.mod fort.* a.out *.exe *.a *.so *.protex
 
 distclean: clean
 	rm -f 	ModSize.f90 \
