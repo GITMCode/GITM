@@ -9,7 +9,7 @@ subroutine calc_chemistry(iBlock)
   use ModRates
   use ModEUV
   use ModSources
-  use ModInputs, only: iDebugLevel, UseIonChemistry, UseNeutralChemistry,f107
+  use ModInputs, only: iDebugLevel, UseIonChemistry, UseNeutralChemistry, f107
   use ModConstants
 
   implicit none
@@ -32,7 +32,7 @@ subroutine calc_chemistry(iBlock)
   logical :: UseIonConstituent(nIons)
 
   UseNeutralConstituent = .true.
-  UseIonConstituent     = .true.
+  UseIonConstituent = .true.
 
   DtMin = Dt
 
@@ -41,121 +41,120 @@ subroutine calc_chemistry(iBlock)
   ChemicalHeatingRateEle = 0.0
   ChemicalHeatingSpecies = 0.0
 
-  if (.not.UseIonChemistry) return
+  if (.not. UseIonChemistry) return
 
-  call report("Chemistry",2)
+  call report("Chemistry", 2)
   call start_timing("calc_chemistry")
 
   DtAve = 0.0
 
-  nIters=0
+  nIters = 0
 
   do iLon = 1, nLons
-     do iLat = 1, nLats
-        do iAlt = 1, nAlts
+    do iLat = 1, nLats
+      do iAlt = 1, nAlts
 
-           tn = Temperature(iLon,iLat,iAlt,iBlock)/TempUnit(iLon,iLat,iAlt)
+        tn = Temperature(iLon, iLat, iAlt, iBlock)/TempUnit(iLon, iLat, iAlt)
 
            !! CHANGE
-           te300 = 300.0 / eTemperature(iLon,iLat,iAlt,iBlock)
+        te300 = 300.0/eTemperature(iLon, iLat, iAlt, iBlock)
 
-           rr01 = 1.5e-29 / (tn ^ (1.0/3.0))
-           rr02 = 3.73e-20 * tn^3/exp(4406.0/tn)
-           rr03 = 6.40e-25 / (tn^2 * exp(1200.0/tn))
+        rr01 = 1.5e-29/(tn^ (1.0/3.0))
+        rr02 = 3.73e-20*tn^3/exp(4406.0/tn)
+        rr03 = 6.40e-25/(tn^2*exp(1200.0/tn))
 
-           rr11 = 4.8e-8 * te300^0.5
-           rr12 = 6.2e-8 * te300^0.5
+        rr11 = 4.8e-8*te300^0.5
+        rr12 = 6.2e-8*te300^0.5
 
-           DtTotal = 0.0
-           EmissionTotal = 0.0
+        DtTotal = 0.0
+        EmissionTotal = 0.0
 
-           Ions = IDensityS(iLon,iLat,iAlt,:,iBlock)
-           Neutrals = NDensityS(iLon,iLat,iAlt,:,iBlock)
-           nn = sum(Neutrals)
- 
-           do while (DtTotal < Dt)
+        Ions = IDensityS(iLon, iLat, iAlt, :, iBlock)
+        Neutrals = NDensityS(iLon, iLat, iAlt, :, iBlock)
+        nn = sum(Neutrals)
 
-              ChemicalHeatingSub = 0.0
-              Emission = 0.0
+        do while (DtTotal < Dt)
 
-              DtSub = Dt - DtTotal
+          ChemicalHeatingSub = 0.0
+          Emission = 0.0
 
-              IonSources = 0.0
-              NeutralSources = 0.0
-              IonLosses  = 0.0
-              NeutralLosses = 0.0
+          DtSub = Dt - DtTotal
 
-              ! Solar EUV
+          IonSources = 0.0
+          NeutralSources = 0.0
+          IonLosses = 0.0
+          NeutralLosses = 0.0
 
-              ! ----------------------------------------------------------
-              ! H+
-              ! ----------------------------------------------------------
+          ! Solar EUV
 
-              ! Solar EUV
+          ! ----------------------------------------------------------
+          ! H+
+          ! ----------------------------------------------------------
 
-              Reaction = EuvIonRateS(iLon,iLat,iAlt,iHP_,iBlock) * &
-                   Neutrals(iH_)
+          ! Solar EUV
 
-              IonSources(iHP_)   = IonSources(iHP_)   + Reaction
-              NeutralLosses(iH_) = NeutralLosses(iH_) + Reaction
+          Reaction = EuvIonRateS(iLon, iLat, iAlt, iHP_, iBlock)* &
+                     Neutrals(iH_)
 
-              ! 2H + M -> H2 + M
+          IonSources(iHP_) = IonSources(iHP_) + Reaction
+          NeutralLosses(iH_) = NeutralLosses(iH_) + Reaction
 
-              Reaction = &
-                   rr01 * 2*Neutrals(iH_) * nn
+          ! 2H + M -> H2 + M
 
-              NeutralSources(iH2_) = NeutralSources(iH2_) + Reaction
-              NeutralLosses(iH_)   = NeutralLosses(iH_)   + 2*Reaction
+          Reaction = &
+            rr01*2*Neutrals(iH_)*nn
 
-              ! H + CH4 -> CH3 + H2
+          NeutralSources(iH2_) = NeutralSources(iH2_) + Reaction
+          NeutralLosses(iH_) = NeutralLosses(iH_) + 2*Reaction
 
-              Reaction = &
-                   rr02 * Neutrals(iH_) * Neutrals(iCH4_)
+          ! H + CH4 -> CH3 + H2
 
-              NeutralSources(iH2_)  = NeutralSources(iH2_) + Reaction
-              NeutralSources(iCH3_) = NeutralSources(iCH3_) + Reaction
-              NeutralLosses(iH_)    = NeutralLosses(iH_) + Reaction
-              NeutralLosses(iCH4_)  = NeutralLosses(iCH4_) + Reaction
+          Reaction = &
+            rr02*Neutrals(iH_)*Neutrals(iCH4_)
 
-              ! H + C2H2 + M -> C2H3 + M
+          NeutralSources(iH2_) = NeutralSources(iH2_) + Reaction
+          NeutralSources(iCH3_) = NeutralSources(iCH3_) + Reaction
+          NeutralLosses(iH_) = NeutralLosses(iH_) + Reaction
+          NeutralLosses(iCH4_) = NeutralLosses(iCH4_) + Reaction
 
-              Reaction = &
-                   rr03 * Neutrals(iH_) * Neutrals(iCH4)
+          ! H + C2H2 + M -> C2H3 + M
 
-              NeutralSources(iC2H3_) = NeutralSources(iC2H3_) + Reaction
-              NeutralLosses(iH_)     = NeutralLosses(iH_) + Reaction
-              NeutralLosses(iC2H2_)  = NeutralLosses(iC2H2_) + Reaction
+          Reaction = &
+            rr03*Neutrals(iH_)*Neutrals(iCH4)
 
-              ! H2+ + H -> H+ + H2
+          NeutralSources(iC2H3_) = NeutralSources(iC2H3_) + Reaction
+          NeutralLosses(iH_) = NeutralLosses(iH_) + Reaction
+          NeutralLosses(iC2H2_) = NeutralLosses(iC2H2_) + Reaction
 
-              Reaction = &
-                   RrTempInd(iRrR4_) * Ions(iH2P_) * Neutrals(iH_)
+          ! H2+ + H -> H+ + H2
 
-              IonSources(iHP_)   = IonSources(iHP_)   + Reaction
-              NeutralSources(iH2_) = NeutralSources(iH2_) + Reaction
-              IonLosses(iH2P_)    = IonLosses(iH2P_)  + Reaction
-              NeutralLosses(iH_)  = NeutralLosses(iH_) + Reaction
+          Reaction = &
+            RrTempInd(iRrR4_)*Ions(iH2P_)*Neutrals(iH_)
 
-              ! H2+ + H2 -> H3+ + H
+          IonSources(iHP_) = IonSources(iHP_) + Reaction
+          NeutralSources(iH2_) = NeutralSources(iH2_) + Reaction
+          IonLosses(iH2P_) = IonLosses(iH2P_) + Reaction
+          NeutralLosses(iH_) = NeutralLosses(iH_) + Reaction
 
-              Reaction = &
-                   RrTempInd(iRrR5_) * Ions(iH2P_) * Neutrals(iH2_)
+          ! H2+ + H2 -> H3+ + H
 
-              IonSources(iH3P_)   = IonSources(iH3P_)   + Reaction
-              NeutralSources(iH_) = NeutralSources(iH_) + Reaction
-              IonLosses(iH2P_)    = IonLosses(iH2P_)    + Reaction
-              NeutralLosses(iH2_) = NeutralLosses(iH2_) + Reaction
+          Reaction = &
+            RrTempInd(iRrR5_)*Ions(iH2P_)*Neutrals(iH2_)
 
-              ! H2+ + He -> HeH+ + H
+          IonSources(iH3P_) = IonSources(iH3P_) + Reaction
+          NeutralSources(iH_) = NeutralSources(iH_) + Reaction
+          IonLosses(iH2P_) = IonLosses(iH2P_) + Reaction
+          NeutralLosses(iH2_) = NeutralLosses(iH2_) + Reaction
 
-              Reaction = &
-                   RrTempInd(iRrR6_) * Ions(iH2P_) * Neutrals(iHe_)
+          ! H2+ + He -> HeH+ + H
 
-              IonSources(iCH5P_)   = IonSources(iCH5P_)   + Reaction
-              NeutralSources(iH_) = NeutralSources(iH_) + Reaction
-              IonLosses(iH2P_)    = IonLosses(iH2P_)    + Reaction
-              NeutralLosses(iH2_) = NeutralLosses(iH2_) + Reaction
+          Reaction = &
+            RrTempInd(iRrR6_)*Ions(iH2P_)*Neutrals(iHe_)
 
+          IonSources(iCH5P_) = IonSources(iCH5P_) + Reaction
+          NeutralSources(iH_) = NeutralSources(iH_) + Reaction
+          IonLosses(iH2P_) = IonLosses(iH2P_) + Reaction
+          NeutralLosses(iH2_) = NeutralLosses(iH2_) + Reaction
 
 !!!
 !!!              !CO2+ + NO -> NO+ + CO2
@@ -185,19 +184,17 @@ subroutine calc_chemistry(iBlock)
 !!!!!              ChemicalHeatingSub = &
 !!!!!                   ChemicalHeatingSub + Reaction * 1.33
 
-              ! ----------------------------------------------------------
-              ! CO2+
-              ! ----------------------------------------------------------
+          ! ----------------------------------------------------------
+          ! CO2+
+          ! ----------------------------------------------------------
 
-              ! Solar EUV
+          ! Solar EUV
 
-              Reaction = EuvIonRateS(iLon,iLat,iAlt,iCO2P_,iBlock) * &
-                   Neutrals(iCO2_)
+          Reaction = EuvIonRateS(iLon, iLat, iAlt, iCO2P_, iBlock)* &
+                     Neutrals(iCO2_)
 
-              IonSources(iCO2P_)   = IonSources(iCO2P_)   + Reaction
-              NeutralLosses(iCO2_) = NeutralLosses(iCO2_) + Reaction
-
-
+          IonSources(iCO2P_) = IonSources(iCO2P_) + Reaction
+          NeutralLosses(iCO2_) = NeutralLosses(iCO2_) + Reaction
 
 !!              ! Aurora
 !!
@@ -207,148 +204,146 @@ subroutine calc_chemistry(iBlock)
 !!              IonSources(iN2P_)   = IonSources(iN2P_) + Reaction
 !!              NeutralLosses(iN2_) = NeutralLosses(iN2_) + Reaction
 !!
-              
 
+          do iIon = 1, nIons - 1
 
-              do iIon = 1, nIons-1
+            if (UseIonChemistry .and. &
+                UseIonConstituent(iIon)) then
 
-                 if (UseIonChemistry .and. &
-                      UseIonConstituent(iIon)) then
+              if (IonLosses(iIon) > IonSources(iIon) .and. &
+                  IonSources(iIon) > 0.0) then
+                if (Ions(iIon) > 0.01) then
+                  dtOld = DtSub
+                  dtSub = &
+                    min(0.25* &
+                        (IonSources(iIon) + &
+                         Ions(iIon))/ &
+                        (abs(IonLosses(iIon)) + 0.1), DtOld)
+                  if (DtSub < DtOld) iDtReducer = iIon
+                else
+                  IonSources(iIon) = 0.0
+                  IonLosses(iIon) = 0.0
+                end if
+              end if
+            else
+              IonSources(iIon) = 0.0
+              IonLosses(iIon) = 0.0
+            end if
+          end do
 
-                    if (IonLosses(iIon) > IonSources(iIon) .and. &
-                         IonSources(iIon)>0.0) then
-                       if (Ions(iIon) > 0.01) then
-                          dtOld = DtSub
-                          dtSub = &
-                               min(0.25 * &
-                               (IonSources(iIon) + &
-                               Ions(iIon))/ &
-                               (abs(IonLosses(iIon))+0.1), DtOld)
-                          if (DtSub < DtOld) iDtReducer = iIon
-                       else
-                          IonSources(iIon) = 0.0
-                          IonLosses(iIon) = 0.0
-                       endif
-                    endif
-                 else
-                    IonSources(iIon) = 0.0
-                    IonLosses(iIon) = 0.0
-                 endif
-              enddo
+          do iNeutral = 1, nSpeciesTotal
 
-              do iNeutral = 1, nSpeciesTotal
+            if (UseNeutralChemistry .and. &
+                UseNeutralConstituent(iNeutral)) then
 
-                 if (UseNeutralChemistry .and. &
-                      UseNeutralConstituent(iNeutral)) then
+              if (NeutralLosses(iNeutral) > &
+                  NeutralSources(iNeutral)) then
+                if (Neutrals(iNeutral) > 0.01) then
+                  dtOld = DtSub
+                  dtSub = &
+                    min(0.25* &
+                        Neutrals(iNeutral)/ &
+                        (abs(NeutralSources(iNeutral) - &
+                             NeutralLosses(iNeutral)) + 0.1), DtOld)
+                  if (DtSub < DtOld) iDtReducer = nIons + iNeutral
+                else
+                  NeutralSources(iNeutral) = 0.0
+                  NeutralLosses(iNeutral) = 0.0
+                end if
+              end if
+            else
+              NeutralSources(iNeutral) = 0.0
+              NeutralLosses(iNeutral) = 0.0
+            end if
+          end do
 
-                    if (NeutralLosses(iNeutral) > &
-                         NeutralSources(iNeutral)) then
-                       if (Neutrals(iNeutral)>0.01) then
-                          dtOld = DtSub
-                          dtSub = &
-                               min(0.25 * &
-                               Neutrals(iNeutral)/ &
-                               (abs(NeutralSources(iNeutral) - &
-                               NeutralLosses(iNeutral))+0.1), DtOld)
-                          if (DtSub < DtOld) iDtReducer = nIons + iNeutral
-                       else
-                          NeutralSources(iNeutral) = 0.0
-                          NeutralLosses(iNeutral) = 0.0
-                       endif
-                    endif
-                 else
-                    NeutralSources(iNeutral) = 0.0
-                    NeutralLosses(iNeutral) = 0.0
-                 endif
-              enddo
+          Ions(nIons) = 0.0
+          do iIon = 1, nIons - 1
+            Ions(iIon) = Ions(iIon) + &
+                         (IonSources(iIon) - IonLosses(iIon))*DtSub
+            Ions(iIon) = max(0.01, Ions(iIon))
 
-              Ions(nIons) = 0.0
-              do iIon = 1, nIons-1
-                 Ions(iIon) = Ions(iIon) + &
-                      (IonSources(iIon) - IonLosses(iIon)) * DtSub
-                 Ions(iIon) = max(0.01,Ions(iIon))
-                 
-                 ! sum for e-
-                 Ions(nIons) = Ions(nIons) + Ions(iIon)
+            ! sum for e-
+            Ions(nIons) = Ions(nIons) + Ions(iIon)
 
-                 if (Ions(iIon) < 0.0) then
-                    write(*,*) "Negative Ion Density : ", &
-                         iIon, iLon, iLat, iAlt, &
-                         Ions(iIon), &
-                         IonSources(iIon), IonLosses(iIon)
-                 endif
-              enddo
+            if (Ions(iIon) < 0.0) then
+              write (*, *) "Negative Ion Density : ", &
+                iIon, iLon, iLat, iAlt, &
+                Ions(iIon), &
+                IonSources(iIon), IonLosses(iIon)
+            end if
+          end do
 
-              do iNeutral = 1, nSpeciesTotal
-                 Neutrals(iNeutral) = &
-                      Neutrals(iNeutral) + &
-                      (NeutralSources(iNeutral) - NeutralLosses(iNeutral)) * &
-                      DtSub
-              enddo
+          do iNeutral = 1, nSpeciesTotal
+            Neutrals(iNeutral) = &
+              Neutrals(iNeutral) + &
+              (NeutralSources(iNeutral) - NeutralLosses(iNeutral))* &
+              DtSub
+          end do
 
-              ChemicalHeatingRate(iLon,iLat,iAlt) = &
-                   ChemicalHeatingRate(iLon,iLat,iAlt) + &
-                   ChemicalHeatingSub * DtSub
+          ChemicalHeatingRate(iLon, iLat, iAlt) = &
+            ChemicalHeatingRate(iLon, iLat, iAlt) + &
+            ChemicalHeatingSub*DtSub
 
-              EmissionTotal = EmissionTotal + Emission(:)*DtSub
+          EmissionTotal = EmissionTotal + Emission(:)*DtSub
 
-              DtTotal = DtTotal + DtSub
+          DtTotal = DtTotal + DtSub
 
-              if (DtSub < DtMin) DtMin = DtSub
+          if (DtSub < DtMin) DtMin = DtSub
 
-              if (DtSub < 1.0e-9 .and. abs(DtTotal-Dt) > DtSub) then
-                 write(*,*) "Chemistry is too fast!!", DtSub
-                 if (iDtReducer < nIons) then
-                    write(*,*) "Ion Constituent : ", &
-                         iDtReducer, iLon, iLat, iAlt,&
-                         Ions(iDtReducer), &
-                         IonSources(iDtReducer), IonLosses(iDtReducer)
-                 else
-                    iDtReducer = iDtReducer - nIons
-                    write(*,*) "Neutral Constituent : ", &
-                         iDtReducer, iLon, iLat, iAlt,&
-                         Ions(iDtReducer), &
-                         IonSources(iDtReducer), IonLosses(iDtReducer)
-                 endif
+          if (DtSub < 1.0e-9 .and. abs(DtTotal - Dt) > DtSub) then
+            write (*, *) "Chemistry is too fast!!", DtSub
+            if (iDtReducer < nIons) then
+              write (*, *) "Ion Constituent : ", &
+                iDtReducer, iLon, iLat, iAlt, &
+                Ions(iDtReducer), &
+                IonSources(iDtReducer), IonLosses(iDtReducer)
+            else
+              iDtReducer = iDtReducer - nIons
+              write (*, *) "Neutral Constituent : ", &
+                iDtReducer, iLon, iLat, iAlt, &
+                Ions(iDtReducer), &
+                IonSources(iDtReducer), IonLosses(iDtReducer)
+            end if
 
-                 call stop_gitm("Ion Chemistry is too fast!!")
-              endif
+            call stop_gitm("Ion Chemistry is too fast!!")
+          end if
 
-              nIters = nIters + 1
+          nIters = nIters + 1
 
-           enddo
+        end do
 
-           IDensityS(iLon,iLat,iAlt,:,iBlock) = Ions
-           NDensityS(iLon,iLat,iAlt,:,iBlock) = Neutrals
+        IDensityS(iLon, iLat, iAlt, :, iBlock) = Ions
+        NDensityS(iLon, iLat, iAlt, :, iBlock) = Neutrals
 
-           Emissions(iLon, iLat, iAlt, :, iBlock) =  &
-                Emissions(iLon, iLat, iAlt, :, iBlock) + EmissionTotal
+        Emissions(iLon, iLat, iAlt, :, iBlock) = &
+          Emissions(iLon, iLat, iAlt, :, iBlock) + EmissionTotal
 
-        enddo
-     enddo
-  enddo
+      end do
+    end do
+  end do
 
   if (iDebugLevel > 3) then
-     do iIon = 1, nIons
-        write(*,*) "====> Max Ion Density: ", iIon, &
-             maxval(IDensityS(1:nLons,1:nLats,(nAlts*4)/5,iIon,iBlock))
-     enddo
-  endif
+    do iIon = 1, nIons
+      write (*, *) "====> Max Ion Density: ", iIon, &
+        maxval(IDensityS(1:nLons, 1:nLats, (nAlts*4)/5, iIon, iBlock))
+    end do
+  end if
 
   if (iDebugLevel > 2) &
-       write(*,*) "===> Average Dt for this timestep : ", &
-       (Dt*nLats*nLons*nAlts)/nIters
+    write (*, *) "===> Average Dt for this timestep : ", &
+    (Dt*nLats*nLons*nAlts)/nIters
 
-  ChemicalHeatingRate(:,:,:) = &
-       ChemicalHeatingRate(:,:,:) * Element_Charge / &
-       TempUnit(1:nLons,1:nLats,1:nAlts) / cp(1:nLons,1:nLats,1:nAlts,iBlock)/&
-       rho(1:nLons,1:nLats,1:nAlts,iBlock)
-	   
-  ChemicalHeatingRateIon(:,:,:) = &
-       ChemicalHeatingRateIon(:,:,:) * Element_Charge
+  ChemicalHeatingRate(:, :, :) = &
+    ChemicalHeatingRate(:, :, :)*Element_Charge/ &
+    TempUnit(1:nLons, 1:nLats, 1:nAlts)/cp(1:nLons, 1:nLats, 1:nAlts, iBlock)/ &
+    rho(1:nLons, 1:nLats, 1:nAlts, iBlock)
 
-  ChemicalHeatingSpecies = ChemicalHeatingSpecies * Element_Charge
-    
+  ChemicalHeatingRateIon(:, :, :) = &
+    ChemicalHeatingRateIon(:, :, :)*Element_Charge
+
+  ChemicalHeatingSpecies = ChemicalHeatingSpecies*Element_Charge
+
   call end_timing("calc_chemistry")
 
 end subroutine calc_chemistry

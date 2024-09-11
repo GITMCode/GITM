@@ -16,34 +16,34 @@ subroutine get_temperature(lon, lat, alt, t, h)
   !---------------------------------------------------------------------------
   if (UseMsis) then
 
-     call get_msis_temperature(lon, lat, alt, t, h)
+    call get_msis_temperature(lon, lat, alt, t, h)
 
   else
 
-     tAve  = (TempMax+TempMin)/2
-     tDiff = (TempMax-TempMin)/2
+    tAve = (TempMax + TempMin)/2
+    tDiff = (TempMax - TempMin)/2
 
-     if (Alt/1000.0 <= TempHeight) then
-        t = tAve + tDiff*tanh((alt/1000.0 - TempHeight)/TempWidth)
-     else
-        t = tAve + tDiff*tanh((alt/1000.0 - TempHeight)/TempWidth)
-     endif
+    if (Alt/1000.0 <= TempHeight) then
+      t = tAve + tDiff*tanh((alt/1000.0 - TempHeight)/TempWidth)
+    else
+      t = tAve + tDiff*tanh((alt/1000.0 - TempHeight)/TempWidth)
+    end if
 
-     r = RBody + alt
-     g = Gravitational_Constant * (RBody/r) ** 2
+    r = RBody + alt
+    g = Gravitational_Constant*(RBody/r)**2
 
-     h = 0.0
-     n = 0.0
-     m = 0.0
-     do iSpecies = 1, nSpecies
-        m = m + exp(LogNS0(iSpecies)) * mass(iSpecies)
-        n = n + exp(LogNS0(iSpecies))
-     enddo
+    h = 0.0
+    n = 0.0
+    m = 0.0
+    do iSpecies = 1, nSpecies
+      m = m + exp(LogNS0(iSpecies))*mass(iSpecies)
+      n = n + exp(LogNS0(iSpecies))
+    end do
 
-     m = m / n
-     h = Boltzmanns_Constant * t / (m*g)
+    m = m/n
+    h = Boltzmanns_Constant*t/(m*g)
 
-  endif
+  end if
 
 end subroutine get_temperature
 
@@ -88,34 +88,34 @@ subroutine init_altitude
 
   dHFactor = 0.3
 
-  do iAlt=1,nAlts
+  do iAlt = 1, nAlts
 
-     geo_lat = 0.0
-     geo_lst = 12.0
-     geo_lon = mod(geo_lst*15.0 - utime/3600.0*15.0 + 360.0,360.0)
-     geo_alt = AltMin
-     if (iAlt > 1) geo_alt = AltMin + sum(ScaleHeights(1:iAlt-1)) * dHFactor
+    geo_lat = 0.0
+    geo_lst = 12.0
+    geo_lon = mod(geo_lst*15.0 - utime/3600.0*15.0 + 360.0, 360.0)
+    geo_alt = AltMin
+    if (iAlt > 1) geo_alt = AltMin + sum(ScaleHeights(1:iAlt - 1))*dHFactor
 
-     geo_lon = geo_lon * pi / 180.0
+    geo_lon = geo_lon*pi/180.0
 
-     call get_temperature(geo_lon, geo_lat, geo_alt, t, h)
-     ScaleHeights(iAlt) = h
+    call get_temperature(geo_lon, geo_lat, geo_alt, t, h)
+    ScaleHeights(iAlt) = h
 
-  enddo
+  end do
 
-  Altitude_GB(:,:, 1,1:nBlocks) = AltMin
-  Altitude_GB(:,:, 0,1:nBlocks) = AltMin -     dHFactor * ScaleHeights(1)
-  Altitude_GB(:,:,-1,1:nBlocks) = AltMin - 2 * dHFactor * ScaleHeights(1)
+  Altitude_GB(:, :, 1, 1:nBlocks) = AltMin
+  Altitude_GB(:, :, 0, 1:nBlocks) = AltMin - dHFactor*ScaleHeights(1)
+  Altitude_GB(:, :, -1, 1:nBlocks) = AltMin - 2*dHFactor*ScaleHeights(1)
 
-  do iAlt=2,nAlts+1
-     Altitude_GB(:,:,iAlt,1:nBlocks) = Altitude_GB(:,:,iAlt-1,1:nBlocks) &
-          + dHFactor * ScaleHeights(iAlt-1)
-     if (iDebugLevel > 3) write(*,*) "Altitude, dHFactor, ScaleHeight : ", &
-          Altitude_GB(1,1,iAlt,1), dHFactor, ScaleHeights(iAlt-1)
-  enddo
+  do iAlt = 2, nAlts + 1
+    Altitude_GB(:, :, iAlt, 1:nBlocks) = Altitude_GB(:, :, iAlt - 1, 1:nBlocks) &
+                                         + dHFactor*ScaleHeights(iAlt - 1)
+    if (iDebugLevel > 3) write (*, *) "Altitude, dHFactor, ScaleHeight : ", &
+      Altitude_GB(1, 1, iAlt, 1), dHFactor, ScaleHeights(iAlt - 1)
+  end do
 
-  Altitude_GB(:,:,nAlts+2,1:nBlocks) = Altitude_GB(:,:,nAlts+1,1:nBlocks) &
-       + dHFactor * ScaleHeights(nAlts)
+  Altitude_GB(:, :, nAlts + 2, 1:nBlocks) = Altitude_GB(:, :, nAlts + 1, 1:nBlocks) &
+                                            + dHFactor*ScaleHeights(nAlts)
 
 end subroutine init_altitude
 
@@ -158,51 +158,51 @@ subroutine init_altitude_old
 
   do while (.not. IsDone)
 
-     do iAlt=1,nAlts
+    do iAlt = 1, nAlts
 
-        geo_lat = 0.0
-        geo_lst = 12.0
-        geo_lon = mod(geo_lst*15.0 - utime/3600.0*15.0 + 360.0,360.0)
-        geo_alt = AltMin
-        if (iAlt > 1) geo_alt = AltMin + sum(ScaleHeights(1:iAlt-1)) * dHFactor
+      geo_lat = 0.0
+      geo_lst = 12.0
+      geo_lon = mod(geo_lst*15.0 - utime/3600.0*15.0 + 360.0, 360.0)
+      geo_alt = AltMin
+      if (iAlt > 1) geo_alt = AltMin + sum(ScaleHeights(1:iAlt - 1))*dHFactor
 
-        geo_lon = geo_lon * pi / 360.0
-        call get_temperature(geo_lon, geo_lat, geo_alt, t, h)
+      geo_lon = geo_lon*pi/360.0
+      call get_temperature(geo_lon, geo_lat, geo_alt, t, h)
 
-        ScaleHeights(iAlt) = h
+      ScaleHeights(iAlt) = h
 
-     enddo
+    end do
 
-     if (abs(geo_alt - AltMax) < 1.0) then
-        IsDone = .true.
-     else
-        if (OlddHFactor == 0.0) then
-           OlddHFactor = dHFactor
-           dHFactor = dHFactor*(AltMax - AltMin)/(geo_alt - AltMin) 
-        else
-           dHFactor = &
-                dHFactor*(AltMax-AltMin)/(geo_alt-AltMin)/2.0 + &
-                OlddHFactor/2.0
-           OlddHFactor = dHFactor
-        endif
-     endif
+    if (abs(geo_alt - AltMax) < 1.0) then
+      IsDone = .true.
+    else
+      if (OlddHFactor == 0.0) then
+        OlddHFactor = dHFactor
+        dHFactor = dHFactor*(AltMax - AltMin)/(geo_alt - AltMin)
+      else
+        dHFactor = &
+          dHFactor*(AltMax - AltMin)/(geo_alt - AltMin)/2.0 + &
+          OlddHFactor/2.0
+        OlddHFactor = dHFactor
+      end if
+    end if
 
-     iLoop = iLoop+1
+    iLoop = iLoop + 1
 
-  enddo
+  end do
 
-  Altitude_GB(:,:, 1,1:nBlocks)  = AltMin
-  Altitude_GB(:,:, 0,1:nBlocks)  = AltMin -     dHFactor * ScaleHeights(1)
-  Altitude_GB(:,:,-1,1:nBlocks) = AltMin - 2 * dHFactor * ScaleHeights(1)
+  Altitude_GB(:, :, 1, 1:nBlocks) = AltMin
+  Altitude_GB(:, :, 0, 1:nBlocks) = AltMin - dHFactor*ScaleHeights(1)
+  Altitude_GB(:, :, -1, 1:nBlocks) = AltMin - 2*dHFactor*ScaleHeights(1)
 
-  do iAlt=2,nAlts+1
-     Altitude_GB(:,:,iAlt,1:nBlocks) = Altitude_GB(:,:,iAlt-1,1:nBlocks) &
-          + dHFactor * ScaleHeights(iAlt-1)
-     if (iDebugLevel > 3) write(*,*) "Altitude, dHFactor, ScaleHeight : ", &
-          Altitude_GB(1,1,iAlt,1), dHFactor, ScaleHeights(iAlt-1)
-  enddo
+  do iAlt = 2, nAlts + 1
+    Altitude_GB(:, :, iAlt, 1:nBlocks) = Altitude_GB(:, :, iAlt - 1, 1:nBlocks) &
+                                         + dHFactor*ScaleHeights(iAlt - 1)
+    if (iDebugLevel > 3) write (*, *) "Altitude, dHFactor, ScaleHeight : ", &
+      Altitude_GB(1, 1, iAlt, 1), dHFactor, ScaleHeights(iAlt - 1)
+  end do
 
-  Altitude_GB(:,:,nAlts+2,1:nBlocks) = Altitude_GB(:,:,nAlts+1,1:nBlocks) &
-       + dHFactor * ScaleHeights(nAlts)
+  Altitude_GB(:, :, nAlts + 2, 1:nBlocks) = Altitude_GB(:, :, nAlts + 1, 1:nBlocks) &
+                                            + dHFactor*ScaleHeights(nAlts)
 
 end subroutine init_altitude_old

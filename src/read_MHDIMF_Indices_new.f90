@@ -16,9 +16,9 @@ subroutine read_MHDIMF_Indices_new(iOutputError, StartTime, EndTime)
   logical :: done, done_inner, IsFirstLine = .true.
 
   ! One line of input
-  character (len=iCharLenIndices_) :: line
+  character(len=iCharLenIndices_) :: line
 
-  real (Real8_) :: TimeDelay, BufferTime = 1800.0, FirstTime, DeltaT = -1.0e32
+  real(Real8_) :: TimeDelay, BufferTime = 1800.0, FirstTime, DeltaT = -1.0e32
 
   integer, dimension(7) :: itime
   !------------------------------------------------------------------------
@@ -42,139 +42,139 @@ subroutine read_MHDIMF_Indices_new(iOutputError, StartTime, EndTime)
   call init_mod_indices
 
   ! If we have been here before and we read the entire file, leave
-  if (.not.ReReadIMFFile .and. nIndices_V(imf_by_) > 0) return
+  if (.not. ReReadIMFFile .and. nIndices_V(imf_by_) > 0) return
 
-  ! This if statement makes sure that we have been here before and 
+  ! This if statement makes sure that we have been here before and
   ! want to be here again
   if (ReReadIMFFile) then
-     ! If we still have a lot of data in memory, then don't bother
-     ! reading more.
-     if (StartTime + BufferTime < IndexTimes_TV(nIndices_V(imf_bx_),imf_by_)) return
-  endif
+    ! If we still have a lot of data in memory, then don't bother
+    ! reading more.
+    if (StartTime + BufferTime < IndexTimes_TV(nIndices_V(imf_bx_), imf_by_)) return
+  end if
 
   ! Assume that we can read the entire file
   ReReadIMFFile = .false.
 
   if (nIndices_V(imf_bx_) == 0) &
-       NameOfIMFFile = NameOfIndexFile(:index(NameOfIndexFile, ' ')-1)
-  
-  open(LunIndices_, file=trim(NameOfIMFFile), status="old", iostat = ierror)
+    NameOfIMFFile = NameOfIndexFile(:index(NameOfIndexFile, ' ') - 1)
 
-  if (ierror.ne.0) then
-     iOutputError = 1
-     return
-  endif
+  open (LunIndices_, file=trim(NameOfIMFFile), status="old", iostat=ierror)
 
-  do while (.not.done)
-     
-     read(LunIndices_,'(a)', iostat = ierror ) line
-     if (ierror /= 0) done = .true.
+  if (ierror .ne. 0) then
+    iOutputError = 1
+    return
+  end if
 
-     if(index(line,'#DELAY')>0)then
-        read(LunIndices_,*,iostat=iError) TimeDelay
-        if (iError /= 0) done = .true.
-     endif
+  do while (.not. done)
 
-     if(index(line,'#START')>0)then
+    read (LunIndices_, '(a)', iostat=ierror) line
+    if (ierror /= 0) done = .true.
 
-        done_inner = .false.
+    if (index(line, '#DELAY') > 0) then
+      read (LunIndices_, *, iostat=iError) TimeDelay
+      if (iError /= 0) done = .true.
+    end if
 
-        iIMF = 1
-        iSW = 1
+    if (index(line, '#START') > 0) then
 
-        do while (.not.done_inner)
+      done_inner = .false.
 
-           read(LunIndices_,*,iostat=iError) &
-                (iTime(j),j=1,7), &
-                Indices_TV(iIMF,imf_bx_), &
-                Indices_TV(iIMF,imf_by_), &
-                Indices_TV(iIMF,imf_bz_), &
-                Indices_TV(iSW,sw_vx_), &
-                Indices_TV(iSW,sw_vy_), &
-                Indices_TV(iSW,sw_vz_), &
-                Indices_TV(iSW,sw_n_), &
-                Indices_TV(iSW,sw_t_)
+      iIMF = 1
+      iSW = 1
 
-           if (ierror /= 0) then
-              done_inner = .true.
+      do while (.not. done_inner)
 
-              ! This means that the GITM time is all AFTER the first 
-              ! line in the file! 
-              if (StartTime > IndexTimes_TV(iIMF,imf_bx_)) then
-                 iIMF = iIMF +1
-                 iSW = iSW + 1
-              endif
+        read (LunIndices_, *, iostat=iError) &
+          (iTime(j), j=1, 7), &
+          Indices_TV(iIMF, imf_bx_), &
+          Indices_TV(iIMF, imf_by_), &
+          Indices_TV(iIMF, imf_bz_), &
+          Indices_TV(iSW, sw_vx_), &
+          Indices_TV(iSW, sw_vy_), &
+          Indices_TV(iSW, sw_vz_), &
+          Indices_TV(iSW, sw_n_), &
+          Indices_TV(iSW, sw_t_)
 
-           else
+        if (ierror /= 0) then
+          done_inner = .true.
 
-              call time_int_to_real(iTime,IndexTimes_TV(iIMF,imf_bx_))
+          ! This means that the GITM time is all AFTER the first
+          ! line in the file!
+          if (StartTime > IndexTimes_TV(iIMF, imf_bx_)) then
+            iIMF = iIMF + 1
+            iSW = iSW + 1
+          end if
 
-              if (IsFirstLine) then
-                 FirstTime = IndexTimes_TV(iIMF,imf_bx_)
-                 IsFirstLine = .false.
-              else
-                 if (DeltaT == -1.0e32) then
-                    DeltaT = IndexTimes_TV(iIMF,imf_bx_) - FirstTime
-                    if (DeltaT > BufferTime) BufferTime = 10.0*DeltaT
-                 endif
-              endif
+        else
 
-              IndexTimes_TV(iIMF,imf_bx_) = IndexTimes_TV(iIMF,imf_bx_) &
-                   + TimeDelay
-              IndexTimes_TV(iIMF,imf_by_) = IndexTimes_TV(iIMF,imf_bx_) &
-                   + TimeDelay
-              IndexTimes_TV(iIMF,imf_bz_) = IndexTimes_TV(iIMF,imf_bx_) &
-                   + TimeDelay
-              IndexTimes_TV(iSW,sw_vx_) = IndexTimes_TV(iSW,imf_bx_) &
-                   + TimeDelay
-              IndexTimes_TV(iSW,sw_vy_) = IndexTimes_TV(iSW,imf_bx_) &
-                   + TimeDelay
-              IndexTimes_TV(iSW,sw_vz_) = IndexTimes_TV(iSW,imf_bx_) &
-                   + TimeDelay
-              IndexTimes_TV(iSW,sw_n_)  = IndexTimes_TV(iSW,imf_bx_) &
-                   + TimeDelay
-              IndexTimes_TV(iSW,sw_t_)  = IndexTimes_TV(iSW,imf_bx_) &
-                   + TimeDelay
+          call time_int_to_real(iTime, IndexTimes_TV(iIMF, imf_bx_))
 
-              Indices_TV(iSW,sw_v_) = sqrt( &
-                   Indices_TV(iSW,sw_vx_)**2 + &
-                   Indices_TV(iSW,sw_vy_)**2 + &
-                   Indices_TV(iSW,sw_vz_)**2)
-              IndexTimes_TV(iSW,sw_v_) = IndexTimes_TV(iSW,imf_bx_)
+          if (IsFirstLine) then
+            FirstTime = IndexTimes_TV(iIMF, imf_bx_)
+            IsFirstLine = .false.
+          else
+            if (DeltaT == -1.0e32) then
+              DeltaT = IndexTimes_TV(iIMF, imf_bx_) - FirstTime
+              if (DeltaT > BufferTime) BufferTime = 10.0*DeltaT
+            end if
+          end if
 
-              ! This makes sure that we only store the values that we 
-              ! are really interested in
+          IndexTimes_TV(iIMF, imf_bx_) = IndexTimes_TV(iIMF, imf_bx_) &
+                                         + TimeDelay
+          IndexTimes_TV(iIMF, imf_by_) = IndexTimes_TV(iIMF, imf_bx_) &
+                                         + TimeDelay
+          IndexTimes_TV(iIMF, imf_bz_) = IndexTimes_TV(iIMF, imf_bx_) &
+                                         + TimeDelay
+          IndexTimes_TV(iSW, sw_vx_) = IndexTimes_TV(iSW, imf_bx_) &
+                                       + TimeDelay
+          IndexTimes_TV(iSW, sw_vy_) = IndexTimes_TV(iSW, imf_bx_) &
+                                       + TimeDelay
+          IndexTimes_TV(iSW, sw_vz_) = IndexTimes_TV(iSW, imf_bx_) &
+                                       + TimeDelay
+          IndexTimes_TV(iSW, sw_n_) = IndexTimes_TV(iSW, imf_bx_) &
+                                      + TimeDelay
+          IndexTimes_TV(iSW, sw_t_) = IndexTimes_TV(iSW, imf_bx_) &
+                                      + TimeDelay
 
-              if ( IndexTimes_TV(iIMF,imf_bx_) >= StartTime-BufferTime .and. &
-                   IndexTimes_TV(iIMF,imf_bx_) <= EndTime+BufferTime .and. &
-                   iIMF < MaxIndicesEntries) then
+          Indices_TV(iSW, sw_v_) = sqrt( &
+                                   Indices_TV(iSW, sw_vx_)**2 + &
+                                   Indices_TV(iSW, sw_vy_)**2 + &
+                                   Indices_TV(iSW, sw_vz_)**2)
+          IndexTimes_TV(iSW, sw_v_) = IndexTimes_TV(iSW, imf_bx_)
 
-                 if (abs(Indices_TV(iSW,imf_bz_)) < 200.0) iIMF = iIMF + 1
-                 if ((abs(Indices_TV(iSW,sw_n_)) < 900.0) .and. &
-                      (abs(Indices_TV(iSW,sw_v_)) < 3000.0)) iSW = iSW + 1
+          ! This makes sure that we only store the values that we
+          ! are really interested in
 
-              else
+          if (IndexTimes_TV(iIMF, imf_bx_) >= StartTime - BufferTime .and. &
+              IndexTimes_TV(iIMF, imf_bx_) <= EndTime + BufferTime .and. &
+              iIMF < MaxIndicesEntries) then
 
-                 ! This means that the GITM time is all BEFORE the first 
-                 ! line in the file! 
-                 if (EndTime < IndexTimes_TV(iIMF,imf_bx_) .and. iIMF == 1) then
-                    iIMF = iIMF +1
-                    iSW = iSW + 1
-                 endif
+            if (abs(Indices_TV(iSW, imf_bz_)) < 200.0) iIMF = iIMF + 1
+            if ((abs(Indices_TV(iSW, sw_n_)) < 900.0) .and. &
+                (abs(Indices_TV(iSW, sw_v_)) < 3000.0)) iSW = iSW + 1
 
-              endif
+          else
 
-           endif
+            ! This means that the GITM time is all BEFORE the first
+            ! line in the file!
+            if (EndTime < IndexTimes_TV(iIMF, imf_bx_) .and. iIMF == 1) then
+              iIMF = iIMF + 1
+              iSW = iSW + 1
+            end if
 
-        enddo
+          end if
 
-        done = done_inner
+        end if
 
-     endif
+      end do
 
-  enddo
+      done = done_inner
 
-  close(LunIndices_)
+    end if
+
+  end do
+
+  close (LunIndices_)
 
   if (iIMF >= MaxIndicesEntries) ReReadIMFFile = .true.
 

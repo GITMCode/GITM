@@ -16,9 +16,9 @@ subroutine read_OMNIWEB_Ap_Indices_new(iOutputError, StartTime, EndTime)
   logical :: done
 
   ! One line of input
-  character (len=iCharLenIndices_) :: line
+  character(len=iCharLenIndices_) :: line
 
-  real (Real8_) :: BufferTime
+  real(Real8_) :: BufferTime
 
   integer, dimension(7) :: itime
   !------------------------------------------------------------------------
@@ -29,61 +29,61 @@ subroutine read_OMNIWEB_Ap_Indices_new(iOutputError, StartTime, EndTime)
   call init_mod_indices
 
   !write(*,*) "-->",NameOfIndexFile,"<--"
-  
-  open(LunIndices_, file=NameOfIndexFile, status="old", iostat = ierror)
 
-  write(*,*) 'open : ', ierror
-  if (ierror.ne.0) then
-     iOutputError = 1
-     return
-  endif
+  open (LunIndices_, file=NameOfIndexFile, status="old", iostat=ierror)
+
+  write (*, *) 'open : ', ierror
+  if (ierror .ne. 0) then
+    iOutputError = 1
+    return
+  end if
 
   iAp = 1
 
   ! Allow a 48 hour buffer time before and after start/end time:
-  BufferTime = 48.0 * 3600.0
+  BufferTime = 48.0*3600.0
 
-  do while (.not.done)
-     
-     read(LunIndices_,*,iostat=iError) iYear, iDay, iHour, Ap
+  do while (.not. done)
 
-     if (ierror /= 0) then
-        done = .true.
-     else
-     
-        iTime(1) = iYear
-        iTime(2) = 1
-        iTime(3) = iDay
-        iTime(4) = iHour
-        iTime(5:7) = 0
+    read (LunIndices_, *, iostat=iError) iYear, iDay, iHour, Ap
 
-        Indices_TV(iAp,ap_) = Ap
+    if (ierror /= 0) then
+      done = .true.
+    else
 
-        call time_int_to_real(iTime,IndexTimes_TV(iAp,ap_))
+      iTime(1) = iYear
+      iTime(2) = 1
+      iTime(3) = iDay
+      iTime(4) = iHour
+      iTime(5:7) = 0
 
-        if ( IndexTimes_TV(iAp,ap_) >= StartTime-BufferTime .and. &
-             IndexTimes_TV(iAp,ap_) <= EndTime+BufferTime .and. &
-             iAp < MaxIndicesEntries) then
+      Indices_TV(iAp, ap_) = Ap
 
-           iAp = iAp + 1
+      call time_int_to_real(iTime, IndexTimes_TV(iAp, ap_))
 
-        else
+      if (IndexTimes_TV(iAp, ap_) >= StartTime - BufferTime .and. &
+          IndexTimes_TV(iAp, ap_) <= EndTime + BufferTime .and. &
+          iAp < MaxIndicesEntries) then
 
-           ! This means that the GITM time is all BEFORE the first 
-           ! line in the file! 
-           if (EndTime < IndexTimes_TV(iAp,ap_) .and. iAp == 1) then
-              iAp = iAp +1
-           endif
+        iAp = iAp + 1
 
-        endif
+      else
 
-        if (iAp >= MaxIndicesEntries) done = 1
+        ! This means that the GITM time is all BEFORE the first
+        ! line in the file!
+        if (EndTime < IndexTimes_TV(iAp, ap_) .and. iAp == 1) then
+          iAp = iAp + 1
+        end if
 
-     endif
-        
-  enddo
+      end if
 
-  close(LunIndices_)
+      if (iAp >= MaxIndicesEntries) done = 1
+
+    end if
+
+  end do
+
+  close (LunIndices_)
 
   nIndices_V(ap_) = iAp - 2
 

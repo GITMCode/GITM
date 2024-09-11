@@ -1,4 +1,4 @@
-!  Copyright (C) 2002 Regents of the University of Michigan, portions used with permission 
+!  Copyright (C) 2002 Regents of the University of Michigan, portions used with permission
 !  For more information, see http://csem.engin.umich.edu/tools/swmf
 !BOP
 !MODULE: ModKind - define various precisions in a machine independent way
@@ -18,9 +18,9 @@
 module ModKind
 
   !PUBLIC DATA MEMBERS:
-  integer, parameter :: Real4_ = selected_real_kind(6,30)
-  integer, parameter :: Real8_ = selected_real_kind(12,100)
-  integer, parameter :: Int8_  = selected_int_kind(16)
+  integer, parameter :: Real4_ = selected_real_kind(6, 30)
+  integer, parameter :: Real8_ = selected_real_kind(12, 100)
+  integer, parameter :: Int8_ = selected_int_kind(16)
 
   ! Number of bytes in the default real number (precision)
   ! This is standard F90 initialization expression but may give warnings:

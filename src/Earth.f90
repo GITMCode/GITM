@@ -1,4 +1,4 @@
-!  Copyright (C) 2002 Regents of the University of Michigan, portions used with permission 
+!  Copyright (C) 2002 Regents of the University of Michigan, portions used with permission
 !  For more information, see http://csem.engin.umich.edu/tools/swmf
 !-----------------------------------------------------------------------------
 ! $Id: Earth.f90,v 1.21 2017/08/05 01:33:09 ridley Exp $
@@ -32,95 +32,95 @@ subroutine fill_photo
   photoabs(:, iN2_) = PhotoAbs_N2
 
   if (nSpecies > 3) then
-     iSpecies = iN_4S_
-     photoabs(:,min(iSpecies,nSpecies)) = PhotoIon_N
-  endif
+    iSpecies = iN_4S_
+    photoabs(:, min(iSpecies, nSpecies)) = PhotoIon_N
+  end if
 
   ! JMB:  06/25/2016
   if (nSpecies > 5) then
-     iSpecies = iHe_
-     photoabs(:,min(iSpecies,nSpecies)) = PhotoAbs_He
-  endif
+    iSpecies = iHe_
+    photoabs(:, min(iSpecies, nSpecies)) = PhotoAbs_He
+  end if
 
   ! This may need to be as defined below....
-  photoion(:,iN2P_) = PhotoIon_N2
-  photoion(:,iO2P_) = PhotoIon_O2
-  photoion(:,iNP_) = PhotoIon_N
-  photoion(:,iO_4SP_) = PhotoIon_OPlus4S
-  photoion(:,iO_2DP_) = PhotoIon_OPlus2D
-  photoion(:,iO_2PP_) = PhotoIon_OPlus2P
-  photoion(:,iHeP_) = PhotoAbs_He
+  photoion(:, iN2P_) = PhotoIon_N2
+  photoion(:, iO2P_) = PhotoIon_O2
+  photoion(:, iNP_) = PhotoIon_N
+  photoion(:, iO_4SP_) = PhotoIon_OPlus4S
+  photoion(:, iO_2DP_) = PhotoIon_OPlus2D
+  photoion(:, iO_2PP_) = PhotoIon_OPlus2P
+  photoion(:, iHeP_) = PhotoAbs_He
 
   PhotoIonFrom(iN2P_) = iN2_
   PhotoIonFrom(iO2P_) = iO2_
   PhotoIonFrom(iNP_) = iN_4S_
   PhotoIonFrom(iO_4SP_) = iO_3P_
-  PhotoIonFrom(iO_2DP_) = iO_3P_ 
-  PhotoIonFrom(iO_2PP_) = iO_3P_ 
+  PhotoIonFrom(iO_2DP_) = iO_3P_
+  PhotoIonFrom(iO_2PP_) = iO_3P_
   PhotoIonFrom(iHeP_) = iHe_
 
   ! Photoelectrons:
   ! N2:
   ! PE Ratio:  N2 + e- -> N2+
-  PhotoElecIon(:,iN2P_) = PhotoElec_N2_N2Plus
+  PhotoElecIon(:, iN2P_) = PhotoElec_N2_N2Plus
 
   ! O2:
   ! PE Ratio:  O2 + e- -> O2+
-  PhotoElecIon(:,iO2P_) = PhotoElec_O2_O2Plus
+  PhotoElecIon(:, iO2P_) = PhotoElec_O2_O2Plus
 
   ! O:
   ! O + e* -> O(4S)+ + e
-  PhotoElecIon(:,iO_4SP_) = PhotoElec_O_O4SPlus
+  PhotoElecIon(:, iO_4SP_) = PhotoElec_O_O4SPlus
   ! O + e* -> O(2D)+ + e
-  PhotoElecIon(:,iO_2DP_) = PhotoElec_O_O2DPlus
+  PhotoElecIon(:, iO_2DP_) = PhotoElec_O_O2DPlus
   ! O + e* -> O(2P)+ + e
-  PhotoElecIon(:,iO_2PP_) = PhotoElec_O_O2PPlus
+  PhotoElecIon(:, iO_2PP_) = PhotoElec_O_O2PPlus
 
   ! Dissociation:
-  PhotoElecDiss(:,iN2_) = PhotoElec_N2_N4S
-  PhotoElecDiss(:,iO2_) = PhotoElec_O2_O3P
-  
+  PhotoElecDiss(:, iN2_) = PhotoElec_N2_N4S
+  PhotoElecDiss(:, iO2_) = PhotoElec_O2_O3P
+
   ! PE Ratio:  N2 + e- -> N(2D) + N(4S)
-  pelecratio_N2(:,1) = PhotoElec_N2_N4S
+  pelecratio_N2(:, 1) = PhotoElec_N2_N4S
   ! PE Ratio:  N2 + e- -> N+ + N(4S)
-  pelecratio_N2(:,2) = PhotoElec_N2_NPlus
+  pelecratio_N2(:, 2) = PhotoElec_N2_NPlus
   ! PE Ratio:  N2 + e- -> N2+
-  pelecratio_N2(:,3) = PhotoElec_N2_N2Plus
+  pelecratio_N2(:, 3) = PhotoElec_N2_N2Plus
 
   ! PE Ratio:  O2 + e- -> O(4S) + O(3P)
-  pelecratio_O2(:,1) = PhotoElec_O2_O3P
+  pelecratio_O2(:, 1) = PhotoElec_O2_O3P
   ! PE Ratio:  O2 + e- -> O2+
-  pelecratio_O2(:,2) = PhotoElec_O2_O2Plus
+  pelecratio_O2(:, 2) = PhotoElec_O2_O2Plus
   ! PE Ratio:  O2 + e- -> O(4S)+ + O(3P)
-  pelecratio_O2(:,3) = PhotoElec_O2_OPlus
-  
+  pelecratio_O2(:, 3) = PhotoElec_O2_OPlus
+
   do iWave = 1, Num_WaveLengths_High
-     if (waves(iWave) >= 1250.0 .and. wavel(iWave) <= 1750.0) then
-        PhotoDis(iWave, iO2_) = &
-             photoabs(iWave,iO2_) - PhotoIon(iWave, iO2P_)
-     endif
-     if (waves(iWave) >= 800.0 .and. wavel(iWave) <= 1250.0) then
-        PhotoDis(iWave, iN2_) = &
-             photoabs(iWave,iN2_) - PhotoIon(iWave, iN2P_)
-     endif
-  enddo
+    if (waves(iWave) >= 1250.0 .and. wavel(iWave) <= 1750.0) then
+      PhotoDis(iWave, iO2_) = &
+        photoabs(iWave, iO2_) - PhotoIon(iWave, iO2P_)
+    end if
+    if (waves(iWave) >= 800.0 .and. wavel(iWave) <= 1250.0) then
+      PhotoDis(iWave, iN2_) = &
+        photoabs(iWave, iN2_) - PhotoIon(iWave, iN2P_)
+    end if
+  end do
 
   ! Night time ionization:
 
-  night_photoion(:,iN2P_) = Night_PhotoIon_N2 *1.e-4
-  night_photoion(:,iO2P_) = Night_PhotoIon_O2 *1.e-4
-  night_photoion(:,iNOP_) = Night_PhotoIon_NO *1.e-4
-  night_photoion(:,iO_4SP_) = Night_PhotoIon_OPlus4S *1.e-4
-  night_photoion(:,iO_2DP_) = Night_PhotoIon_OPlus2D *1.e-4
-  night_photoion(:,iO_2PP_) = Night_PhotoIon_OPlus2P *1.e-4
-  night_photoion(:,iNP_) = Night_PhotoIon_N *1.e-4
+  night_photoion(:, iN2P_) = Night_PhotoIon_N2*1.e-4
+  night_photoion(:, iO2P_) = Night_PhotoIon_O2*1.e-4
+  night_photoion(:, iNOP_) = Night_PhotoIon_NO*1.e-4
+  night_photoion(:, iO_4SP_) = Night_PhotoIon_OPlus4S*1.e-4
+  night_photoion(:, iO_2DP_) = Night_PhotoIon_OPlus2D*1.e-4
+  night_photoion(:, iO_2PP_) = Night_PhotoIon_OPlus2P*1.e-4
+  night_photoion(:, iNP_) = Night_PhotoIon_N*1.e-4
 
-  night_photoabs(:,iN2_) = Night_PhotoAbs_N2 *1.e-4
-  night_photoabs(:,iO2_) = Night_PhotoAbs_O2 *1.e-4
-  night_photoabs(:,iNO_) = Night_PhotoAbs_NO *1.e-4
-  night_photoabs(:,iO_3P_) = Night_PhotoAbs_O *1.e-4
-  night_photoabs(:,iN_4S_) = Night_PhotoAbs_N *1.e-4
-  
+  night_photoabs(:, iN2_) = Night_PhotoAbs_N2*1.e-4
+  night_photoabs(:, iO2_) = Night_PhotoAbs_O2*1.e-4
+  night_photoabs(:, iNO_) = Night_PhotoAbs_NO*1.e-4
+  night_photoabs(:, iO_3P_) = Night_PhotoAbs_O*1.e-4
+  night_photoabs(:, iN_4S_) = Night_PhotoAbs_N*1.e-4
+
 end subroutine fill_photo
 
 subroutine calc_planet_sources(iBlock)
@@ -130,7 +130,7 @@ subroutine calc_planet_sources(iBlock)
   use ModEUV
   use ModGITM
   use ModTime
-  
+
   implicit none
 
   integer, intent(in) :: iBlock
@@ -148,8 +148,8 @@ subroutine calc_planet_sources(iBlock)
   ! Cooling ----------------------------------------------------------
   !/
 
-  if (UseBarriers) call MPI_BARRIER(iCommGITM,iError)
-  if (iDebugLevel > 4) write(*,*) "=====> NO cooling", iproc, UseNOCooling
+  if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
+  if (iDebugLevel > 4) write (*, *) "=====> NO cooling", iproc, UseNOCooling
 
   call calc_co2(iBlock)
 
@@ -157,9 +157,9 @@ subroutine calc_planet_sources(iBlock)
 
   if (UseCO2Cooling) then
 
-     ! The 0.165 is derived from the TIEGCM (2.65e-13 / 1.602e-12)
-     ! multiplied by 1e6 for /cm2 to /m2
-     CO2Cooling = 0.0
+    ! The 0.165 is derived from the TIEGCM (2.65e-13 / 1.602e-12)
+    ! multiplied by 1e6 for /cm2 to /m2
+    CO2Cooling = 0.0
 !     CO2Cooling = 0.165e6 * NDensityS(1:nLons,1:nLats,1:nAlts,iCO2_,iBlock)*&
 !          exp(-960.0/( &
 !            Temperature(1:nLons,1:nLats,1:nAlts,iBlock)* &
@@ -171,168 +171,167 @@ subroutine calc_planet_sources(iBlock)
 !           (NDensityS(1:nLons,1:nLats,1:nAlts,iO_3P_,iBlock)/Mass(iO_3P_)) * &
 !           1.0e-12 / 1e6) * 1.602e-19
 
-     CO2Cooling2d = 0.0
-     do iAlt=1,nAlts
-        RadiativeCooling2d(1:nLons, 1:nLats) = &
-             RadiativeCooling2d(1:nLons, 1:nLats) + &
-             CO2Cooling(1:nLons,1:nLats,iAlt) * &
-             dAlt_GB(1:nLons,1:nLats,iAlt,iBlock)
-        CO2Cooling2d = CO2Cooling2d + &
-             CO2Cooling(1:nLons,1:nLats,iAlt) * &
-             dAlt_GB(1:nLons,1:nLats,iAlt,iBlock)
-     enddo
+    CO2Cooling2d = 0.0
+    do iAlt = 1, nAlts
+      RadiativeCooling2d(1:nLons, 1:nLats) = &
+        RadiativeCooling2d(1:nLons, 1:nLats) + &
+        CO2Cooling(1:nLons, 1:nLats, iAlt)* &
+        dAlt_GB(1:nLons, 1:nLats, iAlt, iBlock)
+      CO2Cooling2d = CO2Cooling2d + &
+                     CO2Cooling(1:nLons, 1:nLats, iAlt)* &
+                     dAlt_GB(1:nLons, 1:nLats, iAlt, iBlock)
+    end do
 
-     CO2Cooling = CO2Cooling / TempUnit(1:nLons,1:nLats,1:nAlts) / &
-          (Rho(1:nLons,1:nLats,1:nAlts,iBlock)*cp(:,:,1:nAlts,iBlock))
+    CO2Cooling = CO2Cooling/TempUnit(1:nLons, 1:nLats, 1:nAlts)/ &
+                 (Rho(1:nLons, 1:nLats, 1:nAlts, iBlock)*cp(:, :, 1:nAlts, iBlock))
 
   else
-     CO2Cooling = 0.0
-  endif
+    CO2Cooling = 0.0
+  end if
 
   if (UseNOCooling) then
 
-     !  [NO] cooling 
-     ! [Reference: Kockarts,G., G.R.L.,VOL.7, PP.137-140,Feberary 1980 ]
- 
-     Omega = 3.6e-17 * NDensityS(1:nLons,1:nLats,1:nAlts,iO_3P_,iBlock) /      &
-          (3.6e-17 * NDensityS(1:nLons,1:nLats,1:nAlts,iO_3P_,iBlock) + 13.3)
+    !  [NO] cooling
+    ! [Reference: Kockarts,G., G.R.L.,VOL.7, PP.137-140,Feberary 1980 ]
 
-     ! We need to check this out. I don't like the first / sign....
+    Omega = 3.6e-17*NDensityS(1:nLons, 1:nLats, 1:nAlts, iO_3P_, iBlock)/ &
+            (3.6e-17*NDensityS(1:nLons, 1:nLats, 1:nAlts, iO_3P_, iBlock) + 13.3)
 
-     NOCooling = Planck_Constant * Speed_Light / &
-          5.3e-6 * &
-          Omega * 13.3 *  &
-          exp(- Planck_Constant * Speed_Light / &
-          (5.3e-6 * Boltzmanns_Constant * &
-          Temperature(1:nLons,1:nLats,1:nAlts,iBlock)* &
-          TempUnit(1:nLons,1:nLats,1:nAlts))) * &
-          NDensityS(1:nLons,1:nLats,1:nAlts,iNO_,iBlock)
+    ! We need to check this out. I don't like the first / sign....
 
-     NOCooling2d = 0.0
-     do iAlt=1,nAlts
-        RadiativeCooling2d(1:nLons, 1:nLats) = &
-             RadiativeCooling2d(1:nLons, 1:nLats) + &
-             NOCooling(1:nLons,1:nLats,iAlt) * &
-             dAlt_GB(1:nLons,1:nLats,iAlt,iBlock)
-        NOCooling2d = NOCooling2d + &
-             NOCooling(1:nLons,1:nLats,iAlt) * &
-             dAlt_GB(1:nLons,1:nLats,iAlt,iBlock)
-     enddo
+    NOCooling = Planck_Constant*Speed_Light/ &
+                5.3e-6* &
+                Omega*13.3* &
+                exp(-Planck_Constant*Speed_Light/ &
+                    (5.3e-6*Boltzmanns_Constant* &
+                     Temperature(1:nLons, 1:nLats, 1:nAlts, iBlock)* &
+                     TempUnit(1:nLons, 1:nLats, 1:nAlts)))* &
+                NDensityS(1:nLons, 1:nLats, 1:nAlts, iNO_, iBlock)
 
-     NOCooling = NOCooling / TempUnit(1:nLons,1:nLats,1:nAlts) / &
-          (Rho(1:nLons,1:nLats,1:nAlts,iBlock)*cp(:,:,1:nAlts,iBlock))
+    NOCooling2d = 0.0
+    do iAlt = 1, nAlts
+      RadiativeCooling2d(1:nLons, 1:nLats) = &
+        RadiativeCooling2d(1:nLons, 1:nLats) + &
+        NOCooling(1:nLons, 1:nLats, iAlt)* &
+        dAlt_GB(1:nLons, 1:nLats, iAlt, iBlock)
+      NOCooling2d = NOCooling2d + &
+                    NOCooling(1:nLons, 1:nLats, iAlt)* &
+                    dAlt_GB(1:nLons, 1:nLats, iAlt, iBlock)
+    end do
 
-  else
-
-     NOCooling = 0.0
-
-  endif
-
-  if (UseBarriers) call MPI_BARRIER(iCommGITM,iError)
-  if (iDebugLevel > 4) write(*,*) "=====> UseOCooling", iproc, UseOCooling
-
-  if (UseOCooling) then 
-
-     ! [O] cooling 
-     ! Reference: Kockarts, G., Plant. Space Sci., Vol. 18, pp. 271-285, 1970
-     ! We reduce the LTE 63-um cooling rate by a factor of 2 for 
-     ! the non-LTE effects.[Roble,1987]         
-
-     tmp2 = exp(-228./(Temperature(1:nLons,1:nLats,1:nAlts,iBlock)*&
-          TempUnit(1:nLons,1:nLats,1:nAlts)))
-     tmp3 = exp(-326./(Temperature(1:nLons,1:nLats,1:nAlts,iBlock)*&
-          TempUnit(1:nLons,1:nLats,1:nAlts)))
-
-     ! In erg/cm3/s
-     OCooling = (1.69e-18*tmp2 + 4.59e-20*tmp3) * &
-          (NDensityS(1:nLons,1:nLats,1:nAlts,iO_3P_,iBlock)/1.0e6) / &
-          (1.0 + 0.6*tmp2 + 0.2*tmp3)
-     ! In w/m3/3
-     OCooling = OCooling/10.0
-
-     OCooling2d = 0.0
-     do iAlt=1,nAlts
-        RadiativeCooling2d(1:nLons, 1:nLats) = &
-             RadiativeCooling2d(1:nLons, 1:nLats) + &
-             OCooling(1:nLons,1:nLats,iAlt) * &
-             dAlt_GB(1:nLons,1:nLats,iAlt,iBlock)
-        OCooling2d = OCooling2d + &
-             OCooling(1:nLons,1:nLats,iAlt) * &
-             dAlt_GB(1:nLons,1:nLats,iAlt,iBlock)
-     enddo
-
-     ! In our special units:
-     OCooling = OCooling/ TempUnit(1:nLons,1:nLats,1:nAlts) / &
-          (Rho(1:nLons,1:nLats,1:nAlts,iBlock)*cp(:,:,1:nAlts,iBlock))
+    NOCooling = NOCooling/TempUnit(1:nLons, 1:nLats, 1:nAlts)/ &
+                (Rho(1:nLons, 1:nLats, 1:nAlts, iBlock)*cp(:, :, 1:nAlts, iBlock))
 
   else
 
-     OCooling = 0.0
+    NOCooling = 0.0
 
-  endif
+  end if
+
+  if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
+  if (iDebugLevel > 4) write (*, *) "=====> UseOCooling", iproc, UseOCooling
+
+  if (UseOCooling) then
+
+    ! [O] cooling
+    ! Reference: Kockarts, G., Plant. Space Sci., Vol. 18, pp. 271-285, 1970
+    ! We reduce the LTE 63-um cooling rate by a factor of 2 for
+    ! the non-LTE effects.[Roble,1987]
+
+    tmp2 = exp(-228./(Temperature(1:nLons, 1:nLats, 1:nAlts, iBlock)* &
+                      TempUnit(1:nLons, 1:nLats, 1:nAlts)))
+    tmp3 = exp(-326./(Temperature(1:nLons, 1:nLats, 1:nAlts, iBlock)* &
+                      TempUnit(1:nLons, 1:nLats, 1:nAlts)))
+
+    ! In erg/cm3/s
+    OCooling = (1.69e-18*tmp2 + 4.59e-20*tmp3)* &
+               (NDensityS(1:nLons, 1:nLats, 1:nAlts, iO_3P_, iBlock)/1.0e6)/ &
+               (1.0 + 0.6*tmp2 + 0.2*tmp3)
+    ! In w/m3/3
+    OCooling = OCooling/10.0
+
+    OCooling2d = 0.0
+    do iAlt = 1, nAlts
+      RadiativeCooling2d(1:nLons, 1:nLats) = &
+        RadiativeCooling2d(1:nLons, 1:nLats) + &
+        OCooling(1:nLons, 1:nLats, iAlt)* &
+        dAlt_GB(1:nLons, 1:nLats, iAlt, iBlock)
+      OCooling2d = OCooling2d + &
+                   OCooling(1:nLons, 1:nLats, iAlt)* &
+                   dAlt_GB(1:nLons, 1:nLats, iAlt, iBlock)
+    end do
+
+    ! In our special units:
+    OCooling = OCooling/TempUnit(1:nLons, 1:nLats, 1:nAlts)/ &
+               (Rho(1:nLons, 1:nLats, 1:nAlts, iBlock)*cp(:, :, 1:nAlts, iBlock))
+
+  else
+
+    OCooling = 0.0
+
+  end if
 
 !  do iAlt = 1,15
 !     write(*,*) 'no, co2 : ',iAlt, Altitude_GB(1,1,iAlt,iBlock)/1e3, &
 !          NOCooling(1,1,iAlt), CO2Cooling(1,1,iAlt)
 !  enddo
 
-  RadCooling(1:nLons,1:nLats,1:nAlts,iBlock) = &
-       OCooling + NOCooling + CO2Cooling
+  RadCooling(1:nLons, 1:nLats, 1:nAlts, iBlock) = &
+    OCooling + NOCooling + CO2Cooling
 
-  PhotoElectronHeating(:,:,:,iBlock) = 0.0
-  PhotoElectronHeating(:,:,:,iBlock) = &
-       PhotoElectronHeatingEfficiency * &
-       35.0*1.602e-19*&
-       ( &
-       EuvIonRateS(:,:,:,iO2P_,iBlock) + &
-       EuvIonRateS(:,:,:,iN2P_,iBlock) + & !* &
-       EuvIonRateS(:,:,:,iO_4SP_,iBlock) + &
-       EuvIonRateS(:,:,:,iO_2DP_,iBlock) + &
-       EuvIonRateS(:,:,:,iO_2PP_,iBlock))
+  PhotoElectronHeating(:, :, :, iBlock) = 0.0
+  PhotoElectronHeating(:, :, :, iBlock) = &
+    PhotoElectronHeatingEfficiency* &
+    35.0*1.602e-19* &
+    ( &
+    EuvIonRateS(:, :, :, iO2P_, iBlock) + &
+    EuvIonRateS(:, :, :, iN2P_, iBlock) + & !* &
+    EuvIonRateS(:, :, :, iO_4SP_, iBlock) + &
+    EuvIonRateS(:, :, :, iO_2DP_, iBlock) + &
+    EuvIonRateS(:, :, :, iO_2PP_, iBlock))
 
   PhotoElectronHeating2d = 0.0
   do iAlt = 1, nAlts
-     PhotoElectronHeating2d(1:nLons,1:nLats) = &
-          PhotoElectronHeating2d(1:nLons,1:nLats) + &
-          PhotoElectronHeating(:,:,iAlt,iBlock)  * &
-          dAlt_GB(1:nLons,1:nLats,iAlt,iBlock)
-  enddo
-  
-  PhotoElectronHeating(:,:,:,iBlock) = &
-       PhotoElectronHeating(:,:,:,iBlock) / &
-       Rho(1:nLons,1:nLats,1:nAlts,iBlock) / &
-       cp(1:nLons,1:nLats,1:nAlts,iBlock) / &
-       TempUnit(1:nLons,1:nLats,1:nAlts)
+    PhotoElectronHeating2d(1:nLons, 1:nLats) = &
+      PhotoElectronHeating2d(1:nLons, 1:nLats) + &
+      PhotoElectronHeating(:, :, iAlt, iBlock)* &
+      dAlt_GB(1:nLons, 1:nLats, iAlt, iBlock)
+  end do
+
+  PhotoElectronHeating(:, :, :, iBlock) = &
+    PhotoElectronHeating(:, :, :, iBlock)/ &
+    Rho(1:nLons, 1:nLats, 1:nAlts, iBlock)/ &
+    cp(1:nLons, 1:nLats, 1:nAlts, iBlock)/ &
+    TempUnit(1:nLons, 1:nLats, 1:nAlts)
 
 !--------------------------------------------------------------------
 ! GLOW
 !--------------------------------------------------------------------
 
-if (UseGlow) then
-     if (dt < 10000.) then
-        if  (floor((tSimulation-dt)/DtGlow) /= &
-             floor(tsimulation/DtGlow)) then   
+  if (UseGlow) then
+    if (dt < 10000.) then
+      if (floor((tSimulation - dt)/DtGlow) /= &
+          floor(tsimulation/DtGlow)) then
 
-           call start_timing("glow")
-           isInitialGlow = .True.
+        call start_timing("glow")
+        isInitialGlow = .True.
 
-           if (iDebugLevel > 4) write(*,*) "=====> going into get_glow", iproc
+        if (iDebugLevel > 4) write (*, *) "=====> going into get_glow", iproc
 
-           do iLat = 1, nLats
-              do iLon = 1, nLons
+        do iLat = 1, nLats
+          do iLon = 1, nLons
 
-                 call get_glow(iLon,iLat,iBlock)
-                 
-              enddo
-           enddo
+            call get_glow(iLon, iLat, iBlock)
 
-           call end_timing("glow")
+          end do
+        end do
 
-        endif
-     endif
-     PhotoElectronDensity(:,:,:,:,iBlock) = PhotoElectronRate(:,:,:,:,iBlock) * dt
-  endif
+        call end_timing("glow")
 
+      end if
+    end if
+    PhotoElectronDensity(:, :, :, :, iBlock) = PhotoElectronRate(:, :, :, :, iBlock)*dt
+  end if
 
 end subroutine calc_planet_sources
 
@@ -351,20 +350,20 @@ subroutine init_heating_efficiency
   integer :: iLon, iLat, iAlt
   !------------------------------------------------------------------
 
-  HeatingEfficiency_CB(:,:,:,1:nBlocks) = NeutralHeatingEfficiency
+  HeatingEfficiency_CB(:, :, :, 1:nBlocks) = NeutralHeatingEfficiency
 !  max(0.1, &
 !       0.40 - &
 !       5.56e-5*(Altitude_GB(1:nLons,1:nLats,1:nAlts,1:nBlocks)/1000 - 165)**2)
 
-  where(Altitude_GB(1:nLons,1:nLats,1:nAlts,1:nBlocks)/1000. > 150.)
-     eHeatingEfficiency_CB(:,:,:,1:nBlocks) = 0.04
+  where (Altitude_GB(1:nLons, 1:nLats, 1:nAlts, 1:nBlocks)/1000. > 150.)
+    eHeatingEfficiency_CB(:, :, :, 1:nBlocks) = 0.04
 !!! min(0.4, &
 !!!     0.04 + &
 !!!     0.05*(Altitude_GB(1:nLons,1:nLats,1:nAlts,1:nBlocks)/1000 - 150)/100)
-  elsewhere        
-     eHeatingEfficiency_CB(:,:,:,1:nBlocks) = max(0.000001, &
-          0.05 + &
-          0.07*(Altitude_GB(1:nLons,1:nLats,1:nAlts,1:nBlocks)/1000 - 200)/100)
+  elsewhere
+    eHeatingEfficiency_CB(:, :, :, 1:nBlocks) = &
+      max(0.000001, 0.05 + &
+          0.07*(Altitude_GB(1:nLons, 1:nLats, 1:nAlts, 1:nBlocks)/1000 - 200)/100)
   end where
 
 end subroutine init_heating_efficiency
@@ -377,8 +376,8 @@ subroutine calc_eddy_diffusion_coefficient(iBlock)
 
   use ModSizeGITM
   use ModGITM, only: pressure
-  use ModInputs, only: EddyDiffusionPressure0,EddyDiffusionPressure1, &
-       EddyDiffusionCoef
+  use ModInputs, only: EddyDiffusionPressure0, EddyDiffusionPressure1, &
+                       EddyDiffusionCoef
   use ModSources, only: KappaEddyDiffusion
 
   implicit none
@@ -386,27 +385,27 @@ subroutine calc_eddy_diffusion_coefficient(iBlock)
   integer, intent(in) :: iBlock
   integer :: iAlt, iLat, iLon
 
-  KappaEddyDiffusion=0.
-  do iAlt = -1, nAlts+2
+  KappaEddyDiffusion = 0.
+  do iAlt = -1, nAlts + 2
 
-     do iLat = 1, nLats
-        do iLon = 1, nLons
+    do iLat = 1, nLats
+      do iLon = 1, nLons
 
-           if (pressure(iLon,iLat,iAlt,iBlock) >EddyDiffusionPressure0) then
-              KappaEddyDiffusion(iLon,iLat,iAlt,iBlock) = EddyDiffusionCoef
-              
-           else if (pressure(iLon,iLat,iAlt,iBlock) > &
-                EddyDiffusionPressure1) then
+        if (pressure(iLon, iLat, iAlt, iBlock) > EddyDiffusionPressure0) then
+          KappaEddyDiffusion(iLon, iLat, iAlt, iBlock) = EddyDiffusionCoef
 
-              KappaEddyDiffusion(iLon,iLat,iAlt,iBlock) = EddyDiffusionCoef * &
-                   (pressure(iLon,iLat,iAlt,iBlock) - &
-                   EddyDiffusionPressure1)/&
-                   (EddyDiffusionPressure0 - EddyDiffusionPressure1)
+        else if (pressure(iLon, iLat, iAlt, iBlock) > &
+                 EddyDiffusionPressure1) then
 
-           endif
-        enddo
-     enddo
-  enddo
+          KappaEddyDiffusion(iLon, iLat, iAlt, iBlock) = EddyDiffusionCoef* &
+                                                         (pressure(iLon, iLat, iAlt, iBlock) - &
+                                                          EddyDiffusionPressure1)/ &
+                                                         (EddyDiffusionPressure0 - EddyDiffusionPressure1)
+
+        end if
+      end do
+    end do
+  end do
 
 end subroutine calc_eddy_diffusion_coefficient
 
@@ -416,24 +415,24 @@ subroutine set_planet_defaults
   use ModInputs
 
   implicit none
-  
-  iNeutralDensityOutputList(iN_4S_)=.false.
-  iNeutralDensityOutputList(iHe_)=.false.
-  iNeutralDensityOutputList(iN_2D_)=.false.
-  iNeutralDensityOutputList(iN_2P_)=.false.
-  iNeutralDensityOutputList(iH_)=.false.
-  iNeutralDensityOutputList(iCO2_)=.false.
-  iNeutralDensityOutputList(iO_1D_)=.false.
 
-  iIonDensityOutputList(iNP_)=.false.
-  iIonDensityOutputList(iO_2DP_)=.false.
-  iIonDensityOutputList(iO_2PP_)=.false.
-  iIonDensityOutputList(iHP_)=.false.
-  iIonDensityOutputList(iHeP_)=.false.
+  iNeutralDensityOutputList(iN_4S_) = .false.
+  iNeutralDensityOutputList(iHe_) = .false.
+  iNeutralDensityOutputList(iN_2D_) = .false.
+  iNeutralDensityOutputList(iN_2P_) = .false.
+  iNeutralDensityOutputList(iH_) = .false.
+  iNeutralDensityOutputList(iCO2_) = .false.
+  iNeutralDensityOutputList(iO_1D_) = .false.
 
-  iTemperatureOutputList(2)=.false.
-  iTemperatureOutputList(3)=.false.
-  
+  iIonDensityOutputList(iNP_) = .false.
+  iIonDensityOutputList(iO_2DP_) = .false.
+  iIonDensityOutputList(iO_2PP_) = .false.
+  iIonDensityOutputList(iHP_) = .false.
+  iIonDensityOutputList(iHeP_) = .false.
+
+  iTemperatureOutputList(2) = .false.
+  iTemperatureOutputList(3) = .false.
+
   return
 
 end subroutine set_planet_defaults

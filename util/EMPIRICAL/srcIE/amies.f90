@@ -1,4 +1,4 @@
-!  Copyright (C) 2002 Regents of the University of Michigan, portions used with permission 
+!  Copyright (C) 2002 Regents of the University of Michigan, portions used with permission
 !  For more information, see http://csem.engin.umich.edu/tools/swmf
 ! --------------------------------------------------------------------
 !
@@ -7,7 +7,7 @@
 !
 ! --------------------------------------------------------------------
 
-subroutine amiedt (ilat, ilon, ntime, etheta, ephi, potkv)
+subroutine amiedt(ilat, ilon, ntime, etheta, ephi, potkv)
 
   use ModSize
   use ModAMIE
@@ -18,24 +18,23 @@ subroutine amiedt (ilat, ilon, ntime, etheta, ephi, potkv)
   integer, intent(in) :: ilat, ilon, ntime
   real, intent(out) :: potkv, etheta, ephi
 
-  if ((ntime.gt.1).and.(ilat.le.ithtrns)) then
-     potkv  = Efield_Solution(ilon,ilat,potential_)/1000.0
-     etheta = -1.0*Efield_Solution(ilon,ilat,efield_north_)
-     ephi   = Efield_Solution(ilon,ilat,efield_east_)
+  if ((ntime .gt. 1) .and. (ilat .le. ithtrns)) then
+    potkv = Efield_Solution(ilon, ilat, potential_)/1000.0
+    etheta = -1.0*Efield_Solution(ilon, ilat, efield_north_)
+    ephi = Efield_Solution(ilon, ilat, efield_east_)
   else
-     potkv  = 0.0
-     etheta = 0.0
-     ephi   = 0.0
-  endif
+    potkv = 0.0
+    etheta = 0.0
+    ephi = 0.0
+  end if
 
 end subroutine amiedt
-
 
 !!$! --------------------------------------------------------------------
 !!$!
 !!$!  This procedure is under development.
 !!$!
-!!$!  This takes the first potential pattern (if ntime > 1) and 
+!!$!  This takes the first potential pattern (if ntime > 1) and
 !!$!  changes it based on the statistical amie and the change in
 !!$!  IMF from the first time period.  This is then used as the back ground
 !!$!  pattern for the current inversion.
@@ -184,7 +183,7 @@ end subroutine amiedt
 
 ! --------------------------------------------------------------------
 
-subroutine amiespot (by,bz,rmlat,rmlt,etheta,ephi,potkv)
+subroutine amiespot(by, bz, rmlat, rmlt, etheta, ephi, potkv)
 
   use ModAMIE
   use ModEField
@@ -193,7 +192,7 @@ subroutine amiespot (by,bz,rmlat,rmlt,etheta,ephi,potkv)
 
   implicit none
 
-  real,intent(in) :: by, bz, rmlat, rmlt
+  real, intent(in) :: by, bz, rmlat, rmlt
   real, intent(out) :: potkv, etheta, ephi
 
   real :: alte, stepa, fmla, fmla1, xmlt, xmlt1, p1, p2
@@ -203,25 +202,25 @@ subroutine amiespot (by,bz,rmlat,rmlt,etheta,ephi,potkv)
 
   IncludeBackground = .true.
 
-  alte   = ri/1.0e3
-  stepa  = 2.*alte*dtor
+  alte = ri/1.0e3
+  stepa = 2.*alte*dtor
 
   call amiemodel(rmlt, rmlat, by, bz, potkv, IncludeBackground)
 
   fmla = abs(rmlat)
 
   Pole = .false.
-  xmlt  = rmlt
+  xmlt = rmlt
   xmlt1 = xmlt
   fmla1 = fmla + 1.
   if (fmla1 > 90.) then
-     fmla1 = 180.  - fmla1
-     xmlt1 = xmlt1 + 12.
-  endif
-  call amiemodel(xmlt1, fmla1  , by,bz, p1, IncludeBackground)
-  call amiemodel(xmlt , fmla-1., by,bz, p2, IncludeBackground)
-  etheta = (p1 - p2) / stepa
-  
+    fmla1 = 180.-fmla1
+    xmlt1 = xmlt1 + 12.
+  end if
+  call amiemodel(xmlt1, fmla1, by, bz, p1, IncludeBackground)
+  call amiemodel(xmlt, fmla - 1., by, bz, p2, IncludeBackground)
+  etheta = (p1 - p2)/stepa
+
   !          calculate -(lon gradient).  For most latitudes, step 15 degrees
   !          in longitude (1 hr MLT = model resolution) along a great circle.
   !          However, limit minimum latitude to the model minimum, distorting
@@ -231,30 +230,30 @@ subroutine amiespot (by,bz,rmlat,rmlt,etheta,ephi,potkv)
   !          Arts trick where Ephi(90,lon) = Etheta(90,lon+90.)
 
   if (fmla < 89.9) then
-     tmpsl = sin (fmla*dtor)
-     tmpcl = sqrt (1.-tmpsl*tmpsl)
-     tmpsp = sin (15.*dtor)
-     tmpsa = sqrt (1.-tmpsl*tmpsl*tmpsp*tmpsp)
-     fmla1 = acos(tmpcl/tmpsa)*rtod
-     call amiemodel(xmlt+1.,fmla1, by,bz, p1, IncludeBackground)
-     call amiemodel(xmlt-1.,fmla1, by,bz, p2, IncludeBackground)
-     step2 = 2.*alte*asin(tmpcl*tmpsp/tmpsa)
+    tmpsl = sin(fmla*dtor)
+    tmpcl = sqrt(1.-tmpsl*tmpsl)
+    tmpsp = sin(15.*dtor)
+    tmpsa = sqrt(1.-tmpsl*tmpsl*tmpsp*tmpsp)
+    fmla1 = acos(tmpcl/tmpsa)*rtod
+    call amiemodel(xmlt + 1., fmla1, by, bz, p1, IncludeBackground)
+    call amiemodel(xmlt - 1., fmla1, by, bz, p2, IncludeBackground)
+    step2 = 2.*alte*asin(tmpcl*tmpsp/tmpsa)
   else
-     step2 = stepa
-     xmlt = xmlt + 6.
-     fmla = 90.
-     Pole = .true.
-     xmlt1 = xmlt
-     fmla1 = fmla + 1.
-     if (fmla1 .gt. 90.) then
-        fmla1 = 180.  - fmla1
-        xmlt1 = xmlt1 + 12.
-     endif
-     call amiemodel(xmlt1, fmla1  , by,bz, p1, IncludeBackground)
-     call amiemodel(xmlt , fmla-1., by,bz, p2, IncludeBackground)
-  endif
+    step2 = stepa
+    xmlt = xmlt + 6.
+    fmla = 90.
+    Pole = .true.
+    xmlt1 = xmlt
+    fmla1 = fmla + 1.
+    if (fmla1 .gt. 90.) then
+      fmla1 = 180.-fmla1
+      xmlt1 = xmlt1 + 12.
+    end if
+    call amiemodel(xmlt1, fmla1, by, bz, p1, IncludeBackground)
+    call amiemodel(xmlt, fmla - 1., by, bz, p2, IncludeBackground)
+  end if
 
-  ephi = (p2 - p1) / step2
+  ephi = (p2 - p1)/step2
 
   if (Pole) ephi = -ephi
 
@@ -280,22 +279,22 @@ subroutine amiemodel(inmlt, inmlat, by, bz, pot, IncludeBackground)
   real :: back, potz, poty
   integer :: ilat1, ilat2, ilon1, ilon2
 
-  if (DebugLevel > 3) then 
-     write(*,*) "  ====> In subroutine amiemodel"
-     write(*,*) "        inputs : ",inmlt,inmlat,by,bz,IncludeBackground
-  endif
+  if (DebugLevel > 3) then
+    write (*, *) "  ====> In subroutine amiemodel"
+    write (*, *) "        inputs : ", inmlt, inmlat, by, bz, IncludeBackground
+  end if
 
   ! turn latitude and mlt into grid point number
   ! with floating point, so if it is between a grid point, then we can
   ! interpolate
 
-  rlat = (90.0-inmlat)/asdlat
+  rlat = (90.0 - inmlat)/asdlat
   rlon = 15.0*inmlt/asdlon
 
   !     test for boundaries
 
   if (rlat < 0.0) rlat = 0.0
-  if (rlat > iaslat-1) rlat = iaslat-1
+  if (rlat > iaslat - 1) rlat = iaslat - 1
 
   !     set points for interpolation
 
@@ -309,76 +308,76 @@ subroutine amiemodel(inmlt, inmlat, by, bz, pot, IncludeBackground)
   !     set weights for interpolation (all the wt2 values will be 0 if
   !     the lat and lon are on a grid point).
 
-  lawt1 = 1.0 - ((rlat+1.0) - ilat1)
-  lawt2 = 1.0 - (ilat2 - (rlat+1.0))
+  lawt1 = 1.0 - ((rlat + 1.0) - ilat1)
+  lawt2 = 1.0 - (ilat2 - (rlat + 1.0))
 
-  lowt1 = 1.0 - ((rlon+1.0) - ilon1)
-  lowt2 = 1.0 - (ilon2 - (rlon+1.0))
+  lowt1 = 1.0 - ((rlon + 1.0) - ilon1)
+  lowt2 = 1.0 - (ilon2 - (rlon + 1.0))
 
   if (ilon1 > iaslon) ilon1 = ilon1 - iaslon + 1
   if (ilon2 > iaslon) ilon2 = ilon2 - iaslon + 1
 
   if (IncludeBackground) then
 
-     poty_back_neg =                                               &
-          aspyni(ilon1,ilat1)*lowt1*lawt1+                         &
-          aspyni(ilon1,ilat2)*lowt1*lawt2+                         &
-          aspyni(ilon2,ilat1)*lowt2*lawt1+                         &
-          aspyni(ilon2,ilat2)*lowt2*lawt2
-     poty_back_pos =                                               &
-          aspypi(ilon1,ilat1)*lowt1*lawt1+                         &
-          aspypi(ilon1,ilat2)*lowt1*lawt2+                         &
-          aspypi(ilon2,ilat1)*lowt2*lawt1+                         &
-          aspypi(ilon2,ilat2)*lowt2*lawt2
-         
-     potz_back_neg =                                               &
-          aspzni(ilon1,ilat1)*lowt1*lawt1+                         &
-          aspzni(ilon1,ilat2)*lowt1*lawt2+                         &
-          aspzni(ilon2,ilat1)*lowt2*lawt1+                         &
-          aspzni(ilon2,ilat2)*lowt2*lawt2
-     potz_back_pos =                                               &
-          aspzpi(ilon1,ilat1)*lowt1*lawt1+                         &
-          aspzpi(ilon1,ilat2)*lowt1*lawt2+                         &
-          aspzpi(ilon2,ilat1)*lowt2*lawt1+                         &
-          aspzpi(ilon2,ilat2)*lowt2*lawt2
+    poty_back_neg = &
+      aspyni(ilon1, ilat1)*lowt1*lawt1 + &
+      aspyni(ilon1, ilat2)*lowt1*lawt2 + &
+      aspyni(ilon2, ilat1)*lowt2*lawt1 + &
+      aspyni(ilon2, ilat2)*lowt2*lawt2
+    poty_back_pos = &
+      aspypi(ilon1, ilat1)*lowt1*lawt1 + &
+      aspypi(ilon1, ilat2)*lowt1*lawt2 + &
+      aspypi(ilon2, ilat1)*lowt2*lawt1 + &
+      aspypi(ilon2, ilat2)*lowt2*lawt2
 
-     back = (poty_back_neg + poty_back_pos +                       &
-          potz_back_neg + potz_back_pos)/                          &
-          (4.0*(lowt1*lawt1+lowt1*lawt2+lowt2*lawt1+lowt2*lawt2))
+    potz_back_neg = &
+      aspzni(ilon1, ilat1)*lowt1*lawt1 + &
+      aspzni(ilon1, ilat2)*lowt1*lawt2 + &
+      aspzni(ilon2, ilat1)*lowt2*lawt1 + &
+      aspzni(ilon2, ilat2)*lowt2*lawt2
+    potz_back_pos = &
+      aspzpi(ilon1, ilat1)*lowt1*lawt1 + &
+      aspzpi(ilon1, ilat2)*lowt1*lawt2 + &
+      aspzpi(ilon2, ilat1)*lowt2*lawt1 + &
+      aspzpi(ilon2, ilat2)*lowt2*lawt2
+
+    back = (poty_back_neg + poty_back_pos + &
+            potz_back_neg + potz_back_pos)/ &
+           (4.0*(lowt1*lawt1 + lowt1*lawt2 + lowt2*lawt1 + lowt2*lawt2))
 
   else
 
-     back = 0.0
+    back = 0.0
 
-  endif
+  end if
 
   if (by <= 0.0) then
-     poty = by*aspyn(ilon1,ilat1)*lowt1*lawt1+                     &
-          by*aspyn(ilon1,ilat2)*lowt1*lawt2+                       &
-          by*aspyn(ilon2,ilat1)*lowt2*lawt1+                       &
-          by*aspyn(ilon2,ilat2)*lowt2*lawt2
+    poty = by*aspyn(ilon1, ilat1)*lowt1*lawt1 + &
+           by*aspyn(ilon1, ilat2)*lowt1*lawt2 + &
+           by*aspyn(ilon2, ilat1)*lowt2*lawt1 + &
+           by*aspyn(ilon2, ilat2)*lowt2*lawt2
   else
-     poty = by*aspyp(ilon1,ilat1)*lowt1*lawt1+                     &
-          by*aspyp(ilon1,ilat2)*lowt1*lawt2+                       &
-          by*aspyp(ilon2,ilat1)*lowt2*lawt1+                       &
-          by*aspyp(ilon2,ilat2)*lowt2*lawt2
-  endif
+    poty = by*aspyp(ilon1, ilat1)*lowt1*lawt1 + &
+           by*aspyp(ilon1, ilat2)*lowt1*lawt2 + &
+           by*aspyp(ilon2, ilat1)*lowt2*lawt1 + &
+           by*aspyp(ilon2, ilat2)*lowt2*lawt2
+  end if
 
-  poty = poty/(lowt1*lawt1+lowt1*lawt2+lowt2*lawt1+lowt2*lawt2)
+  poty = poty/(lowt1*lawt1 + lowt1*lawt2 + lowt2*lawt1 + lowt2*lawt2)
 
   if (bz <= 0.0) then
-     potz = bz*aspzn(ilon1,ilat1)*lowt1*lawt1+                     &
-          bz*aspzn(ilon1,ilat2)*lowt1*lawt2+                       &
-          bz*aspzn(ilon2,ilat1)*lowt2*lawt1+                       &
-          bz*aspzn(ilon2,ilat2)*lowt2*lawt2
+    potz = bz*aspzn(ilon1, ilat1)*lowt1*lawt1 + &
+           bz*aspzn(ilon1, ilat2)*lowt1*lawt2 + &
+           bz*aspzn(ilon2, ilat1)*lowt2*lawt1 + &
+           bz*aspzn(ilon2, ilat2)*lowt2*lawt2
   else
-     potz = bz*aspzp(ilon1,ilat1)*lowt1*lawt1+                     &
-          bz*aspzp(ilon1,ilat2)*lowt1*lawt2+                       &
-          bz*aspzp(ilon2,ilat1)*lowt2*lawt1+                       &
-          bz*aspzp(ilon2,ilat2)*lowt2*lawt2
-  endif
+    potz = bz*aspzp(ilon1, ilat1)*lowt1*lawt1 + &
+           bz*aspzp(ilon1, ilat2)*lowt1*lawt2 + &
+           bz*aspzp(ilon2, ilat1)*lowt2*lawt1 + &
+           bz*aspzp(ilon2, ilat2)*lowt2*lawt2
+  end if
 
-  potz = potz/(lowt1*lawt1+lowt1*lawt2+lowt2*lawt1+lowt2*lawt2)
+  potz = potz/(lowt1*lawt1 + lowt1*lawt2 + lowt2*lawt1 + lowt2*lawt2)
 
   pot = (poty + potz + back)
 
@@ -391,93 +390,93 @@ subroutine read_amies(unitin)
   use ModAMIE
   use ModEField
   use ModsAMIE
-  
+
   implicit none
 
   integer, intent(in) :: unitin
-  character (len=100) ::line, fmt
+  character(len=100) ::line, fmt
   integer :: inlon, inlat, ierr, i, k
 
-  read(unitin,'(2I8)',iostat = ierr) inlat,inlon
+  read (unitin, '(2I8)', iostat=ierr) inlat, inlon
 
-  if ((inlon /= iaslon).or.(inlat /= iaslat).or.(ierr < 0)) then
+  if ((inlon /= iaslon) .or. (inlat /= iaslat) .or. (ierr < 0)) then
 
-     write(6,*) 'Error in read_amies.f. Latitudes and longitude'
-     write(6,*) 'do not match with code.'
+    write (6, *) 'Error in read_amies.f. Latitudes and longitude'
+    write (6, *) 'do not match with code.'
 
-     write(6,*) 'inlon : ',inlon,'  iaslon : ',iaslon
-     write(6,*) 'inlat : ',inlat,'  iaslat : ',iaslat
+    write (6, *) 'inlon : ', inlon, '  iaslon : ', iaslon
+    write (6, *) 'inlat : ', inlat, '  iaslat : ', iaslat
 
-     write(6,*) ierr
+    write (6, *) ierr
 
-     stop
+    stop
 
   else
 
-     read(unitin,'(2F8.2)') asdlat, asdlon
+    read (unitin, '(2F8.2)') asdlat, asdlon
 
-     write(fmt,"(A1,I2,A5)") "(",inlon,"f8.4)"
+    write (fmt, "(A1,I2,A5)") "(", inlon, "f8.4)"
 
-     read(unitin,'(A100)') line
-     do i=1,inlat
-        read(unitin,fmt) (aspx(k,i),k=1,inlon)
-     enddo
+    read (unitin, '(A100)') line
+    do i = 1, inlat
+      read (unitin, fmt) (aspx(k, i), k=1, inlon)
+    end do
 
-     read(unitin,'(A100)') line
-     do i=1,inlat
-        read(unitin,fmt) (aspxi(k,i),k=1,inlon)
-     enddo
+    read (unitin, '(A100)') line
+    do i = 1, inlat
+      read (unitin, fmt) (aspxi(k, i), k=1, inlon)
+    end do
 
-     read(unitin,'(A100)') line
-     do i=1,inlat
-        read(unitin,fmt) (aspyn(k,i),k=1,inlon)
-     enddo
+    read (unitin, '(A100)') line
+    do i = 1, inlat
+      read (unitin, fmt) (aspyn(k, i), k=1, inlon)
+    end do
 
-     read(unitin,'(A100)') line
-     do i=1,inlat
-        read(unitin,fmt) (aspyni(k,i),k=1,inlon)
-     enddo
+    read (unitin, '(A100)') line
+    do i = 1, inlat
+      read (unitin, fmt) (aspyni(k, i), k=1, inlon)
+    end do
 
-     read(unitin,'(A100)') line
-     do i=1,inlat
-        read(unitin,fmt) (aspyp(k,i),k=1,inlon)
-     enddo
+    read (unitin, '(A100)') line
+    do i = 1, inlat
+      read (unitin, fmt) (aspyp(k, i), k=1, inlon)
+    end do
 
-     read(unitin,'(A100)') line
-     do i=1,inlat
-        read(unitin,fmt) (aspypi(k,i),k=1,inlon)
-     enddo
+    read (unitin, '(A100)') line
+    do i = 1, inlat
+      read (unitin, fmt) (aspypi(k, i), k=1, inlon)
+    end do
 
-     read(unitin,'(A100)') line
-     do i=1,inlat
-        read(unitin,fmt) (aspzn(k,i),k=1,inlon)
-     enddo
+    read (unitin, '(A100)') line
+    do i = 1, inlat
+      read (unitin, fmt) (aspzn(k, i), k=1, inlon)
+    end do
 
-     read(unitin,'(A100)') line
-     do i=1,inlat
-        read(unitin,fmt) (aspzni(k,i),k=1,inlon)
-     enddo
+    read (unitin, '(A100)') line
+    do i = 1, inlat
+      read (unitin, fmt) (aspzni(k, i), k=1, inlon)
+    end do
 
-     read(unitin,'(A100)') line
-     do i=1,inlat
-        read(unitin,fmt) (aspzp(k,i),k=1,inlon)
-     enddo
+    read (unitin, '(A100)') line
+    do i = 1, inlat
+      read (unitin, fmt) (aspzp(k, i), k=1, inlon)
+    end do
 
-     read(unitin,'(A100)') line
-     do i=1,inlat
-        read(unitin,fmt) (aspzpi(k,i),k=1,inlon)
-     enddo
+    read (unitin, '(A100)') line
+    do i = 1, inlat
+      read (unitin, fmt) (aspzpi(k, i), k=1, inlon)
+    end do
 
-     read(unitin,'(A100)') line
-     do i=1,inlat
-        read(unitin,fmt) (aspf(k,i),k=1,inlon)
-     enddo
+    read (unitin, '(A100)') line
+    do i = 1, inlat
+      read (unitin, fmt) (aspf(k, i), k=1, inlon)
+    end do
 
-     read(unitin,'(A100)') line
-     do i=1,inlat
-        read(unitin,fmt) (aspfi(k,i),k=1,inlon)
-     enddo
+    read (unitin, '(A100)') line
+    do i = 1, inlat
+      read (unitin, fmt) (aspfi(k, i), k=1, inlon)
+    end do
 
-  endif
+  end if
 
 end subroutine read_amies

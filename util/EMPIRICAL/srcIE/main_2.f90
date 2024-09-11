@@ -1,4 +1,4 @@
-!  Copyright (C) 2002 Regents of the University of Michigan, portions used with permission 
+!  Copyright (C) 2002 Regents of the University of Michigan, portions used with permission
 !  For more information, see http://csem.engin.umich.edu/tools/swmf
 
 program GetEIE
@@ -6,15 +6,15 @@ program GetEIE
   use ModKind
   use ModErrors
   use ModTimeConvert, ONLY: time_int_to_real
-  
+
   implicit none
 
-  character (len=100), dimension(100) :: Lines
+  character(len=100), dimension(100) :: Lines
   integer :: iError, i
   integer, dimension(7) :: itime
-  real (Real8_) :: rtime
+  real(Real8_) :: rtime
   real :: value
-  real, dimension(25,1) :: mlts, lats, TempPotential
+  real, dimension(25, 1) :: mlts, lats, TempPotential
 
   Lines(1) = "#BACKGROUND"
   Lines(2) = "../srcData/"
@@ -28,7 +28,7 @@ program GetEIE
   Lines(10) = ""
   Lines(11) = "#END"
 
-  write(*,*) "Calling EIE_set_inputs"
+  write (*, *) "Calling EIE_set_inputs"
 
   call EIE_set_inputs(Lines)
 
@@ -40,44 +40,44 @@ program GetEIE
   itime(6) = 0
   itime(7) = 0
 
-  write(*,*) "Calling time convertion"
+  write (*, *) "Calling time convertion"
 
   call time_int_to_real(itime, rtime)
 
-  write(*,*) "=> Setting up Ionospheric Electrodynamics"
+  write (*, *) "=> Setting up Ionospheric Electrodynamics"
 
   call EIE_Initialize(iError)
 
-  write(*,*) "Setting nmlts and nlats"
+  write (*, *) "Setting nmlts and nlats"
 
   call IO_SetnMLTs(25)
   call IO_SetnLats(1)
 
   call IO_SetTime(rtime)
 
-  call IO_SetIMFBz( -5.0)
-  call IO_SetIMFBy( 10.0)
-  call IO_SetSWV  (400.0)
-  call IO_SetSWN  ( 10.0) 
-  call IO_SetKp   (  3.0)
+  call IO_SetIMFBz(-5.0)
+  call IO_SetIMFBy(10.0)
+  call IO_SetSWV(400.0)
+  call IO_SetSWN(10.0)
+  call IO_SetKp(3.0)
   call IO_SetNorth
 
   lats = 75.0
-  do i=1,25
-     mlts(i,1) = float(i)
-  enddo
+  do i = 1, 25
+    mlts(i, 1) = float(i)
+  end do
 
-  write(*,*) "Setting grid"
+  write (*, *) "Setting grid"
 
-  call IO_SetGrid(mlts,lats, iError)
+  call IO_SetGrid(mlts, lats, iError)
 
   call IO_GetPotential(TempPotential, iError)
 
   if (iError /= 0) then
-     write(*,*) "Error : ",cErrorCodes(iError)
+    write (*, *) "Error : ", cErrorCodes(iError)
   else
-     write(*,*) TempPotential
-  endif
+    write (*, *) TempPotential
+  end if
 
   call EIE_End(iError)
 

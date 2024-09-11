@@ -17,10 +17,10 @@ module ModTime
   integer               :: iJulianDay, iDay
   integer               :: iStep = 1
 
-  integer, parameter :: iYear_   = 1
-  integer, parameter :: iMonth_  = 2
-  integer, parameter :: iDay_    = 3
-  integer, parameter :: iHour_   = 4
+  integer, parameter :: iYear_ = 1
+  integer, parameter :: iMonth_ = 2
+  integer, parameter :: iDay_ = 3
+  integer, parameter :: iHour_ = 4
   integer, parameter :: iMinute_ = 5
   integer, parameter :: iSecond_ = 6
 

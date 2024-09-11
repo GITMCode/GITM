@@ -1,4 +1,4 @@
-!  Copyright (C) 2002 Regents of the University of Michigan, portions used with permission 
+!  Copyright (C) 2002 Regents of the University of Michigan, portions used with permission
 !  For more information, see http://csem.engin.umich.edu/tools/swmf
 !==============================================================================
 
@@ -15,22 +15,20 @@ subroutine read_SWPC_Indices(iOutputError)
   logical :: done, done_inner
 
   ! One line of input
-  character (len=iCharLenIndices_) :: line
+  character(len=iCharLenIndices_) :: line
 
-
-
-  real (Real8_) :: TimeDelay
+  real(Real8_) :: TimeDelay
 
   integer, dimension(7) :: itime
   !------------------------------------------------------------------------
   iOutputError = 0
 
-  open(LunIndices_, file=NameOfIndexFile, status="old", iostat = ierror)
+  open (LunIndices_, file=NameOfIndexFile, status="old", iostat=ierror)
 
-  if (ierror.ne.0) then
-     iOutputError = 1
-     return
-  endif
+  if (ierror .ne. 0) then
+    iOutputError = 1
+    return
+  end if
 
   done = .false.
 
@@ -38,133 +36,133 @@ subroutine read_SWPC_Indices(iOutputError)
 
   call init_mod_indices
 
-  TimeDelay=3600.0
+  TimeDelay = 3600.0
   iSW = 1
 
-  write(*,*) "swpc indices"
+  write (*, *) "swpc indices"
 
-  do while (.not.done)
-     
-     read(LunIndices_,'(a)', iostat = ierror ) line
-     if (ierror.ne.0) done = .true.
+  do while (.not. done)
 
-     if(index(line,'#------------')>0)then
+    read (LunIndices_, '(a)', iostat=ierror) line
+    if (ierror .ne. 0) done = .true.
 
-        done_inner = .false.
+    if (index(line, '#------------') > 0) then
 
-        iIMF = 1
+      done_inner = .false.
 
-        do while (.not.done_inner)
+      iIMF = 1
 
-           read(LunIndices_,"(i4,2i3,i4,i2,22x,3f8.1)",iostat=iError) &
-                (iTime(j),j=1,5), &
-                Indices_TV(iIMF,imf_bx_), &
-                Indices_TV(iIMF,imf_by_), &
-                Indices_TV(iIMF,imf_bz_)
+      do while (.not. done_inner)
 
-           itime(6) = 0
-           itime(7) = 0
+        read (LunIndices_, "(i4,2i3,i4,i2,22x,3f8.1)", iostat=iError) &
+          (iTime(j), j=1, 5), &
+          Indices_TV(iIMF, imf_bx_), &
+          Indices_TV(iIMF, imf_by_), &
+          Indices_TV(iIMF, imf_bz_)
 
-           if (ierror /= 0) then
-              done_inner = .true.
-           else
+        itime(6) = 0
+        itime(7) = 0
 
-              call time_int_to_real(iTime,IndexTimes_TV(iIMF,imf_bx_))
+        if (ierror /= 0) then
+          done_inner = .true.
+        else
 
-              IndexTimes_TV(iIMF,imf_by_) = IndexTimes_TV(iIMF,imf_bx_) &
-                   + TimeDelay
-              IndexTimes_TV(iIMF,imf_by_) = IndexTimes_TV(iIMF,imf_bx_) &
-                   + TimeDelay
-              IndexTimes_TV(iIMF,imf_bz_) = IndexTimes_TV(iIMF,imf_bx_) &
-                   + TimeDelay
+          call time_int_to_real(iTime, IndexTimes_TV(iIMF, imf_bx_))
 
-              iIMF = iIMF + 1
+          IndexTimes_TV(iIMF, imf_by_) = IndexTimes_TV(iIMF, imf_bx_) &
+                                         + TimeDelay
+          IndexTimes_TV(iIMF, imf_by_) = IndexTimes_TV(iIMF, imf_bx_) &
+                                         + TimeDelay
+          IndexTimes_TV(iIMF, imf_bz_) = IndexTimes_TV(iIMF, imf_bx_) &
+                                         + TimeDelay
 
-           endif
+          iIMF = iIMF + 1
 
-        enddo
+        end if
 
-        done = done_inner
+      end do
 
-     endif
+      done = done_inner
 
-  enddo
+    end if
 
-  close(LunIndices_)
+  end do
 
-  open(LunIndices_, file=NameOfSecondIndexFile, status="old", iostat = ierror)
+  close (LunIndices_)
 
-  if (ierror.ne.0) then
-     iOutputError = 1
-     return
-  endif
+  open (LunIndices_, file=NameOfSecondIndexFile, status="old", iostat=ierror)
+
+  if (ierror .ne. 0) then
+    iOutputError = 1
+    return
+  end if
 
   done = .false.
 
-  do while (.not.done)
-     
-     read(LunIndices_,'(a)', iostat = ierror ) line
-     if (ierror.ne.0) done = .true.
+  do while (.not. done)
 
-     if(index(line,'#------------')>0)then
+    read (LunIndices_, '(a)', iostat=ierror) line
+    if (ierror .ne. 0) done = .true.
 
-        done_inner = .false.
+    if (index(line, '#------------') > 0) then
 
-        iSW = 1
+      done_inner = .false.
 
-        do while (.not.done_inner)
+      iSW = 1
 
-           read(LunIndices_,"(i4,2i3,i4,i2,22x,2f11.1,e13.2)",iostat=iError) &
-                (iTime(j),j=1,5), &
-                Indices_TV(iSW,sw_n_), &
-                Indices_TV(iSW,sw_vx_), &
-                Indices_TV(iSW,sw_t_)
+      do while (.not. done_inner)
 
-           Indices_TV(iSW,sw_vx_) = -Indices_TV(iSW,sw_vx_)
+        read (LunIndices_, "(i4,2i3,i4,i2,22x,2f11.1,e13.2)", iostat=iError) &
+          (iTime(j), j=1, 5), &
+          Indices_TV(iSW, sw_n_), &
+          Indices_TV(iSW, sw_vx_), &
+          Indices_TV(iSW, sw_t_)
 
-           Indices_TV(iSW,sw_vy_) = 0.0
-           Indices_TV(iSW,sw_vz_) = 0.0
+        Indices_TV(iSW, sw_vx_) = -Indices_TV(iSW, sw_vx_)
 
-           itime(6) = 0
-           itime(7) = 0
+        Indices_TV(iSW, sw_vy_) = 0.0
+        Indices_TV(iSW, sw_vz_) = 0.0
 
-           if (ierror /= 0) then
-              done_inner = .true.
-           else
+        itime(6) = 0
+        itime(7) = 0
 
-              call time_int_to_real(iTime,IndexTimes_TV(iSW,sw_vx_))
+        if (ierror /= 0) then
+          done_inner = .true.
+        else
 
-              IndexTimes_TV(iSW,sw_vx_) = IndexTimes_TV(iSW,sw_vx_) &
-                   + TimeDelay
-              IndexTimes_TV(iSW,sw_vy_) = IndexTimes_TV(iSW,sw_vx_) &
-                   + TimeDelay
-              IndexTimes_TV(iSW,sw_vz_) = IndexTimes_TV(iSW,sw_vx_) &
-                   + TimeDelay
-              IndexTimes_TV(iSW,sw_n_)  = IndexTimes_TV(iSW,sw_vx_) &
-                   + TimeDelay
-              IndexTimes_TV(iSW,sw_t_)  = IndexTimes_TV(iSW,sw_vx_) &
-                   + TimeDelay
+          call time_int_to_real(iTime, IndexTimes_TV(iSW, sw_vx_))
 
-              Indices_TV(iSW,sw_v_) = sqrt( &
-                   Indices_TV(iSW,sw_vx_)**2 + &
-                   Indices_TV(iSW,sw_vy_)**2 + &
-                   Indices_TV(iSW,sw_vz_)**2)
-              IndexTimes_TV(iSW,sw_v_) = IndexTimes_TV(iSW,sw_vx_)
+          IndexTimes_TV(iSW, sw_vx_) = IndexTimes_TV(iSW, sw_vx_) &
+                                       + TimeDelay
+          IndexTimes_TV(iSW, sw_vy_) = IndexTimes_TV(iSW, sw_vx_) &
+                                       + TimeDelay
+          IndexTimes_TV(iSW, sw_vz_) = IndexTimes_TV(iSW, sw_vx_) &
+                                       + TimeDelay
+          IndexTimes_TV(iSW, sw_n_) = IndexTimes_TV(iSW, sw_vx_) &
+                                      + TimeDelay
+          IndexTimes_TV(iSW, sw_t_) = IndexTimes_TV(iSW, sw_vx_) &
+                                      + TimeDelay
 
-              iSW = iSW + 1
-              if (abs(Indices_TV(iSW,sw_n_)) < 900.0) iSW = iSW + 1
+          Indices_TV(iSW, sw_v_) = sqrt( &
+                                   Indices_TV(iSW, sw_vx_)**2 + &
+                                   Indices_TV(iSW, sw_vy_)**2 + &
+                                   Indices_TV(iSW, sw_vz_)**2)
+          IndexTimes_TV(iSW, sw_v_) = IndexTimes_TV(iSW, sw_vx_)
 
-           endif
+          iSW = iSW + 1
+          if (abs(Indices_TV(iSW, sw_n_)) < 900.0) iSW = iSW + 1
 
-        enddo
+        end if
 
-        done = done_inner
+      end do
 
-     endif
+      done = done_inner
 
-  enddo
+    end if
 
-  close(LunIndices_)
+  end do
+
+  close (LunIndices_)
 
   nIndices_V(imf_bx_) = iIMF - 1
   nIndices_V(imf_by_) = iIMF - 1

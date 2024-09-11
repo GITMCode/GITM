@@ -11,10 +11,10 @@ subroutine init_mpi_coup
 
   !use parameter_mod,only: numwork
   implicit none
-  
-  integer :: global_grp,local_grp1,local_grp2
 
-  integer, allocatable:: ranks1(:),ranks2(:)
+  integer :: global_grp, local_grp1, local_grp2
+
+  integer, allocatable:: ranks1(:), ranks2(:)
 
   integer :: iError
   integer  :: i
@@ -22,7 +22,7 @@ subroutine init_mpi_coup
   logical :: IsDone = .false., IsThere
   logical :: HaveGrid = .false., HaveSami = .false.
 
-  character (len=iCharLen_) :: cLine
+  character(len=iCharLen_) :: cLine
   integer :: nBlksLons, nBlksLats
 
   numsami = 13
@@ -32,7 +32,7 @@ subroutine init_mpi_coup
   call MPI_INIT(iError)
 
   iCommGlobal = MPI_COMM_WORLD
-   
+
   ! create global group
   call mpi_comm_group(iCommGlobal, global_grp, iError)
   call MPI_COMM_RANK(iCommGlobal, iProcGlobal, iError)
@@ -40,68 +40,68 @@ subroutine init_mpi_coup
   ! ---------------------------------------------------------------------------
   ! This is a total hack, and I am ashamed.
 
-  inquire(file=cInputFile,EXIST=IsThere)
-  if (.not.IsThere) &
-       call stop_gitm(cInputFile//" cannot be found by read_inputs")
+  inquire (file=cInputFile, EXIST=IsThere)
+  if (.not. IsThere) &
+    call stop_gitm(cInputFile//" cannot be found by read_inputs")
 
-  open(iInputUnit_,file=cInputFile,status="old")
+  open (iInputUnit_, file=cInputFile, status="old")
 
-  do while (.not.IsDone)
+  do while (.not. IsDone)
 
-     read(iInputUnit_,'(a)',iostat=iError) cLine
+    read (iInputUnit_, '(a)', iostat=iError) cLine
 
-     if (iError /= 0) then
-        IsDone = .true.
-     else
+    if (iError /= 0) then
+      IsDone = .true.
+    else
 
-        if (cLine(1:5) == "#GRID") then
-           read(iInputUnit_,*) nBlksLons
-           read(iInputUnit_,*) nBlksLats
-           numgitm = nBlksLons*nBlksLats
-           HaveGrid = .true.
-        endif
+      if (cLine(1:5) == "#GRID") then
+        read (iInputUnit_, *) nBlksLons
+        read (iInputUnit_, *) nBlksLats
+        numgitm = nBlksLons*nBlksLats
+        HaveGrid = .true.
+      end if
 
-        if (cLine(1:5) == "#SAMI") then
-           read(iInputUnit_,*) numsami
-           read(iInputUnit_,*) DtCouple
-           HaveSami = .true.
-        endif
+      if (cLine(1:5) == "#SAMI") then
+        read (iInputUnit_, *) numsami
+        read (iInputUnit_, *) DtCouple
+        HaveSami = .true.
+      end if
 
-        if (HaveGrid.and.HaveSami) IsDone = .true.
+      if (HaveGrid .and. HaveSami) IsDone = .true.
 
-     endif
+    end if
 
-  enddo
+  end do
 
-  close(iInputUnit_)
+  close (iInputUnit_)
 
-  if (.not.HaveGrid) then
-     if (iProcGlobal == 0) then
-        write(*,*) "Can't seem to find #GRID in UAM.in file...??? How???"
-     endif
-     stop
-  endif
+  if (.not. HaveGrid) then
+    if (iProcGlobal == 0) then
+      write (*, *) "Can't seem to find #GRID in UAM.in file...??? How???"
+    end if
+    stop
+  end if
 
-  if (.not.HaveSami) then
-     if (iProcGlobal == 0) then
-        write(*,*) "Need to add lines in UAM.in:"
-        write(*,*) "#SAMI"
-        write(*,*) "13        numworker + 1 from SAMI - We need to fix this.."
-        write(*,*) "300.0     dtcouple"
-     endif
-     stop
-  endif
+  if (.not. HaveSami) then
+    if (iProcGlobal == 0) then
+      write (*, *) "Need to add lines in UAM.in:"
+      write (*, *) "#SAMI"
+      write (*, *) "13        numworker + 1 from SAMI - We need to fix this.."
+      write (*, *) "300.0     dtcouple"
+    end if
+    stop
+  end if
 
   ! ---------------------------------------------------------------------------
 
-  allocate(ranks1(numgitm))
-  allocate(ranks2(numsami))
+  allocate (ranks1(numgitm))
+  allocate (ranks2(numsami))
 
-  ranks1=(/(i,i = 0,numgitm-1)/)
-  ranks2=(/(i,i = numgitm,numgitm+numsami-1)/)
+  ranks1 = (/(i, i=0, numgitm - 1)/)
+  ranks2 = (/(i, i=numgitm, numgitm + numsami - 1)/)
 
   SamiMaster = numgitm
-   
+
   ! extract 4 ranks from global group to make a local group
   call mpi_group_incl(global_grp, numgitm, ranks1, local_grp1, iError)
   call mpi_group_incl(global_grp, numsami, ranks2, local_grp2, iError)

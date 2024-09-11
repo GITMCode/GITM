@@ -21,11 +21,11 @@ program GITM
   use ModRCMR
   use ModSatellites, only: SatCurrentDat, SatAltDat, nRCMRSat
   use ModEUV, only: sza
-  use advance_mod ,only: hrut,denit
+  use advance_mod, only: hrut, denit
   use ModCoupSAMI3
   use ModSamiInterp
   use coup_mod, only: IsCoupGITM
-  use namelist_mod,only:hrinit
+  use namelist_mod, only: hrinit
 
   use message_passing_mod, only: taskid, master_sami, iCommSami, iStatEdSimlat
 
@@ -36,13 +36,13 @@ program GITM
   integer :: iError
 
   logical :: IsValidTime = .true.
-  integer :: iprocglob,nprocsglob
+  integer :: iprocglob, nprocsglob
 
   integer :: status(MPI_STATUS_SIZE)
 
   real :: xxx
 
-  integer :: nIter= 1
+  integer :: nIter = 1
 
   ! ------------------------------------------------------------------------
   ! initialize stuff
@@ -57,136 +57,135 @@ program GITM
 
   if (iCommGITM /= MPI_COMM_NULL) then
 
-     call init_mpi_gitm
+    call init_mpi_gitm
 
-     call start_timing("GITM")
-     call delete_stop
+    call start_timing("GITM")
+    call delete_stop
 
-     call init_planet
-     call set_defaults
+    call init_planet
+    call set_defaults
 
-     call read_inputs(cInputFile)
-     call set_inputs
+    call read_inputs(cInputFile)
+    call set_inputs
 
-     call initialize_gitm(CurrentTime)
+    call initialize_gitm(CurrentTime)
 
-     call write_output
+    call write_output
 
-     call report("Starting Main Time Loop",0)
+    call report("Starting Main Time Loop", 0)
 
   else if (iCommSAMI0 /= MPI_COMM_NULL) then
 
-     call init_sami(iCommSAMI0,IsValidTime)
+    call init_sami(iCommSAMI0, IsValidTime)
 
-     if (taskid ==0) master_sami = iprocglob 
+    if (taskid == 0) master_sami = iprocglob
 
-  endif
+  end if
 
   ! broadcast CurrentTime to global procs
-  call mpi_bcast(EndTime,1,MPI_REAL,0,iCommGlobal,iError)
-  call mpi_bcast(CurrentTime,1,MPI_REAL,0,iCommGlobal,iError)
-  call mpi_bcast(StartTime,1,MPI_REAL,0,iCommGlobal,iError)
-  call mpi_bcast(DtCouple,1,MPI_REAL,0,iCommGlobal,iError)
+  call mpi_bcast(EndTime, 1, MPI_REAL, 0, iCommGlobal, iError)
+  call mpi_bcast(CurrentTime, 1, MPI_REAL, 0, iCommGlobal, iError)
+  call mpi_bcast(StartTime, 1, MPI_REAL, 0, iCommGlobal, iError)
+  call mpi_bcast(DtCouple, 1, MPI_REAL, 0, iCommGlobal, iError)
 
   ! ------------------------------------------------------------------------
   ! Run for a few iterations
   ! ------------------------------------------------------------------------
 
-  call MPI_BARRIER(iCommGlobal,iError)
+  call MPI_BARRIER(iCommGlobal, iError)
 
-  do while(CurrentTime < EndTime)
+  do while (CurrentTime < EndTime)
 
-     if (iCommGITM /= MPI_COMM_NULL) then
+    if (iCommGITM /= MPI_COMM_NULL) then
 
-        do while (CurrentTime < (StartTime+nIter*DtCouple))
+      do while (CurrentTime < (StartTime + nIter*DtCouple))
 
-           !write(*,*) '>>>GITM start iterations---',nIter,iproc ,&
-           !    CurrentTime,EndTime
-           call calc_pressure
+        !write(*,*) '>>>GITM start iterations---',nIter,iproc ,&
+        !    CurrentTime,EndTime
+        call calc_pressure
 
 !!! We may have to split cMax and Dt calculation!!!
-           if(RCMRFlag) then
-              Dt = 2
-           else
-              Dt = FixedDt
-           end if
+        if (RCMRFlag) then
+          Dt = 2
+        else
+          Dt = FixedDt
+        end if
 
-           call calc_timestep_vertical
-           if (.not. Is1D) call calc_timestep_horizontal
+        call calc_timestep_vertical
+        if (.not. Is1D) call calc_timestep_horizontal
 
-           if(RCMRFlag) then
-              call run_RCMR
-           endif
+        if (RCMRFlag) then
+          call run_RCMR
+        end if
 
-           call advance
+        call advance
 
-           if (.not.IsFramework) then
-              call check_stop
-           endif
+        if (.not. IsFramework) then
+          call check_stop
+        end if
 
-           iStep = iStep + 1
+        iStep = iStep + 1
 
-           call write_output
+        call write_output
+
+      end do
+
+    else if (iCommSAMI0 /= MPI_COMM_NULL) then
+
+      if (taskid == 0) call advance_sami_pe0
+      if (taskid > 0) then
+
+        do while ((IsValidTime .and. &
+                   ((hrut - hrinit)*3600.0 < (nIter*DtCouple - 1.0e-6))))
+
+          call Sami_run(IsValidTime, DtCouple)
 
         end do
 
+        if (taskid == 1) &
+          print *, '---- SAMI3 completed one iter', (hrut - hrinit)*3600.0, nIter*DtCouple, IsValidTime, taskid
+        ! take master out of advance
+        xxx = 1.0
+        call mpi_send(xxx, 1, MPI_REAL, 0, iStatEdSimlat, &
+                      iCommSami, iError)
+        if (taskid == 1) &
+          write (*, *) '---- Done with sending xxx !!!', taskid
+      end if
+    end if
 
-     else if (iCommSAMI0 /= MPI_COMM_NULL) then
+    ! turn on coupling flags and exchange data
 
-        if (taskid == 0) call advance_sami_pe0
-        if (taskid>0) then
+    call MPI_BARRIER(iCommGlobal, iError)
+    if (iCommGITM /= MPI_COMM_NULL) then
 
-           do while ((IsValidTime .and. &
-                ((hrut-hrinit)*3600.0 < (nIter*DtCouple-1.0e-6)))) 
+      StartCoup = .true.
+      StartCoup_pot = .true.
 
-              call Sami_run(IsValidTime,DtCouple)
+      if (StartCoup) &
+        call gather_data_gitm
 
-           enddo
+    else if (iCommSAMI0 /= MPI_COMM_NULL) then
 
-           if (taskid == 1) &
-                print*, '---- SAMI3 completed one iter',(hrut-hrinit)*3600.0,nIter*DtCouple,IsValidTime,taskid
-           ! take master out of advance
-           xxx = 1.0
-           call mpi_send(xxx, 1, MPI_REAL, 0,iStatEdSimlat ,&
-                iCommSami, iError)
-           if (taskid == 1) &
-                write(*,*) '---- Done with sending xxx !!!',taskid
-        endif
-     endif
+      if (taskid > 0) IsCoupGITM = .true.
 
-     ! turn on coupling flags and exchange data
+    end if
 
-     call MPI_BARRIER(iCommGlobal,iError)
-     if (iCommGITM /= MPI_COMM_NULL) then
+    call MPI_BARRIER(iCommGlobal, iError)
 
-        StartCoup = .true.
-        StartCoup_pot = .true.
+    call ExchangeData
 
-        if (StartCoup) & 
-             call gather_data_gitm
+    if (iprocglob == 0) print *, '-->> Done ExchangeData', iprocglob
 
-     else if (iCommSAMI0 /= MPI_COMM_NULL) then
+    if (iCommSAMI0 /= MPI_COMM_NULL) then
+      if (taskid > 0 .and. IsCoupGITM) &
+        call init_coup
+    end if
 
-        if (taskid > 0) IsCoupGITM = .true.
+    call MPI_BARRIER(iCommGlobal, iError)
 
-     endif
+    call mpi_bcast(CurrentTime, 1, MPI_REAL, 0, iCommGlobal, iError)
 
-     call MPI_BARRIER(iCommGlobal,iError)
-
-     call ExchangeData
-
-     if (iprocglob == 0) print*,'-->> Done ExchangeData',iprocglob
-
-     if (iCommSAMI0 /= MPI_COMM_NULL) then
-        if (taskid >0 .and. IsCoupGITM) &
-             call init_coup
-     endif
-
-     call MPI_BARRIER(iCommGlobal,iError)
-
-     call mpi_bcast(CurrentTime,1,MPI_REAL,0,iCommGlobal,iError)
-
-     nIter = nIter+1
+    nIter = nIter + 1
 
   end do !(end while gobal)
 
@@ -203,8 +202,8 @@ program GITM
 
   ! call MPI_BARRIER(iCommGlobal,iError)
 
-  if (iCommGITM /= MPI_COMM_NULL) call MPI_Comm_free(iCommGITM,iError)
-  if (iCommSAMI0 /= MPI_COMM_NULL) call MPI_Comm_free(iCommSAMI0,iError)
+  if (iCommGITM /= MPI_COMM_NULL) call MPI_Comm_free(iCommGITM, iError)
+  if (iCommSAMI0 /= MPI_COMM_NULL) call MPI_Comm_free(iCommSAMI0, iError)
 
   call MPI_FINALIZE(iError)
 
@@ -215,10 +214,10 @@ end program GITM
 ! Also some features available in SWMF mode only require empty subroutines
 ! for compilation of the stand alone code.
 !============================================================================
-subroutine CON_set_do_test(String,DoTest,DoTestMe)
+subroutine CON_set_do_test(String, DoTest, DoTestMe)
   implicit none
-  character (len=*), intent(in)  :: String
-  logical          , intent(out) :: DoTest, DoTestMe
+  character(len=*), intent(in)  :: String
+  logical, intent(out) :: DoTest, DoTestMe
 
   DoTest = .false.; DoTestMe = .false.
 

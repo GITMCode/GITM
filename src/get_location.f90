@@ -58,49 +58,49 @@ subroutine LocationIndex(LonFind, LatFind, iiBlock, iiLon, iiLat, rLon, rLat)
   integer iBlock, iLon, iLat
 
   iiBlock = -1
-  iiLon   = -1
-  iiLat   = -1
+  iiLon = -1
+  iiLat = -1
 
-  do iBlock=1,nBlocks
+  do iBlock = 1, nBlocks
 
-     if((Longitude(0,iBlock)+Longitude(1,iBlock))/2 <=LonFind .and. &
-          (Longitude(nLons,iBlock)+Longitude(nLons+1,iBlock))/2 >LonFind) then
+    if ((Longitude(0, iBlock) + Longitude(1, iBlock))/2 <= LonFind .and. &
+        (Longitude(nLons, iBlock) + Longitude(nLons + 1, iBlock))/2 > LonFind) then
 
-        if((Latitude(0,iBlock)+Latitude(1,iBlock))/2 <=LatFind .and. &
-             (Latitude(nLats,iBlock)+Latitude(nLats+1,iBlock))/2 >LatFind) then
+      if ((Latitude(0, iBlock) + Latitude(1, iBlock))/2 <= LatFind .and. &
+          (Latitude(nLats, iBlock) + Latitude(nLats + 1, iBlock))/2 > LatFind) then
 
-           iiBlock = iBlock
+        iiBlock = iBlock
 
-           do iLon = 0,nLons
-              if(Longitude(iLon,iBlock) <= LonFind .and. &
-                   Longitude(iLon+1,iBlock) > LonFind) then
-                 iiLon = iLon
-                 rLon = 1.0 - (LonFind - Longitude(iLon,iBlock)) / &
-                      (Longitude(iLon+1,iBlock) - Longitude(iLon,iBlock))
-                 exit
-              endif
-           enddo
+        do iLon = 0, nLons
+          if (Longitude(iLon, iBlock) <= LonFind .and. &
+              Longitude(iLon + 1, iBlock) > LonFind) then
+            iiLon = iLon
+            rLon = 1.0 - (LonFind - Longitude(iLon, iBlock))/ &
+                   (Longitude(iLon + 1, iBlock) - Longitude(iLon, iBlock))
+            exit
+          end if
+        end do
 
-           do iLat = 0,nLats
-              if(Latitude(iLat,iBlock) <= LatFind .and. &
-                   Latitude(iLat+1,iBlock) > LatFind) then
-                 iiLat = iLat
-                 rLat = 1.0 - (LatFind - Latitude(iLat,iBlock)) / &
-                      (Latitude(iLat+1,iBlock) - Latitude(iLat,iBlock))
-                 exit
-              endif
-           enddo
+        do iLat = 0, nLats
+          if (Latitude(iLat, iBlock) <= LatFind .and. &
+              Latitude(iLat + 1, iBlock) > LatFind) then
+            iiLat = iLat
+            rLat = 1.0 - (LatFind - Latitude(iLat, iBlock))/ &
+                   (Latitude(iLat + 1, iBlock) - Latitude(iLat, iBlock))
+            exit
+          end if
+        end do
 
-           if(iiLon >= 0 .and. iiLat >= 0) then
-              exit
-           end if
+        if (iiLon >= 0 .and. iiLat >= 0) then
+          exit
         end if
-     end if
+      end if
+    end if
   end do
 
 end subroutine LocationIndex
 
-subroutine BlockLocationIndex(LonFind,LatFind,iBlock,iiLon,iiLat,rLon,rLat)
+subroutine BlockLocationIndex(LonFind, LatFind, iBlock, iiLon, iiLat, rLon, rLat)
 
   use ModGITM
 
@@ -113,40 +113,40 @@ subroutine BlockLocationIndex(LonFind,LatFind,iBlock,iiLon,iiLat,rLon,rLat)
 
   iiLon = -1
   iiLat = -1
-  rLon  = -1.0
-  rLat  = -1.0
+  rLon = -1.0
+  rLat = -1.0
 
-  if((Longitude(0,iBlock)+Longitude(1,iBlock))/2 <=LonFind .and. &
-       (Longitude(nLons,iBlock)+Longitude(nLons+1,iBlock))/2 >LonFind) then
+  if ((Longitude(0, iBlock) + Longitude(1, iBlock))/2 <= LonFind .and. &
+      (Longitude(nLons, iBlock) + Longitude(nLons + 1, iBlock))/2 > LonFind) then
 
-     if((Latitude(0,iBlock)+Latitude(1,iBlock))/2 <=LatFind .and. &
-          (Latitude(nLats,iBlock)+Latitude(nLats+1,iBlock))/2 >LatFind) then
+    if ((Latitude(0, iBlock) + Latitude(1, iBlock))/2 <= LatFind .and. &
+        (Latitude(nLats, iBlock) + Latitude(nLats + 1, iBlock))/2 > LatFind) then
 
-        do iLon = 0,nLons
-           if(Longitude(iLon,iBlock) <= LonFind .and. &
-                Longitude(iLon+1,iBlock) > LonFind) then
-              iiLon = iLon
-              rLon  = 1.0 - (LonFind - Longitude(iLon,iBlock)) / &
-                   (Longitude(iLon+1,iBlock) - Longitude(iLon,iBlock))
-              exit
-           endif
-        enddo
+      do iLon = 0, nLons
+        if (Longitude(iLon, iBlock) <= LonFind .and. &
+            Longitude(iLon + 1, iBlock) > LonFind) then
+          iiLon = iLon
+          rLon = 1.0 - (LonFind - Longitude(iLon, iBlock))/ &
+                 (Longitude(iLon + 1, iBlock) - Longitude(iLon, iBlock))
+          exit
+        end if
+      end do
 
-        do iLat = 0,nLats
-           if(Latitude(iLat,iBlock) <= LatFind .and. &
-               Latitude(iLat+1,iBlock) > LatFind) then
-              iiLat = iLat
-              rLat = 1.0 - (LatFind - Latitude(iLat,iBlock)) / &
-                   (Latitude(iLat+1,iBlock) - Latitude(iLat,iBlock))
-              exit
-           endif
-        enddo
-     end if
+      do iLat = 0, nLats
+        if (Latitude(iLat, iBlock) <= LatFind .and. &
+            Latitude(iLat + 1, iBlock) > LatFind) then
+          iiLat = iLat
+          rLat = 1.0 - (LatFind - Latitude(iLat, iBlock))/ &
+                 (Latitude(iLat + 1, iBlock) - Latitude(iLat, iBlock))
+          exit
+        end if
+      end do
+    end if
   end if
 
 end subroutine BlockLocationIndex
 
-subroutine BlockAltIndex(AltFind,iBlock,iLon,iLat,iAlt,rAlt)
+subroutine BlockAltIndex(AltFind, iBlock, iLon, iLat, iAlt, rAlt)
 
   use ModGITM
 
@@ -160,15 +160,15 @@ subroutine BlockAltIndex(AltFind,iBlock,iLon,iLat,iAlt,rAlt)
   iAlt = -1
   rAlt = -1.0
 
-  do jAlt = 0,nAlts
-     if (Altitude_GB(iLon, iLat, jAlt, iBlock) <= AltFind .and. &
-          Altitude_GB(iLon, iLat, jAlt+1,iBlock) > AltFind) then
-        iAlt = jAlt
-        rAlt  = 1.0 - (AltFind - Altitude_GB(iLon, iLat, iAlt, iBlock)) &
-             / (Altitude_GB(iLon, iLat, iAlt+1, iBlock) &
-             - Altitude_GB(iLon, iLat, iAlt, iBlock))
-        exit
-     endif
-  enddo
+  do jAlt = 0, nAlts
+    if (Altitude_GB(iLon, iLat, jAlt, iBlock) <= AltFind .and. &
+        Altitude_GB(iLon, iLat, jAlt + 1, iBlock) > AltFind) then
+      iAlt = jAlt
+      rAlt = 1.0 - (AltFind - Altitude_GB(iLon, iLat, iAlt, iBlock)) &
+             /(Altitude_GB(iLon, iLat, iAlt + 1, iBlock) &
+               - Altitude_GB(iLon, iLat, iAlt, iBlock))
+      exit
+    end if
+  end do
 
 end subroutine BlockAltIndex

@@ -9,99 +9,99 @@ subroutine init_grid
   use ModPlanet
   use ModSphereInterface
   use ModTime
-  use ModEUV,     only: init_mod_euv
+  use ModEUV, only: init_mod_euv
   use ModSources, only: init_mod_sources
   implicit none
 
-  type (UAM_ITER) :: r_iter
+  type(UAM_ITER) :: r_iter
 
   integer :: iBlock
 
   logical :: IsOk, IsDone, DoTouchSouth, DoTouchNorth
   real :: range, lon0, dlFull, dlPart
-  integer :: iPoint(-1:nLons+2)
+  integer :: iPoint(-1:nLons + 2)
 
-  call report("init_grid",0)
+  call report("init_grid", 0)
 
   if (.not. Is1D) then
 
-     if (IsFullSphere) then
-        call UAM_module_setup(iCommGITM, &
-             nLons, nLats, nAlts, &
-             nBlocksLon, nBlocksLat, &
-             -pi/2.0, pi/2.0, &
-             .true., .true., &
-             0.0, 0.0, 0.0, &
-             RBody+AltMin, 5000.0, &
-             ok=IsOk)
-     else
+    if (IsFullSphere) then
+      call UAM_module_setup(iCommGITM, &
+                            nLons, nLats, nAlts, &
+                            nBlocksLon, nBlocksLat, &
+                            -pi/2.0, pi/2.0, &
+                            .true., .true., &
+                            0.0, 0.0, 0.0, &
+                            RBody + AltMin, 5000.0, &
+                            ok=IsOk)
+    else
 
-        DoTouchNorth = .false.
-        DoTouchSouth = .false.
+      DoTouchNorth = .false.
+      DoTouchSouth = .false.
 
-        if (LatEnd >= pi/2) then
-           LatEnd = pi/2
-           DoTouchNorth = .true.
-        endif
-        if (LatStart <= -pi/2) then
-           LatStart = -pi/2
-           DoTouchSouth = .true.
-        endif
+      if (LatEnd >= pi/2) then
+        LatEnd = pi/2
+        DoTouchNorth = .true.
+      end if
+      if (LatStart <= -pi/2) then
+        LatStart = -pi/2
+        DoTouchSouth = .true.
+      end if
 
-        call UAM_module_setup(iCommGITM, &
-             nLons, nLats, nAlts, &
-             nBlocksLon, nBlocksLat, &
-             LatStart, LatEnd, &
-             DoTouchSouth, DoTouchNorth, &
-             0.0, 0.0, 0.0, &
-             RBody+AltMin, 5000.0, &
-             ok=IsOk)
-     endif
+      call UAM_module_setup(iCommGITM, &
+                            nLons, nLats, nAlts, &
+                            nBlocksLon, nBlocksLat, &
+                            LatStart, LatEnd, &
+                            DoTouchSouth, DoTouchNorth, &
+                            0.0, 0.0, 0.0, &
+                            RBody + AltMin, 5000.0, &
+                            ok=IsOk)
+    end if
 
-     if (.not.IsOk) then
-        if (iProc == 0) then
-           write(*, *) "--> nBlocksLon, nBlocksLat : ", nBlocksLon, nBlocksLat
-           write(*, *) "--> Therefore need nProcs = ", nBlocksLon * nBlocksLat
-           write(*, *) "--> nProcs = ", nProcs
-        endif
-        call stop_gitm("Error in trying to create grid.")
-     endif
-     
-     call UAM_XFER_create(ok=IsOk)
-     if (.not. IsOk) then
-        call UAM_write_error()
-        call stop_gitm("Error with UAM_XFER_create")
-     endif
+    if (.not. IsOk) then
+      if (iProc == 0) then
+        write (*, *) "--> nBlocksLon, nBlocksLat : ", nBlocksLon, nBlocksLat
+        write (*, *) "--> Therefore need nProcs = ", nBlocksLon*nBlocksLat
+        write (*, *) "--> nProcs = ", nProcs
+      end if
+      call stop_gitm("Error in trying to create grid.")
+    end if
 
-     call UAM_ITER_create(r_iter)
-     call UAM_ITER_reset(r_iter,iBlock,IsDone)
+    call UAM_XFER_create(ok=IsOk)
+    if (.not. IsOk) then
+      call UAM_write_error()
+      call stop_gitm("Error with UAM_XFER_create")
+    end if
 
-     nBlocks = 0
-     do while (.not. IsDone)
-        nBlocks = nBlocks + 1
-        call UAM_ITER_next(r_iter,iBlock,IsDone)
-     enddo
+    call UAM_ITER_create(r_iter)
+    call UAM_ITER_reset(r_iter, iBlock, IsDone)
 
-     if (LonStart /= LonEnd) then
+    nBlocks = 0
+    do while (.not. IsDone)
+      nBlocks = nBlocks + 1
+      call UAM_ITER_next(r_iter, iBlock, IsDone)
+    end do
 
-        ! If we want to do just a small part of the globe in
-        ! longitude, then we can overwrite the longitude variable
+    if (LonStart /= LonEnd) then
 
-        do iBlock = 1, nBlocks
-           range = LonEnd-LonStart
-           dlFull = Longitude(2,iBlock)-Longitude(1,iBlock)
-           dlPart = dlFull/(2*pi)*range
-           iPoint = int((Longitude(:,iBlock)+3*dlFull/2) / dlFull + 0.5)-1
-           Longitude(:,iBlock) = LonStart + iPoint*dlPart+dlPart/2.0
-        enddo
+      ! If we want to do just a small part of the globe in
+      ! longitude, then we can overwrite the longitude variable
 
-     endif
+      do iBlock = 1, nBlocks
+        range = LonEnd - LonStart
+        dlFull = Longitude(2, iBlock) - Longitude(1, iBlock)
+        dlPart = dlFull/(2*pi)*range
+        iPoint = int((Longitude(:, iBlock) + 3*dlFull/2)/dlFull + 0.5) - 1
+        Longitude(:, iBlock) = LonStart + iPoint*dlPart + dlPart/2.0
+      end do
+
+    end if
 
   else
-     nBlocks = 1
-     Latitude = LatStart
-     Longitude = LonStart
-  endif
+    nBlocks = 1
+    Latitude = LatStart
+    Longitude = LonStart
+  end if
 
   call init_mod_gitm
   call init_mod_euv
