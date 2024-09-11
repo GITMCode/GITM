@@ -22,8 +22,8 @@
 !    Drob, D. P, J. T. Emmert, G. Crowley, J. M. Picone, G. G. Shepherd, 
 !      W. Skinner, Paul Hayes, R. J. Niciejewski, M. Larsen, C.Y. She, 
 !      J. W. Meriwether, G. Hernandez, M. J. Jarvis, D. P. Sipler, C. A. Tepley,
-!      M. S. O’Brien, J. R. Bowman, Q. Wu, Y. Murayama, S. Kawamura, I.M. Reid,
-!      and R.A. Vincent (2008), An Empirical Model of the Earth’s Horizontal 
+!      M. S. O'Brien, J. R. Bowman, Q. Wu, Y. Murayama, S. Kawamura, I.M. Reid,
+!      and R.A. Vincent (2008), An Empirical Model of the Earth's Horizontal 
 !      Wind Fields: HWM07, J. Geophy. Res., doi:10.1029/2008JA013668.
 !
 !==================================================================================
