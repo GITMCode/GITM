@@ -133,20 +133,59 @@ def check_git_status(args):
     print('done')
     return
 
+def find_fpretty_config_file(args):
+    """
+    Fprettify doesn't run right without the config file. This will try to find one.
+
+    check:
+        - input fpretty_config argument
+        - $pwd
+        - $home
+        - target directory
+        - target_directory/srcPython/fprettify/
+    
+    """
+    fpretty_opts = []
+
+    if args.fpretty_config:
+        if os.path.isfile(args.fpretty_config):
+            return args.fpretty_config
+        else:
+            print("==> Invalid config file. Looking elsewhere...")
+    fpretty_opts.append(os.getcwd())
+    fpretty_opts.append(os.path.expanduser("~"))
+    fpretty_opts.extend(args.path)
+    fpretty_opts.extend([os.path.join(p, 'srcPython/fprettify') for p in args.path])
+
+    for test_dir in fpretty_opts:
+        test_fpretty_file = os.path.join(test_dir, '.fprettify.rc')
+        if os.path.isfile(test_fpretty_file):
+            print(f"===> Using fprettify config file '{test_fpretty_file}' ")
+            print("     Specify --fpretty_config [path] if you wish to use a different file.")
+            return test_fpretty_file
+        
+    raise FileNotFoundError("Fprettify config file not found in $HOME, pwd, or target directory!")
+
+
 def run_fprettify(args):
     import subprocess
-    try:
+    try: #check if fprettify is installed.
         import fprettify
     except ModuleNotFoundError:
-        print("==> install fprettify with:")
-        print("\tpip install fprettify")
+        print("==> fprettify installation not found!\n")
+        print("\tGo to https://github.com/GITMCode/fprettify to install.")
         raise
+
+    # Find the absolute path to the config file, set the string so its easier to call later
+    config_file_path = find_fpretty_config_file(args)
+
+    config_str = " -c " + config_file_path
 
     if args.format_check:
         print('Checking format with fprettify...')
 
         fpretty_out = subprocess.run(
-            f"fprettify -c .fprettify.rc -d {' '.join(args.path)}",
+            f"fprettify {config_str} -d {' '.join(args.path)}",
             shell=True, capture_output=True)
 
         if args.verbose:
@@ -161,7 +200,7 @@ def run_fprettify(args):
         print('Auto-formatting with fprettify... Changes will not be listed.')
 
         fpretty_out = subprocess.run(
-            f"fprettify -c .fprettify.rc {' '.join(args.path)}",
+            f"fprettify {config_str} {' '.join(args.path)}",
             shell=True, capture_output=True)
     
 
@@ -176,11 +215,9 @@ def parse_arguments():
         type=str,
         default=['.'],
         nargs="*",
-        help=(
-            "Input file(s) or directories.\n"
-            "If the input is a directory all files with extension "
-            "f90 and f95 are checked."
-        ),
+        help="Input file(s) or directories.\n"
+             "If the input is a directory all files with extension "
+             "f90 and f95 are checked."
     )
 
     parser.add_argument(
@@ -217,7 +254,7 @@ def parse_arguments():
     )
 
     parser.add_argument(
-        "--fpretty_config", default='.fprettify.rc', type=str,
+        "--fpretty_config", default=".fprettify.rc", type=str,
         help="Path to fprettify configuration file. (default: '.fprettify.rc')"
     )
 
@@ -245,7 +282,15 @@ check all changes made. Use -h/--help flags to see options.
     if input_args.auto_format or input_args.format_check:
         check_line_lengths(input_args)
         run_fprettify(input_args)
-
+        # check line lengths again in case fprettify messed anything up
+        try:
+            check_line_lengths(input_args) 
+        except:
+            print(f"==> Original line length test and fprettify appear to have run successfully.\n"
+                  "   Fprettify auto-formatting appears to have made lines too long.\n"
+                  "   Manual inspection of the changed files is required\n"
+            )
+            raise #this should raise the correct errors... we'll see!
     else:
         check_line_lengths(input_args)
 
