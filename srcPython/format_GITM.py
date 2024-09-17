@@ -172,8 +172,8 @@ def run_fprettify(args):
     try: #check if fprettify is installed.
         import fprettify
     except ModuleNotFoundError:
-        print("==> fprettify installation not found!\n")
-        print("\tGo to https://github.com/GITMCode/fprettify to install.")
+        print("==> fprettify installation not found! <==\n")
+        print("\tGo to https://github.com/GITMCode/fprettify to install.\n")
         raise
 
     # Find the absolute path to the config file, set the string so its easier to call later
