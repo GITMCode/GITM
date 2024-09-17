@@ -101,6 +101,7 @@ contains
           gMlat = abs(MLatitude(iLon, iLat, nAlts+1, iBlock))
           if (gMlat > minLat) then
              iMlat = (gMlat - minLat) / dLat
+             if (iMlat == 0) iMlat = nLatsFta
              ElectronEnergyFlux(iLon, iLat) = eFlux(iMlt, iMlat)
              ElectronAverageEnergy(iLon, iLat) = AveE(iMlt, iMlat)
           endif

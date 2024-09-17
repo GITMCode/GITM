@@ -215,10 +215,10 @@ subroutine calc_ion_v(iBlock)
 
         ! Set an upper boundary condition on the parallel velocity,
         ! since it is used in the continuity equation:
-        IVelocityPar(:, :, iAlt+1, iDir, iBlock) = &
-             IVelocityPar(:, :, iAlt, iDir, iBlock)
-        IVelocityPar(:, :, iAlt+2, iDir, iBlock) = &
-             IVelocityPar(:, :, iAlt, iDir, iBlock)
+        IVelocityPar(:, :, nAlts+1, iDir, iBlock) = &
+             IVelocityPar(:, :, nAlts, iDir, iBlock)
+        IVelocityPar(:, :, nAlts+2, iDir, iBlock) = &
+             IVelocityPar(:, :, nAlts, iDir, iBlock)
 
         ! Set the full ion velocity for advection:
         IVelocity(:,:,:,iDir, iBlock) = &
