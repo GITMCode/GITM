@@ -98,6 +98,7 @@ or
 # the hemispheric power is not really available after 2013
 NOAAHPI_INDICES
 power file
+F                 When scaling aurora (#AURORAMODS), treat N/S hemi separately?
 
 New auroral model from Wu and Ridley, which is driven by AU/AL/AE
 #FTAMODEL
@@ -108,6 +109,7 @@ SME_INDICES
 sme_2010.txt      SME Filename
 none              onset time delay file
 T		  convert SME to Hemispheric Power
+F     (only if above is T) Scale each hemisphere 10% by season?
 
 This is for OVATION-PRIME:
 #NEWELLAURORA
@@ -237,6 +239,7 @@ F		UseMSISFlat
 T		UseMSISTides
 F		UseGSWMTides
 F		UseWACCMTides
+F   UseHmeTides
 
 #GSWMCOMP
 F		Diurnal Migrating

@@ -128,7 +128,7 @@ end subroutine read_al_onset_list
 
 !==============================================================================
 
-subroutine read_sme(iOutputError, StartTime, EndTime, doUseAeForHp)
+subroutine read_sme(iOutputError, StartTime, EndTime, doUseAeForHp, doSeparateHPI)
 
   use ModKind
   use ModIndices
@@ -136,7 +136,7 @@ subroutine read_sme(iOutputError, StartTime, EndTime, doUseAeForHp)
 
   integer, intent(out)     :: iOutputError
   real(Real8_), intent(in) :: EndTime, StartTime
-  logical, intent(in) :: doUseAeForHp
+  logical, intent(in) :: doUseAeForHp, doSeparateHPI
   
   integer :: ierror, iAE, j, npts
   logical :: IsDone
@@ -146,9 +146,11 @@ subroutine read_sme(iOutputError, StartTime, EndTime, doUseAeForHp)
 
   real (Real8_) :: TimeDelay, BufferTime = 180.0
 
-  real :: hp
+  real :: hp, hp_sh, tenPseasonalFactor
   
   integer, dimension(7) :: itime
+  integer :: jday
+  integer :: DoY
   !------------------------------------------------------------------------
   iOutputError = 0
 
@@ -235,6 +237,21 @@ subroutine read_sme(iOutputError, StartTime, EndTime, doUseAeForHp)
            
            if (doUseAeForHp) then
               hp = 0.102 * Indices_TV(iAE, ae_) + 8.953
+              if (doSeparateHPI) then
+               ! If we are doing separate HPI's in North & South hemisphere,
+               ! Apply a 10% seasonal offset to the values
+               ! (From: https://doi.org/10.1029/2006GL028444)
+               DoY = jday(iTime(1), &
+                          iTime(2), &
+                          iTime(3)) 
+
+               tenPseasonalFactor = 0.1 * cos(DoY*2*3.14159/365.)
+               hp_sh = (1 - tenPseasonalFactor) * hp
+               hp = (1 + tenPseasonalFactor) * hp
+               Indices_TV(iAE, hpi_sh_) = hp_sh
+               IndexTimes_TV(iAE, hpi_sh_) = IndexTimes_TV(iAE, ae_)
+              endif
+
               Indices_TV(iAE, hpi_) = hp
               if (hp > 0) Indices_TV(iAE, hpi_norm_) =  2.09 * ALOG(hp) * 1.0475
               IndexTimes_TV(iAE, hpi_norm_) = IndexTimes_TV(iAE, ae_)
@@ -266,6 +283,8 @@ subroutine read_sme(iOutputError, StartTime, EndTime, doUseAeForHp)
   nIndices_V(ae_) = iAE - 2
   nIndices_V(au_) = iAE - 2
   nIndices_V(al_) = iAE - 2
+  nIndices_V(hpi_) = iAE - 2
+  if (doSeparateHPI)  nIndices_V(hpi_sh_) = iAE - 2
   
 end subroutine read_sme
 

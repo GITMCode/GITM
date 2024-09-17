@@ -98,15 +98,11 @@ or
 # the hemispheric power is not really available after 2013
 NOAAHPI_INDICES
 power file
+F                 When scaling aurora (in #AURORAMODS), treat N/S hemi separately?
 
 New auroral model from Wu and Ridley, which is driven by AU/AL/AE
 #FTAMODEL
 T                 Use FTA model of the aurora
-
-Can download AU/AL/AE indices from SuperMAG and use them here:
-SME_INDICES
-sme_2010.txt      SME Filename
-none              onset time delay file
 
 This is for OVATION-PRIME:
 #NEWELLAURORA
@@ -127,6 +123,13 @@ F		normalize to hemispheric power
 1.0		avee factor (1 is no mod)
 F		iskappa
 4.0		kappa (3 min; higher is maxwellian)
+
+Can download AU/AL/AE indices from SuperMAG and use them here:
+#SME_INDICES
+sme_2010.txt      SME Filename
+none              onset time delay file
+T                 Use AE-derived Hemispheric Power?
+T                 Apply a 10% seasonal correction factor to this HP?
 
 #IONPRECIPITATION
 F		If ions are included in the AMIE file, use them. FangEnergy=T!
@@ -236,6 +239,7 @@ F		UseMSISFlat
 T		UseMSISTides
 F		UseGSWMTides
 F		UseWACCMTides
+F   UseHmeTides
 
 #GSWMCOMP
 F		Diurnal Migrating

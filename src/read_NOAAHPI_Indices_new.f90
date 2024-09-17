@@ -3,15 +3,17 @@
 
 !==============================================================================
 
-subroutine read_NOAAHPI_Indices_new(iOutputError,StartTime,EndTime)
+subroutine read_NOAAHPI_Indices_new(iOutputError,StartTime,EndTime,doSeparateHPI)
 
   use ModKind
   use ModIndices
+!   use ModInputs
 
   implicit none
 
   integer, intent(out) :: iOutputError
   real(Real8_), intent(in) :: EndTime, StartTime
+  logical, intent(in) :: doSeparateHPI
 
   integer :: ierror, i, j, npts, npts_hpi, k
   integer :: datatype
@@ -21,7 +23,12 @@ subroutine read_NOAAHPI_Indices_new(iOutputError,StartTime,EndTime)
   integer, parameter :: iCharLenGitm = 400
   character (len=iCharLenGitm) :: line
 
-  real, dimension(6,MaxIndicesEntries) :: tmp
+  real, dimension(6,MaxIndicesEntries) :: tmp, tmp_north, tmp_south
+  ! Add character var with hemisphere fron NOAA HPI file 
+  ! And an integer (1/2) flag for n/s hemi, respectively
+  character(len=3), dimension(MaxIndicesEntries) :: hemi
+  integer, dimension(MaxIndicesEntries) :: i_hemi
+  integer :: npts_north, npts_south
 
   real (Real8_), dimension(MaxIndicesEntries) :: ut_new, ut_keep, ut_tmp
   real, dimension(MaxIndicesEntries)   :: data_new, data_keep, data_tmp
@@ -104,9 +111,39 @@ subroutine read_NOAAHPI_Indices_new(iOutputError,StartTime,EndTime)
         tmp(6,i) = data_keep(i)
      enddo
 
-     call Insert_into_Indices_Array(tmp, hpi_)
+     npts_north = 1
+     npts_south = 1
+
+     ! If we are splitting HPI by hemi, put tmp into tmp_n/tmp_s
+     ! Then these are put into the correct place
+     if (doSeparateHPI) then
+        do i=1,npts_hpi
+         if (hemi(i) == "(N)") then
+            tmp_north(:,npts_north) = tmp(:,i)
+            npts_north = npts_north + 1
+         elseif (hemi(i) == "(S)") then
+            tmp_south(:,npts_south) = tmp(:,i)
+            npts_south = npts_south + 1
+         else
+            call stop_gitm("Hemisphere flag in NOAA HPI file is wrong somewhere.")
+         endif
+        enddo
+
+        ! Check to make sure some points were actually read from southern hemi
+        ! If not, throw an error. Set required number of pts to 5 for margin of error...
+        if (npts_south <= 5) then
+         call stop_gitm("Not enough southern hemisphere points in NOAA HPI file")
+        endif
+
+        call Insert_into_Indices_Array(tmp_north(:,:npts_north), hpi_)
+        call Insert_into_Indices_Array(tmp_south(:,:npts_south), hpi_sh_)
+
+      else ! if not, treat normally.
+         call Insert_into_Indices_Array(tmp, hpi_)
+      endif
 
      nIndices_V(hpi_norm_) = nIndices_V(hpi_) 
+     if (doSeparateHPI) nIndices_V(hpi_sh_) = nIndices_V(hpi_sh_) ! Only do South if we have to
 
      do i=1,nIndices_V(hpi_norm_)
 
@@ -154,18 +191,17 @@ contains
              endif
              tmp(1,i) = iYear
              tmp(2,i) = 1
-             read(LunIndices_,'(a10,f3.0,f2.0,f2.0,f8.1)', iostat = ierror ) &
-                  line,tmp(3:6,i)
+             read(LunIndices_,'(a7,a3,f3.0,f2.0,f2.0,f8.1)', iostat = ierror ) &
+                  line,hemi(i),tmp(3:6,i)
              if (tmp(3,i) < 1) iError = 1
           endif
 
           if(datatype.eq.2) then
              ! NEW NOAA HPI FILES
-             read(LunIndices_,'(f4.0,a1,f2.0,a1,f2.0,a1,f2.0,a1,f2.0,a1,f2.0,a15,f8.1)', &
+             read(LunIndices_,'(f4.0,a1,f2.0,a1,f2.0,a1,f2.0,a1,f2.0,a1,f2.0,a8,a4,a3,f8.1)', &
                   iostat = ierror ) &
                   tmp(1,i),line,tmp(2,i),line,tmp(3,i),line,tmp(4,i),line,tmp(5,i),line,tmp(6,i), &
-                  line,tmp(6,i)
-
+                  line,hemi(i),line,tmp(6,i)
           endif
 
           if (ierror /= 0) then
