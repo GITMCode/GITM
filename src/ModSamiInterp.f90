@@ -47,7 +47,7 @@ contains
     jflag = .true.
     jflag2 = .true.
 
-    allocate (alt1(1:nz))
+    allocate(alt1(1:nz))
 
     i = i_init
     j = j_init + 1
@@ -133,7 +133,7 @@ contains
 
     j = j - 1
 
-    deallocate (alt1)
+    deallocate(alt1)
 
   end subroutine process2
 
@@ -1224,7 +1224,7 @@ contains
     integer :: mm
     real :: phi_gitm_alt
 
-    allocate (alt1(1:nz))
+    allocate(alt1(1:nz))
 
     do iAlt = 1, nz
 
@@ -1266,7 +1266,7 @@ contains
     !    print*, '=alt1/k,k-1',alt1(k),alt1(k-1)
     !endif
 
-    deallocate (alt1)
+    deallocate(alt1)
 
   end subroutine FindAltIndex_phi
 
@@ -1284,7 +1284,7 @@ contains
 
     !baltst_g = SAMIVars_g(3,:,:,:)
 
-    allocate (alt1(1:nz))
+    allocate(alt1(1:nz))
 
     do iAlt = 1, nz
 
@@ -1326,7 +1326,7 @@ contains
     !    print*, '=alt1/k,k-1',alt1(k),alt1(k-1)
     !endif
 
-    deallocate (alt1)
+    deallocate(alt1)
 
   end subroutine FindAltIndex
 
@@ -1464,8 +1464,8 @@ contains
 
     if (IsFirstTime) then
 
-      allocate (mlon0(1:nlt))
-      allocate (mlat0(1:nf))
+      allocate(mlon0(1:nlt))
+      allocate(mlat0(1:nf))
 
       do inlt = 1, nlt
         mlon0(inlt) = blonst_g(1, 1, inlt)
@@ -1612,8 +1612,8 @@ contains
 
     if (IsFirstTime) then
 
-      allocate (mlon0(1:nlt))
-      allocate (mlat0(1:nf))
+      allocate(mlon0(1:nlt))
+      allocate(mlat0(1:nf))
 
       do inlt = 1, nlt
         mlon0(inlt) = blonst_g(1, 1, inlt)
@@ -1871,8 +1871,8 @@ contains
 
     if (IsFirstTime) then
 
-      allocate (mlon0(1:nlt))
-      allocate (mlat0(1:nf))
+      allocate(mlon0(1:nlt))
+      allocate(mlat0(1:nf))
 
       do inlt = 1, nlt
         mlon0(inlt) = blonst_g(1, 1, inlt)
@@ -1925,9 +1925,9 @@ contains
     if ((i > 0) .and. (j > 0)) then
       ! --find alt index: k,l
 
-      allocate (AltIndex0(1:nf - j + 1))
-      allocate (LatIndex0(1:nf - j + 1))
-      allocate (LatsSel0(1:nf - j + 1))
+      allocate(AltIndex0(1:nf - j + 1))
+      allocate(LatIndex0(1:nf - j + 1))
+      allocate(LatsSel0(1:nf - j + 1))
 
       nn = 0
       do ifl = j, nf
@@ -1944,9 +1944,9 @@ contains
 
       end do
 
-      allocate (AltIndex(1:nn))
-      allocate (LatIndex(1:nn))
-      allocate (LatsSel(1:nn))
+      allocate(AltIndex(1:nn))
+      allocate(LatIndex(1:nn))
+      allocate(LatsSel(1:nn))
 
       ! Block0: where( AltIndex0 /= -1)
       !     AltIndex = AltIndex0
@@ -1992,7 +1992,7 @@ contains
         l = AltIndex(ifl_sel + 1)
       end if
 
-      deallocate (AltIndex, LatIndex, LatsSel)
+      deallocate(AltIndex, LatIndex, LatsSel)
 
       !print*,'j b',j
     end if
@@ -2059,9 +2059,9 @@ contains
 
     ! --find alt index: k,l
 
-    allocate (AltIndex(1:nf - j + 1))
-    allocate (LatIndex(1:nf - j + 1))
-    allocate (LatsSel(1:nf - j + 1))
+    allocate(AltIndex(1:nf - j + 1))
+    allocate(LatIndex(1:nf - j + 1))
+    allocate(LatsSel(1:nf - j + 1))
 
     do ifl = j, nf
 
@@ -2103,7 +2103,7 @@ contains
     k0 = k
     l0 = l
 
-    deallocate (AltIndex, LatIndex, LatsSel)
+    deallocate(AltIndex, LatIndex, LatsSel)
     return
   end subroutine get_index_8points1
 

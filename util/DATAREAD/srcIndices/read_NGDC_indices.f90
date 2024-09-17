@@ -32,7 +32,7 @@ subroutine read_NGDC_Indices(iOutputError)
 
   iOutputError = 0
 
-  open (LunIndices_, file=NameOfIndexFile, status="old", iostat=ierror)
+  open(LunIndices_, file=NameOfIndexFile, status="old", iostat=ierror)
 
   if (ierror .ne. 0) then
     iOutputError = 1
@@ -47,7 +47,7 @@ subroutine read_NGDC_Indices(iOutputError)
 
   do while (.not. done)
 
-    read (LunIndices_, '(a)', iostat=ierror) line
+    read(LunIndices_, '(a)', iostat=ierror) line
     if (ierror .ne. 0) done = .true.
 
     if (index(line, '#Element: dst') > 0) then
@@ -66,7 +66,7 @@ subroutine read_NGDC_Indices(iOutputError)
     end if
 
     if (index(line, '#Element: bx') > 0) then
-      read (LunIndices_, '(a)', iostat=ierror) line
+      read(LunIndices_, '(a)', iostat=ierror) line
       if (index(line, '#Table: IMFMin') > 0) then
         call read_values
         call Insert_into_Indices_Array(tmp, imf_bx_)
@@ -74,7 +74,7 @@ subroutine read_NGDC_Indices(iOutputError)
     end if
 
     if (index(line, '#Element: by') > 0) then
-      read (LunIndices_, '(a)', iostat=ierror) line
+      read(LunIndices_, '(a)', iostat=ierror) line
       if (index(line, '#Table: IMFMin') > 0) then
         call read_values
         call Insert_into_Indices_Array(tmp, imf_by_)
@@ -82,7 +82,7 @@ subroutine read_NGDC_Indices(iOutputError)
     end if
 
     if (index(line, '#Element: bz') > 0) then
-      read (LunIndices_, '(a)', iostat=ierror) line
+      read(LunIndices_, '(a)', iostat=ierror) line
       if (index(line, '#Table: IMFMin') > 0) then
         call read_values
         call Insert_into_Indices_Array(tmp, imf_bz_)
@@ -155,7 +155,7 @@ subroutine read_NGDC_Indices(iOutputError)
 
   end do
 
-  close (LunIndices_)
+  close(LunIndices_)
 
   if (npts_hpi > 0) then
 
@@ -214,11 +214,11 @@ contains
 
     do while (.not. done_inner)
 
-      read (LunIndices_, '(a)', iostat=ierror) line
+      read(LunIndices_, '(a)', iostat=ierror) line
       if (index(line, '#yyyy-') > 0) done_inner = .true.
       if (ierror .ne. 0) done = .true.
 
-      if (index(line, '#Missing value:') > 0) read (line, '(15x,f7.1)') missing
+      if (index(line, '#Missing value:') > 0) read(line, '(15x,f7.1)') missing
 
       if (index(line, 'GSE') > 0) Input_Coor_System = GSE_
 
@@ -235,7 +235,7 @@ contains
 
       do while (.not. done_inner)
 
-        read (LunIndices_, '(f4.0,4(1x,f2.0),f7.1)', iostat=ierror) tmp(1:6, i)
+        read(LunIndices_, '(f4.0,4(1x,f2.0),f7.1)', iostat=ierror) tmp(1:6, i)
 
         if (ierror /= 0) then
           done_inner = .true.

@@ -2326,11 +2326,11 @@ contains
 
       if (ierr /= 0 .and. ierr /= 1) then
         ier = 5
-        write (*, '(a)') ' '
-        write (*, '(a)') 'DELNOD - Fatal error.'
-        write (*, '(a)') '  OPTIM failed.'
-        write (*, '(a,i6)') '  NIT = ', nit
-        write (*, '(a,i6)') '  IERR = ', ierr
+        write(*, '(a)') ' '
+        write(*, '(a)') 'DELNOD - Fatal error.'
+        write(*, '(a)') '  OPTIM failed.'
+        write(*, '(a,i6)') '  NIT = ', nit
+        write(*, '(a,i6)') '  IERR = ', ierr
         return
       end if
 
@@ -2646,12 +2646,12 @@ contains
 
       if (nit > 0) then
         ier = 3
-        write (*, '(a)') ' '
-        write (*, '(a)') 'EDGE - Fatal error!'
-        write (*, '(a)') '  Invalid triangulation, or'
-        write (*, '(a)') '  null triangles on boundary.'
-        write (*, '(a,i6)') '  IN1 = ', in1
-        write (*, '(a,i6)') '  IN2 = ', in2
+        write(*, '(a)') ' '
+        write(*, '(a)') 'EDGE - Fatal error!'
+        write(*, '(a)') '  Invalid triangulation, or'
+        write(*, '(a)') '  null triangles on boundary.'
+        write(*, '(a,i6)') '  IN1 = ', in1
+        write(*, '(a,i6)') '  IN2 = ', in2
         return
       end if
 
@@ -2700,11 +2700,11 @@ contains
 !
     if (list(lp) /= nr) then
       ier = 3
-      write (*, '(a)') ' '
-      write (*, '(a)') 'EDGE - Fatal error!'
-      write (*, '(a)') '  Invalid triangulation, or null triangles on boundary.'
-      write (*, '(a,i6)') '  IN1 = ', in1
-      write (*, '(a,i6)') '  IN2 = ', in2
+      write(*, '(a)') ' '
+      write(*, '(a)') 'EDGE - Fatal error!'
+      write(*, '(a)') '  Invalid triangulation, or null triangles on boundary.'
+      write(*, '(a,i6)') '  IN1 = ', in1
+      write(*, '(a,i6)') '  IN2 = ', in2
       return
     end if
 !
@@ -2973,11 +2973,11 @@ contains
 
       if (ierr /= 0 .and. ierr /= 1) then
         ier = 4
-        write (*, '(a)') ' '
-        write (*, '(a)') 'EDGE - Fatal error!'
-        write (*, '(a)') '  An error occurred in OPTIM.'
-        write (*, '(a,i6)') '  NIT = ', nit
-        write (*, '(a,i6)') '  IER = ', ier
+        write(*, '(a)') ' '
+        write(*, '(a)') 'EDGE - Fatal error!'
+        write(*, '(a)') '  An error occurred in OPTIM.'
+        write(*, '(a,i6)') '  NIT = ', nit
+        write(*, '(a,i6)') '  IER = ', ier
         return
       end if
 
@@ -2997,11 +2997,11 @@ contains
 
       if (ierr /= 0 .and. ierr /= 1) then
         ier = 4
-        write (*, '(a)') ' '
-        write (*, '(a)') 'EDGE - Fatal error!'
-        write (*, '(a)') '  An error occurred in OPTIM.'
-        write (*, '(a,i6)') '  NIT = ', nit
-        write (*, '(a,i6)') '  IER = ', ier
+        write(*, '(a)') ' '
+        write(*, '(a)') 'EDGE - Fatal error!'
+        write(*, '(a)') '  An error occurred in OPTIM.'
+        write(*, '(a,i6)') '  NIT = ', nit
+        write(*, '(a,i6)') '  IER = ', ier
         return
       end if
 
@@ -5050,7 +5050,7 @@ contains
       end if
     end if
 
-    write (*, '(a,1x,i2,1x,i4,2x,i2,a1,i2.2,a1,i2.2,a1,i3.3,1x,a)') &
+    write(*, '(a,1x,i2,1x,i4,2x,i2,a1,i2.2,a1,i2.2,a1,i3.3,1x,a)') &
       trim(month(m)), d, y, h, ':', n, ':', s, '.', mm, trim(ampm)
 
     return
@@ -6020,13 +6020,13 @@ contains
 !
 !  Print a heading and test for invalid input.
 !
-    write (*, 100) n
+    write(*, 100) n
     nl = 3
 
     if (n < 3 .or. n > nmax .or. &
         (nrow /= 6 .and. nrow /= 9) .or. &
         nt < 1 .or. nt > nmax) then
-      write (*, 110) n, nrow, nt
+      write(*, 110) n, nrow, nt
       return
     end if
 !
@@ -6034,17 +6034,17 @@ contains
 !
     if (iflag == 0) then
 
-      write (*, 101)
+      write(*, 101)
       nl = 6
 
       do i = 1, n
         if (nl >= nlmax) then
-          write (*, '(a)') ' '
-          write (*, '(a)') ' '
-          write (*, '(a)') ' '
+          write(*, '(a)') ' '
+          write(*, '(a)') ' '
+          write(*, '(a)') ' '
           nl = 0
         end if
-        write (*, 103) i, x(i), y(i), z(i)
+        write(*, 103) i, x(i), y(i), z(i)
         nl = nl + 1
       end do
 !
@@ -6052,18 +6052,18 @@ contains
 !
     else if (iflag > 0) then
 
-      write (*, 102)
+      write(*, 102)
       nl = 6
 
       do i = 1, n
 
         if (nl >= nlmax) then
-          write (*, '(a)') ' '
-          write (*, '(a)') ' '
-          write (*, '(a)') ' '
+          write(*, '(a)') ' '
+          write(*, '(a)') ' '
+          write(*, '(a)') ' '
           nl = 0
         end if
-        write (*, 104) i, x(i), y(i)
+        write(*, 104) i, x(i), y(i)
         nl = nl + 1
       end do
 
@@ -6072,28 +6072,28 @@ contains
 !  Print the triangulation LTRI.
 !
     if (nl > nlmax/2) then
-      write (*, '(a)') ' '
-      write (*, '(a)') ' '
-      write (*, '(a)') ' '
+      write(*, '(a)') ' '
+      write(*, '(a)') ' '
+      write(*, '(a)') ' '
       nl = 0
     end if
 
     if (nrow == 6) then
-      write (*, 105)
+      write(*, 105)
     else
-      write (*, 106)
+      write(*, 106)
     end if
 
     nl = nl + 5
 
     do k = 1, nt
       if (nl >= nlmax) then
-        write (*, '(a)') ' '
-        write (*, '(a)') ' '
-        write (*, '(a)') ' '
+        write(*, '(a)') ' '
+        write(*, '(a)') ' '
+        write(*, '(a)') ' '
         nl = 0
       end if
-      write (*, 107) k, ltri(1:nrow, k)
+      write(*, 107) k, ltri(1:nrow, k)
       nl = nl + 1
     end do
 !
@@ -6108,10 +6108,10 @@ contains
       na = nt + n - 1
     end if
 
-    write (*, '(a)') ' '
-    write (*, '(a,i6)') '  Number of boundary nodes NB = ', nb
-    write (*, '(a,i6)') '  Number of arcs NA =           ', na
-    write (*, '(a,i6)') '  Number of triangles NT =      ', nt
+    write(*, '(a)') ' '
+    write(*, '(a,i6)') '  Number of boundary nodes NB = ', nb
+    write(*, '(a,i6)') '  Number of arcs NA =           ', na
+    write(*, '(a,i6)') '  Number of triangles NT =      ', nt
     return
 !
 !  Print formats:
@@ -6800,11 +6800,11 @@ contains
 !
 !  Output header comments.
 !
-    write (lun, '(a)') '%!ps-adobe-3.0 epsf-3.0'
-    write (lun, '(a,4i4)') '%%boundingbox:', ipx1, ipy1, ipx2, ipy2
-    write (lun, '(a)') '%%title:  Triangulation'
-    write (lun, '(a)') '%%creator:  STRIPACK'
-    write (lun, '(a)') '%%endcomments'
+    write(lun, '(a)') '%!ps-adobe-3.0 epsf-3.0'
+    write(lun, '(a,4i4)') '%%boundingbox:', ipx1, ipy1, ipx2, ipy2
+    write(lun, '(a)') '%%title:  Triangulation'
+    write(lun, '(a)') '%%creator:  STRIPACK'
+    write(lun, '(a)') '%%endcomments'
 !
 !  Set (IPX1,IPY1) and (IPX2,IPY2) to the corner coordinates
 !  of a viewport box obtained by shrinking the bounding box
@@ -6820,9 +6820,9 @@ contains
 !  viewport boundary.
 !
     t = 2.0E+00
-    write (lun, '(f12.6,a)') t, ' setlinewidth'
-    write (lun, '(a,i3,a)') '306 396 ', ir, ' 0 360 arc'
-    write (lun, '(a)') 'stroke'
+    write(lun, '(f12.6,a)') t, ' setlinewidth'
+    write(lun, '(a,i3,a)') '306 396 ', ir, ' 0 360 arc'
+    write(lun, '(a)') 'stroke'
 !
 !  Set up an affine mapping from the window box [-WR,WR] X
 !  [-WR,WR] to the viewport box.
@@ -6830,22 +6830,22 @@ contains
     sf = real(ir)/wr
     tx = ipx1 + sf*wr
     ty = ipy1 + sf*wr
-    write (lun, '(2f12.6,a)') tx, ty, ' translate'
-    write (lun, '(2f12.6,a)') sf, sf, ' scale'
+    write(lun, '(2f12.6,a)') tx, ty, ' translate'
+    write(lun, '(2f12.6,a)') sf, sf, ' scale'
 !
 !  The line thickness must be changed to reflect the new
 !  scaling which is applied to all subsequent output.
 !  Set it to 1.0 point.
 !
     t = 1.0E+00/sf
-    write (lun, '(f12.6,a)') t, ' setlinewidth'
+    write(lun, '(f12.6,a)') t, ' setlinewidth'
 !
 !  Save the current graphics state, and set the clip path to
 !  the boundary of the window.
 !
-    write (lun, '(a)') 'gsave'
-    write (lun, '(a,f12.6,a)') '0 0 ', wr, ' 0 360 arc'
-    write (lun, '(a)') 'clip newpath'
+    write(lun, '(a)') 'gsave'
+    write(lun, '(a,f12.6,a)') '0 0 ', wr, ' 0 360 arc'
+    write(lun, '(a)') 'clip newpath'
 !
 !  Compute the Cartesian coordinates of E and the components
 !  of a rotation R which maps E to the north pole (0,0,1).
@@ -6926,7 +6926,7 @@ contains
 !  Add the edge to the path.
 !
         if (z1 < 0.0E+00 .or. x1*x1 + y1*y1 > wrs .or. n1 >= n0) then
-          write (lun, '(2f12.6,a,2f12.6,a)') &
+          write(lun, '(2f12.6,a,2f12.6,a)') &
             x0, y0, ' moveto', x1, y1, ' lineto'
         end if
 
@@ -6941,8 +6941,8 @@ contains
 !  Paint the path and restore the saved graphics state (with
 !  no clip path).
 !
-    write (lun, '(a)') 'stroke'
-    write (lun, '(a)') 'grestore'
+    write(lun, '(a)') 'stroke'
+    write(lun, '(a)') 'grestore'
 
     if (numbr) then
 !
@@ -6952,8 +6952,8 @@ contains
 !
       t = fsizn/sf
 
-      write (lun, '(a)') '/Helvetica findfont'
-      write (lun, '(f12.6,a)') t, ' scalefont setfont'
+      write(lun, '(a)') '/Helvetica findfont'
+      write(lun, '(f12.6,a)') t, ' scalefont setfont'
 !
 !  Loop on visible nodes N0 that project to points (X0,Y0) in the window.
 !
@@ -6974,8 +6974,8 @@ contains
 !  acter will will have its lower left corner about one
 !  character width to the right of the nodal position.
 !
-        write (lun, '(2f12.6,a)') x0, y0, ' moveto'
-        write (lun, '(a,i3,a)') '(', n0, ') show'
+        write(lun, '(2f12.6,a)') x0, y0, ' moveto'
+        write(lun, '(a,i3,a)') '(', n0, ') show'
 
       end do
 
@@ -6985,17 +6985,17 @@ contains
 !  the commands to select a font and scale it.
 !
     t = fsizt/sf
-    write (lun, '(a)') '/Helvetica findfont'
-    write (lun, '(f12.6,a)') t, ' scalefont setfont'
+    write(lun, '(a)') '/Helvetica findfont'
+    write(lun, '(f12.6,a)') t, ' scalefont setfont'
 !
 !  Display TITLE centered above the plot:
 !
     y0 = wr + 3.0E+00*t
 
-    write (lun, '(a)') title
-    write (lun, '(a,f12.6,a)') '  stringwidth pop 2 div neg ', y0, ' moveto'
-    write (lun, '(a)') title
-    write (lun, '(a)') '  show'
+    write(lun, '(a)') title
+    write(lun, '(a,f12.6,a)') '  stringwidth pop 2 div neg ', y0, ' moveto'
+    write(lun, '(a)') title
+    write(lun, '(a)') '  show'
 !
 !  Display the window center and radius below the plot.
 !
@@ -7003,21 +7003,21 @@ contains
 
       x0 = -wr
       y0 = -wr - 50.0E+00/sf
-      write (lun, '(2f12.6,a)') x0, y0, ' moveto'
-      write (lun, '(a,f7.2,a,f8.2,a)') '(Window center:  Latitude = ', elat, &
+      write(lun, '(2f12.6,a)') x0, y0, ' moveto'
+      write(lun, '(a,f7.2,a,f8.2,a)') '(Window center:  Latitude = ', elat, &
         ', Longitude = ', elon, ') show'
       y0 = y0 - 2.0E+00*t
-      write (lun, '(2f12.6,a)') x0, y0, ' moveto'
-      write (lun, '(a,f5.2,a)') '(Angular extent = ', a, ') show'
+      write(lun, '(2f12.6,a)') x0, y0, ' moveto'
+      write(lun, '(a,f5.2,a)') '(Angular extent = ', a, ') show'
 
     end if
 !
 !  Paint the path and output the showpage command and
 !  end-of-file indicator.
 !
-    write (lun, '(a)') 'stroke'
-    write (lun, '(a)') 'showpage'
-    write (lun, '(a)') '%%eof'
+    write(lun, '(a)') 'stroke'
+    write(lun, '(a)') 'showpage'
+    write(lun, '(a)') '%%eof'
 
     ier = 0
 
@@ -7116,12 +7116,12 @@ contains
 !
 !  Print a heading and test the range of N.
 !
-    write (*, 100) nn
+    write(*, 100) nn
 
     if (nn < 3 .or. nn > nmax) then
-      write (*, '(a)') ' '
-      write (*, '(a)') 'TRPRNT - Fatal error!'
-      write (*, '(a)') '  N is outside its valid range.'
+      write(*, '(a)') ' '
+      write(*, '(a)') 'TRPRNT - Fatal error!'
+      write(*, '(a)') '  N is outside its valid range.'
       return
     end if
 !
@@ -7136,7 +7136,7 @@ contains
 !
     if (iflag < 0) then
 
-      write (*, 101)
+      write(*, 101)
 
       do node = 1, nn
 
@@ -7173,15 +7173,15 @@ contains
         nl = nl + inc
 
         if (nl > nlmax) then
-          write (*, '(a)') ' '
-          write (*, '(a)') ' '
-          write (*, '(a)') ' '
+          write(*, '(a)') ' '
+          write(*, '(a)') ' '
+          write(*, '(a)') ' '
           nl = inc
         end if
 
-        write (*, 104) node, nabor(1:k)
+        write(*, 104) node, nabor(1:k)
         if (k /= 14) then
-          write (*, '(a)') ' '
+          write(*, '(a)') ' '
         end if
 
       end do
@@ -7190,7 +7190,7 @@ contains
 !
 !  Print X (longitude), Y (latitude), and LIST.
 !
-      write (*, 102)
+      write(*, 102)
 
       do node = 1, nn
 
@@ -7227,16 +7227,16 @@ contains
         nl = nl + inc
 
         if (nl > nlmax) then
-          write (*, '(a)') ' '
-          write (*, '(a)') ' '
-          write (*, '(a)') ' '
+          write(*, '(a)') ' '
+          write(*, '(a)') ' '
+          write(*, '(a)') ' '
           nl = inc
         end if
 
-        write (*, 105) node, x(node), y(node), nabor(1:k)
+        write(*, 105) node, x(node), y(node), nabor(1:k)
 
         if (k /= 8) then
-          write (*, '(a)') ' '
+          write(*, '(a)') ' '
         end if
 
       end do
@@ -7245,7 +7245,7 @@ contains
 !
 !  Print X, Y, Z, and LIST.
 !
-      write (*, 103)
+      write(*, 103)
 
       do node = 1, nn
 
@@ -7281,16 +7281,16 @@ contains
         nl = nl + inc
 
         if (nl > nlmax) then
-          write (*, '(a)') ' '
-          write (*, '(a)') ' '
-          write (*, '(a)') ' '
+          write(*, '(a)') ' '
+          write(*, '(a)') ' '
+          write(*, '(a)') ' '
           nl = inc
         end if
 
-        write (*, 106) node, x(node), y(node), z(node), nabor(1:k)
+        write(*, 106) node, x(node), y(node), z(node), nabor(1:k)
 
         if (k /= 5) then
-          write (*, '(a)') ' '
+          write(*, '(a)') ' '
         end if
 
       end do
@@ -7307,8 +7307,8 @@ contains
       nt = 2*nn - 4
     end if
 
-    write (*, '(a)') ' '
-    write (*, 109) nb, na, nt
+    write(*, '(a)') ' '
+    write(*, 109) nb, na, nt
     return
 !
 !  Print formats:
@@ -7407,27 +7407,27 @@ contains
 
     edges = edges/2
 
-    write (*, '(a)') ' '
-    write (*, '(a)') 'VORONOI_POLY_COUNT'
-    write (*, '(a)') '  Number of polygons of each shape.'
-    write (*, '(a)') ' '
-    write (*, '(a,i6)') '  Faces =    ', n
-    write (*, '(a,i6)') '  Vertices = ', vertices
-    write (*, '(a,i6)') '  Edges =    ', edges
-    write (*, '(a)') ' '
-    write (*, '(a,i6)') '  F+V-E-2 =  ', n + vertices - edges - 2
-    write (*, '(a)') ' '
-    write (*, '(a)') ' Sides  Number'
-    write (*, '(a)') ' '
+    write(*, '(a)') ' '
+    write(*, '(a)') 'VORONOI_POLY_COUNT'
+    write(*, '(a)') '  Number of polygons of each shape.'
+    write(*, '(a)') ' '
+    write(*, '(a,i6)') '  Faces =    ', n
+    write(*, '(a,i6)') '  Vertices = ', vertices
+    write(*, '(a,i6)') '  Edges =    ', edges
+    write(*, '(a)') ' '
+    write(*, '(a,i6)') '  F+V-E-2 =  ', n + vertices - edges - 2
+    write(*, '(a)') ' '
+    write(*, '(a)') ' Sides  Number'
+    write(*, '(a)') ' '
 
     do i = 1, side_max - 1
       if (count(i) /= 0) then
-        write (*, '(i6,i6)') i, count(i)
+        write(*, '(i6,i6)') i, count(i)
       end if
     end do
 
     if (count(side_max) /= 0) then
-      write (*, '(i6,i6)') side_max, count(side_max)
+      write(*, '(i6,i6)') side_max, count(side_max)
     end if
 
     return
@@ -7678,11 +7678,11 @@ contains
 !
 !  Output header comments.
 !
-    write (lun, '(a)') '%!ps-adobe-3.0 epsf-3.0'
-    write (lun, '(a,4i4)') '%%boundingbox: ', ipx1, ipy1, ipx2, ipy2
-    write (lun, '(a)') '%%title:  voronoi diagram'
-    write (lun, '(a)') '%%creator:  stripack'
-    write (lun, '(a)') '%%endcomments'
+    write(lun, '(a)') '%!ps-adobe-3.0 epsf-3.0'
+    write(lun, '(a,4i4)') '%%boundingbox: ', ipx1, ipy1, ipx2, ipy2
+    write(lun, '(a)') '%%title:  voronoi diagram'
+    write(lun, '(a)') '%%creator:  stripack'
+    write(lun, '(a)') '%%endcomments'
 !
 !  Set (IPX1,IPY1) and (IPX2,IPY2) to the corner coordinates
 !  of a viewport box obtained by shrinking the bounding box
@@ -7697,9 +7697,9 @@ contains
 !  Set the line thickness to 2 points, and draw the viewport boundary.
 !
     t = 2.0E+00
-    write (lun, '(f12.6,a)') t, ' setlinewidth'
-    write (lun, '(a,i3,a)') '306 396 ', ir, ' 0 360 arc'
-    write (lun, '(a)') 'stroke'
+    write(lun, '(f12.6,a)') t, ' setlinewidth'
+    write(lun, '(a,i3,a)') '306 396 ', ir, ' 0 360 arc'
+    write(lun, '(a)') 'stroke'
 !
 !  Set up an affine mapping from the window box [-WR,WR] X
 !  [-WR,WR] to the viewport box.
@@ -7708,22 +7708,22 @@ contains
     tx = ipx1 + sf*wr
     ty = ipy1 + sf*wr
 
-    write (lun, '(2f12.6,a)') tx, ty, ' translate'
-    write (lun, '(2f12.6,a)') sf, sf, ' scale'
+    write(lun, '(2f12.6,a)') tx, ty, ' translate'
+    write(lun, '(2f12.6,a)') sf, sf, ' scale'
 !
 !  The line thickness must be changed to reflect the new
 !  scaling which is applied to all subsequent output.
 !  Set it to 1.0 point.
 !
     t = 1.0E+00/sf
-    write (lun, '(f12.6,a)') t, ' setlinewidth'
+    write(lun, '(f12.6,a)') t, ' setlinewidth'
 !
 !  Save the current graphics state, and set the clip path to
 !  the boundary of the window.
 !
-    write (lun, '(a)') 'gsave'
-    write (lun, '(a,f12.6,a)') '0 0 ', wr, ' 0 360 arc'
-    write (lun, '(a)') 'clip newpath'
+    write(lun, '(a)') 'gsave'
+    write(lun, '(a,f12.6,a)') '0 0 ', wr, ' 0 360 arc'
+    write(lun, '(a)') 'clip newpath'
 !
 !  Compute the Cartesian coordinates of E and the components
 !  of a rotation R which maps E to the north pole (0,0,1).
@@ -7813,7 +7813,7 @@ contains
             y2 = y2/t
           end if
 
-          write (lun, '(2f12.6,a,2f12.6,a)') &
+          write(lun, '(2f12.6,a,2f12.6,a)') &
             x1, y1, ' moveto', x2, y2, ' lineto'
 
         end if
@@ -7828,8 +7828,8 @@ contains
 !
 !  Paint the path and restore the saved graphics state (with no clip path).
 !
-    write (lun, '(a)') 'stroke'
-    write (lun, '(a)') 'grestore'
+    write(lun, '(a)') 'stroke'
+    write(lun, '(a)') 'grestore'
 
     if (numbr) then
 !
@@ -7838,8 +7838,8 @@ contains
 !  output the commands to select a font and scale it.
 !
       t = fsizn/sf
-      write (lun, '(a)') '/Helvetica findfont'
-      write (lun, '(f12.6,a)') t, ' scalefont setfont'
+      write(lun, '(a)') '/Helvetica findfont'
+      write(lun, '(f12.6,a)') t, ' scalefont setfont'
 !
 !  Loop on visible nodes N0 that project to points (X0,Y0) in
 !  the window.
@@ -7857,8 +7857,8 @@ contains
 !  of the first character at (X0,Y0).
 !
         if (x0*x0 + y0*y0 <= wrs) then
-          write (lun, '(2f12.6,a)') x0, y0, ' moveto'
-          write (lun, '(a,i3,a)') '(', n0, ') show'
+          write(lun, '(2f12.6,a)') x0, y0, ' moveto'
+          write(lun, '(a,i3,a)') '(', n0, ') show'
         end if
 
       end do
@@ -7869,16 +7869,16 @@ contains
 !  the commands to select a font and scale it.
 !
     t = fsizt/sf
-    write (lun, '(a)') '/Helvetica findfont'
-    write (lun, '(f12.6,a)') t, ' scalefont setfont'
+    write(lun, '(a)') '/Helvetica findfont'
+    write(lun, '(f12.6,a)') t, ' scalefont setfont'
 !
 !  Display TITLE centered above the plot:
 !
     y0 = wr + 3.0E+00*t
-    write (lun, '(a)') title
-    write (lun, '(a,g12.6,a)') '  stringwidth pop 2 div neg ', y0, ' moveto'
-    write (lun, '(a)') title
-    write (lun, '(a)') '  show'
+    write(lun, '(a)') title
+    write(lun, '(a,g12.6,a)') '  stringwidth pop 2 div neg ', y0, ' moveto'
+    write(lun, '(a)') title
+    write(lun, '(a)') '  show'
 !
 !  Display the window center and radius below the plot.
 !
@@ -7886,20 +7886,20 @@ contains
 
       x0 = -wr
       y0 = -wr - 50.0E+00/sf
-      write (lun, '(2f12.6,a)') x0, y0, ' moveto'
-      write (lun, '(a,f7.2,a,f8.2,a)') '(Window center:  Latitude = ', elat, &
+      write(lun, '(2f12.6,a)') x0, y0, ' moveto'
+      write(lun, '(a,f7.2,a,f8.2,a)') '(Window center:  Latitude = ', elat, &
         ', Longitude = ', elon, ') show'
       y0 = y0 - 2.0E+00*t
-      write (lun, '(2f12.6,a)') x0, y0, ' moveto'
-      write (lun, '(a,f5.2,a)') '(Angular extent = ', a, ') show'
+      write(lun, '(2f12.6,a)') x0, y0, ' moveto'
+      write(lun, '(a,f5.2,a)') '(Angular extent = ', a, ') show'
 
     end if
 !
 !  Paint the path and output the showpage command and end-of-file indicator.
 !
-    write (lun, '(a)') 'stroke'
-    write (lun, '(a)') 'showpage'
-    write (lun, '(a)') '%%eof'
+    write(lun, '(a)') 'stroke'
+    write(lun, '(a)') 'showpage'
+    write(lun, '(a)') '%%eof'
 
     return
   end subroutine vrplot

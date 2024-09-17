@@ -52,15 +52,15 @@ subroutine get_msis_temperature(lon, lat, alt, t, h)
   call get_f107(CurrentTime, f107, iError)
 
   if (iError /= 0) then
-    write (*, *) "Error in getting F107 value.  Is this set?"
-    write (*, *) "Code : ", iError
+    write(*, *) "Error in getting F107 value.  Is this set?"
+    write(*, *) "Code : ", iError
     call stop_gitm("Stopping in euv_ionization_heat")
   end if
 
   call get_f107a(CurrentTime, f107a, iError)
   if (iError /= 0) then
-    write (*, *) "Error in getting F107a value.  Is this set?"
-    write (*, *) "Code : ", iError
+    write(*, *) "Error in getting F107a value.  Is this set?"
+    write(*, *) "Code : ", iError
     call stop_gitm("Stopping in euv_ionization_heat")
   end if
 
@@ -125,15 +125,15 @@ subroutine init_msis
   iError = 0
   call get_f107(CurrentTime, f107, iError)
   if (iError /= 0) then
-    write (*, *) "Error in getting F107 value (init_msis).  Is this set?"
-    write (*, *) "Code : ", iError
+    write(*, *) "Error in getting F107 value (init_msis).  Is this set?"
+    write(*, *) "Code : ", iError
     call stop_gitm("Stopping in advance")
   end if
 
   call get_f107a(CurrentTime, f107a, iError)
   if (iError /= 0) then
-    write (*, *) "Error in getting F107a value (init_msis).  Is this set?"
-    write (*, *) "Code : ", iError
+    write(*, *) "Error in getting F107a value (init_msis).  Is this set?"
+    write(*, *) "Code : ", iError
     call stop_gitm("Stopping in advance")
   end if
 

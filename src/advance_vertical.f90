@@ -93,8 +93,8 @@ subroutine advance_vertical(iLon, iLat, iBlock)
   Cv_1D(-1:nAlts + 2) = cp(iLon, iLat, -1:nAlts + 2, iBlock)
 
   if (minval(NDensityS(iLon, iLat, :, 1:nSpecies, iBlock)) <= 0.0) then
-    write (*, *) "negative density found!"
-    write (*, *) NDensityS(iLon, iLat, 1, 1:nSpecies, iBlock)
+    write(*, *) "negative density found!"
+    write(*, *) NDensityS(iLon, iLat, 1, 1:nSpecies, iBlock)
     call stop_gitm("Can't Continue")
   end if
 

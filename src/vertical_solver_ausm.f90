@@ -116,7 +116,7 @@ subroutine advance_vertical_1d_ausm
   real :: DtIn
 
   if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
-  if (iDebugLevel > 6) write (*, *) "=======> vertical bcs 1", iproc
+  if (iDebugLevel > 6) write(*, *) "=======> vertical bcs 1", iproc
 
   DtOriginal = Dt  !!! Store this so that it doesn't change
 
@@ -427,7 +427,7 @@ subroutine advance_vertical_1d_ausm
 
   if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
   if (iDebugLevel > 7) &
-    write (*, *) "========> Done with advance_vertical_1d", iproc
+    write(*, *) "========> Done with advance_vertical_1d", iproc
 
 end subroutine advance_vertical_1d_ausm
 

@@ -25,9 +25,9 @@ subroutine CON_stop(StringError)
 
   !----------------------------------------------------------------------------
 
-  write (*, '(a)') StringError
+  write(*, '(a)') StringError
   call MPI_COMM_RANK(MPI_COMM_WORLD, iProc, iError)
-  write (*, '(a,i3)') '!!! SWMF_ABORT !!! requested by processor ', iProc
+  write(*, '(a,i3)') '!!! SWMF_ABORT !!! requested by processor ', iProc
   call MPI_abort(MPI_COMM_WORLD, nError, iError)
   stop
 

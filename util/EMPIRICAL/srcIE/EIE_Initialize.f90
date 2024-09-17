@@ -37,10 +37,10 @@ subroutine EIE_Initialize(iOutputError)
   !/
 
   if (iDebugLevel > 1) &
-    write (*, *) "==> Efield Model : ", EIE_NameOfEFieldModel
+    write(*, *) "==> Efield Model : ", EIE_NameOfEFieldModel
 
   if (iDebugLevel > 1) &
-    write (*, *) "==> Model Directory : ", EIE_NameOfModelDir
+    write(*, *) "==> Model Directory : ", EIE_NameOfModelDir
 
   if (index(EIE_NameOfEFieldModel, 'zero') > 0) then
     IsFound_EFieldModel = .true.
@@ -49,26 +49,26 @@ subroutine EIE_Initialize(iOutputError)
   if (index(EIE_NameOfEFieldModel, 'weimer96') > 0) then
     IsFound_EFieldModel = .true.
     call merge_str(EIE_NameOfModelDir, weimer96_file)
-    open (UnitTmp_, file=weimer96_file, status='old', iostat=iError)
+    open(UnitTmp_, file=weimer96_file, status='old', iostat=iError)
     if (iError /= 0) then
-      write (6, *) 'Error opening file :', weimer96_file
+      write(6, *) 'Error opening file :', weimer96_file
       iOutputError = ecFileNotFound_
     end if
     call ReadCoef96(UnitTmp_)
-    close (UnitTmp_)
+    close(UnitTmp_)
   end if
 
   if (index(EIE_NameOfEFieldModel, 'weimer01') > 0) then
     IsFound_EFieldModel = .true.
     call merge_str(EIE_NameOfModelDir, weimer01_file)
-    open (UnitTmp_, file=weimer01_file, status='old', &
-          form='unformatted', iostat=iError)
+    open(UnitTmp_, file=weimer01_file, status='old', &
+         form='unformatted', iostat=iError)
     if (iError /= 0) then
-      write (6, *) 'Error opening file :', weimer01_file
+      write(6, *) 'Error opening file :', weimer01_file
       iOutputError = ecFileNotFound_
     end if
     call ReadCoef01(UnitTmp_)
-    close (UnitTmp_)
+    close(UnitTmp_)
   end if
 
   if (index(EIE_NameOfEFieldModel, 'weimer05') > 0) then
@@ -99,49 +99,49 @@ subroutine EIE_Initialize(iOutputError)
   if (index(EIE_NameOfEFieldModel, 'millstone_hpi') > 0) then
     IsFound_EFieldModel = .true.
     call merge_str(EIE_NameOfModelDir, millstone_hill_i_file)
-    open (UnitTmp_, file=millstone_hill_i_file, status='old', iostat=iError)
+    open(UnitTmp_, file=millstone_hill_i_file, status='old', iostat=iError)
     if (iError /= 0) then
-      write (6, *) 'Error opening file :', millstone_hill_i_file
+      write(6, *) 'Error opening file :', millstone_hill_i_file
       iOutputError = ecFileNotFound_
     end if
     call mhinit(1, UnitTmp_, 1, iDebugLevel)
-    close (UnitTmp_)
+    close(UnitTmp_)
   end if
 
   if (index(EIE_NameOfEFieldModel, 'millstone_imf') > 0) then
     IsFound_EFieldModel = .true.
     call merge_str(EIE_NameOfModelDir, millstone_hill_s_file)
-    open (UnitTmp_, file=millstone_hill_s_file, status='old', iostat=iError)
+    open(UnitTmp_, file=millstone_hill_s_file, status='old', iostat=iError)
     if (iError /= 0) then
-      write (6, *) 'Error opening file :', millstone_hill_s_file
+      write(6, *) 'Error opening file :', millstone_hill_s_file
       iOutputError = ecFileNotFound_
     end if
     call mhinit(2, UnitTmp_, 1, iDebugLevel)
-    close (UnitTmp_)
+    close(UnitTmp_)
   end if
 
   if (index(EIE_NameOfEFieldModel, 'hmr89') > 0) then
     IsFound_EFieldModel = .true.
     call merge_str(EIE_NameOfModelDir, hepner_maynard_file)
-    open (UnitTmp_, file=hepner_maynard_file, status='old', iostat=iError)
+    open(UnitTmp_, file=hepner_maynard_file, status='old', iostat=iError)
     if (iError /= 0) then
-      write (6, *) 'Error opening file :', hepner_maynard_file
+      write(6, *) 'Error opening file :', hepner_maynard_file
       iOutputError = ecFileNotFound_
     end if
     call gethmr(UnitTmp_)
-    close (UnitTmp_)
+    close(UnitTmp_)
   end if
 
   if (index(EIE_NameOfEFieldModel, 'izmem') > 0) then
     IsFound_EFieldModel = .true.
     call merge_str(EIE_NameOfModelDir, izmem_file)
-    open (UnitTmp_, file=izmem_file, status='old', iostat=iError)
+    open(UnitTmp_, file=izmem_file, status='old', iostat=iError)
     if (iError /= 0) then
-      write (6, *) 'Error opening file :', izmem_file
+      write(6, *) 'Error opening file :', izmem_file
       iOutputError = ecFileNotFound_
     end if
     call izinit(UnitTmp_)
-    close (UnitTmp_)
+    close(UnitTmp_)
   end if
 
   !\
@@ -151,7 +151,7 @@ subroutine EIE_Initialize(iOutputError)
   !/
 
   if (iDebugLevel > 1) &
-    write (*, *) "==> Conductance Model : ", EIE_NameOfAuroralModel
+    write(*, *) "==> Conductance Model : ", EIE_NameOfAuroralModel
 
   if (index(EIE_NameOfAuroralModel, 'ihp') > 0) &
     call read_conductance_model(iError)
@@ -160,7 +160,7 @@ subroutine EIE_Initialize(iOutputError)
   if (index(EIE_NameOfAuroralModel, 'pem') > 0) &
     call read_conductance_model(iError)
 
-  if (iDebugLevel > 4) write (*, *) "=====> Back from read conductance"
+  if (iDebugLevel > 4) write(*, *) "=====> Back from read conductance"
 
   if (index(EIE_NameOfEFieldModel, 'amie') > 0) then
 
@@ -195,7 +195,7 @@ subroutine EIE_Initialize(iOutputError)
     iOutputError = ecEFieldModelNotFound_
   end if
 
-  if (iDebugLevel > 3) write (*, *) "====> Done with EIE_Initialize"
+  if (iDebugLevel > 3) write(*, *) "====> Done with EIE_Initialize"
 
 end subroutine EIE_Initialize
 
@@ -222,85 +222,85 @@ subroutine EIE_InitGrid(nLats, nMlts, nBlocks, iOutputError)
   EIEi_HavenBLKs = nBlocks
 
   if (iDebugLevel > 1) then
-    write (*, *) "=> EIEi_HavenBLKs : ", EIEi_HavenBLKs
-    write (*, *) "=> EIEi_HavenLats : ", EIEi_HavenLats
-    write (*, *) "=> EIEi_HavenMLTs : ", EIEi_HavenMLTs
+    write(*, *) "=> EIEi_HavenBLKs : ", EIEi_HavenBLKs
+    write(*, *) "=> EIEi_HavenLats : ", EIEi_HavenLats
+    write(*, *) "=> EIEi_HavenMLTs : ", EIEi_HavenMLTs
   end if
 
-  allocate (EIEr3_HaveLats(EIEi_HavenMlts, EIEi_HavenLats, EIEi_HavenBLKs), &
-            stat=iError)
+  allocate(EIEr3_HaveLats(EIEi_HavenMlts, EIEi_HavenLats, EIEi_HavenBLKs), &
+           stat=iError)
   if (iError /= 0) then
-    write (*, *) "Error in allocating array EIEr3_HaveLats in Interface"
+    write(*, *) "Error in allocating array EIEr3_HaveLats in Interface"
     stop
   end if
 
-  allocate (EIEr3_HaveMlts(EIEi_HavenMlts, EIEi_HavenLats, EIEi_HavenBLKs), &
-            stat=iError)
+  allocate(EIEr3_HaveMlts(EIEi_HavenMlts, EIEi_HavenLats, EIEi_HavenBLKs), &
+           stat=iError)
   if (iError /= 0) then
-    write (*, *) "Error in allocating array EIEr3_HaveMlts in Interface"
+    write(*, *) "Error in allocating array EIEr3_HaveMlts in Interface"
     stop
   end if
 
-  allocate (EIEr3_HavePotential(EIEi_HavenMlts, EIEi_HavenLats, EIEi_HavenBLKs), &
-            stat=iError)
+  allocate(EIEr3_HavePotential(EIEi_HavenMlts, EIEi_HavenLats, EIEi_HavenBLKs), &
+           stat=iError)
   if (iError /= 0) then
-    write (*, *) "Error in allocating array EIEr3_HavePotential in Interface"
+    write(*, *) "Error in allocating array EIEr3_HavePotential in Interface"
     stop
   end if
 
-  allocate (EIEr3_HaveEFlux(EIEi_HavenMlts, EIEi_HavenLats, EIEi_HavenBLKs), &
-            stat=iError)
+  allocate(EIEr3_HaveEFlux(EIEi_HavenMlts, EIEi_HavenLats, EIEi_HavenBLKs), &
+           stat=iError)
   if (iError /= 0) then
-    write (*, *) "Error in allocating array EIEr3_HaveEFlux in Interface"
+    write(*, *) "Error in allocating array EIEr3_HaveEFlux in Interface"
     stop
   end if
 
-  allocate (EIEr3_HaveAveE(EIEi_HavenMlts, EIEi_HavenLats, EIEi_HavenBLKs), &
-            stat=iError)
+  allocate(EIEr3_HaveAveE(EIEi_HavenMlts, EIEi_HavenLats, EIEi_HavenBLKs), &
+           stat=iError)
   if (iError /= 0) then
-    write (*, *) "Error in allocating array EIEr3_HaveAveE in Interface"
+    write(*, *) "Error in allocating array EIEr3_HaveAveE in Interface"
     stop
   end if
 
-  allocate (EIEr3_HaveIonEFlux(EIEi_HavenMlts, EIEi_HavenLats, EIEi_HavenBLKs), &
-            stat=iError)
+  allocate(EIEr3_HaveIonEFlux(EIEi_HavenMlts, EIEi_HavenLats, EIEi_HavenBLKs), &
+           stat=iError)
   if (iError /= 0) then
-    write (*, *) "Error in allocating array EIEr3_HaveIonEFlux in Interface"
+    write(*, *) "Error in allocating array EIEr3_HaveIonEFlux in Interface"
     stop
   end if
 
-  allocate (EIEr3_HaveIonAveE(EIEi_HavenMlts, EIEi_HavenLats, EIEi_HavenBLKs), &
-            stat=iError)
+  allocate(EIEr3_HaveIonAveE(EIEi_HavenMlts, EIEi_HavenLats, EIEi_HavenBLKs), &
+           stat=iError)
   if (iError /= 0) then
-    write (*, *) "Error in allocating array EIEr3_HaveIonAveE in Interface"
+    write(*, *) "Error in allocating array EIEr3_HaveIonAveE in Interface"
     stop
   end if
 
-  allocate (EIEr3_HaveMonoEFlux(EIEi_HavenMlts, EIEi_HavenLats, EIEi_HavenBLKs), &
-            stat=iError)
+  allocate(EIEr3_HaveMonoEFlux(EIEi_HavenMlts, EIEi_HavenLats, EIEi_HavenBLKs), &
+           stat=iError)
   if (iError /= 0) then
-    write (*, *) "Error in allocating array EIEr3_HaveMonoEFlux in Interface"
+    write(*, *) "Error in allocating array EIEr3_HaveMonoEFlux in Interface"
     stop
   end if
 
-  allocate (EIEr3_HaveMonoAveE(EIEi_HavenMlts, EIEi_HavenLats, EIEi_HavenBLKs), &
-            stat=iError)
+  allocate(EIEr3_HaveMonoAveE(EIEi_HavenMlts, EIEi_HavenLats, EIEi_HavenBLKs), &
+           stat=iError)
   if (iError /= 0) then
-    write (*, *) "Error in allocating array EIEr3_HaveMonoAveE in Interface"
+    write(*, *) "Error in allocating array EIEr3_HaveMonoAveE in Interface"
     stop
   end if
 
-  allocate (EIEr3_HaveWaveEFlux(EIEi_HavenMlts, EIEi_HavenLats, EIEi_HavenBLKs), &
-            stat=iError)
+  allocate(EIEr3_HaveWaveEFlux(EIEi_HavenMlts, EIEi_HavenLats, EIEi_HavenBLKs), &
+           stat=iError)
   if (iError /= 0) then
-    write (*, *) "Error in allocating array EIEr3_HaveWaveEFlux in Interface"
+    write(*, *) "Error in allocating array EIEr3_HaveWaveEFlux in Interface"
     stop
   end if
 
-  allocate (EIEr3_HaveWaveAveE(EIEi_HavenMlts, EIEi_HavenLats, EIEi_HavenBLKs), &
-            stat=iError)
+  allocate(EIEr3_HaveWaveAveE(EIEi_HavenMlts, EIEi_HavenLats, EIEi_HavenBLKs), &
+           stat=iError)
   if (iError /= 0) then
-    write (*, *) "Error in allocating array EIEr3_HaveWaveAveE in Interface"
+    write(*, *) "Error in allocating array EIEr3_HaveWaveAveE in Interface"
     stop
   end if
 

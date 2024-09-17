@@ -24,14 +24,14 @@ program read_sami
   call SamiReadInputFile(InFile)
   call SamiGetnVars(nVars)
 
-  write (*, *) nVars
+  write(*, *) nVars
 
-  allocate (vars(nVars))
-  allocate (data(nPoints, nVars))
+  allocate(vars(nVars))
+  allocate(data(nPoints, nVars))
 
   call SamiGetVars(vars)
 
-  write (*, *) vars
+  write(*, *) vars
 
   do iPoint = 1, nPoints
     lons(iPoint) = 360 - 5.0*(iPoint - 1)
@@ -46,11 +46,11 @@ program read_sami
   call time_int_to_real(itime, time)
 
   do iStep = 1, 1
-    write (*, *) iStep, time
+    write(*, *) iStep, time
     call SamiUpdateTime(time, iErr)
     if (iErr == 0) then
       call SamiGetData(data)
-      write (*, *) data(:, 1)
+      write(*, *) data(:, 1)
     end if
     time = time + 600.0
   end do

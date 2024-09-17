@@ -60,9 +60,9 @@ subroutine init_grid
 
     if (.not. IsOk) then
       if (iProc == 0) then
-        write (*, *) "--> nBlocksLon, nBlocksLat : ", nBlocksLon, nBlocksLat
-        write (*, *) "--> Therefore need nProcs = ", nBlocksLon*nBlocksLat
-        write (*, *) "--> nProcs = ", nProcs
+        write(*, *) "--> nBlocksLon, nBlocksLat : ", nBlocksLon, nBlocksLat
+        write(*, *) "--> Therefore need nProcs = ", nBlocksLon*nBlocksLat
+        write(*, *) "--> nProcs = ", nProcs
       end if
       call stop_gitm("Error in trying to create grid.")
     end if

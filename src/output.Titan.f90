@@ -7,6 +7,6 @@ subroutine output_earth_specific
 
   implicit none
 
-  write (*, *) "This doesn't work!"
+  write(*, *) "This doesn't work!"
 
 end subroutine output_earth_specific

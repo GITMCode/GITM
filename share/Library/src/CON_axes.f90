@@ -275,11 +275,11 @@ contains
       if (DipoleStrength == DipoleStrengthPlanet_I(Earth_)) &
         DipoleStrength = DipoleStrengthGeopack
       if (DoTestMe) then
-        write (*, *) 'RotAxisThetaGeopack, RotAxisPhiGeopack=', &
+        write(*, *) 'RotAxisThetaGeopack, RotAxisPhiGeopack=', &
           RotAxisThetaGeopack*cRadToDeg, RotAxisPhiGeopack*cRadToDeg
-        write (*, *) 'MagAxisThetaGeopack, MagAxisPhiGeopack=', &
+        write(*, *) 'MagAxisThetaGeopack, MagAxisPhiGeopack=', &
           MagAxisThetaGeo*cRadToDeg, MagAxisPhiGeo*cRadToDeg
-        write (*, *) 'DipoleStrengthDefault, DipoleStrengthGeopack=', &
+        write(*, *) 'DipoleStrengthDefault, DipoleStrengthGeopack=', &
           DipoleStrengthPlanet_I(Earth_), DipoleStrength
       end if
     elseif (.not. UseSetRotAxis) then
@@ -293,7 +293,7 @@ contains
           RotAxisPhi = modulo( &
                        cHalfPi - OmegaOrbit*(tStart - TimeEquinox%Time), cTwoPi8)
         end if
-        if (DoTestMe) write (*, *) NameSub, &
+        if (DoTestMe) write(*, *) NameSub, &
           ': UseRealRotAxis, UseRealMagAxis, TiltRotation, OmegaOrbit, tStart, tEquinox=', &
           UseRealRotAxis, UseRealMagAxis, TiltRotation*cRadToDeg, OmegaOrbit, tStart, &
           TimeEquinox%Time
@@ -302,7 +302,7 @@ contains
         if (UseSetMagAxis) then
           RotAxisTheta = MagAxisTheta
           RotAxisPhi = MagAxisPhi
-          if (DoTestMe) write (*, *) NameSub, ': MagAxisTheta, MagAxisPhi=', &
+          if (DoTestMe) write(*, *) NameSub, ': MagAxisTheta, MagAxisPhi=', &
             MagAxisTheta*cRadToDeg, MagAxisPhi*cRadToDeg
         else
           call CON_stop(NameSub// &
@@ -313,8 +313,8 @@ contains
     end if
 
     if (DoTestMe) then
-      write (*, *) 'tStart,TimeEquinox=', tStart, TimeEquinox
-      write (*, *) 'RotAxisTheta,RotAxisPhi=', &
+      write(*, *) 'tStart,TimeEquinox=', tStart, TimeEquinox
+      write(*, *) 'RotAxisTheta,RotAxisPhi=', &
         RotAxisTheta*cRadToDeg, RotAxisPhi*cRadToDeg
     end if
 
@@ -328,9 +328,9 @@ contains
       call dir_to_xyz(MagAxisThetaGeo, MagAxisPhiGeo, MagAxis_D)
 
       if (DoTestMe) then
-        write (*, *) 'MagAxisThetaGeo,MagAxisPhiGeo=', &
+        write(*, *) 'MagAxisThetaGeo,MagAxisPhiGeo=', &
           MagAxisThetaGeo*cRadToDeg, MagAxisPhiGeo*cRadToDeg
-        write (*, *) 'MagAxisGeo_D=', MagAxis_D
+        write(*, *) 'MagAxisGeo_D=', MagAxis_D
       end if
 
       ! GEO --> GEI
@@ -344,12 +344,12 @@ contains
       call xyz_to_dir(MagAxis_D, MagAxisTheta, MagAxisPhi)
 
       if (DoTestMe) then
-        write (*, *) 'UseRealMagAxis:'
-        write (*, *) 'MagAxisGei_D=', MagAxis0Gei_D
-        write (*, *) 'GseGei_DD='
+        write(*, *) 'UseRealMagAxis:'
+        write(*, *) 'MagAxisGei_D=', MagAxis0Gei_D
+        write(*, *) 'GseGei_DD='
         call show_rot_matrix(GseGei_DD)
-        write (*, *) 'MagAxisGse_D=', MagAxis_D
-        write (*, *) 'MagAxisTheta,MagAxisPhi=', &
+        write(*, *) 'MagAxisGse_D=', MagAxis_D
+        write(*, *) 'MagAxisTheta,MagAxisPhi=', &
           MagAxisTheta*cRadToDeg, MagAxisPhi*cRadToDeg
       end if
 
@@ -368,10 +368,10 @@ contains
       MagAxis0Gei_D = matmul(MagAxis_D, GseGei_DD)
 
       if (DoTestMe) then
-        write (*, *) 'Aligned=',.not. UseSetMagAxis, ' Set=', UseSetMagAxis
-        write (*, *) 'MagAxisGei_D=', MagAxis0Gei_D
-        write (*, *) 'MagAxisGse_D=', MagAxis_D
-        write (*, *) 'MagAxisTheta,MagAxisPhi=', &
+        write(*, *) 'Aligned=',.not. UseSetMagAxis, ' Set=', UseSetMagAxis
+        write(*, *) 'MagAxisGei_D=', MagAxis0Gei_D
+        write(*, *) 'MagAxisGse_D=', MagAxis_D
+        write(*, *) 'MagAxisTheta,MagAxisPhi=', &
           MagAxisTheta*cRadToDeg, MagAxisPhi*cRadToDeg
       end if
 
@@ -398,7 +398,7 @@ contains
 
       call xyz_to_dir(MagAxisGeo_D, MagAxisThetaGeo, MagAxisPhiGeo)
 
-      if (DoTestMe) write (*, *) 'Final MagAxisThetaGeo, MagAxisPhiGeo=', &
+      if (DoTestMe) write(*, *) 'Final MagAxisThetaGeo, MagAxisPhiGeo=', &
         MagAxisThetaGeo*cRadToDeg, MagAxisPhiGeo*cRadToDeg
     else
       ! Set the magnetic direction in Cartesian GEO coordinates
@@ -426,22 +426,22 @@ contains
     call set_axes(0.0, .true.)
 
     if (DoTestMe) then
-      write (*, *) 'Final rotation axis:'
-      write (*, *) 'RotAxisTheta,RotAxisPhi=', &
+      write(*, *) 'Final rotation axis:'
+      write(*, *) 'RotAxisTheta,RotAxisPhi=', &
         RotAxisTheta*cRadToDeg, RotAxisPhi*cRadToDeg
-      write (*, *) 'RotAxisGse_D =', RotAxis_D
-      write (*, *) 'RotAxisGsm_D =', RotAxisGsm_D
+      write(*, *) 'RotAxisGse_D =', RotAxis_D
+      write(*, *) 'RotAxisGsm_D =', RotAxisGsm_D
       XyzPlanetHgr_D = matmul(HgrHgi_DD, XyzPlanetHgi_D)
-      write (*, *) 'dLongitudeHgr,dLongitudeHgi=', &
+      write(*, *) 'dLongitudeHgr,dLongitudeHgi=', &
         dLongitudeHgrDeg, dLongitudeHgiDeg
-      write (*, *) 'r/AU,HG_lat,HGR_lon,HGI_lon=', &
+      write(*, *) 'r/AU,HG_lat,HGR_lon,HGI_lon=', &
         sqrt(sum(XyzPlanetHgi_D**2))/cAU, &
         asin(XyzPlanetHgi_D(3)/sqrt(sum(XyzPlanetHgi_D**2)))*cRadToDeg, &
         atan2(XyzPlanetHgr_D(2), XyzPlanetHgr_D(1))*cRadToDeg, &
         atan2(XyzPlanetHgi_D(2), XyzPlanetHgi_D(1))*cRadToDeg
-      write (*, *) 'XyzPlanetHgi_D/rSun = ', XyzPlanetHgi_D/rSun
-      write (*, *) 'XyzPlanetHgr_D/rSun = ', XyzPlanetHgr_D/rSun
-      write (*, *) 'vPlanetHgi_D/(km/s) = ', vPlanetHgi_D/1000.0
+      write(*, *) 'XyzPlanetHgi_D/rSun = ', XyzPlanetHgi_D/rSun
+      write(*, *) 'XyzPlanetHgr_D/rSun = ', XyzPlanetHgr_D/rSun
+      write(*, *) 'vPlanetHgi_D/(km/s) = ', vPlanetHgi_D/1000.0
     end if
 
     DoInitializeAxes = .false.
@@ -683,9 +683,9 @@ contains
     call CON_set_do_test(NameSub, DoTest, DoTestMe)
 
     if (DoTestMe) then
-      write (*, *) NameSub, 'UseAlignedAxes,UseRotation,DoUpdateB0=', &
+      write(*, *) NameSub, 'UseAlignedAxes,UseRotation,DoUpdateB0=', &
         UseAlignedAxes, UseRotation, DoUpdateB0
-      write (*, *) NameSub, 'DtUpdateB0,TimeSim,TimeSimLast=', &
+      write(*, *) NameSub, 'DtUpdateB0,TimeSim,TimeSimLast=', &
         DtUpdateB0, TimeSim, TimeSimLast
     end if
 
@@ -740,9 +740,9 @@ contains
     MagGse_DD = matmul(MagGeo_DD, GeoGse_DD)
 
     if (DoTestMe) then
-      write (*, *) NameSub, ' new MagAxis_D     =', MagAxis_D
-      write (*, *) NameSub, ' new MagAxisTiltGsm=', MagAxisTiltGsm*cRadToDeg
-      write (*, *) NameSub, ' new RotAxisGsm_D  =', RotAxisGsm_D
+      write(*, *) NameSub, ' new MagAxis_D     =', MagAxis_D
+      write(*, *) NameSub, ' new MagAxisTiltGsm=', MagAxisTiltGsm*cRadToDeg
+      write(*, *) NameSub, ' new RotAxisGsm_D  =', RotAxisGsm_D
     end if
 
   end subroutine set_axes
@@ -913,7 +913,7 @@ contains
       NameCoord2 = NameCoord2In
       if (present(iFrame)) then
         if (iFrame /= 1 .and. iFrame /= 2) then
-          write (*, *) NameSub, ' ERROR iFrame = ', iFrame
+          write(*, *) NameSub, ' ERROR iFrame = ', iFrame
           call CON_stop(NameSub//': invalid value for iFrame = 1 or 2')
         end if
         iFrameOut = iFrame
@@ -1109,112 +1109,112 @@ contains
       Epsilon3 = 1e+0
     end if
 
-    if (.not. DoInitializeAxes) write (*, *) 'test failed: DoInitializeAxes=', &
+    if (.not. DoInitializeAxes) write(*, *) 'test failed: DoInitializeAxes=', &
       DoInitializeAxes, ' should be true'
 
     call time_int_to_real(TimeEquinox)
-    if (TimeEquinox%Time <= 0.0) write (*, *) 'test failed: TimeEquinox =', &
+    if (TimeEquinox%Time <= 0.0) write(*, *) 'test failed: TimeEquinox =', &
       TimeEquinox, ' should have a large positive double in the %Time field'
 
-    write (*, '(a)') 'Testing init_axes'
+    write(*, '(a)') 'Testing init_axes'
     dLongitudeHgi = -1.0
     dLongitudeHgr = 0.0
 
     call init_axes(TimeEquinox%Time)
 
-    if (tStart /= TimeEquinox%Time) write (*, *) 'test init_axes failed: ', &
+    if (tStart /= TimeEquinox%Time) write(*, *) 'test init_axes failed: ', &
       'tStart=', tStart, ' should be equal to TimeEquinox % Time=', &
       TimeEquinox%Time
 
-    if (DoInitializeAxes) write (*, *) 'test init_axes failed: DoInitializeAxes=', &
+    if (DoInitializeAxes) write(*, *) 'test init_axes failed: DoInitializeAxes=', &
       DoInitializeAxes, ' should be fales'
 
-    write (*, '(a)') 'Testing get_axes'
+    write(*, '(a)') 'Testing get_axes'
 
     call get_axes(0.0, MagAxisTilt, RotAxisGsm_D)
 
-    if (abs(MagAxisTilt*cRadToDeg - 7.7223745616548189) > 0.00001) write (*, *) &
+    if (abs(MagAxisTilt*cRadToDeg - 7.7223745616548189) > 0.00001) write(*, *) &
       'test get_axes failed: MagAxisTilt =', MagAxisTilt*cRadToDeg, &
       ' should be 7.7223745616548189 degrees within round off error'
 
     Result_D = (/4.017959626728e-5, 0.122841278089, 0.9924263291464/)
     if (maxval(abs(RotAxisGsm_D - Result_D)) > 0.00001) &
-      write (*, *) 'test get_axes failed: RotAxisGsm_D =', &
+      write(*, *) 'test get_axes failed: RotAxisGsm_D =', &
       RotAxisGsm_D, ' should be equal to ', Result_D, &
       ' within round off errors'
 
-    write (*, '(a)') 'Testing transform_matrix'
+    write(*, '(a)') 'Testing transform_matrix'
 
     Rot_DD = transform_matrix(0.0, 'GSM', 'GEO')
     RotAxisGeo_D = matmul(Rot_DD, RotAxisGsm_D)
 
     Result_D = (/0.0, 0.0, 1.0/)
     if (maxval(abs(RotAxisGeo_D - Result_D)) > 0.0001) &
-      write (*, *) 'test transform_matrix failed: RotAxisGeo_D=', &
+      write(*, *) 'test transform_matrix failed: RotAxisGeo_D=', &
       RotAxisGeo_D, ' should be be equal to ', Result_D, &
       ' within round off errors'
 
     Rot_DD = transform_matrix(10.0, 'HGI', 'HGC')
     Result_DD = rot_matrix_z(-10.0*OmegaCarrington)
     if (maxval(abs(Rot_DD - Result_DD)) > Epsilon1) then
-      write (*, *) 'test transform_matrix failed: HGI->HGC matrix is'
+      write(*, *) 'test transform_matrix failed: HGI->HGC matrix is'
       call show_rot_matrix(Rot_DD)
-      write (*, *) 'instead of'
+      write(*, *) 'instead of'
       call show_rot_matrix(Result_DD)
     end if
 
-    write (*, '(a)') 'Testing show_rot_matrix'
-    write (*, '(a)') 'HgiGse_DD(0)='; call show_rot_matrix(HgiGse_DD)
+    write(*, '(a)') 'Testing show_rot_matrix'
+    write(*, '(a)') 'HgiGse_DD(0)='; call show_rot_matrix(HgiGse_DD)
 
-    write (*, '(a)') 'Testing angular_velocity'
+    write(*, '(a)') 'Testing angular_velocity'
 
     ! HGI is an inertial system
     Omega_D = angular_velocity(0.0, 'HGI')
     Result_D = (/0., 0., 0./)
     if (maxval(abs(Omega_D - Result_D)) > Epsilon1) &
-      write (*, *) 'test angular_velocity failed: HGI Omega_D = ', Omega_D, &
+      write(*, *) 'test angular_velocity failed: HGI Omega_D = ', Omega_D, &
       ' should be equal to ', Result_D, ' within round off errors'
 
     ! HGR rotates around its Z axis with the OmegaCarrington
     Omega_D = angular_velocity(0.0, 'HGR')
     Result_D = (/0., 0., OmegaCarrington/)
     if (maxval(abs(Omega_D - Result_D)) > Epsilon1) &
-      write (*, *) 'test angular_velocity failed: HGR Omega_D = ', Omega_D, &
+      write(*, *) 'test angular_velocity failed: HGR Omega_D = ', Omega_D, &
       ' should be equal to ', Result_D, ' within round off errors'
 
     ! HGC rotates around its Z axis with the OmegaCarrington
     Omega_D = angular_velocity(0.0, 'HGC')
     Result_D = (/0., 0., OmegaCarrington/)
     if (maxval(abs(Omega_D - Result_D)) > Epsilon1) &
-      write (*, *) 'test angular_velocity failed: HGC Omega_D = ', Omega_D, &
+      write(*, *) 'test angular_velocity failed: HGC Omega_D = ', Omega_D, &
       ' should be equal to ', Result_D, ' within round off errors'
 
     ! GEI is an inertial system
     Omega_D = angular_velocity(0.0, 'GEI')
     Result_D = (/0., 0., 0./)
     if (maxval(abs(Omega_D - Result_D)) > Epsilon1) &
-      write (*, *) 'test angular_velocity failed: GEI Omega_D = ', Omega_D, &
+      write(*, *) 'test angular_velocity failed: GEI Omega_D = ', Omega_D, &
       ' should be equal to ', Result_D, ' within round off errors'
 
     ! In the current approximation GSE is an inertial system
     Omega_D = angular_velocity(0.0, 'GSE')
     Result_D = (/0., 0., 0./)
     if (maxval(abs(Omega_D - Result_D)) > Epsilon1) &
-      write (*, *) 'test angular_velocity failed: GSE Omega_D = ', Omega_D, &
+      write(*, *) 'test angular_velocity failed: GSE Omega_D = ', Omega_D, &
       ' should be equal to ', Result_D, ' within round off errors'
 
     ! GEO rotates with OmegaPlanet around the Z axis with respect to inertial
     Omega_D = angular_velocity(0.0, 'GEO')
     Result_D = (/0., 0., OmegaPlanet/)
     if (maxval(abs(Omega_D - Result_D)) > Epsilon1) &
-      write (*, *) 'test angular_velocity failed: GEO Omega_D = ', Omega_D, &
+      write(*, *) 'test angular_velocity failed: GEO Omega_D = ', Omega_D, &
       ' should be equal to ', Result_D, ' within round off errors'
 
     ! GEO rotates with OmegaPlanet around the Z axis with respect to GSE
     Omega_D = angular_velocity(0.0, 'GSE', 'GEO', iFrame=2)
     Result_D = (/0., 0., OmegaPlanet/)
     if (maxval(abs(Omega_D - Result_D)) > Epsilon1) &
-      write (*, *) 'test angular_velocity failed: GSE,GEO Omega_D = ', Omega_D, &
+      write(*, *) 'test angular_velocity failed: GSE,GEO Omega_D = ', Omega_D, &
       ' should be equal to ', Result_D, ' within round off errors'
 
     ! The GSM rotates around the X axis. At 07:35 UT in the morning
@@ -1226,7 +1226,7 @@ contains
     Omega_D = angular_velocity(0.0, 'GSM')
     Result_D = (/9.8163649853322886E-06, 0., 0./)
     if (maxval(abs(Omega_D - Result_D)) > Epsilon1) &
-      write (*, *) 'test angular_velocity failed: GSM Omega_D = ', Omega_D, &
+      write(*, *) 'test angular_velocity failed: GSM Omega_D = ', Omega_D, &
       ' should be equal to ', Result_D, ' within round off errors'
 
     ! This is a general case, we believe the numbers
@@ -1234,10 +1234,10 @@ contains
     Result_D = (/9.7273384193693053E-06, 8.9577283077318018E-06, &
                  -1.3190560195532345E-06/)
     if (maxval(abs(Omega_D - Result_D)) > Epsilon1) &
-      write (*, *) 'test angular_velocity failed: GSE-SMG Omega_D in SMG= ', &
+      write(*, *) 'test angular_velocity failed: GSE-SMG Omega_D in SMG= ', &
       Omega_D, ' should be equal to ', Result_D, ' within round off errors'
 
-    write (*, '(a)') 'Testing transform_velocity'
+    write(*, '(a)') 'Testing transform_velocity'
 
     ! Let's take the (/0.,0.,cAU/) point with 0 velocity in HGR.
     ! This will correspond to the point matmul((/cAU,0.,0./),HgrHgi_DD) in HGI
@@ -1249,14 +1249,14 @@ contains
     Result_D = cross_product((/0., 0., OmegaCarrington/), Position_D)
 
     if (maxval(abs(v2_D - Result_D)) > Epsilon2) &
-      write (*, *) 'test angular_velocity failed: HGI-HGR v2_D = ', v2_D, &
+      write(*, *) 'test angular_velocity failed: HGI-HGR v2_D = ', v2_D, &
       ' should be equal to ', Result_D, ' within round off errors'
 
     ! Let's transform back, the result should be 0
     v2_D = transform_velocity(0., Result_D, Position_D, 'HGI', 'HGR')
     Result_D = (/0., 0., 0./)
     if (maxval(abs(v2_D - Result_D)) > Epsilon2) &
-      write (*, *) 'test angular_velocity failed: HGR-HGI v2_D = ', v2_D, &
+      write(*, *) 'test angular_velocity failed: HGR-HGI v2_D = ', v2_D, &
       ' should be equal to ', Result_D, ' within round off errors'
 
     ! Let's check vPlanet. A point at rest in HGI should move towards the
@@ -1267,28 +1267,28 @@ contains
     v2_D = transform_velocity(0., (/0., 0., 0./), (/0., 0., 0./), 'HGI', 'GSE')
     Result_D = (/4.8531599940505521E+02, 2.9901632640648619E+04, 0./)
     if (maxval(abs(v2_D - Result_D)) > Epsilon2) &
-      write (*, *) 'test angular_velocity failed: HGI-GSE v2_D = ', v2_D, &
+      write(*, *) 'test angular_velocity failed: HGI-GSE v2_D = ', v2_D, &
       ' should be equal to ', Result_D, ' within round off errors'
 
     ! Let's transform back, the result should be 0
     v2_D = transform_velocity(0., v2_D, (/0., 0., 0./), 'GSE', 'HGI')
     Result_D = (/0., 0., 0./)
     if (maxval(abs(v2_D - Result_D)) > Epsilon3) &
-      write (*, *) 'test angular_velocity failed: GSE-HGI back v2_D = ', v2_D, &
+      write(*, *) 'test angular_velocity failed: GSE-HGI back v2_D = ', v2_D, &
       ' should be equal to ', Result_D, ' within round off errors'
 
     ! Velocity of Earth in GEO should be zero
     v2_D = transform_velocity(0., vPlanetHgi_D, XyzPlanetHgi_D, 'HGI', 'GEO')
     Result_D = (/0., 0., 0./)
     if (maxval(abs(v2_D - Result_D)) > Epsilon3) &
-      write (*, *) 'test angular_velocity failed: HGI-GEO v2_D = ', v2_D, &
+      write(*, *) 'test angular_velocity failed: HGI-GEO v2_D = ', v2_D, &
       ' should be equal to ', Result_D, ' within round off errors'
 
     ! Velocity of Earth in HGI should be vPlanetHgi_D
     v2_D = transform_velocity(0., (/0., 0., 0./), (/0., 0., 0./), 'GEO', 'HGI')
     Result_D = vPlanetHgi_D
     if (maxval(abs(v2_D - Result_D)) > Epsilon3) &
-      write (*, *) 'test angular_velocity failed: GEO-HGI v2_D = ', v2_D, &
+      write(*, *) 'test angular_velocity failed: GEO-HGI v2_D = ', v2_D, &
       ' should be equal to ', Result_D, ' within round off errors'
 
     ! Velocity of Earth in HGR should be
@@ -1297,7 +1297,7 @@ contains
     Result_D = matmul(HgrHgi_DD, vPlanetHgi_D &
                       - cross_product((/0., 0., OmegaCarrington/), XyzPlanetHgi_D))
     if (maxval(abs(v2_D - Result_D)) > Epsilon2) &
-      write (*, *) 'test angular_velocity failed: GEO-HGR v2_D = ', v2_D, &
+      write(*, *) 'test angular_velocity failed: GEO-HGR v2_D = ', v2_D, &
       ' should be equal to ', Result_D, ' within round off errors'
 
     ! Go back
@@ -1305,7 +1305,7 @@ contains
     v2_D = transform_velocity(0., Result_D, Position_D, 'HGR', 'GEO')
     Result_D = (/0., 0., 0./)
     if (maxval(abs(v2_D - Result_D)) > Epsilon2) &
-      write (*, *) 'test angular_velocity failed: HGR-GEO v2_D = ', v2_D, &
+      write(*, *) 'test angular_velocity failed: HGR-GEO v2_D = ', v2_D, &
       ' should be equal to ', Result_D, ' within round off errors'
 
     ! The center of the Earth is at 0,0,0 and at rest in GSE,
@@ -1313,7 +1313,7 @@ contains
     v2_D = transform_velocity(0., (/0., 0., 0./), (/0., 0., 0./), 'GSE', 'HGI')
     Result_D = vPlanetHgi_D
     if (maxval(abs(v2_D - Result_D)) > Epsilon3) &
-      write (*, *) 'test angular_velocity failed: GSE-HGI v2_D = ', v2_D, &
+      write(*, *) 'test angular_velocity failed: GSE-HGI v2_D = ', v2_D, &
       ' should be equal to ', Result_D, ' within round off errors'
 
     ! The surface of the Earth towards the Sun is (RadiusPlanet,0,0) in GSE.
@@ -1325,13 +1325,13 @@ contains
     v2_D = transform_velocity(0., (/0., 0., 0./), Position_D, 'GEO', 'GSE')
     Result_D = OmegaPlanet*cross_product(RotAxis_D, (/RadiusPlanet, 0., 0./))
     if (maxval(abs(v2_D - Result_D)) > Epsilon3) &
-      write (*, *) 'test angular_velocity failed: GEO-GSE v2_D = ', v2_D, &
+      write(*, *) 'test angular_velocity failed: GEO-GSE v2_D = ', v2_D, &
       ' should be equal to ', Result_D, ' within round off errors'
 
     ! Do it again to check cashing
     v2_D = transform_velocity(0., (/0., 0., 0./), Position_D, 'GEO', 'GSE')
     if (maxval(abs(v2_D - Result_D)) > Epsilon3) &
-      write (*, *) 'test angular_velocity failed: GEO-GSE2 v2_D = ', v2_D, &
+      write(*, *) 'test angular_velocity failed: GEO-GSE2 v2_D = ', v2_D, &
       ' should be equal to ', Result_D, ' within round off errors'
 
   end subroutine test_axes

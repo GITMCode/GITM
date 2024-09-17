@@ -44,7 +44,7 @@ subroutine calc_chemistry(iBlock)
   call start_timing("calc_chemistry")
   if (iDebugLevel > 3) then
     do iIon = 1, nIons
-      write (*, *) "====> start calc_chemistry: Max Ion Density: ", iIon, &
+      write(*, *) "====> start calc_chemistry: Max Ion Density: ", iIon, &
         maxval(IDensityS(1:nLons, 1:nLats, (nAlts*4)/5, iIon, iBlock))
     end do
   end if
@@ -157,7 +157,7 @@ subroutine calc_chemistry(iBlock)
 
   if (iDebugLevel > 3) then
     do iIon = 1, nIons
-      write (*, *) "====> calc_chemistry: Max Ion Density: ", iIon, &
+      write(*, *) "====> calc_chemistry: Max Ion Density: ", iIon, &
         maxval(IDensityS(1:nLons, 1:nLats, (nAlts*4)/5, iIon, iBlock))
     end do
   end if

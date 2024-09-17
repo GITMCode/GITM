@@ -16,24 +16,24 @@ subroutine readAMIEvariables(AmieFile, nVars, varNames, iDebugLevel)
   real*4 :: dummy(1000)
 
   integer :: nlats, nmlts, ntimes
-  open (iUnitTmp_, &
-        file=AmieFile, &
-        status='old', &
-        form='UNFORMATTED', &
-        iostat=iError)
-  read (iUnitTmp_) nlats, nmlts, ntimes
-  read (iUnitTmp_) (dummy(i), i=1, nlats)
-  read (iUnitTmp_) (dummy(i), i=1, nmlts)
-  read (iUnitTmp_) nVars
+  open(iUnitTmp_, &
+       file=AmieFile, &
+       status='old', &
+       form='UNFORMATTED', &
+       iostat=iError)
+  read(iUnitTmp_) nlats, nmlts, ntimes
+  read(iUnitTmp_) (dummy(i), i=1, nlats)
+  read(iUnitTmp_) (dummy(i), i=1, nmlts)
+  read(iUnitTmp_) nVars
   do iVar = 1, nVars
-    read (iUnitTmp_) varNames(iVar)
+    read(iUnitTmp_) varNames(iVar)
   end do
-  close (iUnitTmp_)
+  close(iUnitTmp_)
 
   if (iDebugLevel > 1) then
-    write (*, *) "AMIE Variables : "
+    write(*, *) "AMIE Variables : "
     do iVar = 1, nVars
-      write (*, *) iVar, '. ', trim(varNames(iVar))
+      write(*, *) iVar, '. ', trim(varNames(iVar))
     end do
   end if
   return
@@ -83,36 +83,36 @@ subroutine readAMIEoutput(iBLK, IsMirror, iDebugGitm, iError)
   AMIE_iDebugLevel = iDebugGitm
 
   iError = 0
-  if (AMIE_iDebugLevel >= 0) write (*, *) '> reading AMIE file : ', trim(AMIE_FileName)
-  open (UnitTmp_, &
-        file=AMIE_FileName, &
-        status='old', &
-        form='UNFORMATTED', &
-        iostat=iError)
+  if (AMIE_iDebugLevel >= 0) write(*, *) '> reading AMIE file : ', trim(AMIE_FileName)
+  open(UnitTmp_, &
+       file=AMIE_FileName, &
+       status='old', &
+       form='UNFORMATTED', &
+       iostat=iError)
   if (iError .ne. 0) then
-    write (*, *) "Error opening file:", trim(AMIE_FileName)
+    write(*, *) "Error opening file:", trim(AMIE_FileName)
     stop
   end if
   AMIE_nLats = 0
   IsBinary = .true.
 
-  read (UnitTmp_, iostat=iError) AMIE_nlats, AMIE_nmlts, AMIE_ntimes
+  read(UnitTmp_, iostat=iError) AMIE_nlats, AMIE_nmlts, AMIE_ntimes
   if ((iError .ne. 0) .or. (AMIE_nlats .gt. 500)) then
-    write (*, *) "Error reading variables AMIE_nlats, AMIE_nmlts, AMIE_ntimes"
+    write(*, *) "Error reading variables AMIE_nlats, AMIE_nmlts, AMIE_ntimes"
     IsBinary = .false.
   end if
-  close (UnitTmp_)
+  close(UnitTmp_)
 
   if (IsBinary) then
     call AMIE_link_variable_names()
     call readAMIEvariables(AMIE_FileName, nFields, Fields, AMIE_iDebugLevel)
     call AMIE_link_vars_to_keys(nFields, Fields)
 
-    open (UnitTmp_, file=AMIE_FileName, status='old', form='UNFORMATTED')
-    read (UnitTmp_) AMIE_nlats, AMIE_nmlts, AMIE_ntimes
+    open(UnitTmp_, file=AMIE_FileName, status='old', form='UNFORMATTED')
+    read(UnitTmp_) AMIE_nlats, AMIE_nmlts, AMIE_ntimes
   else
-    open (UnitTmp_, file=AMIE_FileName, status='old')
-    read (UnitTmp_, *) AMIE_nlats, AMIE_nmlts, AMIE_ntimes
+    open(UnitTmp_, file=AMIE_FileName, status='old')
+    read(UnitTmp_, *) AMIE_nlats, AMIE_nmlts, AMIE_ntimes
   end if
 
   !\
@@ -137,30 +137,30 @@ subroutine readAMIEoutput(iBLK, IsMirror, iDebugGitm, iError)
 
   ! these are local variables:
 
-  if (allocated(AllData)) deallocate (AllData)
-  allocate (AllData(AMIE_nMlts, AMIE_nLats, nFields), stat=iError)
+  if (allocated(AllData)) deallocate(AllData)
+  allocate(AllData(AMIE_nMlts, AMIE_nLats, nFields), stat=iError)
   if (iError /= 0) then
-    write (*, *) "Error in allocating array AllData in "
+    write(*, *) "Error in allocating array AllData in "
     stop
   end if
 
   ! ---------------------------------------------------------------
   ! Read and extrapolate AMIE grid
 
-  if (AMIE_iDebugLevel > 1) write (*, *) 'Reading AMIE grid'
+  if (AMIE_iDebugLevel > 1) write(*, *) 'Reading AMIE grid'
 
   if (IsBinary) then
-    read (UnitTmp_) (AMIE_Lats(i), i=1, AMIE_nLats)
-    read (UnitTmp_) (AMIE_Mlts(i), i=1, AMIE_nMlts)
-    read (UnitTmp_) nFields
+    read(UnitTmp_) (AMIE_Lats(i), i=1, AMIE_nLats)
+    read(UnitTmp_) (AMIE_Mlts(i), i=1, AMIE_nMlts)
+    read(UnitTmp_) nFields
   else
-    read (UnitTmp_, *) (AMIE_Lats(i), i=1, AMIE_nLats)
-    read (UnitTmp_, *) (AMIE_Mlts(i), i=1, AMIE_nMlts)
-    read (UnitTmp_, *) nFields
+    read(UnitTmp_, *) (AMIE_Lats(i), i=1, AMIE_nLats)
+    read(UnitTmp_, *) (AMIE_Mlts(i), i=1, AMIE_nMlts)
+    read(UnitTmp_, *) nFields
   end if
 
   if (nFields > nFieldsMax) then
-    write (*, *) "Maximum number of fields in AMIE is ", nFieldsMax
+    write(*, *) "Maximum number of fields in AMIE is ", nFieldsMax
     stop
   end if
 
@@ -170,13 +170,13 @@ subroutine readAMIEoutput(iBLK, IsMirror, iDebugGitm, iError)
   ! Extrapolate the latitude grid
   !/
 
-  if (AMIE_iDebugLevel > 1) write (*, *) 'Extrapolating AMIE grid'
+  if (AMIE_iDebugLevel > 1) write(*, *) 'Extrapolating AMIE grid'
   if (AMIE_Lats(AMIE_nLats) > AMIE_Lats(1)) then
     ! The AMIE data is in reverse order than what we want, so let's reverse it
-    if (allocated(TempLats)) deallocate (TempLats)
-    allocate (TempLats(AMIE_nLats + nCellsPad), stat=iError)
+    if (allocated(TempLats)) deallocate(TempLats)
+    allocate(TempLats(AMIE_nLats + nCellsPad), stat=iError)
     if (iError /= 0) then
-      write (*, *) "Error in allocating array TempLats in "
+      write(*, *) "Error in allocating array TempLats in "
       stop
     end if
     TempLats = AMIE_Lats
@@ -184,7 +184,7 @@ subroutine readAMIEoutput(iBLK, IsMirror, iDebugGitm, iError)
       AMIE_Lats(i) = TempLats(AMIE_nLats + 1 - i)
     end do
     ReverseLats = .true.
-    deallocate (TempLats)
+    deallocate(TempLats)
   end if
 
   do i = AMIE_nLats + 1, AMIE_nLats + nCellsPad
@@ -196,9 +196,9 @@ subroutine readAMIEoutput(iBLK, IsMirror, iDebugGitm, iError)
 
   do iField = 1, nfields
     if (IsBinary) then
-      read (UnitTmp_) Fields(iField)
+      read(UnitTmp_) Fields(iField)
     else
-      read (UnitTmp_, '(a)') Fields(iField)
+      read(UnitTmp_, '(a)') Fields(iField)
     end if
   end do
 
@@ -212,38 +212,38 @@ subroutine readAMIEoutput(iBLK, IsMirror, iDebugGitm, iError)
     unitConvert(iEle_wave_eflux_) = factor
   end if
 
-  if (AMIE_iDebugLevel > 1) write (*, *) 'Reading AMIE data now...'
+  if (AMIE_iDebugLevel > 1) write(*, *) 'Reading AMIE data now...'
 
   do iTime = 1, AMIE_ntimes
 
-    if (AMIE_iDebugLevel > 1) write (*, *) ' --> iTime : ', iTime
+    if (AMIE_iDebugLevel > 1) write(*, *) ' --> iTime : ', iTime
 
     if (IsBinary) then
 
-      read (UnitTmp_) ntemp, iyr, imo, ida, ihr, imi
-      read (UnitTmp_) swv, bx, by, bz, aei, ae, au, al, dsti, dst, hpi, sjh, pot
+      read(UnitTmp_) ntemp, iyr, imo, ida, ihr, imi
+      read(UnitTmp_) swv, bx, by, bz, aei, ae, au, al, dsti, dst, hpi, sjh, pot
 
       do iField = 1, nfields
         if (ReverseLats) then
-          read (UnitTmp_) &
+          read(UnitTmp_) &
             ((AllData(j, i, iField), j=1, AMIE_nMlts), i=AMIE_nLats, 1, -1)
         else
-          read (UnitTmp_) &
+          read(UnitTmp_) &
             ((AllData(j, i, iField), j=1, AMIE_nMlts), i=1, AMIE_nLats)
         end if
       end do
 
     else
 
-      read (UnitTmp_, *) ntemp, iyr, imo, ida, ihr, imi
-      read (UnitTmp_, *) swv, bx, by, bz, aei, ae, au, al, dsti, dst, hpi, sjh, pot
+      read(UnitTmp_, *) ntemp, iyr, imo, ida, ihr, imi
+      read(UnitTmp_, *) swv, bx, by, bz, aei, ae, au, al, dsti, dst, hpi, sjh, pot
 
       do iField = 1, nfields
         if (ReverseLats) then
-          read (UnitTmp_, *) &
+          read(UnitTmp_, *) &
             ((AllData(j, i, iField), j=1, AMIE_nMlts), i=AMIE_nLats, 1, -1)
         else
-          read (UnitTmp_, *) &
+          read(UnitTmp_, *) &
             ((AllData(j, i, iField), j=1, AMIE_nMlts), i=1, AMIE_nLats)
         end if
       end do
@@ -264,7 +264,7 @@ subroutine readAMIEoutput(iBLK, IsMirror, iDebugGitm, iError)
     !         AveE to be in keV
     !         EFlux to be in W/m2
 
-    if (AMIE_iDebugLevel > 1) write (*, *) '  --> Pushing in to storage '
+    if (AMIE_iDebugLevel > 1) write(*, *) '  --> Pushing in to storage '
     do iVal = 1, nValues
       if (iMap_(iVal) > 0) then
         ! if we are mirroring, we need to do something special
@@ -323,15 +323,15 @@ subroutine readAMIEoutput(iBLK, IsMirror, iDebugGitm, iError)
         end if
       end if
     end do
-    if (AMIE_iDebugLevel > 1) write (*, *) '  --> Done with time '
+    if (AMIE_iDebugLevel > 1) write(*, *) '  --> Done with time '
   end do
 
-  if (AMIE_iDebugLevel > 1) write (*, *) 'Done Reading AMIE file '
-  close (UnitTmp_)
+  if (AMIE_iDebugLevel > 1) write(*, *) 'Done Reading AMIE file '
+  close(UnitTmp_)
 
   ! update the number of latitudes to include padded cells
   AMIE_nLats = AMIE_nLats + nCellsPad
 
-  deallocate (AllData, stat=iError)
+  deallocate(AllData, stat=iError)
 
 end subroutine readAMIEoutput

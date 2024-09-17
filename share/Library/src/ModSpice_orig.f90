@@ -38,7 +38,7 @@ contains
     character(len=*), parameter:: NameSub = 'spice_init'
     !--------------------------------------------------------------------------
     if (.not. DoInitialize) then
-      write (*, *) NameSub, ' WARNING: has been initialized'
+      write(*, *) NameSub, ' WARNING: has been initialized'
       RETURN
     end if
 

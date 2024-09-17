@@ -80,7 +80,7 @@ contains
     xchng%tag = tag
 
     ! allocate global status array used in transfer procedures
-    allocate (xchng%status(MPI_STATUS_SIZE, 0:max_pn), stat=ierror)
+    allocate(xchng%status(MPI_STATUS_SIZE, 0:max_pn), stat=ierror)
     if (ierror .ne. 0) then
       ok = .false.
       call AB_ERROR_set("AB_COMM_XCHNG_create", "allocate error ", ierror)
@@ -88,7 +88,7 @@ contains
     end if
 
     ! allocate global receive request array used in transfer procedures
-    allocate (xchng%rcv_req(0:max_pn), stat=ierror)
+    allocate(xchng%rcv_req(0:max_pn), stat=ierror)
     if (ierror .ne. 0) then
       ok = .false.
       call AB_ERROR_set("AB_COMM_XCHNG_create", "allocate error ", ierror)
@@ -97,7 +97,7 @@ contains
     xchng%rcv_req = MPI_REQUEST_NULL
 
     ! allocate global send request array used in transfer procedures
-    allocate (xchng%snd_req(0:max_pn), stat=ierror)
+    allocate(xchng%snd_req(0:max_pn), stat=ierror)
     if (ierror .ne. 0) then
       ok = .false.
       call AB_ERROR_set("AB_COMM_XCHNG_create", "allocate error ", ierror)
@@ -325,7 +325,7 @@ contains
     end if
 
     ! deallocate send request array
-    deallocate (xchng%snd_req)
+    deallocate(xchng%snd_req)
 
     ! wait for all the rcvs to complete
     call MPI_waitall(np, xchng%rcv_req, xchng%status, ierror)
@@ -336,10 +336,10 @@ contains
     end if
 
     ! deallocate receive request array
-    deallocate (xchng%rcv_req)
+    deallocate(xchng%rcv_req)
 
     ! deallocate status array
-    deallocate (xchng%status)
+    deallocate(xchng%status)
 
   end subroutine AB_COMM_XCHNG_destroy
 

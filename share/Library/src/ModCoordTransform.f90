@@ -888,7 +888,7 @@ contains
     elseif (DoIgnore) then
       b_DD = cUnit_DD
     else
-      write (*, *) 'Error in ', NameSub, ' for matrix:'
+      write(*, *) 'Error in ', NameSub, ' for matrix:'
       call show_rot_matrix(a_DD)
       call CON_stop('Singular matrix in '//NameSub)
     end if
@@ -901,7 +901,7 @@ contains
 
     real, intent(in) :: Matrix_DD(3, 3)
 
-    write (*, '(3(3f14.10,/))') transpose(Matrix_DD)
+    write(*, '(3(3f14.10,/))') transpose(Matrix_DD)
 
   end subroutine show_rot_matrix
   !BOP =======================================================================
@@ -930,77 +930,77 @@ contains
     real:: XyzSph_DD(3, 3)
     !------------------------------------------------------------------------
     Xyz_D = (/0.1, 0.2, 0.3/)
-    write (*, '(a,3es16.8)') 'Xyz_D=', Xyz_D
+    write(*, '(a,3es16.8)') 'Xyz_D=', Xyz_D
 
     call xyz_to_sph(Xyz_D, Sph_D)
 
-    write (*, '(a,3es16.8)') 'Sph_D=', Sph_D
+    write(*, '(a,3es16.8)') 'Sph_D=', Sph_D
 
     call sph_to_xyz(Sph_D, Xyz2_D)
 
-    write (*, '(a,3es16.8)') 'Xyz_D=', Xyz2_D
+    write(*, '(a,3es16.8)') 'Xyz_D=', Xyz2_D
 
     if (maxval(abs(Xyz_D - Xyz2_D)) > cTiny) &
-      write (*, '(a)') 'Error transforming xyz->sph->xyz'
+      write(*, '(a)') 'Error transforming xyz->sph->xyz'
 
     call xyz_to_rlonlat(Xyz_D, rLonLat_D)
 
-    write (*, '(a,3es16.8)') 'rLonLat_D=', rLonLat_D
+    write(*, '(a,3es16.8)') 'rLonLat_D=', rLonLat_D
 
     call rlonlat_to_xyz(rLonLat_D, Xyz2_D)
 
-    write (*, '(a,3es16.8)') 'Xyz_D=', Xyz2_D
+    write(*, '(a,3es16.8)') 'Xyz_D=', Xyz2_D
 
     if (maxval(abs(Xyz_D - Xyz2_D)) > cTiny) &
-      write (*, '(a)') 'Error transforming xyz->rlonlat->xyz'
+      write(*, '(a)') 'Error transforming xyz->rlonlat->xyz'
 
-    write (*, '(a,/,3(3f14.10,/))') 'rot_matrix_z(-Phi)='
+    write(*, '(a,/,3(3f14.10,/))') 'rot_matrix_z(-Phi)='
     call show_rot_matrix(rot_matrix_z(-Sph_D(3)))
 
     Xyz_D = matmul(rot_matrix_z(-Sph_D(3)), Xyz_D)
 
-    write (*, '(a,3es16.8)') 'rot_matrix_z(-Phi).Xyz_D=', Xyz_D
+    write(*, '(a,3es16.8)') 'rot_matrix_z(-Phi).Xyz_D=', Xyz_D
 
     Xyz_D = matmul(Xyz_D, rot_matrix_y(Sph_D(2)))
 
-    write (*, '(a,3es16.8)') 'Xyz_D.rot_matrix_y(Theta)=', Xyz_D
+    write(*, '(a,3es16.8)') 'Xyz_D.rot_matrix_y(Theta)=', Xyz_D
 
     if (any(abs(Xyz_D(1:2)) > cTiny)) &
-      write (*, '(a)') 'Error rotating Xyz_D into Z axis'
+      write(*, '(a)') 'Error rotating Xyz_D into Z axis'
 
     if (abs(Xyz_D(3) - Sph_D(1)) > cTiny) &
-      write (*, '(a)') 'Error rotating Xyz_D, length changed'
+      write(*, '(a)') 'Error rotating Xyz_D, length changed'
 
     Xyz_D = (/0.001, -0.4, 0.35353/)
-    write (*, '(a,3es16.8)') 'Original Xyz=', Xyz_D
+    write(*, '(a,3es16.8)') 'Original Xyz=', Xyz_D
     Xyz2_D = matmul(rot_matrix_x(1.), Xyz_D)
     Xyz2_D = matmul(rot_matrix_y(2.), Xyz2_D)
     Xyz2_D = matmul(rot_matrix_z(3.), Xyz2_D)
     Xyz2_D = matmul(rot_matrix_z(-3.), Xyz2_D)
     Xyz2_D = matmul(rot_matrix_y(-2.), Xyz2_D)
     Xyz2_D = matmul(rot_matrix_x(-1.), Xyz2_D)
-    write (*, '(a,3es16.8)') 'Rotated  Xyz=', Xyz2_D
+    write(*, '(a,3es16.8)') 'Rotated  Xyz=', Xyz2_D
 
     if (maxval(abs(Xyz_D - Xyz2_D)) > cTiny) &
-      write (*, '(a)') 'Error rotating back and forth'
+      write(*, '(a)') 'Error rotating back and forth'
 
-    write (*, *)
+    write(*, *)
 !    Xyz_D = (/1.0, 0.0, 0.0/)
 !    Xyz_D = (/8.0, 6.0, 0.0/)
 !    Xyz_D = (/8.0, 0.0, 6.0/)
     Xyz_D = (/8.0, 0.1, 6.0/)
-    write (*, '(a,3es16.8)') 'Cartesian position=', Xyz_D
+    write(*, '(a,3es16.8)') 'Cartesian position=', Xyz_D
     XyzSph_DD = rot_xyz_sph(Xyz_D)
-    write (*, '(a)') 'XyzSph_DD'; call show_rot_matrix(XyzSph_DD)
+    write(*, '(a)') 'XyzSph_DD'; call show_rot_matrix(XyzSph_DD)
     Sph_D = (/1.0, 0.0, 0.0/)
-    write (*, '(a,3es16.8)') 'Spherical vector  =', Sph_D
-    write (*, '(a,3es16.8)') 'Cartesian vector  =', matmul(XyzSph_DD, Sph_D)
+    write(*, '(a,3es16.8)') 'Spherical vector  =', Sph_D
+    write(*, '(a,3es16.8)') 'Cartesian vector  =', matmul(XyzSph_DD, Sph_D)
     Sph_D = (/0.0, 1.0, 0.0/)
-    write (*, '(a,3es16.8)') 'Spherical vector  =', Sph_D
-    write (*, '(a,3es16.8)') 'Cartesian vector  =', matmul(XyzSph_DD, Sph_D)
+    write(*, '(a,3es16.8)') 'Spherical vector  =', Sph_D
+    write(*, '(a,3es16.8)') 'Cartesian vector  =', matmul(XyzSph_DD, Sph_D)
     Sph_D = (/0.0, 0.0, 1.0/)
-    write (*, '(a,3es16.8)') 'Spherical vector  =', Sph_D
-    write (*, '(a,3es16.8)') 'Cartesian vector  =', matmul(XyzSph_DD, Sph_D)
+    write(*, '(a,3es16.8)') 'Spherical vector  =', Sph_D
+    write(*, '(a,3es16.8)') 'Cartesian vector  =', matmul(XyzSph_DD, Sph_D)
 
   end subroutine test_coord_transform
 

@@ -129,7 +129,7 @@ contains
     lz = 1
     ly = lz
     lu = 1
-    allocate (index_lz_tec(lz))  !index_lz_tec picks the correct file for TEC assimilation
+    allocate(index_lz_tec(lz))  !index_lz_tec picks the correct file for TEC assimilation
     do ii = 1, lz
       index_lz_tec(ii) = 1
     end do
@@ -155,16 +155,16 @@ contains
     nf_z = 20
     nf_u = 20
 
-    open (unit=223, file='markov_parameters.in', action='Read')
-    read (223, *, IOSTAT=TEC_read_IOStatus) nf_u
+    open(unit=223, file='markov_parameters.in', action='Read')
+    read(223, *, IOSTAT=TEC_read_IOStatus) nf_u
 
-    ALLOCATE (Nz(lz, lz*(nf_z + 1)))
-    ALLOCATE (Nu(lz, lu*nf_u))
-    ALLOCATE (Nphi(lz, lu*(nf_u + 1)))
+    ALLOCATE(Nz(lz, lz*(nf_z + 1)))
+    ALLOCATE(Nu(lz, lu*nf_u))
+    ALLOCATE(Nphi(lz, lu*(nf_u + 1)))
 
-    ALLOCATE (Dz(lz, lz*nf_z))
-    ALLOCATE (Du(lz, lz*nf_u))
-    ALLOCATE (Dphi(lz, lz*nf_u))
+    ALLOCATE(Dz(lz, lz*nf_z))
+    ALLOCATE(Du(lz, lz*nf_u))
+    ALLOCATE(Dphi(lz, lz*nf_u))
 
     Nz = 0 ! RESHAPE( (/1, 0, 0, 1, 0,0,0,0, 0,0,0,0/), shape(Nz) )
     Nu = 0 ! RESHAPE( (/dummy_real, dummy_real,0, 0,0,0/), shape(Nu) )
@@ -178,11 +178,11 @@ contains
     end do
 
     Do kkkk = 1, nf_u
-      read (223, *, IOSTAT=TEC_read_IOStatus) Nu(1, kkkk)
+      read(223, *, IOSTAT=TEC_read_IOStatus) Nu(1, kkkk)
       Nphi(1, kkkk + 1) = Nu(1, kkkk)
     end Do
-    write (*, *) 'Gf used in RCMR is', Nu
-    close (223)
+    write(*, *) 'Gf used in RCMR is', Nu
+    close(223)
 
   !! size calculations
     IF (RegZ == 1) THEN
@@ -194,20 +194,20 @@ contains
     END IF
 
   !! Regressor buffer initialization
-    ALLOCATE (u_h(lu, NC))
-    ALLOCATE (z_h(lz, NC + 1))
-    ALLOCATE (y_h(ly, NC + 1))
-    ALLOCATE (theta_h(ltheta, 2))
-    ALLOCATE (phi_reg(lphi, 1))
-    ALLOCATE (Uphi(lu, NC))
-    ALLOCATE (UphiVec(lu*NC, 1))
-    ALLOCATE (PHI(lu, lu*lphi))
+    ALLOCATE(u_h(lu, NC))
+    ALLOCATE(z_h(lz, NC + 1))
+    ALLOCATE(y_h(ly, NC + 1))
+    ALLOCATE(theta_h(ltheta, 2))
+    ALLOCATE(phi_reg(lphi, 1))
+    ALLOCATE(Uphi(lu, NC))
+    ALLOCATE(UphiVec(lu*NC, 1))
+    ALLOCATE(PHI(lu, lu*lphi))
     IF (RegZ == 1) THEN
-      ALLOCATE (Vphi(lz, NC))
-      ALLOCATE (VphiVec(lz*NC, 1))
+      ALLOCATE(Vphi(lz, NC))
+      ALLOCATE(VphiVec(lz*NC, 1))
     ELSE
-      ALLOCATE (Vphi(ly, NC))
-      ALLOCATE (VphiVec(ly*NC, 1))
+      ALLOCATE(Vphi(ly, NC))
+      ALLOCATE(VphiVec(ly*NC, 1))
     END IF
     u_h = 0
     z_h = 0
@@ -220,18 +220,18 @@ contains
     VphiVec = 0
 
  !! Buffer values
-    ALLOCATE (Ubar(lu, nf_u))
-    ALLOCATE (Ufbar(lz, nf_u))
+    ALLOCATE(Ubar(lu, nf_u))
+    ALLOCATE(Ufbar(lz, nf_u))
 
-    ALLOCATE (Zbar(lz, nf_z + 1))
-    ALLOCATE (Zfbar(lz, nf_z))
+    ALLOCATE(Zbar(lz, nf_z + 1))
+    ALLOCATE(Zfbar(lz, nf_z))
 
-    ALLOCATE (PHIbar(lu*(nf_u + 1), ltheta))
-    ALLOCATE (PHIfbar(lz*nf_u, ltheta))
+    ALLOCATE(PHIbar(lu*(nf_u + 1), ltheta))
+    ALLOCATE(PHIfbar(lz*nf_u, ltheta))
 
-    ALLOCATE (u_filtered(lz, 1))
-    ALLOCATE (z_filtered(lz, 1))
-    ALLOCATE (phi_filtered(lz, ltheta))
+    ALLOCATE(u_filtered(lz, 1))
+    ALLOCATE(z_filtered(lz, 1))
+    ALLOCATE(phi_filtered(lz, ltheta))
 
     Ubar = 0
     Ufbar = 0
@@ -244,30 +244,30 @@ contains
     phi_filtered = 0
 
   !! Initialize Cost function Weights
-    ALLOCATE (Rz(lz, lz))
-    ALLOCATE (Ruf(lz, lz))
-    ALLOCATE (Ru(lu, lu))
-    ALLOCATE (Rtheta(ltheta, ltheta))
+    ALLOCATE(Rz(lz, lz))
+    ALLOCATE(Ruf(lz, lz))
+    ALLOCATE(Ru(lu, lu))
+    ALLOCATE(Rtheta(ltheta, ltheta))
 
     call identity(Rz, lz, W_Rz)
     call identity(Ru, lu, W_Ru)
     call identity(Ruf, lz, W_Ruf)
     call identity(Rtheta, ltheta, W_Rtheta)
 
-    ALLOCATE (XX(lv, ltheta))
-    ALLOCATE (zp1(lv, 1))
-    ALLOCATE (Rp(lv, lv))
-    ALLOCATE (Rbarinv(lv, lv))
-    ALLOCATE (Tau(lv, lv))
-    ALLOCATE (Ginv(lv, lv))
-    ALLOCATE (PpXxpTauInv(ltheta, lv))
-    ALLOCATE (XxTheta(lv, 1))
-    ALLOCATE (Rzp(lv, 1))
-    ALLOCATE (IPIV(lv))
-    ALLOCATE (WORK(lv))
-    ALLOCATE (PRdelta(ltheta, ltheta))
-    ALLOCATE (dTheta(ltheta, 1))
-    ALLOCATE (Iltheta(ltheta, ltheta))
+    ALLOCATE(XX(lv, ltheta))
+    ALLOCATE(zp1(lv, 1))
+    ALLOCATE(Rp(lv, lv))
+    ALLOCATE(Rbarinv(lv, lv))
+    ALLOCATE(Tau(lv, lv))
+    ALLOCATE(Ginv(lv, lv))
+    ALLOCATE(PpXxpTauInv(ltheta, lv))
+    ALLOCATE(XxTheta(lv, 1))
+    ALLOCATE(Rzp(lv, 1))
+    ALLOCATE(IPIV(lv))
+    ALLOCATE(WORK(lv))
+    ALLOCATE(PRdelta(ltheta, ltheta))
+    ALLOCATE(dTheta(ltheta, 1))
+    ALLOCATE(Iltheta(ltheta, ltheta))
     call identity(Iltheta, ltheta, 1.0_8)
     XX = 0
     zp1 = 0
@@ -279,12 +279,12 @@ contains
     Rzp = 0
 
   !! Covariance Initialization
-    ALLOCATE (PP(ltheta, ltheta))
+    ALLOCATE(PP(ltheta, ltheta))
     call identity(PP, ltheta, 1/W_Rtheta)
 
   !! theta(k) and u(k) initialization
-    ALLOCATE (thetaout(ltheta, 1))
-    ALLOCATE (uout(lu, 1))
+    ALLOCATE(thetaout(ltheta, 1))
+    ALLOCATE(uout(lu, 1))
     thetaout = 0
     uout = 0
 
@@ -292,35 +292,35 @@ contains
     ! Allocate space for the RCMR variables
     ! --------------------------------------------------------------
 
-    allocate (gathered(nProcs), STAT=AllocateStatus)
-    allocate (gathered_sza(nProcs), STAT=AllocateStatus)
-    allocate (scattered(nProcs), STAT=AllocateStatus)
-    allocate (Sat_Proc(nProcs), STAT=AllocateStatus)
-    allocate (T(lz, lu), STAT=AllocateStatus)
-    allocate (y0s(nProcs, max_cols), STAT=AllocateStatus)
-    allocate (w(1, max_rows), STAT=AllocateStatus)
-    allocate (u(lu, max_rows), STAT=AllocateStatus)
-    allocate (y_out(max_rows, 1), STAT=AllocateStatus)
-    allocate (y(lu, max_rows), STAT=AllocateStatus)
-    allocate (y0(lz, max_rows), STAT=AllocateStatus)
-    allocate (z(lz, max_rows), STAT=AllocateStatus)
-    allocate (zp(lz, max_rows), STAT=AllocateStatus)
-    allocate (up(lz, max_rows), STAT=AllocateStatus)
-    allocate (zav(lz, max_rows), STAT=AllocateStatus)
-    allocate (diagn(1, max_rows), STAT=AllocateStatus)
-    allocate (z_mat(lz, l_dim), STAT=AllocateStatus)
-    allocate (u_mat(lu, l_dim), STAT=AllocateStatus)
-    allocate (y_mat(ly, l_dim), STAT=AllocateStatus)
-    allocate (R2(lz, lz), STAT=AllocateStatus)
-    allocate (P1(lu*Nc + ly*(Nc), lu*Nc + ly*(Nc)), STAT=AllocateStatus)
-    allocate (theta1(1, lu*Nc + ly*(Nc)), STAT=AllocateStatus)
+    allocate(gathered(nProcs), STAT=AllocateStatus)
+    allocate(gathered_sza(nProcs), STAT=AllocateStatus)
+    allocate(scattered(nProcs), STAT=AllocateStatus)
+    allocate(Sat_Proc(nProcs), STAT=AllocateStatus)
+    allocate(T(lz, lu), STAT=AllocateStatus)
+    allocate(y0s(nProcs, max_cols), STAT=AllocateStatus)
+    allocate(w(1, max_rows), STAT=AllocateStatus)
+    allocate(u(lu, max_rows), STAT=AllocateStatus)
+    allocate(y_out(max_rows, 1), STAT=AllocateStatus)
+    allocate(y(lu, max_rows), STAT=AllocateStatus)
+    allocate(y0(lz, max_rows), STAT=AllocateStatus)
+    allocate(z(lz, max_rows), STAT=AllocateStatus)
+    allocate(zp(lz, max_rows), STAT=AllocateStatus)
+    allocate(up(lz, max_rows), STAT=AllocateStatus)
+    allocate(zav(lz, max_rows), STAT=AllocateStatus)
+    allocate(diagn(1, max_rows), STAT=AllocateStatus)
+    allocate(z_mat(lz, l_dim), STAT=AllocateStatus)
+    allocate(u_mat(lu, l_dim), STAT=AllocateStatus)
+    allocate(y_mat(ly, l_dim), STAT=AllocateStatus)
+    allocate(R2(lz, lz), STAT=AllocateStatus)
+    allocate(P1(lu*Nc + ly*(Nc), lu*Nc + ly*(Nc)), STAT=AllocateStatus)
+    allocate(theta1(1, lu*Nc + ly*(Nc)), STAT=AllocateStatus)
 
     !Ankit25Feb2015
-    allocate (TEC_true(max_cols, points))
-    allocate (TEC_step(max_cols, points))
-    allocate (TEC_Lon(max_cols, points))
-    allocate (TEC_Lat(max_cols, points))
-    allocate (TEC_currentTime(max_cols, points))
+    allocate(TEC_true(max_cols, points))
+    allocate(TEC_step(max_cols, points))
+    allocate(TEC_Lon(max_cols, points))
+    allocate(TEC_Lat(max_cols, points))
+    allocate(TEC_currentTime(max_cols, points))
 
   end subroutine alloc_rcmr
 
@@ -350,10 +350,10 @@ contains
         T = reshape((/0.15/), shape(T))
       else if (RCMROutType == "PHOTOELECTRON") then
         ! AGB 7/17/13: This is not settled yet
-        write (*, *) "AGB RCMR WARNING: this is a test matrix"
+        write(*, *) "AGB RCMR WARNING: this is a test matrix"
         T = reshape((/0.15/), shape(T))
       else
-        write (*, *) "No Markov matrix for this output type: ", RCMROutType
+        write(*, *) "No Markov matrix for this output type: ", RCMROutType
         RCMRFlag = .false.
       end if
 
@@ -364,7 +364,7 @@ contains
       end if
     else
       ! Markov matrix has not been established
-      write (*, *) "No Markov matrix for this output type: ", RCMROutType
+      write(*, *) "No Markov matrix for this output type: ", RCMROutType
       RCMRFlag = .false.
     end if
   end subroutine init_markov_matrix
@@ -448,18 +448,18 @@ contains
       TEC_file(12) = "tec_data_12.dat"
 
       do ii = 1, points
-        write (*, *) "Reading TEC data from file ", iproc, ii, TEC_location(ii, 2)
-        open (unit=22, file=TEC_file(ii), action='Read')
+        write(*, *) "Reading TEC data from file ", iproc, ii, TEC_location(ii, 2)
+        open(unit=22, file=TEC_file(ii), action='Read')
         do
-          read (22, *, IOSTAT=TEC_read_IOStatus) TEC_Step(kkk, ii), TEC_currentTime(kkk, ii), &
+          read(22, *, IOSTAT=TEC_read_IOStatus) TEC_Step(kkk, ii), TEC_currentTime(kkk, ii), &
             TimeArrayDummy, TimeArrayDummy, TimeArrayDummy, TimeArrayDummy, &
             TimeArrayDummy, TimeArrayDummy, TimeArrayDummy, &
             TEC_lon(kkk, ii), TEC_lat(kkk, ii), TEC_true(kkk, ii)
           if (TEC_read_IOStatus < 0) exit
           kkk = kkk + 1
         end do
-        close (22)
-        write (*, *) "TEC data read from ", TEC_file(ii)
+        close(22)
+        write(*, *) "TEC data read from ", TEC_file(ii)
         kkk = 1
       end do
     end if
@@ -476,17 +476,17 @@ contains
     integer :: read_stat = 0
     integer :: iii = 1
 
-    open (unit=111111, file="tec_data_locations.in", action='read')
-    read (111111, *) TEC_proc
-    read (111111, *) points
-    allocate (TEC_location(points, 2))
+    open(unit=111111, file="tec_data_locations.in", action='read')
+    read(111111, *) TEC_proc
+    read(111111, *) points
+    allocate(TEC_location(points, 2))
     do iii = 1, points !while (iii < points+1)
-      read (111111, *, IOSTAT=read_stat) TEC_location(iii, 1), TEC_location(iii, 2)
+      read(111111, *, IOSTAT=read_stat) TEC_location(iii, 1), TEC_location(iii, 2)
       TEC_location(iii, 1) = TEC_location(iii, 1)*3.141592653589793/180
       TEC_location(iii, 2) = TEC_location(iii, 2)*3.141592653589793/180
     end do
-    close (111111)
-    write (*, *) "> Read locations for TEC calculations"
+    close(111111)
+    write(*, *) "> Read locations for TEC calculations"
 
 !  if (RCMRrun=='TRUTH') then
 !     iii = 1
@@ -526,31 +526,31 @@ contains
     if (RCMRrun == 'ID') Then
       do iii = 1, points! while (iii < points+1)
         if (iii < 10) then
-          write (filenameRCMR1, "(A14,I1,A4)") "tec_data_RCMR_", iii, '.dat'
+          write(filenameRCMR1, "(A14,I1,A4)") "tec_data_RCMR_", iii, '.dat'
         else
-          write (filenameRCMR1, "(A14,I2,A4)") "tec_data_RCMR_", iii, '.dat'
+          write(filenameRCMR1, "(A14,I2,A4)") "tec_data_RCMR_", iii, '.dat'
         end if
 
-        inquire (file=filenameRCMR1, exist=exist)
+        inquire(file=filenameRCMR1, exist=exist)
         if (exist) then
-          open (unit=111111 + iii, file=trim(filenameRCMR1), status="old", position="append", action='write')
+          open(unit=111111 + iii, file=trim(filenameRCMR1), status="old", position="append", action='write')
         else
-          open (unit=111111 + iii, file=trim(filenameRCMR1), status="new", action='write')
+          open(unit=111111 + iii, file=trim(filenameRCMR1), status="new", action='write')
         end if
 
       end do
     elseif (RCMRrun == 'TRUTH') then
       do iii = 1, points! while (iii < points+1)
         if (iii < 10) then
-          write (filename1, "(A9,I1,A4)") "tec_data_", iii, '.dat'
+          write(filename1, "(A9,I1,A4)") "tec_data_", iii, '.dat'
         else
-          write (filename1, "(A9,I2,A4)") "tec_data_", iii, '.dat'
+          write(filename1, "(A9,I2,A4)") "tec_data_", iii, '.dat'
         end if
-        inquire (file=filename1, exist=exist)
+        inquire(file=filename1, exist=exist)
         if (exist) then
-          open (unit=111111 + iii, file=trim(filename1), status="old", position="append", action='write')
+          open(unit=111111 + iii, file=trim(filename1), status="old", position="append", action='write')
         else
-          open (unit=111111 + iii, file=trim(filename1), status="new", action='write')
+          open(unit=111111 + iii, file=trim(filename1), status="new", action='write')
         end if
 
       end do
@@ -561,7 +561,7 @@ contains
       do ii_tec = 1, points !while (ii_tec < points+1)
         call calc_single_vtec_interp(TEC_location(ii_tec, 1), TEC_location(ii_tec, 2), VTEC_interp)
         call get_sza(TEC_location(ii_tec, 1), TEC_location(ii_tec, 2), sza_test)
-        write ( &
+        write( &
           111111 + ii_tec, &
           "(I7,1X,F15.4,1X,I4,1X,I2,1X,I2,1X,I2,1X,I2,1X,I2,1X,I3,1X,F9.3,1X,F9.3,1X,F12.8,1X,F12.8)") &
           iStep, CurrentTime, iTimeArray(1), iTimeArray(2), iTimeArray(3), &
@@ -573,7 +573,7 @@ contains
 
     !  close TEC files - ANKIT
     do while (ii_tec < points + 1)
-      close (111111 + ii_tec)
+      close(111111 + ii_tec)
       ii_tec = ii_tec + 1
     end do
 

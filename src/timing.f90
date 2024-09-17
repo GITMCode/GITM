@@ -60,7 +60,7 @@ subroutine end_timing(cTimingNameIn)
   end do
 
   if (iTiming < 0) then
-    write (*, *) "Unknown timing : ", cTimingNameIn
+    write(*, *) "Unknown timing : ", cTimingNameIn
     return
   end if
 
@@ -91,8 +91,8 @@ real function get_timing(cTimingNameIn)
   end do
 
   if (iTiming < 0) then
-    write (*, *) "Error!!"
-    write (*, *) "Unknown timing : ", cTimingNameIn
+    write(*, *) "Error!!"
+    write(*, *) "Unknown timing : ", cTimingNameIn
     get_timing = 0.0
   else
     if (IsTiming(iTiming)) then
@@ -123,7 +123,7 @@ subroutine report_timing(cTimingNameIn)
 
   if (index(cTimingNameIn, 'all') > 0) then
     do iTiming = 1, nTiming
-      write (*, "(a,a,a,a,a,f7.1,a)") &
+      write(*, "(a,a,a,a,a,f7.1,a)") &
         clevel(1:iTimingLevel(iTiming) + 1), "> ", &
         cTimingNames(iTiming), &
         clevelSpace(1:5 - iTimingLevel(iTiming)), &
@@ -141,11 +141,11 @@ subroutine report_timing(cTimingNameIn)
   end do
 
   if (iTiming < 0) then
-    write (*, *) "Unknown timing : ", cTimingNameIn
+    write(*, *) "Unknown timing : ", cTimingNameIn
     return
   end if
 
-  write (*, "(a,a,f7.1,a)") &
+  write(*, "(a,a,f7.1,a)") &
     cTimingNames(iTiming), " took ", Timings(iTiming, 2), &
     " seconds to complete", iTimingLevel(iTiming)
 

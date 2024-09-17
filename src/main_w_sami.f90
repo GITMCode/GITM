@@ -149,7 +149,7 @@ program GITM
         call mpi_send(xxx, 1, MPI_REAL, 0, iStatEdSimlat, &
                       iCommSami, iError)
         if (taskid == 1) &
-          write (*, *) '---- Done with sending xxx !!!', taskid
+          write(*, *) '---- Done with sending xxx !!!', taskid
       end if
     end if
 

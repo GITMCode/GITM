@@ -91,15 +91,15 @@ subroutine calc_ir_heating(iBlock)
                  (altitude_table(jAlt + 1) - m*qIR_NLTE_table(jAlt + 1, iSza + 1)))/m
 
           if (r_sza > 1.0) then
-            write (*, *) "r is too big...", iLon, iLat, iAlt
-            write (*, *) "GITM SZA:", sza(iLon, iLat, iBlock)
-            write (*, *) "Table SZA:", sza_table(iSza), sza_table(iSza + 1)
+            write(*, *) "r is too big...", iLon, iLat, iAlt
+            write(*, *) "GITM SZA:", sza(iLon, iLat, iBlock)
+            write(*, *) "Table SZA:", sza_table(iSza), sza_table(iSza + 1)
           end if
 
           if (x03 < 0.0 .or. x12 < 0.0) then
-            write (*, *) "First interpolated value is negative...this is wrong."
-            write (*, *) "x03", x03
-            write (*, *) "x12", x12
+            write(*, *) "First interpolated value is negative...this is wrong."
+            write(*, *) "x03", x03
+            write(*, *) "x12", x12
           end if
 
           QnirTOT(iLon, iLat, iAlt, iBlock) = &

@@ -113,8 +113,8 @@ program PostProcess
   nGhostLons = 2
   nGhostAlts = 2
 
-  write (*, *) "Enter file group to process (can include .header) : "
-  read (5, *) FileName
+  write(*, *) "Enter file group to process (can include .header) : "
+  read(5, *) FileName
 
   iStart = index(FileName, ".header") - 1
   if (iStart > 0) then
@@ -122,13 +122,13 @@ program PostProcess
     iStart = index(FileName, " ") - 1
   end if
 
-  inquire (file=FileName(1:iStart)//".header", EXIST=IsThere)
+  inquire(file=FileName(1:iStart)//".header", EXIST=IsThere)
   if (.not. IsThere) then
-    write (*, *) "Could not find header file : ", FileName(1:iStart)//".header"
+    write(*, *) "Could not find header file : ", FileName(1:iStart)//".header"
     stop
   end if
 
-  open (iInputUnitH_, file=FileName(1:iStart)//".header", status="old")
+  open(iInputUnitH_, file=FileName(1:iStart)//".header", status="old")
 
   do while (.not. IsDone)
 
@@ -146,40 +146,40 @@ program PostProcess
 
     do while (iError == 0)
 
-      read (iInputUnitH_, '(a)', iostat=iError) cLine
+      read(iInputUnitH_, '(a)', iostat=iError) cLine
 
       if (iError /= 0) IsDone = .true.
 
       if (index(cLine, "BLOCKS") > 0) then
-        read (iInputUnitH_, *) nBlocksAlt
-        read (iInputUnitH_, *) nBlocksLat
-        read (iInputUnitH_, *) nBlocksLon
+        read(iInputUnitH_, *) nBlocksAlt
+        read(iInputUnitH_, *) nBlocksLat
+        read(iInputUnitH_, *) nBlocksLon
       end if
 
       if (index(cLine, "NUMERICAL") > 0) then
-        read (iInputUnitH_, *) nVars
-        read (iInputUnitH_, *) nAlts
-        read (iInputUnitH_, *) nLats
-        read (iInputUnitH_, *) nLons
+        read(iInputUnitH_, *) nVars
+        read(iInputUnitH_, *) nAlts
+        read(iInputUnitH_, *) nLats
+        read(iInputUnitH_, *) nLons
       end if
 
       if (index(cLine, "TIME") > 0) then
-        read (iInputUnitH_, *) iYear
-        read (iInputUnitH_, *) iMonth
-        read (iInputUnitH_, *) iDay
-        read (iInputUnitH_, *) iHour
-        read (iInputUnitH_, *) iMinute
-        read (iInputUnitH_, *) iSecond
-        read (iInputUnitH_, *) iMilli
+        read(iInputUnitH_, *) iYear
+        read(iInputUnitH_, *) iMonth
+        read(iInputUnitH_, *) iDay
+        read(iInputUnitH_, *) iHour
+        read(iInputUnitH_, *) iMinute
+        read(iInputUnitH_, *) iSecond
+        read(iInputUnitH_, *) iMilli
       end if
 
       if (index(cLine, "VERSION") > 0) then
-        read (iInputUnitH_, *) Version
+        read(iInputUnitH_, *) Version
       end if
 
       if (index(cLine, "VARIABLE") > 0) then
         do iVar = 1, nVars
-          read (iInputUnitH_, "(i7,a40)") i, cSingle
+          read(iInputUnitH_, "(i7,a40)") i, cSingle
           cSingleTemp = ""
           j = 1
           do i = 1, 40
@@ -190,15 +190,15 @@ program PostProcess
               j = j + 1
             end if
           end do
-          write (*, *) cSingleTemp
+          write(*, *) cSingleTemp
           Variables(iVar) = cSingleTemp
         end do
       end if
 
       if (index(cLine, "NGHOSTCELLS") > 0) then
-        read (iInputUnitH_, *) nGhostAlts
-        read (iInputUnitH_, *) nGhostLats
-        read (iInputUnitH_, *) nGhostLons
+        read(iInputUnitH_, *) nGhostAlts
+        read(iInputUnitH_, *) nGhostLats
+        read(iInputUnitH_, *) nGhostLons
       end if
 
       if (index(cLine, "NO GHOSTCELLS") > 0) then
@@ -223,10 +223,10 @@ program PostProcess
         nBlocksLat = 1
       end if
 
-      write (*, *) "Inputs :"
-      write (*, *) "  nBlocksLon, nBlocksLat, nBlocksAlt : ", &
+      write(*, *) "Inputs :"
+      write(*, *) "  nBlocksLon, nBlocksLat, nBlocksAlt : ", &
         nBlocksLon, nBlocksLat, nBlocksAlt
-      write (*, *) "  nLons,      nLats,      nAlts      : ", nLons, nLats, nAlts
+      write(*, *) "  nLons,      nLats,      nAlts      : ", nLons, nLats, nAlts
       if (UseGhostCells) then
         nLonsTotal = nBlocksLon*(nLons - nGhostLons*2) + nGhostLons*2
         !     write(*,*) nBlocksLon, nLons, nGhostLons
@@ -238,22 +238,22 @@ program PostProcess
         nLatsTotal = nBlocksLat*nLats
         nAltsTotal = nBlocksAlt*nAlts
       end if
-      write (*, *) "  nLonsTotal, nLatsTotal, nAltsTotal : ", &
+      write(*, *) "  nLonsTotal, nLatsTotal, nAltsTotal : ", &
         nLonsTotal, nLatsTotal, nAltsTotal, " (Predicted Values)"
 
-      allocate (AllData(nLonsTotal, nLatsTotal, nAltsTotal, nVars))
-      allocate (TmpData(nLonsTotal, nLatsTotal, nAltsTotal))
-      allocate (VarId(nVars))
+      allocate(AllData(nLonsTotal, nLatsTotal, nAltsTotal, nVars))
+      allocate(TmpData(nLonsTotal, nLatsTotal, nAltsTotal))
+      allocate(VarId(nVars))
 
       if (.not. IsEnd .or. IsFirstTime) then
-        write (*, *) "Not Appending...."
+        write(*, *) "Not Appending...."
 !           open(iOutputUnit_,file=FileName(1:iStart)//".bin",&
 !                status="unknown",form="unformatted")
 
         iError = nf90_create(FileName(1:iStart)//".nc", nf90_clobber, ncid)
 
       else
-        write (*, *) "Appending Satellite Files...."
+        write(*, *) "Appending Satellite Files...."
 
 !           open(iOutputUnit_,file=FileName(1:iStart)//".bin",&
 !                status="old",form="unformatted",position="append")
@@ -277,12 +277,12 @@ program PostProcess
       iError = nf90_def_var(ncid, 'Epoch', NF90_DOUBLE, &
                             DimId_iTime, VarId_iTime)
 
-      write (*, *) "iError", iError, DimIds
+      write(*, *) "iError", iError, DimIds
 
       do iVar = 1, nVars
         iError = nf90_def_var(ncid, Variables(iVar), NF90_REAL, &
                               DimIds, VarId(iVar))
-        write (*, *) "var ", iVar, Variables(iVar), iError, VarId(iVar)
+        write(*, *) "var ", iVar, Variables(iVar), iError, VarId(iVar)
       end do
 
       ! We need to do Units and other Attributes here....
@@ -301,11 +301,11 @@ program PostProcess
         do iBlockLat = 1, nBlocksLat
           do iBlockLon = 1, nBlocksLon
 
-            write (cBlock, '(a2,i4.4)') ".b", iBlock
+            write(cBlock, '(a2,i4.4)') ".b", iBlock
 
-            inquire (file=FileName(1:iStart)//cBlock, EXIST=IsThere)
+            inquire(file=FileName(1:iStart)//cBlock, EXIST=IsThere)
             if (.not. IsThere) then
-              write (*, *) "Must be a satellite file...."
+              write(*, *) "Must be a satellite file...."
               cBlock = ".sat"
             end if
 
@@ -313,8 +313,8 @@ program PostProcess
 
             if (IsFirstTime .or. .not. IsEnd .or. iBlock > 1) then
               !write(*,*) "Opening File!!!!"
-              open (iInputUnitD_, file=FileName(1:iStart)//cBlock, &
-                    status="old", form="unformatted")
+              open(iInputUnitD_, file=FileName(1:iStart)//cBlock, &
+                   status="old", form="unformatted")
               IsFirstTime = .false.
             end if
 
@@ -322,7 +322,7 @@ program PostProcess
               do iLat = 1, nLats
                 do iLon = 1, nLons
 
-                  read (iInputUnitD_) Data(1:nVars)
+                  read(iInputUnitD_) Data(1:nVars)
 
                   DoWrite = .true.
 
@@ -375,7 +375,7 @@ program PostProcess
               end do
             end do
 
-            if (.not. IsEnd .or. nBlocksLat > 1) close (iInputUnitD_)
+            if (.not. IsEnd .or. nBlocksLat > 1) close(iInputUnitD_)
 
             iBlock = iBlock + 1
 
@@ -403,8 +403,8 @@ program PostProcess
                               start=start, count=count)
       end do
 
-      close (iOutputUnit_)
-      deallocate (AllData)
+      close(iOutputUnit_)
+      deallocate(AllData)
 
       ! close file
       iError = nf90_close(ncid)

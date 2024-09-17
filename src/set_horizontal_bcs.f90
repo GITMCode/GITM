@@ -48,7 +48,7 @@ subroutine set_horizontal_bcs(iBlock)
       call stop_gitm("Error in getting number of variables in horizontal bcs")
     end if
 
-    allocate (vars(nVars))
+    allocate(vars(nVars))
     call GitmGetVars(vars)
 
     ! Need to calculate the number of boundary points.
@@ -85,10 +85,10 @@ subroutine set_horizontal_bcs(iBlock)
 
     call GitmSetnPointsToGet(nPoints)
 
-    allocate (GitmFileData(nPoints, nVars))
-    allocate (lonsBCs(nPoints))
-    allocate (latsBCs(nPoints))
-    allocate (altsBCs(nPoints))
+    allocate(GitmFileData(nPoints, nVars))
+    allocate(lonsBCs(nPoints))
+    allocate(latsBCs(nPoints))
+    allocate(altsBCs(nPoints))
 
     iPoint = 1
 
@@ -165,7 +165,7 @@ subroutine set_horizontal_bcs(iBlock)
     if (iErr == 0) then
       call GitmGetData(GitmFileData)
     else
-      write (*, *) 'Error in getting GITM data in set_horizontal_BCs!'
+      write(*, *) 'Error in getting GITM data in set_horizontal_BCs!'
       call stop_gitm('Must Stop!')
     end if
 

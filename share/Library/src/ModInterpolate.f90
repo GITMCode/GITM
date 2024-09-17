@@ -601,9 +601,9 @@ contains
 
       if (Coord < MinCoord) then
         if (.not. (present(DoExtrapolate))) then
-          if (present(StringError)) write (*, *) NameSub, ': ', StringError
-          write (*, *) NameSub, ': MinIndex, MaxIndex=', MinCoord, MaxCoord
-          write (*, *) NameSub, ': Coord=', Coord
+          if (present(StringError)) write(*, *) NameSub, ': ', StringError
+          write(*, *) NameSub, ': MinIndex, MaxIndex=', MinCoord, MaxCoord
+          write(*, *) NameSub, ': Coord=', Coord
           call CON_stop(NameSub//': normalized coordinate is to small!')
         elseif (.not. DoExtrapolate) then
           ! Use lefttmost cell (first order accurate)
@@ -612,9 +612,9 @@ contains
         if (present(IsInside)) IsInside = .false.
       elseif (Coord > MaxCoord) then
         if (.not. (present(DoExtrapolate))) then
-          if (present(StringError)) write (*, *) StringError
-          write (*, *) NameSub, ': MinIndex, MaxIndex=', MinCoord, MaxCoord
-          write (*, *) NameSub, ': Coord=', Coord
+          if (present(StringError)) write(*, *) StringError
+          write(*, *) NameSub, ': MinIndex, MaxIndex=', MinCoord, MaxCoord
+          write(*, *) NameSub, ': Coord=', Coord
           call CON_stop(NameSub//': normalized coordinate is too large!')
         elseif (.not. DoExtrapolate) then
           ! Use rightmost cell (first order accurate)
@@ -631,9 +631,9 @@ contains
 
       if (Coord < Coord_I(MinCoord)) then
         if (.not. (present(DoExtrapolate))) then
-          if (present(StringError)) write (*, *) StringError
-          write (*, *) NameSub, ': MinIndex, MaxIndex=', MinCoord, MaxCoord
-          write (*, *) NameSub, ': Coord, CoordMin, CoordMax=', &
+          if (present(StringError)) write(*, *) StringError
+          write(*, *) NameSub, ': MinIndex, MaxIndex=', MinCoord, MaxCoord
+          write(*, *) NameSub, ': Coord, CoordMin, CoordMax=', &
             Coord, Coord_I(MinCoord), Coord_I(MaxCoord)
           call CON_stop(NameSub//': coordinate is too small!')
         elseif (DoExtrapolate) then
@@ -650,9 +650,9 @@ contains
 
       if (Coord > Coord_I(MaxCoord)) then
         if (.not. (present(DoExtrapolate))) then
-          if (present(StringError)) write (*, *) StringError
-          write (*, *) NameSub, ': MinIndex, MaxIndex=', MinCoord, MaxCoord
-          write (*, *) NameSub, ': Coord, CoordMin, CoordMax=', &
+          if (present(StringError)) write(*, *) StringError
+          write(*, *) NameSub, ': MinIndex, MaxIndex=', MinCoord, MaxCoord
+          write(*, *) NameSub, ': Coord, CoordMin, CoordMax=', &
             Coord, Coord_I(MinCoord), Coord_I(MaxCoord)
           call CON_stop(NameSub//': coordinate is too large!')
         elseif (DoExtrapolate) then
@@ -695,9 +695,9 @@ contains
 
       if (Coord < Coord_I(MaxCoord)) then
         if (.not. (present(DoExtrapolate))) then
-          if (present(StringError)) write (*, *) StringError
-          write (*, *) NameSub, ': MinIndex, MaxIndex=', MinCoord, MaxCoord
-          write (*, *) NameSub, ': Coord, CoordMin, CoordMax=', &
+          if (present(StringError)) write(*, *) StringError
+          write(*, *) NameSub, ': MinIndex, MaxIndex=', MinCoord, MaxCoord
+          write(*, *) NameSub, ': Coord, CoordMin, CoordMax=', &
             Coord, Coord_I(MaxCoord), Coord_I(MinCoord)
           call CON_stop(NameSub//': coordinate is too small!')
         elseif (DoExtrapolate) then
@@ -714,9 +714,9 @@ contains
 
       if (Coord > Coord_I(MinCoord)) then
         if (.not. (present(DoExtrapolate))) then
-          if (present(StringError)) write (*, *) StringError
-          write (*, *) NameSub, ': MinIndex, MaxIndex=', MinCoord, MaxCoord
-          write (*, *) NameSub, ': Coord, CoordMin, CoordMax=', &
+          if (present(StringError)) write(*, *) StringError
+          write(*, *) NameSub, ': MinIndex, MaxIndex=', MinCoord, MaxCoord
+          write(*, *) NameSub, ': Coord, CoordMin, CoordMax=', &
             Coord, Coord_I(MaxCoord), Coord_I(MinCoord)
           call CON_stop(NameSub//': coordinate is too large!')
         elseif (DoExtrapolate) then
@@ -790,7 +790,7 @@ contains
     y3 = y_I(3) - y_I(2)
 
     if (x1 == 0.0 .or. x3 == 0.0) then
-      write (*, *) NameSub, ': x_I=', x_I, ' y_I=', y_I
+      write(*, *) NameSub, ': x_I=', x_I, ' y_I=', y_I
       call CON_stop(NameSub//' error in coordinates')
     end if
 
@@ -799,7 +799,7 @@ contains
     s3 = y3/x3
 
     if (s1*s3 > 0.0) then
-      write (*, *) NameSub, ': x_I=', x_I, ' y_I=', y_I
+      write(*, *) NameSub, ': x_I=', x_I, ' y_I=', y_I
       call CON_stop(NameSub//' error: midpoint is not an extremum')
     end if
 
@@ -900,9 +900,9 @@ contains
     ! Change sign of coordinates to test for increasing and decreasing orders
     do iSign = 1, -1, -2
       if (iSign == 1) then
-        write (*, '(a)') 'Testing find_cell for increasing coordinates'
+        write(*, '(a)') 'Testing find_cell for increasing coordinates'
       else
-        write (*, '(a)') 'Testing find_cell for decreasing coordinates'
+        write(*, '(a)') 'Testing find_cell for decreasing coordinates'
       end if
 
       ! Change number of coordinates to test binary search
@@ -921,53 +921,53 @@ contains
                          'Called from '//NameSub, IsInside)
 
           if (iSign*Coord < iSign*Coord_I(MinCoord)) then
-            if (IsInside) write (*, *) &
+            if (IsInside) write(*, *) &
               'Test failed for nCoord, Coord=', nCoord, Coord, &
               ', IsInside=T, should be false'
-            if (iCoord /= MinCoord) write (*, *) &
+            if (iCoord /= MinCoord) write(*, *) &
               'Test failed for nCoord, Coord=', nCoord, Coord, &
               ', iCoord=', iCoord, ' should be ', MinCoord
-            if (dCoord /= 0.0) write (*, *) &
+            if (dCoord /= 0.0) write(*, *) &
               'Test failed for nCoord, Coord=', nCoord, Coord, &
               ', dCoord=', dCoord, ' should be 0.0'
             CYCLE
           end if
           if (iSign*Coord > iSign*Coord_I(nCoord)) then
-            if (IsInside) write (*, *) &
+            if (IsInside) write(*, *) &
               'Test failed for nCoord, Coord=', nCoord, Coord, &
               ', IsInside=T, should be false'
-            if (iCoord /= nCoord - 1) write (*, *) &
+            if (iCoord /= nCoord - 1) write(*, *) &
               'Test failed for nCoord, Coord=', nCoord, Coord, &
               ', iCoord=', iCoord, ' should be ', nCoord - 1
-            if (dCoord /= 1.0) write (*, *) &
+            if (dCoord /= 1.0) write(*, *) &
               'Test failed for nCoord, Coord=', nCoord, Coord, &
               ', dCoord=', dCoord, ' should be 1.0'
             CYCLE
           end if
-          if (.not. IsInside) write (*, *) &
+          if (.not. IsInside) write(*, *) &
             'Test failed for nCoord, Coord=', nCoord, Coord, &
             ', IsInside=F, should be true'
 
           if (iCoord < MinCoord .or. iCoord > nCoord - 1) then
-            write (*, *) &
+            write(*, *) &
               'Test failed for nCoord, Coord=', nCoord, Coord, &
               ', iCoord=', iCoord, ' should be < ', MinCoord, &
               ' and > ', nCoord - 1
             CYCLE
           end if
 
-          if (iSign*Coord_I(iCoord) > iSign*Coord) write (*, *) &
+          if (iSign*Coord_I(iCoord) > iSign*Coord) write(*, *) &
             'Test failed for nCoord, Coord=', nCoord, Coord, &
             ', iSign*Coord_I(iCoord)=', iSign*Coord_I(iCoord), &
             ' should be <= iSign*Coord'
 
-          if (iSign*Coord_I(iCoord + 1) < iSign*Coord) write (*, *) &
+          if (iSign*Coord_I(iCoord + 1) < iSign*Coord) write(*, *) &
             'Test failed for nCoord, Coord=', nCoord, Coord, &
             ', iSign*Coord_I(iCoord+1)=', iSign*Coord_I(iCoord + 1), &
             ' should be >= iSign*Coord'
           if (abs(Coord_I(iCoord) &
                   + dCoord*(Coord_I(iCoord + 1) - Coord_I(iCoord)) &
-                  - Coord) > 1e-6) write (*, *) &
+                  - Coord) > 1e-6) write(*, *) &
             'Test failed for nCoord, Coord=', nCoord, Coord, &
             ', Coord_I(iCoord:iCoord+1)=', Coord_I(iCoord:iCoord + 1), &
             ', but incorrect dCoord = ', dCoord
@@ -978,179 +978,179 @@ contains
     end do
 
     !Test for normal conditions.
-    write (*, '(a)') 'Testing function linear for uniform grid'
+    write(*, '(a)') 'Testing function linear for uniform grid'
     Result = linear(a_I, 0, 2, 1.1)
     GoodResult = 21.0
     if (abs(Result - GoodResult) > 1.e-5) &
-      write (*, *) 'Test failed: Result=', Result, ' differs from ', GoodResult
+      write(*, *) 'Test failed: Result=', Result, ' differs from ', GoodResult
 
-    write (*, '(a)') 'Testing function linear for non-uniform grid'
+    write(*, '(a)') 'Testing function linear for non-uniform grid'
     Result = linear(a_I, 0, 2, 2.2, x02_I)
     GoodResult = 21.0
     if (abs(Result - GoodResult) > 1.e-5) &
-      write (*, *) 'Test failed: Result=', Result, ' differs from ', GoodResult
+      write(*, *) 'Test failed: Result=', Result, ' differs from ', GoodResult
 
-    write (*, '(a)') 'Testing function bilinear for uniform grid'
+    write(*, '(a)') 'Testing function bilinear for uniform grid'
     Result = bilinear(a_II, 1, 2, 1, 3, (/1.1, 2.2/))
     GoodResult = 7.46
     if (abs(Result - GoodResult) > 1.e-5) &
-      write (*, *) 'Test failed: Result=', Result, ' differs from ', GoodResult
+      write(*, *) 'Test failed: Result=', Result, ' differs from ', GoodResult
 
-    write (*, '(a)') 'Testing function bilinear for non-uniform grid'
+    write(*, '(a)') 'Testing function bilinear for non-uniform grid'
     Result = bilinear(a_II, 1, 2, 1, 3, (/1.1, 2.2/), x12_I, x13_I)
     GoodResult = 7.08
     if (abs(Result - GoodResult) > 1.e-5) &
-      write (*, *) 'Test failed: Result=', Result, ' differs from ', GoodResult
+      write(*, *) 'Test failed: Result=', Result, ' differs from ', GoodResult
 
-    write (*, '(a)') 'Testing function trilinear for uniform grid'
+    write(*, '(a)') 'Testing function trilinear for uniform grid'
     Result = trilinear(a_III, 1, 2, 1, 2, 0, 2, (/1.1, 1.2, 1.3/))
     GoodResult = 11236.2
     if (abs(Result - GoodResult) > 1.e-2) &
-      write (*, *) 'Test failed: Result=', Result, ' differs from ', GoodResult
+      write(*, *) 'Test failed: Result=', Result, ' differs from ', GoodResult
 
-    write (*, '(a)') 'Testing function trilinear for nonuniform grid'
+    write(*, '(a)') 'Testing function trilinear for nonuniform grid'
     Result = trilinear(a_III, 1, 2, 1, 2, 0, 2, (/1.1, 1.2, 1.3/), &
                        x12_I, x12_I, x02_I)
     GoodResult = 112.362
     if (abs(Result - GoodResult) > 1.e-2) &
-      write (*, *) 'Test failed: Result=', Result, ' differs from ', GoodResult
+      write(*, *) 'Test failed: Result=', Result, ' differs from ', GoodResult
 
     !Test out-of-bounds, no extrapolation
-    write (*, '(a)') 'Testing bilinear out-of-bounds: +X for uniform grid'
+    write(*, '(a)') 'Testing bilinear out-of-bounds: +X for uniform grid'
     Result = bilinear(a_II, 1, 2, 1, 3, (/3., 1./), DoExtrapolate=.false.)
     GoodResult = 20.0
     if (abs(Result - GoodResult) > 1.e-5) &
-      write (*, *) 'Test failed: Result=', Result, ' differs from ', GoodResult
+      write(*, *) 'Test failed: Result=', Result, ' differs from ', GoodResult
 
-    write (*, '(a)') 'Testing bilinear out-of-bounds: +X for nonuniform grid'
+    write(*, '(a)') 'Testing bilinear out-of-bounds: +X for nonuniform grid'
     Result = bilinear(a_II, 1, 2, 1, 3, (/3., 1./), x12_I, x13_I, &
                       DoExtrapolate=.false.)
     GoodResult = 20.0
     if (abs(Result - GoodResult) > 1.e-5) &
-      write (*, *) 'Test failed: Result=', Result, ' differs from ', GoodResult
+      write(*, *) 'Test failed: Result=', Result, ' differs from ', GoodResult
 
-    write (*, '(a)') 'Testing bilinear out-of-bounds: -X for uniform grid'
+    write(*, '(a)') 'Testing bilinear out-of-bounds: -X for uniform grid'
     Result = bilinear(a_II, 1, 2, 1, 3, (/-3., 2./), DoExtrapolate=.false.)
     GoodResult = 3.0
     if (abs(Result - GoodResult) > 1.e-5) &
-      write (*, *) 'Test failed: Result=', Result, ' differs from ', GoodResult
+      write(*, *) 'Test failed: Result=', Result, ' differs from ', GoodResult
 
-    write (*, '(a)') 'Testing bilinear out-of-bounds: -X for nonuniform grid'
+    write(*, '(a)') 'Testing bilinear out-of-bounds: -X for nonuniform grid'
     Result = bilinear(a_II, 1, 2, 1, 3, (/-3., 2./), x12_I, x13_I, &
                       DoExtrapolate=.false.)
     GoodResult = 3.0
     if (abs(Result - GoodResult) > 1.e-5) &
-      write (*, *) 'Test failed: Result=', Result, ' differs from ', GoodResult
+      write(*, *) 'Test failed: Result=', Result, ' differs from ', GoodResult
 
-    write (*, '(a)') 'Testing bilinear out-of-bounds: +Y for uniform grid'
+    write(*, '(a)') 'Testing bilinear out-of-bounds: +Y for uniform grid'
     Result = bilinear(a_II, 1, 2, 1, 3, (/1., 6./), DoExtrapolate=.false.)
     GoodResult = 5.0
     if (abs(Result - GoodResult) > 1.e-5) &
-      write (*, *) 'Test failed: Result=', Result, ' differs from ', GoodResult
+      write(*, *) 'Test failed: Result=', Result, ' differs from ', GoodResult
 
-    write (*, '(a)') 'Testing bilinear out-of-bounds: +Y for nonuniform grid'
+    write(*, '(a)') 'Testing bilinear out-of-bounds: +Y for nonuniform grid'
     Result = bilinear(a_II, 1, 2, 1, 3, (/1., 6./), x12_I, x13_I, &
                       DoExtrapolate=.false.)
     GoodResult = 5.0
     if (abs(Result - GoodResult) > 1.e-5) &
-      write (*, *) 'Test failed: Result=', Result, ' differs from ', GoodResult
+      write(*, *) 'Test failed: Result=', Result, ' differs from ', GoodResult
 
-    write (*, '(a)') 'Testing bilinear out-of-bounds: -Y for uniform grid'
+    write(*, '(a)') 'Testing bilinear out-of-bounds: -Y for uniform grid'
     Result = bilinear(a_II, 1, 2, 1, 3, (/2., -3./), DoExtrapolate=.false.)
     GoodResult = 20.0
     if (abs(Result - GoodResult) > 1.e-5) &
-      write (*, *) 'Test failed: Result=', Result, ' differs from ', GoodResult
+      write(*, *) 'Test failed: Result=', Result, ' differs from ', GoodResult
 
-    write (*, '(a)') 'Testing bilinear out-of-bounds: -Y for nonuniform grid'
+    write(*, '(a)') 'Testing bilinear out-of-bounds: -Y for nonuniform grid'
     Result = bilinear(a_II, 1, 2, 1, 3, (/2., -3./), x12_I, x13_I, &
                       DoExtrapolate=.false.)
     GoodResult = 20.0
     if (abs(Result - GoodResult) > 1.e-5) &
-      write (*, *) 'Test failed: Result=', Result, ' differs from ', GoodResult
+      write(*, *) 'Test failed: Result=', Result, ' differs from ', GoodResult
 
-    write (*, '(a)') 'Testing trilinear out-of-bounds: +Z for uniform grid'
+    write(*, '(a)') 'Testing trilinear out-of-bounds: +Z for uniform grid'
     Result = trilinear(a_III, 1, 2, 1, 2, 0, 2, (/1., 1., 2.4/), &
                        DoExtrapolate=.false.)
     GoodResult = 10000.0
     if (abs(Result - GoodResult) > 1.e-2) &
-      write (*, *) 'Test failed: Result=', Result, ' differs from ', GoodResult
+      write(*, *) 'Test failed: Result=', Result, ' differs from ', GoodResult
 
-    write (*, '(a)') 'Testing trilinear out-of-bounds: +Z for nonuniform grid'
+    write(*, '(a)') 'Testing trilinear out-of-bounds: +Z for nonuniform grid'
     Result = trilinear(a_III, 1, 2, 1, 2, 0, 2, (/1., 1., 4.1/), &
                        x12_I, x12_I, x02_I, DoExtrapolate=.false.)
     GoodResult = 10000.0
     if (abs(Result - GoodResult) > 1.e-6) &
-      write (*, *) 'Test failed: Result=', Result, ' differs from ', GoodResult
+      write(*, *) 'Test failed: Result=', Result, ' differs from ', GoodResult
 
-    write (*, '(a)') 'Testing trilinear out-of-bounds: -Z for uniform grid'
+    write(*, '(a)') 'Testing trilinear out-of-bounds: -Z for uniform grid'
     Result = trilinear(a_III, 1, 2, 1, 2, 0, 2, (/1., 1., -0.4/), &
                        DoExtrapolate=.false.)
     GoodResult = 1.0
     if (abs(Result - GoodResult) > 1.e-6) &
-      write (*, *) 'Test failed: Result=', Result, ' differs from ', GoodResult
+      write(*, *) 'Test failed: Result=', Result, ' differs from ', GoodResult
 
-    write (*, '(a)') 'Testing trilinear out-of-bounds: -Z for nonuniform grid'
+    write(*, '(a)') 'Testing trilinear out-of-bounds: -Z for nonuniform grid'
     Result = trilinear(a_III, 1, 2, 1, 2, 0, 2, (/1., 1., 0.1/), &
                        x12_I, x12_I, x02_I, DoExtrapolate=.false.)
     GoodResult = 1.0
     if (abs(Result - GoodResult) > 1.e-2) &
-      write (*, *) 'Test failed: Result=', Result, ' differs from ', GoodResult
+      write(*, *) 'Test failed: Result=', Result, ' differs from ', GoodResult
 
     !Test extrapolation
-    write (*, '(a)') 'Testing bilinear extrapolation: +X uniform'
+    write(*, '(a)') 'Testing bilinear extrapolation: +X uniform'
     Result = bilinear(a_II, 1, 2, 1, 3, (/2.5, 1./), DoExtrapolate=.true.)
     GoodResult = 29.5
     if (abs(Result - GoodResult) > 1.e-5) &
-      write (*, *) 'Test failed: Result=', Result, ' differs from ', GoodResult
+      write(*, *) 'Test failed: Result=', Result, ' differs from ', GoodResult
 
-    write (*, '(a)') 'Testing bilinear extrapolation: +X nonuniform'
+    write(*, '(a)') 'Testing bilinear extrapolation: +X nonuniform'
     Result = bilinear(a_II, 1, 2, 1, 3, (/2.5, 1./), x12_I, x13_I, &
                       DoExtrapolate=.true.)
     GoodResult = 29.5
     if (abs(Result - GoodResult) > 1.e-5) &
-      write (*, *) 'Test failed: Result=', Result, ' differs from ', GoodResult
+      write(*, *) 'Test failed: Result=', Result, ' differs from ', GoodResult
 
-    write (*, '(a)') 'Testing bilinear extrapolation: -X uniform'
+    write(*, '(a)') 'Testing bilinear extrapolation: -X uniform'
     Result = bilinear(a_II, 1, 2, 1, 3, (/.5, 1.5/), DoExtrapolate=.true.)
     GoodResult = -12.0
     if (abs(Result - GoodResult) > 1.e-5) &
-      write (*, *) 'Test failed: Result=', Result, ' differs from ', GoodResult
+      write(*, *) 'Test failed: Result=', Result, ' differs from ', GoodResult
 
-    write (*, '(a)') 'Testing bilinear extrapolation: -X nonuniform'
+    write(*, '(a)') 'Testing bilinear extrapolation: -X nonuniform'
     Result = bilinear(a_II, 1, 2, 1, 3, (/.5, 1.5/), x12_I, x13_I, &
                       DoExtrapolate=.true.)
     GoodResult = -12.0
     if (abs(Result - GoodResult) > 1.e-5) &
-      write (*, *) 'Test failed: Result=', Result, ' differs from ', GoodResult
+      write(*, *) 'Test failed: Result=', Result, ' differs from ', GoodResult
 
-    write (*, '(a)') 'Testing trilinear extrapolation: +Z uniform'
+    write(*, '(a)') 'Testing trilinear extrapolation: +Z uniform'
     Result = trilinear(a_III, 1, 2, 1, 2, 0, 2, (/1.3, 1.9, 2.60/), &
                        DoExtrapolate=.true.)
     GoodResult = 212958.38
     if (abs(Result - GoodResult) > 1.0) &
-      write (*, *) 'Test failed: Result=', Result, ' differs from ', GoodResult
+      write(*, *) 'Test failed: Result=', Result, ' differs from ', GoodResult
 
-    write (*, '(a)') 'Testing trilinear extrapolation: +Z nonuniform'
+    write(*, '(a)') 'Testing trilinear extrapolation: +Z nonuniform'
     Result = trilinear(a_III, 1, 2, 1, 2, 0, 2, (/1.3, 1.9, 5.2/), &
                        x12_I, x12_I, x02_I, DoExtrapolate=.true.)
     GoodResult = 212958.38
     if (abs(Result - GoodResult) > 1.0) &
-      write (*, *) 'Test failed: Result=', Result, ' differs from ', GoodResult
+      write(*, *) 'Test failed: Result=', Result, ' differs from ', GoodResult
 
-    write (*, '(a)') 'Testing function bilinear_vector'
+    write(*, '(a)') 'Testing function bilinear_vector'
     Result_V = bilinear(a_VII, 2, 1, 2, 1, 3, (/1.1, 2.2/))
     GoodResult_V = (/7.46, 74.6/)
     if (any(abs(Result_V - GoodResult_V) > 1.e-5)) &
-      write (*, *) 'Test failed: Result=', Result_V, &
+      write(*, *) 'Test failed: Result=', Result_V, &
       ' differs from ', GoodResult_V
 
-    write (*, '(a)') 'Testing function trilinear_vector'
+    write(*, '(a)') 'Testing function trilinear_vector'
     Result_V = trilinear(a_VIII, 2, 1, 2, 1, 2, 0, 2, (/1.1, 1.2, 1.3/))
     GoodResult_V = (/11236.2, -112362.0/)
-    if (any(abs(Result_V - GoodResult_V) > 1.e-2)) write (*, *) &
+    if (any(abs(Result_V - GoodResult_V) > 1.e-2)) write(*, *) &
       'Test failed: Result=', Result_V, ' differs from ', GoodResult_V
 
-    write (*, '(a)') 'Testing fit_parabola'
+    write(*, '(a)') 'Testing fit_parabola'
     x_I = (/3.1, 4.0, 5.0/)
     xMin = 4.2; yMin = 1.5
     y_I = 0.1*(x_I - xMin)**2 + yMin
@@ -1161,27 +1161,27 @@ contains
     ! write(*,*)'Weight2_I=', Weight2_I
     ! write(*,*)'Weight3_I=', Weight3_I
 
-    if (abs(xExtremum - xMin) > 1e-6) write (*, *) &
+    if (abs(xExtremum - xMin) > 1e-6) write(*, *) &
       'Test failed: xExtremum=', xExtremum, ' differs from ', xMin
 
-    if (abs(yExtremum - yMin) > 1e-6) write (*, *) &
+    if (abs(yExtremum - yMin) > 1e-6) write(*, *) &
       'Test failed: yExtremum=', yExtremum, ' differs from ', yMin
 
-    if (abs(sum(Weight2_I) - 1.0) > 1e-6) write (*, *) &
+    if (abs(sum(Weight2_I) - 1.0) > 1e-6) write(*, *) &
       'Test failed: sum of Weight2_I=', Weight2_I, ' is not 1'
 
-    if (abs(sum(Weight2_I*x_I) - xMin) > 1e-6) write (*, *) &
+    if (abs(sum(Weight2_I*x_I) - xMin) > 1e-6) write(*, *) &
       'Test failed: Weight2_I=', Weight2_I, ' sum(Weight2_I*x_I)=', &
       sum(Weight2_I*x_I), ' differs from ', xMin
 
-    if (abs(sum(Weight3_I) - 1.0) > 1e-6) write (*, *) &
+    if (abs(sum(Weight3_I) - 1.0) > 1e-6) write(*, *) &
       'Test failed: sum of Weight3_I=', Weight3_I, ' is not 1'
 
-    if (abs(sum(Weight3_I*x_I) - xMin) > 1e-6) write (*, *) &
+    if (abs(sum(Weight3_I*x_I) - xMin) > 1e-6) write(*, *) &
       'Test failed: Weight3_I=', Weight3_I, ' sum(Weight3_I*x_I)=', &
       sum(Weight3_I*x_I), ' differs from ', xMin
 
-    if (abs(sum(Weight3_I*y_I) - yMin) > 1e-6) write (*, *) &
+    if (abs(sum(Weight3_I*y_I) - yMin) > 1e-6) write(*, *) &
       'Test failed: Weight3_I=', Weight3_I, ' sum(Weight3_I*y_I)=', &
       sum(Weight3_I*y_I), ' differs from ', yMin
 

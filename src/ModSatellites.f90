@@ -61,7 +61,7 @@ contains
   subroutine init_mod_satellites
 
     if (allocated(SatTime)) return
-    allocate ( &
+    allocate( &
       SatTime(nMaxSats, nMaxSatInputLines), &
       SatPos(nMaxSats, 3, nMaxSatPos, nMaxSatInputLines), &
       nSatPos(nMaxSats, nMaxSatInputLines))
@@ -76,11 +76,11 @@ contains
 
     if (allocated(SatAltDat)) return
     if (allocated(SatTime)) then
-      allocate ( &
+      allocate( &
         SatDat(nMaxSats, nMaxSatInputLines), &
         SatCurrentDat(nMaxSats), SatAltDat(nMaxSats))
     else
-      allocate ( &
+      allocate( &
         SatTime(nMaxSats, nMaxSatInputLines), &
         SatPos(nMaxSats, 3, nMaxSatPos, nMaxSatInputLines), &
         nSatPos(nMaxSats, nMaxSatInputLines), &

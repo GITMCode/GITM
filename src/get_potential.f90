@@ -67,7 +67,7 @@ subroutine init_get_potential
 
     call IO_SetIMFBz(bz)
     if (iError /= 0) then
-      write (*, *) "Can not find IMF Bz."
+      write(*, *) "Can not find IMF Bz."
       !write(*,*) "Setting potential to Millstone HPI."
       !Lines(3) = "millstone_hpi"    ! Change to "zero" if you want
       call stop_gitm("must stop! Check your IMF file!!!")
@@ -85,11 +85,11 @@ subroutine init_get_potential
 
       Lines(1) = "#MHDFILE"
       Lines(2) = cAMIEFileSouth
-      write (TimeLine, '(i4)') iTimeArray(1)
+      write(TimeLine, '(i4)') iTimeArray(1)
       Lines(3) = TimeLine
-      write (TimeLine, '(i2)') iTimeArray(2)
+      write(TimeLine, '(i2)') iTimeArray(2)
       Lines(4) = TimeLine
-      write (TimeLine, '(i2)') iTimeArray(3)
+      write(TimeLine, '(i2)') iTimeArray(3)
       Lines(5) = TimeLine
       Lines(6) = ""
 
@@ -133,9 +133,9 @@ subroutine init_get_potential
   call EIE_Initialize(iError)
   if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
   if (iError /= 0) then
-    write (*, *) &
+    write(*, *) &
       "Code Error in IE_Initialize called from get_potential.f90"
-    write (*, *) "Error : ", iError
+    write(*, *) "Error : ", iError
     call stop_gitm("Stopping in get_potential")
   end if
 
@@ -144,13 +144,13 @@ subroutine init_get_potential
     call AMIE_SetFileName(cAMIEFileNorth)
     call readAMIEOutput(2, .false., iDebugLevel, iError)
     if (iError /= 0) then
-      write (*, *) &
+      write(*, *) &
         "Code Error in readAMIEOutput called from get_potential.f90"
-      write (*, *) "Error : ", iError
+      write(*, *) "Error : ", iError
       call stop_gitm("Stopping in get_potential")
     end if
 
-    write (*, *) 'done with reading amie north!'
+    write(*, *) 'done with reading amie north!'
 
     if (index(cAMIEFileSouth, 'mirror') > 0) then
       call AMIE_SetFileName(cAMIEFileNorth)
@@ -166,9 +166,9 @@ subroutine init_get_potential
 
     call EIE_InitGrid(nAmieLats, nAmieMlts, nAmieBlocks, iError)
     if (iError /= 0) then
-      write (*, *) &
+      write(*, *) &
         "Code Error in EIE_InitGrid called from get_potential.f90"
-      write (*, *) "Error : ", iError
+      write(*, *) "Error : ", iError
       call stop_gitm("Stopping in get_potential")
     end if
 
@@ -214,13 +214,13 @@ subroutine set_indices
     call IO_SetIMFBz(bz)
 
     if (iError /= 0) then
-      write (*, *) &
+      write(*, *) &
         "Code Error in get_IMF_Bz called from get_potential.f90"
-      write (*, *) "Code : ", iError
+      write(*, *) "Code : ", iError
       call stop_gitm("Stopping in get_potential")
     end if
 
-    if (iDebugLevel > 1) write (*, *) "==> IMF Bz : ", bz
+    if (iDebugLevel > 1) write(*, *) "==> IMF Bz : ", bz
 
     call get_IMF_By(CurrentTime + TimeDelayHighLat, by, iError)
     if (by < -50.0) by = -50.0
@@ -228,12 +228,12 @@ subroutine set_indices
     call IO_SetIMFBy(by)
 
     if (iError /= 0) then
-      write (*, *) &
+      write(*, *) &
         "Code Error in get_IMF_By called from get_potential.f90"
       call stop_gitm("Stopping in get_potential")
     end if
 
-    if (iDebugLevel > 1) write (*, *) "==> IMF By : ", by
+    if (iDebugLevel > 1) write(*, *) "==> IMF By : ", by
 
     call get_SW_V(CurrentTime + TimeDelayHighLat, vx, iError)
     if (vx < -2000.0) vx = -2000.0
@@ -241,11 +241,11 @@ subroutine set_indices
     call IO_SetSWV(vx)
 
     if (iError /= 0) then
-      write (*, *) "Code Error in get_sw_v called from get_potential.f90"
+      write(*, *) "Code Error in get_sw_v called from get_potential.f90"
       call stop_gitm("Stopping in get_potential")
     end if
 
-    if (iDebugLevel > 1) write (*, *) "==> Solar Wind Velocity : ", vx
+    if (iDebugLevel > 1) write(*, *) "==> Solar Wind Velocity : ", vx
 
     call get_SW_N(CurrentTime + TimeDelayHighLat, den, iError)
     if (iError /= 0) den = 5.0
@@ -261,7 +261,7 @@ subroutine set_indices
     call IO_SetHPI(temp)
 
     if (iError /= 0) then
-      write (*, *) "Code Error in get_hpi called from get_potential.f90"
+      write(*, *) "Code Error in get_hpi called from get_potential.f90"
       call stop_gitm("Stopping in get_potential")
     end if
 
@@ -272,7 +272,7 @@ subroutine set_indices
     ! when UseRegionalAMIE, only get AMIE values during the specified
     ! time interval.
     if (iDebugLevel > 1) &
-      write (*, *) "==> Reading AMIE values for time :", CurrentTime
+      write(*, *) "==> Reading AMIE values for time :", CurrentTime
     call get_AMIE_values(CurrentTime + TimeDelayHighLat)
   end if
 
@@ -352,13 +352,13 @@ subroutine get_potential(iBlock)
         MLatitude(-1:nLons + 2, -1:nLats + 2, iAlt, iBlock), iError)
 
       if (iError /= 0) then
-        write (*, *) "Error in routine get_potential (UA_SetGrid):"
-        write (*, *) iError
+        write(*, *) "Error in routine get_potential (UA_SetGrid):"
+        write(*, *) iError
         call stop_gitm("Stopping in get_potential")
       end if
 
       if (iDebugLevel > 1 .and. iAlt == 1) &
-        write (*, *) "==> Getting IE potential"
+        write(*, *) "==> Getting IE potential"
 
       TempPotential = 0.0
       TempPotential2d = 0.0
@@ -378,10 +378,10 @@ subroutine get_potential(iBlock)
           CurrentTime >= AMIETimeStart .and. CurrentTime <= AMIETimeEnd) then
 
         if (iDebugLevel > 1) &
-          write (*, *) "==> Reading AMIE values for time :", CurrentTime
+          write(*, *) "==> Reading AMIE values for time :", CurrentTime
         call get_AMIE_values(CurrentTime + TimeDelayHighLat)
 
-        if (iDebugLevel > 1) write (*, *) "==> Getting AMIE Potential"
+        if (iDebugLevel > 1) write(*, *) "==> Getting AMIE Potential"
 
         AMIEPotential = 0.0
         UAl_UseGridBasedEIE = .true.
@@ -392,14 +392,14 @@ subroutine get_potential(iBlock)
 
         call UA_GetPotential(AMIEPotential(:, :, 1), iError)
         if (iError /= 0) then
-          write (*, *) "Error in get_potential (UA_GetPotential) for AMIE:"
-          write (*, *) iError
+          write(*, *) "Error in get_potential (UA_GetPotential) for AMIE:"
+          write(*, *) iError
           call stop_gitm("Stopping in get_potential")
         end if
 
         if (UseTwoAMIEPotentials) then
           if (iDebugLevel > 1) &
-            write (*, *) "==> Reading AMIE PotentialY for time :", CurrentTime
+            write(*, *) "==> Reading AMIE PotentialY for time :", CurrentTime
           call get_AMIE_PotentialY(CurrentTime + TimeDelayHighLat)
 !              the following setgrid seems unnecessary
 !              call UA_SetGrid(                    &
@@ -407,8 +407,8 @@ subroutine get_potential(iBlock)
 !                   MLatitude(-1:nLons+2,-1:nLats+2,iAlt,iBlock), iError)
           call UA_GetPotential(AMIEPotential(:, :, 2), iError)
           if (iError /= 0) then
-            write (*, *) "Error in get_potential (UA_GetPotential) for AMIE PotentialY:"
-            write (*, *) iError
+            write(*, *) "Error in get_potential (UA_GetPotential) for AMIE PotentialY:"
+            write(*, *) iError
             call stop_gitm("Stopping in get_potential")
           end if
           TempPotential(:, :, 2) = TempPotential(:, :, 1)
@@ -447,7 +447,7 @@ subroutine get_potential(iBlock)
                              MPI_INTEGER, MPI_SUM, iCommGITM, iError)
           MeanDiffPot = MeanDiffPot/nPot
           if (iDebugLevel > 1 .and. iProc == 0 .and. iAlt == 10) &
-            write (*, *) 'iDir, nPot, MeanDiffPot = ', iDir, nPot, MeanDiffPot
+            write(*, *) 'iDir, nPot, MeanDiffPot = ', iDir, nPot, MeanDiffPot
 
           do iLat = -1, nLats + 2
             do iLon = -1, nLons + 2
@@ -591,15 +591,15 @@ subroutine get_potential(iBlock)
         MLatitude(-1:nLons + 2, -1:nLats + 2, iAlt, iBlock), iError)
 
       if (iError /= 0) then
-        write (*, *) "Error in routine get_potential (UA_SetGrid):"
-        write (*, *) iError
+        write(*, *) "Error in routine get_potential (UA_SetGrid):"
+        write(*, *) iError
         call stop_gitm("Stopping in get_potential")
       end if
 
       call UA_GetAveE(ElectronAverageEnergy, iError)
       if (iError /= 0) then
-        write (*, *) "Error in get_potential (UA_GetAveE):"
-        write (*, *) iError
+        write(*, *) "Error in get_potential (UA_GetAveE):"
+        write(*, *) iError
         ElectronAverageEnergy = 1.0
       end if
 
@@ -610,11 +610,11 @@ subroutine get_potential(iBlock)
         do iLon = -1, nLons + 2
           if (ElectronAverageEnergy(iLon, iLat) < 0.0) then
             ElectronAverageEnergy(iLon, iLat) = 0.1
-            write (*, *) "ave e i,j Negative : ", iLon, iLat, &
+            write(*, *) "ave e i,j Negative : ", iLon, iLat, &
               ElectronAverageEnergy(iLon, iLat)
           end if
           if (ElectronAverageEnergy(iLon, iLat) > 100.0) then
-            write (*, *) "ave e i,j Positive : ", iLon, iLat, &
+            write(*, *) "ave e i,j Positive : ", iLon, iLat, &
               ElectronAverageEnergy(iLon, iLat)
             ElectronAverageEnergy(iLon, iLat) = 0.1
           end if
@@ -623,8 +623,8 @@ subroutine get_potential(iBlock)
 
       call UA_GetEFlux(ElectronEnergyFlux, iError)
       if (iError /= 0) then
-        write (*, *) "Error in get_potential (UA_GetEFlux):"
-        write (*, *) iError
+        write(*, *) "Error in get_potential (UA_GetEFlux):"
+        write(*, *) iError
         ElectronEnergyFlux = 0.1
       end if
 
@@ -636,15 +636,15 @@ subroutine get_potential(iBlock)
 
         call UA_GetIonAveE(IonAverageEnergy, iError)
         if (iError /= 0) then
-          write (*, *) "Error in get_potential (UA_GetAveE):"
-          write (*, *) iError
+          write(*, *) "Error in get_potential (UA_GetAveE):"
+          write(*, *) iError
           IonAverageEnergy = 1.0
         end if
 
         call UA_GetIonEFlux(IonEnergyFlux, iError)
         if (iError /= 0) then
-          write (*, *) "Error in get_potential (UA_GetEFlux):"
-          write (*, *) iError
+          write(*, *) "Error in get_potential (UA_GetEFlux):"
+          write(*, *) iError
           IonEnergyFlux = 0.1
         end if
 
@@ -700,7 +700,7 @@ subroutine get_potential(iBlock)
     end if
 
     if (iDebugLevel > 2) &
-      write (*, *) "==> Max, electron_ave_ene : ", &
+      write(*, *) "==> Max, electron_ave_ene : ", &
       maxval(ElectronAverageEnergy), &
       maxval(ElectronEnergyFlux)
 
@@ -709,7 +709,7 @@ subroutine get_potential(iBlock)
   end if
 
   if (iDebugLevel > 1) &
-    write (*, *) "==> Min, Max, CPC Potential : ", &
+    write(*, *) "==> Min, Max, CPC Potential : ", &
     minval(Potential(:, :, :, iBlock))/1000.0, &
     maxval(Potential(:, :, :, iBlock))/1000.0, &
     (maxval(Potential(:, :, :, iBlock)) - minval(Potential(:, :, :, iBlock)))/1000.0
@@ -803,8 +803,8 @@ subroutine get_dynamo_potential(lons, lats, pot)
             pot(iLon, iLat) = sum(DynamoPotentialMC(:, 0))/(nMagLons + 1)
           end if
 
-          write (*, *) "Inside the low latitude, but can't find the point!"
-          write (*, *) LatIn, LonIn
+          write(*, *) "Inside the low latitude, but can't find the point!"
+          write(*, *) LatIn, LonIn
 
         end if
 
@@ -812,7 +812,7 @@ subroutine get_dynamo_potential(lons, lats, pot)
 
       if (.not. IsFound) then
         if (abs(LatIn) < MagLatMC(nMagLons, nMagLats)) &
-          write (*, *) "=====> Could not find point : ", &
+          write(*, *) "=====> Could not find point : ", &
           LatIn, LonIn, DynamoHighLatBoundary, &
           MagLatMC(nMagLons, nMagLats)
         pot(iLon, iLat) = 0.0

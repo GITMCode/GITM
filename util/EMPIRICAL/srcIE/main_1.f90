@@ -15,8 +15,8 @@ program Interface
 
   iDebugLevel = 100
 
-  write (6, *) 'Enter file name :'
-  read (5, '(A100)') inFileName
+  write(6, *) 'Enter file name :'
+  read(5, '(A100)') inFileName
 
   iError = 0
 
@@ -29,43 +29,43 @@ program Interface
   EIEi_HavenBLKs = 2
 
   if (iDebugLevel > 1) then
-    write (*, *) "EIEi_HavenBLKs : ", EIEi_HavenBLKs
-    write (*, *) "EIEi_HavenLats : ", EIEi_HavenLats
-    write (*, *) "EIEi_HavenMLTs : ", EIEi_HavenMLTs
+    write(*, *) "EIEi_HavenBLKs : ", EIEi_HavenBLKs
+    write(*, *) "EIEi_HavenLats : ", EIEi_HavenLats
+    write(*, *) "EIEi_HavenMLTs : ", EIEi_HavenMLTs
   end if
 
-  allocate (EIEr3_HaveLats(EIEi_HavenMlts, EIEi_HavenLats, EIEi_HavenBLKs), &
-            stat=iError)
+  allocate(EIEr3_HaveLats(EIEi_HavenMlts, EIEi_HavenLats, EIEi_HavenBLKs), &
+           stat=iError)
   if (iError /= 0) then
-    write (*, *) "Error in allocating array EIEr3_HaveLats in Interface"
+    write(*, *) "Error in allocating array EIEr3_HaveLats in Interface"
     stop
   end if
 
-  allocate (EIEr3_HaveMlts(EIEi_HavenMlts, EIEi_HavenLats, EIEi_HavenBLKs), &
-            stat=iError)
+  allocate(EIEr3_HaveMlts(EIEi_HavenMlts, EIEi_HavenLats, EIEi_HavenBLKs), &
+           stat=iError)
   if (iError /= 0) then
-    write (*, *) "Error in allocating array EIEr3_HaveMlts in Interface"
+    write(*, *) "Error in allocating array EIEr3_HaveMlts in Interface"
     stop
   end if
 
-  allocate (EIEr3_HavePotential(EIEi_HavenMlts, EIEi_HavenLats, EIEi_HavenBLKs), &
-            stat=iError)
+  allocate(EIEr3_HavePotential(EIEi_HavenMlts, EIEi_HavenLats, EIEi_HavenBLKs), &
+           stat=iError)
   if (iError /= 0) then
-    write (*, *) "Error in allocating array EIEr3_HavePotential in Interface"
+    write(*, *) "Error in allocating array EIEr3_HavePotential in Interface"
     stop
   end if
 
-  allocate (EIEr3_HaveEFlux(EIEi_HavenMlts, EIEi_HavenLats, EIEi_HavenBLKs), &
-            stat=iError)
+  allocate(EIEr3_HaveEFlux(EIEi_HavenMlts, EIEi_HavenLats, EIEi_HavenBLKs), &
+           stat=iError)
   if (iError /= 0) then
-    write (*, *) "Error in allocating array EIEr3_HaveEFlux in Interface"
+    write(*, *) "Error in allocating array EIEr3_HaveEFlux in Interface"
     stop
   end if
 
-  allocate (EIEr3_HaveAveE(EIEi_HavenMlts, EIEi_HavenLats, EIEi_HavenBLKs), &
-            stat=iError)
+  allocate(EIEr3_HaveAveE(EIEi_HavenMlts, EIEi_HavenLats, EIEi_HavenBLKs), &
+           stat=iError)
   if (iError /= 0) then
-    write (*, *) "Error in allocating array EIEr3_HaveAveE in Interface"
+    write(*, *) "Error in allocating array EIEr3_HaveAveE in Interface"
     stop
   end if
 
@@ -107,9 +107,9 @@ program Interface
 
   call IO_GetPotential(temppot, iError)
 
-  write (*, *) templat(:, 2)
-  write (*, *) tempmlt(:, 2)
-  write (*, *) temppot(:, 2)
+  write(*, *) templat(:, 2)
+  write(*, *) tempmlt(:, 2)
+  write(*, *) temppot(:, 2)
 
   call EIE_End
 

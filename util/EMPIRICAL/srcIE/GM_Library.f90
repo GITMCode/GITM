@@ -34,8 +34,8 @@ subroutine GM_SetMLTs(MLTsIn, iError)
   integer :: i, j
 
   iError = 0
-  if (allocated(GMr2_NeedMLTs)) deallocate (GMr2_NeedMLTs)
-  allocate (GMr2_NeedMLTs(GMi_NeednMLTs, GMi_NeednLats), stat=iError)
+  if (allocated(GMr2_NeedMLTs)) deallocate(GMr2_NeedMLTs)
+  allocate(GMr2_NeedMLTs(GMi_NeednMLTs, GMi_NeednLats), stat=iError)
   if (iError /= 0) then
     iError = ecAllocationError_
     return
@@ -62,8 +62,8 @@ subroutine GM_SetLats(LatsIn, iError)
   real, dimension(GMi_NeednMLTs, GMi_NeednLats), intent(in) :: LatsIn
 
   iError = 0
-  if (allocated(GMr2_NeedLats)) deallocate (GMr2_NeedLats)
-  allocate (GMr2_NeedLats(GMi_NeednMLTs, GMi_NeednLats), stat=iError)
+  if (allocated(GMr2_NeedLats)) deallocate(GMr2_NeedLats)
+  allocate(GMr2_NeedLats(GMi_NeednMLTs, GMi_NeednLats), stat=iError)
   if (iError /= 0) then
     iError = ecAllocationError_
     return
@@ -98,15 +98,15 @@ subroutine GM_SetGrid(MLTsIn, LatsIn, iError)
   call GM_SetLats(LatsIn, iError)
   if (iError /= 0) return
 
-  allocate (GMi3_InterpolationIndices(GMi_NeednMLTs, GMi_NeednLats, 3), &
-            stat=iError)
+  allocate(GMi3_InterpolationIndices(GMi_NeednMLTs, GMi_NeednLats, 3), &
+           stat=iError)
   if (iError /= 0) then
     iError = ecAllocationError_
     return
   end if
 
-  allocate (GMr3_InterpolationRatios(GMi_NeednMLTs, GMi_NeednLats, 2), &
-            stat=iError)
+  allocate(GMr3_InterpolationRatios(GMi_NeednMLTs, GMi_NeednLats, 2), &
+           stat=iError)
   if (iError /= 0) then
     iError = ecAllocationError_
     return

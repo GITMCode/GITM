@@ -23,41 +23,41 @@ subroutine ReadIonHeat(filename, IsIonizationFile)
 
 !  write(*,*) "Reading Ion Precip file ",filename
 
-  open (unit=UnitTmp_, file=TRIM(ADJUSTL(filename)))
+  open(unit=UnitTmp_, file=TRIM(ADJUSTL(filename)))
 
   ! skip the first 3 lines
   do i = 1, 3
-    read (UnitTmp_, '(a120)') fileline
+    read(UnitTmp_, '(a120)') fileline
   end do
 
   ! number of altitude
-  read (UnitTmp_, *) NAlt
+  read(UnitTmp_, *) NAlt
 
   if (IsFirstTime) then
-    ALLOCATE (glng(NLng))
-    ALLOCATE (glat(NLat))
-    ALLOCATE (alt(NAlt))
+    ALLOCATE(glng(NLng))
+    ALLOCATE(glat(NLat))
+    ALLOCATE(alt(NAlt))
     IsFirstTime = .false.
   end if
 
   if (IsIonizationFile) then
-    ALLOCATE (IonizationRate(NLng, NLat, NAlt))
+    ALLOCATE(IonizationRate(NLng, NLat, NAlt))
   else
-    ALLOCATE (HeatingRate(NLng, NLat, NAlt))
+    ALLOCATE(HeatingRate(NLng, NLat, NAlt))
   end if
 
   ! altitude grid
-  read (UnitTmp_, *) (alt(kalt), kalt=NAlt, 1, -1)
-  read (UnitTmp_, '(a120)') fileline
+  read(UnitTmp_, *) (alt(kalt), kalt=NAlt, 1, -1)
+  read(UnitTmp_, '(a120)') fileline
 
   do ilng = 1, NLng
     do jlat = 1, NLat
 
       if (IsIonizationFile) then
-        read (UnitTmp_, *) glng(ilng), glat(jlat), &
+        read(UnitTmp_, *) glng(ilng), glat(jlat), &
           (IonizationRate(ilng, jlat, kalt), kalt=NAlt, 1, -1)
       else
-        read (UnitTmp_, *) glng(ilng), glat(jlat), &
+        read(UnitTmp_, *) glng(ilng), glat(jlat), &
           (HeatingRate(ilng, jlat, kalt), kalt=NAlt, -1)
       end if
 
@@ -73,7 +73,7 @@ subroutine ReadIonHeat(filename, IsIonizationFile)
     HeatingRate = HeatingRate*1.0e6*1.602e-19
   end if
 
-  close (UnitTmp_)
+  close(UnitTmp_)
 
 end subroutine ReadIonHeat
 

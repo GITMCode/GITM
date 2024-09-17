@@ -132,10 +132,10 @@ contains
     LunIndices_ = LunFta_
 
     tmp2 = 0.0
-    open (LunIndices_, file=NameOfIndexFile, status="old", iostat=ierror)
+    open(LunIndices_, file=NameOfIndexFile, status="old", iostat=ierror)
 
     if (ierror .ne. 0) then
-      write (*, *) "Could not find file : ", NameOfIndexFile
+      write(*, *) "Could not find file : ", NameOfIndexFile
       return
     end if
 
@@ -145,7 +145,7 @@ contains
     do while (.not. done)
 
       if (ipt < 9) then
-        read (LunIndices_, '(a)', iostat=ierror) line
+        read(LunIndices_, '(a)', iostat=ierror) line
         if (ierror .ne. 0) done = .true.
       else
 
@@ -156,11 +156,11 @@ contains
 
     end do
 
-    read (LunIndices_, *) tmp
+    read(LunIndices_, *) tmp
 
     tmp2 = transpose(tmp)
 
-    close (LunIndices_)
+    close(LunIndices_)
 
   end subroutine read_coef_file
 
@@ -255,15 +255,15 @@ contains
       lp = ((mlat0 > (mlat(i) - dLat/2)) .and. (mlat0 <= (mlat(i) + dLat/2)))
 
       if (count(lp) == 1) then
-        allocate (tmp(count(lp)))
+        allocate(tmp(count(lp)))
         tmp = pack(efs0, lp)
         efs(i) = tmp(1)
-        deallocate (tmp)
+        deallocate(tmp)
       else if (count(lp) > 1) then
-        allocate (tmp(count(lp)))
+        allocate(tmp(count(lp)))
         tmp = pack(efs0, lp)
         efs(i) = sum(tmp)/count(lp)
-        deallocate (tmp)
+        deallocate(tmp)
       else
         efs(i) = 0
       end if
@@ -272,11 +272,11 @@ contains
     idx = (/(i, i=1, nLatsFta, 1)/)
     lp1 = efs > 0
     nn = count(lp1)
-    allocate (idxt(nn))
+    allocate(idxt(nn))
 
     idxt = pack(idx, lp1)
 
-    allocate (idxt2(size(idxt)))
+    allocate(idxt2(size(idxt)))
 
     do i = idxt(1) + 1, idxt(nn) - 1
       if (efs(i) == 0) then
@@ -286,8 +286,8 @@ contains
       end if
     end do
 
-    deallocate (idxt)
-    deallocate (idxt2)
+    deallocate(idxt)
+    deallocate(idxt2)
 
   end subroutine interp_to_lat_grid
 
@@ -357,8 +357,8 @@ contains
     end do
 
     if (iEmission == 0) then
-      write (*, *) "Cant find emission : ", emis_type, " in emissions"
-      write (*, *) "must stop"
+      write(*, *) "Cant find emission : ", emis_type, " in emissions"
+      write(*, *) "must stop"
       stop
     end if
 

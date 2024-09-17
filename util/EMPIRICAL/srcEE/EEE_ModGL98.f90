@@ -129,28 +129,28 @@ contains
                              rot_matrix_z(-LongitudeCme*cDegToRad))
 
       if (iProc == 0) then
-        write (*, *) prefix
-        write (*, *) prefix, &
+        write(*, *) prefix
+        write(*, *) prefix, &
           '>>>>>>>>>>>>>>>>>>>                  <<<<<<<<<<<<<<<<<<<<<'
-        write (*, *) prefix
-        write (*, *) prefix, &
+        write(*, *) prefix
+        write(*, *) prefix, &
           '            Gibson and Low CME is initiated!!!'
-        write (*, *) prefix
-        write (*, *) prefix, &
+        write(*, *) prefix
+        write(*, *) prefix, &
           '>>>>>>>>>>>>>>>>>>>                  <<<<<<<<<<<<<<<<<<<<<'
-        write (*, *) prefix
-        write (*, *) prefix, 'cme_a  = ', cme_a, '[rSun]'
-        write (*, *) prefix, 'cme_r1 = ', cme_r1, '[rSun]'
-        write (*, *) prefix, 'cme_r0 = ', cme_r0, '[rSun]'
-        write (*, *) prefix, 'cme_a1 = ', cme_a1, '[Gauss]'
-        write (*, *) prefix, 'cme_rho1 = ', cme_rho1, '[kg/m^3]'
-        write (*, *) prefix, 'cme_rho2 = ', cme_rho2, '[kg/m^3]'
-        write (*, *) prefix, 'ModulationRho = ', ModulationRho
-        write (*, *) prefix, 'ModulationP   = ', ModulationP
-        write (*, *) prefix, 'LongitudeCme = ', LongitudeCme, '[degrees]'
-        write (*, *) prefix, 'LatitudeCme = ', LatitudeCme, '[degrees]'
-        write (*, *) prefix, 'OrientationCme = ', OrientationCme, '[degrees]'
-        write (*, *) prefix
+        write(*, *) prefix
+        write(*, *) prefix, 'cme_a  = ', cme_a, '[rSun]'
+        write(*, *) prefix, 'cme_r1 = ', cme_r1, '[rSun]'
+        write(*, *) prefix, 'cme_r0 = ', cme_r0, '[rSun]'
+        write(*, *) prefix, 'cme_a1 = ', cme_a1, '[Gauss]'
+        write(*, *) prefix, 'cme_rho1 = ', cme_rho1, '[kg/m^3]'
+        write(*, *) prefix, 'cme_rho2 = ', cme_rho2, '[kg/m^3]'
+        write(*, *) prefix, 'ModulationRho = ', ModulationRho
+        write(*, *) prefix, 'ModulationP   = ', ModulationP
+        write(*, *) prefix, 'LongitudeCme = ', LongitudeCme, '[degrees]'
+        write(*, *) prefix, 'LatitudeCme = ', LatitudeCme, '[degrees]'
+        write(*, *) prefix, 'OrientationCme = ', OrientationCme, '[degrees]'
+        write(*, *) prefix
       end if
     end if
 

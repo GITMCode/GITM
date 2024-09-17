@@ -133,11 +133,11 @@ contains
     character(len=*), parameter :: NameSub = NameMod//'::time_int_to_string'
     !-------------------------------------------------------------------------
     if (.not. is_valid_int_time(Time)) then
-      write (*, *) NameSub, ': invalid Time = ', Time
+      write(*, *) NameSub, ': invalid Time = ', Time
       call CON_stop(NameSub//' ERROR invalid time')
     end if
 
-    write (Time%String, '(i4.4,5(i2.2))') &
+    write(Time%String, '(i4.4,5(i2.2))') &
       Time%iYear, Time%iMonth, Time%iDay, &
       Time%iHour, Time%iMinute, Time%iSecond
 
@@ -193,7 +193,7 @@ contains
 
     !-------------------------------------------------------------------------
     if (.not. is_valid_int_time(Time)) then
-      write (*, *) NameSub, ': invalid Time = ', Time
+      write(*, *) NameSub, ': invalid Time = ', Time
       call CON_stop(NameSub//' ERROR invalid time')
     end if
 
@@ -407,13 +407,13 @@ contains
     !EOP
     !-------------------------------------------------------------------------
     !BOC
-    write (*, *) 'Testing time conversion routines'
+    write(*, *) 'Testing time conversion routines'
     TimeStart%FracSecond = 0.0; 
     TimeStart%iHour = 0; TimeStart%iMinute = 0; TimeStart%iSecond = 1
     call check_all_days
     TimeStart%iHour = 23; TimeStart%iMinute = 59; TimeStart%iSecond = 59
     call check_all_days
-    write (*, '(a,i5,a,i5)') 'Successfully tested all days from Jan 1', &
+    write(*, '(a,i5,a,i5)') 'Successfully tested all days from Jan 1', &
       iYearMin, ' to Dec 31', iYearMax
 
     !EOC
@@ -443,8 +443,8 @@ contains
             call time_real_to_int(TimeConvert)
 
             if (TimeConvert%String /= TimeStart%String) then
-              write (*, *) 'TimeStart  =', TimeStart%String
-              write (*, *) 'TimeConvert=', TimeConvert%String
+              write(*, *) 'TimeStart  =', TimeStart%String
+              write(*, *) 'TimeConvert=', TimeConvert%String
               stop
             end if
           end do

@@ -213,7 +213,7 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
         LogNS(iAlt - 1, iSpecies) - dAlt_F(iAlt)*InvScaleHeightS
       if (LogNS(nAlts + 1, iSpecies) > 75.0 .or. &
           LogNS(nAlts + 2, iSpecies) > 75.0) then
-        write (*, *) "======> bcs : ", iSpecies, 1.0e-3/InvScaleHeightS, &
+        write(*, *) "======> bcs : ", iSpecies, 1.0e-3/InvScaleHeightS, &
           Gravity_G(nAlts), Mass(iSpecies), Temp(nAlts), &
           LogNS(nAlts, iSpecies), LogNS(nAlts + 1, iSpecies), &
           dAlt_F(nAlts), LogNS(nAlts + 2, iSpecies)

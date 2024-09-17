@@ -73,7 +73,7 @@ contains
     integer:: i, iRandom
     real:: Random, Average, Average2, StdDev, AverageGood, StdDevGood
     !--------------------------------------------------------------------------
-    write (*, '(a)') 'Testing function random_integer(6) - rolling the dice'
+    write(*, '(a)') 'Testing function random_integer(6) - rolling the dice'
     Average = 0.0
     Average2 = 0.0
     do i = 1, nSample
@@ -89,13 +89,13 @@ contains
     StdDevGood = sqrt(sum((/1, 2, 3, 4, 5, 6/)**2)/6.0 - AverageGood**2)
 
     if (abs(Average - AverageGood) > 0.01) &
-      write (*, *) 'Test failed: Average       = ', Average, &
+      write(*, *) 'Test failed: Average       = ', Average, &
       ' should be about', AverageGood
     if (abs(StdDev - StdDevGood) > 0.01) &
-      write (*, *) 'Test failed: Std Deviation = ', StdDev, &
+      write(*, *) 'Test failed: Std Deviation = ', StdDev, &
       ' should be about', StdDevGood
 
-    write (*, '(a)') 'Testing function random_real'
+    write(*, '(a)') 'Testing function random_real'
     Average = 0.0
     Average2 = 0.0
     do i = 1, nSample
@@ -111,10 +111,10 @@ contains
     StdDevGood = sqrt(0.25/3.0)
 
     if (abs(Average - AverageGood) > 0.001) &
-      write (*, *) 'Test failed: Average       = ', Average, &
+      write(*, *) 'Test failed: Average       = ', Average, &
       ' should be about', AverageGood
     if (abs(StdDev - StdDevGood) > 0.001) &
-      write (*, *) 'Test failed: Std Deviation = ', StdDev, &
+      write(*, *) 'Test failed: Std Deviation = ', StdDev, &
       ' should be about', StdDevGood
 
   end subroutine test_random_number

@@ -84,7 +84,7 @@ contains
     character(len=*), parameter:: NameSub = 'geopack_sun'
     !----------------------------------------------------------------------
     if (iYear < 1901 .or. iYear > 2099) then
-      write (*, *) NameSub, ' ERROR: No ephemeris data for the year of ', iYear
+      write(*, *) NameSub, ' ERROR: No ephemeris data for the year of ', iYear
       call CON_stop('CON_geopack ERROR')
     end if
     FDAY = dble(IHOUR*3600 + iMIN*60 + ISEC)/86400.E0
@@ -175,9 +175,9 @@ contains
 
     if (iYearIn < MinYear) then
       if (DoWarnSmallYear) then
-        write (*, *) NameSub, ' WARNING: no IGRF coefficients before year ', &
+        write(*, *) NameSub, ' WARNING: no IGRF coefficients before year ', &
           MinYear
-        write (*, *) NameSub, ': setting iYear=', MinYear, ' iDay=1'
+        write(*, *) NameSub, ': setting iYear=', MinYear, ' iDay=1'
         DoWarnSmallYear = .false.
       end if
       iYear = MinYear
@@ -185,10 +185,10 @@ contains
     end if
     if (iYearIn > MaxYear + DnYear) then
       if (DoWarnLargeYear) then
-        write (*, *) 'WARNING!!! Update IGRF coefficients in ', NameSub, &
+        write(*, *) 'WARNING!!! Update IGRF coefficients in ', NameSub, &
           ' in share/Library/src/CON_geopack !!!'
-        write (*, *) NameSub, ': no IGRF coefficients beyond year ', MaxYear
-        write (*, *) NameSub, ': setting iYear=', MaxYear + DnYear, ' iDay=365'
+        write(*, *) NameSub, ': no IGRF coefficients beyond year ', MaxYear
+        write(*, *) NameSub, ': setting iYear=', MaxYear + DnYear, ' iDay=365'
         DoWarnLargeYear = .false.
       end if
       iYear = MaxYear + DnYear
@@ -334,17 +334,17 @@ contains
     ! For perihelion
     iMonth = 1; iDay = 3; iHour = 5
     call geopack_recalc(iYear, iMonth, iDay, iHour, iMin, iSec)
-    write (*, '(a,f14.4)') 'DipoleStrength=', DipoleStrengthGeopack*1e9
-    write (*, '(a,3f14.10)') 'AxisMagGeo_D=', AxisMagGeo_D
-    write (*, '(a,/,3f14.10,/,3f14.10,/,3f14.10)') 'GsmGse_DD=', GsmGse_DD
+    write(*, '(a,f14.4)') 'DipoleStrength=', DipoleStrengthGeopack*1e9
+    write(*, '(a,3f14.10)') 'AxisMagGeo_D=', AxisMagGeo_D
+    write(*, '(a,/,3f14.10,/,3f14.10,/,3f14.10)') 'GsmGse_DD=', GsmGse_DD
 
-    write (*, '(a,f14.10,a)') 'SunEMBDistance=', SunEMBDistance, &
+    write(*, '(a,f14.10,a)') 'SunEMBDistance=', SunEMBDistance, &
       ', should be 0.98329'
     GeiHgi_DD = matmul(GeiGse_DD, transpose(HgiGse_DD))
-    write (*, '(a,3es16.8)') &
+    write(*, '(a,3es16.8)') &
       'Solar rotation axis vector calculated as GeiHgi_DD(:,3)', &
       GeiHgi_DD(:, 3)
-    write (*, '(a,3es16.8)') &
+    write(*, '(a,3es16.8)') &
       'The vector calculated in terms of RightAsc=286.13,Declin=63.87', &
       cos(RightAscension)*cos(Declination), &
       sin(RightAscension)*cos(Declination), &
@@ -353,13 +353,13 @@ contains
     ! For aphelion
     iMonth = 7; iDay = 4; iHour = 0
     call geopack_recalc(iYear, iMonth, iDay, iHour, iMin, iSec)
-    write (*, '(a,f14.10,a)') 'SunEMBDistance=', SunEMBDistance, &
+    write(*, '(a,f14.10,a)') 'SunEMBDistance=', SunEMBDistance, &
       ', should be 1.01671'
     GeiHgi_DD = matmul(GeiGse_DD, transpose(HgiGse_DD))
-    write (*, '(a,3es16.8)') &
+    write(*, '(a,3es16.8)') &
       'Solar rotation axis vector calculated as GeiHgi_DD(:,3)', &
       GeiHgi_DD(:, 3)
-    write (*, '(a,3es16.8)') &
+    write(*, '(a,3es16.8)') &
       'The vector calculated in terms of RightAsc=286.13,Declin=63.87', &
       cos(RightAscension)*cos(Declination), &
       sin(RightAscension)*cos(Declination), &

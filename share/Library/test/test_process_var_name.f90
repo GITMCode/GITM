@@ -25,7 +25,7 @@ program process_var_name_test
   ! Fix string array to comply with usual input to process_var_name.
   ! String length should be fixed(=15) regardless of length in ModEquation.
   ! All characters should be lower case.
-  allocate (NameVarFixed_V(nVar))
+  allocate(NameVarFixed_V(nVar))
   do iVar = 1, nVar
     NameVarFixed_V(iVar) = NameVar_V(iVar)
     call lower_case(NameVarFixed_V(iVar))
@@ -34,13 +34,13 @@ program process_var_name_test
   call process_var_name(nVar, NameVarFixed_V, &
                         nDensity, nSpeed, nP, nPpar, nWaveName, nMaterialName)
 
-  write (*, *) 'Original  Standardized  nDensity=', nDensity, 'nSpeed=', nSpeed
-  write (*, *) '--------  ------------'
+  write(*, *) 'Original  Standardized  nDensity=', nDensity, 'nSpeed=', nSpeed
+  write(*, *) '--------  ------------'
   do iVar = 1, nVar
-    write (*, *) NameVar_V(iVar), '         ', trim(NameVarFixed_V(iVar))
+    write(*, *) NameVar_V(iVar), '         ', trim(NameVarFixed_V(iVar))
   end do
 
-  deallocate (NameVarFixed_V)
+  deallocate(NameVarFixed_V)
 
 contains
 
@@ -57,14 +57,14 @@ contains
 
       ! Fix the NameVar_V string for waves
       if (index(NameVar_V(iVar), 'I?') >= 1) then
-        write (NameWave, '(a,i2.2)') 'i', iWave
+        write(NameWave, '(a,i2.2)') 'i', iWave
         NameVar_V(iVar) = NameWave
         iWave = iWave + 1
       end if
 
       ! Fix the NameVar_V string for material levels
       if (index(NameVar_V(iVar), 'M?') >= 1) then
-        write (NameMaterial, '(a,i1.1)') 'm', iMaterial
+        write(NameMaterial, '(a,i1.1)') 'm', iMaterial
         NameVar_V(iVar) = NameMaterial
         iMaterial = iMaterial + 1
       end if
@@ -78,7 +78,7 @@ end program process_var_name_test
 subroutine CON_stop(String)
   implicit none
   character(len=*), intent(in):: String
-  write (*, *) 'ERROR: ', String
+  write(*, *) 'ERROR: ', String
   stop
 end subroutine CON_stop
 ! =================================================================

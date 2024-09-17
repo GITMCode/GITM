@@ -22,7 +22,7 @@ subroutine report(str, iLevel)
   end do
   cArrow(iLevel + 1:iLevel + 1) = ">"
 
-  write (*, *) cArrow(1:iLevel + 1), " ", str
+  write(*, *) cArrow(1:iLevel + 1), " ", str
 
 end subroutine report
 
@@ -45,7 +45,7 @@ subroutine stop_gitm(str)
   if (IsFramework) then
     call CON_stop("UA/GITM Error: "//str)
   else
-    write (*, *) 'Stopping execution! iProc=', iProc, ' with msg=', str
+    write(*, *) 'Stopping execution! iProc=', iProc, ' with msg=', str
     call MPI_abort(iCommGITM, erno, ierror)
     stop
   end if
@@ -64,12 +64,12 @@ subroutine i2s(iValue, cOut, iLength)
   integer                        :: i
 
   if (iLength < 10) then
-    write (cFormat, "('(I',I1,')')") iLength
+    write(cFormat, "('(I',I1,')')") iLength
   else
-    write (cFormat, "('(I',I2,')')") iLength
+    write(cFormat, "('(I',I2,')')") iLength
   end if
 
-  write (cOut, cFormat) iValue
+  write(cOut, cFormat) iValue
 
   do i = 1, iLength
     if (cOut(i:i) == ' ') cOut(i:i) = '0'

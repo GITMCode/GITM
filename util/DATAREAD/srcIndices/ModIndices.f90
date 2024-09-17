@@ -73,7 +73,7 @@ contains
   subroutine init_mod_indices
 
     if (allocated(Indices_TV)) return
-    allocate ( &
+    allocate( &
       Indices_TV(MaxIndicesEntries, nIndices), &
       IndexTimes_TV(MaxIndicesEntries, nIndices))
 

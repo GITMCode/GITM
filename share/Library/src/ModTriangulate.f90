@@ -83,11 +83,11 @@ contains
     integer, allocatable:: WorkArray_II(:, :)
     integer, intent(out) :: nTriangle
     !--------------------------------------------------------------------------
-    allocate (WorkArray_II(3, 3*nPoint))
+    allocate(WorkArray_II(3, 3*nPoint))
 
     call dtris2(nPoint, CoordXy_DI, nTriangle, iNodeTriangle_II, WorkArray_II)
 
-    deallocate (WorkArray_II)
+    deallocate(WorkArray_II)
 
   end subroutine calc_triangulation
 
@@ -171,7 +171,7 @@ contains
           end do
           if (iLoop == 1) then
             n = maxval(nTriangle_C)
-            allocate (iTriangle_IC(n, nX, nY))
+            allocate(iTriangle_IC(n, nX, nY))
           end if
         end do
       end if
@@ -508,13 +508,13 @@ contains
       end do
 
       if (k == 0) then
-        write (*, '(a)') ' '
-        write (*, '(a)') 'DTRIS2 - Fatal error!'
-        write (*, '(a,i8)') '  Fails for point number I = ', i
-        write (*, '(a,i8)') '  M = ', m
-        write (*, '(a,i8)') '  M1 = ', m1
-        write (*, '(a,2g14.6)') '  X,Y(M)  = ', point_xy(1, m), point_xy(2, m)
-        write (*, '(a,2g14.6)') '  X,Y(M1) = ', point_xy(1, m1), point_xy(2, m1)
+        write(*, '(a)') ' '
+        write(*, '(a)') 'DTRIS2 - Fatal error!'
+        write(*, '(a,i8)') '  Fails for point number I = ', i
+        write(*, '(a,i8)') '  M = ', m
+        write(*, '(a,i8)') '  M1 = ', m1
+        write(*, '(a,2g14.6)') '  X,Y(M)  = ', point_xy(1, m), point_xy(2, m)
+        write(*, '(a,2g14.6)') '  X,Y(M1) = ', point_xy(1, m1), point_xy(2, m1)
         ierr = 224
         return
       end if
@@ -531,8 +531,8 @@ contains
     do
 
       if (point_num < j) then
-        write (*, '(a)') ' '
-        write (*, '(a)') 'DTRIS2 - Fatal error!'
+        write(*, '(a)') ' '
+        write(*, '(a)') 'DTRIS2 - Fatal error!'
         ierr = 225
         return
       end if
@@ -666,9 +666,9 @@ contains
 
         if (point_num < top) then
           ierr = 8
-          write (*, '(a)') ' '
-          write (*, '(a)') 'DTRIS2 - Fatal error!'
-          write (*, '(a)') '  Stack overflow.'
+          write(*, '(a)') ' '
+          write(*, '(a)') 'DTRIS2 - Fatal error!'
+          write(*, '(a)') '  Stack overflow.'
           return
         end if
 
@@ -690,9 +690,9 @@ contains
                   tri_vert, tri_nabe, stack, ierr)
 
       if (ierr /= 0) then
-        write (*, '(a)') ' '
-        write (*, '(a)') 'DTRIS2 - Fatal error!'
-        write (*, '(a)') '  Error return from SWAPEC.'
+        write(*, '(a)') ' '
+        write(*, '(a)') 'DTRIS2 - Fatal error!'
+        write(*, '(a)') '  Error return from SWAPEC.'
         return
       end if
 
@@ -770,9 +770,9 @@ contains
     integer j
 
     if (j == 0) then
-      write (*, '(a)') ' '
-      write (*, '(a)') 'I4_MODP - Fatal error!'
-      write (*, '(a,i8)') '  I4_MODP ( I, J ) called with J = ', j
+      write(*, '(a)') ' '
+      write(*, '(a)') 'I4_MODP - Fatal error!'
+      write(*, '(a,i8)') '  I4_MODP ( I, J ) called with J = ', j
       call CON_stop('share/Library/src/ModTriangulate ERROR')
     end if
 
@@ -1115,9 +1115,9 @@ contains
     integer p(n)
 
     if (n <= 0) then
-      write (*, '(a)') ' '
-      write (*, '(a)') 'PERM_INV - Fatal error!'
-      write (*, '(a,i8)') '  Input value of N = ', n
+      write(*, '(a)') ' '
+      write(*, '(a)') 'PERM_INV - Fatal error!'
+      write(*, '(a,i8)') '  Input value of N = ', n
       call CON_stop('share/Library/src/ModTriangulate ERROR')
     end if
 
@@ -1254,8 +1254,8 @@ contains
           p(iput) = -p(iput)
 
           if (iget < 1 .or. n < iget) then
-            write (*, '(a)') ' '
-            write (*, '(a)') 'R82VEC_PERMUTE - Fatal error!'
+            write(*, '(a)') ' '
+            write(*, '(a)') 'R82VEC_PERMUTE - Fatal error!'
             call CON_stop('share/Library/src/ModTriangulate ERROR')
           end if
 
@@ -1848,52 +1848,52 @@ contains
       end do
     end do
 
-    write (*, '(a)') 'Testing mesh_triangulation'
+    write(*, '(a)') 'Testing mesh_triangulation'
     call mesh_triangulation(n1, n2, CoordXy_DI, &
                             iNodeTriangle_II, nTriangle)
 
-    if (nTriangle /= 2*(n1 - 1)*(n2 - 1)) write (*, *) NameSub, &
+    if (nTriangle /= 2*(n1 - 1)*(n2 - 1)) write(*, *) NameSub, &
       ' error: nTriangle=', nTriangle, ' should be', 2*(n1 - 1)*(n2 - 1)
 
-    if (any(iNodeTriangle_II(:, 1) /= (/2, n1 + 1, 1/))) write (*, *) NameSub, &
+    if (any(iNodeTriangle_II(:, 1) /= (/2, n1 + 1, 1/))) write(*, *) NameSub, &
       ' error: iNodeTriangle_II(:,1) =', iNodeTriangle_II(:, 1), &
       ' should be ', 2, n1 + 1, 1
 
     if (any(iNodeTriangle_II(:, nTriangle) /= (/n1*(n2 - 1), n1*n2, n1*n2 - 1/))) &
-      write (*, *) NameSub, &
+      write(*, *) NameSub, &
       ' error: iNodeTriangle_II(:,1) =', iNodeTriangle_II(:, nTriangle), &
       ' should be ', n1*(n2 - 1), n1*n2, n1*n2 - 1
 
-    write (*, '(a)') 'Testing calc_triangulation'
+    write(*, '(a)') 'Testing calc_triangulation'
 
     call calc_triangulation(nPoint, CoordXy_DI, &
                             iNodeTriangle_II, nTriangle)
 
-    if (nTriangle /= 2*(n1 - 1)*(n2 - 1)) write (*, *) NameSub, &
+    if (nTriangle /= 2*(n1 - 1)*(n2 - 1)) write(*, *) NameSub, &
       ' error: nTriangle=', nTriangle, ' should be', 2*(n1 - 1)*(n2 - 1)
 
-    if (any(iNodeTriangle_II(:, 1) /= (/n1 + 1, 1, 2/))) write (*, *) NameSub, &
+    if (any(iNodeTriangle_II(:, 1) /= (/n1 + 1, 1, 2/))) write(*, *) NameSub, &
       ' error: iNodeTriangle_II(:,1) =', iNodeTriangle_II(:, 1), &
       ' should be ', n1 + 1, 1, 2
 
     if (any(iNodeTriangle_II(:, nTriangle) /= (/n1*n2 - 1, n1*(n2 - 1), n1*n2/))) &
-      write (*, *) NameSub, &
+      write(*, *) NameSub, &
       ' error: iNodeTriangle_II(:,1) =', iNodeTriangle_II(:, nTriangle), &
       ' should be ', n1*n2 - 1, n1*(n2 - 1), n1*n2
 
-    write (*, '(a)') 'Testing triangle_area'
+    write(*, '(a)') 'Testing triangle_area'
 
     Area = triangle_area(CoordXy_DI(:, iNodeTriangle_II(:, 1)))
-    if (abs(Area - 15.0) > 1e-6) write (*, *) NameSub, &
+    if (abs(Area - 15.0) > 1e-6) write(*, *) NameSub, &
       ' error: Area = ', Area, ' should be 15'
 
-    write (*, '(a)') 'Testing find_triangle'
+    write(*, '(a)') 'Testing find_triangle'
     ! test point outside of region with IsTriangleFound logical
     call find_triangle( &
       nPoint, nTriangle, (/10.9, 2.9/), CoordXy_DI, iNodeTriangle_II, &
       iNode1, iNode2, iNode3, IsTriangleFound=IsTriangleFound)
 
-    if (IsTriangleFound) write (*, *) NameSub, &
+    if (IsTriangleFound) write(*, *) NameSub, &
       ' error: IsTriangleFound should be false'
 
     ! test point outside of region without IsTriangleFound logical
@@ -1901,12 +1901,12 @@ contains
       nPoint, nTriangle, (/10.9, 2.9/), CoordXy_DI, iNodeTriangle_II, &
       iNode1, iNode2, iNode3, Weight1, Weight2, Weight3)
 
-    if (any((/iNode1, iNode2, iNode3/) /= (/1, 1, 1/))) write (*, *) NameSub, &
+    if (any((/iNode1, iNode2, iNode3/) /= (/1, 1, 1/))) write(*, *) NameSub, &
       ' error: iNode1..3=', iNode1, iNode2, iNode3, &
       ' should be ', 1, 1, 1
 
     if (maxval(abs((/Weight1 - 1.0, Weight2, Weight3/))) > 1e-6) &
-      write (*, *) NameSub, &
+      write(*, *) NameSub, &
       ' error: Weight1..3=, ', Weight1, Weight2, Weight3, &
       ' should be 1, 0, 0'
 
@@ -1915,16 +1915,16 @@ contains
       nPoint, nTriangle, (/11.1, 3.1/), CoordXy_DI, iNodeTriangle_II, &
       iNode1, iNode2, iNode3, Weight1, Weight2, Weight3, IsTriangleFound)
 
-    if (.not. IsTriangleFound) write (*, *) NameSub, &
+    if (.not. IsTriangleFound) write(*, *) NameSub, &
       ' error: IsTriangleFound 1st should be true'
 
     if (any((/iNode1, iNode2, iNode3/) /= iNodeTriangle_II(:, 1))) &
-      write (*, *) NameSub, 'error: iNode1..3=', iNode1, iNode2, iNode3, &
+      write(*, *) NameSub, 'error: iNode1..3=', iNode1, iNode2, iNode3, &
       ' should be ', iNodeTriangle_II(:, 1)
 
     if (1e-6 < maxval(abs( &
                       (/Weight1 - 0.5/Area, Weight2 - (Area - 0.6)/Area, Weight3 - 0.1/Area/)))) &
-      write (*, *) NameSub, &
+      write(*, *) NameSub, &
       ' error: Weight1..3=, ', Weight1, Weight2, Weight3, &
       ' should be ', 0.5/Area, (Area - 0.6)/Area, 0.1/Area
 
@@ -1934,29 +1934,29 @@ contains
       iNode1, iNode2, iNode3, Weight1, Weight2, Weight3, IsTriangleFound, &
       nTriangle_C, iTriangle_IC)
 
-    if (.not. IsTriangleFound) write (*, *) NameSub, &
+    if (.not. IsTriangleFound) write(*, *) NameSub, &
       ' error: IsTriangleFound 2nd should be true'
 
-    if (nTriangle_C(1, 1) /= 1) write (*, *) NameSub, &
+    if (nTriangle_C(1, 1) /= 1) write(*, *) NameSub, &
       'error nTriangle_C(1,1)=', nTriangle_C(1, 1), ' should be 1'
 
-    if (iTriangle_IC(1, 1, 1) /= 1) write (*, *) NameSub, &
+    if (iTriangle_IC(1, 1, 1) /= 1) write(*, *) NameSub, &
       'error iTriangle_IC(1,1,1)=', iTriangle_IC(1, 1, 1), ' should be 1'
 
-    if (nTriangle_C(nX, nY) /= 1) write (*, *) NameSub, &
+    if (nTriangle_C(nX, nY) /= 1) write(*, *) NameSub, &
       'error nTriangle_C(nX,nY)=', nTriangle_C(nX, nY), ' should be 1'
 
-    if (iTriangle_IC(1, nX, nY) /= nTriangle) write (*, *) NameSub, &
+    if (iTriangle_IC(1, nX, nY) /= nTriangle) write(*, *) NameSub, &
       'error iTriangle_IC(1,nX,nY)=', iTriangle_IC(1, nX, nY), &
       ' should be ', nTriangle
 
     if (any((/iNode1, iNode2, iNode3/) /= iNodeTriangle_II(:, 1))) &
-      write (*, *) NameSub, 'error: iNode1..3=', iNode1, iNode2, iNode3, &
+      write(*, *) NameSub, 'error: iNode1..3=', iNode1, iNode2, iNode3, &
       ' should be ', iNodeTriangle_II(:, 1)
 
     if (1e-6 < maxval(abs( &
                       (/Weight1 - 0.5/Area, Weight2 - (Area - 0.6)/Area, Weight3 - 0.1/Area/)))) &
-      write (*, *) NameSub, &
+      write(*, *) NameSub, &
       ' error: Weight1..3=, ', Weight1, Weight2, Weight3, &
       ' should be ', 0.5/Area, (Area - 0.6)/Area, 0.1/Area
 
@@ -1965,16 +1965,16 @@ contains
       iNode1, iNode2, iNode3, Weight1, Weight2, Weight3, IsTriangleFound, &
       nTriangle_C, iTriangle_IC)
 
-    if (.not. IsTriangleFound) write (*, *) NameSub, &
+    if (.not. IsTriangleFound) write(*, *) NameSub, &
       ' error: IsTriangleFound 3rd should be true'
 
     if (any((/iNode1, iNode2, iNode3/) /= iNodeTriangle_II(:, nTriangle))) &
-      write (*, *) NameSub, 'error: iNode1..3=', iNode1, iNode2, iNode3, &
+      write(*, *) NameSub, 'error: iNode1..3=', iNode1, iNode2, iNode3, &
       ' should be ', iNodeTriangle_II(:, nTriangle)
 
     if (1e-6 < maxval(abs( &
                       (/Weight1, Weight2, Weight3 - 1.0/)))) &
-      write (*, *) NameSub, &
+      write(*, *) NameSub, &
       ' error: Weight1..3=, ', Weight1, Weight2, Weight3, &
       ' should be 0, 0, 1'
 

@@ -62,7 +62,7 @@ subroutine calc_chemistry(iBlock)
 
   if (iDebugLevel > 3) then
     do iIon = 1, nIons
-      write (*, *) "====> start calc_chemistry: Max Ion Density: ", iIon, &
+      write(*, *) "====> start calc_chemistry: Max Ion Density: ", iIon, &
         maxval(IDensityS(1:nLons, 1:nLats, (nAlts*4)/5, iIon, iBlock))
     end do
   end if
@@ -2228,15 +2228,15 @@ subroutine calc_chemistry(iBlock)
           if (DtSub < DtMin) DtMin = DtSub
 
           if (DtSub < 1.0e-9 .and. abs(DtTotal - Dt) > DtSub) then
-            write (*, *) "Chemistry is too fast!!", DtSub
+            write(*, *) "Chemistry is too fast!!", DtSub
 
             ! Check Ions
             do iIon = 1, nIons
-              write (*, *) "Ion Source/Loss : ", &
+              write(*, *) "Ion Source/Loss : ", &
                 iIon, IonSources(iIon), IonLosses(iIon)
             end do
             do iNeutral = 1, nSpeciesTotal
-              write (*, *) "Neutral Source/Loss : ", iAlt, &
+              write(*, *) "Neutral Source/Loss : ", iAlt, &
                 iNeutral, NeutralSources(iNeutral), &
                 NeutralLosses(iNeutral), Neutrals(iNeutral)
             end do
@@ -2270,13 +2270,13 @@ subroutine calc_chemistry(iBlock)
 
   if (iDebugLevel > 3) then
     do iIon = 1, nIons
-      write (*, *) "====> calc_chemistry: Max Ion Density: ", iIon, &
+      write(*, *) "====> calc_chemistry: Max Ion Density: ", iIon, &
         maxval(IDensityS(1:nLons, 1:nLats, (nAlts*4)/5, iIon, iBlock))
     end do
   end if
 
   if (iDebugLevel > 2) &
-    write (*, *) "===> calc_chemistry: Average Dt for this timestep : ", &
+    write(*, *) "===> calc_chemistry: Average Dt for this timestep : ", &
     (Dt*nLats*nLons*nAlts)/nIters
 
   call end_timing("calc_chemistry")

@@ -78,7 +78,7 @@ contains
     if (DoFirst) then
       DoFirst = .false.
 
-      allocate (xDip_DI(3, nDipole))
+      allocate(xDip_DI(3, nDipole))
 
       PhiFirstDipole = -0.5*AngleBetweenDipoles*(nDipole - 1)
       do iDipole = 1, nDipole

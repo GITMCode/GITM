@@ -70,14 +70,14 @@ contains
     ! Check if the module has been initialized already
     if (nVar > 0) RETURN
 
-    allocate (String_I(MaxVar))
+    allocate(String_I(MaxVar))
     call split_string(NameVarState, MaxVar, String_I, nVar)
 
     if (nVar < 1) call CON_stop(NameSub//': nVar < 1')
 
-    allocate (NameVar_V(nVar))
+    allocate(NameVar_V(nVar))
     NameVar_V = String_I(1:nVar)
-    deallocate (String_I)
+    deallocate(String_I)
 
     do iVar = 1, nVar
       call lower_case(NameVar_V(iVar))
@@ -99,14 +99,14 @@ contains
 
   subroutine clean_initial_state
 
-    if (allocated(NameVar_V)) deallocate ( &
+    if (allocated(NameVar_V)) deallocate( &
       NameVar_V)
 
     nVar = 0
     iVarMaterial0 = -1
     nMaterial = 0
 
-    if (allocated(LengthSegment_I)) deallocate ( &
+    if (allocated(LengthSegment_I)) deallocate( &
       LengthSegment_I, &
       StartSegment_DI, &
       VectorSegment_DI, &
@@ -115,7 +115,7 @@ contains
 
     nSegment = 0
 
-    if (allocated(NameMaterialState_I)) deallocate ( &
+    if (allocated(NameMaterialState_I)) deallocate( &
       NameMaterialState_I, &
       MaterialState_VI)
 
@@ -145,7 +145,7 @@ contains
     !------------------------------------------------------------------------
     select case (NameCommand)
     case ("#STATEDEFINITION")
-      allocate (NameStateVar_I(nVar))
+      allocate(NameStateVar_I(nVar))
 
       ! Names of non-zero state variables
       call read_var("StringStateVar", String, &
@@ -157,7 +157,7 @@ contains
       call split_string(String, nVar, NameStateVar_I, nStateVar)
 
       ! Find indexes for corresponding state variables
-      allocate (iVar_I(nStateVar))
+      allocate(iVar_I(nStateVar))
       LOOPSTATE: do i = 1, nStateVar
         do iVar = 1, nVar
           if (NameStateVar_I(i) == NameVar_V(iVar)) then
@@ -173,23 +173,23 @@ contains
       call read_var('nMaterialState', nMaterialState)
 
       ! Read the values for each material state
-      allocate (NameMaterialState_I(nMaterialState))
-      allocate (MaterialState_VI(nVar, nMaterialState))
+      allocate(NameMaterialState_I(nMaterialState))
+      allocate(MaterialState_VI(nVar, nMaterialState))
       do i = 1, nMaterialState
         MaterialState_VI(:, i) = 0.0
         call read_var("Name State", String, &
                       IsLowerCase=.true., DoReadWholeLine=.true.)
-        read (String, *, IOSTAT=iError) &
+        read(String, *, IOSTAT=iError) &
           NameMaterialState_I(i), MaterialState_VI(iVar_I, i)
         if (iError /= 0) call CON_stop(NameSub// &
                                        ' could not read Name, State from '//trim(String))
       end do
-      deallocate (NameStateVar_I, iVar_I)
+      deallocate(NameStateVar_I, iVar_I)
 
     case ("#STATEINTERFACE")
       call read_var('nSegment', nSegment)     ! Number of segments
       if (nSegment < 1) RETURN
-      allocate ( &
+      allocate( &
         LengthSegment_I(nSegment), &
         StartSegment_DI(2, nSegment), &
         VectorSegment_DI(2, nSegment), &
@@ -199,7 +199,7 @@ contains
       do i = 1, nSegment
         call read_var("State1 State2 x1 y1 x2 y2", String, &
                       IsLowerCase=.true., DoReadWholeLine=.true.)
-        read (String, *, IOSTAT=iError) &
+        read(String, *, IOSTAT=iError) &
           NameMaterial1, NameMaterial2, Start_D, End_D
         if (iError /= 0) call CON_stop(NameSub// &
                                        ' could not read Material1 Material2 x1 y1 x2 y2 from '// &
@@ -257,8 +257,8 @@ contains
         end if
       end do
 
-      write (*, *) NameSub, ': nMaterialState      = ', nMaterialState
-      write (*, *) NameSub, ': NameMaterialState_I = ', NameMaterialState_I
+      write(*, *) NameSub, ': nMaterialState      = ', nMaterialState
+      write(*, *) NameSub, ': NameMaterialState_I = ', NameMaterialState_I
 
       call CON_stop(NameSub// &
                     ' could not match material state name='//NameMaterial)
@@ -299,7 +299,7 @@ contains
     State_V = 0.0
     dMin = huge(1.0)
     if (nMaterial > 0) then
-      allocate (dMin_I(nMaterial))
+      allocate(dMin_I(nMaterial))
       dMin_I = -huge(1.0)
     end if
 
@@ -359,19 +359,19 @@ contains
       if (.not. present(DoTest)) CYCLE
       if (.not. DoTest) CYCLE
 
-      write (*, *) NameSub, ' iSegment, CoordIn_D=', iSegment, CoordIn_D
-      write (*, *) NameSub, ' Length,StartSegment=', &
+      write(*, *) NameSub, ' iSegment, CoordIn_D=', iSegment, CoordIn_D
+      write(*, *) NameSub, ' Length,StartSegment=', &
         Length, StartSegment_DI(:, iSegment)
-      write (*, *) NameSub, ' Segment_D,Coord_D  =', Segment_D, Coord_D
-      write (*, *) NameSub, ' Projection, Point_D=', Projection, Point_D
-      write (*, *) NameSub, ' d, iLevel, jLevel  =', d, iLevel, jLevel
+      write(*, *) NameSub, ' Segment_D,Coord_D  =', Segment_D, Coord_D
+      write(*, *) NameSub, ' Projection, Point_D=', Projection, Point_D
+      write(*, *) NameSub, ' d, iLevel, jLevel  =', d, iLevel, jLevel
 
     end do
 
     State_V = MaterialState_VI(:, iState)
     if (nMaterial > 0) then
       State_V(iVarMaterial0 + 1:iVarMaterial0 + nMaterial) = dMin_I
-      deallocate (dMin_I)
+      deallocate(dMin_I)
     end if
 
   end subroutine get_initial_state
@@ -406,7 +406,7 @@ contains
     call init_initial_state(NameVar, iMaterial1, nMaterialTest)
 
     ! Now nVar is set based on the list of variables
-    allocate (State_VC(nVar, nI, nJ))
+    allocate(State_VC(nVar, nI, nJ))
 
     ! Read in the parameters describing the material interfaces
     call read_file('test_initial_state.in')
@@ -449,7 +449,7 @@ contains
                                         CoordMaxIn_D=(/nI - 0.5, nJ - 0.5/), &
                                         VarIn_VII=State_VC)
 
-    deallocate (State_VC)
+    deallocate(State_VC)
 
   end subroutine test_initial_state
 

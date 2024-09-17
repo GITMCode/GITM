@@ -31,19 +31,19 @@ subroutine check_stop
 
   if (iProc == 0) then
 
-    inquire (file="GITM.STOP", EXIST=IsThere)
+    inquire(file="GITM.STOP", EXIST=IsThere)
     if (IsThere) then
-      write (*, *) "GITM.STOP file found. Exiting."
+      write(*, *) "GITM.STOP file found. Exiting."
       EndTimeLocal = CurrentTime - 1.0
     end if
 
   end if
 
   if (get_timing("GITM") > CPUTimeMax) then
-    if (iProc == 0) write (*, *) "CPUTimeMax Exceeded. Exiting."
+    if (iProc == 0) write(*, *) "CPUTimeMax Exceeded. Exiting."
     EndTimeLocal = CurrentTime - 1.0
-    open (unit=iOutputUnit_, file="GITM.CPU", status="unknown")
-    close (iOutputUnit_)
+    open(unit=iOutputUnit_, file="GITM.CPU", status="unknown")
+    close(iOutputUnit_)
   end if
 
   call MPI_AllREDUCE(EndTimeLocal, EndTime, &
@@ -71,22 +71,22 @@ subroutine delete_stop
 
   call report("delete_stop", 2)
 
-  inquire (file='GITM.STOP', EXIST=IsThere)
+  inquire(file='GITM.STOP', EXIST=IsThere)
   if (IsThere .and. iProc == 0) then
-    open (iOutputUnit_, file='GITM.STOP', status='OLD')
-    close (iOutputUnit_, status='DELETE')
+    open(iOutputUnit_, file='GITM.STOP', status='OLD')
+    close(iOutputUnit_, status='DELETE')
   end if
 
-  inquire (file='GITM.DONE', EXIST=IsThere)
+  inquire(file='GITM.DONE', EXIST=IsThere)
   if (IsThere .and. iProc == 0) then
-    open (iOutputUnit_, file='GITM.DONE', status='OLD')
-    close (iOutputUnit_, status='DELETE')
+    open(iOutputUnit_, file='GITM.DONE', status='OLD')
+    close(iOutputUnit_, status='DELETE')
   end if
 
-  inquire (file='GITM.CPU', EXIST=IsThere)
+  inquire(file='GITM.CPU', EXIST=IsThere)
   if (IsThere .and. iProc == 0) then
-    open (iOutputUnit_, file='GITM.CPU', status='OLD')
-    close (iOutputUnit_, status='DELETE')
+    open(iOutputUnit_, file='GITM.CPU', status='OLD')
+    close(iOutputUnit_, status='DELETE')
   end if
 
 end subroutine delete_stop
@@ -112,18 +112,18 @@ subroutine check_start
 
   if ((CurrentTime - dt) < PauseTime .and. CurrentTime > PauseTime) then
 
-    write (*, *) "Pausing"
+    write(*, *) "Pausing"
 
     IsThere = .false.
 
     do while (.not. IsThere)
 
-      inquire (file="GITM.START", EXIST=IsThere)
+      inquire(file="GITM.START", EXIST=IsThere)
       if (IsThere .and. iProc == 0) then
         if (iProc == 0) then
-          write (*, *) "GITM.START file found. Continuing."
-          open (iOutputUnit_, file='GITM.START', status='OLD')
-          close (iOutputUnit_, status='DELETE')
+          write(*, *) "GITM.START file found. Continuing."
+          open(iOutputUnit_, file='GITM.START', status='OLD')
+          close(iOutputUnit_, status='DELETE')
         end if
       end if
 

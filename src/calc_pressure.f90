@@ -33,7 +33,7 @@ subroutine calc_pressure
     IDensityS(:, :, :, ie_, 1:nBlocks)*Boltzmanns_Constant* &
     eTemperature(:, :, :, 1:nBlocks)
 
-  if (iDebugLevel > 2) write (*, *) &
+  if (iDebugLevel > 2) write(*, *) &
     'calc_pressure iPres, ePres, iDens, iTemp, eTemp=', &
     sum(abs(IPressure(:, :, :, 1:nBlocks))), &
     sum(abs(ePressure(:, :, :, 1:nBlocks))), &

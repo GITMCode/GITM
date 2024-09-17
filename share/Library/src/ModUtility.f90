@@ -73,8 +73,8 @@ contains
     character(len=*), intent(in) :: StringError
     integer :: nError, iError
 
-    write (*, *) "CON_stop cannot be called in GITM stand-alone mode"
-    write (*, *) "Use stop_gitm"
+    write(*, *) "CON_stop cannot be called in GITM stand-alone mode"
+    write(*, *) "Use stop_gitm"
 
     call MPI_Abort(MPI_COMM_WORLD, nError, iError)
     stop
@@ -166,7 +166,7 @@ contains
           if (present(iErrorNumberOut)) iErrorNumberOut = iErrorNumber
           RETURN
         else
-          write (*, *) NameSub, ' iError, iErrorNumber=', iError, iErrorNumber
+          write(*, *) NameSub, ' iError, iErrorNumber=', iError, iErrorNumber
           call CON_stop(NameSub// &
                         ' failed to open directory '//trim(NameDir))
         end if
@@ -211,14 +211,14 @@ contains
     character(len=*), parameter :: NameSub = 'check_dir'
     !--------------------------------------------------------------------------
     ! Try to open a file in this directory
-    open (UNITTMP_, file=trim(NameDir)//'.test', status='unknown', &
-          iostat=iError)
+    open(UNITTMP_, file=trim(NameDir)//'.test', status='unknown', &
+         iostat=iError)
 
     if (iError /= 0) then
       call CON_stop(NameSub//' ERROR: Cannot find/write into directory ' &
                     //trim(NameDir))
     else
-      close (UNITTMP_, status='DELETE')
+      close(UNITTMP_, status='DELETE')
     end if
 
   end subroutine check_dir
@@ -312,13 +312,13 @@ contains
         call MPI_comm_rank(iComm, iProc, iError)
         ! Open file with status "replace" on processor 0
         if (iProc == 0) &
-          open (iUnit, FILE=File, FORM=TypeForm, STATUS='replace', &
-                ACCESS=TypeAccess, RECL=Recl, IOSTAT=iError)
+          open(iUnit, FILE=File, FORM=TypeForm, STATUS='replace', &
+               ACCESS=TypeAccess, RECL=Recl, IOSTAT=iError)
         if (nProc > 1) then
           ! Check if open worked on processor 0
           if (iProc == 0 .and. iError /= 0) then
-            write (*, *) NameSub, ' iUnit, iError=', iUnit, iError
-            if (present(NameCaller)) write (*, *) 'NameCaller=', NameCaller
+            write(*, *) NameSub, ' iUnit, iError=', iUnit, iError
+            if (present(NameCaller)) write(*, *) 'NameCaller=', NameCaller
             call CON_stop(NameSub// &
                           ' processor 0 could not open file='//trim(File))
           end if
@@ -326,21 +326,21 @@ contains
           call MPI_barrier(iComm, iError)
           ! Other processors open with status "old"
           if (iProc > 0) &
-            open (iUnit, FILE=File, FORM=TypeForm, STATUS='old', &
-                  ACCESS=TypeAccess, RECL=Recl, IOSTAT=iError)
+            open(iUnit, FILE=File, FORM=TypeForm, STATUS='old', &
+                 ACCESS=TypeAccess, RECL=Recl, IOSTAT=iError)
         end if
       else
-        open (iUnit, FILE=File, FORM=TypeForm, STATUS=TypeStatus, &
-              ACCESS=TypeAccess, RECL=Recl, IOSTAT=iError)
+        open(iUnit, FILE=File, FORM=TypeForm, STATUS=TypeStatus, &
+             ACCESS=TypeAccess, RECL=Recl, IOSTAT=iError)
       end if
     else
-      open (iUnit, FILE=File, FORM=TypeForm, STATUS=TypeStatus, &
-            POSITION=TypePosition, ACCESS=TypeAccess, IOSTAT=iError)
+      open(iUnit, FILE=File, FORM=TypeForm, STATUS=TypeStatus, &
+           POSITION=TypePosition, ACCESS=TypeAccess, IOSTAT=iError)
     end if
 
     if (iError /= 0) then
-      write (*, *) NameSub, ' iUnit, iError=', iUnit, iError
-      if (present(NameCaller)) write (*, *) 'NameCaller=', NameCaller
+      write(*, *) NameSub, ' iUnit, iError=', iUnit, iError
+      if (present(NameCaller)) write(*, *) 'NameCaller=', NameCaller
       call CON_stop(NameSub//' could not open file='//trim(File))
     end if
 
@@ -370,14 +370,14 @@ contains
     if (present(iUnitIn)) iUnit = iUnitIn
 
     if (present(Status)) then
-      close (iUnit, STATUS=Status, IOSTAT=iError)
+      close(iUnit, STATUS=Status, IOSTAT=iError)
     else
-      close (iUnit, IOSTAT=iError)
+      close(iUnit, IOSTAT=iError)
     end if
 
     if (iError /= 0) then
-      write (*, *) NameSub, ' iUnit, iError=', iUnit, iError
-      if (present(NameCaller)) write (*, *) 'NameCaller=', NameCaller
+      write(*, *) NameSub, ' iUnit, iError=', iUnit, iError
+      if (present(NameCaller)) write(*, *) 'NameCaller=', NameCaller
       call CON_stop(NameSub//' could not close unit')
     end if
 
@@ -395,7 +395,7 @@ contains
     logical:: IsFound
     !-------------------------------------------------------------------------
 
-    inquire (FILE=NameFile, EXIST=IsFound)
+    inquire(FILE=NameFile, EXIST=IsFound)
     if (.not. IsFound) RETURN
 
     call open_file(FILE=NameFile, NameCaller=NameCaller)
@@ -431,7 +431,7 @@ contains
     !EOP
 
     !-------------------------------------------------------------------------
-    if (DoFlush) flush (iUnit)
+    if (DoFlush) flush(iUnit)
 
   end subroutine flush_unit
 
@@ -573,7 +573,7 @@ contains
       l = index(String1, ':')
       if (l > j) then
         ! read initial index value before the first colon
-        read (String1(j + 1:l - 1), *, IOSTAT=iError) iFirst
+        read(String1(j + 1:l - 1), *, IOSTAT=iError) iFirst
         if (iError /= 0 .or. iFirst < 1) call CON_stop(NameSub// &
                                                        ' invalid initial index value in String='//String)
       else
@@ -585,7 +585,7 @@ contains
       m = index(String1, ':', back=.true.)
       if (m > l) then
         ! read index stride value after the seecond colon
-        read (String1(m + 1:k - 1), *, IOSTAT=iError) Di
+        read(String1(m + 1:k - 1), *, IOSTAT=iError) Di
         if (iError /= 0 .or. Di < 1) call CON_stop(NameSub// &
                                                    ' invalid index stride value in String='//String)
       else
@@ -594,13 +594,13 @@ contains
       end if
 
       ! read the last index value between the l and m positions
-      read (String1(l + 1:m - 1), *, IOSTAT=iError) iLast
+      read(String1(l + 1:m - 1), *, IOSTAT=iError) iLast
       if (iError /= 0 .or. iLast < iFirst) call CON_stop(NameSub// &
                                                          ' invalid maximum index value in String='//String)
 
       ! Set length of numerical string and the format string
       lNum = m - l - 1
-      write (StringFormat, '(a,i1,a,i1,a)') "(i", lNum, ".", lNum, ")"
+      write(StringFormat, '(a,i1,a,i1,a)') "(i", lNum, ".", lNum, ")"
 
       ! Set the beginning part of the string to the variable name
       String2 = ' '
@@ -610,7 +610,7 @@ contains
       nString = nString - 1
       do iNum = iFirst, iLast, Di
 
-        write (String2(j:j + lNum), StringFormat) iNum
+        write(String2(j:j + lNum), StringFormat) iNum
         nString = nString + 1
         String_I(nString) = String2
 
@@ -850,26 +850,26 @@ contains
 
     character(len=*), parameter :: NameSub = 'test_mod_utility'
     !-----------------------------------------------------------------------
-    write (*, '(a)') 'testing check_dir'
-    write (*, '(a)') 'check directory "."'
+    write(*, '(a)') 'testing check_dir'
+    write(*, '(a)') 'check directory "."'
     call check_dir('.')
-    write (*, '(a)') 'check_dir returned successfully'
-    write (*, '(a)') 'check directory "xxx/"'
+    write(*, '(a)') 'check_dir returned successfully'
+    write(*, '(a)') 'check directory "xxx/"'
     call check_dir('xxx/')
 
-    write (*, '(a)') 'testing make_dir'
-    write (*, '(a)') 'make directory "xxx/"'
+    write(*, '(a)') 'testing make_dir'
+    write(*, '(a)') 'make directory "xxx/"'
     call make_dir('xxx')
     call check_dir('xxx/')
-    write (*, '(a)') 'make xxx/ directory again (should not produce an error)'
+    write(*, '(a)') 'make xxx/ directory again (should not produce an error)'
     call make_dir('xxx', iErrorOut=iError)
-    write (*, *) iError
+    write(*, *) iError
 
-    write (*, '(a)') 'testing open_file and close_file'
+    write(*, '(a)') 'testing open_file and close_file'
 
     ! Use defaults
     call open_file(FILE='xxx/testfile.dat')
-    write (UnitTmp_, '(a)') 'Some text'
+    write(UnitTmp_, '(a)') 'Some text'
     call close_file
     ! Create an error message by passing incorrect filename
     ! Since the error code varies by compiler, this is commented out
@@ -879,99 +879,99 @@ contains
     ! Use all arguments
     call open_file(UnitTmp_, FILE='xxx/testfile.dat', FORM='formatted', &
                    STATUS='old', POSITION='append', NameCaller=NameSub)
-    write (UnitTmp_, '(a)') 'More text'
+    write(UnitTmp_, '(a)') 'More text'
     call close_file(UnitTmp_, STATUS='delete', NameCaller=NameSub)
 
-    write (*, '(a)') 'testing touch_file and remove_file'
+    write(*, '(a)') 'testing touch_file and remove_file'
     call touch_file('xxx/touched', NameCaller=NameSub)
     call touch_file('xxx/touched', NameCaller=NameSub)
     call remove_file('xxx/touched', NameCaller=NameSub)
     call remove_file('xxx/touched', NameCaller=NameSub)
 
-    write (*, '(/,a)') 'testing fix_dir_name'
+    write(*, '(/,a)') 'testing fix_dir_name'
     String = ' '
     call fix_dir_name(String)
-    write (*, '(a)') 'fixed empty string='//trim(String)
+    write(*, '(a)') 'fixed empty string='//trim(String)
     String = 'GM/BATSRUS/data'
-    write (*, '(a)') 'original    string='//trim(String)
+    write(*, '(a)') 'original    string='//trim(String)
     call fix_dir_name(String)
-    write (*, '(a)') 'fixed first string='//trim(String)
+    write(*, '(a)') 'fixed first string='//trim(String)
     call fix_dir_name(String)
-    write (*, '(a)') 'fixed again string='//trim(String)
+    write(*, '(a)') 'fixed again string='//trim(String)
 
-    write (*, '(/,a)') 'testing split_string'
+    write(*, '(/,a)') 'testing split_string'
     String = '  a(3)  bb(04:06) c,ddd ee,ff gg(8:12:2) '
-    write (*, '(a)') 'String='//trim(String)
+    write(*, '(a)') 'String='//trim(String)
 
     call split_string(String, MaxString, String_I, nString)
-    write (*, '(a,i3,a)') 'with space separator split to', nString, ' parts:'
+    write(*, '(a,i3,a)') 'with space separator split to', nString, ' parts:'
     do iString = 1, nString
-      write (*, '(a)') trim(String_I(iString))
+      write(*, '(a)') trim(String_I(iString))
     end do
 
     call split_string(String, String_I, nString, ",")
-    write (*, '(a,i3,a)') 'with "," separator split to', nString, ' parts:'
+    write(*, '(a,i3,a)') 'with "," separator split to', nString, ' parts:'
     do iString = 1, nString
-      write (*, '(a)') trim(String_I(iString))
+      write(*, '(a)') trim(String_I(iString))
     end do
 
     call split_string(String, String_I, nString, ") ", DoAddSeparator=.true.)
-    write (*, '(a,i3,a)') 'with ") " separator split to', nString, ' parts:'
+    write(*, '(a,i3,a)') 'with ") " separator split to', nString, ' parts:'
     do iString = 1, nString
-      write (*, '(a)') trim(String_I(iString))
+      write(*, '(a)') trim(String_I(iString))
     end do
 
     call split_string(String, String_I, nString, UseArraySyntaxIn=.true.)
-    write (*, '(a,i3,a)') 'with UseArraySyntax split to', nString, ' parts:'
+    write(*, '(a,i3,a)') 'with UseArraySyntax split to', nString, ' parts:'
     do iString = 1, nString
-      write (*, '(a)') trim(String_I(iString))
+      write(*, '(a)') trim(String_I(iString))
     end do
 
-    write (*, '(/,a)') 'testing join_string'
+    write(*, '(/,a)') 'testing join_string'
     call join_string(nString, String_I, String)
-    write (*, '(a)') 'joined string='//trim(String)
+    write(*, '(a)') 'joined string='//trim(String)
 
     call join_string(String_I(1:4), String, '; ')
-    write (*, '(a)') 'joined string='//trim(String)
+    write(*, '(a)') 'joined string='//trim(String)
 
-    write (*, '(/,a)') 'testing upper_case and lower_case'
+    write(*, '(/,a)') 'testing upper_case and lower_case'
     String = 'abCD 123:'
-    write (*, '(a)') 'mixed case string='//trim(String)
+    write(*, '(a)') 'mixed case string='//trim(String)
     call upper_case(String)
-    write (*, '(a)') 'upper case string='//trim(String)
+    write(*, '(a)') 'upper case string='//trim(String)
     call lower_case(String)
-    write (*, '(a)') 'lower case string='//trim(String)
+    write(*, '(a)') 'lower case string='//trim(String)
 
-    write (*, '(/,a)') 'testing string_to_char_array'
+    write(*, '(/,a)') 'testing string_to_char_array'
     String = "it's a string"
     call string_to_char_array(String, StringC_I)
     l = len_trim(String)
-    write (*, '(a,100a1)') 'C character array: ', StringC_I(1:l)
+    write(*, '(a,100a1)') 'C character array: ', StringC_I(1:l)
     if (StringC_I(l + 1) /= c_null_char) &
-      write (*, *) 'Error: null terminator is missing'
+      write(*, *) 'Error: null terminator is missing'
 
-    write (*, '(/,a)') 'testing char_array_to_string'
+    write(*, '(/,a)') 'testing char_array_to_string'
     call char_array_to_string(StringC_I, String)
-    write (*, '(a,a)') 'Fortran string   : ', trim(String)
+    write(*, '(a,a)') 'Fortran string   : ', trim(String)
     if (String /= "it's a string") &
-      write (*, *) 'Error: incorrect conversion to Fortran String'
+      write(*, *) 'Error: incorrect conversion to Fortran String'
 
-    write (*, '(/,a)') 'testing greatest_common_divisor'
+    write(*, '(/,a)') 'testing greatest_common_divisor'
     l = greatest_common_divisor(36, 26)
     if (l /= 2) &
-      write (*, *) 'Error: greatest_common_divisor(36,26)=', l, ' should be 2'
+      write(*, *) 'Error: greatest_common_divisor(36,26)=', l, ' should be 2'
 
     l = greatest_common_divisor(26, 36)
     if (l /= 2) &
-      write (*, *) 'Error: greatest_common_divisor(26,36)=', l, ' should be 2'
+      write(*, *) 'Error: greatest_common_divisor(26,36)=', l, ' should be 2'
 
     l = greatest_common_divisor(36, 12)
     if (l /= 12) &
-      write (*, *) 'Error: greatest_common_divisor(36,12)=', l, ' should be 12'
+      write(*, *) 'Error: greatest_common_divisor(36,12)=', l, ' should be 12'
 
     l = greatest_common_divisor(12, 36)
     if (l /= 12) &
-      write (*, *) 'Error: greatest_common_divisor(12,36)=', l, ' should be 12'
+      write(*, *) 'Error: greatest_common_divisor(12,36)=', l, ' should be 12'
 
   end subroutine test_mod_utility
 

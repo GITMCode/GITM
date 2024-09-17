@@ -113,40 +113,40 @@ contains
       call i2s(ae + AeBinSize, cAe2, 3)
       cFile = cDirectory//cFileStart//cAe1//"_"//cAe2//cFileEnd
 
-      inquire (file=cFile, EXIST=IsThere)
+      inquire(file=cFile, EXIST=IsThere)
       if (.not. IsThere) then
-        write (*, *) cFile//" cannot be found by read_ovationsm_files"
+        write(*, *) cFile//" cannot be found by read_ovationsm_files"
         call stop_gitm("must stop!!!")
       end if
 
       iError = 0
 
-      open (iInputUnit_, file=cFile, status="old", iostat=iError)
+      open(iInputUnit_, file=cFile, status="old", iostat=iError)
 
       ! Read in the header:
-      read (iInputUnit_, *, iostat=iError) cDummyLine
+      read(iInputUnit_, *, iostat=iError) cDummyLine
 
       ! Read in mlts, only once:
-      read (iInputUnit_, *, iostat=iError) mlts
+      read(iInputUnit_, *, iostat=iError) mlts
 
       ! Read in mlats for all bins:
       do iLat = 1, nMLats
-        read (iInputUnit_, *, iostat=iError) mlats(iAe, :, iLat)
+        read(iInputUnit_, *, iostat=iError) mlats(iAe, :, iLat)
       end do
 
       ! Read in eflux for all bins:
       do iLat = 1, nMLats
-        read (iInputUnit_, *, iostat=iError) eFlux(iAe, :, iLat)
+        read(iInputUnit_, *, iostat=iError) eFlux(iAe, :, iLat)
       end do
 
       ! Read in avee for all bins:
       do iLat = 1, nMLats
-        read (iInputUnit_, *, iostat=iError) AveE(iAe, :, iLat)
+        read(iInputUnit_, *, iostat=iError) AveE(iAe, :, iLat)
       end do
 
     end do
 
-    close (iInputUnit_)
+    close(iInputUnit_)
 
   end subroutine read_ae_model_files
 

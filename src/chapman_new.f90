@@ -188,7 +188,7 @@ subroutine chapman_integrals(iBlock)
     if (MaxCh(iSpecies) == 0.0) &
       MaxCh(iSpecies) = maxval(chapman(:, :, :, iSpecies, iBlock))
     if (iDebugLevel > 3) &
-      write (*, *) "====> MaxChapman : ", iSpecies, MaxCh(iSpecies)
+      write(*, *) "====> MaxChapman : ", iSpecies, MaxCh(iSpecies)
 
   end do
 

@@ -32,9 +32,9 @@ subroutine init_b0
   call loadapxsh(apexfile, date)
 
   do iBlock = 1, nBlocks
-    if (nBlocks > 1 .and. iDebugLevel > 1) write (*, *) "==> Block : ", iBlock
+    if (nBlocks > 1 .and. iDebugLevel > 1) write(*, *) "==> Block : ", iBlock
     do iAlt = -1, nAlts + 2
-      if (iDebugLevel > 4) write (*, *) "=====> init_b0, alt : ", iAlt, Altitude_GB(1, 1, iAlt, iBlock)/1000.0
+      if (iDebugLevel > 4) write(*, *) "=====> init_b0, alt : ", iAlt, Altitude_GB(1, 1, iAlt, iBlock)/1000.0
       do iLat = -1, nLats + 2
         do iLon = -1, nLons + 2
 
@@ -269,9 +269,9 @@ subroutine get_magfield_all(GeoLat, GeoLon, GeoAlt, alat, alon, xmag, ymag, zmag
     alatm = acos(sqrt(rBelow/LShell))*180.0/pi*sign(1.0, aLatm)
 
     if (rBelow/LShell > 1.0) then
-      write (*, *) 'Reference Altitude in init_b0 : ', rBelow*RBody/1000.0, ' km'
-      write (*, *) 'This seems to be too high.  Please change the first few'
-      write (*, *) 'lines in get_magfield_all.'
+      write(*, *) 'Reference Altitude in init_b0 : ', rBelow*RBody/1000.0, ' km'
+      write(*, *) 'This seems to be too high.  Please change the first few'
+      write(*, *) 'lines in get_magfield_all.'
       call stop_gitm("Must Stop!!")
     end if
 
@@ -589,9 +589,9 @@ subroutine test_mag_point(rBelow, LShell, RBody)
   real, intent(in) :: rBelow, LShell, RBody
 
   if (rBelow/LShell > 1.0) then
-    write (*, *) 'Reference Altitude in init_b0 : ', rBelow*RBody/1000.0, ' km'
-    write (*, *) 'This seems to be too high.  Please change the first few'
-    write (*, *) 'lines in get_magfield_all.'
+    write(*, *) 'Reference Altitude in init_b0 : ', rBelow*RBody/1000.0, ' km'
+    write(*, *) 'This seems to be too high.  Please change the first few'
+    write(*, *) 'lines in get_magfield_all.'
     call stop_gitm("Must Stop!!")
   end if
 

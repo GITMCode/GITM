@@ -20,7 +20,7 @@ end subroutine timing_version
 subroutine timing_active(value)
   logical, intent(in) :: value
 
-  if (value) write (*, *) 'Warning: TIMING_EMPTY cannot be activated !!!'
+  if (value) write(*, *) 'Warning: TIMING_EMPTY cannot be activated !!!'
 end subroutine timing_active
 
 !==============================================================================

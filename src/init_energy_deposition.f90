@@ -19,48 +19,48 @@ subroutine init_energy_deposition
 
   call report("init_energy_deposition", 2)
 
-  if (iDebugLevel > 2) write (*, *) "===> ED_Init"
+  if (iDebugLevel > 2) write(*, *) "===> ED_Init"
   call ED_Init(ierr)
 
   if (ierr /= 0) then
     call stop_gitm("Error in initilizing the energy deposition tables")
   end if
 
-  if (iDebugLevel > 2) write (*, *) "===> ED_Get_Grid_Size"
+  if (iDebugLevel > 2) write(*, *) "===> ED_Get_Grid_Size"
   call ED_Get_Grid_Size(ED_N_Alts)
-  allocate (ED_grid(ED_N_Alts), stat=ierr)
+  allocate(ED_grid(ED_N_Alts), stat=ierr)
   if (ierr /= 0) then
     call stop_gitm("Error allocating array ED_grid")
   end if
 
-  allocate (ED_Ion(ED_N_Alts), stat=ierr)
+  allocate(ED_Ion(ED_N_Alts), stat=ierr)
   if (ierr /= 0) then
     call stop_gitm("Error allocating array ED_Ion")
   end if
 
-  allocate (ED_Heating(ED_N_Alts), stat=ierr)
+  allocate(ED_Heating(ED_N_Alts), stat=ierr)
   if (ierr /= 0) then
     call stop_gitm("Error allocating array ED_Heating")
   end if
 
-  if (iDebugLevel > 2) write (*, *) "===> ED_Get_Number_of_Energies"
+  if (iDebugLevel > 2) write(*, *) "===> ED_Get_Number_of_Energies"
   call ED_Get_Number_of_Energies(ED_N_Energies)
-  allocate (ED_Energies(ED_N_Energies), stat=ierr)
-  allocate (ED_Energy_edges(ED_N_Energies + 1), stat=ierr)
-  allocate (ED_delta_energy(ED_N_Energies), stat=ierr)
+  allocate(ED_Energies(ED_N_Energies), stat=ierr)
+  allocate(ED_Energy_edges(ED_N_Energies + 1), stat=ierr)
+  allocate(ED_delta_energy(ED_N_Energies), stat=ierr)
   if (ierr /= 0) then
     call stop_gitm("Error allocating array ED_Energies")
   end if
 
-  allocate (ED_Flux(ED_N_Energies), stat=ierr)
-  allocate (ED_EnergyFlux(ED_N_Energies), stat=ierr)
-  allocate (ED_Ion_Flux(ED_N_Energies), stat=ierr)
-  allocate (ED_Ion_EnergyFlux(ED_N_Energies), stat=ierr)
+  allocate(ED_Flux(ED_N_Energies), stat=ierr)
+  allocate(ED_EnergyFlux(ED_N_Energies), stat=ierr)
+  allocate(ED_Ion_Flux(ED_N_Energies), stat=ierr)
+  allocate(ED_Ion_EnergyFlux(ED_N_Energies), stat=ierr)
   if (ierr /= 0) then
     call stop_gitm("Error allocating array ED_Flux")
   end if
 
-  if (iDebugLevel > 2) write (*, *) "===> ED_Get_Grid"
+  if (iDebugLevel > 2) write(*, *) "===> ED_Get_Grid"
   call ED_Get_Grid(ED_grid, .true., ierr)
 
   do iAlt = 1, ED_N_Alts

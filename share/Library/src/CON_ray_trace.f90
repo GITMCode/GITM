@@ -109,10 +109,10 @@ contains
 
     ! Allocate MPI variables for non-blocking exchange
     ! At most nProc messages are sent
-    allocate (iRequest_I(nProc), iStatus_II(MPI_STATUS_SIZE, nProc))
+    allocate(iRequest_I(nProc), iStatus_II(MPI_STATUS_SIZE, nProc))
 
     ! Initialize send buffers
-    allocate (Send_P(0:nProc - 1))
+    allocate(Send_P(0:nProc - 1))
     do jProc = 0, nProc - 1
       Send_P(jProc)%nRay = 0
       Send_P(jProc)%MaxRay = 0
@@ -120,7 +120,7 @@ contains
     end do
 
     ! Initialize receive buffer
-    allocate (nRayRecv_P(0:nProc - 1))
+    allocate(nRayRecv_P(0:nProc - 1))
     Recv%nRay = 0
     Recv%MaxRay = 0
     nullify (Recv%Ray_VI)
@@ -141,20 +141,20 @@ contains
     !------------------------------------------------------------------------
 
     ! Deallocate MPI variables
-    deallocate (iRequest_I, iStatus_II)
+    deallocate(iRequest_I, iStatus_II)
 
     ! Deallocate send buffers
     if (associated(Send_P)) then
       do jProc = 0, nProc - 1
         if (associated(Send_P(jProc)%Ray_VI)) &
-          deallocate (Send_P(jProc)%Ray_VI)
+          deallocate(Send_P(jProc)%Ray_VI)
       end do
     end if
-    deallocate (Send_P)
+    deallocate(Send_P)
 
     ! Deallocate recv buffer
-    if (associated(nRayRecv_P)) deallocate (nRayRecv_P)
-    if (associated(Recv%Ray_VI)) deallocate (Recv%Ray_VI)
+    if (associated(nRayRecv_P)) deallocate(nRayRecv_P)
+    if (associated(Recv%Ray_VI)) deallocate(Recv%Ray_VI)
     Recv%nRay = 0
     Recv%MaxRay = 0
 
@@ -398,15 +398,15 @@ contains
     real, pointer :: OldRay_VI(:, :)
     !------------------------------------------------------------------------
     if (.not. associated(Buffer%Ray_VI)) then
-      allocate (Buffer%Ray_VI(nRayInfo, nRayNew))    ! allocatenew buffer
+      allocate(Buffer%Ray_VI(nRayInfo, nRayNew))    ! allocatenew buffer
       Buffer%nRay = 0                            ! buffer is empty
       Buffer%MaxRay = nRayNew                      ! set buffer size
     else
       OldRay_VI => Buffer%Ray_VI                   ! store old values
-      allocate (Buffer%Ray_VI(nRayInfo, nRayNew))    ! allocate new buffer
+      allocate(Buffer%Ray_VI(nRayInfo, nRayNew))    ! allocate new buffer
       Buffer%Ray_VI(:, 1:Buffer%nRay) = &
         OldRay_VI(:, 1:Buffer%nRay)              ! copy old values
-      deallocate (OldRay_VI)                          ! free old storage
+      deallocate(OldRay_VI)                          ! free old storage
       Buffer%MaxRay = nRayNew                      ! change buffer size
     end if
 
@@ -432,9 +432,9 @@ contains
 
     call ray_init(MPI_COMM_WORLD)
 
-    if (iProc == 0) write (*, '(a,i4,i4)') 'ray_init done, iProc,nProc=', iProc, nProc
+    if (iProc == 0) write(*, '(a,i4,i4)') 'ray_init done, iProc,nProc=', iProc, nProc
 
-    write (*, "(a,i2,a,4i4,a,i2,a,3f5.0,a,f5.0,a,2l2)") &
+    write(*, "(a,i2,a,4i4,a,i2,a,3f5.0,a,f5.0,a,2l2)") &
       " Sending from iProc=", iProc, &
       " iStart=", (/110 + iProc, 120 + iProc, 130 + iProc, 140 + iProc/), &
       " to jProc=", mod(iProc + 1, nProc), &
@@ -446,7 +446,7 @@ contains
                  mod(iProc + 1, nProc), (/210.+iProc, 220.+iProc, 230.+iProc/), &
                  10.0*iProc, .true., .false.)
 
-    if (iProc == 0) write (*, "(a,i2,a,4i4,a,i2,a,3f5.0,a,f5.0,a,2l2)") &
+    if (iProc == 0) write(*, "(a,i2,a,4i4,a,i2,a,3f5.0,a,f5.0,a,2l2)") &
       " Sending from iProc=", iProc, &
       " iStart=", (/110 + iProc, 120 + iProc, 130 + iProc, 140 + iProc/), &
       " to jProc=", mod(nProc + iProc - 1, nProc), &
@@ -459,37 +459,37 @@ contains
                  10.0*iProc + 1.0, .false., .false.)
 
     do jProc = 0, nProc - 1
-      write (*, "(a,i2,i2,i4,i4,100f5.0)") 'iProc,jProc,Send_P(jProc)=', &
+      write(*, "(a,i2,i2,i4,i4,100f5.0)") 'iProc,jProc,Send_P(jProc)=', &
         iProc, jProc, Send_P(jProc)%MaxRay, &
         Send_P(jProc)%nRay, &
         Send_P(jProc)%Ray_VI(:, 1:Send_P(jProc)%nRay)
     end do
 
-    if (iProc == 0) write (*, '(a)') 'ray_put done'
+    if (iProc == 0) write(*, '(a)') 'ray_put done'
 
     call ray_exchange(.true., DoneAll)
 
-    write (*, *) 'ray_exchange done, DoneAll=', DoneAll
+    write(*, *) 'ray_exchange done, DoneAll=', DoneAll
 
     do
       call ray_get(IsFound, iProcStart, iStart_D, XyzEnd_D, Length, &
                    IsParallel, DoneRay)
       if (.not. IsFound) EXIT
-      write (*, "(a,i2,a,4i4,a,i2,a,3f5.0,a,f5.0,a,2l2)") &
+      write(*, "(a,i2,a,4i4,a,i2,a,3f5.0,a,f5.0,a,2l2)") &
         'iProc ', iProc, ' received iStart=', iStart_D, &
         ' iProcStart=', iProcStart, ' XyzEnd=', XyzEnd_D, ' Length=', Length, &
         ' Isparallel,DoneRay=', IsParallel, DoneRay
     end do
 
-    if (iProc == 0) write (*, '(a)') 'ray_get done'
+    if (iProc == 0) write(*, '(a)') 'ray_get done'
 
     call ray_exchange(.true., DoneAll)
 
-    if (iProc == 0) write (*, '(a,l1)') 'ray_exchange repeated, DoneAll=', DoneAll
+    if (iProc == 0) write(*, '(a,l1)') 'ray_exchange repeated, DoneAll=', DoneAll
 
     call ray_clean
 
-    if (iProc == 0) write (*, '(a)') 'ray_clean done'
+    if (iProc == 0) write(*, '(a)') 'ray_clean done'
 
   end subroutine ray_test
 

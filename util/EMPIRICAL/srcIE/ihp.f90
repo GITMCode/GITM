@@ -33,13 +33,13 @@ subroutine read_conductance_model(iOutputError)
       index(EIE_NameOfAuroralModel, 'hpi') > 0) then
 
     if (iDebugLevel > 2) &
-      write (*, *) '===> Reading IHP background conductance model'
+      write(*, *) '===> Reading IHP background conductance model'
 
     call merge_str(EIE_NameOfModelDir, ihp_file)
 
-    open (iunit, file=ihp_file, status='old', iostat=ierr)
+    open(iunit, file=ihp_file, status='old', iostat=ierr)
     if (ierr /= 0) then
-      write (6, *) 'Error opening file :', ihp_file
+      write(6, *) 'Error opening file :', ihp_file
       iOutputError = ecFileNotFound_
     end if
 
@@ -49,38 +49,38 @@ subroutine read_conductance_model(iOutputError)
     steplat = 2.
 
     do n = 1, 4
-      read (iunit, *) char80
+      read(iunit, *) char80
     end do
 
-    if (iDebugLevel > 2) write (*, *) "===> Hall"
-    read (iunit, *) char80
+    if (iDebugLevel > 2) write(*, *) "===> Hall"
+    read(iunit, *) char80
     do n = 1, ndx
       do ilat = latmx, 0, -1
-        read (iunit, "(15f7.0)") (halar(ilon, ilat, n), ilon=0, 14)
-        read (iunit, "(15f7.0)") (halar(ilon, ilat, n), ilon=15, 29)
+        read(iunit, "(15f7.0)") (halar(ilon, ilat, n), ilon=0, 14)
+        read(iunit, "(15f7.0)") (halar(ilon, ilat, n), ilon=15, 29)
       end do
     end do
     halar(longmx, :, :) = halar(0, :, :)
 
     halar(0:30, 0:latmx, 1:ndx) = scale*halar(0:30, 0:latmx, 1:ndx)
 
-    if (iDebugLevel > 2) write (*, *) "===> Ped"
-    read (iunit, *) char80
+    if (iDebugLevel > 2) write(*, *) "===> Ped"
+    read(iunit, *) char80
     do n = 1, ndx
       do ilat = latmx, 0, -1
-        read (iunit, "(15f7.0)") (pedar(ilon, ilat, n), ilon=0, 14)
-        read (iunit, "(15f7.0)") (pedar(ilon, ilat, n), ilon=15, 29)
+        read(iunit, "(15f7.0)") (pedar(ilon, ilat, n), ilon=0, 14)
+        read(iunit, "(15f7.0)") (pedar(ilon, ilat, n), ilon=15, 29)
       end do
     end do
     pedar(longmx, :, :) = pedar(0, :, :)
     pedar(0:30, 0:latmx, 1:ndx) = scale*pedar(0:30, 0:latmx, 1:ndx)
 
-    if (iDebugLevel > 2) write (*, *) "===> AveE"
-    read (iunit, *) char80
+    if (iDebugLevel > 2) write(*, *) "===> AveE"
+    read(iunit, *) char80
     do n = 1, ndx
       do ilat = latmx, 0, -1
-        read (iunit, "(15f7.0)") (avkar(ilon, ilat, n), ilon=0, 14)
-        read (iunit, "(15f7.0)") (avkar(ilon, ilat, n), ilon=15, 29)
+        read(iunit, "(15f7.0)") (avkar(ilon, ilat, n), ilon=0, 14)
+        read(iunit, "(15f7.0)") (avkar(ilon, ilat, n), ilon=15, 29)
         do ilon = 0, 29
           if (avkar(ilon, ilat, n) == 2855) &
             avkar(ilon, ilat, n) = ConductanceBackground(avee_)/scale
@@ -90,12 +90,12 @@ subroutine read_conductance_model(iOutputError)
     avkar(longmx, :, :) = avkar(0, :, :)
     avkar(0:30, 0:latmx, 1:ndx) = scale*avkar(0:30, 0:latmx, 1:ndx)
 
-    if (iDebugLevel > 2) write (*, *) "===> TotE"
-    read (iunit, *) char80
+    if (iDebugLevel > 2) write(*, *) "===> TotE"
+    read(iunit, *) char80
     do n = 1, ndx
       do ilat = latmx, 0, -1
-        read (iunit, "(15f7.0)") (efxar(ilon, ilat, n), ilon=0, 14)
-        read (iunit, "(15f7.0)") (efxar(ilon, ilat, n), ilon=15, 29)
+        read(iunit, "(15f7.0)") (efxar(ilon, ilat, n), ilon=0, 14)
+        read(iunit, "(15f7.0)") (efxar(ilon, ilat, n), ilon=15, 29)
       end do
 !        if (UseExperimentalCode) then
 !           do ilon=0,29
@@ -113,12 +113,12 @@ subroutine read_conductance_model(iOutputError)
     efxar(longmx, :, :) = efxar(0, :, :)
     efxar(0:30, 0:latmx, 1:ndx) = scale*efxar(0:30, 0:latmx, 1:ndx)
 
-    close (iunit)
+    close(iunit)
 
   else
 
     if (iDebugLevel > 2) &
-      write (*, *) '===> Reading PEM background conductance model'
+      write(*, *) '===> Reading PEM background conductance model'
 
     longmx = 24
     latmx = 40
@@ -127,58 +127,58 @@ subroutine read_conductance_model(iOutputError)
 
     call merge_str(EIE_NameOfModelDir, pem_file)
 
-    open (iunit, file=pem_file, status='old', iostat=ierr)
+    open(iunit, file=pem_file, status='old', iostat=ierr)
     if (ierr /= 0) then
-      write (6, *) 'Error opening file :', pem_file
+      write(6, *) 'Error opening file :', pem_file
     end if
 
     do n = 1, 4
-      read (iunit, *) char80
+      read(iunit, *) char80
     end do
 
     do n = 1, ndx
-      read (iunit, "(a80)") char80
+      read(iunit, "(a80)") char80
       do ilat = latmx, 0, -1
-        read (iunit, "(24f6.0)") (halar(ilon, ilat, n), ilon=0, 23)
+        read(iunit, "(24f6.0)") (halar(ilon, ilat, n), ilon=0, 23)
       end do
     end do
     halar(longmx, :, :) = halar(0, :, :)
     halar = scale*halar
 
     do n = 1, ndx
-      read (iunit, "(a80)") char80
+      read(iunit, "(a80)") char80
       do ilat = latmx, 0, -1
-        read (iunit, "(24f6.0)") (pedar(ilon, ilat, n), ilon=0, 23)
+        read(iunit, "(24f6.0)") (pedar(ilon, ilat, n), ilon=0, 23)
       end do
     end do
     pedar(longmx, :, :) = pedar(0, :, :)
     pedar = scale*pedar
 
     do n = 1, ndx
-      read (iunit, "(a80)") char80
+      read(iunit, "(a80)") char80
       do ilat = latmx, 0, -1
-        read (iunit, "(24f6.0)") (avkar(ilon, ilat, n), ilon=0, 23)
+        read(iunit, "(24f6.0)") (avkar(ilon, ilat, n), ilon=0, 23)
       end do
     end do
     avkar(longmx, :, :) = avkar(0, :, :)
     avkar = scale*avkar
 
     do n = 1, ndx
-      read (iunit, "(a80)") char80
+      read(iunit, "(a80)") char80
       do ilat = latmx, 0, -1
-        read (iunit, "(24f6.0)") (efxar(ilon, ilat, n), ilon=0, 23)
+        read(iunit, "(24f6.0)") (efxar(ilon, ilat, n), ilon=0, 23)
       end do
     end do
     efxar(longmx, :, :) = efxar(0, :, :)
     efxar = scale*efxar
 
-    close (iunit)
+    close(iunit)
 
   end if
 
   ! get minimum or average long. value at lowest lat.
 
-  if (iDebugLevel > 2) write (*, *) "===> Getting Minimum Conductance"
+  if (iDebugLevel > 2) write(*, *) "===> Getting Minimum Conductance"
 
   do n = 1, ndx
 
@@ -199,7 +199,7 @@ subroutine read_conductance_model(iOutputError)
 
   end do
 
-  if (iDebugLevel > 3) write (*, *) "====> Done with read_conductance_model"
+  if (iDebugLevel > 3) write(*, *) "====> Done with read_conductance_model"
 
 end subroutine read_conductance_model
 

@@ -61,7 +61,7 @@ module AB_MSG_module
     end if
 
     ! allocate and initialize current message position
-    allocate (msg%curr_out(0:max_pn), stat=ierror)
+    allocate(msg%curr_out(0:max_pn), stat=ierror)
     if (ierror .ne. 0) then
       ok = .false.
       call AB_ERROR_set("AB_MSG_create", "allocate error ", ierror)
@@ -70,7 +70,7 @@ module AB_MSG_module
     msg%curr_out = 0
 
     ! allocate outgoing message buffers
-    allocate (msg%out(0:max_pn), stat=ierror)
+    allocate(msg%out(0:max_pn), stat=ierror)
     if (ierror .ne. 0) then
       ok = .false.
       call AB_ERROR_set("AB_MSG_create", "allocate error ", ierror)
@@ -78,7 +78,7 @@ module AB_MSG_module
     end if
 
     do p = 0, max_pn
-      allocate (msg%out(p)%array(max_len(p)), stat=ierror)
+      allocate(msg%out(p)%array(max_len(p)), stat=ierror)
       if (ierror .ne. 0) then
         ok = .false.
         call AB_ERROR_set("AB_MSG_create", "allocate error ", ierror)
@@ -126,11 +126,11 @@ module AB_MSG_module
 
     ! deallocate buffers
     do p = 0, msg%max_pn
-      deallocate (msg%out(p)%array)
+      deallocate(msg%out(p)%array)
     end do
 
     ! deallocate other memory
-    deallocate (msg%curr_out)
+    deallocate(msg%curr_out)
 
   end subroutine AB_MSG_destroy
 

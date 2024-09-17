@@ -47,7 +47,7 @@ subroutine calc_rates(iBlock)
   call start_timing("calc_rates")
 
   if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
-  if (iDebugLevel > 4) write (*, *) "=====> mean major mass", iblock
+  if (iDebugLevel > 4) write(*, *) "=====> mean major mass", iblock
 
   ! We add 1 because this is in the denominator a lot, and the corners
   ! don't have anything.
@@ -209,7 +209,7 @@ subroutine calc_collisions(iBlock)
 !
 
   if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
-  if (iDebugLevel > 4) write (*, *) "=====> vin", iblock
+  if (iDebugLevel > 4) write(*, *) "=====> vin", iblock
 
   Collisions(:, :, :, iVIN_) = 2.6e-15*(mnd + Ne)/sqrt(MeanMajorMass/AMU)
 
@@ -242,7 +242,7 @@ subroutine calc_collisions(iBlock)
 !
 
   if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
-  if (iDebugLevel > 4) write (*, *) "=====> ven", iblock
+  if (iDebugLevel > 4) write(*, *) "=====> ven", iblock
 
   Te = eTemperature(:, :, :, iBlock)
   where (te == 0.0) te = 1000.0
@@ -253,7 +253,7 @@ subroutine calc_collisions(iBlock)
 !
 
   if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
-  if (iDebugLevel > 4) write (*, *) "=====> vei", iblock
+  if (iDebugLevel > 4) write(*, *) "=====> vei", iblock
 
   tmp = (34.0 + 4.18*log((TE**3.0)/(Ne*1.0e-6)))
   Collisions(:, :, :, iVEI_) = tmp*Ne*TE**(-3.0/2.0)*1.0e-6

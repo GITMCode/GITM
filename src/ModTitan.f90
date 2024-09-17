@@ -582,12 +582,12 @@ contains
     real, dimension(1:rotlines) :: junk2
     real, dimension(1:rotlines) :: junk3
 
-    open (UNIT=UnitTmp_, FILE='DataIn/NewLogIntensity_Minimal.txt', STATUS='OLD', &
-          ACTION='READ')
+    open(UNIT=UnitTmp_, FILE='DataIn/NewLogIntensity_Minimal.txt', STATUS='OLD', &
+         ACTION='READ')
 110 FORMAT(9(ES10.3, 1X))
 
     do iline = 1, rotlines
-      read (UnitTmp_, 110) &
+      read(UnitTmp_, 110) &
         pmat(iline, 1), &
         pmat(iline, 2), &
         pmat(iline, 3), &
@@ -598,14 +598,14 @@ contains
         pmat(iline, 8), &
         pmat(iline, 9)
     end do
-    close (Unit=UnitTmp_)
+    close(Unit=UnitTmp_)
 
-    open (UNIT=UnitTmp_, FILE='DataIn/New116HCNLines_Minimal.txt', STATUS='OLD', &
-          ACTION='READ')
+    open(UNIT=UnitTmp_, FILE='DataIn/New116HCNLines_Minimal.txt', STATUS='OLD', &
+         ACTION='READ')
 
 112 FORMAT(F10.6, 1X, E9.3, 1X, E9.3, 1X, F6.4, 1X, F5.3, 1X, F9.4, 1X, F4.2)
     do iline = 1, rotlines
-      read (UnitTmp_, 112) &
+      read(UnitTmp_, 112) &
         freqw(iline), &
         STref(iline), &
         Einstein(iline), &
@@ -615,7 +615,7 @@ contains
         ALPHALExp(iline)
       freqhz(iline) = Speed_Light*100.0*freqw(iline)
     end do
-    close (Unit=UnitTmp_)
+    close(Unit=UnitTmp_)
 
     Qd(1, 1) = 1.0e0
     Qd(1:2, 2) = (/.6521451548e0, .3478548451e0/)

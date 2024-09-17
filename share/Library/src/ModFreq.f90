@@ -75,12 +75,12 @@ contains
 
     if (Act%Dt <= 0.0 .and. DoTimeAccurate) then
 
-      write (*, *) NameSub, ' ERROR: Dt=', Act%Dt, ' for action ', NameAct
+      write(*, *) NameSub, ' ERROR: Dt=', Act%Dt, ' for action ', NameAct
       call CON_stop(NameSub//' Dt must be positive in time accurate mode!')
 
     else if (Act%Dn <= 0.0 .and. .not. DoTimeAccurate) then
 
-      write (*, *) NameSub, ' ERROR: Dn=', Act%Dn, ' for action ', NameAct
+      write(*, *) NameSub, ' ERROR: Dn=', Act%Dn, ' for action ', NameAct
       call CON_stop(NameSub//' Dn must be positive in steady state mode!')
 
     end if
@@ -201,7 +201,7 @@ contains
     !EOP
     !-------------------------------------------------------------------------
     !BOC
-    write (*, *) 'Testing is_time_to function'
+    write(*, *) 'Testing is_time_to function'
 
     DoTimeAccurate = .false.
 
@@ -238,7 +238,7 @@ contains
     if (any(DoAct .neqv. (/T, F, F, F, T, F, F, F, T, F/))) &
       stop 'Error with frequency 4.0 start at -100.0'
 
-    write (*, *) 'Testing adjust_freq subroutine'
+    write(*, *) 'Testing adjust_freq subroutine'
 
     Act = FreqType(.true., 10, 0.0, 0, 0.0)
     call adjust_freq(Act, 15, 0.0, DoTimeAccurate)
@@ -255,7 +255,7 @@ contains
     if (Act%nNext /= 3) &
       stop 'Error with freq=10,0.0,0,0.0 adjust_freq(0,0.0)'
 
-    write (*, *) 'Successful'
+    write(*, *) 'Successful'
 
     !EOC
 
@@ -272,9 +272,9 @@ contains
         DoAct(iAct) = is_time_to(Act, iAct, t, DoTimeAccurate)
       end do
       if (IsVerbose) then
-        write (*, *) 'DoTimeAccurate=', DoTimeAccurate
-        write (*, *) 'Act  =', Act
-        write (*, *) 'DoAct=', DoAct
+        write(*, *) 'DoTimeAccurate=', DoTimeAccurate
+        write(*, *) 'Act  =', Act
+        write(*, *) 'DoAct=', DoAct
       end if
     end subroutine check_act
 

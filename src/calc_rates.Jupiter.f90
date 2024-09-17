@@ -66,19 +66,19 @@ subroutine calc_rates(iBlock)
 
         if (.not. (Temperature(iLon, iLat, iAlt, iBlock) < 0.0) .and. &
             .not. (Temperature(iLon, iLat, iAlt, iBlock) > 0.0)) then
-          write (*, *) 'Temperature(', iLon, iLat, iAlt, iBlock, ') = ', &
+          write(*, *) 'Temperature(', iLon, iLat, iAlt, iBlock, ') = ', &
             Temperature(iLon, iLat, iAlt, iBlock)
           trouble = .true.
         elseif (Temperature(iLon, iLat, iAlt, iBlock) <= -1.0e+300) then
-          write (*, *) 'Temperature(', iLon, iLat, iAlt, iBlock, ') = ', &
+          write(*, *) 'Temperature(', iLon, iLat, iAlt, iBlock, ') = ', &
             Temperature(iLon, iLat, iAlt, iBlock)
           trouble = .true.
         elseif (Temperature(iLon, iLat, iAlt, iBlock) >= 1.0e+300) then
-          write (*, *) 'Temperature(', iLon, iLat, iAlt, iBlock, ') = ', &
+          write(*, *) 'Temperature(', iLon, iLat, iAlt, iBlock, ') = ', &
             Temperature(iLon, iLat, iAlt, iBlock)
           trouble = .true.
         elseif (Temperature(iLon, iLat, iAlt, iBlock) <= 0.0) then
-          write (*, *) 'Temperature(', iLon, iLat, iAlt, iBlock, ') = ', &
+          write(*, *) 'Temperature(', iLon, iLat, iAlt, iBlock, ') = ', &
             Temperature(iLon, iLat, iAlt, iBlock)
           trouble = .true.
         end if
@@ -86,19 +86,19 @@ subroutine calc_rates(iBlock)
         do iSpecies = 1, nSpeciesTotal
           if (.not. (NDensityS(iLon, iLat, iAlt, iSpecies, iBlock) < 0.0) .and. &
               .not. (NDensityS(iLon, iLat, iAlt, iSpecies, iBlock) > 0.0)) then
-            write (*, *) 'NDensityS(', iLon, iLat, iAlt, iSpecies, iBlock, ') = ', &
+            write(*, *) 'NDensityS(', iLon, iLat, iAlt, iSpecies, iBlock, ') = ', &
               NDensityS(iLon, iLat, iAlt, iSpecies, iBlock)
             trouble = .true.
           elseif (NDensityS(iLon, iLat, iAlt, iSpecies, iBlock) <= -1.0e+300) then
-            write (*, *) 'NDensityS(', iLon, iLat, iAlt, iSpecies, iBlock, ') = ', &
+            write(*, *) 'NDensityS(', iLon, iLat, iAlt, iSpecies, iBlock, ') = ', &
               NDensityS(iLon, iLat, iAlt, iSpecies, iBlock)
             trouble = .true.
           elseif (NDensityS(iLon, iLat, iAlt, iSpecies, iBlock) >= 1.0e+300) then
-            write (*, *) 'NDensityS(', iLon, iLat, iAlt, iSpecies, iBlock, ') = ', &
+            write(*, *) 'NDensityS(', iLon, iLat, iAlt, iSpecies, iBlock, ') = ', &
               NDensityS(iLon, iLat, iAlt, iSpecies, iBlock)
             trouble = .true.
           elseif (NDensityS(iLon, iLat, iAlt, iSpecies, iBlock) <= 0.0) then
-            write (*, *) 'NDensityS(', iLon, iLat, iAlt, iSpecies, iBlock, ') = ', &
+            write(*, *) 'NDensityS(', iLon, iLat, iAlt, iSpecies, iBlock, ') = ', &
               NDensityS(iLon, iLat, iAlt, iSpecies, iBlock)
             trouble = .true.
           end if
@@ -106,19 +106,19 @@ subroutine calc_rates(iBlock)
 
         if (.not. (NDensity(iLon, iLat, iAlt, iBlock) < 0.0) .and. &
             .not. (NDensity(iLon, iLat, iAlt, iBlock) > 0.0)) then
-          write (*, *) 'NDensity(', iLon, iLat, iAlt, iBlock, ') = ', &
+          write(*, *) 'NDensity(', iLon, iLat, iAlt, iBlock, ') = ', &
             NDensity(iLon, iLat, iAlt, iBlock)
           trouble = .true.
         elseif (NDensity(iLon, iLat, iAlt, iBlock) <= -1.0e+300) then
-          write (*, *) 'NDensity(', iLon, iLat, iAlt, iBlock, ') = ', &
+          write(*, *) 'NDensity(', iLon, iLat, iAlt, iBlock, ') = ', &
             NDensity(iLon, iLat, iAlt, iBlock)
           trouble = .true.
         elseif (NDensity(iLon, iLat, iAlt, iBlock) >= 1.0e+300) then
-          write (*, *) 'NDensity(', iLon, iLat, iAlt, iBlock, ') = ', &
+          write(*, *) 'NDensity(', iLon, iLat, iAlt, iBlock, ') = ', &
             NDensity(iLon, iLat, iAlt, iBlock)
           trouble = .true.
         elseif (NDensity(iLon, iLat, iAlt, iBlock) <= 0.0) then
-          write (*, *) 'NDensity(', iLon, iLat, iAlt, iBlock, ') = ', &
+          write(*, *) 'NDensity(', iLon, iLat, iAlt, iBlock, ') = ', &
             NDensity(iLon, iLat, iAlt, iBlock)
           trouble = .true.
         end if
@@ -130,15 +130,15 @@ subroutine calc_rates(iBlock)
   ! -------------------------------------------------------------------------------
 
   if (trouble) then
-    write (*, *) 'trouble found!!'
-    write (*, *) 'Stop GITM'
+    write(*, *) 'trouble found!!'
+    write(*, *) 'Stop GITM'
     stop
   end if
 
   ! -------------------------------------------------------------------------------
 
   if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
-  if (iDebugLevel > 4) write (*, *) "=====> mean major mass", iblock
+  if (iDebugLevel > 4) write(*, *) "=====> mean major mass", iblock
 
   !write(*,*) '==> calc_rates:  Before NDensityS Statements.'
 
@@ -278,7 +278,7 @@ subroutine calc_rates(iBlock)
   end do
   ! -------------------------------------------------------------------------------
 
-  if (iDebugLevel > 4) write (*, *) "=====> Before cp and kappatemp", iblock
+  if (iDebugLevel > 4) write(*, *) "=====> Before cp and kappatemp", iblock
 
   do iAlt = 0, nAlts + 1
 
@@ -328,7 +328,7 @@ subroutine calc_rates(iBlock)
   call end_timing("calc_rates")
 
   if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
-  if (iDebugLevel > 4) write (*, *) "=====> Done with calc_rates"
+  if (iDebugLevel > 4) write(*, *) "=====> Done with calc_rates"
 
 end subroutine calc_rates
 
@@ -378,7 +378,7 @@ subroutine calc_collisions(iBlock)
 !
 
   if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
-  if (iDebugLevel > 4) write (*, *) "=====> vin", iblock
+  if (iDebugLevel > 4) write(*, *) "=====> vin", iblock
 
   Collisions(:, :, :, iVIN_) = 2.6e-15*(mnd + Ne)/sqrt(MeanMajorMass/AMU)
 
@@ -387,7 +387,7 @@ subroutine calc_collisions(iBlock)
 !
 
   if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
-  if (iDebugLevel > 4) write (*, *) "=====> ven", iblock
+  if (iDebugLevel > 4) write(*, *) "=====> ven", iblock
 
   Te = eTemperature(:, :, :, iBlock)
   where (te == 0.0) te = 1000.0

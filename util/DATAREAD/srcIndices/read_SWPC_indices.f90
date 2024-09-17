@@ -23,7 +23,7 @@ subroutine read_SWPC_Indices(iOutputError)
   !------------------------------------------------------------------------
   iOutputError = 0
 
-  open (LunIndices_, file=NameOfIndexFile, status="old", iostat=ierror)
+  open(LunIndices_, file=NameOfIndexFile, status="old", iostat=ierror)
 
   if (ierror .ne. 0) then
     iOutputError = 1
@@ -39,11 +39,11 @@ subroutine read_SWPC_Indices(iOutputError)
   TimeDelay = 3600.0
   iSW = 1
 
-  write (*, *) "swpc indices"
+  write(*, *) "swpc indices"
 
   do while (.not. done)
 
-    read (LunIndices_, '(a)', iostat=ierror) line
+    read(LunIndices_, '(a)', iostat=ierror) line
     if (ierror .ne. 0) done = .true.
 
     if (index(line, '#------------') > 0) then
@@ -54,7 +54,7 @@ subroutine read_SWPC_Indices(iOutputError)
 
       do while (.not. done_inner)
 
-        read (LunIndices_, "(i4,2i3,i4,i2,22x,3f8.1)", iostat=iError) &
+        read(LunIndices_, "(i4,2i3,i4,i2,22x,3f8.1)", iostat=iError) &
           (iTime(j), j=1, 5), &
           Indices_TV(iIMF, imf_bx_), &
           Indices_TV(iIMF, imf_by_), &
@@ -88,9 +88,9 @@ subroutine read_SWPC_Indices(iOutputError)
 
   end do
 
-  close (LunIndices_)
+  close(LunIndices_)
 
-  open (LunIndices_, file=NameOfSecondIndexFile, status="old", iostat=ierror)
+  open(LunIndices_, file=NameOfSecondIndexFile, status="old", iostat=ierror)
 
   if (ierror .ne. 0) then
     iOutputError = 1
@@ -101,7 +101,7 @@ subroutine read_SWPC_Indices(iOutputError)
 
   do while (.not. done)
 
-    read (LunIndices_, '(a)', iostat=ierror) line
+    read(LunIndices_, '(a)', iostat=ierror) line
     if (ierror .ne. 0) done = .true.
 
     if (index(line, '#------------') > 0) then
@@ -112,7 +112,7 @@ subroutine read_SWPC_Indices(iOutputError)
 
       do while (.not. done_inner)
 
-        read (LunIndices_, "(i4,2i3,i4,i2,22x,2f11.1,e13.2)", iostat=iError) &
+        read(LunIndices_, "(i4,2i3,i4,i2,22x,2f11.1,e13.2)", iostat=iError) &
           (iTime(j), j=1, 5), &
           Indices_TV(iSW, sw_n_), &
           Indices_TV(iSW, sw_vx_), &
@@ -162,7 +162,7 @@ subroutine read_SWPC_Indices(iOutputError)
 
   end do
 
-  close (LunIndices_)
+  close(LunIndices_)
 
   nIndices_V(imf_bx_) = iIMF - 1
   nIndices_V(imf_by_) = iIMF - 1

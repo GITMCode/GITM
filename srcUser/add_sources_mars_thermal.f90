@@ -67,7 +67,7 @@ subroutine add_sources
     UserData3D(1:nLons, 1:nLats, 1:nAlts, 1, iBlock) = JouleHeating
 
     do while (minval(temperature(1:nLons, 1:nLats, 1:nAlts, iBlock)) < 0.0)
-      write (*, *) "Negative Temperature Found!!!  Correcting!!!"
+      write(*, *) "Negative Temperature Found!!!  Correcting!!!"
       do iLon = 1, nLons
         do iLat = 1, nLats
           iAlt = 1
@@ -80,7 +80,7 @@ subroutine add_sources
                 (temperature(iLon, iLat, iAlt - 1, iBlock) + &
                  temperature(iLon, iLat, iAlt + 1, iBlock))/2.0
 
-              write (*, *) "Sources : ", &
+              write(*, *) "Sources : ", &
                 temperature(iLon, iLat, iAlt, iBlock), &
                 EuvHeating(iLon, iLat, iAlt, iBlock)*dt, &
                 RadCooling(iLon, iLat, iAlt, iBlock)*dt, &
@@ -99,7 +99,7 @@ subroutine add_sources
     if (iDebugLevel > 2 .and. Is1D) then
 !        do iAlt = 1,nAlts
       iAlt = 10
-      write (*, *) "===> Temp Sources : ", iAlt, dt, &
+      write(*, *) "===> Temp Sources : ", iAlt, dt, &
         EuvHeating(1, 1, iAlt, iBlock)*dt, &
         !                NOCooling(1,1,iAlt)*dt, &
         !                OCooling(1,1,iAlt)*dt, &
@@ -112,7 +112,7 @@ subroutine add_sources
 
     iAlt = nAlts - 2
     if (iDebugLevel > 2) &
-      write (*, *) "===> Sum Temp Sources : ", &
+      write(*, *) "===> Sum Temp Sources : ", &
       sum(EuvHeating(1:nLons, 1:nLats, iAlt, iBlock))*dt, &
       sum(NOCooling(:, :, iAlt))*dt, &
       sum(OCooling(:, :, iAlt))*dt, &

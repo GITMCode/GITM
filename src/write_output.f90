@@ -26,13 +26,13 @@ subroutine write_output
   if (floor((tSimulation - dt)/DtReport) /= &
       floor((tsimulation)/DtReport) .and. iDebugLevel >= 0) then
     if (IsFramework) then
-      if (iProc == 0) write (*, "(a,i6,a,3i2.2)") "UA:GITM2 iStep ", iStep, &
+      if (iProc == 0) write(*, "(a,i6,a,3i2.2)") "UA:GITM2 iStep ", iStep, &
         ", Time : ", iTimeArray(4:6)
     else
       RealTime = get_timing("GITM")
       CompletedTime = (EndTime - CurrentTime)/(CurrentTime - RestartTime)
       ProjectedTime = RealTime*CompletedTime
-      write (*, "(a,i8,a,i4,2i2.2,a,3i2.2,a,f9.2,a,f9.2)") "iStep: ", iStep, &
+      write(*, "(a,i8,a,i4,2i2.2,a,3i2.2,a,f9.2,a,f9.2)") "iStep: ", iStep, &
         ", Time: ", iTimeArray(1:3), ' ', iTimeArray(4:6), &
         ", WallTime: ", RealTime/60.0, " min, Proj : ", &
         ProjectedTime/60.0

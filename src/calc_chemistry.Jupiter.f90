@@ -267,7 +267,7 @@ subroutine calc_chemistry(iBlock)
             Ions(nIons) = Ions(nIons) + Ions(iIon)
 
             if (Ions(iIon) < 0.0) then
-              write (*, *) "Negative Ion Density : ", &
+              write(*, *) "Negative Ion Density : ", &
                 iIon, iLon, iLat, iAlt, &
                 Ions(iIon), &
                 IonSources(iIon), IonLosses(iIon)
@@ -292,15 +292,15 @@ subroutine calc_chemistry(iBlock)
           if (DtSub < DtMin) DtMin = DtSub
 
           if (DtSub < 1.0e-9 .and. abs(DtTotal - Dt) > DtSub) then
-            write (*, *) "Chemistry is too fast!!", DtSub
+            write(*, *) "Chemistry is too fast!!", DtSub
             if (iDtReducer < nIons) then
-              write (*, *) "Ion Constituent : ", &
+              write(*, *) "Ion Constituent : ", &
                 iDtReducer, iLon, iLat, iAlt, &
                 Ions(iDtReducer), &
                 IonSources(iDtReducer), IonLosses(iDtReducer)
             else
               iDtReducer = iDtReducer - nIons
-              write (*, *) "Neutral Constituent : ", &
+              write(*, *) "Neutral Constituent : ", &
                 iDtReducer, iLon, iLat, iAlt, &
                 Ions(iDtReducer), &
                 IonSources(iDtReducer), IonLosses(iDtReducer)
@@ -325,13 +325,13 @@ subroutine calc_chemistry(iBlock)
 
   if (iDebugLevel > 3) then
     do iIon = 1, nIons
-      write (*, *) "====> Max Ion Density: ", iIon, &
+      write(*, *) "====> Max Ion Density: ", iIon, &
         maxval(IDensityS(1:nLons, 1:nLats, (nAlts*4)/5, iIon, iBlock))
     end do
   end if
 
   if (iDebugLevel > 2) &
-    write (*, *) "===> Average Dt for this timestep : ", &
+    write(*, *) "===> Average Dt for this timestep : ", &
     (Dt*nLats*nLons*nAlts)/nIters
 
   ChemicalHeatingRate(:, :, :) = &

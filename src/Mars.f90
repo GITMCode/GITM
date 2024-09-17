@@ -330,19 +330,19 @@ subroutine init_topography
   integer :: ilon, ilat, iilon, iilat, jlon, jlat, iBlock
   real :: rlat, rlon, latfind, lonfind
 
-  open (unit=iInputUnit_, file='DataIn/Mars_MOLA_topo.dat', action='read', status="old")
-  if (iDebugLevel > 4) write (*, *) "=====> Reading Topography"
+  open(unit=iInputUnit_, file='DataIn/Mars_MOLA_topo.dat', action='read', status="old")
+  if (iDebugLevel > 4) write(*, *) "=====> Reading Topography"
 
   do iLat = 1, nMOLALats
     do iLon = 1, nMOLALons
 
-      read (iInputUnit_, *) SurfaceAltitude(iLon, iLat, iNorth_), &
+      read(iInputUnit_, *) SurfaceAltitude(iLon, iLat, iNorth_), &
         SurfaceAltitude(iLon, iLat, iEast_), &
         SurfaceAltitude(iLon, iLat, iUp_)
 
     end do
   end do
-  close (iInputUnit_)
+  close(iInputUnit_)
 
   do iBlock = 1, nBlocks
     do iLon = 1, nLons

@@ -634,20 +634,20 @@ contains
     itime(6) = iVernalSecond
     call time_int_to_real(itime, VernalTime)
 
-    write (*, *) 'Reading in the Mars_input.txt'
+    write(*, *) 'Reading in the Mars_input.txt'
 
-    open (UNIT=67, FILE='UA/DataIn/ALBEDO_ASCII', &
-          STATUS='OLD', ACTION='READ')
-    read (67, *) dummyalbedo
-    close (UNIT=67)
+    open(UNIT=67, FILE='UA/DataIn/ALBEDO_ASCII', &
+         STATUS='OLD', ACTION='READ')
+    read(67, *) dummyalbedo
+    close(UNIT=67)
 
-    open (UNIT=68, FILE='UA/DataIn/THERMAL_ASCII', &
-          STATUS='OLD', ACTION='READ')
-    read (68, *) dummyti
-    close (UNIT=68)
+    open(UNIT=68, FILE='UA/DataIn/THERMAL_ASCII', &
+         STATUS='OLD', ACTION='READ')
+    read(68, *) dummyti
+    close(UNIT=68)
 
-    open (UNIT=UnitTmp_, FILE='UA/DataIn/NewMarsAtm_2p5km.txt', &
-          STATUS='OLD', ACTION='READ')
+    open(UNIT=UnitTmp_, FILE='UA/DataIn/NewMarsAtm_2p5km.txt', &
+         STATUS='OLD', ACTION='READ')
 
 111 FORMAT(F6.2, 1X, F8.2, 1X, F8.2, 1X, F8.2, 1X, &
            ES10.3, 1X, ES10.3, 1X, ES10.3, 1X, ES10.3, 1X, &
@@ -658,7 +658,7 @@ contains
 
     do iiAlt = 1, 124
 
-      read (UnitTmp_, 111) &
+      read(UnitTmp_, 111) &
         newalt(iiAlt), &
         InTemp(iiAlt), &
         InITemp(iiAlt), &
@@ -676,7 +676,7 @@ contains
     end do
 
     InNDensityS = Alog(inNDensityS)
-    close (Unit=UnitTmp_)
+    close(Unit=UnitTmp_)
 
     !######## Nelli, April 07 ################################
     !
@@ -840,7 +840,7 @@ contains
       SOLARF(N) = SOLAR(N)
       sum = sum + SOLARF(N)
     end do
-    write (6, '("Solar flux at 1AU = ",f7.2," W/M^2")') sum
+    write(6, '("Solar flux at 1AU = ",f7.2," W/M^2")') sum
 
 !C     Set up the wavelength dependent part of Rayleigh Scattering.
 !C     The pressure dependent part will be computed elsewhere (OPTCV).
@@ -1196,14 +1196,14 @@ contains
 
 !C     Get CO2 k coefficients
 
-    OPEN (Unit=25, file='UA/DataIn/CO2H2O_V_12_95_ASCII', ACTION='READ')
+    OPEN(Unit=25, file='UA/DataIn/CO2H2O_V_12_95_ASCII', ACTION='READ')
 
     DO i = 1, L_NTREF
       DO j = 1, L_NPREF
         DO k = 1, L_REFH2O
           DO l = 1, L_NSPECTV
             DO m = 1, L_NGAUSS
-              read (25, *) co2v8(i, j, k, l, m)
+              read(25, *) co2v8(i, j, k, l, m)
             END DO
           END DO
         END DO
@@ -1211,18 +1211,18 @@ contains
     END DO
 
     DO i = 1, L_NSPECTV
-      read (25, *) fzerov(i)
+      read(25, *) fzerov(i)
     END DO
-    CLOSE (25)
+    CLOSE(25)
 
-    OPEN (unit=35, file='UA/DataIn/CO2H2O_IR_12_95_ASCII', ACTION='READ')
+    OPEN(unit=35, file='UA/DataIn/CO2H2O_IR_12_95_ASCII', ACTION='READ')
 
     DO i = 1, L_NTREF
       DO j = 1, L_NPREF
         DO k = 1, L_REFH2O
           DO l = 1, L_NSPECTI
             DO m = 1, L_NGAUSS
-              read (35, *) co2i8(i, j, k, l, m)
+              read(35, *) co2i8(i, j, k, l, m)
             END DO
           END DO
         END DO
@@ -1230,9 +1230,9 @@ contains
     END DO
 
     DO i = 1, L_NSPECTI
-      read (35, *) fzeroi(i)
+      read(35, *) fzeroi(i)
     END DO
-    CLOSE (35)
+    CLOSE(35)
 
 !!$      print*,'co2v8(3,4,1,3,2) = ',co2v8(3,4,1,3,2)
 !!$      print*,'co2v8(1,2,3,4,5) = ',co2v8(1,2,3,4,5)

@@ -94,9 +94,9 @@ subroutine report_error_and_crash(iError, StringSource)
   character(len=*) :: StringSource
 
   if (iError /= 0) then
-    write (*, *) "Error in AMIE_Library!"
-    write (*, *) "Source : ", StringSource
-    write (*, *) cErrorCodes(iError)
+    write(*, *) "Error in AMIE_Library!"
+    write(*, *) "Source : ", StringSource
+    write(*, *) cErrorCodes(iError)
     isOk = .false.
   end if
 

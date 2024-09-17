@@ -19,15 +19,15 @@ subroutine check_for_nans_ions(cMarker)
       do iAlt = -1, nAlts + 2
         do iIon = 1, nIons
           if (isnan(iDensityS(iLon, iLat, iAlt, iIon, 1))) then
-            write (*, *) 'Nan found in iDensityS : '
-            write (*, *) cMarker
-            write (*, *) iLon, iLat, iAlt, iProc, iIon
+            write(*, *) 'Nan found in iDensityS : '
+            write(*, *) cMarker
+            write(*, *) iLon, iLat, iAlt, iProc, iIon
             IsFound = .true.
           end if
           if (iDensityS(iLon, iLat, iAlt, iIon, 1) < 0.0) then
-            write (*, *) 'Negative density found in iDensityS : '
-            write (*, *) cMarker
-            write (*, *) iLon, iLat, iAlt, iProc, iIon
+            write(*, *) 'Negative density found in iDensityS : '
+            write(*, *) cMarker
+            write(*, *) iLon, iLat, iAlt, iProc, iIon
             IsFound = .true.
           end if
         end do
@@ -57,15 +57,15 @@ subroutine check_for_nans_neutrals(cMarker)
       do iAlt = -1, nAlts + 2
         do iNeu = 1, nSpecies
           if (isnan(nDensityS(iLon, iLat, iAlt, iNeu, 1))) then
-            write (*, *) 'Nan found in nDensityS : '
-            write (*, *) cMarker
-            write (*, *) iLon, iLat, iAlt, iProc, iNeu
+            write(*, *) 'Nan found in nDensityS : '
+            write(*, *) cMarker
+            write(*, *) iLon, iLat, iAlt, iProc, iNeu
             IsFound = .true.
           end if
           if (nDensityS(iLon, iLat, iAlt, iNeu, 1) < 0.0) then
-            write (*, *) 'Negative density found in nDensityS : '
-            write (*, *) cMarker
-            write (*, *) iLon, iLat, iAlt, iProc, iNeu
+            write(*, *) 'Negative density found in nDensityS : '
+            write(*, *) cMarker
+            write(*, *) iLon, iLat, iAlt, iProc, iNeu
             IsFound = .true.
           end if
         end do
@@ -94,40 +94,40 @@ subroutine check_for_nans_temps(cMarker)
     do iLat = -1, nLats + 2
       do iAlt = -1, nAlts + 2
         if (isnan(Temperature(iLon, iLat, iAlt, 1))) then
-          write (*, *) 'Nan found in Temperature : '
-          write (*, *) cMarker
-          write (*, *) iLon, iLat, iAlt, iProc
+          write(*, *) 'Nan found in Temperature : '
+          write(*, *) cMarker
+          write(*, *) iLon, iLat, iAlt, iProc
           IsFound = .true.
         end if
         if (isnan(iTemperature(iLon, iLat, iAlt, 1))) then
-          write (*, *) 'Nan found in iTemperature : '
-          write (*, *) cMarker
-          write (*, *) iLon, iLat, iAlt, iProc
+          write(*, *) 'Nan found in iTemperature : '
+          write(*, *) cMarker
+          write(*, *) iLon, iLat, iAlt, iProc
           IsFound = .true.
         end if
         if (isnan(eTemperature(iLon, iLat, iAlt, 1))) then
-          write (*, *) 'Nan found in eTemperature : '
-          write (*, *) cMarker
-          write (*, *) iLon, iLat, iAlt, iProc
+          write(*, *) 'Nan found in eTemperature : '
+          write(*, *) cMarker
+          write(*, *) iLon, iLat, iAlt, iProc
           IsFound = .true.
         end if
         ! Check for negative Temperatures:
         if (Temperature(iLon, iLat, iAlt, 1) < 0.0) then
-          write (*, *) 'Negative found in Temperature : '
-          write (*, *) cMarker
-          write (*, *) iLon, iLat, iAlt, iProc
+          write(*, *) 'Negative found in Temperature : '
+          write(*, *) cMarker
+          write(*, *) iLon, iLat, iAlt, iProc
           IsFound = .true.
         end if
         if (iTemperature(iLon, iLat, iAlt, 1) < 0.0) then
-          write (*, *) 'Negative found in iTemperature : '
-          write (*, *) cMarker
-          write (*, *) iLon, iLat, iAlt, iProc
+          write(*, *) 'Negative found in iTemperature : '
+          write(*, *) cMarker
+          write(*, *) iLon, iLat, iAlt, iProc
           IsFound = .true.
         end if
         if (eTemperature(iLon, iLat, iAlt, 1) < 0.0) then
-          write (*, *) 'Negative found in eTemperature : '
-          write (*, *) cMarker
-          write (*, *) iLon, iLat, iAlt, iProc
+          write(*, *) 'Negative found in eTemperature : '
+          write(*, *) cMarker
+          write(*, *) iLon, iLat, iAlt, iProc
           IsFound = .true.
         end if
       end do

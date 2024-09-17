@@ -16,7 +16,7 @@ subroutine overwrite_ionosphere
   integer :: iBlock
 
   if (DoOverwriteWithIRI) then
-    if (iProc == 0) write (*, *) 'Overwriting Ionosphere with IRI!'
+    if (iProc == 0) write(*, *) 'Overwriting Ionosphere with IRI!'
     ! This doesn't include the velocities
     call init_iri
   else
@@ -68,14 +68,14 @@ subroutine ionosphere_overwrite_sami(iBlock)
     nPoints = (nLons + 4)*(nLats + 4)*(nAlts)
     call SamiSetnPointsToGet(nPoints)
 
-    allocate (SamiVars(nVars))
-    allocate (SamiFileData(nPoints, nVars))
+    allocate(SamiVars(nVars))
+    allocate(SamiFileData(nPoints, nVars))
 
     call SamiGetVars(SamiVars)
 
-    allocate (GitmLons(nPoints))
-    allocate (GitmLats(nPoints))
-    allocate (GitmAlts(nPoints))
+    allocate(GitmLons(nPoints))
+    allocate(GitmLats(nPoints))
+    allocate(GitmAlts(nPoints))
 
     iPoint = 1
 
@@ -115,7 +115,7 @@ subroutine ionosphere_overwrite_sami(iBlock)
       do iLat = -1, nLats + 2
         do iAlt = 1, nAlts
           GitmLons(iPoint) = LocalTime(iLon)*15.0
-          if (iAlt == 1 .and. iLat == 1) write (*, *) iLon, LocalTime(iLon), GitmLons(iPoint)
+          if (iAlt == 1 .and. iLat == 1) write(*, *) iLon, LocalTime(iLon), GitmLons(iPoint)
           iPoint = iPoint + 1
         end do
       end do

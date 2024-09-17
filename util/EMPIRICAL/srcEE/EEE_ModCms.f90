@@ -76,21 +76,21 @@ contains
     B_D = 0.0
 
     if (IsFirst) then
-      allocate (CmsData(nLevelCms))
+      allocate(CmsData(nLevelCms))
 
       ! CMS domain is split in nLevelCms overlapping domains
       do iLevel = 1, nLevelCms
-        write (NameCmsFileOut, '(a,i1.1,a)') &
+        write(NameCmsFileOut, '(a,i1.1,a)') &
           trim(NameCmsFile)//'_', iLevel - 1, '.out'
 
         call read_plot_file(NameCmsFileOut, nOut_D=CmsData(iLevel)%nCms_D)
 
         n_D = CmsData(iLevel)%nCms_D
 
-        allocate (CmsData(iLevel)%CoordCms1_I(n_D(1)))
-        allocate (CmsData(iLevel)%CoordCms2_I(n_D(2)))
-        allocate (CmsData(iLevel)%CoordCms3_I(n_D(3)))
-        allocate (CmsData(iLevel)%VarCms_VIII(3, n_D(1), n_D(2), n_D(3)))
+        allocate(CmsData(iLevel)%CoordCms1_I(n_D(1)))
+        allocate(CmsData(iLevel)%CoordCms2_I(n_D(2)))
+        allocate(CmsData(iLevel)%CoordCms3_I(n_D(3)))
+        allocate(CmsData(iLevel)%VarCms_VIII(3, n_D(1), n_D(2), n_D(3)))
 
         call read_plot_file(NameCmsFileOut, &
                             Coord1Out_I=CmsData(iLevel)%CoordCms1_I, &

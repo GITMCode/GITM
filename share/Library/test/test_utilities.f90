@@ -16,7 +16,7 @@ subroutine CON_stop(StringError)
 
   character(len=*), intent(in) :: StringError
 
-  write (*, '(a)') 'ERROR: '//StringError
-  write (*, '(a)') 'Do not actually stop in the test'
+  write(*, '(a)') 'ERROR: '//StringError
+  write(*, '(a)') 'Do not actually stop in the test'
 
 end subroutine CON_stop

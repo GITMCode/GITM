@@ -24,7 +24,7 @@ subroutine read_f107(iOutputError)
 
   iOutputError = 0
 
-  open (LunIndices_, file=NameOfIndexFile, status="old", iostat=ierror)
+  open(LunIndices_, file=NameOfIndexFile, status="old", iostat=ierror)
 
   if (ierror .ne. 0) then
     iOutputError = 1
@@ -32,14 +32,14 @@ subroutine read_f107(iOutputError)
   end if
 
   do iPt = 1, 15
-    read (LunIndices_, *) line
+    read(LunIndices_, *) line
   end do
 
   done = .false.
 
   iPt = 1
   do while (.not. done)
-    read (LunIndices_, '(f4.0,5(1x,f2.0),1x,f3.0)', iostat=ierror) tmp
+    read(LunIndices_, '(f4.0,5(1x,f2.0),1x,f3.0)', iostat=ierror) tmp
     tmp_all(1:5, iPt) = tmp(1:5)
     tmp_all(6, iPt) = tmp(7)
     if (ierror /= 0) then
@@ -50,6 +50,6 @@ subroutine read_f107(iOutputError)
   npts = iPt - 1
 
   call Insert_into_Indices_Array(tmp_all, f107_)
-  close (LunIndices_)
+  close(LunIndices_)
 
 end subroutine read_f107

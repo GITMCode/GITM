@@ -59,11 +59,11 @@ subroutine init_msis
   integer :: iiLon, iiLat, iiAlt
   integer :: iLon, iLat, iAlt, iSpecies, iIon
 
-  write (*, *) "here!"
+  write(*, *) "here!"
 
   do iBlock = 1, nBlocks
 
-    write (*, *) '==> Now Initializing Mars Background Composition', iBlock
+    write(*, *) '==> Now Initializing Mars Background Composition', iBlock
 
 !\
 ! Initializes the Planet with the same Chemistry as Above
@@ -116,7 +116,7 @@ subroutine init_msis
       end do! end iLon loop
     end do ! end iLat loop
 
-    write (*, *) '============> init_msis.Mars.f90 Major Diagnostics:  Begin'
+    write(*, *) '============> init_msis.Mars.f90 Major Diagnostics:  Begin'
 
     where (NDensityS < 1.0e+03)
       NDensityS = 1.0e+03
@@ -266,7 +266,7 @@ subroutine init_msis
       MeanMajorMass(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2)* &
       NDensity(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, iBlock)
 
-    write (*, *) '==> Now Completing Mars Background Composition: END', iBlock
+    write(*, *) '==> Now Completing Mars Background Composition: END', iBlock
 
   end do
 
@@ -275,9 +275,9 @@ end subroutine init_msis
 subroutine msis_bcs(iJulianDay, UTime, Alt, Lat, Lon, Lst, &
                     F107A, F107, AP, LogNS, Temp, LogRho)
 
-  write (*, *) "You can not use MSIS with any planet except Earth!!!"
-  write (*, *) "If you ARE running Earth, then make the code again, using"
-  write (*, *) "configure Earth ; make"
+  write(*, *) "You can not use MSIS with any planet except Earth!!!"
+  write(*, *) "If you ARE running Earth, then make the code again, using"
+  write(*, *) "configure Earth ; make"
   call stop_gitm("I can not continue...")
 
 end subroutine msis_bcs

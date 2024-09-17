@@ -28,7 +28,7 @@ program GetEIE
   Lines(10) = ""
   Lines(11) = "#END"
 
-  write (*, *) "Calling EIE_set_inputs"
+  write(*, *) "Calling EIE_set_inputs"
 
   call EIE_set_inputs(Lines)
 
@@ -40,15 +40,15 @@ program GetEIE
   itime(6) = 0
   itime(7) = 0
 
-  write (*, *) "Calling time convertion"
+  write(*, *) "Calling time convertion"
 
   call time_int_to_real(itime, rtime)
 
-  write (*, *) "=> Setting up Ionospheric Electrodynamics"
+  write(*, *) "=> Setting up Ionospheric Electrodynamics"
 
   call EIE_Initialize(iError)
 
-  write (*, *) "Setting nmlts and nlats"
+  write(*, *) "Setting nmlts and nlats"
 
   call IO_SetnMLTs(25)
   call IO_SetnLats(1)
@@ -67,16 +67,16 @@ program GetEIE
     mlts(i, 1) = float(i)
   end do
 
-  write (*, *) "Setting grid"
+  write(*, *) "Setting grid"
 
   call IO_SetGrid(mlts, lats, iError)
 
   call IO_GetPotential(TempPotential, iError)
 
   if (iError /= 0) then
-    write (*, *) "Error : ", cErrorCodes(iError)
+    write(*, *) "Error : ", cErrorCodes(iError)
   else
-    write (*, *) TempPotential
+    write(*, *) TempPotential
   end if
 
   call EIE_End(iError)

@@ -74,7 +74,7 @@ subroutine calc_timestep_horizontal
                      iCommGITM, iError)
 
   if (iDebugLevel > 2) &
-    write (*, *) "===> DtVertical, DtHorizontal : ", Dt, DtHorizontal
+    write(*, *) "===> DtVertical, DtHorizontal : ", Dt, DtHorizontal
 
   Dt = min(Dt, DtHorizontal)
 
@@ -147,10 +147,10 @@ subroutine calc_timestep_vertical
   Dt = min(Dt, DtVertical)
 
   if (iDebugLevel > 2) &
-    write (*, *) "===> DtVertical : ", Dt
+    write(*, *) "===> DtVertical : ", Dt
 
   if (dt < cfl/100.0 .and. dt < 0.99*DtEnd) then
-    write (*, *) "Dt too slow!!!", dt
+    write(*, *) "Dt too slow!!!", dt
     call stop_gitm("Stopping in calc_timestep_vertical")
   end if
 

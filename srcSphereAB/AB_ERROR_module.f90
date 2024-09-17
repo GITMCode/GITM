@@ -38,7 +38,7 @@ contains
     character(len=100) :: s_i
 
     ! convert integer to string
-    write (s_i, *) i
+    write(s_i, *) i
 
     ! construct error message
     error_msg = msg//trim(s_i)
@@ -50,8 +50,8 @@ contains
 
   subroutine AB_ERROR_write()
 
-    write (*, *) "Error: ", trim(error_msg)
-    write (*, *) "In subroutine: ", trim(error_loc)
+    write(*, *) "Error: ", trim(error_msg)
+    write(*, *) "In subroutine: ", trim(error_loc)
 
   end subroutine AB_ERROR_write
 

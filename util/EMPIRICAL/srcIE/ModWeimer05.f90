@@ -43,34 +43,34 @@ contains
     integer :: csize_rd, d1_rd, d2_rd
 !
 !  PRINT *,infile
-    open (lu, file=infile, status='old')
-    read (lu, "(a)") fname
-    read (lu, "(28i3)") ab
-    read (lu, "(3i3)") csize_rd, d1_rd, d2_rd
+    open(lu, file=infile, status='old')
+    read(lu, "(a)") fname
+    read(lu, "(28i3)") ab
+    read(lu, "(3i3)") csize_rd, d1_rd, d2_rd
     if (csize_rd /= csize) then
-      write (6, "('>>> read_potential: file ',a,': incompatable csize: ',&
+      write(6, "('>>> read_potential: file ',a,': incompatable csize: ',&
         &'csize_rd=',i4,' csize=',i4)") fname, csize_rd, csize
       stop 'csize'
     end if
     if (d1_rd /= d1_pot) then
-      write (6, "('>>> read_potential: file ',a,': incompatable d1: ',&
+      write(6, "('>>> read_potential: file ',a,': incompatable d1: ',&
         &'d1_rd=',i4,' d1_pot=',i4)") fname, d1_rd, d1_pot
       stop 'd1'
     end if
     if (d2_rd /= d2_pot) then
-      write (6, "('>>> read_potential: file ',a,': incompatable d2: ',&
+      write(6, "('>>> read_potential: file ',a,': incompatable d2: ',&
         &'d2_rd=',i4,' d2_pot=',i4)") fname, d2_rd, d2_pot
       stop 'd2'
     end if
     do i = 1, csize
-      read (lu, "(6e20.9)") alschfits(:, i)
+      read(lu, "(6e20.9)") alschfits(:, i)
     end do
-    read (lu, "(2f10.3)") ex_pot
-    read (lu, "(28i3)") ls
-    read (lu, "(2i3)") maxl_pot, maxm_pot
-    read (lu, "(28i3)") ms
+    read(lu, "(2f10.3)") ex_pot
+    read(lu, "(28i3)") ls
+    read(lu, "(2i3)") maxl_pot, maxm_pot
+    read(lu, "(28i3)") ms
     do i = 1, csize
-      read (lu, "(6e20.9)") schfits(:, i)
+      read(lu, "(6e20.9)") schfits(:, i)
     end do
 
 !  write(6,"(/,'read_potential: Opened file ',a)") infile
@@ -88,7 +88,7 @@ contains
 ! do i=1,csize
 !   write(6,"('i=',i3,' schfits(:,i)=',/,(6e20.9))") i,schfits(:,i)
 ! enddo
-    close (lu)
+    close(lu)
 !  write(6,"('read_potential: Closed file ',a)") infile
   end subroutine read_potential
 !-----------------------------------------------------------------------
@@ -107,15 +107,15 @@ contains
     character(len=16) :: fname
     integer :: i, j, lu = 20
 !
-    open (lu, file=infile, status='old')
-    read (lu, "(a)") fname
-    read (lu, "(2i3)") maxk_scha, maxm_scha
+    open(lu, file=infile, status='old')
+    read(lu, "(a)") fname
+    read(lu, "(2i3)") maxk_scha, maxm_scha
     do i = 1, d3_scha
       do j = 1, d2_scha
-        read (lu, "(6e20.9)") allnkm(:, j, i)
+        read(lu, "(6e20.9)") allnkm(:, j, i)
       end do
     end do
-    read (lu, "(8f10.4)") th0s
+    read(lu, "(8f10.4)") th0s
 !
 ! write(6,"(/,'read_schatable: Opened file ',a)") infile
 ! write(6,"('maxk_scha=',i4,' maxm_scha=',i4)") maxk_scha,maxm_scha
@@ -126,7 +126,7 @@ contains
 !   enddo
 ! enddo
 ! write(6,"('th0s=',/,(8f10.4))") th0s
-    close (lu)
+    close(lu)
 ! write(6,"('read_schatable: Closed file ',a)") infile
   end subroutine read_schatable
 !-----------------------------------------------------------------------
@@ -145,29 +145,29 @@ contains
     character(len=16) :: fname
     integer :: rd_na, rd_nb, lu = 20
 !
-    open (lu, file=infile, status='old')
-    read (lu, "(a)") fname
-    read (lu, "(2i3)") rd_na, rd_nb
+    open(lu, file=infile, status='old')
+    read(lu, "(a)") fname
+    read(lu, "(2i3)") rd_na, rd_nb
     if (rd_na /= na) then
-      write (6, "('>>> read_potential: file ',a,': incompatable na: ',&
+      write(6, "('>>> read_potential: file ',a,': incompatable na: ',&
         &'rd_na=',i4,' na=',i4)") fname, rd_na, na
       stop 'na'
     end if
     if (rd_nb /= nb) then
-      write (6, "('>>> read_potential: file ',a,': incompatable nb: ',&
+      write(6, "('>>> read_potential: file ',a,': incompatable nb: ',&
         &'rd_nb=',i4,' nb=',i4)") fname, rd_nb, nb
       stop 'nb'
     end if
-    read (lu, "(8e20.9)") bndya
-    read (lu, "(8e20.9)") bndyb
-    read (lu, "(8e20.9)") ex_bndy
+    read(lu, "(8e20.9)") bndya
+    read(lu, "(8e20.9)") bndyb
+    read(lu, "(8e20.9)") ex_bndy
 !
 ! write(6,"(/,'read_bndy: Opened file ',a)") infile
 ! write(6,"('na=',i3,' nb=',i3)") na,nb
 ! write(6,"('bndya=',/,(8e20.9))") bndya
 ! write(6,"('bndyb=',/,(8e20.9))") bndyb
 ! write(6,"('ex_bndy=',(8e20.9))") ex_bndy
-    close (lu)
+    close(lu)
 ! write(6,"('read_bndy: Closed file ',a)") infile
   end subroutine read_bndy
 !-----------------------------------------------------------------------
@@ -208,8 +208,8 @@ contains
     real :: cfits(d1_pot, csize), a(d1_pot)
 !
     if (trim(model) /= 'epot' .and. trim(model) /= 'bpot') then
-      write (6, "('>>> model=',a)") trim(model)
-      write (6, "('>>> setmodel: model must be either epot or bpot')")
+      write(6, "('>>> model=',a)") trim(model)
+      write(6, "('>>> setmodel: model must be either epot or bpot')")
       stop 'setmodel'
     end if
 
@@ -465,7 +465,7 @@ contains
     if (prevth0 /= th0) then
       tablesize = 3*nint(th0)
       if (tablesize > mxtablesize) then
-        write (6, "('>>> tablesize > mxtablesize: tablesize=',i5,&
+        write(6, "('>>> tablesize > mxtablesize: tablesize=',i5,&
           &' mxtablesize=',i5,' tn0=',e12.4)") tablesize, mxtablesize, th0
         stop 'tablesize'
       end if
@@ -640,15 +640,15 @@ contains
     kk = k + 1
     mm = m + 1
     if (kk > maxk_scha) then
-      write (6, "('>>> nkmlookup: kk > maxk: kk=',i4,' maxk=',i4)") kk, maxk_scha
+      write(6, "('>>> nkmlookup: kk > maxk: kk=',i4,' maxk=',i4)") kk, maxk_scha
       call interpol_quad(allnkm(maxk_scha, mm, :), th0s, th0a, out)
     end if
     if (mm > maxm_scha) then
-      write (6, "('>>> nkmlookup: mm > maxm: kk=',i4,' maxm=',i4)") kk, maxm_scha
+      write(6, "('>>> nkmlookup: mm > maxm: kk=',i4,' maxm=',i4)") kk, maxm_scha
       call interpol_quad(allnkm(kk, maxm_scha, :), th0s, th0a, out)
     end if
     if (th0 < th0s(1)) then
-      write (6, "('>>> nkmlookup: th0 < th0s(1): th0=',e12.4,' th0s(1)=',e12.4)") &
+      write(6, "('>>> nkmlookup: th0 < th0s(1): th0=',e12.4,' th0s(1)=',e12.4)") &
         th0, th0s(1)
     end if
 
@@ -738,7 +738,7 @@ contains
     nx = size(x)
     nu = size(u)
     if (nx /= nv) then
-      write (6, "('>>> interpol_quad: nx /= nv: nx=',i4,' nv=',i4)") nx, nv
+      write(6, "('>>> interpol_quad: nx /= nv: nx=',i4,' nv=',i4)") nx, nv
       p(:) = 0.
       return
     end if
@@ -819,7 +819,7 @@ contains
     integer, intent(in) :: n
     integer :: m
     if (n <= 0) then
-      write (6, "('>>> factorial: n must be positive: n=',i4)") n
+      write(6, "('>>> factorial: n must be positive: n=',i4)") n
       factorial = 0.
       return
     end if

@@ -30,9 +30,9 @@ subroutine read_OMNIWEB_Ap_Indices_new(iOutputError, StartTime, EndTime)
 
   !write(*,*) "-->",NameOfIndexFile,"<--"
 
-  open (LunIndices_, file=NameOfIndexFile, status="old", iostat=ierror)
+  open(LunIndices_, file=NameOfIndexFile, status="old", iostat=ierror)
 
-  write (*, *) 'open : ', ierror
+  write(*, *) 'open : ', ierror
   if (ierror .ne. 0) then
     iOutputError = 1
     return
@@ -45,7 +45,7 @@ subroutine read_OMNIWEB_Ap_Indices_new(iOutputError, StartTime, EndTime)
 
   do while (.not. done)
 
-    read (LunIndices_, *, iostat=iError) iYear, iDay, iHour, Ap
+    read(LunIndices_, *, iostat=iError) iYear, iDay, iHour, Ap
 
     if (ierror /= 0) then
       done = .true.
@@ -83,7 +83,7 @@ subroutine read_OMNIWEB_Ap_Indices_new(iOutputError, StartTime, EndTime)
 
   end do
 
-  close (LunIndices_)
+  close(LunIndices_)
 
   nIndices_V(ap_) = iAp - 2
 

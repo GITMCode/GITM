@@ -233,19 +233,19 @@ contains
 
     nPointsToGetGitm = nPointsToGet
 
-    allocate (GitmInLons(nPointsToGet))
-    allocate (GitmInLats(nPointsToGet))
-    allocate (GitmInAlts(nPointsToGet))
+    allocate(GitmInLons(nPointsToGet))
+    allocate(GitmInLats(nPointsToGet))
+    allocate(GitmInAlts(nPointsToGet))
 
-    allocate (GitmLonsIndex(nPointsToGet))
-    allocate (GitmLatsIndex(nPointsToGet))
-    allocate (GitmAltsIndex(nPointsToGet))
+    allocate(GitmLonsIndex(nPointsToGet))
+    allocate(GitmLatsIndex(nPointsToGet))
+    allocate(GitmAltsIndex(nPointsToGet))
 
-    allocate (GitmLonsFactor(nPointsToGet))
-    allocate (GitmLatsFactor(nPointsToGet))
-    allocate (GitmAltsFactor(nPointsToGet))
+    allocate(GitmLonsFactor(nPointsToGet))
+    allocate(GitmLatsFactor(nPointsToGet))
+    allocate(GitmAltsFactor(nPointsToGet))
 
-    allocate (GitmOutData(nPointsToGet, nVarsGitm))
+    allocate(GitmOutData(nPointsToGet, nVarsGitm))
 
   end subroutine GitmSetnPointsToGet
 
@@ -262,12 +262,12 @@ contains
 
     if (GitmFileTimes(1) > InputTime) then
       iError = 1
-      write (*, *) "Requested time is before first file!"
+      write(*, *) "Requested time is before first file!"
       return
     end if
     if (GitmFileTimes(nGitmFiles) < InputTime) then
       iError = 1
-      write (*, *) "Requested time is after last file!"
+      write(*, *) "Requested time is after last file!"
       return
     end if
 
@@ -281,13 +281,13 @@ contains
 
     if (iGitmIndex /= iGitmIndexOld) then
 
-      write (*, *) 'Updating GITM files!'
+      write(*, *) 'Updating GITM files!'
 
-      write (*, *) 'Reading First File : ', GitmFileList(iGitmIndex - 1)
+      write(*, *) 'Reading First File : ', GitmFileList(iGitmIndex - 1)
       call GitmReadFile(GitmFileList(iGitmIndex - 1), iError)
       GitmDataTwoFiles(1, :, :, :, :) = GitmDataDummy
 
-      write (*, *) 'Reading Second File : ', GitmFileList(iGitmIndex)
+      write(*, *) 'Reading Second File : ', GitmFileList(iGitmIndex)
       call GitmReadFile(GitmFileList(iGitmIndex), iError)
       GitmDataTwoFiles(2, :, :, :, :) = GitmDataDummy
 
@@ -314,42 +314,42 @@ contains
     iError = 0
 
     ! First try 3DALL files:
-    write (*, *) 'ls -1 '//trim(GitmDir)//'3DALL*.bin > .list_of_gitm_files 2> .gitm_err'
+    write(*, *) 'ls -1 '//trim(GitmDir)//'3DALL*.bin > .list_of_gitm_files 2> .gitm_err'
     call system('ls -1 '//trim(GitmDir)//'3DALL*.bin > .list_of_gitm_files 2> .gitm_err')
     nGitmFiles = 0
-    open (iGitmUnit, file='.list_of_gitm_files', status='old')
+    open(iGitmUnit, file='.list_of_gitm_files', status='old')
     iError = 0
     do while (iError == 0)
-      read (iGitmUnit, '(a)', iostat=iError) Dummy
-      write (*, *) 'dummy : ', dummy
+      read(iGitmUnit, '(a)', iostat=iError) Dummy
+      write(*, *) 'dummy : ', dummy
       if (iError == 0) nGitmFiles = nGitmFiles + 1
     end do
-    close (iGitmUnit)
+    close(iGitmUnit)
 
     if (nGitmFiles == 0) then
       ! Second try LST files:
       call system('ls -1 '//GitmDir//'3DLST*.bin > .list_of_gitm_files 2> .gitm_err')
       nGitmFiles = 0
-      open (iGitmUnit, file='.list_of_gitm_files', status='old')
+      open(iGitmUnit, file='.list_of_gitm_files', status='old')
       iError = 0
       do while (iError == 0)
-        read (iGitmUnit, '(a)', iostat=iError) Dummy
+        read(iGitmUnit, '(a)', iostat=iError) Dummy
         if (iError == 0) nGitmFiles = nGitmFiles + 1
       end do
-      close (iGitmUnit)
+      close(iGitmUnit)
       iGitmFileType = i3dlst_
     end if
 
-    write (*, *) "nGitmFiles : ", nGitmFiles
-    write (*, *) "Filetype : ", iGitmFileType
+    write(*, *) "nGitmFiles : ", nGitmFiles
+    write(*, *) "Filetype : ", iGitmFileType
 
-    open (iGitmUnit, file='.list_of_gitm_files', status='old')
+    open(iGitmUnit, file='.list_of_gitm_files', status='old')
     do iFile = 1, nGitmFiles
-      read (iGitmUnit, '(a)', iostat=iError) GitmFileList(iFile)
+      read(iGitmUnit, '(a)', iostat=iError) GitmFileList(iFile)
       call GetGitmTime(GitmFileList(iFile), time)
       GitmFileTimes(iFile) = time
     end do
-    close (iGitmUnit)
+    close(iGitmUnit)
 
     if (nGitmFiles == 0) iError = 1
 
@@ -370,16 +370,16 @@ contains
     integer :: iYear, iMonth, iDay, iHour, iMinute, iSecond, iMilli
     integer, dimension(7) :: iTime
 
-    open (iInputUnit_, file=file, status="old", form="unformatted")
+    open(iInputUnit_, file=file, status="old", form="unformatted")
 
-    read (iInputUnit_) Version
-    read (iInputUnit_) nLons, nLats, nAlts
-    read (iInputUnit_) nVars
+    read(iInputUnit_) Version
+    read(iInputUnit_) nLons, nLats, nAlts
+    read(iInputUnit_) nVars
     do iVar = 1, nVars
-      read (iInputUnit_) Dummy
+      read(iInputUnit_) Dummy
     end do
 
-    read (iInputUnit_) iYear, iMonth, iDay, iHour, iMinute, iSecond, iMilli
+    read(iInputUnit_) iYear, iMonth, iDay, iHour, iMinute, iSecond, iMilli
     iTime = (/iYear, iMonth, iDay, iHour, iMinute, iSecond, iMilli/)
     call time_int_to_real(itime, time)
 
@@ -400,45 +400,45 @@ contains
 
     iError = 0
 
-    open (iInputUnit_, file=GitmFileList(1), &
-          status="old", form="unformatted", iostat=iError)
+    open(iInputUnit_, file=GitmFileList(1), &
+         status="old", form="unformatted", iostat=iError)
 
     if (iError == 0) then
 
-      read (iInputUnit_) GitmVersion
-      read (iInputUnit_) nLonsGitm, nLatsGitm, nAltsGitm
-      read (iInputUnit_) nVarsGitm
+      read(iInputUnit_) GitmVersion
+      read(iInputUnit_) nLonsGitm, nLatsGitm, nAltsGitm
+      read(iInputUnit_) nVarsGitm
       do iVar = 1, nVarsGitm
-        read (iInputUnit_) GitmVariables(iVar)
+        read(iInputUnit_) GitmVariables(iVar)
       end do
 
-      read (iInputUnit_) iYear, iMonth, iDay, iHour, iMinute, iSecond, iMilli
+      read(iInputUnit_) iYear, iMonth, iDay, iHour, iMinute, iSecond, iMilli
 
       ! Only need to read in the first 3 variables, since these are (should be!)
       ! Longitude, Latitude, Altitude (in that order):
-      allocate (data(nLonsGitm, nLatsGitm, nAltsGitm))
-      allocate (GitmLons(nLons))
-      allocate (GitmLats(nLats))
-      allocate (GitmAlts(nAlts))
+      allocate(data(nLonsGitm, nLatsGitm, nAltsGitm))
+      allocate(GitmLons(nLons))
+      allocate(GitmLats(nLats))
+      allocate(GitmAlts(nAlts))
 
       ! Longitude:
-      read (iInputUnit_) data(:, :, :)
+      read(iInputUnit_) data(:, :, :)
       GitmLons = data(:, 1, 1)/dtor ! convert to degrees
 
       ! Latitude:
-      read (iInputUnit_) data(:, :, :)
+      read(iInputUnit_) data(:, :, :)
       GitmLats = data(1, :, 1)/dtor ! convert to degrees
 
       ! Altitude:
-      read (iInputUnit_) data(:, :, :)
+      read(iInputUnit_) data(:, :, :)
       GitmAlts = data(1, 1, :)/1000.0  ! Convert to km
 
-      close (iInputUnit_)
-      deallocate (data)
+      close(iInputUnit_)
+      deallocate(data)
 
-      allocate (GitmDataTwoFiles(2, nVarsGitm, nLonsGitm, nLatsGitm, nAltsGitm))
-      allocate (GitmDataAtTime(nVarsGitm, nLonsGitm, nLatsGitm, nAltsGitm))
-      allocate (GitmDataDummy(nVarsGitm, nLonsGitm, nLatsGitm, nAltsGitm))
+      allocate(GitmDataTwoFiles(2, nVarsGitm, nLonsGitm, nLatsGitm, nAltsGitm))
+      allocate(GitmDataAtTime(nVarsGitm, nLonsGitm, nLatsGitm, nAltsGitm))
+      allocate(GitmDataDummy(nVarsGitm, nLonsGitm, nLatsGitm, nAltsGitm))
 
     end if
 
@@ -463,25 +463,25 @@ contains
 
     iError = 0
 
-    open (iInputUnit_, file=InFile, &
-          status="old", form="unformatted", iostat=iError)
+    open(iInputUnit_, file=InFile, &
+         status="old", form="unformatted", iostat=iError)
 
     if (iError == 0) then
 
-      read (iInputUnit_) Version
-      read (iInputUnit_) nLons, nLats, nAlts
-      read (iInputUnit_) nVars
+      read(iInputUnit_) Version
+      read(iInputUnit_) nLons, nLats, nAlts
+      read(iInputUnit_) nVars
       do iVar = 1, nVars
-        read (iInputUnit_) Dummy
+        read(iInputUnit_) Dummy
       end do
 
-      read (iInputUnit_) iYear, iMonth, iDay, iHour, iMinute, iSecond, iMilli
+      read(iInputUnit_) iYear, iMonth, iDay, iHour, iMinute, iSecond, iMilli
 
       do iVar = 1, nVars
-        read (iInputUnit_) GitmDataDummy(iVar, :, :, :)
+        read(iInputUnit_) GitmDataDummy(iVar, :, :, :)
       end do
 
-      close (iInputUnit_)
+      close(iInputUnit_)
 
     end if
 
@@ -493,11 +493,11 @@ contains
 
   subroutine GitmShutDown
 
-    deallocate (GitmDataTwoFiles, GitmDataAtTime, GitmDataDummy)
-    deallocate (GitmInLons)
-    deallocate (GitmInLats)
-    deallocate (GitmInAlts)
-    deallocate (GitmOutData)
+    deallocate(GitmDataTwoFiles, GitmDataAtTime, GitmDataDummy)
+    deallocate(GitmInLons)
+    deallocate(GitmInLats)
+    deallocate(GitmInAlts)
+    deallocate(GitmOutData)
 
   end subroutine GitmShutDown
 

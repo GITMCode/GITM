@@ -268,14 +268,14 @@ contains
       if (DoReadStdin) then
         iUnit_I(iFile) = StdIn_
       else
-        inquire (file=NameFile, EXIST=IsFound)
+        inquire(file=NameFile, EXIST=IsFound)
         if (.not. IsFound) call CON_stop(NameSub//' SWMF_ERROR: '// &
                                          trim(NameFile)//" cannot be found")
         iUnit_I(iFile) = io_unit_new()
         call open_file(iUnit_I(iFile), FILE=NameFile, STATUS="old")
       end if
       do
-        read (iUnit_I(iFile), '(a)', ERR=100, END=100) StringLine
+        read(iUnit_I(iFile), '(a)', ERR=100, END=100) StringLine
         NameCommand = StringLine
         i = index(NameCommand, ' '); 
         if (i > 0) NameCommand(i:len(NameCommand)) = ' '
@@ -283,7 +283,7 @@ contains
         if (i > 0) NameCommand(i:len(NameCommand)) = ' '
         if (NameCommand == '#INCLUDE') then
           ! Include text from file following the #INCLUDE command
-          read (iUnit_I(iFile), '(a)') StringLine
+          read(iUnit_I(iFile), '(a)') StringLine
           ! Remove anything after a space or TAB
           i = index(StringLine, ' ')
           if (i > 0) StringLine(i:len(StringLine)) = ' '
@@ -293,9 +293,9 @@ contains
         elseif (present(NameRestartFile) .and. NameCommand == '#RESTART') then
           ! If #RESTART command is followed by true then include
           ! the file named NameRestartFile
-          read (iUnit_I(iFile), *, IOSTAT=iError) DoInclude
+          read(iUnit_I(iFile), *, IOSTAT=iError) DoInclude
           if (iError > 0) then
-            write (*, *) NameSub, &
+            write(*, *) NameSub, &
               " ERROR: could not read logical after #RESTART command", &
               " at line ", nLine + 1
             if (DoReadStdIn) then
@@ -316,7 +316,7 @@ contains
           iFile = iFile + 1
           if (iFile > MaxNestedFile) call CON_stop(NameSub// &
                                                    " SWMF_ERROR: more than MaxNestedFile nested files")
-          inquire (file=StringLine, EXIST=IsFound)
+          inquire(file=StringLine, EXIST=IsFound)
           if (.not. IsFound) call CON_stop(NameSub// &
                                            " SWMF_ERROR: include file cannot be found, name="// &
                                            trim(StringLine))
@@ -361,7 +361,7 @@ contains
                                     " MPI_ERROR: text could not be broadcast")
     end if
 
-    if (iProc == 0) write (*, '(a,i4,a)') NameSub// &
+    if (iProc == 0) write(*, '(a,i4,a)') NameSub// &
       ': read and broadcast nLine=', nLine, ' lines of text'
 
   end subroutine read_file
@@ -482,8 +482,8 @@ contains
     if (StringLine(1:1) == "#") then
 
       if (DoEcho) then
-        write (iIoUnit, '(a)') trim(StringPrefix)
-        write (iIoUnit, '(a)') trim(StringPrefix)//trim(StringLine)
+        write(iIoUnit, '(a)') trim(StringPrefix)
+        write(iIoUnit, '(a)') trim(StringPrefix)//trim(StringLine)
       end if
 
       ! Remove anything after a space or TAB
@@ -558,7 +558,7 @@ contains
 
     if (index(StringLine, Name) < 1) &
       StringLine = trim(StringLine)//char(9)//char(9)//Name
-    write (iIoUnit, '(a)') trim(StringPrefix)//trim(StringLine)
+    write(iIoUnit, '(a)') trim(StringPrefix)//trim(StringLine)
 
   end subroutine read_echo
 
@@ -588,7 +588,7 @@ contains
         iError = -1
       end select
     else
-      write (*, '(a,i3)') 'Error in component '//NameComp//' in session', iSession
+      write(*, '(a,i3)') 'Error in component '//NameComp//' in session', iSession
       call CON_stop('Error reading '//Type//' variable '//Name// &
                     ' from line='//StringLine)
     end if
@@ -682,7 +682,7 @@ contains
     !-------------------------------------------------------------------------
     call read_line_param('integer', Name, iError)
 
-    read (StringParam, *, iostat=iReadError) IntTmp
+    read(StringParam, *, iostat=iReadError) IntTmp
     if (iReadError /= 0) call read_error('integer', Name, iError)
     if (DoEcho) call read_echo(Name)
     IntVar = IntTmp
@@ -721,13 +721,13 @@ contains
     i = index(StringParam, '/')
     if (i < 1) then
       ! Simple real number
-      read (StringParam, *, iostat=iReadError) RealTmp
+      read(StringParam, *, iostat=iReadError) RealTmp
       if (iReadError /= 0) call read_error('real', Name, iError)
     else
       ! Fraction: Numerator/Denominator
-      read (StringParam(1:i - 1), *, iostat=iReadError) Numerator
+      read(StringParam(1:i - 1), *, iostat=iReadError) Numerator
       if (iReadError /= 0) call read_error('numerator', Name, iError)
-      read (StringParam(i + 1:lStringLine), *, iostat=iReadError) Denominator
+      read(StringParam(i + 1:lStringLine), *, iostat=iReadError) Denominator
       if (iReadError /= 0) call read_error('denominator', Name, iError)
       if (Denominator == 0.0) call read_error('zero denominator', Name, iError)
       RealTmp = Numerator/Denominator
@@ -766,7 +766,7 @@ contains
     !-------------------------------------------------------------------------
     call read_line_param('logical', Name, iError)
 
-    read (StringParam, *, iostat=iReadError) IsLogicTmp
+    read(StringParam, *, iostat=iReadError) IsLogicTmp
     if (iReadError /= 0) call read_error('logical', Name, iError)
     if (DoEcho) call read_echo(Name)
     IsLogicVar = IsLogicTmp

@@ -118,20 +118,20 @@ contains
     integer, dimension(7) :: iTime
     integer :: year, month, day, iVar
 
-    open (iSamiUnit, file=infile, status='old')
+    open(iSamiUnit, file=infile, status='old')
 
     iError = 0
 
     do while (iError == 0)
 
-      read (iSamiUnit, '(a)', iostat=iError) line
+      read(iSamiUnit, '(a)', iostat=iError) line
 
       select case (line)
 
       case ("#STARTDATE")
-        read (iSamiUnit, *) year
-        read (iSamiUnit, *) month
-        read (iSamiUnit, *) day
+        read(iSamiUnit, *) year
+        read(iSamiUnit, *) month
+        read(iSamiUnit, *) day
         itime = 0
         itime(1) = year
         itime(2) = month
@@ -139,55 +139,55 @@ contains
         call time_int_to_real(iTime, SamiStartTime)
 
       case ("#COROTATIONPOTENTIALADDED")
-        read (iSamiUnit, '(L)', iostat=iError) CorotationAdded
+        read(iSamiUnit, '(L)', iostat=iError) CorotationAdded
 
       case ("#DIR")
-        read (iSamiUnit, '(a)', iostat=iError) SamiDir
+        read(iSamiUnit, '(a)', iostat=iError) SamiDir
 
       case ("#VARS")
         iVar = 1
         do while (len(trim(Line)) > 1)
-          read (iSamiUnit, '(a)', iostat=iError) line
+          read(iSamiUnit, '(a)', iostat=iError) line
           SamiVariables(iVar) = trim(line)
           iVar = iVar + 1
-          write (*, *) 'Dir:', trim(SamiDir)
+          write(*, *) 'Dir:', trim(SamiDir)
         end do
         nVarsSami = iVar - 2
 
       case ("#VARFILES")
         do iVar = 1, nVarsSami
-          read (iSamiUnit, '(a)', iostat=iError) line
+          read(iSamiUnit, '(a)', iostat=iError) line
           SamiFileList(iVar) = line
         end do
       end select
 
     end do
 
-    close (iSamiUnit)
+    close(iSamiUnit)
 
     do iVar = 1, nVarsSami
       if (trim(SamiVariables(iVar)) == 'time') then
-        write (*, *) 'Reading Time File : ', trim(SamiFileList(iVar))
+        write(*, *) 'Reading Time File : ', trim(SamiFileList(iVar))
         call ReadSamiTimeFile(SamiFileList(iVar))
       end if
       if (trim(SamiVariables(iVar)) == 'lon') then
-        write (*, *) 'Reading Lon File : ', trim(SamiFileList(iVar))
+        write(*, *) 'Reading Lon File : ', trim(SamiFileList(iVar))
         call ReadSamiLonFile(SamiFileList(iVar))
       end if
       if (trim(SamiVariables(iVar)) == 'lat') then
-        write (*, *) 'Reading Lat File : ', trim(SamiFileList(iVar))
+        write(*, *) 'Reading Lat File : ', trim(SamiFileList(iVar))
         call ReadSamiLatFile(SamiFileList(iVar))
       end if
       if (trim(SamiVariables(iVar)) == 'alt') then
-        write (*, *) 'Reading Alt File : ', trim(SamiFileList(iVar))
+        write(*, *) 'Reading Alt File : ', trim(SamiFileList(iVar))
         call ReadSamiAltFile(SamiFileList(iVar))
       end if
     end do
 
-    allocate (SamiDataDummy(nLatsSami - 2, nAltsSami, nLonsSami - 2))
-    allocate (SamiDataOneTime(nVarsSami - 4, nLonsSami, nLatsSami, nAltsSami))
-    allocate (SamiDataAtTime(nVarsSami - 4, nLonsSami, nLatsSami, nAltsSami))
-    allocate (SamiDataTwoTimes(2, nVarsSami - 4, nLonsSami, nLatsSami, nAltsSami))
+    allocate(SamiDataDummy(nLatsSami - 2, nAltsSami, nLonsSami - 2))
+    allocate(SamiDataOneTime(nVarsSami - 4, nLonsSami, nLatsSami, nAltsSami))
+    allocate(SamiDataAtTime(nVarsSami - 4, nLonsSami, nLatsSami, nAltsSami))
+    allocate(SamiDataTwoTimes(2, nVarsSami - 4, nLonsSami, nLatsSami, nAltsSami))
 
   end subroutine SamiReadInputFile
 
@@ -205,13 +205,13 @@ contains
     real :: tHours, uts
 
     !open(iSamiUnit, file = trim(SamiDir)//'/'//infile, status = 'old')
-    open (iSamiUnit, file=infile, status='old')
+    open(iSamiUnit, file=infile, status='old')
     iError = 0
     iT = 1
 
     do while (iError == 0)
 
-      read (iSamiUnit, *, iostat=iError) n, iHour, iMinute, iSecond, tHours
+      read(iSamiUnit, *, iostat=iError) n, iHour, iMinute, iSecond, tHours
       uts = iHour*3600.0 + iMinute*60.0 + iSecond
       SamiTimes(iT) = tHours*3600.0 + SamiStartTime
       iT = iT + 1
@@ -220,7 +220,7 @@ contains
 
     nTimesSami = iT - 1
 
-    close (iSamiUnit)
+    close(iSamiUnit)
 
   end subroutine ReadSamiTimeFile
 
@@ -237,29 +237,29 @@ contains
     real :: lon
 
     ! Stupid way of doing it:
-    write (*, *) trim(SamiDir)
-    open (iSamiUnit, file=trim(SamiDir)//'/'//infile, status='old')
+    write(*, *) trim(SamiDir)
+    open(iSamiUnit, file=trim(SamiDir)//'/'//infile, status='old')
 
     iError = 0
     iLon = 1
     do while (iError == 0)
-      read (iSamiUnit, *, iostat=iError) lon
+      read(iSamiUnit, *, iostat=iError) lon
       iLon = iLon + 1
     end do
     ! Need to add a 0 and 360, so add 2 to nLons
     nLonsSami = iLon - 2 + 2
-    close (iSamiUnit)
+    close(iSamiUnit)
 
-    allocate (SamiLons(nLonsSami))
+    allocate(SamiLons(nLonsSami))
 
     SamiLons(1) = 0.0
-    open (iSamiUnit, file=trim(SamiDir)//'/'//infile, status='old')
+    open(iSamiUnit, file=trim(SamiDir)//'/'//infile, status='old')
     iError = 0
     do iLon = 2, nLonsSami - 1
-      read (iSamiUnit, *, iostat=iError) lon
+      read(iSamiUnit, *, iostat=iError) lon
       SamiLons(iLon) = lon
     end do
-    close (iSamiUnit)
+    close(iSamiUnit)
     SamiLons(nLonsSami) = 360.0
 
   end subroutine ReadSamiLonFile
@@ -278,27 +278,27 @@ contains
 
     ! Stupid way of doing it:
 
-    open (iSamiUnit, file=trim(SamiDir)//'/'//infile, status='old')
+    open(iSamiUnit, file=trim(SamiDir)//'/'//infile, status='old')
     iError = 0
     iLat = 1
     do while (iError == 0)
-      read (iSamiUnit, *, iostat=iError) lat
+      read(iSamiUnit, *, iostat=iError) lat
       iLat = iLat + 1
     end do
     ! Need to add a -90 and 90, so add 2 to nLats
     nLatsSami = iLat - 2 + 2
-    close (iSamiUnit)
+    close(iSamiUnit)
 
-    allocate (SamiLats(nLatsSami))
+    allocate(SamiLats(nLatsSami))
 
     SamiLats(1) = -90.0
-    open (iSamiUnit, file=trim(SamiDir)//'/'//infile, status='old')
+    open(iSamiUnit, file=trim(SamiDir)//'/'//infile, status='old')
     iError = 0
     do iLat = 2, nLatsSami - 1
-      read (iSamiUnit, *, iostat=iError) lat
+      read(iSamiUnit, *, iostat=iError) lat
       SamiLats(iLat) = lat
     end do
-    close (iSamiUnit)
+    close(iSamiUnit)
     SamiLats(nLatsSami) = 90.0
 
   end subroutine ReadSamiLatFile
@@ -317,25 +317,25 @@ contains
 
     ! Stupid way of doing it:
 
-    open (iSamiUnit, file=trim(SamiDir)//'/'//infile, status='old')
+    open(iSamiUnit, file=trim(SamiDir)//'/'//infile, status='old')
     iError = 0
     iAlt = 1
     do while (iError == 0)
-      read (iSamiUnit, *, iostat=iError) alt
+      read(iSamiUnit, *, iostat=iError) alt
       iAlt = iAlt + 1
     end do
     nAltsSami = iAlt - 2
-    close (iSamiUnit)
+    close(iSamiUnit)
 
-    allocate (SamiAlts(nAltsSami))
+    allocate(SamiAlts(nAltsSami))
 
-    open (iSamiUnit, file=trim(SamiDir)//'/'//infile, status='old')
+    open(iSamiUnit, file=trim(SamiDir)//'/'//infile, status='old')
     iError = 0
     do iAlt = 1, nAltsSami
-      read (iSamiUnit, *, iostat=iError) alt
+      read(iSamiUnit, *, iostat=iError) alt
       SamiAlts(iAlt) = alt
     end do
-    close (iSamiUnit)
+    close(iSamiUnit)
 
   end subroutine ReadSamiAltFile
 
@@ -351,18 +351,18 @@ contains
     integer, intent(in) :: iTime
     integer :: iError, iT
 
-    open (iSamiUnit, file=trim(SamiDir)//'/'//trim(infile), status='old', &
-          form='unformatted')
+    open(iSamiUnit, file=trim(SamiDir)//'/'//trim(infile), status='old', &
+         form='unformatted')
 
     iError = 0
     do iT = 1, iTime
-      read (iSamiUnit, iostat=iError) SamiDataDummy
+      read(iSamiUnit, iostat=iError) SamiDataDummy
     end do
     if (iError > 0) then
-      write (*, *) 'Error Reading Sami File : ', iError
-      write (*, *) 'File : ', trim(SamiDir)//'/'//trim(infile)
+      write(*, *) 'Error Reading Sami File : ', iError
+      write(*, *) 'File : ', trim(SamiDir)//'/'//trim(infile)
     end if
-    close (iSamiUnit)
+    close(iSamiUnit)
 
   end subroutine ReadSami
 
@@ -447,12 +447,12 @@ contains
 
     if (SamiTimes(1) > InputTime) then
       iError = 1
-      write (*, *) "Requested time is before first file!"
+      write(*, *) "Requested time is before first file!"
       return
     end if
     if (SamiTimes(nTimesSami) < InputTime) then
       iError = 1
-      write (*, *) "Requested time is after last file!"
+      write(*, *) "Requested time is after last file!"
       return
     end if
 
@@ -466,12 +466,12 @@ contains
 
     if (iSamiIndex /= iSamiIndexOld) then
 
-      write (*, *) 'Updating SAMI Times!'
+      write(*, *) 'Updating SAMI Times!'
 
-      write (*, *) 'First Files'
+      write(*, *) 'First Files'
       call ReadSamiOneTime(iSamiIndex - 1)
       SamiDataTwoTimes(1, :, :, :, :) = SamiDataOneTime
-      write (*, *) 'Second Files'
+      write(*, *) 'Second Files'
       call ReadSamiOneTime(iSamiIndex)
       SamiDataTwoTimes(2, :, :, :, :) = SamiDataOneTime
 
@@ -633,9 +633,9 @@ contains
       end if
 
       if (SamiAltsIndex(iPoint) < 1) then
-        write (*, *) 'bad alt in SamiSetGrid!', &
+        write(*, *) 'bad alt in SamiSetGrid!', &
           SamiInLons(iPoint), SamiInLats(iPoint), InAlts(iPoint)
-        write (*, *) 'Sami Alts : ', SamiAlts(1), SamiAlts(nAltsSami)
+        write(*, *) 'Sami Alts : ', SamiAlts(1), SamiAlts(nAltsSami)
         stop
       end if
 
@@ -655,19 +655,19 @@ contains
 
     nPointsToGetSami = nPointsToGet
 
-    allocate (SamiInLons(nPointsToGet))
-    allocate (SamiInLats(nPointsToGet))
-    allocate (SamiInAlts(nPointsToGet))
+    allocate(SamiInLons(nPointsToGet))
+    allocate(SamiInLats(nPointsToGet))
+    allocate(SamiInAlts(nPointsToGet))
 
-    allocate (SamiLonsIndex(nPointsToGet))
-    allocate (SamiLatsIndex(nPointsToGet))
-    allocate (SamiAltsIndex(nPointsToGet))
+    allocate(SamiLonsIndex(nPointsToGet))
+    allocate(SamiLatsIndex(nPointsToGet))
+    allocate(SamiAltsIndex(nPointsToGet))
 
-    allocate (SamiLonsFactor(nPointsToGet))
-    allocate (SamiLatsFactor(nPointsToGet))
-    allocate (SamiAltsFactor(nPointsToGet))
+    allocate(SamiLonsFactor(nPointsToGet))
+    allocate(SamiLatsFactor(nPointsToGet))
+    allocate(SamiAltsFactor(nPointsToGet))
 
-    allocate (SamiOutData(nPointsToGet, nVarsSami))
+    allocate(SamiOutData(nPointsToGet, nVarsSami))
 
   end subroutine SamiSetnPointsToGet
 
@@ -677,25 +677,25 @@ contains
 
   subroutine SamiShutDown
 
-    deallocate (SamiDataDummy)
-    deallocate (SamiDataOneTime)
-    deallocate (SamiDataAtTime)
-    deallocate (SamiDataTwoTimes)
+    deallocate(SamiDataDummy)
+    deallocate(SamiDataOneTime)
+    deallocate(SamiDataAtTime)
+    deallocate(SamiDataTwoTimes)
 
-    deallocate (SamiInLons)
-    deallocate (SamiInLats)
-    deallocate (SamiInAlts)
-    deallocate (SamiLonsIndex)
-    deallocate (SamiLatsIndex)
-    deallocate (SamiAltsIndex)
-    deallocate (SamiLonsFactor)
-    deallocate (SamiLatsFactor)
-    deallocate (SamiAltsFactor)
-    deallocate (SamiOutData)
+    deallocate(SamiInLons)
+    deallocate(SamiInLats)
+    deallocate(SamiInAlts)
+    deallocate(SamiLonsIndex)
+    deallocate(SamiLatsIndex)
+    deallocate(SamiAltsIndex)
+    deallocate(SamiLonsFactor)
+    deallocate(SamiLatsFactor)
+    deallocate(SamiAltsFactor)
+    deallocate(SamiOutData)
 
-    deallocate (SamiAlts)
-    deallocate (SamiLats)
-    deallocate (SamiLons)
+    deallocate(SamiAlts)
+    deallocate(SamiLats)
+    deallocate(SamiLons)
 
   end subroutine SamiShutDown
 

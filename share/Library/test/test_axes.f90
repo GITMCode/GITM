@@ -19,7 +19,7 @@ subroutine CON_stop(StringError)
 
   character(len=*), intent(in) :: StringError
 
-  write (*, '(a)') StringError
+  write(*, '(a)') StringError
 
   stop
 

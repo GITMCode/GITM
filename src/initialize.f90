@@ -73,10 +73,10 @@ subroutine initialize_gitm(TimeIn)
 
   call set_RrTempInd
 
-  inquire (file='GITM.STOP', EXIST=IsThere)
+  inquire(file='GITM.STOP', EXIST=IsThere)
   if (IsThere .and. iProc == 0) then
-    open (iOutputUnit_, file='GITM.STOP', status='OLD')
-    close (iOutputUnit_, status='DELETE')
+    open(iOutputUnit_, file='GITM.STOP', status='OLD')
+    close(iOutputUnit_, status='DELETE')
   end if
 
   !\
@@ -94,8 +94,8 @@ subroutine initialize_gitm(TimeIn)
     else
       if (UseTopography) then
         if (AltMin > 1.0) then
-          write (*, *) 'When using topography, the minimum altitude'
-          write (*, *) 'must be zero.  Stopping...'
+          write(*, *) 'When using topography, the minimum altitude'
+          write(*, *) 'must be zero.  Stopping...'
           call stop_gitm('Incorrect minimum altitude')
         end if
         altzero = 0.0
@@ -167,7 +167,7 @@ subroutine initialize_gitm(TimeIn)
 
   if (iDebugLevel > 2) then
     do iAlt = -1, nAlts + 2
-      write (*, *) "===>Altitude : ", &
+      write(*, *) "===>Altitude : ", &
         iAlt, Altitude_GB(1, 1, iAlt, 1), RadialDistance_GB(1, 1, iAlt, 1), &
         Gravity_GB(1, 1, iAlt, 1)
     end do

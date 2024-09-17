@@ -65,7 +65,7 @@ subroutine read_NOAAHPI_Indices_new(iOutputError, StartTime, EndTime)
 
   if (nIndices_V(hpi_) == 0) NameOfHPIFile = NameOfIndexFile
 
-  open (LunIndices_, file=NameOfHPIFile, status="old", iostat=ierror)
+  open(LunIndices_, file=NameOfHPIFile, status="old", iostat=ierror)
 
   if (ierror .ne. 0) then
     iOutputError = 1
@@ -78,7 +78,7 @@ subroutine read_NOAAHPI_Indices_new(iOutputError, StartTime, EndTime)
 
   do while (.not. done)
 
-    read (LunIndices_, '(a)', iostat=ierror) line
+    read(LunIndices_, '(a)', iostat=ierror) line
     if (ierror .ne. 0) done = .true.
 
     if (index(line, 'Normalizing factor') > 0) then
@@ -91,7 +91,7 @@ subroutine read_NOAAHPI_Indices_new(iOutputError, StartTime, EndTime)
 
   end do
 
-  close (LunIndices_)
+  close(LunIndices_)
 
   if (npts_hpi > 0) then
 
@@ -134,7 +134,7 @@ contains
 
     missing = -1.0e32
 
-    read (LunIndices_, '(a)', iostat=ierror) line
+    read(LunIndices_, '(a)', iostat=ierror) line
 
     if (ierror .eq. 0) then
 
@@ -148,20 +148,20 @@ contains
         if (datatype .eq. 1) then
           ! OLD NOAA HPI FILES
           if (IsFirstTime) then
-            read (LunIndices_, '(i4)', iostat=ierror) iYear
+            read(LunIndices_, '(i4)', iostat=ierror) iYear
             IsFirstTime = .false.
           end if
           tmp(1, i) = iYear
           tmp(2, i) = 1
-          read (LunIndices_, '(a10,f3.0,f2.0,f2.0,f8.1)', iostat=ierror) &
+          read(LunIndices_, '(a10,f3.0,f2.0,f2.0,f8.1)', iostat=ierror) &
             line, tmp(3:6, i)
           if (tmp(3, i) < 1) iError = 1
         end if
 
         if (datatype .eq. 2) then
           ! NEW NOAA HPI FILES
-          read (LunIndices_, '(f4.0,a1,f2.0,a1,f2.0,a1,f2.0,a1,f2.0,a1,f2.0,a15,f8.1)', &
-                iostat=ierror) &
+          read(LunIndices_, '(f4.0,a1,f2.0,a1,f2.0,a1,f2.0,a1,f2.0,a1,f2.0,a15,f8.1)', &
+               iostat=ierror) &
             tmp(1, i), line, tmp(2, i), line, tmp(3, i), line, tmp(4, i), line, tmp(5, i), line, tmp(6, i), &
             line, tmp(6, i)
 

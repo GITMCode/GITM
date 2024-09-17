@@ -110,7 +110,7 @@ subroutine init_altitude
   do iAlt = 2, nAlts + 1
     Altitude_GB(:, :, iAlt, 1:nBlocks) = Altitude_GB(:, :, iAlt - 1, 1:nBlocks) &
                                          + dHFactor*ScaleHeights(iAlt - 1)
-    if (iDebugLevel > 3) write (*, *) "Altitude, dHFactor, ScaleHeight : ", &
+    if (iDebugLevel > 3) write(*, *) "Altitude, dHFactor, ScaleHeight : ", &
       Altitude_GB(1, 1, iAlt, 1), dHFactor, ScaleHeights(iAlt - 1)
   end do
 
@@ -198,7 +198,7 @@ subroutine init_altitude_old
   do iAlt = 2, nAlts + 1
     Altitude_GB(:, :, iAlt, 1:nBlocks) = Altitude_GB(:, :, iAlt - 1, 1:nBlocks) &
                                          + dHFactor*ScaleHeights(iAlt - 1)
-    if (iDebugLevel > 3) write (*, *) "Altitude, dHFactor, ScaleHeight : ", &
+    if (iDebugLevel > 3) write(*, *) "Altitude, dHFactor, ScaleHeight : ", &
       Altitude_GB(1, 1, iAlt, 1), dHFactor, ScaleHeights(iAlt - 1)
   end do
 

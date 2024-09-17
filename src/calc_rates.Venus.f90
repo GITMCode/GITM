@@ -136,15 +136,15 @@ subroutine calc_rates(iBlock)
 ! -------------------------------------------------------------------------------
 
   if (trouble) then
-    write (*, *) 'trouble found!!'
-    write (*, *) 'Stop GITM'
+    write(*, *) 'trouble found!!'
+    write(*, *) 'Stop GITM'
     stop
   end if
 
 ! -------------------------------------------------------------------------------
 
   if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
-  if (iDebugLevel > 4) write (*, *) "=====> mean major mass", iblock
+  if (iDebugLevel > 4) write(*, *) "=====> mean major mass", iblock
 
 !write(*,*) '==> calc_rates:  Before NDensityS Statements.'
 
@@ -298,7 +298,7 @@ subroutine calc_rates(iBlock)
   end do
 ! -------------------------------------------------------------------------------
 
-  if (iDebugLevel > 4) write (*, *) "=====> Before cp and kappatemp", iblock
+  if (iDebugLevel > 4) write(*, *) "=====> Before cp and kappatemp", iblock
 
   do iAlt = 0, nAlts + 1
 
@@ -362,7 +362,7 @@ subroutine calc_rates(iBlock)
   call end_timing("calc_rates")
 
   if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
-  if (iDebugLevel > 4) write (*, *) "=====> Done with calc_rates"
+  if (iDebugLevel > 4) write(*, *) "=====> Done with calc_rates"
 
 end subroutine calc_rates
 
@@ -413,7 +413,7 @@ subroutine calc_collisions(iBlock)
 !
 
   if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
-  if (iDebugLevel > 4) write (*, *) "=====> vin", iblock
+  if (iDebugLevel > 4) write(*, *) "=====> vin", iblock
 
   Collisions(:, :, :, iVIN_) = 2.6e-15*(mnd + Ne)/sqrt(MeanMajorMass/AMU)
 
@@ -422,7 +422,7 @@ subroutine calc_collisions(iBlock)
 !
 
   if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
-  if (iDebugLevel > 4) write (*, *) "=====> ven", iblock
+  if (iDebugLevel > 4) write(*, *) "=====> ven", iblock
 
   Te = eTemperature(:, :, :, iBlock)
   where (te == 0.0) te = 1000.0

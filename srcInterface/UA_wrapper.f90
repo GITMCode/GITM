@@ -178,25 +178,25 @@ contains
 
     !------------------------------------------------------
     call CON_set_do_test(NameSub, DoTest, DoTestMe)
-    if (DoTest) write (*, *) NameSub, ' IsInitialized=', IsInitialized
+    if (DoTest) write(*, *) NameSub, ' IsInitialized=', IsInitialized
 
     if (IsInitialized) return
 
     IsInitialized = .true.
 
     if (iProc >= 0) then
-      allocate (CoLat_I(nBlocksLat*nLats), &
-                Lon_I(nBlocksLon*nLons), &
-                iProc_A(nBlocksLat*nBlocksLon), &
-                LatPE_I(nBlocksLat*nBlocksLon*nLats), &
-                LonPE_I(nBlocksLat*nBlocksLon*nLons), &
-                iProcPE_A(nBlocksLat*nBlocksLon), &
-                Alt_I(-1:nAlts + 2), &
-                stat=iError)
+      allocate(CoLat_I(nBlocksLat*nLats), &
+               Lon_I(nBlocksLon*nLons), &
+               iProc_A(nBlocksLat*nBlocksLon), &
+               LatPE_I(nBlocksLat*nBlocksLon*nLats), &
+               LonPE_I(nBlocksLat*nBlocksLon*nLons), &
+               iProcPE_A(nBlocksLat*nBlocksLon), &
+               Alt_I(-1:nAlts + 2), &
+               stat=iError)
 
       if (iError /= 0) then
-        write (*, *) NameSub, " Error in allocating variables"
-        write (*, *) " Lat_I, Lon_I, iProc_A, LatPE_I, LonPE_I, iProcPE_A"
+        write(*, *) NameSub, " Error in allocating variables"
+        write(*, *) " Lat_I, Lon_I, iProc_A, LatPE_I, LonPE_I, iProcPE_A"
         call CON_stop(NameSub//' UA_ERROR')
       end if
 
@@ -229,11 +229,11 @@ contains
                          MPI_INTEGER, MPI_MAX, iComm, iError)
       !     Alt_I=Altitude(:)
     else
-      allocate (CoLat_I(1), Lon_I(1), iProc_A(1), Alt_I(1), stat=iError)
+      allocate(CoLat_I(1), Lon_I(1), iProc_A(1), Alt_I(1), stat=iError)
       call check_allocate(iError, NameSub)
     end if
 
-    if (DoTest) write (*, *) NameSub//': nCell: ', nLats, nLons, nAlts
+    if (DoTest) write(*, *) NameSub//': nCell: ', nLats, nLons, nAlts
 
     call set_grid_descriptor( &
       UA_, &! component index
@@ -271,7 +271,7 @@ contains
     !-------------------------------------------------------------------------
     call CON_set_do_test(NameSub, DoTest, DoTestMe)
 
-    if (DoTestMe) write (*, *) &
+    if (DoTestMe) write(*, *) &
       NameSub//' called; IsFirstTime = ', IsFirstTime
 
     if (IsFirstTime) then
@@ -286,17 +286,17 @@ contains
       call time_real_to_int(StartTime, iTimeArray) ! get time as integers
 
       if (DoTestMe) then
-        write (*, *) NameSub//' Timing for UA (floating point):'
-        write (*, *) NameSub//' Start time   = ', StartTime
-        write (*, *) NameSub//' End time     = ', EndTime
-        write (*, *) NameSub//' Current time = ', CurrentTime
+        write(*, *) NameSub//' Timing for UA (floating point):'
+        write(*, *) NameSub//' Start time   = ', StartTime
+        write(*, *) NameSub//' End time     = ', EndTime
+        write(*, *) NameSub//' Current time = ', CurrentTime
 
-        write (*, *) NameSub//' Timing for UA (integer datetime):'
-        write (*, '(a, 7i5)') NameSub//' Start time   = ', iTimeArray
+        write(*, *) NameSub//' Timing for UA (integer datetime):'
+        write(*, '(a, 7i5)') NameSub//' Start time   = ', iTimeArray
         call time_real_to_int(EndTime, iTimeDebug)
-        write (*, '(a, 7i5)') NameSub//' End time     = ', iTimeDebug
+        write(*, '(a, 7i5)') NameSub//' End time     = ', iTimeDebug
         call time_real_to_int(CurrentTime, iTimeDebug)
-        write (*, '(a, 7i5)') NameSub//' Current time = ', iTimeDebug
+        write(*, '(a, 7i5)') NameSub//' Current time = ', iTimeDebug
       end if
 
       call fix_vernal_time
@@ -336,7 +336,7 @@ contains
 
     if (iDebugLevel > 1) then
       call time_real_to_int(CurrentTime, time_array)
-      write (*, "(a,i5,5i3,i3)") "> Running UA from time : ", time_array(1:7)
+      write(*, "(a,i5,5i3,i3)") "> Running UA from time : ", time_array(1:7)
     end if
 
     call calc_pressure
@@ -346,7 +346,7 @@ contains
     call calc_timestep_vertical
     if (.not. Is1D) call calc_timestep_horizontal
 
-    if (iDebugLevel > 1) write (*, "(a,f13.5)") "> UA_run Dt : ", Dt
+    if (iDebugLevel > 1) write(*, "(a,f13.5)") "> UA_run Dt : ", Dt
 
     call advance
 
@@ -419,8 +419,8 @@ contains
     if (present(nMagLon)) nMagLon = 360.0/MagLonRes + 1
 
     if (DoTestMe) then
-      write (*, *) NameSub//': nVar=', nVar
-      if (present(NameVar_V)) write (*, *) NameSub//': NameVar_V=', NameVar_V
+      write(*, *) NameSub//': nVar=', nVar
+      if (present(NameVar_V)) write(*, *) NameSub//': NameVar_V=', NameVar_V
     end if
 
   end subroutine UA_get_info_for_ie
@@ -480,19 +480,19 @@ contains
 
     ! Debug: print basic coupling info:
     if (DoTest .and. (iProcGITM == 0)) then
-      write (*, *) NameSub//' coupling info:'
-      write (*, *) 'UA/GITM: IE grid set to nLats x nLons = ', &
+      write(*, *) NameSub//' coupling info:'
+      write(*, *) 'UA/GITM: IE grid set to nLats x nLons = ', &
         iSizeIeHemi, jSizeIeHemi
-      write (*, '(a, 2i5)') ' UA EIE nLats, nLons = ', EIEi_HavenLats, EIEi_HavenMlts
-      write (*, *) 'Buffer shape information:'
-      write (*, '(a, 3i5)') ' iSizeIn, jSizeIn, nVarIn = ', iSizeIn, jSizeIn, nVarIn
-      write (*, *) 'Shape of Buffer_IIV = ', shape(Buffer_IIV)
-      write (*, *) 'ncell_id(IE_) = ', ncell_id(IE_)
-      write (*, *) 'iSizeIeHemi, jSizeIeHemi = ', iSizeIeHemi, jSizeIeHemi
+      write(*, '(a, 2i5)') ' UA EIE nLats, nLons = ', EIEi_HavenLats, EIEi_HavenMlts
+      write(*, *) 'Buffer shape information:'
+      write(*, '(a, 3i5)') ' iSizeIn, jSizeIn, nVarIn = ', iSizeIn, jSizeIn, nVarIn
+      write(*, *) 'Shape of Buffer_IIV = ', shape(Buffer_IIV)
+      write(*, *) 'ncell_id(IE_) = ', ncell_id(IE_)
+      write(*, *) 'iSizeIeHemi, jSizeIeHemi = ', iSizeIeHemi, jSizeIeHemi
     end if
 
     ! Debug statement: print max/mins of transferred variables.
-    if (DoTest .and. (iProcGITM == 0)) write (*, *) &
+    if (DoTest .and. (iProcGITM == 0)) write(*, *) &
       'UA WRAPPER: Max/min of received variables (iBlock=', iBlock, '):'
 
     ! Put each variable where it belongs based on the name.x
@@ -509,7 +509,7 @@ contains
             EIEr3_HavePotential(j, i, iBlock) = Buffer_IIV(ii, j, iVar)
           end do
         end do
-        if (DoTest .and. (iProcGITM == 0)) write (*, '(a, 2(e12.5,1x))') 'UA pot: ', &
+        if (DoTest .and. (iProcGITM == 0)) write(*, '(a, 2(e12.5,1x))') 'UA pot: ', &
           maxval(EIEr3_HavePotential(:, :, iBlock)), &
           minval(EIEr3_HavePotential(:, :, iBlock))
 
@@ -523,7 +523,7 @@ contains
             EIEr3_HaveAveE(j, i, iBlock) = Buffer_IIV(ii, j, iVar)
           end do
         end do
-        if (DoTest .and. (iProcGITM == 0)) write (*, '(a, 2(e12.5,1x))') 'UA ave: ', &
+        if (DoTest .and. (iProcGITM == 0)) write(*, '(a, 2(e12.5,1x))') 'UA ave: ', &
           maxval(EIEr3_HaveAveE(:, :, iBlock)), &
           minval(EIEr3_HaveAveE(:, :, iBlock))
 
@@ -538,7 +538,7 @@ contains
               Buffer_IIV(ii, j, iVar)/(1.0e-7*100.0*100.0)
           end do
         end do
-        if (DoTest .and. (iProcGITM == 0)) write (*, '(a, 2(e12.5,1x))') 'UA tot: ', &
+        if (DoTest .and. (iProcGITM == 0)) write(*, '(a, 2(e12.5,1x))') 'UA tot: ', &
           maxval(EIEr3_HaveEFlux(:, :, iBlock)), &
           minval(EIEr3_HaveEFlux(:, :, iBlock))
 
@@ -590,22 +590,22 @@ contains
 
     ! Ensure size of grid is same as buffer size for one hemisphere:
     if ((nMltIn /= UAi_nMlts) .or. (2*nLatIn + 1 /= UAi_nLats)) then
-      write (*, *) NameSub//' UA electromagnetic grid does not match buffer:'
-      write (*, *) NameSub//' UA E&M grid nLon, nLats = ', UAi_nMlts, UAi_nLats
-      write (*, *) NameSub//' UA-IE coupling buffer nLon, nLats = ', nMltIn, nLatIn
+      write(*, *) NameSub//' UA electromagnetic grid does not match buffer:'
+      write(*, *) NameSub//' UA E&M grid nLon, nLats = ', UAi_nMlts, UAi_nLats
+      write(*, *) NameSub//' UA-IE coupling buffer nLon, nLats = ', nMltIn, nLatIn
       call CON_stop(NameSub//' Array size mismatch.')
     end if
 
     ! Collect relevant values using native GITM functions:
-    allocate (UAr2_Fac(UAi_nMlts, UAi_nLats), &
-              UAr2_Ped(UAi_nMlts, UAi_nLats), &
-              UAr2_Hal(UAi_nMlts, UAi_nLats), &
-              UAr2_Lats(UAi_nMlts, UAi_nLats), &
-              UAr2_Mlts(UAi_nMlts, UAi_nLats), stat=iError)
+    allocate(UAr2_Fac(UAi_nMlts, UAi_nLats), &
+             UAr2_Ped(UAi_nMlts, UAi_nLats), &
+             UAr2_Hal(UAi_nMlts, UAi_nLats), &
+             UAr2_Lats(UAi_nMlts, UAi_nLats), &
+             UAr2_Mlts(UAi_nMlts, UAi_nLats), stat=iError)
 
     call UA_fill_electrodynamics(UAr2_Fac, UAr2_Ped, UAr2_Hal, UAr2_Lats, UAr2_Mlts)
 
-    if (DoTest) write (*, *) NameSub//' nMlts,nLats= ', UAi_nMlts, UAi_nLats
+    if (DoTest) write(*, *) NameSub//' nMlts,nLats= ', UAi_nMlts, UAi_nLats
 
     ! Set indices for northern/southern hemispheres.
     ! UA goes from the South pole to the north pole, while IE goes
@@ -647,9 +647,9 @@ contains
     if (DoTestMe) then
       ! Get current time; create output file name:
       call time_real_to_int(CurrentTime, time_array)
-      write (NameFile, '(a,i4.3,2i2.2,"_",3i2.2,a)') &
+      write(NameFile, '(a,i4.3,2i2.2,"_",3i2.2,a)') &
         'ua_ie_buffer_t', time_array(1:6), '.out'
-      write (*, *) NameSub//': Saving buffer to ', NameFile
+      write(*, *) NameSub//': Saving buffer to ', NameFile
 
       ! Fill output array to match required ordering
       do iVar = 1, nVarIn
@@ -674,7 +674,7 @@ contains
     end if
 
     ! Deallocate intermediate variables:
-    deallocate (UAr2_Fac, UAr2_Ped, UAr2_Hal, UAr2_Lats, UAr2_Mlts)
+    deallocate(UAr2_Fac, UAr2_Ped, UAr2_Hal, UAr2_Lats, UAr2_Mlts)
 
   end subroutine UA_get_for_ie
 

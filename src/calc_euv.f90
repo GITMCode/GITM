@@ -502,15 +502,15 @@ subroutine calc_scaled_euv
   iError = 0
   call get_f107(CurrentTime, f107, iError)
   if (iError /= 0) then
-    write (*, *) "Error in getting F107 value.  Is this set?"
-    write (*, *) "Code : ", iError
+    write(*, *) "Error in getting F107 value.  Is this set?"
+    write(*, *) "Code : ", iError
     call stop_gitm("Stopping in euv_ionization_heat")
   end if
 
   call get_f107a(CurrentTime, f107a, iError)
   if (iError /= 0) then
-    write (*, *) "Error in getting F107a value.  Is this set?"
-    write (*, *) "Code : ", iError
+    write(*, *) "Error in getting F107a value.  Is this set?"
+    write(*, *) "Code : ", iError
     call stop_gitm("Stopping in euv_ionization_heat")
   end if
 
@@ -842,15 +842,15 @@ subroutine Set_Euv(iError, StartTime, EndTime)
 
   cline = ' '
 
-  inquire (file=cEUVFile, EXIST=IsThere)
+  inquire(file=cEUVFile, EXIST=IsThere)
   if (.not. IsThere) &
     call stop_gitm(cEUVFile//" cannot be found by read_inputs")
 
-  open (unit=iInputUnit_, file=cEUVFile, status="old", IOSTAT=iError)
+  open(unit=iInputUnit_, file=cEUVFile, status="old", IOSTAT=iError)
 
   if (iError /= 0) then
-    write (*, *) "Error in opening EUV file  Is this set?"
-    write (*, *) "Code : ", iError, cEUVFile
+    write(*, *) "Error in opening EUV file  Is this set?"
+    write(*, *) "Code : ", iError, cEUVFile
     call stop_gitm("Stopping in calc_euv")
   end if
 
@@ -858,7 +858,7 @@ subroutine Set_Euv(iError, StartTime, EndTime)
 
   NotDone = .true.
   do while (NotDone)
-    read (iInputUnit_, '(a)', iostat=iError) cLine
+    read(iInputUnit_, '(a)', iostat=iError) cLine
     if (cline(1:1) .eq. '#') then
 
       ! Remove anything after a space or TAB
@@ -868,9 +868,9 @@ subroutine Set_Euv(iError, StartTime, EndTime)
       select case (cLine)
 
       case ("#FLARES")
-        read (iInputUnit_, *) nFlares
+        read(iInputUnit_, *) nFlares
         do i = 1, nFlares
-          read (iInputUnit_, *) TimeOfFlare(1:6)
+          read(iInputUnit_, *) TimeOfFlare(1:6)
           TimeOfFlare(7) = 0
           call time_int_to_real(TimeOfFlare, FlareTimes(i))
         end do
@@ -887,7 +887,7 @@ subroutine Set_Euv(iError, StartTime, EndTime)
 
   TimeSee(:) = 0
   iline = 1
-  read (iInputUnit_, *, iostat=iError) temp
+  read(iInputUnit_, *, iostat=iError) temp
 
   iErrortemp = 0
   do while (iErrortemp .eq. 0)
@@ -901,7 +901,7 @@ subroutine Set_Euv(iError, StartTime, EndTime)
         TimeSee(iLine) < EndTime + BufferTime) &
       iline = iline + 1
 
-    read (iInputUnit_, *, iostat=iErrortemp) temp
+    read(iInputUnit_, *, iostat=iErrortemp) temp
 
     if (iline > nSeeLinesMax - 1) then
       iErrortemp = 1
@@ -910,7 +910,7 @@ subroutine Set_Euv(iError, StartTime, EndTime)
 
   end do
 
-  close (iInputUnit_)
+  close(iInputUnit_)
   nSeeTimes = iline - 1
 
   if (nSeeTimes > 2) iError = 0
@@ -933,33 +933,33 @@ subroutine read_euv_waves(iError)
 
   call report("read_euv_waves", 2)
 
-  open (unit=iInputUnit_, file=cRidleyEUVFile, status="old", IOSTAT=iError)
+  open(unit=iInputUnit_, file=cRidleyEUVFile, status="old", IOSTAT=iError)
 
   if (iError /= 0) then
-    write (*, *) "Error in opening RidleyEUVFile  Is this set?"
-    write (*, *) "Code : ", iError, cRidleyEUVFile
+    write(*, *) "Error in opening RidleyEUVFile  Is this set?"
+    write(*, *) "Code : ", iError, cRidleyEUVFile
     call stop_gitm("Stopping in read_euv_waves")
   end if
 
-  read (iInputUnit_, *, iostat=iError) nFiles
+  read(iInputUnit_, *, iostat=iError) nFiles
 
   do i = 1, nFiles
-    read (iInputUnit_, *, iostat=iError) cline
+    read(iInputUnit_, *, iostat=iError) cline
   end do
 
-  read (iInputUnit_, *, iostat=iError) nWaves
+  read(iInputUnit_, *, iostat=iError) nWaves
 
   if (nWaves /= Num_WaveLengths_High) then
-    write (*, *) "Error in RidleyEUVFile - nWaves /= Num_wavelengths_high"
-    write (*, *) "Values : ", nWaves, Num_WaveLengths_High
+    write(*, *) "Error in RidleyEUVFile - nWaves /= Num_wavelengths_high"
+    write(*, *) "Values : ", nWaves, Num_WaveLengths_High
     call stop_gitm("Stopping in read_euv_waves")
   end if
 
-  read (iInputUnit_, *, iostat=iError) cline
+  read(iInputUnit_, *, iostat=iError) cline
 
   do i = 1, nWaves
 
-    read (iInputUnit_, *, iostat=iError) iWave, tmp
+    read(iInputUnit_, *, iostat=iError) iWave, tmp
     RidleySlopes(1, i) = tmp(1)
     RidleySlopes(2, i) = tmp(2)
     RidleySlopes(3, i) = tmp(3)
@@ -969,7 +969,7 @@ subroutine read_euv_waves(iError)
 
   end do
 
-  close (iInputUnit_)
+  close(iInputUnit_)
 
 end subroutine read_euv_waves
 

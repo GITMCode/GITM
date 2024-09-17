@@ -18,7 +18,7 @@ subroutine advance_vertical_1d
   integer :: iError
 
   if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
-  if (iDebugLevel > 6) write (*, *) "=======> vertical bcs 1", iproc
+  if (iDebugLevel > 6) write(*, *) "=======> vertical bcs 1", iproc
 
   ! Fill in ghost cells
   call set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, IVel, VertVel)
@@ -32,7 +32,7 @@ subroutine advance_vertical_1d
   NewVertVel = VertVel
 
   if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
-  if (iDebugLevel > 7) write (*, *) "========> stage 1", iproc
+  if (iDebugLevel > 7) write(*, *) "========> stage 1", iproc
 
   ! Do the half step: U^n+1/2 = U^n + (Dt/2) * R(U^n)
 !  Dt = Dt/2
@@ -64,14 +64,14 @@ subroutine advance_vertical_1d
 !  write(*,*) "vv, after av1s 2: ", VertVel(3, :),LogNS(3,1)
 
   if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
-  if (iDebugLevel > 7) write (*, *) "========> vertical bcs 3", iproc
+  if (iDebugLevel > 7) write(*, *) "========> vertical bcs 3", iproc
 
   ! Fill in ghost cells for updated U^n+1 state
   call set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, IVel, VertVel)
 
   if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
   if (iDebugLevel > 7) &
-    write (*, *) "========> Done with advance_vertical_1d", iproc
+    write(*, *) "========> Done with advance_vertical_1d", iproc
 
 end subroutine advance_vertical_1d
 

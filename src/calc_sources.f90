@@ -37,7 +37,7 @@ subroutine calc_GITM_sources(iBlock)
   ! Solar Heating -------------------------------------------------
   !/
 
-  if (iDebugLevel > 4) write (*, *) "=====> solar heating", iproc
+  if (iDebugLevel > 4) write(*, *) "=====> solar heating", iproc
   if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
 
   if (UseSolarHeating .or. UseIonChemistry) then
@@ -111,19 +111,19 @@ subroutine calc_GITM_sources(iBlock)
   ! ---------------------------------------------------------------
   !/
 
-  if (iDebugLevel > 4) write (*, *) "=====> get_potential", iproc
+  if (iDebugLevel > 4) write(*, *) "=====> get_potential", iproc
   if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
   call get_potential(iBlock)
 
-  if (iDebugLevel > 4) write (*, *) "=====> Efield", iproc
+  if (iDebugLevel > 4) write(*, *) "=====> Efield", iproc
   if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
   call calc_efield(iBlock)
 
-  if (iDebugLevel > 4) write (*, *) "=====> Aurora", iproc
+  if (iDebugLevel > 4) write(*, *) "=====> Aurora", iproc
   if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
   call aurora(iBlock)
 
-  if (iDebugLevel > 4) write (*, *) "=====> Ion Velocity", iproc
+  if (iDebugLevel > 4) write(*, *) "=====> Ion Velocity", iproc
   if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
   call calc_ion_v(iBlock)
 
@@ -133,7 +133,7 @@ subroutine calc_GITM_sources(iBlock)
   ! ---------------------------------------------------------------
   !/
 
-  if (iDebugLevel > 4) write (*, *) "=====> Chemistry", iproc
+  if (iDebugLevel > 4) write(*, *) "=====> Chemistry", iproc
   if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
   call calc_chemistry(iBlock)
 

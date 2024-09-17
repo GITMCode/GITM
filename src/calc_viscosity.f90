@@ -37,7 +37,7 @@ subroutine calc_viscosity(iBlock)
   real :: VerticalVelocityH(1:nLons, 1:nLats, -1:nAlts + 2, 1:nSpecies)
   real :: VerticalVelocityF(1:nLons, 1:nLats, -1:nAlts + 2, 1:nSpecies)
 
-  if (iDebugLevel > 4) write (*, *) "=====> Calc Viscosity", iproc
+  if (iDebugLevel > 4) write(*, *) "=====> Calc Viscosity", iproc
   if (UseBarriers) call MPI_BARRIER(iCommGITM, iErr)
 
   ! Note, this assumes that all species need Neumann Upper boundary
@@ -58,7 +58,7 @@ subroutine calc_viscosity(iBlock)
   NeuBCS = .true.
   do iDir = iEast_, iNorth_
 
-    if (iDebugLevel > 4) write (*, *) "=====> Viscosity stage 1", iproc, iDir, 1
+    if (iDebugLevel > 4) write(*, *) "=====> Viscosity stage 1", iproc, iDir, 1
     if (UseBarriers) call MPI_BARRIER(iCommGITM, iErr)
 
     DtCSLocal = Dt/2.0
@@ -75,7 +75,7 @@ subroutine calc_viscosity(iBlock)
       Velocity(1:nLons, 1:nLats, 0:nAlts + 1, iDir, iBlock) + &
       Viscosity(1:nLons, 1:nLats, 0:nAlts + 1, iDir)
 
-    if (iDebugLevel > 4) write (*, *) "=====> Viscosity stage 2", iproc, iDir, 2
+    if (iDebugLevel > 4) write(*, *) "=====> Viscosity stage 2", iproc, iDir, 2
     if (UseBarriers) call MPI_BARRIER(iCommGITM, iErr)
 
     DtCSLocal = Dt/2.0
@@ -92,7 +92,7 @@ subroutine calc_viscosity(iBlock)
       VelocityStage1(1:nLons, 1:nLats, 0:nAlts + 1, iDir) + &
       Viscosity(1:nLons, 1:nLats, 0:nAlts + 1, iDir)
 
-    if (iDebugLevel > 4) write (*, *) "=====> Viscosity stage 3", iproc, iDir, 3
+    if (iDebugLevel > 4) write(*, *) "=====> Viscosity stage 3", iproc, iDir, 3
     if (UseBarriers) call MPI_BARRIER(iCommGITM, iErr)
 
     DtCSLocal = Dt
@@ -117,7 +117,7 @@ subroutine calc_viscosity(iBlock)
 
   end do !iDir = iEast_, iNorth_
 
-  if (iDebugLevel > 4) write (*, *) "=====> Vertical Viscosity", iproc
+  if (iDebugLevel > 4) write(*, *) "=====> Vertical Viscosity", iproc
   if (UseBarriers) call MPI_BARRIER(iCommGITM, iErr)
 
   ! JMB:  07/13/2017

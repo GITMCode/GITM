@@ -74,15 +74,15 @@ subroutine aurora(iBlock)
     if (UseFangEnergyDeposition) then
 
       ! Electrons
-      allocate (Fang_Ci(ED_N_Energies, 8), stat=iErr)
-      allocate (Fang_y(ED_N_Energies, nAlts), stat=iErr)
-      allocate (Fang_f(ED_N_Energies, nAlts), stat=iErr)
+      allocate(Fang_Ci(ED_N_Energies, 8), stat=iErr)
+      allocate(Fang_y(ED_N_Energies, nAlts), stat=iErr)
+      allocate(Fang_f(ED_N_Energies, nAlts), stat=iErr)
 
       ! Ions
       if (UseIonPrecipitation) then
-        allocate (Fang_Ion_Ci(ED_N_Energies, 12), stat=iErr)
-        allocate (Fang_Ion_y(ED_N_Energies, nAlts), stat=iErr)
-        allocate (Fang_Ion_f(ED_N_Energies, nAlts), stat=iErr)
+        allocate(Fang_Ion_Ci(ED_N_Energies, 12), stat=iErr)
+        allocate(Fang_Ion_y(ED_N_Energies, nAlts), stat=iErr)
+        allocate(Fang_Ion_f(ED_N_Energies, nAlts), stat=iErr)
       end if
 
       if (iErr /= 0) then
@@ -188,13 +188,13 @@ subroutine aurora(iBlock)
 
     if (iDebugLevel >= 0) then
       if ((iDebugLevel == 0) .and. IsFirstTime(iBlock)) then
-        write (*, *) '---------------------------------------------------'
-        write (*, *) 'Using auroral normalizing ratios!!! '
-        write (*, *) 'no longer reporting!'
-        write (*, *) '---------------------------------------------------'
+        write(*, *) '---------------------------------------------------'
+        write(*, *) 'Using auroral normalizing ratios!!! '
+        write(*, *) 'no longer reporting!'
+        write(*, *) '---------------------------------------------------'
       else
         if (iDebugLevel >= 1) &
-          write (*, *) 'auroral normalizing ratio: ', Hpi, avepower, ratio
+          write(*, *) 'auroral normalizing ratio: ', Hpi, avepower, ratio
       end if
     end if
     do i = 1, nLats
@@ -215,12 +215,12 @@ subroutine aurora(iBlock)
   end if
 
   if (iProc == 0 .and. AveEFactor /= 1.0) then
-    write (*, *) "Auroral Experiments!!!!"
-    write (*, *) "AveEFactor : ", AveEFactor
+    write(*, *) "Auroral Experiments!!!!"
+    write(*, *) "AveEFactor : ", AveEFactor
   end if
   if (iProc == 0 .and. IsKappaAurora) then
-    write (*, *) "Auroral Experiments!!!!"
-    write (*, *) "kappa : ", AuroraKappa
+    write(*, *) "Auroral Experiments!!!!"
+    write(*, *) "kappa : ", AuroraKappa
   end if
 
   do i = 1, nLats

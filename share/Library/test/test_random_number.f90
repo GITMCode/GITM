@@ -17,8 +17,8 @@ subroutine CON_stop(StringError)
 
   character(len=*), intent(in) :: StringError
   !----------------------------------------------------------------------------
-  write (*, '(a)') StringError
-  write (*, '(a,i3)') '!!! SWMF_ABORT !!!'
+  write(*, '(a)') StringError
+  write(*, '(a,i3)') '!!! SWMF_ABORT !!!'
   stop
 
 end subroutine CON_stop

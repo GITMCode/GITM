@@ -259,7 +259,7 @@ subroutine calc_planet_sources(iBlock)
 !    0.001
 
   if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
-  if (iDebugLevel > 4) write (*, *) "=====> HCN cooling", iproc, UseNOCooling
+  if (iDebugLevel > 4) write(*, *) "=====> HCN cooling", iproc, UseNOCooling
 
   ! Residual Earth Stuff
 !  call calc_co2(iBlock)
@@ -387,7 +387,7 @@ subroutine calc_planet_sources(iBlock)
         call start_timing("glow")
         isInitialGlow = .True.
 
-        if (iDebugLevel > 4) write (*, *) "=====> going into get_glow", iproc
+        if (iDebugLevel > 4) write(*, *) "=====> going into get_glow", iproc
 
         do iLat = 1, nLats
           do iLon = 1, nLons

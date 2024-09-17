@@ -97,8 +97,8 @@ subroutine init_msis
   if (DoRestart) return
 
   do iBlock = 1, nBlocks
-    write (*, *) "init_msis"
-    write (*, *) '==> Now Initializing Mars Background Composition', iBlock
+    write(*, *) "init_msis"
+    write(*, *) '==> Now Initializing Mars Background Composition', iBlock
 
     dSurfaceTemp(:, :, :) = 0.0
     dSubSurfaceTemp(:, :, :) = 0.0
@@ -111,9 +111,9 @@ subroutine init_msis
     initialEDensity = 0.0
     initialAlt = 0.0
 
-    open (iInputUnit_, file='DataIn/MarsInitialIonosphere.txt')
+    open(iInputUnit_, file='DataIn/MarsInitialIonosphere.txt')
     do while (.not. Done)
-      read (iInputUnit_, *) cLine
+      read(iInputUnit_, *) cLine
       if (cline .eq. '#START') Done = .True.
     end do
 
@@ -121,7 +121,7 @@ subroutine init_msis
     ialt = 1
 
     do while (.not. Done)
-      read (iInputUnit_, *, iostat=iError) inDensities
+      read(iInputUnit_, *, iostat=iError) inDensities
       if (iError .ne. 0) then
         Done = .True.
       else
@@ -133,7 +133,7 @@ subroutine init_msis
       iAlt = iAlt + 1
 
     end do
-    close (iInputUnit_)
+    close(iInputUnit_)
 
     LogInitialDensity = log10(InitialEDensity)
 
@@ -293,7 +293,7 @@ subroutine init_msis
     IDensityS(:, :, :, iOP_, iBlock) = 1.0e0
     IDensityS(:, :, :, iN2P_, iBlock) = 1.0e0
     IDensityS(:, :, :, iNOP_, iBlock) = 1.0e0
-    write (*, *) '============> init_msis.Mars.f90 Major Diagnostics:  Begin'
+    write(*, *) '============> init_msis.Mars.f90 Major Diagnostics:  Begin'
 !     Temperature(:,:,:,iBlock) = 175.
     !\
     ! Altitude Ghost Cells
@@ -392,7 +392,7 @@ subroutine init_msis
       MeanMajorMass(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2)* &
       NDensity(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, iBlock)
 
-    write (*, *) '==> Now Completing Mars Background Composition: END', iBlock
+    write(*, *) '==> Now Completing Mars Background Composition: END', iBlock
 
     call calc_electron_temperature(iBlock)
 
@@ -403,9 +403,9 @@ end subroutine init_msis
 subroutine msis_bcs(iJulianDay, UTime, Alt, Lat, Lon, Lst, &
                     F107A, F107, AP, LogNS, Temp, LogRho)
 
-  write (*, *) "You can not use MSIS with any planet except Earth!!!"
-  write (*, *) "If you ARE running Earth, then make the code again, using"
-  write (*, *) "configure Earth ; make"
+  write(*, *) "You can not use MSIS with any planet except Earth!!!"
+  write(*, *) "If you ARE running Earth, then make the code again, using"
+  write(*, *) "configure Earth ; make"
   call stop_gitm("I can not continue...")
 
 end subroutine msis_bcs
@@ -429,23 +429,23 @@ subroutine read_dust
   real :: rlat, invLatDiff, LatFind, Latdiff, Dust, templat(ndustlats), conrath
 
   do iBlock = 1, nBlocks
-    open (unit=iInputUnit_, file=cDustFile)
+    open(unit=iInputUnit_, file=cDustFile)
     notstarted = .True.
     do while (notstarted)
-      read (iInputUnit_, '(a)', iostat=iError) cLine
+      read(iInputUnit_, '(a)', iostat=iError) cLine
       if (iError .ne. 0) then
-        write (*, *) "Error reading Dust file"
-        write (*, *) "Does this file exist?"
+        write(*, *) "Error reading Dust file"
+        write(*, *) "Does this file exist?"
         call stop_GITM("In init_msis_Mars")
       end if
       if (cline(1:6) .eq. '#START') notstarted = 0
     end do
 
-    read (iInputUnit_, *, iostat=iError) DustLatitude
+    read(iInputUnit_, *, iostat=iError) DustLatitude
 
     iline = 1
     do while (iError .eq. 0)
-      read (iInputUnit_, *, iostat=iError) Temp
+      read(iInputUnit_, *, iostat=iError) Temp
       TimeArray(1:6) = temp(1:6)
       TimeArray(7) = 0
       call time_int_to_real(TimeArray, TimeDust(iLine))
@@ -499,24 +499,24 @@ subroutine read_dust
     end where
 
     !Horizontal Conrath Parameter Distribution
-    close (iInputUnit_)
-    open (unit=iInputUnit_, file=cConrathFile)
+    close(iInputUnit_)
+    open(unit=iInputUnit_, file=cConrathFile)
     notstarted = .True.
     do while (notstarted)
-      read (iInputUnit_, '(a)', iostat=iError) cLine
+      read(iInputUnit_, '(a)', iostat=iError) cLine
       if (iError .ne. 0) then
-        write (*, *) "Error reading Conrath file"
-        write (*, *) "Does this file exist?"
+        write(*, *) "Error reading Conrath file"
+        write(*, *) "Does this file exist?"
         call stop_GITM("In init_msis_Mars")
       end if
       if (cline(1:6) .eq. '#START') notstarted = 0
     end do
 
-    read (iInputUnit_, *, iostat=iError) DustLatitude
+    read(iInputUnit_, *, iostat=iError) DustLatitude
 
     iline = 1
     do while (iError .eq. 0)
-      read (iInputUnit_, *, iostat=iError) Temp
+      read(iInputUnit_, *, iostat=iError) Temp
       TimeArray(1:6) = temp(1:6)
       TimeArray(7) = 0
       call time_int_to_real(TimeArray, TimeConrath(iLine))
@@ -565,7 +565,7 @@ subroutine read_dust
       iline = iline + 1
 
     end do
-    close (iInputUnit_)
+    close(iInputUnit_)
   end do
 
   nConrathTimes = iline - 1

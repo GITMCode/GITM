@@ -350,14 +350,14 @@ subroutine advance_horizontal(iBlock)
       NewVertVel_CV
 
     if (minval(NewNum_CV) < 0.0) then
-      write (*, *) "Negative Density after horizontal advection!!"
-      write (*, *) "Correcting...."
+      write(*, *) "Negative Density after horizontal advection!!"
+      write(*, *) "Correcting...."
       do iLon = 1, nLons
         do iLat = 1, nLats
           IsFound = .false.
           do iSpecies = 1, nSpecies
             if (NewNum_CV(iLon, iLat, iSpecies) < 0.0) then
-              write (*, *) "Species : ", iSpecies, iLon, iLat, iBlock
+              write(*, *) "Species : ", iSpecies, iLon, iLat, iBlock
               stop
               NewNum_CV(iLon, iLat, iSpecies) = 1.0
               IsFound = .true.
@@ -382,7 +382,7 @@ subroutine advance_horizontal(iBlock)
         do iLat = 1, nLats
           do iDir = 1, 3
             if (isnan(Velocity(iLon, iLat, iAlt, iDir, 1))) &
-              write (*, *) 'Velocity is nan : ', iLon, iLat, iAlt, iDir
+              write(*, *) 'Velocity is nan : ', iLon, iLat, iAlt, iDir
           end do
         end do
       end do
@@ -514,7 +514,7 @@ subroutine advance_horizontal(iBlock)
   end if
 
   if (iDebugLevel > 2) &
-    write (*, *) "===> advance_horizontal, MaxDiff, IVel, IDens, Dt : ", &
+    write(*, *) "===> advance_horizontal, MaxDiff, IVel, IDens, Dt : ", &
     MaxDiff, maxval(abs(IVel_CD)), &
     maxval(IDensityS(1:nLons, 1:nLats, 1:nAlts, 1:nIonsAdvect, iBlock)), dt
 

@@ -58,7 +58,7 @@ subroutine read_MHDIMF_Indices_new(iOutputError, StartTime, EndTime)
   if (nIndices_V(imf_bx_) == 0) &
     NameOfIMFFile = NameOfIndexFile(:index(NameOfIndexFile, ' ') - 1)
 
-  open (LunIndices_, file=trim(NameOfIMFFile), status="old", iostat=ierror)
+  open(LunIndices_, file=trim(NameOfIMFFile), status="old", iostat=ierror)
 
   if (ierror .ne. 0) then
     iOutputError = 1
@@ -67,11 +67,11 @@ subroutine read_MHDIMF_Indices_new(iOutputError, StartTime, EndTime)
 
   do while (.not. done)
 
-    read (LunIndices_, '(a)', iostat=ierror) line
+    read(LunIndices_, '(a)', iostat=ierror) line
     if (ierror /= 0) done = .true.
 
     if (index(line, '#DELAY') > 0) then
-      read (LunIndices_, *, iostat=iError) TimeDelay
+      read(LunIndices_, *, iostat=iError) TimeDelay
       if (iError /= 0) done = .true.
     end if
 
@@ -84,7 +84,7 @@ subroutine read_MHDIMF_Indices_new(iOutputError, StartTime, EndTime)
 
       do while (.not. done_inner)
 
-        read (LunIndices_, *, iostat=iError) &
+        read(LunIndices_, *, iostat=iError) &
           (iTime(j), j=1, 7), &
           Indices_TV(iIMF, imf_bx_), &
           Indices_TV(iIMF, imf_by_), &
@@ -174,7 +174,7 @@ subroutine read_MHDIMF_Indices_new(iOutputError, StartTime, EndTime)
 
   end do
 
-  close (LunIndices_)
+  close(LunIndices_)
 
   if (iIMF >= MaxIndicesEntries) ReReadIMFFile = .true.
 

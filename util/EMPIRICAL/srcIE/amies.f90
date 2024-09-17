@@ -280,8 +280,8 @@ subroutine amiemodel(inmlt, inmlat, by, bz, pot, IncludeBackground)
   integer :: ilat1, ilat2, ilon1, ilon2
 
   if (DebugLevel > 3) then
-    write (*, *) "  ====> In subroutine amiemodel"
-    write (*, *) "        inputs : ", inmlt, inmlat, by, bz, IncludeBackground
+    write(*, *) "  ====> In subroutine amiemodel"
+    write(*, *) "        inputs : ", inmlt, inmlat, by, bz, IncludeBackground
   end if
 
   ! turn latitude and mlt into grid point number
@@ -397,84 +397,84 @@ subroutine read_amies(unitin)
   character(len=100) ::line, fmt
   integer :: inlon, inlat, ierr, i, k
 
-  read (unitin, '(2I8)', iostat=ierr) inlat, inlon
+  read(unitin, '(2I8)', iostat=ierr) inlat, inlon
 
   if ((inlon /= iaslon) .or. (inlat /= iaslat) .or. (ierr < 0)) then
 
-    write (6, *) 'Error in read_amies.f. Latitudes and longitude'
-    write (6, *) 'do not match with code.'
+    write(6, *) 'Error in read_amies.f. Latitudes and longitude'
+    write(6, *) 'do not match with code.'
 
-    write (6, *) 'inlon : ', inlon, '  iaslon : ', iaslon
-    write (6, *) 'inlat : ', inlat, '  iaslat : ', iaslat
+    write(6, *) 'inlon : ', inlon, '  iaslon : ', iaslon
+    write(6, *) 'inlat : ', inlat, '  iaslat : ', iaslat
 
-    write (6, *) ierr
+    write(6, *) ierr
 
     stop
 
   else
 
-    read (unitin, '(2F8.2)') asdlat, asdlon
+    read(unitin, '(2F8.2)') asdlat, asdlon
 
-    write (fmt, "(A1,I2,A5)") "(", inlon, "f8.4)"
+    write(fmt, "(A1,I2,A5)") "(", inlon, "f8.4)"
 
-    read (unitin, '(A100)') line
+    read(unitin, '(A100)') line
     do i = 1, inlat
-      read (unitin, fmt) (aspx(k, i), k=1, inlon)
+      read(unitin, fmt) (aspx(k, i), k=1, inlon)
     end do
 
-    read (unitin, '(A100)') line
+    read(unitin, '(A100)') line
     do i = 1, inlat
-      read (unitin, fmt) (aspxi(k, i), k=1, inlon)
+      read(unitin, fmt) (aspxi(k, i), k=1, inlon)
     end do
 
-    read (unitin, '(A100)') line
+    read(unitin, '(A100)') line
     do i = 1, inlat
-      read (unitin, fmt) (aspyn(k, i), k=1, inlon)
+      read(unitin, fmt) (aspyn(k, i), k=1, inlon)
     end do
 
-    read (unitin, '(A100)') line
+    read(unitin, '(A100)') line
     do i = 1, inlat
-      read (unitin, fmt) (aspyni(k, i), k=1, inlon)
+      read(unitin, fmt) (aspyni(k, i), k=1, inlon)
     end do
 
-    read (unitin, '(A100)') line
+    read(unitin, '(A100)') line
     do i = 1, inlat
-      read (unitin, fmt) (aspyp(k, i), k=1, inlon)
+      read(unitin, fmt) (aspyp(k, i), k=1, inlon)
     end do
 
-    read (unitin, '(A100)') line
+    read(unitin, '(A100)') line
     do i = 1, inlat
-      read (unitin, fmt) (aspypi(k, i), k=1, inlon)
+      read(unitin, fmt) (aspypi(k, i), k=1, inlon)
     end do
 
-    read (unitin, '(A100)') line
+    read(unitin, '(A100)') line
     do i = 1, inlat
-      read (unitin, fmt) (aspzn(k, i), k=1, inlon)
+      read(unitin, fmt) (aspzn(k, i), k=1, inlon)
     end do
 
-    read (unitin, '(A100)') line
+    read(unitin, '(A100)') line
     do i = 1, inlat
-      read (unitin, fmt) (aspzni(k, i), k=1, inlon)
+      read(unitin, fmt) (aspzni(k, i), k=1, inlon)
     end do
 
-    read (unitin, '(A100)') line
+    read(unitin, '(A100)') line
     do i = 1, inlat
-      read (unitin, fmt) (aspzp(k, i), k=1, inlon)
+      read(unitin, fmt) (aspzp(k, i), k=1, inlon)
     end do
 
-    read (unitin, '(A100)') line
+    read(unitin, '(A100)') line
     do i = 1, inlat
-      read (unitin, fmt) (aspzpi(k, i), k=1, inlon)
+      read(unitin, fmt) (aspzpi(k, i), k=1, inlon)
     end do
 
-    read (unitin, '(A100)') line
+    read(unitin, '(A100)') line
     do i = 1, inlat
-      read (unitin, fmt) (aspf(k, i), k=1, inlon)
+      read(unitin, fmt) (aspf(k, i), k=1, inlon)
     end do
 
-    read (unitin, '(A100)') line
+    read(unitin, '(A100)') line
     do i = 1, inlat
-      read (unitin, fmt) (aspfi(k, i), k=1, inlon)
+      read(unitin, fmt) (aspfi(k, i), k=1, inlon)
     end do
 
   end if

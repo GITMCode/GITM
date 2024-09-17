@@ -63,12 +63,12 @@ subroutine read_satellites(iError)
   do iSat = 1, nSats
 
     if (iDebugLevel > 2) &
-      write (*, *) "Reading Satellite File : ", cSatFileName(iSat), iSat
+      write(*, *) "Reading Satellite File : ", cSatFileName(iSat), iSat
 
-    open (unit=iSatUnit, file=cSatFileName(iSat), status="old", iostat=iError)
+    open(unit=iSatUnit, file=cSatFileName(iSat), status="old", iostat=iError)
 
     if (iError /= 0) then
-      write (*, *) "Error opening satellite file : ", cSatFileName(iSat)
+      write(*, *) "Error opening satellite file : ", cSatFileName(iSat)
       return
     end if
 
@@ -76,15 +76,15 @@ subroutine read_satellites(iError)
 
     do while (.not. IsStartFound)
       cLine = ""
-      read (iSatUnit, *, iostat=iError) cLine
+      read(iSatUnit, *, iostat=iError) cLine
       if (iError /= 0) IsStartFound = .true.
       if (index(cline, "#START") > 0) IsStartFound = .true.
     end do
 
     if (iError /= 0) then
-      write (*, *) "Error finding #START in satellite file : ", &
+      write(*, *) "Error finding #START in satellite file : ", &
         cSatFileName(iSat)
-      close (iSatUnit)
+      close(iSatUnit)
       return
     end if
 
@@ -95,9 +95,9 @@ subroutine read_satellites(iError)
 
       ! Asad Note: Read in the time, 3D position, and a single data column
       if (RCMRFlag) then
-        read (iSatUnit, *, iostat=iError) iTime, Pos, dat
+        read(iSatUnit, *, iostat=iError) iTime, Pos, dat
       else
-        read (iSatUnit, *, iostat=iError) iTime, Pos
+        read(iSatUnit, *, iostat=iError) iTime, Pos
       end if
 
       if (iError == 0) then
@@ -115,7 +115,7 @@ subroutine read_satellites(iError)
         if (NewTime /= OldTime) then
           nSatLines(iSat) = nSatLines(iSat) + 1
           if (nSatLines(iSat) > nMaxSatInputLines) then
-            write (*, *) "Too Many Lines in satfile : ", cSatFileName(iSat)
+            write(*, *) "Too Many Lines in satfile : ", cSatFileName(iSat)
             iError = 1
           else
             nSatPos(iSat, nSatLines(iSat)) = &
@@ -133,9 +133,9 @@ subroutine read_satellites(iError)
         else
           nSatPos(iSat, nSatLines(iSat)) = nSatPos(iSat, nSatLines(iSat)) + 1
           if (nSatPos(iSat, nSatLines(iSat)) > nMaxSatPos - 2) then
-            write (*, *) "Too Many Positions in satfile : ", &
+            write(*, *) "Too Many Positions in satfile : ", &
               cSatFileName(iSat)
-            write (*, *) "Line : ", nSatLines(iSat)
+            write(*, *) "Line : ", nSatLines(iSat)
             iError = 1
           else
             SatPos(iSat, :, nSatPos(iSat, nSatLines(iSat)), nSatLines(iSat)) = &
@@ -150,21 +150,21 @@ subroutine read_satellites(iError)
 
     end do
 
-    close (iSatUnit)
+    close(iSatUnit)
     if (IsFine) iError = 0
 
   end do
 
   if (iDebugLevel > 1) then
 
-    write (*, *) "Number of Satellite Files Read : ", nSats
+    write(*, *) "Number of Satellite Files Read : ", nSats
     do iSat = 1, nSats
-      write (*, *) iSat, ". Number of Different times : ", nSatLines(iSat)
+      write(*, *) iSat, ". Number of Different times : ", nSatLines(iSat)
       iMax = 1
       do i = 1, nSatLines(iSat)
         if (nSatPos(iSat, i) > iMax) iMax = nSatPos(iSat, i)
       end do
-      write (*, *) iSat, ". Max number of Positions : ", iMax
+      write(*, *) iSat, ". Max number of Positions : ", iMax
     end do
 
   end if
@@ -256,7 +256,7 @@ subroutine move_satellites
 
         do iBlock = 1, nBlocks
 
-          write (cPos, '(i3.3)') iPos
+          write(cPos, '(i3.3)') iPos
           cTmp = cSatFileName(iSat)
           cName = cTmp(1:4)//"_"//cPos
           CurrentSatellitePosition = SatCurrentPos(iSat, :, iPos)
@@ -341,7 +341,7 @@ subroutine move_satellites
 !                     CurrentTime - SatTime(iSat,iSatCurrentIndex(iSat)), &
 !                     iPos, i, SatCurrentPos(iSat, i, iPos)
             end do
-            write (cPos, '(i3.3)') iPos
+            write(cPos, '(i3.3)') iPos
 
             l1 = index(cSatFileName(iSat), '/', back=.true.) + 1
             l2 = index(cSatFileName(iSat), '.') - 1

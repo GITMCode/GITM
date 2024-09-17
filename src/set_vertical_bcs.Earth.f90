@@ -554,12 +554,12 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
         n4 = alog(LogINS(iAlt - 4, iSpecies))
         n5 = alog(LogINS(iAlt - 5, iSpecies))
         if (DoCheckForNans) then
-          if (isnan(n0)) write (*, *) 'n0 :', iAlt, LogINS(iAlt, iSpecies)
-          if (isnan(n1)) write (*, *) 'n1 :', iAlt - 1, LogINS(iAlt - 1, iSpecies)
-          if (isnan(n2)) write (*, *) 'n2 :', iAlt - 2, LogINS(iAlt - 2, iSpecies)
-          if (isnan(n3)) write (*, *) 'n3 :', iAlt - 3, LogINS(iAlt - 3, iSpecies)
-          if (isnan(n4)) write (*, *) 'n4 :', iAlt - 4, LogINS(iAlt - 4, iSpecies)
-          if (isnan(n5)) write (*, *) 'n5 :', iAlt - 5, LogINS(iAlt - 5, iSpecies)
+          if (isnan(n0)) write(*, *) 'n0 :', iAlt, LogINS(iAlt, iSpecies)
+          if (isnan(n1)) write(*, *) 'n1 :', iAlt - 1, LogINS(iAlt - 1, iSpecies)
+          if (isnan(n2)) write(*, *) 'n2 :', iAlt - 2, LogINS(iAlt - 2, iSpecies)
+          if (isnan(n3)) write(*, *) 'n3 :', iAlt - 3, LogINS(iAlt - 3, iSpecies)
+          if (isnan(n4)) write(*, *) 'n4 :', iAlt - 4, LogINS(iAlt - 4, iSpecies)
+          if (isnan(n5)) write(*, *) 'n5 :', iAlt - 5, LogINS(iAlt - 5, iSpecies)
         end if
       else
         n0 = LogINS(iAlt, iSpecies)
@@ -596,7 +596,7 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
 
       if (DoCheckForNans) then
         if (isnan(LogINS(iAlt, 1))) &
-          write (*, *) 'svbc ', iAlt, LogINS(iAlt, 1), n0, dn, &
+          write(*, *) 'svbc ', iAlt, LogINS(iAlt, 1), n0, dn, &
           n1, n2, n3, n4, n5, tec, MinTEC, UsePlasmasphereBC, &
           dAlt_F(iAlt)
       end if
@@ -629,10 +629,10 @@ contains
 
     if (minval(LogINS(iAlt - 5:iAlt, iSpecies)) < 0.0) then
 
-      if (DoCheckForNaNs) write (*, *) "Correcting negative ion density in set_vertical_bcs : ", iAlt, iSpecies
+      if (DoCheckForNaNs) write(*, *) "Correcting negative ion density in set_vertical_bcs : ", iAlt, iSpecies
 
       if (LogINS(iAlt - 6, iSpecies) < 0.0) then
-        write (*, *) 'Negative Ion density too close to the upper boundary: ', iSpecies
+        write(*, *) 'Negative Ion density too close to the upper boundary: ', iSpecies
         call stop_gitm('Stopping in set_vertical_bcs')
       end if
 

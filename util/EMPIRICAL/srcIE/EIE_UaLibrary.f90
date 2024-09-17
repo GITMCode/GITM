@@ -63,8 +63,8 @@ subroutine UA_SetMLTs(MLTsIn, iError)
   integer :: i, j
 
   iError = 0
-  if (allocated(UAr2_NeedMLTs)) deallocate (UAr2_NeedMLTs)
-  allocate (UAr2_NeedMLTs(UAi_NeednMLTs, UAi_NeednLats), stat=iError)
+  if (allocated(UAr2_NeedMLTs)) deallocate(UAr2_NeedMLTs)
+  allocate(UAr2_NeedMLTs(UAi_NeednMLTs, UAi_NeednLats), stat=iError)
   if (iError /= 0) then
     iError = ecAllocationError_
     return
@@ -91,8 +91,8 @@ subroutine UA_SetLats(LatsIn, iError)
   real, dimension(UAi_NeednMLTs, UAi_NeednLats), intent(in) :: LatsIn
 
   iError = 0
-  if (allocated(UAr2_NeedLats)) deallocate (UAr2_NeedLats)
-  allocate (UAr2_NeedLats(UAi_NeednMLTs, UAi_NeednLats), stat=iError)
+  if (allocated(UAr2_NeedLats)) deallocate(UAr2_NeedLats)
+  allocate(UAr2_NeedLats(UAi_NeednMLTs, UAi_NeednLats), stat=iError)
   if (iError /= 0) then
     iError = ecAllocationError_
     return
@@ -130,18 +130,18 @@ subroutine UA_SetGrid(MLTsIn, LatsIn, iError)
   if (UAl_UseGridBasedEIE) then
 
     if (allocated(UAi3_InterpolationIndices)) &
-      deallocate (UAi3_InterpolationIndices)
-    allocate (UAi3_InterpolationIndices(UAi_NeednMLTs, UAi_NeednLats, 3), &
-              stat=iError)
+      deallocate(UAi3_InterpolationIndices)
+    allocate(UAi3_InterpolationIndices(UAi_NeednMLTs, UAi_NeednLats, 3), &
+             stat=iError)
     if (iError /= 0) then
       iError = ecAllocationError_
       return
     end if
 
     if (allocated(UAr3_InterpolationRatios)) &
-      deallocate (UAr3_InterpolationRatios)
-    allocate (UAr3_InterpolationRatios(UAi_NeednMLTs, UAi_NeednLats, 2), &
-              stat=iError)
+      deallocate(UAr3_InterpolationRatios)
+    allocate(UAr3_InterpolationRatios(UAi_NeednMLTs, UAi_NeednLats, 2), &
+             stat=iError)
     if (iError /= 0) then
       iError = ecAllocationError_
       return
@@ -244,8 +244,8 @@ subroutine UA_GetPotential(PotentialOut, iError)
     call UA_GetValue(EIE_Value, ValueOut, Filler, iError)
 
     if (iError /= 0) then
-      write (*, *) "Error in routine UA_GetPotential:"
-      write (*, *) cErrorCodes(iError)
+      write(*, *) "Error in routine UA_GetPotential:"
+      write(*, *) cErrorCodes(iError)
       stop
     else
       PotentialOut = ValueOut
@@ -279,7 +279,7 @@ subroutine UA_GetPotential(PotentialOut, iError)
     if (iError == 0) then
       PotentialOut = ValueOut
     else
-      write (*, *) 'error in UA_GetPotential (nongrid): ', cErrorCodes(iError)
+      write(*, *) 'error in UA_GetPotential (nongrid): ', cErrorCodes(iError)
       stop
       PotentialOut = -1.0e32
     end if
@@ -510,8 +510,8 @@ subroutine UA_GetAveE(AveEOut, iError)
     call UA_GetValue(EIE_Value, ValueOut, 0.1, iError)
 
     if (iError /= 0) then
-      write (*, *) "Error in routine UA_GetAveE:"
-      write (*, *) cErrorCodes(iError)
+      write(*, *) "Error in routine UA_GetAveE:"
+      write(*, *) cErrorCodes(iError)
     else
       AveEOut = ValueOut
     end if
@@ -595,8 +595,8 @@ subroutine UA_GetEFlux(EFluxOut, iError)
     call UA_GetValue(EIE_Value, ValueOut, 1.0e-10, iError)
 
     if (iError /= 0) then
-      write (*, *) "Error in routine UA_GetEFlux:"
-      write (*, *) cErrorCodes(iError)
+      write(*, *) "Error in routine UA_GetEFlux:"
+      write(*, *) cErrorCodes(iError)
       stop
     else
       EFluxOut = ValueOut
@@ -681,8 +681,8 @@ subroutine UA_GetIonAveE(IonAveEOut, iError)
     call UA_GetValue(EIE_Value, ValueOut, 0.1, iError)
 
     if (iError /= 0) then
-      write (*, *) "Error in routine UA_GetAveE:"
-      write (*, *) cErrorCodes(iError)
+      write(*, *) "Error in routine UA_GetAveE:"
+      write(*, *) cErrorCodes(iError)
     else
       IonAveEOut = ValueOut
     end if
@@ -715,7 +715,7 @@ subroutine UA_GetNonGridBasedIonAveE(IonAveEOut, iError)
   integer, intent(out) :: iError
   real, dimension(UAi_NeednMLTs, UAi_NeednLats) :: IonAveEOut
 
-  write (*, *) "UA_GetNonGridBasedIonAveE doen't work yet!"
+  write(*, *) "UA_GetNonGridBasedIonAveE doen't work yet!"
   IonAveEOut = 0.0
 
 end subroutine UA_GetNonGridBasedIonAveE
@@ -744,8 +744,8 @@ subroutine UA_GetIonEFlux(IonEFluxOut, iError)
     call UA_GetValue(EIE_Value, ValueOut, 1.0e-10, iError)
 
     if (iError /= 0) then
-      write (*, *) "Error in routine UA_GetEFlux:"
-      write (*, *) cErrorCodes(iError)
+      write(*, *) "Error in routine UA_GetEFlux:"
+      write(*, *) cErrorCodes(iError)
       stop
     else
       IonEFluxOut = ValueOut
@@ -779,7 +779,7 @@ subroutine UA_GetNonGridBasedIonEFlux(IonEFluxOut, iError)
   integer, intent(out) :: iError
   real, dimension(UAi_NeednMLTs, UAi_NeednLats) :: IonEFluxOut
 
-  write (*, *) "UA_GetNonGridBasedIonEFlux doesn't work yet!"
+  write(*, *) "UA_GetNonGridBasedIonEFlux doesn't work yet!"
   IonEFluxOut = 0.0
 
 end subroutine UA_GetNonGridBasedIonEFlux

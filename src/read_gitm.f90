@@ -22,12 +22,12 @@ program read_gitm
   call GetGitmGeneralHeaderInfo(iErr)
   call GitmGetnVars(nVars)
 
-  allocate (vars(nVars))
-  allocate (data(nPoints, nVars))
+  allocate(vars(nVars))
+  allocate(data(nPoints, nVars))
 
   call GitmGetVars(vars)
 
-  write (*, *) vars
+  write(*, *) vars
 
   do iPoint = 1, nPoints
     lons(iPoint) = 360 - 5.0*(iPoint - 1)
@@ -45,16 +45,16 @@ program read_gitm
     call GitmUpdateTime(time, iErr)
     if (iErr == 0) then
       call GitmGetData(data)
-      write (*, *) data(:, 1)/dtor
+      write(*, *) data(:, 1)/dtor
     end if
     time = time + 60.0
     lons = lons - 1.0
   end do
 
-  write (*, *) data(:, 2)/dtor
-  write (*, *) data(:, 3)/1000
+  write(*, *) data(:, 2)/dtor
+  write(*, *) data(:, 3)/1000
 
-  deallocate (data, vars)
+  deallocate(data, vars)
 
   call GitmShutDown
 

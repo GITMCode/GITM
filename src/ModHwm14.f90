@@ -165,14 +165,14 @@ contains
     nmax0 = nmaxin
     mmax0 = mmaxin
 
-    if (allocated(anm)) deallocate (anm, bnm, cm, dnm, en, marr, narr)
-    allocate (anm(0:nmax0, 0:mmax0))
-    allocate (bnm(0:nmax0, 0:mmax0))
-    allocate (cm(0:mmax0))
-    allocate (dnm(0:nmax0, 0:mmax0))
-    allocate (en(0:nmax0))
-    allocate (marr(0:mmax0))
-    allocate (narr(0:nmax0))
+    if (allocated(anm)) deallocate(anm, bnm, cm, dnm, en, marr, narr)
+    allocate(anm(0:nmax0, 0:mmax0))
+    allocate(bnm(0:nmax0, 0:mmax0))
+    allocate(cm(0:mmax0))
+    allocate(dnm(0:nmax0, 0:mmax0))
+    allocate(en(0:nmax0))
+    allocate(marr(0:mmax0))
+    allocate(narr(0:nmax0))
 
     do n = 1, nmax0
       narr(n) = dble(n)
@@ -302,18 +302,18 @@ subroutine inithwm()
 
   ! shared for QWM and DWM, no need to compute twice
 
-  if (allocated(gpbar)) deallocate (gpbar, gvbar, gwbar)
-  allocate (gpbar(0:nmaxgeo, 0:mmaxgeo))
-  allocate (gvbar(0:nmaxgeo, 0:mmaxgeo))
-  allocate (gwbar(0:nmaxgeo, 0:mmaxgeo))
+  if (allocated(gpbar)) deallocate(gpbar, gvbar, gwbar)
+  allocate(gpbar(0:nmaxgeo, 0:mmaxgeo))
+  allocate(gvbar(0:nmaxgeo, 0:mmaxgeo))
+  allocate(gwbar(0:nmaxgeo, 0:mmaxgeo))
   gpbar = 0
   gvbar = 0
   gwbar = 0
 
-  if (allocated(spbar)) deallocate (spbar, svbar, swbar)
-  allocate (spbar(0:nmaxgeo, 0:mmaxgeo))
-  allocate (svbar(0:nmaxgeo, 0:mmaxgeo))
-  allocate (swbar(0:nmaxgeo, 0:mmaxgeo))
+  if (allocated(spbar)) deallocate(spbar, svbar, swbar)
+  allocate(spbar(0:nmaxgeo, 0:mmaxgeo))
+  allocate(svbar(0:nmaxgeo, 0:mmaxgeo))
+  allocate(swbar(0:nmaxgeo, 0:mmaxgeo))
   spbar = 0
   svbar = 0
   swbar = 0
@@ -343,30 +343,30 @@ subroutine initqwm(filename)
   integer(4)                     :: ncomp
 
   if (allocated(vnode)) then
-    deallocate (order, nb, vnode, mparm, tparm)
-    deallocate (fs, fm, fl, zwght, bz, bm)
+    deallocate(order, nb, vnode, mparm, tparm)
+    deallocate(fs, fm, fl, zwght, bz, bm)
   end if
 
   call findandopen(filename, 23)
-  read (23) nbf, maxs, maxm, maxl, maxn, ncomp
-  read (23) nlev, p
+  read(23) nbf, maxs, maxm, maxl, maxn, ncomp
+  read(23) nlev, p
   nnode = nlev + p
-  allocate (nb(0:nnode), order(ncomp, 0:nnode), vnode(0:nnode))
-  read (23) vnode
+  allocate(nb(0:nnode), order(ncomp, 0:nnode), vnode(0:nnode))
+  read(23) vnode
   vnode(3) = 0.0
-  allocate (mparm(nbf, 0:nlev))
+  allocate(mparm(nbf, 0:nlev))
   mparm = 0.0d0
   do i = 0, nlev - p + 1 - 2
-    read (23) order(1:ncomp, i)
-    read (23) nb(i)
-    read (23) mparm(1:nbf, i)
+    read(23) order(1:ncomp, i)
+    read(23) nb(i)
+    read(23) mparm(1:nbf, i)
   end do
-  read (23) e1, e2
-  close (23)
+  read(23) e1, e2
+  close(23)
 
   ! Calculate the parity relationship permutations
 
-  allocate (tparm(nbf, 0:nlev))
+  allocate(tparm(nbf, 0:nlev))
   do i = 0, nlev - p + 1 - 2
     call parity(order(:, i), nb(i), mparm(:, i), tparm(:, i))
   end do
@@ -383,9 +383,9 @@ subroutine initqwm(filename)
   omaxhwm = maxo
   nmaxhwm = maxn
 
-  allocate (fs(0:maxs, 2), fm(0:maxm, 2), fl(0:maxl, 2))
-  allocate (bz(nbf), bm(nbf))
-  allocate (zwght(0:p))
+  allocate(fs(0:maxs, 2), fm(0:maxm, 2), fl(0:maxl, 2))
+  allocate(bz(nbf), bm(nbf))
+  allocate(zwght(0:p))
 
   bz = 0.0d0
   bm = 0.0d0
@@ -922,21 +922,21 @@ subroutine initdwm(nmaxout, mmaxout)
   integer(4), intent(out)     :: nmaxout, mmaxout
 
   call findandopen(dwmdefault, 23)
-  if (allocated(termarr)) deallocate (termarr, coeff)
-  read (23) nterm, mmax, nmax
-  allocate (termarr(0:2, 0:nterm - 1))
-  read (23) termarr
-  allocate (coeff(0:nterm - 1))
-  read (23) coeff
-  read (23) twidth
-  close (23)
+  if (allocated(termarr)) deallocate(termarr, coeff)
+  read(23) nterm, mmax, nmax
+  allocate(termarr(0:2, 0:nterm - 1))
+  read(23) termarr
+  allocate(coeff(0:nterm - 1))
+  read(23) coeff
+  read(23) twidth
+  close(23)
 
-  if (allocated(termval)) deallocate (termval, dpbar, dvbar, dwbar, mltterms, vshterms)
+  if (allocated(termval)) deallocate(termval, dpbar, dvbar, dwbar, mltterms, vshterms)
   nvshterm = (((nmax + 1)*(nmax + 2) - (nmax - mmax)*(nmax - mmax + 1))/2 - 1)*4 - 2*nmax
-  allocate (termval(0:1, 0:nterm - 1))
-  allocate (dpbar(0:nmax, 0:mmax), dvbar(0:nmax, 0:mmax), dwbar(0:nmax, 0:mmax))
-  allocate (mltterms(0:mmax, 0:1))
-  allocate (vshterms(0:1, 0:nvshterm - 1))
+  allocate(termval(0:1, 0:nterm - 1))
+  allocate(dpbar(0:nmax, 0:mmax), dvbar(0:nmax, 0:mmax), dwbar(0:nmax, 0:mmax))
+  allocate(mltterms(0:mmax, 0:1))
+  allocate(vshterms(0:1, 0:nvshterm - 1))
   dpbar = 0
   dvbar = 0
   dwbar = 0
@@ -1181,21 +1181,21 @@ contains
     datafile = trim(pathdefault)//'gd2qd.dat'
 
     call findandopen(datafile, 23)
-    read (23) nmax, mmax, nterm, epoch, alt
+    read(23) nmax, mmax, nterm, epoch, alt
     if (allocated(coeff)) then
-      deallocate (coeff, xcoeff, ycoeff, zcoeff, sh, shgradtheta, shgradphi, normadj)
+      deallocate(coeff, xcoeff, ycoeff, zcoeff, sh, shgradtheta, shgradphi, normadj)
     end if
-    allocate (coeff(0:nterm - 1, 0:2))
-    read (23) coeff
-    close (23)
+    allocate(coeff(0:nterm - 1, 0:2))
+    read(23) coeff
+    close(23)
 
-    allocate (xcoeff(0:nterm - 1))
-    allocate (ycoeff(0:nterm - 1))
-    allocate (zcoeff(0:nterm - 1))
-    allocate (sh(0:nterm - 1))
-    allocate (shgradtheta(0:nterm - 1))
-    allocate (shgradphi(0:nterm - 1))
-    allocate (normadj(0:nmax))
+    allocate(xcoeff(0:nterm - 1))
+    allocate(ycoeff(0:nterm - 1))
+    allocate(zcoeff(0:nterm - 1))
+    allocate(sh(0:nterm - 1))
+    allocate(shgradtheta(0:nterm - 1))
+    allocate(shgradphi(0:nterm - 1))
+    allocate(normadj(0:nmax))
 
     do iterm = 0, nterm - 1
       xcoeff(iterm) = coeff(iterm, 0)
@@ -1443,32 +1443,32 @@ subroutine findandopen(datafile, unitid)
 
   i = index(datafile, 'bin')
   if (i .eq. 0) then
-    inquire (file=trim(datafile), exist=havefile)
-    if (havefile) open (unit=unitid, file=trim(datafile), status='old', form='unformatted')
+    inquire(file=trim(datafile), exist=havefile)
+    if (havefile) open(unit=unitid, file=trim(datafile), status='old', form='unformatted')
     if (.not. havefile) then
       call get_environment_variable('HWMPATH', hwmpath)
-      inquire (file=trim(hwmpath)//'/'//trim(datafile), exist=havefile)
-      if (havefile) open (unit=unitid, &
-                          file=trim(hwmpath)//'/'//trim(datafile), status='old', form='unformatted')
+      inquire(file=trim(hwmpath)//'/'//trim(datafile), exist=havefile)
+      if (havefile) open(unit=unitid, &
+                         file=trim(hwmpath)//'/'//trim(datafile), status='old', form='unformatted')
     end if
     if (.not. havefile) then
-      inquire (file='../Meta/'//trim(datafile), exist=havefile)
-      if (havefile) open (unit=unitid, &
-                          file='../Meta/'//trim(datafile), status='old', form='unformatted')
+      inquire(file='../Meta/'//trim(datafile), exist=havefile)
+      if (havefile) open(unit=unitid, &
+                         file='../Meta/'//trim(datafile), status='old', form='unformatted')
     end if
   else
-    inquire (file=trim(datafile), exist=havefile)
-    if (havefile) open (unit=unitid, file=trim(datafile), status='old', access='stream')
+    inquire(file=trim(datafile), exist=havefile)
+    if (havefile) open(unit=unitid, file=trim(datafile), status='old', access='stream')
     if (.not. havefile) then
       call get_environment_variable('HWMPATH', hwmpath)
-      inquire (file=trim(hwmpath)//'/'//trim(datafile), exist=havefile)
-      if (havefile) open (unit=unitid, &
-                          file=trim(hwmpath)//'/'//trim(datafile), status='old', access='stream')
+      inquire(file=trim(hwmpath)//'/'//trim(datafile), exist=havefile)
+      if (havefile) open(unit=unitid, &
+                         file=trim(hwmpath)//'/'//trim(datafile), status='old', access='stream')
     end if
     if (.not. havefile) then
-      inquire (file='../Meta/'//trim(datafile), exist=havefile)
-      if (havefile) open (unit=unitid, &
-                          file='../Meta/'//trim(datafile), status='old', access='stream')
+      inquire(file='../Meta/'//trim(datafile), exist=havefile)
+      if (havefile) open(unit=unitid, &
+                         file='../Meta/'//trim(datafile), status='old', access='stream')
     end if
   end if
 

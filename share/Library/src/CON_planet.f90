@@ -437,7 +437,7 @@ contains
 
     ! Warn if setting is unphysical
     if (UseSetMagAxis .and. UseRealRotAxis .and. IsProc0) &
-      write (*, *) NameSub, ' WARNING: magnetic axis is explicitly set ', &
+      write(*, *) NameSub, ' WARNING: magnetic axis is explicitly set ', &
       'while rotation axis is calculated from real time ?!'
 
     ! Check if there is a need to update the magnetic field

@@ -164,7 +164,7 @@ subroutine calc_chemistry(iBlock)
             Ions(nIons) = Ions(nIons) + Ions(iIon)
 
             if (Ions(iIon) < 0.0) then
-              write (*, *) "Negative Ion Density : ", &
+              write(*, *) "Negative Ion Density : ", &
                 iIon, iLon, iLat, iAlt, &
                 Ions(iIon), &
                 IonSources(iIon), IonLosses(iIon)
@@ -186,7 +186,7 @@ subroutine calc_chemistry(iBlock)
               NeutralLosses(iNeutral)*DtSub
 
             if (Neutrals(iNeutral) < 0.0) then
-              write (*, *) "Negative Neutral Density : ", &
+              write(*, *) "Negative Neutral Density : ", &
                 iNeutral, iLon, iLat, iAlt, DtSub, &
                 Neutrals(iNeutral), &
                 NeutralSources(iNeutral), NeutralLosses(iNeutral)
@@ -209,15 +209,15 @@ subroutine calc_chemistry(iBlock)
           if (DtSub < DtMin) DtMin = DtSub
 
           if (DtSub < 1.0e-9 .and. abs(DtTotal - Dt) > DtSub) then
-            write (*, *) "Chemistry is too fast!!", DtSub
+            write(*, *) "Chemistry is too fast!!", DtSub
 
             ! Check Ions
             do iIon = 1, nIons
-              write (*, *) "Ion Source/Loss : ", &
+              write(*, *) "Ion Source/Loss : ", &
                 iIon, IonSources(iIon), IonLosses(iIon)
             end do
             do iNeutral = 1, nSpeciesTotal
-              write (*, *) "Neutral Source/Loss : ", iAlt, &
+              write(*, *) "Neutral Source/Loss : ", iAlt, &
                 iNeutral, NeutralSources(iNeutral), &
                 NeutralLosses(iNeutral), Neutrals(iNeutral)
             end do

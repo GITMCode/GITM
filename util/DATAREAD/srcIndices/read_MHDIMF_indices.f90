@@ -23,7 +23,7 @@ subroutine read_MHDIMF_Indices(iOutputError)
   !------------------------------------------------------------------------
   iOutputError = 0
 
-  open (LunIndices_, file=NameOfIndexFile, status="old", iostat=ierror)
+  open(LunIndices_, file=NameOfIndexFile, status="old", iostat=ierror)
 
   if (ierror .ne. 0) then
     iOutputError = 1
@@ -39,11 +39,11 @@ subroutine read_MHDIMF_Indices(iOutputError)
 
   do while (.not. done)
 
-    read (LunIndices_, '(a)', iostat=ierror) line
+    read(LunIndices_, '(a)', iostat=ierror) line
     if (ierror .ne. 0) done = .true.
 
     if (index(line, '#DELAY') > 0) then
-      read (LunIndices_, *, iostat=iError) TimeDelay
+      read(LunIndices_, *, iostat=iError) TimeDelay
       if (iError /= 0) done = .true.
     end if
 
@@ -56,7 +56,7 @@ subroutine read_MHDIMF_Indices(iOutputError)
 
       do while (.not. done_inner)
 
-        read (LunIndices_, *, iostat=iError) &
+        read(LunIndices_, *, iostat=iError) &
           (iTime(j), j=1, 7), &
           Indices_TV(iIMF, imf_bx_), &
           Indices_TV(iIMF, imf_by_), &
@@ -109,7 +109,7 @@ subroutine read_MHDIMF_Indices(iOutputError)
 
   end do
 
-  close (LunIndices_)
+  close(LunIndices_)
 
   nIndices_V(imf_bx_) = iIMF - 1
   nIndices_V(imf_by_) = iIMF - 1

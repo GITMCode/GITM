@@ -21,13 +21,13 @@ subroutine finalize_gitm
     end do
   end do
 
-  if (IsOpenLogFile) close (iLogFileUnit_)
+  if (IsOpenLogFile) close(iLogFileUnit_)
 
   if (.not. IsFrameWork) call write_restart("UA/restartOUT/")
 
   if (iProc == 0) then
-    open (unit=iOutputUnit_, file="GITM.DONE", status="unknown")
-    close (iOutputUnit_)
+    open(unit=iOutputUnit_, file="GITM.DONE", status="unknown")
+    close(iOutputUnit_)
   end if
 
   call end_timing("GITM")

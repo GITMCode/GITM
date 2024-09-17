@@ -14,7 +14,7 @@ subroutine calc_ion_drag(iBlock)
   real :: tmp(nLons, nLats, nAlts)
   real :: RhoI(nLons, nLats, nAlts)
 
-  if (iDebugLevel > 4) write (*, *) "=====> Ion Drag", iproc
+  if (iDebugLevel > 4) write(*, *) "=====> Ion Drag", iproc
   if (UseBarriers) call MPI_BARRIER(iCommGITM, iErr)
 
   RhoI = IDensityS(1:nLons, 1:nLats, 1:nAlts, ie_, iBlock)* &

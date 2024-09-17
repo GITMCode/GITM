@@ -136,8 +136,8 @@ subroutine MHD_GetPotential(TimeIn, Method, &
                     EIEi_nMLTs, EIEi_nLats, EIEi_nBLKs, ValueOut, iError)
 
   if (iError /= 0) then
-    write (*, *) "Error in routine MHD_GetPotential:"
-    write (*, *) cErrorCodes(iError)
+    write(*, *) "Error in routine MHD_GetPotential:"
+    write(*, *) cErrorCodes(iError)
     stop
   else
     PotentialOut = ValueOut
@@ -167,8 +167,8 @@ subroutine MHD_GetEFlux(TimeIn, Method, &
                     EIEi_nMLTs, EIEi_nLats, EIEi_nBLKs, ValueOut, iError)
 
   if (iError /= 0) then
-    write (*, *) "Error in routine MHD_GetEFlux:"
-    write (*, *) cErrorCodes(iError)
+    write(*, *) "Error in routine MHD_GetEFlux:"
+    write(*, *) cErrorCodes(iError)
     stop
   else
     EFluxOut = ValueOut
@@ -197,8 +197,8 @@ subroutine MHD_GetAveE(TimeIn, Method, &
                     EIEi_nMLTs, EIEi_nLats, EIEi_nBLKs, ValueOut, iError)
 
   if (iError /= 0) then
-    write (*, *) "Error in routine MHD_GetAveE:"
-    write (*, *) cErrorCodes(iError)
+    write(*, *) "Error in routine MHD_GetAveE:"
+    write(*, *) cErrorCodes(iError)
     stop
   else
     AveEOut = ValueOut

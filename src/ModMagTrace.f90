@@ -38,31 +38,31 @@ contains
 
     ! Arrays to hold the alt/lat/lon of fieldline traces, synced to all processors
     if (.not. allocated(MMTalt)) &
-      allocate (MMTalt(MaxMMTPoints, -1:nLons + 2, -1:nLats + 2, nBlocks, nProcs))
+      allocate(MMTalt(MaxMMTPoints, -1:nLons + 2, -1:nLats + 2, nBlocks, nProcs))
     if (.not. allocated(MMTlat)) &
-      allocate (MMTlat(MaxMMTPoints, -1:nLons + 2, -1:nLats + 2, nBlocks, nProcs))
+      allocate(MMTlat(MaxMMTPoints, -1:nLons + 2, -1:nLats + 2, nBlocks, nProcs))
     if (.not. allocated(MMTlon)) &
-      allocate (MMTlon(MaxMMTPoints, -1:nLons + 2, -1:nLats + 2, nBlocks, nProcs))
+      allocate(MMTlon(MaxMMTPoints, -1:nLons + 2, -1:nLats + 2, nBlocks, nProcs))
     MMTalt = 0.; 
     MMTlat = 0.; 
     MMTlon = 0.; 
     if (MMTSaveInterp) then
       ! Arrays to hold the block and location values of point along fieldline for integrals
       if (.not. allocated(MMTblk)) &
-        allocate (MMTblk(MaxMMTPoints, -1:nLons + 2, -1:nLats + 2, nBlocks, nProcs))
+        allocate(MMTblk(MaxMMTPoints, -1:nLons + 2, -1:nLats + 2, nBlocks, nProcs))
       if (.not. allocated(MMTaltLoc)) &
-        allocate (MMTaltLoc(MaxMMTPoints, -1:nLons + 2, -1:nLats + 2, nBlocks, nProcs))
+        allocate(MMTaltLoc(MaxMMTPoints, -1:nLons + 2, -1:nLats + 2, nBlocks, nProcs))
       if (.not. allocated(MMTlatLoc)) &
-        allocate (MMTlatLoc(MaxMMTPoints, -1:nLons + 2, -1:nLats + 2, nBlocks, nProcs))
+        allocate(MMTlatLoc(MaxMMTPoints, -1:nLons + 2, -1:nLats + 2, nBlocks, nProcs))
       if (.not. allocated(MMTlonLoc)) &
-        allocate (MMTlonLoc(MaxMMTPoints, -1:nLons + 2, -1:nLats + 2, nBlocks, nProcs))
+        allocate(MMTlonLoc(MaxMMTPoints, -1:nLons + 2, -1:nLats + 2, nBlocks, nProcs))
       MMTblk = 0; 
       MMTaltLoc = -9.; 
       MMTlatLoc = -9.; 
       MMTlonLoc = -9.; 
     end if
 
-    if (MMTDebug) write (*, *) iProc, ' MMT_Init:  ', nProcs, '  ', &
+    if (MMTDebug) write(*, *) iProc, ' MMT_Init:  ', nProcs, '  ', &
       nAlts, nLons, NLats, '  ', nBlocksMax, '  ', MaxMMTPoints
 
     do iBlock = 1, nBlocks; do iLat = -1, nLats + 2; do iLon = -1, nLons + 2
@@ -96,7 +96,7 @@ contains
         do while (.not. IsDone)
           iLoop = iLoop + 1
           if (iLoop > MaxMMTPoints) then
-            write (*, *) 'ERROR: increase size of MaxMMTPoints, ', MaxMMTPoints
+            write(*, *) 'ERROR: increase size of MaxMMTPoints, ', MaxMMTPoints
             stop
           end if
 
@@ -168,7 +168,7 @@ contains
                       GeoLon >= (Longitude(0, j) + Longitude(1, j))/2. .and. &
                       GeoLon < (Longitude(nLons, j) + Longitude(nLons + 1, j))/2.) then
                     if (IsFound) then
-                      write (*, *) 'WARNING, BLOCK FOUND TWICE=] ', i, iLon, iLat, iBlock, k, &
+                      write(*, *) 'WARNING, BLOCK FOUND TWICE=] ', i, iLon, iLat, iBlock, k, &
                         '  ', GeoLat*180.0/pi, GeoLon*180.0/pi, GeoALT/1000.0
                     end if
                     IsFound = .true.
@@ -207,7 +207,7 @@ contains
                     if (MMTlatLoc(i, iLon, iLat, iBlock, k) == -9 .or. &
                         MMTlonLoc(i, iLon, iLat, iBlock, k) == -9 .or. &
                         MMTaltLoc(i, iLon, iLat, iBlock, k) == -9) then
-                      write (*, *) 'WARNING, BLOCK VALUE NOT VALID=] ', i, iLon, iLat, iBlock, k, &
+                      write(*, *) 'WARNING, BLOCK VALUE NOT VALID=] ', i, iLon, iLat, iBlock, k, &
                         '  ', GeoLat*180.0/pi, GeoLon*180.0/pi, GeoALT/1000.0
                     end if
 
@@ -216,7 +216,7 @@ contains
               end if
             end do; end do
           end do; end do; end do
-      if (MMTDebug) write (*, *) iProc, ' MMT_Init total processor fieldline length=', iCount*MMTlen
+      if (MMTDebug) write(*, *) iProc, ' MMT_Init total processor fieldline length=', iCount*MMTlen
     end if
 
     if (MMTDebug) call MMT_Test
@@ -248,9 +248,9 @@ contains
     !--------------------
 
     if (.not. allocated(PartialIntegral)) &
-      allocate (PartialIntegral(-1:nLons + 2, -1:nLats + 2, nBlocks, nProcs))
+      allocate(PartialIntegral(-1:nLons + 2, -1:nLats + 2, nBlocks, nProcs))
     if (.not. allocated(FullIntegral)) &
-      allocate (FullIntegral(-1:nLons + 2, -1:nLats + 2, nBlocks, nProcs))
+      allocate(FullIntegral(-1:nLons + 2, -1:nLats + 2, nBlocks, nProcs))
     PartialIntegral = 0.
     FullIntegral = 0.
     do k = 1, nProcs; do iBlock = 1, nBlocks
@@ -273,7 +273,7 @@ contains
                       GeoLon >= (Longitude(0, j) + Longitude(1, j))/2. .and. &
                       GeoLon < (Longitude(nLons, j) + Longitude(nLons + 1, j))/2.) then
                     if (IsFound) then
-                      write (*, *) 'WARNING, BLOCK FOUND TWICE=] ', i, iLon, iLat, iBlock, k, &
+                      write(*, *) 'WARNING, BLOCK FOUND TWICE=] ', i, iLon, iLat, iBlock, k, &
                         '  ', GeoLat*180.0/pi, GeoLon*180.0/pi, GeoALT/1000.0
                     end if
                     IsFound = .true.
@@ -312,7 +312,7 @@ contains
                     if (latLoc == -9 .or. &
                         lonLoc == -9 .or. &
                         altLoc == -9) then
-                      write (*, *) 'WARNING, BLOCK VALUE NOT VALID=] ', i, iLon, iLat, iBlock, k, &
+                      write(*, *) 'WARNING, BLOCK VALUE NOT VALID=] ', i, iLon, iLat, iBlock, k, &
                         '  ', GeoLat*180.0/pi, GeoLon*180.0/pi, GeoALT/1000.0
                     end if
 
@@ -354,7 +354,7 @@ contains
         end do; end do; end do
 
     if (.not. MMTSaveInterp) then
-      if (MMTDebug) write (*, *) iProc, ' MMT_Integrate total processor fieldline length=', iCount*MMTlen
+      if (MMTDebug) write(*, *) iProc, ' MMT_Integrate total processor fieldline length=', iCount*MMTlen
     end if
 
     iSize = (nLons + 4)*(nLats + 4)*nBlocks*nProcs
@@ -379,14 +379,14 @@ contains
     real, dimension(-1:nLons + 2, -1:nLats + 2, nBlocksMax) :: Results
 
     !--------------------
-    write (*, *) iProc, 'Starting MMT_Test ...'
+    write(*, *) iProc, 'Starting MMT_Test ...'
 
     Values = 1.
     Results = 0.
     call MMT_Integrate(Values, Results)
 
-    write (*, *) iProc, 'Integral min/max/sum values: ', minval(Results), maxval(Results), sum(Results)
-    write (*, *) iProc, '                  ... finished MMT_Test'
+    write(*, *) iProc, 'Integral min/max/sum values: ', minval(Results), maxval(Results), sum(Results)
+    write(*, *) iProc, '                  ... finished MMT_Test'
   end subroutine MMT_Test
   !-/
 

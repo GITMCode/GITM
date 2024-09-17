@@ -32,7 +32,7 @@ subroutine calc_ion_v(iBlock)
   call report("Ion Forcing Terms", 1)
   call start_timing("Ion Forcing")
 
-  if (iDebugLevel > 4) write (*, *) "=====> pressure gradient", iproc
+  if (iDebugLevel > 4) write(*, *) "=====> pressure gradient", iproc
 
   ! Pressure is the sum of ion and electron pressure The electron
   ! pressure is included here because of the electron momentum
@@ -235,6 +235,6 @@ subroutine calc_ion_v(iBlock)
 
   call end_timing("Ion Forcing")
 
-  if (iDebugLevel > 4) write (*, *) "=====> done with calc_ion_v", iproc
+  if (iDebugLevel > 4) write(*, *) "=====> done with calc_ion_v", iproc
 
 end subroutine calc_ion_v

@@ -76,13 +76,13 @@ subroutine exchange_messages_sphere
     end if
 
     if (minval(temperature(1:nLons, 1:nLats, 1:nAlts, iBlock)) < 100.0) then
-      write (*, *) "Low Temperature : ", iBlock, &
+      write(*, *) "Low Temperature : ", iBlock, &
         minval(temperature(1:nLons, 1:nLats, 1:nAlts, iBlock))
       call stop_gitm("Temperature < 100.0")
     end if
 
     if (minval(rho(1:nLons, 1:nLats, 1:nAlts, iBlock)) < 0.0) then
-      write (*, *) "Low mass density : ", iBlock, &
+      write(*, *) "Low mass density : ", iBlock, &
         minval(rho(1:nLons, 1:nLats, 1:nAlts, iBlock))
       call stop_gitm("mass density < 0.0")
     end if

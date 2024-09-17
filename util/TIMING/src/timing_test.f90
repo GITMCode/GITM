@@ -22,16 +22,16 @@ program timing_test
   call MPI_COMM_SIZE(MPI_COMM_WORLD, numprocs, error)
 
   if (me_world == 0) then
-    write (*, '(a)') '========================================================='
-    write (*, '(a,i3,a)') &
+    write(*, '(a)') '========================================================='
+    write(*, '(a,i3,a)') &
       'TIMING_TEST is running on', numprocs, ' processors'
-    write (*, *)
+    write(*, *)
     call timing_version(timing_version_on, timing_version_name, &
                         timing_version_number)
-    write (*, '(2a,f5.2,a,l2)') 'Testing module ', &
+    write(*, '(2a,f5.2,a,l2)') 'Testing module ', &
       timing_version_name(1:len_trim(timing_version_name))//' version ', &
       timing_version_number, ' functional=', timing_version_on
-    write (*, '(a)') '========================================================='
+    write(*, '(a)') '========================================================='
   end if
 
   ! Time processor 0 only
@@ -39,7 +39,7 @@ program timing_test
   if (me_world == 0) then
     ! Test behaviour when using an incorrect parameter name
     call timing_param_put_i('TestWrongName', 13, error)
-    if (error /= 0) write (*, *) 'timing_param_put_i("TestWrongName",13,error)', &
+    if (error /= 0) write(*, *) 'timing_param_put_i("TestWrongName",13,error)', &
       ' resulted in error with error=', error
 
     call timing_active(.true.)
@@ -57,13 +57,13 @@ program timing_test
   call timing_show('initialize', 1)
 
   ! Test calling a function from a processor with inactive timing
-  if (me_world == 1) write (*, *) 'Inactive timing should return -1:', &
+  if (me_world == 1) write(*, *) 'Inactive timing should return -1:', &
     timing_func_d('sum', 1, 'initialize', 'timing_test')
 
   if (me_world == 0) then
-    write (*, *) '============================================================'
-    write (*, *) '               STARTING ITERATIONS'
-    write (*, *) '============================================================'
+    write(*, *) '============================================================'
+    write(*, *) '               STARTING ITERATIONS'
+    write(*, *) '============================================================'
   end if
   do
     if (n_iter >= 10) EXIT
@@ -89,14 +89,14 @@ program timing_test
       call timing_reset('#all', 2)
     end if
 
-    if (me_world == 0) write (*, *) 'speed:', &
+    if (me_world == 0) write(*, *) 'speed:', &
       100/max(1.D-10, timing_func_d('sum', 1, 'advance_expl', 'timing_test')), &
       ' at n_step=', n_step
   end do
   if (me_world == 0) then
-    write (*, *) '============================================================'
-    write (*, *) '               STOPPING ITERATIONS'
-    write (*, *) '============================================================'
+    write(*, *) '============================================================'
+    write(*, *) '               STOPPING ITERATIONS'
+    write(*, *) '============================================================'
   end if
   call timing_start('calc_gradients')
   call timing_start('apply_limiters')
@@ -110,9 +110,9 @@ program timing_test
   call timing_stop('timing_test')
 
   if (me_world == 0) then
-    write (*, *) '============================================================'
-    write (*, *) '               STOPPING CALCULATIONS'
-    write (*, *) '============================================================'
+    write(*, *) '============================================================'
+    write(*, *) '               STOPPING CALCULATIONS'
+    write(*, *) '============================================================'
   end if
 
   call timing_report_style('tree')

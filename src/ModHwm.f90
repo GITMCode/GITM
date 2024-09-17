@@ -573,27 +573,27 @@ subroutine loadmodel(datafile)
   integer                     :: ncomp
 
   if (allocated(vnode)) then
-    deallocate (order, nb, vnode, mparm)
-    deallocate (gfs, gfm, gfl, gvbar, gwbar, gzwght, gbz, gbm)
+    deallocate(order, nb, vnode, mparm)
+    deallocate(gfs, gfm, gfl, gvbar, gwbar, gzwght, gbz, gbm)
   end if
 
-  open (unit=23, file=trim(datafile), form='unformatted', status='old')
-  read (23) nbf, maxs, maxm, maxl, maxn, ncomp
-  read (23) nlev, p
+  open(unit=23, file=trim(datafile), form='unformatted', status='old')
+  read(23) nbf, maxs, maxm, maxl, maxn, ncomp
+  read(23) nlev, p
   nnode = nlev + p
-  allocate (nb(0:nnode))
-  allocate (order(ncomp, 0:nnode))
-  allocate (vnode(0:nnode))
-  read (23) vnode
+  allocate(nb(0:nnode))
+  allocate(order(ncomp, 0:nnode))
+  allocate(vnode(0:nnode))
+  read(23) vnode
   vnode(3) = 0.0
-  allocate (mparm(nbf, 0:nlev))
+  allocate(mparm(nbf, 0:nlev))
   mparm = 0.0d0
   do i = 0, nlev - p + 1 - 2
-    read (23) order(1:ncomp, i)
-    read (23) nb(i)
-    read (23) mparm(1:nbf, i)
+    read(23) order(1:ncomp, i)
+    read(23) nb(i)
+    read(23) mparm(1:nbf, i)
   end do
-  close (23)
+  close(23)
 
   ! Set transition levels
 
@@ -609,10 +609,10 @@ subroutine loadmodel(datafile)
 
   maxo = max(maxs, maxm, maxl)
 
-  allocate (gfs(0:maxs, 2), gfm(0:maxm, 2), gfl(0:maxl, 2))
-  allocate (gvbar(0:maxn, 0:maxo), gwbar(0:maxn, 0:maxo))
-  allocate (gbz(nbf, 0:p), gbm(nbf, 0:p))
-  allocate (gzwght(0:p))
+  allocate(gfs(0:maxs, 2), gfm(0:maxm, 2), gfl(0:maxl, 2))
+  allocate(gvbar(0:maxn, 0:maxo), gwbar(0:maxn, 0:maxo))
+  allocate(gbz(nbf, 0:p), gbm(nbf, 0:p))
+  allocate(gzwght(0:p))
 
   gvbar = 0.0d0
   gwbar = 0.0d0
@@ -1350,20 +1350,20 @@ subroutine loaddwm(datafile)
 
   external vsh_basis_init
 
-  write (*, *) "Opening HWM file!"
+  write(*, *) "Opening HWM file!"
 
-  open (unit=23, file=trim(datafile), form='unformatted', status='old')
+  open(unit=23, file=trim(datafile), form='unformatted', status='old')
 
-  if (allocated(termarr)) deallocate (termarr, coeff)
-  read (23) nterm, maxmd, maxld
-  allocate (termarr(0:2, 0:nterm - 1))
-  read (23) termarr
-  allocate (coeff(0:nterm - 1))
-  allocate (termval(0:1, 0:nterm - 1))
-  read (23) coeff
-  read (23) twidth
+  if (allocated(termarr)) deallocate(termarr, coeff)
+  read(23) nterm, maxmd, maxld
+  allocate(termarr(0:2, 0:nterm - 1))
+  read(23) termarr
+  allocate(coeff(0:nterm - 1))
+  allocate(termval(0:1, 0:nterm - 1))
+  read(23) coeff
+  read(23) twidth
 
-  close (23)
+  close(23)
 
   call vsh_basis_init
 
@@ -1439,7 +1439,7 @@ subroutine vsh_basis_init
     end do
   end do
   nvshfn = ifn + 1
-  allocate (fn_map1(0:nvshfn - 1))
+  allocate(fn_map1(0:nvshfn - 1))
   do ifn = 0, nvshfn - 1
     fn_map1(ifn)%realimag = fn_map0(ifn)%realimag
     fn_map1(ifn)%irrotational = fn_map0(ifn)%irrotational
@@ -1448,21 +1448,21 @@ subroutine vsh_basis_init
   end do
 
   !CREATE ARRAY THAT WILL CONTAIN VSH BASIS VALUES
-  allocate (vsh_terms(0:1, 0:nvshfn - 1))
+  allocate(vsh_terms(0:1, 0:nvshfn - 1))
 
   !CREATE RECURSION COEFFICIENT ARRAYS
-  allocate (A(0:m_max, 0:n_max))
-  allocate (B(0:m_max, 0:n_max))
-  allocate (anm(0:m_max, 0:n_max))
-  allocate (bnm(0:m_max, 0:n_max))
-  allocate (fnm(0:m_max, 0:n_max))
-  allocate (cm(0:m_max))
-  allocate (cn(0:n_max))
-  allocate (e0n(0:n_max))
-  allocate (m_arr(0:m_max))
-  allocate (n_arr(0:n_max))
-  allocate (cosmz(0:m_max))
-  allocate (sinmz(0:m_max))
+  allocate(A(0:m_max, 0:n_max))
+  allocate(B(0:m_max, 0:n_max))
+  allocate(anm(0:m_max, 0:n_max))
+  allocate(bnm(0:m_max, 0:n_max))
+  allocate(fnm(0:m_max, 0:n_max))
+  allocate(cm(0:m_max))
+  allocate(cn(0:n_max))
+  allocate(e0n(0:n_max))
+  allocate(m_arr(0:m_max))
+  allocate(n_arr(0:n_max))
+  allocate(cosmz(0:m_max))
+  allocate(sinmz(0:m_max))
   A = 0
   B = 0
 
@@ -1776,8 +1776,8 @@ subroutine bspline_calc(nnode0, x0, node0, bspline, order, periodic)
   nnode = nnode0 + periodic*order
   nspl = nnode - k
   x = x0
-  allocate (node(0:nnode - 1), node1(0:nnode - 1))
-  allocate (bspline0(0:nnode - 2))
+  allocate(node(0:nnode - 1), node1(0:nnode - 1))
+  allocate(bspline0(0:nnode - 2))
   if (periodic .eq. 1) then
     perint = (/node0(0), node0(nnode0 - 1)/)
     perspan = perint(1) - perint(0)
@@ -1813,7 +1813,7 @@ subroutine bspline_calc(nnode0, x0, node0, bspline, order, periodic)
     end do
   end do
   bspline = bspline0(0:nspl - 1)
-  deallocate (node, node1, bspline0)
+  deallocate(node, node1, bspline0)
 
   return
 

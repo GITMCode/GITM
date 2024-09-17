@@ -85,7 +85,7 @@ contains
     nVar = 0
     nPoint = 0
     MaxPoint = 0
-    if (associated(State_VI)) deallocate (State_VI)
+    if (associated(State_VI)) deallocate(State_VI)
 
   end subroutine line_clean
 
@@ -99,14 +99,14 @@ contains
     real, pointer :: OldState_VI(:, :)
     !------------------------------------------------------------------------
     if (.not. associated(State_VI)) then
-      allocate (State_VI(0:nVar, MaxPointIn)) ! allocate storage
+      allocate(State_VI(0:nVar, MaxPointIn)) ! allocate storage
       MaxPoint = MaxPointIn                  ! set buffer size
     else
       OldState_VI => State_VI                ! store old values
-      allocate (State_VI(0:nVar, MaxPointIn)) ! allocate new storage
+      allocate(State_VI(0:nVar, MaxPointIn)) ! allocate new storage
       State_VI(:, 1:nPoint) = &
         OldState_VI(:, 1:nPoint)           ! copy old values
-      deallocate (OldState_VI)                ! free old storage
+      deallocate(OldState_VI)                ! free old storage
       MaxPoint = MaxPointIn                  ! change buffer size
     end if
 
@@ -130,7 +130,7 @@ contains
     character(len=*), parameter :: NameSub = NameMod//'line_put'
     !------------------------------------------------------------------------
     if (nVarIn /= nVar) then
-      write (*, *) NameSub, ' ERROR: nVarIn, nVar=', nVarIn, nVar
+      write(*, *) NameSub, ' ERROR: nVarIn, nVar=', nVarIn, nVar
       call CON_stop(NameSub//' ERROR: incorrect number of variables!')
     end if
 
@@ -170,7 +170,7 @@ contains
 
     ! Collect number of points onto the receiving processors
 
-    allocate (nPoint_P(0:nProc - 1))
+    allocate(nPoint_P(0:nProc - 1))
     do iProcFrom = 0, nProc - 1
 
       if (iProc == iProcFrom .and. iProc == iProcTo) then
@@ -197,7 +197,7 @@ contains
         call MPI_SEND(State_VI(:, 1:nPoint), &
                       nPoint*(nVar + 1), MPI_REAL, &
                       iProcTo, iTag, iComm, iError)
-        deallocate (State_VI)
+        deallocate(State_VI)
         nPoint = 0
       end if
 
@@ -211,7 +211,7 @@ contains
 
     end do
 
-    deallocate (nPoint_P)
+    deallocate(nPoint_P)
 
   end subroutine line_collect
 
@@ -262,15 +262,15 @@ contains
 
     ! Check size
     if (nVar /= nVarOut .or. nPoint /= nPointOut) then
-      write (*, *) NameSub, ' ERROR: nVar  , nVarOut  =', &
+      write(*, *) NameSub, ' ERROR: nVar  , nVarOut  =', &
         nVar, nVarOut
-      write (*, *) NameSub, ' ERROR: nPoint, nPointOut=', &
+      write(*, *) NameSub, ' ERROR: nPoint, nPointOut=', &
         nPoint, nPointOut
       call CON_stop(NameSub//' ERROR: incorrect array size')
     end if
     if (present(DoSort)) then
       if (DoSort) then
-        allocate (iSorted_I(nPoint))
+        allocate(iSorted_I(nPoint))
         ! sort by line index (0) and then by length along line (1)
         Factor = 0.9/maxval(State_VI(1, 1:nPoint))
         call sort_quick(nPoint, &
@@ -279,7 +279,7 @@ contains
         Line_VI(:, 1:nPoint) = State_VI(:, iSorted_I)
         ! Copy back into State_VI so the sorting can be avoided next time.
         State_VI(:, 1:nPoint) = Line_VI(:, 1:nPoint)
-        deallocate (iSorted_I)
+        deallocate(iSorted_I)
       else
         Line_VI(:, 1:nPoint) = State_VI(:, 1:nPoint)
       end if
@@ -313,21 +313,21 @@ contains
     call MPI_COMM_SIZE(MPI_COMM_WORLD, nProc, iError)
     call MPI_COMM_RANK(MPI_COMM_WORLD, iProc, iError)
 
-    if (iProc == 0) write (*, '(a)') 'Testing line_init'
+    if (iProc == 0) write(*, '(a)') 'Testing line_init'
     call line_init(nVarTest)
 
-    if (nVar /= 4) write (*, *) NameSub, ' line_init failed, iProc=', iProc, &
+    if (nVar /= 4) write(*, *) NameSub, ' line_init failed, iProc=', iProc, &
       ' nVar =', nVar, ' should be 4 !'
 
-    if (iProc == 0) write (*, '(a)') 'Testing line_put'
+    if (iProc == 0) write(*, '(a)') 'Testing line_put'
 
     call line_put(1, 4, (/2.0*iProc, 10.0 + iProc, 20.0 + iProc, 30.0 + iProc/))
     call line_put(1, 4, (/2.0*iProc + 1, 40.0 + iProc, 50.0 + iProc, 60.0 + iProc/))
     call line_put(2, 4, (/2.0*iProc, 70.0 + iProc, 80.0 + iProc, 90.0 + iProc/))
 
-    if (nPoint /= 3) write (*, *) NameSub, ' line_put failed, iProc=', iProc, &
+    if (nPoint /= 3) write(*, *) NameSub, ' line_put failed, iProc=', iProc, &
       ' nPoint =', nPoint, ' should be 3'
-    if (MaxPoint /= 100) write (*, *) NameSub, ' line_put failed, iProc=', iProc, &
+    if (MaxPoint /= 100) write(*, *) NameSub, ' line_put failed, iProc=', iProc, &
       ' MaxPoint =', MaxPoint, ' should be 100'
 
     do iPoint = 1, nPoint
@@ -337,41 +337,41 @@ contains
               30.0*iPoint - 20.0 + iProc, &
               30.0*iPoint - 10.0 + iProc, &
               30.0*iPoint + iProc/))) &
-        write (*, *) NameSub, ' line_put failed, iProc=', iProc, &
+        write(*, *) NameSub, ' line_put failed, iProc=', iProc, &
         ' iPoint=', iPoint, ' State_VI=', State_VI(:, iPoint)
     end do
 
-    if (iProc == 0) write (*, '(a)') 'Testing line_collect'
+    if (iProc == 0) write(*, '(a)') 'Testing line_collect'
     call line_collect(MPI_COMM_WORLD, 0)
 
     if (iProc == 0) then
       if (nPoint /= nProc*3) &
-        write (*, *) NameSub, ' line_collect failed, iProc=', iProc, &
+        write(*, *) NameSub, ' line_collect failed, iProc=', iProc, &
         ' nPoint =', nPoint, ' should be', nProc*3
       if (MaxPoint /= 100 + nProc*3) &
-        write (*, *) NameSub, ' line_collect failed, iProc=', iProc, &
+        write(*, *) NameSub, ' line_collect failed, iProc=', iProc, &
         ' MaxPoint =', MaxPoint, ' should be', 100 + nProc*3
     else
       if (nPoint /= 0) &
-        write (*, *) NameSub, ' line_collect failed, iProc=', iProc, &
+        write(*, *) NameSub, ' line_collect failed, iProc=', iProc, &
         ' nPoint =', nPoint, ' should be 0'
       if (MaxPoint /= 100) &
-        write (*, *) NameSub, ' line_collect failed, iProc=', iProc, &
+        write(*, *) NameSub, ' line_collect failed, iProc=', iProc, &
         ' MaxPoint =', MaxPoint, ' should be 100'
 
     end if
 
     if (iProc == 0) then
-      write (*, '(a)') 'Testing line_get on PE 0'
+      write(*, '(a)') 'Testing line_get on PE 0'
 
       call line_get(nVarOut, nPointOut)
-      if (nVarOut /= nVar) write (*, *) NameSub, ' line_get failed', &
+      if (nVarOut /= nVar) write(*, *) NameSub, ' line_get failed', &
         ' nVarOut =', nVarOut, ' should be ', nVar
 
-      if (nPointOut /= nPoint) write (*, *) NameSub, ' line_get failed', &
+      if (nPointOut /= nPoint) write(*, *) NameSub, ' line_get failed', &
         ' nPointOut =', nPointOut, ' should be', nPoint
 
-      allocate (Result_VI(0:nVarOut, nPointOUt))
+      allocate(Result_VI(0:nVarOut, nPointOUt))
       call line_get(nVarOut, nPointOut, Result_VI, .true.)
 
       do iPoint = 1, nPointOut
@@ -382,7 +382,7 @@ contains
           Index = 2.0
         end if
         if (Result_VI(0, iPoint) /= Index) &
-          write (*, *) NameSub, ' line_get failed at iPoint=', iPoint, &
+          write(*, *) NameSub, ' line_get failed at iPoint=', iPoint, &
           ' Index=', Result_VI(0, iPoint), ' should be ', Index
 
         ! Test length
@@ -392,7 +392,7 @@ contains
           Length = 2.0*(iPoint - 2*nProc - 1)
         end if
         if (Result_VI(1, iPoint) /= real(Length)) &
-          write (*, *) NameSub, ' line_get failed at iPoint=', iPoint, &
+          write(*, *) NameSub, ' line_get failed at iPoint=', iPoint, &
           ' Length=', Result_VI(1, iPoint), ' should be ', Length
 
         ! Test rest of the variables
@@ -408,17 +408,17 @@ contains
           State_V = (/70.0 + iProcFrom, 80.0 + iProcFrom, 90.0 + iProcFrom/)
         end if
         if (any(Result_VI(2:nVar, iPoint) /= State_V)) &
-          write (*, *) NameSub, ' line_get failed at iPoint=', iPoint, &
+          write(*, *) NameSub, ' line_get failed at iPoint=', iPoint, &
           ' State = ', Result_VI(2:nVar, iPoint), ' should be ', State_V
 
       end do
     end if
 
-    if (iProc == 0) write (*, '(a)') 'Testing line_clean'
+    if (iProc == 0) write(*, '(a)') 'Testing line_clean'
     call line_clean
 
     if (nPoint /= 0 .or. MaxPoint /= 0 .or. associated(State_VI)) &
-      write (*, *) NameSub, ' line_clean failed, iProc=', iProc, &
+      write(*, *) NameSub, ' line_clean failed, iProc=', iProc, &
       ' nPoint =', nPoint, ' and Maxpoint =', MaxPoint, ' should be 0', &
       ' associated(State_VI)=', associated(State_VI), ' should be False!'
 

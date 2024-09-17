@@ -44,15 +44,15 @@ contains
 
     ! allocate GITM data to exchange
     if (iproc == 0) then
-      allocate (GatLongitude(-1:(nLons + 4)*nBlocks - 2, nprocs))
-      allocate (GatLatitude(-1:(nLats + 4)*nBlocks - 2, nprocs))
-      allocate (GatAltitude(-1:(nAlts + 4)*nBlocks - 2, nprocs))
+      allocate(GatLongitude(-1:(nLons + 4)*nBlocks - 2, nprocs))
+      allocate(GatLatitude(-1:(nLats + 4)*nBlocks - 2, nprocs))
+      allocate(GatAltitude(-1:(nAlts + 4)*nBlocks - 2, nprocs))
 
-      allocate (GatGITMVars(nParams, &
-                            -1:(nLons + 4)*nBlocks - 2, &
-                            -1:(nLats + 4)*nBlocks - 2, &
-                            -1:(nAlts + 4)*nBlocks - 2, &
-                            nprocs))
+      allocate(GatGITMVars(nParams, &
+                           -1:(nLons + 4)*nBlocks - 2, &
+                           -1:(nLats + 4)*nBlocks - 2, &
+                           -1:(nAlts + 4)*nBlocks - 2, &
+                           nprocs))
 
     end if
 
@@ -71,12 +71,12 @@ contains
     !   enddo
     !enddo
 
-    allocate (GITMLons(-1:(nLons + 4)*nBlocks - 2))
-    allocate (GITMLats(-1:(nLats + 4)*nBlocks - 2))
-    allocate (GITMAlts(-1:(nAlts + 4)*nBlocks - 2))
-    allocate (GITMVars(nParams, -1:(nLons + 4)*nBlocks - 2, &
-                       -1:(nLats + 4)*nBlocks - 2, &
-                       -1:(nAlts + 4)*nBlocks - 2))
+    allocate(GITMLons(-1:(nLons + 4)*nBlocks - 2))
+    allocate(GITMLats(-1:(nLats + 4)*nBlocks - 2))
+    allocate(GITMAlts(-1:(nAlts + 4)*nBlocks - 2))
+    allocate(GITMVars(nParams, -1:(nLons + 4)*nBlocks - 2, &
+                      -1:(nLats + 4)*nBlocks - 2, &
+                      -1:(nAlts + 4)*nBlocks - 2))
 
     loc = (/iH_, &
             iHe_, &
@@ -168,7 +168,7 @@ contains
                     MPI_REAL, &
                     0, iCommGITM, iError)
 
-    deallocate (GITMLons, GITMLats, GITMAlts, GITMVars)
+    deallocate(GITMLons, GITMLats, GITMAlts, GITMVars)
 
     if (iproc == 0) &
       print *, '---- Done with GITM data gathering!!!', iproc
@@ -211,8 +211,8 @@ contains
 
     if (IsFirstTime) then
 
-      allocate (InterpFactors(7, -1:nLons + 2, -1:nLats + 2, 1:nAlts))
-      allocate (InterpIndex(8, -1:nLons + 2, -1:nLats + 2, 1:nAlts))
+      allocate(InterpFactors(7, -1:nLons + 2, -1:nLats + 2, 1:nAlts))
+      allocate(InterpIndex(8, -1:nLons + 2, -1:nLats + 2, 1:nAlts))
 
       do iLon = -1, nLons + 2
         do iLat = -1, nLats + 2
@@ -561,13 +561,13 @@ contains
         nLatsTotal = nBlocksLat*nLats*nBlocks + 4
         nAltsTotal = nAlts + 4
 
-        allocate (GatLongitude_g0(-1:nLonsTotal - 2))
-        allocate (GatLatitude_g0(-1:nLatsTotal - 2))
-        allocate (GatAltitude_g0(-1:nAltsTotal - 2))
-        allocate (GatGITMVars_g0(nParams, &
-                                 -1:nLonsTotal - 2, &
-                                 -1:nLatsTotal - 2, &
-                                 -1:nAltsTotal - 2))
+        allocate(GatLongitude_g0(-1:nLonsTotal - 2))
+        allocate(GatLatitude_g0(-1:nLatsTotal - 2))
+        allocate(GatAltitude_g0(-1:nAltsTotal - 2))
+        allocate(GatGITMVars_g0(nParams, &
+                                -1:nLonsTotal - 2, &
+                                -1:nLatsTotal - 2, &
+                                -1:nAltsTotal - 2))
 
         iBlocksAlt = 1
         do ip = 1, nprocs
@@ -667,7 +667,7 @@ contains
                       MPI_REAL, 0, tag_SandR2, &
                       intercomm1, iError)
 
-        deallocate (GatLongitude, GatLatitude, GatAltitude, GatGITMVars)
+        deallocate(GatLongitude, GatLatitude, GatAltitude, GatGITMVars)
 
       end if
 
@@ -732,13 +732,13 @@ contains
       nPointsTotal = nLonsTotal*nLatsTotal*nAltsTotal
 
       if (IsFirstTime) then
-        allocate (GatLongitude_g(1:nLonsTotal))
-        allocate (GatLatitude_g(1:nLatsTotal))
-        allocate (GatAltitude_g(1:nAltsTotal))
-        allocate (GatGITMVars_g(nParams, &
-                                1:nLonsTotal, &
-                                1:nLatsTotal, &
-                                1:nAltsTotal))
+        allocate(GatLongitude_g(1:nLonsTotal))
+        allocate(GatLatitude_g(1:nLatsTotal))
+        allocate(GatAltitude_g(1:nAltsTotal))
+        allocate(GatGITMVars_g(nParams, &
+                               1:nLonsTotal, &
+                               1:nLatsTotal, &
+                               1:nAltsTotal))
         IsFirstTime = .false.
       end if
 
@@ -784,7 +784,7 @@ contains
       ! loop through all of the parameters and send them one at a time:
 
       ! temp array:
-      allocate (GatGITMVar(nLonsTotal, nLatsTotal, nAltsTotal))
+      allocate(GatGITMVar(nLonsTotal, nLatsTotal, nAltsTotal))
 
       ! write(*,*) "SAMI Proc, before bcast : ", irank
 
@@ -808,7 +808,7 @@ contains
       ! write(*,*) "SAMI Proc, after bcast : ", irank
 
       ! Deallocate temp array:
-      deallocate (GatGITMVar)
+      deallocate(GatGITMVar)
 
       ! if (irank==0) write(*,*) "> SAMI bcasting - done!"
 
@@ -817,7 +817,7 @@ contains
     if (iCommGITM /= MPI_COMM_NULL) then
 
       if (iproc == 0) &
-        deallocate (GatLongitude_g0, GatLatitude_g0, GatAltitude_g0, GatGITMVars_g0)
+        deallocate(GatLongitude_g0, GatLatitude_g0, GatAltitude_g0, GatGITMVars_g0)
     end if
 
     call MPI_BARRIER(iCommGlobal, iError)
@@ -860,8 +860,8 @@ contains
 
     if (IsFirstTime) then
 
-      allocate (phi_InterpIndex(5, -1:nLons + 2, -1:nLats + 2))
-      allocate (phi_InterpFactors(3, -1:nLons + 2, -1:nLats + 2))
+      allocate(phi_InterpIndex(5, -1:nLons + 2, -1:nLats + 2))
+      allocate(phi_InterpFactors(3, -1:nLons + 2, -1:nLats + 2))
 
       do iLon = -1, nLons + 2
         do iLat = -1, nLats + 2

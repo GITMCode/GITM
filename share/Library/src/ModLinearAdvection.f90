@@ -57,12 +57,12 @@ contains
 
     !Check for positivity
     if (any(F_I(1:nX) < 0.0)) then
-      write (*, *) 'Before advection F_I < 0 in '//NameSub
+      write(*, *) 'Before advection F_I < 0 in '//NameSub
       if (present(IsNegativeEnergy)) then
         IsNegativeEnergy = .true.
         return
       else
-        write (*, *) 'F_I:', F_I
+        write(*, *) 'F_I:', F_I
         call CON_stop('Error in '//NameSub)
       end if
     end if
@@ -100,8 +100,8 @@ contains
 
     FInOut_I(1 - nGCLeft:nX + nGCRight) = F_I(1 - nGCLeft:nX + nGCRight)
     if (any(FInOut_I(1:nX) < 0.0)) then
-      write (*, *) 'After advection F_I <0 in '//NameSub
-      write (*, *) 'F_I:', F_I
+      write(*, *) 'After advection F_I <0 in '//NameSub
+      write(*, *) 'F_I:', F_I
       if (present(IsNegativeEnergy)) then
         IsNegativeEnergy = .true.
         return
@@ -164,13 +164,13 @@ contains
 
     !Check for positivity
     if (any(F_I(1:nX) < 0.0)) then
-      write (*, *) 'Before advection F_I <0 in '//NameSub
+      write(*, *) 'Before advection F_I <0 in '//NameSub
 
       if (present(IsNegativeEnergy)) then
         IsNegativeEnergy = .true.
         return
       else
-        write (*, *) 'F_I:', F_I
+        write(*, *) 'F_I:', F_I
         call CON_stop('Error in '//NameSub)
       end if
     end if
@@ -204,8 +204,8 @@ contains
     FInOut_I(1:nX) = F_I(1:nX)
 
     if (any(FInOut_I(1:nX) < 0.0)) then
-      write (*, *) 'After advection F_I <0 in '//NameSub
-      write (*, *) 'F_I:', F_I
+      write(*, *) 'After advection F_I <0 in '//NameSub
+      write(*, *) 'F_I:', F_I
       if (present(IsNegativeEnergy)) then
         IsNegativeEnergy = .true.
         return
@@ -252,15 +252,15 @@ contains
     ! write(NameStage,'(i4.4)') iStep
     ! FileNameTec = 'LinAdvOut/Linear_advection_n_'//trim(NameStage)//'.dat'
 
-    open (UNITTMP_, file=FileNameTec, form='formatted', access='sequential', &
-          status='replace')
-    write (UNITTMP_, '(a)') 'Title: Test Linear Advection'
-    write (UNITTMP_, '(a)') 'Variables = "Cell","I+","I-"'
-    write (UNITTMP_, '(a,i3.3,a,i5.5,a)') 'Zone I= ', nCell, ' F=point'
+    open(UNITTMP_, file=FileNameTec, form='formatted', access='sequential', &
+         status='replace')
+    write(UNITTMP_, '(a)') 'Title: Test Linear Advection'
+    write(UNITTMP_, '(a)') 'Variables = "Cell","I+","I-"'
+    write(UNITTMP_, '(a,i3.3,a,i5.5,a)') 'Zone I= ', nCell, ' F=point'
     do iCell = 1, nCell
-      write (UNITTMP_, '(i3.3,e14.6,e14.6)') iCell, Fplus_I(iCell), Fminus_I(iCell)
+      write(UNITTMP_, '(i3.3,e14.6,e14.6)') iCell, Fplus_I(iCell), Fminus_I(iCell)
     end do
-    close (UNITTMP_)
+    close(UNITTMP_)
 
   end subroutine test_linear_advection
   !====================SUPERBEE LIMITER =======================================!

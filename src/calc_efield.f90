@@ -109,7 +109,7 @@ subroutine calc_efield(iBlock)
         do j = 0, nLons + 1
 
           if (abs(ExB(j, i, k, iNorth_)) > maxi) then
-            write (*, *) "======> efield : ", i, j, k, &
+            write(*, *) "======> efield : ", i, j, k, &
               EField(j, i, k, iEast_)*1000.0, &
               Potential(j + 1, i, k, iBlock)/1000.0, &
               Potential(j - 1, i, k, iBlock)/1000.0, &
@@ -126,9 +126,9 @@ subroutine calc_efield(iBlock)
 
   if (iDebugLevel > 3) then
 
-    write (*, *) "====> Min ExB : ", minval(ExB(:, :, :, iEast_)), &
+    write(*, *) "====> Min ExB : ", minval(ExB(:, :, :, iEast_)), &
       minval(ExB(:, :, :, iNorth_)), minval(ExB(:, :, :, iUp_))
-    write (*, *) "====> Max ExB : ", maxval(ExB(:, :, :, iEast_)), &
+    write(*, *) "====> Max ExB : ", maxval(ExB(:, :, :, iEast_)), &
       maxval(ExB(:, :, :, iNorth_)), maxval(ExB(:, :, :, iUp_))
 
   end if

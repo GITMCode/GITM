@@ -190,23 +190,23 @@ subroutine calc_electron_ion_temperature(iBlock)
         if (DoCheckForNans) then
 
           if (isnan(a(iAlt))) then
-            write (*, *) "a : ", iLon, iLat, iAlt
+            write(*, *) "a : ", iLon, iLat, iAlt
             NanFound = .true.
           end if
 
           if (isnan(b(iAlt))) then
-            write (*, *) "b : ", iLon, iLat, iAlt
+            write(*, *) "b : ", iLon, iLat, iAlt
             NanFound = .true.
           end if
 
           if (isnan(c(iAlt))) then
-            write (*, *) "c : ", iLon, iLat, iAlt
+            write(*, *) "c : ", iLon, iLat, iAlt
             NanFound = .true.
           end if
 
           if (isnan(d(iAlt))) then
-            write (*, *) "d : ", iLon, iLat, iAlt
-            write (*, *) xcoef, tte, eHeatingm(iLon, iLat, iAlt)
+            write(*, *) "d : ", iLon, iLat, iAlt
+            write(*, *) xcoef, tte, eHeatingm(iLon, iLat, iAlt)
             NanFound = .true.
           end if
 
@@ -218,7 +218,7 @@ subroutine calc_electron_ion_temperature(iBlock)
 
         if (DoCheckForNans) then
           if (isnan(eConduction(iLon, iLat, iAlt))) then
-            write (*, *) "eCondu : ", iLon, iLat, iAlt
+            write(*, *) "eCondu : ", iLon, iLat, iAlt
             NanFound = .true.
           end if
         end if
@@ -241,7 +241,7 @@ subroutine calc_electron_ion_temperature(iBlock)
 
           if (DoCheckForNans) then
             if (isnan(JParaAlt(iLon, iLat))) then
-              write (*, *) "jpar : ", iLon, iLat, iAlt
+              write(*, *) "jpar : ", iLon, iLat, iAlt
               NanFound = .true.
             end if
           end if
@@ -625,14 +625,14 @@ subroutine calc_electron_ion_sources(iBlock) !,eHeatingp,iHeatingp,eHeatingm,iHe
       do iLat = 1, nLats
         do iAlt = 1, nAlts
           if (isnan(Qphe(iLon, iLat, iAlt))) then
-            write (*, *) iLon, iLat, iAlt
-            write (*, *) 'x : ', x(iLon, iLat, iAlt)
-            write (*, *) 'ne : ', ne(iLon, iLat, iAlt)
-            write (*, *) 'nn2 : ', nn2(iLon, iLat, iAlt)
-            write (*, *) 'no2 : ', no2(iLon, iLat, iAlt)
-            write (*, *) 'no : ', no(iLon, iLat, iAlt)
-            write (*, *) 'ep : ', epsilon(iLon, iLat, iAlt)
-            write (*, *) 'qphe : ', qphe(iLon, iLat, iAlt)
+            write(*, *) iLon, iLat, iAlt
+            write(*, *) 'x : ', x(iLon, iLat, iAlt)
+            write(*, *) 'ne : ', ne(iLon, iLat, iAlt)
+            write(*, *) 'nn2 : ', nn2(iLon, iLat, iAlt)
+            write(*, *) 'no2 : ', no2(iLon, iLat, iAlt)
+            write(*, *) 'no : ', no(iLon, iLat, iAlt)
+            write(*, *) 'ep : ', epsilon(iLon, iLat, iAlt)
+            write(*, *) 'qphe : ', qphe(iLon, iLat, iAlt)
             call stop_gitm('epsilon')
           end if
         end do
@@ -763,7 +763,8 @@ subroutine calc_electron_ion_sources(iBlock) !,eHeatingp,iHeatingp,eHeatingm,iHe
   Qexc = 0.0
   where (tn .GE. te_exc) tn = te_exc
   dexc = 2.4e4 + 0.3*(te_exc - 1500.) - 1.947e-5*(te_exc - 1500.)*(te_exc - 4000.)
-  Qexc = 1.57e-12*ne*no*1.e-12*exp(dexc*(te_exc - 3000.)/3000./te_exc)*(exp(-22713*(te_exc - tn)/te_exc/tn) - 1)
+  Qexc = 1.57e-12*ne*no*1.e-12*exp(dexc*(te_exc - 3000.)/3000./te_exc) &
+         *(exp(-22713*(te_exc - tn)/te_exc/tn) - 1)
   Qexc = Qexc*1.6e-13        ! eV cm-3 s-1 -> J m-3 s-1
 
   Qexcp = 0.
@@ -1042,7 +1043,8 @@ subroutine calc_electron_ion_sources(iBlock) !,eHeatingp,iHeatingp,eHeatingm,iHe
   dLon = Longitude(1, iBlock) - Longitude(0, iBlock)
 
   ! Electron Conductivity
-  lame = 7.7e5*te**2.5/(1 + 3.22e4*te**2/ne*nn*1.e-16)  !Unit: eV cm-1 from Schunk and Nagy Page 147 eq 5.146
+  lame = 7.7e5*te**2.5/(1 + 3.22e4*te**2/ne*nn*1.e-16)
+  !Unit: eV cm-1 from Schunk and Nagy Page 147 eq 5.146
   lame = lame*1.602e-19*100                      !Unit: J m-1
 
   ! Ion Conductivity

@@ -117,9 +117,9 @@ subroutine init_msis
     initialEDensity = 0.0
     initialAlt = 0.0
 
-    open (iInputUnit_, file='DataIn/MarsInitialIonosphere.txt')
+    open(iInputUnit_, file='DataIn/MarsInitialIonosphere.txt')
     do while (.not. Done)
-      read (iInputUnit_, *) cLine
+      read(iInputUnit_, *) cLine
       if (cline .eq. '#START') Done = .True.
     end do
 
@@ -127,7 +127,7 @@ subroutine init_msis
     ialt = 1
 
     do while (.not. Done)
-      read (iInputUnit_, *, iostat=iError) inDensities
+      read(iInputUnit_, *, iostat=iError) inDensities
       if (iError .ne. 0) then
         Done = .True.
       else
@@ -139,7 +139,7 @@ subroutine init_msis
       iAlt = iAlt + 1
 
     end do
-    close (iInputUnit_)
+    close(iInputUnit_)
 
     LogInitialDensity = log10(InitialEDensity)
 
@@ -417,9 +417,9 @@ end subroutine init_msis
 subroutine msis_bcs(iJulianDay, UTime, Alt, Lat, Lon, Lst, &
                     F107A, F107, AP, LogNS, Temp, LogRho)
 
-  write (*, *) "You can not use MSIS with any planet except Earth!!!"
-  write (*, *) "If you ARE running Earth, then make the code again, using"
-  write (*, *) "configure Earth ; make"
+  write(*, *) "You can not use MSIS with any planet except Earth!!!"
+  write(*, *) "If you ARE running Earth, then make the code again, using"
+  write(*, *) "configure Earth ; make"
   call stop_gitm("I can not continue...")
 
 end subroutine msis_bcs
@@ -456,14 +456,14 @@ subroutine readDustHeader
   character(len=iCharLen_) :: cLine
   logical :: notstarted = .True.
 
-  open (unit=iInputUnit_, file=cDustFile)
+  open(unit=iInputUnit_, file=cDustFile)
 
   do while (notstarted)
-    read (iInputUnit_, *, iostat=iError) cLine
+    read(iInputUnit_, *, iostat=iError) cLine
 
     if (iError .ne. 0) then
-      write (*, *) "Error reading Dust file"
-      write (*, *) "Is the header missing?"
+      write(*, *) "Error reading Dust file"
+      write(*, *) "Is the header missing?"
       call stop_GITM("In init_msis_Mars")
     end if
     if (cline(1:7) .eq. '#HEADER') notstarted = .False.
@@ -471,26 +471,26 @@ subroutine readDustHeader
   end do
 
   if (DustFileType .eq. "FullHorizontal") then
-    read (iInputUnit_, *, iostat=iError) nDustLats
-    read (iInputUnit_, *, iostat=iError) nDustLons
+    read(iInputUnit_, *, iostat=iError) nDustLats
+    read(iInputUnit_, *, iostat=iError) nDustLons
 
-    allocate (DustLatitude(nDustLats))
-    allocate (DustLongitude(nDustLons))
+    allocate(DustLatitude(nDustLats))
+    allocate(DustLongitude(nDustLons))
 
-    read (iInputUnit_, *, iostat=iError) DustLatitude
-    read (iInputUnit_, *, iostat=iError) DustLongitude
+    read(iInputUnit_, *, iostat=iError) DustLatitude
+    read(iInputUnit_, *, iostat=iError) DustLongitude
 
   else if (DustFileType .eq. "MCSVertical") then
-    read (iInputUnit_, *, iostat=iError) nDustLats
-    read (iInputUnit_, *, iostat=iError) nDustTimes
-    read (iInputUnit_, *, iostat=iError) nDustAlts
+    read(iInputUnit_, *, iostat=iError) nDustLats
+    read(iInputUnit_, *, iostat=iError) nDustTimes
+    read(iInputUnit_, *, iostat=iError) nDustAlts
 
     nDustLons = 1
 
-    allocate (DustLatitude(nDustLats))
+    allocate(DustLatitude(nDustLats))
   end if
 
-  close (iInputUnit_)
+  close(iInputUnit_)
 
 end subroutine readDustHeader
 
@@ -513,12 +513,12 @@ subroutine setTau(iBlock)
 
   iline = 1
 
-  open (unit=iInputUnit_, file=cDustFile)
+  open(unit=iInputUnit_, file=cDustFile)
 
   notstarted = .True.
 
   do while (notstarted)
-    read (iInputUnit_, *, iostat=iError) cLine
+    read(iInputUnit_, *, iostat=iError) cLine
     if (cline(1:6) .eq. '#START') notstarted = .False.
   end do
 
@@ -526,9 +526,9 @@ subroutine setTau(iBlock)
 
     !The flies are ordered by lats first then lons.  I.e.,
     do while (iError .eq. 0)
-      read (iInputUnit_, *, iostat=iError) TimeArray(1:6), Temp
+      read(iInputUnit_, *, iostat=iError) TimeArray(1:6), Temp
       if (iproc .eq. 0) then
-        write (*, *) TimeArray(1:6)
+        write(*, *) TimeArray(1:6)
       end if
       i = 1
       do iLat = 1, ndustlats
@@ -568,8 +568,8 @@ subroutine setTau(iBlock)
 
           if (LatFind .lt. DustLatitude(1) .or. LonFind .lt. DustLongitude(1) &
               .or. LatFind .gt. DustLatitude(nDustLats) .or. LonFind .ge. DustLongitude(nDustLons)) then
-            write (*, *) 'Dust grid does not cover GITM grid'
-            write (*, *) 'Stopping...'
+            write(*, *) 'Dust grid does not cover GITM grid'
+            write(*, *) 'Stopping...'
             call stop_gitm('Stopping in init_msis.Mars')
           end if
 
@@ -609,9 +609,9 @@ subroutine setTau(iBlock)
     do iTime = 1, nDustTimes
       do iLat = 1, nDustLats
         do iAlt = 1, nDustAlts
-          read (iInputUnit_, *, iostat=iError) TimeArray(1:6), MCSTemp
+          read(iInputUnit_, *, iostat=iError) TimeArray(1:6), MCSTemp
           if (iError .ne. 0) then
-            write (*, *) "Error reading dustfile"
+            write(*, *) "Error reading dustfile"
             call stop_gitm('Stopping in init_msis.Mars')
           end if
           DustPressureLevel(iAlt) = MCSTemp(3)
@@ -675,7 +675,7 @@ subroutine setTau(iBlock)
     end do
   end if
 
-  close (iInputUnit_)
+  close(iInputUnit_)
 
   !Horizontal Conrath Parameter Distribution
 
@@ -732,10 +732,10 @@ subroutine cleanDust
   use ModPlanet, only: DustLatitude, DustLongitude
 
   if (allocated(DustLatitude)) then
-    deallocate (DustLatitude)
+    deallocate(DustLatitude)
   end if
   if (allocated(DustLongitude)) then
-    deallocate (DustLongitude)
+    deallocate(DustLongitude)
   end if
 
 end subroutine cleanDust

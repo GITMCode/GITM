@@ -86,19 +86,19 @@ contains
 
     LunIndices_ = 100
 
-    open (LunIndices_, file=NameOfFile, status="old", iostat=ierror)
+    open(LunIndices_, file=NameOfFile, status="old", iostat=ierror)
 
     if (ierror .ne. 0) then
       iOutputError = 1
-      write (*, *) 'No Hme Input file was found'
+      write(*, *) 'No Hme Input file was found'
       return
     end if
 
     do i = 1, nHme
-      read (LunIndices_, *) hme_arr(i), lpHme_slt(i)
+      read(LunIndices_, *) hme_arr(i), lpHme_slt(i)
     end do
 
-    close (LunIndices_)
+    close(LunIndices_)
 
   end subroutine read_HmeInputs
 
@@ -123,11 +123,11 @@ contains
 
     LunIndices_ = 100
 
-    open (LunIndices_, file=NameOfIndexFile, status="old", iostat=ierror)
+    open(LunIndices_, file=NameOfIndexFile, status="old", iostat=ierror)
 
     if (ierror .ne. 0) then
       iOutputError = 1
-      write (*, *) 'No HME file was found. Please check the directory of data'
+      write(*, *) 'No HME file was found. Please check the directory of data'
       return
     end if
 
@@ -137,7 +137,7 @@ contains
     do while (.not. done)
 
       if (ipt < 1) then
-        read (LunIndices_, '(a)', iostat=ierror) line
+        read(LunIndices_, '(a)', iostat=ierror) line
         if (ierror .ne. 0) done = .true.
       else
 
@@ -148,9 +148,9 @@ contains
 
     end do
 
-    read (LunIndices_, *) tmp
+    read(LunIndices_, *) tmp
 
-    close (LunIndices_)
+    close(LunIndices_)
 
     !['lat', 'u_a', 'u_p', 'v_a', 'v_p', 'geopt_a', 'geopt_p',
     !  'temp_a', 'temp_p', 'dr_rho_a', 'dr_rho_p']
@@ -185,11 +185,11 @@ contains
 
     LunIndices_ = 100
 
-    open (LunIndices_, file=NameOfIndexFile, status="old", iostat=ierror)
+    open(LunIndices_, file=NameOfIndexFile, status="old", iostat=ierror)
 
     if (ierror .ne. 0) then
       iOutputError = 1
-      write (*, *) 'No tidi coef file found. Please check the directory of data'
+      write(*, *) 'No tidi coef file found. Please check the directory of data'
       return
     end if
 
@@ -199,7 +199,7 @@ contains
     do while (.not. done)
 
       if (ipt < 1) then
-        read (LunIndices_, '(a)', iostat=ierror) line
+        read(LunIndices_, '(a)', iostat=ierror) line
         if (ierror .ne. 0) done = .true.
       else
 
@@ -211,10 +211,10 @@ contains
     end do
 
     do i = 1, nHme
-      read (LunIndices_, *) hme_arr(i), amp_fac_arr(i), pha_shift_arr(i)
+      read(LunIndices_, *) hme_arr(i), amp_fac_arr(i), pha_shift_arr(i)
     end do
 
-    close (LunIndices_)
+    close(LunIndices_)
 
   end subroutine read_coef_file
 
@@ -234,21 +234,21 @@ contains
     else if (hme_tmp(1:1) .eq. 'T') then
       n = 3
     else
-      write (*, *) 'Please check hme_tmp', hme_tmp
+      write(*, *) 'Please check hme_tmp', hme_tmp
       call stop_gitm("I am unsure of what to do now! Stopping!")
     end if
 
     if (hme_tmp(2:2) .eq. 'W') then
-      read (hme_tmp(3:3), *) s
+      read(hme_tmp(3:3), *) s
 
     else if (hme_tmp(2:2) .eq. 'E') then
-      read (hme_tmp(3:3), *) tmp
+      read(hme_tmp(3:3), *) tmp
       s = -tmp
 
     else if (hme_tmp(2:2) .eq. '0') then
       s = 0
     else
-      write (*, *) 'Plese check hme_tmp', hme_tmp
+      write(*, *) 'Plese check hme_tmp', hme_tmp
       call stop_gitm("I am unsure of what to do now! Stopping!")
     end if
 
@@ -273,11 +273,11 @@ contains
     character(len=3) :: mm
 
     if (ReadFiles) then
-      write (mm, '(I3.3)') iday
+      write(mm, '(I3.3)') iday
       NameOfCoefFile1 = trim(hmeDir)//'tidi_coef/'// &
                         'tidi_coef_2020'//mm//'.txt'
       if (iDebuglevel > 2) &
-        write (*, *) 'Reading coef file for iday: ', NameOfCoefFile1
+        write(*, *) 'Reading coef file for iday: ', NameOfCoefFile1
       call read_coef_file(NameOfCoefFile1)
       Storage_Tidi_amp(:, 1) = amp_fac_arr
       Storage_Tidi_phase(:, 1) = pha_shift_arr
@@ -292,19 +292,19 @@ contains
     end if
 
     ! select HME component
-    allocate (hmes_slt(count(lpHme_slt)))
-    allocate (amps_slt(count(lpHme_slt)))
-    allocate (phas_slt(count(lpHme_slt)))
+    allocate(hmes_slt(count(lpHme_slt)))
+    allocate(amps_slt(count(lpHme_slt)))
+    allocate(phas_slt(count(lpHme_slt)))
     hmes_slt = pack(hme_arr, lpHme_slt)
     amps_slt = pack(amp_fac_arr, lpHme_slt)
     phas_slt = pack(pha_shift_arr, lpHme_slt)
 
     if (iDebuglevel > 2) &
-      write (*, *) 'Now constructing tides for HMEs/iday: '
+      write(*, *) 'Now constructing tides for HMEs/iday: '
     call calc_1tide_1day(u1, v1, geopt1, temp1, dr_rho1) ! 1day
-    deallocate (amps_slt)
-    deallocate (phas_slt)
-    deallocate (hmes_slt)
+    deallocate(amps_slt)
+    deallocate(phas_slt)
+    deallocate(hmes_slt)
 
     u_3d = u1
     v_3d = v1
@@ -332,11 +332,11 @@ contains
 
     !----------------------------day1-------------------------------------
     if (ReadFiles) then
-      write (mm, '(I3.3)') day1
+      write(mm, '(I3.3)') day1
       NameOfCoefFile1 = trim(hmeDir)//'tidi_coef/'// &
                         'tidi_coef_2020'//mm//'.txt'
       if (iDebuglevel > 2) &
-        write (*, *) 'Reading coef file for day1: ', NameOfCoefFile1
+        write(*, *) 'Reading coef file for day1: ', NameOfCoefFile1
       call read_coef_file(NameOfCoefFile1)
 
       if (count(lpHme_slt) .eq. 0) then
@@ -351,26 +351,26 @@ contains
     end if
 
     ! select HME component
-    allocate (hmes_slt(count(lpHme_slt)))
-    allocate (amps_slt(count(lpHme_slt)))
-    allocate (phas_slt(count(lpHme_slt)))
+    allocate(hmes_slt(count(lpHme_slt)))
+    allocate(amps_slt(count(lpHme_slt)))
+    allocate(phas_slt(count(lpHme_slt)))
     hmes_slt = pack(hme_arr, lpHme_slt)
     amps_slt = pack(amp_fac_arr, lpHme_slt)
     phas_slt = pack(pha_shift_arr, lpHme_slt)
 
     if (iDebuglevel > 2) &
-      write (*, *) 'Now constructing tides for HMEs/day1: '
+      write(*, *) 'Now constructing tides for HMEs/day1: '
     call calc_1tide_1day(u1, v1, geopt1, temp1, dr_rho1) ! 1day
-    deallocate (amps_slt)
-    deallocate (phas_slt)
+    deallocate(amps_slt)
+    deallocate(phas_slt)
 
     !----------------------------day2-------------------------------------
     if (ReadFiles) then
-      write (mm, '(I3.3)') day2
+      write(mm, '(I3.3)') day2
       NameOfCoefFile2 = trim(hmeDir)//'tidi_coef/'// &
                         'tidi_coef_2020'//mm//'.txt'
       if (iDebuglevel > 2) &
-        write (*, *) 'Reading coef file for day2: ', NameOfCoefFile2
+        write(*, *) 'Reading coef file for day2: ', NameOfCoefFile2
       call read_coef_file(NameOfCoefFile2)
       Storage_Tidi_amp(:, 2) = amp_fac_arr
       Storage_Tidi_phase(:, 2) = pha_shift_arr
@@ -381,18 +381,18 @@ contains
     end if
 
     ! select HME component
-    allocate (amps_slt(count(lpHme_slt)))
-    allocate (phas_slt(count(lpHme_slt)))
+    allocate(amps_slt(count(lpHme_slt)))
+    allocate(phas_slt(count(lpHme_slt)))
     amps_slt = pack(amp_fac_arr, lpHme_slt)
     phas_slt = pack(pha_shift_arr, lpHme_slt)
 
     if (iDebuglevel > 2) &
-      write (*, *) 'Now constructing tides for HMEs/day2: ', hmes_slt
+      write(*, *) 'Now constructing tides for HMEs/day2: ', hmes_slt
     call calc_1tide_1day(u2, v2, geopt2, temp2, dr_rho2) ! 1day
 
-    deallocate (amps_slt)
-    deallocate (phas_slt)
-    deallocate (hmes_slt)
+    deallocate(amps_slt)
+    deallocate(phas_slt)
+    deallocate(hmes_slt)
 
     ! interp tides for iday   (nLonHme,nLatsHme,nAltHme)
 
@@ -524,8 +524,8 @@ contains
         end do
       end do
       if (count(isnan(geopt)) > 0) then
-        write (*, *) isnan(geopt)
-        write (*, *) 'i,ilon,ilat,ialt,hme: ', i, ilon, j, k, hme_tmp
+        write(*, *) isnan(geopt)
+        write(*, *) 'i,ilon,ilat,ialt,hme: ', i, ilon, j, k, hme_tmp
         call stop_gitm('nan was found in geopt, stop')
       end if
 

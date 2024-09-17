@@ -134,8 +134,8 @@ subroutine IO_SetMLTs(MLTsIn, iError)
   integer :: i, j
 
   iError = 0
-  if (allocated(IOr2_NeedMLTs)) deallocate (IOr2_NeedMLTs)
-  allocate (IOr2_NeedMLTs(IOi_NeednMLTs, IOi_NeednLats), stat=iError)
+  if (allocated(IOr2_NeedMLTs)) deallocate(IOr2_NeedMLTs)
+  allocate(IOr2_NeedMLTs(IOi_NeednMLTs, IOi_NeednLats), stat=iError)
   if (iError /= 0) then
     iError = ecAllocationError_
     return
@@ -162,8 +162,8 @@ subroutine IO_SetLats(LatsIn, iError)
   real, dimension(IOi_NeednMLTs, IOi_NeednLats), intent(in) :: LatsIn
 
   iError = 0
-  if (allocated(IOr2_NeedLats)) deallocate (IOr2_NeedLats)
-  allocate (IOr2_NeedLats(IOi_NeednMLTs, IOi_NeednLats), stat=iError)
+  if (allocated(IOr2_NeedLats)) deallocate(IOr2_NeedLats)
+  allocate(IOr2_NeedLats(IOi_NeednMLTs, IOi_NeednLats), stat=iError)
   if (iError /= 0) then
     iError = ecAllocationError_
     return
@@ -201,18 +201,18 @@ subroutine IO_SetGrid(MLTsIn, LatsIn, iError)
   if (UseGridBasedEIE) then
 
     if (allocated(IOi3_InterpolationIndices)) &
-      deallocate (IOi3_InterpolationIndices)
-    allocate (IOi3_InterpolationIndices(IOi_NeednMLTs, IOi_NeednLats, 3), &
-              stat=iError)
+      deallocate(IOi3_InterpolationIndices)
+    allocate(IOi3_InterpolationIndices(IOi_NeednMLTs, IOi_NeednLats, 3), &
+             stat=iError)
     if (iError /= 0) then
       iError = ecAllocationError_
       return
     end if
 
     if (allocated(IOr3_InterpolationRatios)) &
-      deallocate (IOr3_InterpolationRatios)
-    allocate (IOr3_InterpolationRatios(IOi_NeednMLTs, IOi_NeednLats, 2), &
-              stat=iError)
+      deallocate(IOr3_InterpolationRatios)
+    allocate(IOr3_InterpolationRatios(IOi_NeednMLTs, IOi_NeednLats, 2), &
+             stat=iError)
     if (iError /= 0) then
       iError = ecAllocationError_
       return
@@ -264,8 +264,8 @@ subroutine IO_GetPotential(PotentialOut, iError)
     call IO_GetValue(EIE_Value, ValueOut, Filler, iError)
 
     if (iError /= 0) then
-      write (*, *) "Error in routine IO_GetPotential:"
-      write (*, *) cErrorCodes(iError)
+      write(*, *) "Error in routine IO_GetPotential:"
+      write(*, *) cErrorCodes(iError)
       stop
     else
       PotentialOut = ValueOut
@@ -497,8 +497,8 @@ subroutine IO_GetAveE(AveEOut, iError)
     call IO_GetValue(EIE_Value, ValueOut, 0.1, iError)
 
     if (iError /= 0) then
-      write (*, *) "Error in routine IO_GetAveE:"
-      write (*, *) cErrorCodes(iError)
+      write(*, *) "Error in routine IO_GetAveE:"
+      write(*, *) cErrorCodes(iError)
     else
       AveEOut = ValueOut
     end if
@@ -614,8 +614,8 @@ subroutine IO_GetEFlux(EFluxOut, iError)
     call IO_GetValue(EIE_Value, ValueOut, 1.0e-10, iError)
 
     if (iError /= 0) then
-      write (*, *) "Error in routine IO_GetEFlux:"
-      write (*, *) cErrorCodes(iError)
+      write(*, *) "Error in routine IO_GetEFlux:"
+      write(*, *) cErrorCodes(iError)
       stop
     else
       EFluxOut = ValueOut

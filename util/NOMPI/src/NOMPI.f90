@@ -53,16 +53,16 @@ integer function MPI_TYPE_SIZE(datatype)
   !---------------------------------------------------------------------------
 
   if (byte_c == 0) then
-    inquire (iolength=byte_c) ' '
-    inquire (iolength=byte_l) .true.
-    inquire (iolength=byte_i) 1
-    inquire (iolength=byte_r) 1.0
-    inquire (iolength=byte_d) 1.0D0
+    inquire(iolength=byte_c) ' '
+    inquire(iolength=byte_l) .true.
+    inquire(iolength=byte_i) 1
+    inquire(iolength=byte_r) 1.0
+    inquire(iolength=byte_d) 1.0D0
     if (byte_c /= 1) then
-      write (*, *) 'Strange byte size for character variables in MPI_TYPE_SIZE'
-      write (*, *) 'byte_c, byte_l, byte_i, byte_r, byte_d=', &
+      write(*, *) 'Strange byte size for character variables in MPI_TYPE_SIZE'
+      write(*, *) 'byte_c, byte_l, byte_i, byte_r, byte_d=', &
         byte_c, byte_l, byte_i, byte_r, byte_d
-      write (*, *) 'Normalizing with byte_c'
+      write(*, *) 'Normalizing with byte_c'
       byte_l = byte_l/byte_c
       byte_i = byte_i/byte_c
       byte_r = byte_r/byte_c
@@ -83,7 +83,7 @@ integer function MPI_TYPE_SIZE(datatype)
   elseif (datatype == MPI_DOUBLE_PRECISION) then
     MPI_TYPE_SIZE = byte_d
   else
-    write (*, *) 'Error in MPI_TYPE_SIZE: unknown datatype=', datatype
+    write(*, *) 'Error in MPI_TYPE_SIZE: unknown datatype=', datatype
     MPI_TYPE_SIZE = -1
   end if
 
@@ -125,18 +125,18 @@ subroutine MPI_SIMPLE_COPY(caller, sendbuf, sendcount, sendtype, &
   recvbyte = MPI_TYPE_SIZE(recvtype)*recvcount
 
   if (recvbyte < 0 .or. sendbyte < 0) then
-    write (*, *) 'sendtype,recvtype,sendbyte,recvbyte=', &
+    write(*, *) 'sendtype,recvtype,sendbyte,recvbyte=', &
       sendtype, recvtype, sendbyte, recvbyte
 
-    write (*, *) 'Error in MPI_SIMPLE_COPY called from '//caller// &
+    write(*, *) 'Error in MPI_SIMPLE_COPY called from '//caller// &
       'unknown data type(s)'
     stop
   end if
 
   if (recvbyte < sendbyte) then
-    write (*, *) 'sendcount,sendtype,recvcount,recvtype,sendbyte,recvbyte=', &
+    write(*, *) 'sendcount,sendtype,recvcount,recvtype,sendbyte,recvbyte=', &
       sendcount, sendtype, recvcount, recvtype, sendbyte, recvbyte
-    write (*, *) 'Error in MPI_SIMPLE_COPY called from '//caller// &
+    write(*, *) 'Error in MPI_SIMPLE_COPY called from '//caller// &
       ': recvbyte<sendbyte'
     stop
   end if
@@ -185,30 +185,30 @@ subroutine MPI_LOCAL_MSG(caller, buf, count, datatype, rank, tag)
   !     caller,count,datatype,rank,tag
 
   if (rank /= 0) then
-    write (*, *) 'count,datatype,tag,rank=', count, datatype, tag, rank
-    write (*, *) 'Error in MPI_LOCAL_MSG called by '//caller// &
+    write(*, *) 'count,datatype,tag,rank=', count, datatype, tag, rank
+    write(*, *) 'Error in MPI_LOCAL_MSG called by '//caller// &
       ': source/dest rank is not 0'
     stop
   end if
 
   if (tag < 0 .and. tag /= MPI_ANY_TAG) then
-    write (*, *) 'count,datatype,tag=', count, datatype, tag
-    write (*, *) 'Error in MPI_LOCAL_MSG called by '//caller//': invalid tag'
+    write(*, *) 'count,datatype,tag=', count, datatype, tag
+    write(*, *) 'Error in MPI_LOCAL_MSG called by '//caller//': invalid tag'
     stop
   end if
 
   msg_length = MPI_TYPE_SIZE(datatype)*count
 
   if (msg_length < 1) then
-    write (*, *) 'count,datatype,tag,msg_length=', count, datatype, tag, msg_length
-    write (*, *) 'Error in MPI_LOCAL_MSG called by '//caller//': msg_length<1'
+    write(*, *) 'count,datatype,tag,msg_length=', count, datatype, tag, msg_length
+    write(*, *) 'Error in MPI_LOCAL_MSG called by '//caller//': msg_length<1'
     stop
   end if
 
   if (.not. allocated(buffer)) then
     !write(*,*)'initial allocation: max_msg_length,max_msg_number=',&
     !     max_msg_length,max_msg_number
-    allocate ( &
+    allocate( &
       buffer(max_msg_length, max_msg_number), &
       msg_tag(max_msg_number), &
       msg_len(max_msg_number))
@@ -228,9 +228,9 @@ subroutine MPI_LOCAL_MSG(caller, buf, count, datatype, rank, tag)
         !write(*,*)'found corresponding tag at i=',i
 
         if (msg_length < msg_len(i)) then
-          write (*, *) 'tag,count,datatype,recvlength,sendlength=', &
+          write(*, *) 'tag,count,datatype,recvlength,sendlength=', &
             tag, count, datatype, msg_length, msg_len(i)
-          write (*, *) 'Error in MPI_LOCAL_MSG called by '//caller// &
+          write(*, *) 'Error in MPI_LOCAL_MSG called by '//caller// &
             ': receive buffer is shorter than message'
           stop
         end if
@@ -243,8 +243,8 @@ subroutine MPI_LOCAL_MSG(caller, buf, count, datatype, rank, tag)
       end if
     end do
     ! No matching message tag was found
-    write (*, *) 'tag,count,datatype=', tag, count, datatype
-    write (*, *) caller, ' was issued before corresponding SEND'
+    write(*, *) 'tag,count,datatype=', tag, count, datatype
+    write(*, *) caller, ' was issued before corresponding SEND'
     if (caller == 'MPI_IRECV') then
       stop 'Error in MPI_LOCAL_COPY: change order of IRECV/SEND'
     else
@@ -261,12 +261,12 @@ subroutine MPI_LOCAL_MSG(caller, buf, count, datatype, rank, tag)
   ! Adjust buffer size if necessary
   if (msg_length > max_msg_length) then
     ! Increase first dimension of buffer
-    allocate (buffer2(max_msg_length, max_msg_number))
+    allocate(buffer2(max_msg_length, max_msg_number))
     buffer2 = buffer
-    deallocate (buffer)
-    allocate (buffer(2*msg_length, max_msg_number))
+    deallocate(buffer)
+    allocate(buffer(2*msg_length, max_msg_number))
     buffer(1:max_msg_length, :) = buffer2
-    deallocate (buffer2)
+    deallocate(buffer2)
 
     !write(*,*)'Increased max_msg_length from,to=',max_msg_length,2*msg_length
     max_msg_length = 2*msg_length
@@ -274,15 +274,15 @@ subroutine MPI_LOCAL_MSG(caller, buf, count, datatype, rank, tag)
 
   if (msg_number > max_msg_number) then
     ! Increase second dimension of buffer, and length of msg_tag, msg_len
-    allocate ( &
+    allocate( &
       buffer2(max_msg_length, max_msg_number), &
       msg_tag2(max_msg_number), &
       msg_len2(max_msg_number))
     buffer2 = buffer
     msg_tag2 = msg_tag
     msg_len2 = msg_len
-    deallocate (buffer, msg_tag, msg_len)
-    allocate ( &
+    deallocate(buffer, msg_tag, msg_len)
+    allocate( &
       buffer(msg_length, 2*max_msg_number), &
       msg_tag(2*max_msg_number), &
       msg_len(2*max_msg_number))
@@ -291,7 +291,7 @@ subroutine MPI_LOCAL_MSG(caller, buf, count, datatype, rank, tag)
     msg_tag(1:max_msg_number) = msg_tag2
     msg_len = 0
     msg_len(1:max_msg_number) = msg_len2
-    deallocate (buffer2, msg_tag2, msg_len2)
+    deallocate(buffer2, msg_tag2, msg_len2)
 
     !write(*,*)'Increased max_msg_number from,to=',&
     !     max_msg_number,2*max_msg_number
@@ -704,7 +704,7 @@ subroutine MPI_ABORT(errorcode, comm, ierror)
   integer, intent(in) :: errorcode, comm
   integer, intent(out):: ierror
 
-  write (*, *) 'errcode=', errcode
+  write(*, *) 'errcode=', errcode
   stop
 end subroutine MPI_ABORT
 
@@ -724,12 +724,12 @@ end function MPI_WTIME
 
 subroutine MPI_FILE_WRITE
 
-  write (*, *) 'MPI_FILE_WRITE is not implemented in NOMPI library'
+  write(*, *) 'MPI_FILE_WRITE is not implemented in NOMPI library'
 
 end subroutine MPI_FILE_WRITE
 
 subroutine MPI_FILE_READ
 
-  write (*, *) 'MPI_FILE_WRITE is not implemented in NOMPI library'
+  write(*, *) 'MPI_FILE_WRITE is not implemented in NOMPI library'
 
 end subroutine MPI_FILE_READ

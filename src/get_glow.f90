@@ -35,7 +35,7 @@ subroutine get_glow(iLon, iLat, iBlock)
   call GL_setloc(Altitude_GB(iLon, iLat, 1:nAlts, iBlock), nAlts, Latitude(iLat, iBlock), &
                  Longitude(iLon, iBlock), nPhotoBins, iError)
   if (iError .gt. 0) then
-    write (*, *) "nAlts too large for glow!.. in get_glow"
+    write(*, *) "nAlts too large for glow!.. in get_glow"
     call stop_GITM
   end if
 

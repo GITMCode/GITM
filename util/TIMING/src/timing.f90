@@ -293,7 +293,7 @@ subroutine timing_start(name)
 
   if (max_depth >= 0 .and. current_depth > max_depth) RETURN
 
-  if (lVerbose > 2) write (*, *) 'timing_start for ', name
+  if (lVerbose > 2) write(*, *) 'timing_start for ', name
 
   ! Search for previous timings of the same name at the same depth
   do i = i_last + 1, ntiming
@@ -301,7 +301,7 @@ subroutine timing_start(name)
         sa_name(i) == name) goto 100
   end do
   ! New name
-  if (ntiming == maxtiming - 1) write (*, *) &
+  if (ntiming == maxtiming - 1) write(*, *) &
     'WARNING: number of timings has reached maxtiming in ModTiming'
 
   if (ntiming == maxtiming) RETURN ! Cannot add more timing
@@ -323,7 +323,7 @@ subroutine timing_start(name)
   da_start(i) = timing_cpu()
   i_last = i
 
-  if (lVerbose > 2) write (*, *) 'index, start:', i, da_start(i)
+  if (lVerbose > 2) write(*, *) 'index, start:', i, da_start(i)
 
 end subroutine timing_start
 
@@ -350,10 +350,10 @@ subroutine timing_stop(name)
 
   if (max_depth >= 0 .and. current_depth >= max_depth) RETURN
 
-  if (lVerbose > 2) write (*, *) 'timing_stop  for ', name
+  if (lVerbose > 2) write(*, *) 'timing_stop  for ', name
 
   ! Write a warning for non-matching name
-  if (sa_name(i_last) /= name .and. ntiming < maxtiming) write (*, *) &
+  if (sa_name(i_last) /= name .and. ntiming < maxtiming) write(*, *) &
     'WARNING in timing: unexpected STOP requested for ', name
 
   i = i_last
@@ -364,8 +364,8 @@ subroutine timing_stop(name)
   i_last = ia_parent(i)
 
   if (lVerbose > 2) then
-    write (*, *) 'index, stop :', i, qnow
-    write (*, *) 'clocks:', da_sum(i, :)
+    write(*, *) 'index, stop :', i, qnow
+    write(*, *) 'clocks:', da_sum(i, :)
   end if
 
 end subroutine timing_stop
@@ -404,7 +404,7 @@ subroutine timing_reset(name, nclock)
   !----------------------------------------------------------------------------
   if (.not. UseTiming) RETURN
 
-  if (lVerbose > 1) write (*, *) 'timing_reset 1..nclock=', nclock
+  if (lVerbose > 1) write(*, *) 'timing_reset 1..nclock=', nclock
 
   qclock = min(max(nclock, 1), maxclock)
 
@@ -476,7 +476,7 @@ subroutine timing_show(name, iclock)
     end if
 
     if (qclock == 1) then
-      write (iUnit, '(5a,f8.2,a)') &
+      write(iUnit, '(5a,f8.2,a)') &
         'Timing for last ', name, &
         ' (', s_parent(1:len_trim(s_parent)), '):', &
         qsum, ' sec'
@@ -493,14 +493,14 @@ subroutine timing_show(name, iclock)
     qiter = ia_iter(i, qclock); if (qiter < 1) qiter = -1
     qcall = ia_call(i, qclock); if (qcall < 1) qcall = -1
 
-    write (iUnit, '(2a)', ADVANCE='NO') 'Timing for ', name
+    write(iUnit, '(2a)', ADVANCE='NO') 'Timing for ', name
     if (qclock == maxclock .or. step_reset(qclock) == -1) then
-      write (iUnit, '(a,i8,a)') ' at step', step, ' :'
+      write(iUnit, '(a,i8,a)') ' at step', step, ' :'
     else
-      write (iUnit, '(a,i8,a,i8,a)') &
+      write(iUnit, '(a,i8,a,i8,a)') &
         ' from step', step_reset(qclock), ' to', step, ' :'
     end if
-    write (iUnit, '(f8.2,a,f8.3,a,f8.3,a,f8.2,2a)') &
+    write(iUnit, '(f8.2,a,f8.3,a,f8.3,a,f8.2,2a)') &
       qsum, ' sec, ', &
       qsum/qiter, ' s/iter', &
       qsum/qcall, ' s/call', &
@@ -589,35 +589,35 @@ subroutine timing_tree(iclock, show_depth)
   if (DoSaveFile) then
     if (iProc == 0) then
       iUnitT0 = io_unit_new()
-      write (filename, '(a,i8.8,a)') 'STDOUT/timing_it', step, '.H'
-      open (UNIT=iUnitT0, FILE=trim(filename), STATUS='unknown', FORM='formatted')
-      write (iUnitT0, '(a,i8,a)') 'TITLE = "Timing at it=', step, '"'
-      write (iUnitT0, '(a)') 'VARIABLES = '
-      write (iUnitT0, '(a)') '  "PE"'
+      write(filename, '(a,i8.8,a)') 'STDOUT/timing_it', step, '.H'
+      open(UNIT=iUnitT0, FILE=trim(filename), STATUS='unknown', FORM='formatted')
+      write(iUnitT0, '(a,i8,a)') 'TITLE = "Timing at it=', step, '"'
+      write(iUnitT0, '(a)') 'VARIABLES = '
+      write(iUnitT0, '(a)') '  "PE"'
     end if
     iUnitT = io_unit_new()
-    write (filename, '(a,i8.8,a,i6.6,a)') 'STDOUT/timing_it', step, '_pe', iProc, '.tec'
-    open (UNIT=iUnitT, FILE=trim(filename), STATUS='unknown', FORM='formatted')
-    write (iUnitT, *) iProc
+    write(filename, '(a,i8.8,a,i6.6,a)') 'STDOUT/timing_it', step, '_pe', iProc, '.tec'
+    open(UNIT=iUnitT, FILE=trim(filename), STATUS='unknown', FORM='formatted')
+    write(iUnitT, *) iProc
   end if
 
   qclock = min(max(iclock, 2), maxclock)
 
-  write (iUnit, '(a79)') sepline
-  write (iUnit, '(a)', ADVANCE='NO') 'TIMING TREE'
+  write(iUnit, '(a79)') sepline
+  write(iUnit, '(a)', ADVANCE='NO') 'TIMING TREE'
   if (show_depth > 0) &
-    write (iUnit, '(a,i2)', ADVANCE='NO') ' of depth', show_depth
+    write(iUnit, '(a,i2)', ADVANCE='NO') ' of depth', show_depth
   if (step_reset(qclock) >= 0) then
-    write (iUnit, '(a,i8,a,i8)', ADVANCE='NO') &
+    write(iUnit, '(a,i8,a,i8)', ADVANCE='NO') &
       ' from step', step_reset(qclock), ' to', step
   else
-    write (iUnit, '(a,i8)', ADVANCE='NO') ' at step', step
+    write(iUnit, '(a,i8)', ADVANCE='NO') ' at step', step
   end if
-  write (iUnit, '(a,i4)') ' '//NameComp//' on PE ', iProc
+  write(iUnit, '(a,i4)') ' '//NameComp//' on PE ', iProc
 
-  write (iUnit, '(a20,a7,a8,a9,a9,a9,a9)') &
+  write(iUnit, '(a20,a7,a8,a9,a9,a9,a9)') &
     'name'//spaces, '#iter', '#calls', 'sec', 's/iter', 's/call', 'percent'
-  write (iUnit, '(a79)') sepline
+  write(iUnit, '(a79)') sepline
   qdepth = 0
   qnow = timing_cpu()
   do i = 1, ntiming
@@ -643,7 +643,7 @@ subroutine timing_tree(iclock, show_depth)
     ! and spaces(1:-2) (although correct F90) also fails due to a
     ! PGF90 compiler bug
     indent = max(0, ia_depth(i)*2 - 4)
-    write (iUnit, '(a20,i7,i8,a,f9.2,f9.3,f9.3,f9.2)') &
+    write(iUnit, '(a20,i7,i8,a,f9.2,f9.3,f9.3,f9.2)') &
       repeat(' ', indent)//sa_name(i), &
       qiter, &
       qcall, &
@@ -654,12 +654,12 @@ subroutine timing_tree(iclock, show_depth)
       100*qsum/qsumparent
     if (DoSaveFile) then
       if (iProc == 0) then
-        write (iUnitT0, '(a)') '  ".'//repeat(' ', indent)//trim(sa_name(i))//'"'
+        write(iUnitT0, '(a)') '  ".'//repeat(' ', indent)//trim(sa_name(i))//'"'
       end if
-      write (iUnitT, *) qsum
+      write(iUnitT, *) qsum
     end if
 
-    if (ia_depth(i) == 1) write (iUnit, '(a79)') sepline
+    if (ia_depth(i) == 1) write(iUnit, '(a79)') sepline
 
     ! Add up times for this depth and report missing part
 
@@ -689,7 +689,7 @@ subroutine timing_tree(iclock, show_depth)
       if (qiter < 1) qiter = -1
 
       indent = max(0, qdepth*2 - 4)
-      write (iUnit, '(a,a35,f9.2,f9.3,f18.2)') &
+      write(iUnit, '(a,a35,f9.2,f9.3,f18.2)') &
         repeat(' ', indent), &
         '#others'//spaces, &
         qsum, &
@@ -697,21 +697,21 @@ subroutine timing_tree(iclock, show_depth)
         100*qsum/qsumparent
       if (DoSaveFile) then
         if (iProc == 0) then
-          write (iUnitT0, '(a)') '  ".'//repeat(' ', indent)//'#others'//'"'
+          write(iUnitT0, '(a)') '  ".'//repeat(' ', indent)//'#others'//'"'
         end if
-        write (iUnitT, *) qsum
+        write(iUnitT, *) qsum
       end if
 
     end do
     qdepth = i_depth
   end do
-  write (iUnit, '(a79)') sepline
+  write(iUnit, '(a79)') sepline
 
   if (DoSaveFile) then
-    write (iUnitT0, '(a)') 'ZONE T="timing"'
-    write (iUnitT0, '(a)') ' I=NPEs, J=1, K=1, ZONETYPE=Ordered, DATAPACKING=POINT'
-    close (iUnitT0)
-    close (iUnitT)
+    write(iUnitT0, '(a)') 'ZONE T="timing"'
+    write(iUnitT0, '(a)') ' I=NPEs, J=1, K=1, ZONETYPE=Ordered, DATAPACKING=POINT'
+    close(iUnitT0)
+    close(iUnitT)
   end if
 
 end subroutine timing_tree
@@ -798,29 +798,29 @@ subroutine timing_sort(iclock, show_length, unique)
   qsummax = da_qsum(ia_sort(1))
 
   if (qsummax <= 0.0) then
-    write (*, *) 'WARNING in timing_sort: Maximum timing is <= 0 !!!'
+    write(*, *) 'WARNING in timing_sort: Maximum timing is <= 0 !!!'
     RETURN
   end if
 
-  write (iUnit, '(a79)') sepline
+  write(iUnit, '(a79)') sepline
 
-  write (iUnit, '(a,i8,a,i2)', ADVANCE='NO') 'SORTED TIMING'
+  write(iUnit, '(a,i8,a,i2)', ADVANCE='NO') 'SORTED TIMING'
   if (show_length > 0) &
-    write (iUnit, '(a,i3)', ADVANCE='NO') ' of length', show_length
+    write(iUnit, '(a,i3)', ADVANCE='NO') ' of length', show_length
   if (qclock > 1 .and. step_reset(qclock) >= 0) then
-    write (iUnit, '(a,i8,a,i8)', ADVANCE='NO') &
+    write(iUnit, '(a,i8,a,i8)', ADVANCE='NO') &
       ' from step', step_reset(qclock), ' to', step
   else
-    write (iUnit, '(a,i8)', ADVANCE='NO') ' at step', step
+    write(iUnit, '(a,i8)', ADVANCE='NO') ' at step', step
   end if
-  write (iUnit, '(a,i4)') ' '//NameComp//' on PE ', iProc
+  write(iUnit, '(a,i4)') ' '//NameComp//' on PE ', iProc
 
-  write (iUnit, '(a20)', ADVANCE='NO') 'name'//spaces
-  if (.not. unique) write (iUnit, '(a20)', ADVANCE='NO') '(parent)'//spaces
-  write (iUnit, '(a10,a10)', ADVANCE='NO') 'sec', 'percent'
-  if (qclock > 1) write (iUnit, '(a10,a10)', ADVANCE='NO') '#iter', '#calls'
-  write (iUnit, *)
-  write (iUnit, '(a79)') sepline
+  write(iUnit, '(a20)', ADVANCE='NO') 'name'//spaces
+  if (.not. unique) write(iUnit, '(a20)', ADVANCE='NO') '(parent)'//spaces
+  write(iUnit, '(a10,a10)', ADVANCE='NO') 'sec', 'percent'
+  if (qclock > 1) write(iUnit, '(a10,a10)', ADVANCE='NO') '#iter', '#calls'
+  write(iUnit, *)
+  write(iUnit, '(a79)') sepline
 
   if (show_length > 0) then
     showntiming = min(show_length, qntiming)
@@ -835,19 +835,19 @@ subroutine timing_sort(iclock, show_length, unique)
 
     if (qsum < 0.001) CYCLE
 
-    write (iUnit, '(a20)', ADVANCE='NO') s_name
+    write(iUnit, '(a20)', ADVANCE='NO') s_name
 
     if (.not. unique) then
       s_parent = sa_name(ia_parent(i))
-      write (iUnit, '(a20)', ADVANCE='NO') &
+      write(iUnit, '(a20)', ADVANCE='NO') &
         '('//s_parent(1:len_trim(s_parent))//')'//spaces
     end if
 
-    write (iUnit, '(f10.2,f10.2)', ADVANCE='NO') qsum, 100*qsum/qsummax
+    write(iUnit, '(f10.2,f10.2)', ADVANCE='NO') qsum, 100*qsum/qsummax
 
-    if (qclock > 1) write (iUnit, '(i10,i10)', ADVANCE='NO') ia_qiter(i), ia_qcall(i)
-    write (iUnit, *)
-    if (ia_depth(i) == 1) write (iUnit, '(a79)') sepline
+    if (qclock > 1) write(iUnit, '(i10,i10)', ADVANCE='NO') ia_qiter(i), ia_qcall(i)
+    write(iUnit, *)
+    if (ia_depth(i) == 1) write(iUnit, '(a79)') sepline
 
   end do
 
@@ -857,11 +857,11 @@ subroutine timing_sort(iclock, show_length, unique)
     qsum = qsum + da_qsum(i)
   end do
   if (qsum > 0.0) then
-    write (iUnit, '(a20)', ADVANCE='NO') '#others'//spaces
-    if (.not. unique) write (iUnit, '(a20)', ADVANCE='NO') ' '
-    write (iUnit, '(f8.2,f8.2)') qsum, 100*qsum/qsummax
+    write(iUnit, '(a20)', ADVANCE='NO') '#others'//spaces
+    if (.not. unique) write(iUnit, '(a20)', ADVANCE='NO') ' '
+    write(iUnit, '(f8.2,f8.2)') qsum, 100*qsum/qsummax
   end if
 
-  write (iUnit, '(a79)') sepline
+  write(iUnit, '(a79)') sepline
 
 end subroutine timing_sort

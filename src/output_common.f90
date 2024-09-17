@@ -144,9 +144,9 @@ subroutine output(dir, iBlock, iOutputType)
     end if
 
     if (iDebugLevel > 2) then
-      write (*, *) 'For BlockLocationIndex:'
-      write (*, *) 'LonFind, LatFind = ', LonFind, LatFind
-      write (*, *) 'Found iBlock, iiLon, iiLat, rLon, rLat =', &
+      write(*, *) 'For BlockLocationIndex:'
+      write(*, *) 'LonFind, LatFind = ', LonFind, LatFind
+      write(*, *) 'Found iBlock, iiLon, iiLat, rLon, rLat =', &
         iBlock, iiLon, iiLat, rLon, rLat
     end if
 
@@ -176,12 +176,12 @@ subroutine output(dir, iBlock, iOutputType)
   end if
 
   if ((iProc == 0 .and. iBlock == 1) .and. (iOutputType > -1)) &
-    write (*, '(a,i7,i5,5i3)') &
+    write(*, '(a,i7,i5,5i3)') &
     "Writing Output files ("//cType//") at iStep : ", &
     iStep, iTimeArray(1:6)
 
   if (iOutputType <= -1) &
-    write (*, '(a,i7,i5,5i3)') &
+    write(*, '(a,i7,i5,5i3)') &
     "Writing satellite file ("//trim(CurrentSatelliteName)//") at iStep : ", &
     iStep, iTimeArray(1:6)
 
@@ -194,7 +194,7 @@ subroutine output(dir, iBlock, iOutputType)
 
   iBLK = iStartBLK + iBlock
 
-  write (cBlock, '(a1,i4.4)') "b", iBLK
+  write(cBlock, '(a1,i4.4)') "b", iBLK
 
   call i2s(mod(iTimeArray(1), 100), cYear, 2)
   call i2s(iTimeArray(1), cYearL, 4)
@@ -235,32 +235,32 @@ subroutine output(dir, iBlock, iOutputType)
   !! ---------------------------------------------
 
   if (iOutputType <= -1) then
-    inquire (file=trim(dir)//"/"//trim(CurrentSatelliteName)//"_"//cTime(1:cL)//".sat", &
-             EXIST=IsThere)
+    inquire(file=trim(dir)//"/"//trim(CurrentSatelliteName)//"_"//cTime(1:cL)//".sat", &
+            EXIST=IsThere)
     if (.not. DoAppendFiles .or. tSimulation < 0.1 .or. .not. IsThere) then
-      open (unit=iOutputUnit_, form="unformatted", &
-            file=trim(dir)//"/"//trim(CurrentSatelliteName)//"_"//cTime(1:cL)//".sat", &
-            status="unknown")
+      open(unit=iOutputUnit_, form="unformatted", &
+           file=trim(dir)//"/"//trim(CurrentSatelliteName)//"_"//cTime(1:cL)//".sat", &
+           status="unknown")
     else
-      open (unit=iOutputUnit_, form="unformatted", &
-            file=trim(dir)//"/"//trim(CurrentSatelliteName)//"_"//cTime(1:cL)//".sat", &
-            status="unknown", position='append')
+      open(unit=iOutputUnit_, form="unformatted", &
+           file=trim(dir)//"/"//trim(CurrentSatelliteName)//"_"//cTime(1:cL)//".sat", &
+           status="unknown", position='append')
     end if
   else
     ! For HME type output, open file only if DoSaveHIMEPlot=T. This is for iProc=0,
     ! because other iProcs with DoSaveHIMEPlot=F exit the subroutine earlier.
     if ((cType(3:5) /= 'HME' .and. (cType /= '2DMEL' .or. iBLK == 1)) .or. &
         (cType(3:5) == 'HME' .and. DoSaveHIMEPlot)) then
-      inquire (file=trim(dir)//"/"//cType//"_"//cTime(1:cL)//"."//cBlock, &
-               EXIST=IsThere)
+      inquire(file=trim(dir)//"/"//cType//"_"//cTime(1:cL)//"."//cBlock, &
+              EXIST=IsThere)
       if (.not. DoAppendFiles .or. tSimulation < 0.1 .or. .not. IsThere) then
-        open (unit=iOutputUnit_, form="unformatted", &
-              file=trim(dir)//"/"//cType//"_"//cTime(1:cL)//"."//cBlock, &
-              status="unknown")
+        open(unit=iOutputUnit_, form="unformatted", &
+             file=trim(dir)//"/"//cType//"_"//cTime(1:cL)//"."//cBlock, &
+             status="unknown")
       else
-        open (unit=iOutputUnit_, form="unformatted", &
-              file=trim(dir)//"/"//cType//"_"//cTime(1:cL)//"."//cBlock, &
-              status="unknown", position='append')
+        open(unit=iOutputUnit_, form="unformatted", &
+             file=trim(dir)//"/"//cType//"_"//cTime(1:cL)//"."//cBlock, &
+             status="unknown", position='append')
       end if
     end if
   end if
@@ -423,34 +423,34 @@ subroutine output(dir, iBlock, iOutputType)
 
   end select
 
-  close (unit=iOutputUnit_)
+  close(unit=iOutputUnit_)
 
   !! Now write the header file
 
   if ((iProc == 0 .and. iBlock == nBlocks) .or. iOutputType <= -1) then
 
     if (iOutputType <= -1) then
-      inquire (file=trim(dir)//"/"//trim(CurrentSatelliteName)//"_"//cTime(1:cL)//".header", EXIST=IsThere)
+      inquire(file=trim(dir)//"/"//trim(CurrentSatelliteName)//"_"//cTime(1:cL)//".header", EXIST=IsThere)
       if (.not. DoAppendFiles .or. tSimulation < 0.1 .or. .not. IsThere) then
-        open (unit=iOutputUnit_, &
-              file=trim(dir)//"/"//trim(CurrentSatelliteName)//"_"//cTime(1:cL)//".header", &
-              status="unknown")
+        open(unit=iOutputUnit_, &
+             file=trim(dir)//"/"//trim(CurrentSatelliteName)//"_"//cTime(1:cL)//".header", &
+             status="unknown")
       else
-        open (unit=iOutputUnit_, &
-              file=trim(dir)//"/"//trim(CurrentSatelliteName)//"_"//cTime(1:cL)//".header", &
-              status="unknown", position='append')
+        open(unit=iOutputUnit_, &
+             file=trim(dir)//"/"//trim(CurrentSatelliteName)//"_"//cTime(1:cL)//".header", &
+             status="unknown", position='append')
       end if
     else
-      inquire (file=trim(dir)//"/"//cType//"_"//cTime(1:cL)//".header", &
-               EXIST=IsThere)
+      inquire(file=trim(dir)//"/"//cType//"_"//cTime(1:cL)//".header", &
+              EXIST=IsThere)
       if (.not. DoAppendFiles .or. tSimulation < 0.1 .or. .not. IsThere) then
-        open (unit=iOutputUnit_, &
-              file=trim(dir)//"/"//cType//"_"//cTime(1:cL)//".header", &
-              status="unknown")
+        open(unit=iOutputUnit_, &
+             file=trim(dir)//"/"//cType//"_"//cTime(1:cL)//".header", &
+             status="unknown")
       else
-        open (unit=iOutputUnit_, &
-              file=trim(dir)//"/"//cType//"_"//cTime(1:cL)//".header", &
-              status="unknown", position='append')
+        open(unit=iOutputUnit_, &
+             file=trim(dir)//"/"//cType//"_"//cTime(1:cL)//".header", &
+             status="unknown", position='append')
       end if
     end if
 
@@ -466,11 +466,11 @@ subroutine output(dir, iBlock, iOutputType)
       call output_header
     end if
 
-    write (iOutputUnit_, *) ""
-    write (iOutputUnit_, *) "END"
-    write (iOutputUnit_, *) ""
+    write(iOutputUnit_, *) ""
+    write(iOutputUnit_, *) "END"
+    write(iOutputUnit_, *) ""
 
-    close (unit=iOutputUnit_)
+    close(unit=iOutputUnit_)
 
   end if
 
@@ -488,277 +488,277 @@ contains
 
     integer :: iOff, iSpecies, iIon
 
-    write (iOutputUnit_, *) "NUMERICAL VALUES"
+    write(iOutputUnit_, *) "NUMERICAL VALUES"
 
-    write (iOutputUnit_, "(I7,6A)") nvars_to_write, " nvars"
+    write(iOutputUnit_, "(I7,6A)") nvars_to_write, " nvars"
     if (cType(1:2) /= "2D" .and. cType(1:2) /= '0D') then
-      write (iOutputUnit_, "(I7,7A)") nAlts + 4, " nAltitudes"
+      write(iOutputUnit_, "(I7,7A)") nAlts + 4, " nAltitudes"
     else
-      write (iOutputUnit_, "(I7,7A)") 1, " nAltitudes"
+      write(iOutputUnit_, "(I7,7A)") 1, " nAltitudes"
     end if
     if (cType(1:2) == "1D" .or. cType(1:2) == '0D') then
-      write (iOutputUnit_, "(I7,7A)") 1, " nLatitudes"
-      write (iOutputUnit_, "(I7,7A)") 1, " nLongitudes"
+      write(iOutputUnit_, "(I7,7A)") 1, " nLatitudes"
+      write(iOutputUnit_, "(I7,7A)") 1, " nLongitudes"
     else
       if (cType(3:5) == "MEL") then
-        write (iOutputUnit_, "(I7,A)") nMagLats, " nLatitude"
-        write (iOutputUnit_, "(I7,A)") nMagLons + 1, " nLongitudes"
-        write (iOutputUnit_, *) " "
-        write (iOutputUnit_, *) "NO GHOSTCELLS"
+        write(iOutputUnit_, "(I7,A)") nMagLats, " nLatitude"
+        write(iOutputUnit_, "(I7,A)") nMagLons + 1, " nLongitudes"
+        write(iOutputUnit_, *) " "
+        write(iOutputUnit_, *) "NO GHOSTCELLS"
       elseif (cType(3:5) == "GEL" .or. &
               cType(3:5) == "TEC" .or. &
               cType(1:5) == "2DANC" .or. &
               cType(3:5) == "HME") then
         ! Xing: no ghost cells for HME for easy operations in PostProcess
-        write (iOutputUnit_, "(I7,A)") nLats, " nLatitude"
-        write (iOutputUnit_, "(I7,A)") nLons, " nLongitudes"
-        write (iOutputUnit_, *) " "
-        write (iOutputUnit_, *) "NO GHOSTCELLS"
+        write(iOutputUnit_, "(I7,A)") nLats, " nLatitude"
+        write(iOutputUnit_, "(I7,A)") nLons, " nLongitudes"
+        write(iOutputUnit_, *) " "
+        write(iOutputUnit_, *) "NO GHOSTCELLS"
       else
-        write (iOutputUnit_, "(I7,7A)") nLats + nGCs*2, " nLatitudes"
-        write (iOutputUnit_, "(I7,7A)") nLons + nGCs*2, " nLongitudes"
+        write(iOutputUnit_, "(I7,7A)") nLats + nGCs*2, " nLatitudes"
+        write(iOutputUnit_, "(I7,7A)") nLons + nGCs*2, " nLongitudes"
       end if
     end if
-    write (iOutputUnit_, *) ""
+    write(iOutputUnit_, *) ""
 
-    write (iOutputUnit_, *) "VARIABLE LIST"
-    write (iOutputUnit_, "(I7,A1,a)") 1, " ", "Longitude"
-    write (iOutputUnit_, "(I7,A1,a)") 2, " ", "Latitude"
-    write (iOutputUnit_, "(I7,A1,a)") 3, " ", "Altitude"
+    write(iOutputUnit_, *) "VARIABLE LIST"
+    write(iOutputUnit_, "(I7,A1,a)") 1, " ", "Longitude"
+    write(iOutputUnit_, "(I7,A1,a)") 2, " ", "Latitude"
+    write(iOutputUnit_, "(I7,A1,a)") 3, " ", "Altitude"
 
     if (cType(3:5) == "LST") then
 
       iOff = 4
       if (iRhoOutputList) then
-        write (iOutputUnit_, "(I7,A1,a)") iOff, " ", "Rho (kg/m3)"
+        write(iOutputUnit_, "(I7,A1,a)") iOff, " ", "Rho (kg/m3)"
         iOff = iOff + 1
       end if
       do iSpecies = 1, nSpeciesTotal
         if (iNeutralDensityOutputList(iSpecies)) then
-          write (iOutputUnit_, "(I7,A1,a)") iOff, " ", &
+          write(iOutputUnit_, "(I7,A1,a)") iOff, " ", &
             "["//cSpecies(iSpecies)//"] (/m3)"
           iOff = iOff + 1
         end if
       end do
       if (iNeutralWindOutputList(1)) then
-        write (iOutputUnit_, "(I7,A1,a)") iOff, " ", "Vn (east) (m/s)"
+        write(iOutputUnit_, "(I7,A1,a)") iOff, " ", "Vn (east) (m/s)"
         iOff = iOff + 1
       end if
       if (iNeutralWindOutputList(2)) then
-        write (iOutputUnit_, "(I7,A1,a)") iOff, " ", "Vn (north) (m/s)"
+        write(iOutputUnit_, "(I7,A1,a)") iOff, " ", "Vn (north) (m/s)"
         iOff = iOff + 1
       end if
       if (iNeutralWindOutputList(3)) then
-        write (iOutputUnit_, "(I7,A1,a)") iOff, " ", "Vn (up) (m/s)"
+        write(iOutputUnit_, "(I7,A1,a)") iOff, " ", "Vn (up) (m/s)"
         iOff = iOff + 1
       end if
 
       do iSpecies = 1, nIons
         if (iIonDensityOutputList(iSpecies)) then
-          write (iOutputUnit_, "(I7,A1,a)") iOff, " ", &
+          write(iOutputUnit_, "(I7,A1,a)") iOff, " ", &
             "["//cIons(iSpecies)//"] (/m3)"
           iOff = iOff + 1
         end if
       end do
 
       if (iIonWindOutputList(1)) then
-        write (iOutputUnit_, "(I7,A1,a)") iOff, " ", "Vi (east) (m/s)"
+        write(iOutputUnit_, "(I7,A1,a)") iOff, " ", "Vi (east) (m/s)"
         iOff = iOff + 1
       end if
       if (iIonWindOutputList(2)) then
-        write (iOutputUnit_, "(I7,A1,a)") iOff, " ", "Vi (north) (m/s)"
+        write(iOutputUnit_, "(I7,A1,a)") iOff, " ", "Vi (north) (m/s)"
         iOff = iOff + 1
       end if
       if (iIonWindOutputList(3)) then
-        write (iOutputUnit_, "(I7,A1,a)") iOff, " ", "Vi (up) (m/s)"
+        write(iOutputUnit_, "(I7,A1,a)") iOff, " ", "Vi (up) (m/s)"
         iOff = iOff + 1
       end if
 
       if (iTemperatureOutputList(1)) then
-        write (iOutputUnit_, "(I7,A1,a)") iOff, " ", "Neutral Temperature (K)"
+        write(iOutputUnit_, "(I7,A1,a)") iOff, " ", "Neutral Temperature (K)"
         iOff = iOff + 1
       end if
       if (iTemperatureOutputList(2)) then
-        write (iOutputUnit_, "(I7,A1,a)") iOff, " ", "Ion Temperature (K)"
+        write(iOutputUnit_, "(I7,A1,a)") iOff, " ", "Ion Temperature (K)"
         iOff = iOff + 1
       end if
       if (iTemperatureOutputList(3)) then
-        write (iOutputUnit_, "(I7,A1,a)") iOff, " ", "Electron Temperature (K)"
+        write(iOutputUnit_, "(I7,A1,a)") iOff, " ", "Electron Temperature (K)"
         iOff = iOff + 1
       end if
 
     end if
 
     if (cType(3:5) == "MAG") then
-      write (iOutputUnit_, "(I7,A1,a)") 4, " ", "Magnetic Latitude"
-      write (iOutputUnit_, "(I7,A1,a)") 5, " ", "Magnetic Longitude"
-      write (iOutputUnit_, "(I7,A1,a)") 6, " ", "B.F. East"
-      write (iOutputUnit_, "(I7,A1,a)") 7, " ", "B.F. North"
-      write (iOutputUnit_, "(I7,A1,a)") 8, " ", "B.F. Vertical"
-      write (iOutputUnit_, "(I7,A1,a)") 9, " ", "B.F. Magnitude"
+      write(iOutputUnit_, "(I7,A1,a)") 4, " ", "Magnetic Latitude"
+      write(iOutputUnit_, "(I7,A1,a)") 5, " ", "Magnetic Longitude"
+      write(iOutputUnit_, "(I7,A1,a)") 6, " ", "B.F. East"
+      write(iOutputUnit_, "(I7,A1,a)") 7, " ", "B.F. North"
+      write(iOutputUnit_, "(I7,A1,a)") 8, " ", "B.F. Vertical"
+      write(iOutputUnit_, "(I7,A1,a)") 9, " ", "B.F. Magnitude"
     end if
 
     if (cType(3:5) == "GEL") then
 
-      write (iOutputUnit_, "(I7,A1,a)") 4, " ", "Potential"
-      write (iOutputUnit_, "(I7,A1,a)") 5, " ", "Pedersen Conductance"
-      write (iOutputUnit_, "(I7,A1,a)") 6, " ", "Hall Conductance"
-      write (iOutputUnit_, "(I7,A1,a)") 7, " ", "Electron_Average_Energy"
-      write (iOutputUnit_, "(I7,A1,a)") 8, " ", "Electron_Energy_Flux"
-      write (iOutputUnit_, "(I7,A1,a)") 9, " ", "DivJuAlt"
-      write (iOutputUnit_, "(I7,A1,a)") 10, " ", "Pedersen FL Conductance"
-      write (iOutputUnit_, "(I7,A1,a)") 11, " ", "Hall FL Conductance"
-      write (iOutputUnit_, "(I7,A1,a)") 12, " ", "DivJu FL"
-      write (iOutputUnit_, "(I7,A1,a)") 13, " ", "FL Length"
+      write(iOutputUnit_, "(I7,A1,a)") 4, " ", "Potential"
+      write(iOutputUnit_, "(I7,A1,a)") 5, " ", "Pedersen Conductance"
+      write(iOutputUnit_, "(I7,A1,a)") 6, " ", "Hall Conductance"
+      write(iOutputUnit_, "(I7,A1,a)") 7, " ", "Electron_Average_Energy"
+      write(iOutputUnit_, "(I7,A1,a)") 8, " ", "Electron_Energy_Flux"
+      write(iOutputUnit_, "(I7,A1,a)") 9, " ", "DivJuAlt"
+      write(iOutputUnit_, "(I7,A1,a)") 10, " ", "Pedersen FL Conductance"
+      write(iOutputUnit_, "(I7,A1,a)") 11, " ", "Hall FL Conductance"
+      write(iOutputUnit_, "(I7,A1,a)") 12, " ", "DivJu FL"
+      write(iOutputUnit_, "(I7,A1,a)") 13, " ", "FL Length"
 
     end if
 
     if (cType(1:5) == "2DANC") then
 
-      write (iOutputUnit_, "(I7,A1,a)") 4, " ", "Local Time"
-      write (iOutputUnit_, "(I7,A1,a)") 5, " ", "Solar Zenith Angle"
-      write (iOutputUnit_, "(I7,A1,a)") 6, " ", "Vertical TEC"
-      write (iOutputUnit_, "(I7,A1,a)") 7, " ", "AltIntJouleHeating (W/m2)"
-      write (iOutputUnit_, "(I7,A1,a)") 8, " ", "AltIntHeatingTransfer (W/m2)"
-      write (iOutputUnit_, "(I7,A1,a)") 9, " ", "AltIntEuvHeating (W/m2)"
-      write (iOutputUnit_, "(I7,A1,a)") 10, " ", "AltIntPhotoElectronHeating (W/m2)"
-      write (iOutputUnit_, "(I7,A1,a)") 11, " ", "AltIntChamicalHeating (W/m2)"
-      write (iOutputUnit_, "(I7,A1,a)") 12, " ", "AltIntRadCooling (W/m2)"
-      write (iOutputUnit_, "(I7,A1,a)") 12, " ", "AltIntCO2Cooling (W/m2)"
-      write (iOutputUnit_, "(I7,A1,a)") 12, " ", "AltIntNOCooling (W/m2)"
-      write (iOutputUnit_, "(I7,A1,a)") 12, " ", "AltIntOCooling (W/m2)"
+      write(iOutputUnit_, "(I7,A1,a)") 4, " ", "Local Time"
+      write(iOutputUnit_, "(I7,A1,a)") 5, " ", "Solar Zenith Angle"
+      write(iOutputUnit_, "(I7,A1,a)") 6, " ", "Vertical TEC"
+      write(iOutputUnit_, "(I7,A1,a)") 7, " ", "AltIntJouleHeating (W/m2)"
+      write(iOutputUnit_, "(I7,A1,a)") 8, " ", "AltIntHeatingTransfer (W/m2)"
+      write(iOutputUnit_, "(I7,A1,a)") 9, " ", "AltIntEuvHeating (W/m2)"
+      write(iOutputUnit_, "(I7,A1,a)") 10, " ", "AltIntPhotoElectronHeating (W/m2)"
+      write(iOutputUnit_, "(I7,A1,a)") 11, " ", "AltIntChamicalHeating (W/m2)"
+      write(iOutputUnit_, "(I7,A1,a)") 12, " ", "AltIntRadCooling (W/m2)"
+      write(iOutputUnit_, "(I7,A1,a)") 12, " ", "AltIntCO2Cooling (W/m2)"
+      write(iOutputUnit_, "(I7,A1,a)") 12, " ", "AltIntNOCooling (W/m2)"
+      write(iOutputUnit_, "(I7,A1,a)") 12, " ", "AltIntOCooling (W/m2)"
 
     end if
 
     if (cType(3:5) == "TEC") then
 
-      write (iOutputUnit_, "(I7,A1,a)") 4, " ", "Solar Zenith Angle"
-      write (iOutputUnit_, "(I7,A1,a)") 5, " ", "Vertical TEC"
+      write(iOutputUnit_, "(I7,A1,a)") 4, " ", "Solar Zenith Angle"
+      write(iOutputUnit_, "(I7,A1,a)") 5, " ", "Vertical TEC"
 
     end if
 
     if (cType(3:5) == "THM") then
 
-      write (iOutputUnit_, "(I7,A1,a)") 4, " ", "EUV Heating"
-      write (iOutputUnit_, "(I7,A1,a)") 5, " ", "Conduction"
-      write (iOutputUnit_, "(I7,A1,a)") 6, " ", "Molecular Conduction"
-      write (iOutputUnit_, "(I7,A1,a)") 7, " ", "Eddy Conduction"
-      write (iOutputUnit_, "(I7,A1,a)") 8, " ", "Eddy Adiabatic Conduction"
-      write (iOutputUnit_, "(I7,A1,a)") 9, " ", "Chemical Heating"
-      write (iOutputUnit_, "(I7,A1,a)") 10, " ", "Auroral Heating"
-      write (iOutputUnit_, "(I7,A1,a)") 11, " ", "Joule Heating"
-      write (iOutputUnit_, "(I7,A1,a)") 12, " ", "NO Cooling"
-      write (iOutputUnit_, "(I7,A1,a)") 13, " ", "O Cooling"
-      write (iOutputUnit_, "(I7,A1,a)") 14, " ", "Total Abs EUV"
+      write(iOutputUnit_, "(I7,A1,a)") 4, " ", "EUV Heating"
+      write(iOutputUnit_, "(I7,A1,a)") 5, " ", "Conduction"
+      write(iOutputUnit_, "(I7,A1,a)") 6, " ", "Molecular Conduction"
+      write(iOutputUnit_, "(I7,A1,a)") 7, " ", "Eddy Conduction"
+      write(iOutputUnit_, "(I7,A1,a)") 8, " ", "Eddy Adiabatic Conduction"
+      write(iOutputUnit_, "(I7,A1,a)") 9, " ", "Chemical Heating"
+      write(iOutputUnit_, "(I7,A1,a)") 10, " ", "Auroral Heating"
+      write(iOutputUnit_, "(I7,A1,a)") 11, " ", "Joule Heating"
+      write(iOutputUnit_, "(I7,A1,a)") 12, " ", "NO Cooling"
+      write(iOutputUnit_, "(I7,A1,a)") 13, " ", "O Cooling"
+      write(iOutputUnit_, "(I7,A1,a)") 14, " ", "Total Abs EUV"
       if (cType(1:2) == "1D") then
         do iSpecies = 1, nSpeciesTotal
-          write (iOutputUnit_, "(I7,A1,a,a)") 11 + iSpecies, " ", &
+          write(iOutputUnit_, "(I7,A1,a,a)") 11 + iSpecies, " ", &
             "Production Rate ", cSpecies(iSpecies)
         end do
         do iSpecies = 1, nSpeciesTotal
-          write (iOutputUnit_, "(I7,A1,a,a)") 11 + nSpeciesTotal + iSpecies, " ", &
+          write(iOutputUnit_, "(I7,A1,a,a)") 11 + nSpeciesTotal + iSpecies, " ", &
             "Loss Rate ", cSpecies(iSpecies)
 
         end do
       else
-        write (iOutputUnit_, "(I7,A1,a)") 15, " ", "Cp"
-        write (iOutputUnit_, "(I7,A1,a)") 16, " ", "Rho"
-        write (iOutputUnit_, "(I7,A1,a)") 17, " ", "E-Field Mag"
-        write (iOutputUnit_, "(I7,A1,a)") 18, " ", "Sigma Ped"
+        write(iOutputUnit_, "(I7,A1,a)") 15, " ", "Cp"
+        write(iOutputUnit_, "(I7,A1,a)") 16, " ", "Rho"
+        write(iOutputUnit_, "(I7,A1,a)") 17, " ", "E-Field Mag"
+        write(iOutputUnit_, "(I7,A1,a)") 18, " ", "Sigma Ped"
       end if
 
     end if
 
     if (cType(3:5) == "CHM") then
 
-      write (iOutputUnit_, "(I7,A1,a)") 4, " ", "N!D2!U+!N + e"
-      write (iOutputUnit_, "(I7,A1,a)") 5, " ", "O!D2!U+!N + e"
-      write (iOutputUnit_, "(I7,A1,a)") 6, " ", "N!D2!U+!N + O"
-      write (iOutputUnit_, "(I7,A1,a)") 7, " ", "NO!U+!N + e"
-      write (iOutputUnit_, "(I7,A1,a)") 8, " ", "N!U+!N + O!D2!N"
-      write (iOutputUnit_, "(I7,A1,a)") 9, " ", "NO + N"
-      write (iOutputUnit_, "(I7,A1,a)") 10, " ", "O!U+!N + O!D2!N"
-      write (iOutputUnit_, "(I7,A1,a)") 11, " ", "N + O!D2!N"
-      write (iOutputUnit_, "(I7,A1,a)") 12, " ", "O!D2!U+!N + N"
-      write (iOutputUnit_, "(I7,A1,a)") 13, " ", "O!D2!U+!N + NO"
-      write (iOutputUnit_, "(I7,A1,a)") 14, " ", "O!D2!U+!N + N2"
-      write (iOutputUnit_, "(I7,A1,a)") 15, " ", "N!D2!U+!N + O!D2!N"
-      write (iOutputUnit_, "(I7,A1,a)") 16, " ", "N!U+!N + O"
-      write (iOutputUnit_, "(I7,A1,a)") 17, " ", "O!+!N + N!D2!N"
-      write (iOutputUnit_, "(I7,A1,a)") 18, " ", "O(1D) + N!D2!N"
-      write (iOutputUnit_, "(I7,A1,a)") 19, " ", "O(1D) + O!D2!N"
-      write (iOutputUnit_, "(I7,A1,a)") 20, " ", "O(1D) + O"
-      write (iOutputUnit_, "(I7,A1,a)") 21, " ", "O(1D) + e"
-      write (iOutputUnit_, "(I7,A1,a)") 22, " ", "N(2D) + O!D2!N"
-      write (iOutputUnit_, "(I7,A1,a)") 23, " ", "O!U+!N(2D)+e"
-      write (iOutputUnit_, "(I7,A1,a)") 24, " ", "N(2D) + O"
-      write (iOutputUnit_, "(I7,A1,a)") 25, " ", "N(2D) + e"
-      write (iOutputUnit_, "(I7,A1,a)") 26, " ", "O!U+!N(2D + N!D2!N"
-      write (iOutputUnit_, "(I7,A1,a)") 27, " ", "O!U+!N(2P) + e"
-      write (iOutputUnit_, "(I7,A1,a)") 28, " ", "O!U+!N(2P) + O"
-      write (iOutputUnit_, "(I7,A1,a)") 29, " ", "O!U+!N(2P) + N!D2!N"
-      write (iOutputUnit_, "(I7,A1,a)") 30, " ", "Chemical Heating Rate"
+      write(iOutputUnit_, "(I7,A1,a)") 4, " ", "N!D2!U+!N + e"
+      write(iOutputUnit_, "(I7,A1,a)") 5, " ", "O!D2!U+!N + e"
+      write(iOutputUnit_, "(I7,A1,a)") 6, " ", "N!D2!U+!N + O"
+      write(iOutputUnit_, "(I7,A1,a)") 7, " ", "NO!U+!N + e"
+      write(iOutputUnit_, "(I7,A1,a)") 8, " ", "N!U+!N + O!D2!N"
+      write(iOutputUnit_, "(I7,A1,a)") 9, " ", "NO + N"
+      write(iOutputUnit_, "(I7,A1,a)") 10, " ", "O!U+!N + O!D2!N"
+      write(iOutputUnit_, "(I7,A1,a)") 11, " ", "N + O!D2!N"
+      write(iOutputUnit_, "(I7,A1,a)") 12, " ", "O!D2!U+!N + N"
+      write(iOutputUnit_, "(I7,A1,a)") 13, " ", "O!D2!U+!N + NO"
+      write(iOutputUnit_, "(I7,A1,a)") 14, " ", "O!D2!U+!N + N2"
+      write(iOutputUnit_, "(I7,A1,a)") 15, " ", "N!D2!U+!N + O!D2!N"
+      write(iOutputUnit_, "(I7,A1,a)") 16, " ", "N!U+!N + O"
+      write(iOutputUnit_, "(I7,A1,a)") 17, " ", "O!+!N + N!D2!N"
+      write(iOutputUnit_, "(I7,A1,a)") 18, " ", "O(1D) + N!D2!N"
+      write(iOutputUnit_, "(I7,A1,a)") 19, " ", "O(1D) + O!D2!N"
+      write(iOutputUnit_, "(I7,A1,a)") 20, " ", "O(1D) + O"
+      write(iOutputUnit_, "(I7,A1,a)") 21, " ", "O(1D) + e"
+      write(iOutputUnit_, "(I7,A1,a)") 22, " ", "N(2D) + O!D2!N"
+      write(iOutputUnit_, "(I7,A1,a)") 23, " ", "O!U+!N(2D)+e"
+      write(iOutputUnit_, "(I7,A1,a)") 24, " ", "N(2D) + O"
+      write(iOutputUnit_, "(I7,A1,a)") 25, " ", "N(2D) + e"
+      write(iOutputUnit_, "(I7,A1,a)") 26, " ", "O!U+!N(2D + N!D2!N"
+      write(iOutputUnit_, "(I7,A1,a)") 27, " ", "O!U+!N(2P) + e"
+      write(iOutputUnit_, "(I7,A1,a)") 28, " ", "O!U+!N(2P) + O"
+      write(iOutputUnit_, "(I7,A1,a)") 29, " ", "O!U+!N(2P) + N!D2!N"
+      write(iOutputUnit_, "(I7,A1,a)") 30, " ", "Chemical Heating Rate"
 
     end if
 
     if (cType(3:5) == "GLO") then
 
-      write (iOutputUnit_, "(I7,A1,a)") 4, " ", "6300 A Emission"
-      write (iOutputUnit_, "(I7,A1,a)") 5, " ", "PhotoElectronUp"
-      write (iOutputUnit_, "(I7,A1,a)") 6, " ", "PhotoElectronDown"
+      write(iOutputUnit_, "(I7,A1,a)") 4, " ", "6300 A Emission"
+      write(iOutputUnit_, "(I7,A1,a)") 5, " ", "PhotoElectronUp"
+      write(iOutputUnit_, "(I7,A1,a)") 6, " ", "PhotoElectronDown"
 
     end if
 
     if (cType(3:5) == "MEL") then
 
-      write (iOutputUnit_, "(I7,A1,a)") 4, " ", "MLT"
-      write (iOutputUnit_, "(I7,A1,a)") 5, " ", "GeoLat"
-      write (iOutputUnit_, "(I7,A1,a)") 6, " ", "GeoLon"
-      write (iOutputUnit_, "(I7,A1,a)") 7, " ", "Pedersen Conductance"
-      write (iOutputUnit_, "(I7,A1,a)") 8, " ", "Hall Conductance"
-      write (iOutputUnit_, "(I7,A1,a)") 9, " ", "DivJuAlt"
-      write (iOutputUnit_, "(I7,A1,a)") 10, " ", "Field Line Length"
-      write (iOutputUnit_, "(I7,A1,a)") 11, " ", "Sigma PP"
-      write (iOutputUnit_, "(I7,A1,a)") 12, " ", "Sigma LL"
-      write (iOutputUnit_, "(I7,A1,a)") 13, " ", "Sigma H"
-      write (iOutputUnit_, "(I7,A1,a)") 14, " ", "Sigma C"
-      write (iOutputUnit_, "(I7,A1,a)") 15, " ", "Sigma PL"
-      write (iOutputUnit_, "(I7,A1,a)") 16, " ", "Sigma LP"
-      write (iOutputUnit_, "(I7,A1,a)") 17, " ", "K^D_{m\phi}"
-      write (iOutputUnit_, "(I7,A1,a)") 18, " ", "K^D_{m\lamda}"
-      write (iOutputUnit_, "(I7,A1,a)") 19, " ", "Solver A"
-      write (iOutputUnit_, "(I7,A1,a)") 20, " ", "Solver B"
-      write (iOutputUnit_, "(I7,A1,a)") 21, " ", "Solver C"
-      write (iOutputUnit_, "(I7,A1,a)") 22, " ", "Solver D"
-      write (iOutputUnit_, "(I7,A1,a)") 23, " ", "Solver E"
-      write (iOutputUnit_, "(I7,A1,a)") 24, " ", "Solver S"
-      write (iOutputUnit_, "(I7,A1,a)") 25, " ", "DynamoPotential"
-      write (iOutputUnit_, "(I7,A1,a)") 26, " ", "Ed1new"
-      write (iOutputUnit_, "(I7,A1,a)") 27, " ", "Ed2new"
-      write (iOutputUnit_, "(I7,A1,a)") 28, " ", "Kphi"
-      write (iOutputUnit_, "(I7,A1,a)") 29, " ", "Klamda"
+      write(iOutputUnit_, "(I7,A1,a)") 4, " ", "MLT"
+      write(iOutputUnit_, "(I7,A1,a)") 5, " ", "GeoLat"
+      write(iOutputUnit_, "(I7,A1,a)") 6, " ", "GeoLon"
+      write(iOutputUnit_, "(I7,A1,a)") 7, " ", "Pedersen Conductance"
+      write(iOutputUnit_, "(I7,A1,a)") 8, " ", "Hall Conductance"
+      write(iOutputUnit_, "(I7,A1,a)") 9, " ", "DivJuAlt"
+      write(iOutputUnit_, "(I7,A1,a)") 10, " ", "Field Line Length"
+      write(iOutputUnit_, "(I7,A1,a)") 11, " ", "Sigma PP"
+      write(iOutputUnit_, "(I7,A1,a)") 12, " ", "Sigma LL"
+      write(iOutputUnit_, "(I7,A1,a)") 13, " ", "Sigma H"
+      write(iOutputUnit_, "(I7,A1,a)") 14, " ", "Sigma C"
+      write(iOutputUnit_, "(I7,A1,a)") 15, " ", "Sigma PL"
+      write(iOutputUnit_, "(I7,A1,a)") 16, " ", "Sigma LP"
+      write(iOutputUnit_, "(I7,A1,a)") 17, " ", "K^D_{m\phi}"
+      write(iOutputUnit_, "(I7,A1,a)") 18, " ", "K^D_{m\lamda}"
+      write(iOutputUnit_, "(I7,A1,a)") 19, " ", "Solver A"
+      write(iOutputUnit_, "(I7,A1,a)") 20, " ", "Solver B"
+      write(iOutputUnit_, "(I7,A1,a)") 21, " ", "Solver C"
+      write(iOutputUnit_, "(I7,A1,a)") 22, " ", "Solver D"
+      write(iOutputUnit_, "(I7,A1,a)") 23, " ", "Solver E"
+      write(iOutputUnit_, "(I7,A1,a)") 24, " ", "Solver S"
+      write(iOutputUnit_, "(I7,A1,a)") 25, " ", "DynamoPotential"
+      write(iOutputUnit_, "(I7,A1,a)") 26, " ", "Ed1new"
+      write(iOutputUnit_, "(I7,A1,a)") 27, " ", "Ed2new"
+      write(iOutputUnit_, "(I7,A1,a)") 28, " ", "Kphi"
+      write(iOutputUnit_, "(I7,A1,a)") 29, " ", "Klamda"
 
     end if
 
     if (cType(3:5) == "ALL" .or. cType(3:5) == "NEU") then
 
-      write (iOutputUnit_, "(I7,A1,a)") 4, " ", "Rho"
+      write(iOutputUnit_, "(I7,A1,a)") 4, " ", "Rho"
 
       iOff = 4
       do iSpecies = 1, nSpeciesTotal
-        write (iOutputUnit_, "(I7,A1,a)") iOff + iSpecies, " ", &
+        write(iOutputUnit_, "(I7,A1,a)") iOff + iSpecies, " ", &
           "["//cSpecies(iSpecies)//"]"
       end do
 
       iOff = 4 + nSpeciesTotal
-      write (iOutputUnit_, "(I7,A1,a)") iOff + 1, " ", "Temperature"
-      write (iOutputUnit_, "(I7,A1,a)") iOff + 2, " ", "V!Dn!N (east)"
-      write (iOutputUnit_, "(I7,A1,a)") iOff + 3, " ", "V!Dn!N (north)"
-      write (iOutputUnit_, "(I7,A1,a)") iOff + 4, " ", "V!Dn!N (up)"
+      write(iOutputUnit_, "(I7,A1,a)") iOff + 1, " ", "Temperature"
+      write(iOutputUnit_, "(I7,A1,a)") iOff + 2, " ", "V!Dn!N (east)"
+      write(iOutputUnit_, "(I7,A1,a)") iOff + 3, " ", "V!Dn!N (north)"
+      write(iOutputUnit_, "(I7,A1,a)") iOff + 4, " ", "V!Dn!N (up)"
 
       iOff = 8 + nSpeciesTotal
       do iSpecies = 1, nSpecies
-        write (iOutputUnit_, "(I7,A1,a)") iOff + iSpecies, " ", &
+        write(iOutputUnit_, "(I7,A1,a)") iOff + iSpecies, " ", &
           "V!Dn!N (up,"//cSpecies(iSpecies)//")"
       end do
 
@@ -769,16 +769,16 @@ contains
       iOff = 3
       if (cType(3:5) == "ALL") iOff = 8 + nSpeciesTotal + nSpecies
       do iIon = 1, nIons
-        write (iOutputUnit_, "(I7,A1,a)") iOff + iIon, " ", "["//cIons(iIon)//"]"
+        write(iOutputUnit_, "(I7,A1,a)") iOff + iIon, " ", "["//cIons(iIon)//"]"
       end do
 
       iOff = iOff + nIons
 
-      write (iOutputUnit_, "(I7,A1,a)") iOff + 1, " ", "eTemperature"
-      write (iOutputUnit_, "(I7,A1,a)") iOff + 2, " ", "iTemperature"
-      write (iOutputUnit_, "(I7,A1,a)") iOff + 3, " ", "V!Di!N (east)"
-      write (iOutputUnit_, "(I7,A1,a)") iOff + 4, " ", "V!Di!N (north)"
-      write (iOutputUnit_, "(I7,A1,a)") iOff + 5, " ", "V!Di!N (up)"
+      write(iOutputUnit_, "(I7,A1,a)") iOff + 1, " ", "eTemperature"
+      write(iOutputUnit_, "(I7,A1,a)") iOff + 2, " ", "iTemperature"
+      write(iOutputUnit_, "(I7,A1,a)") iOff + 3, " ", "V!Di!N (east)"
+      write(iOutputUnit_, "(I7,A1,a)") iOff + 4, " ", "V!Di!N (north)"
+      write(iOutputUnit_, "(I7,A1,a)") iOff + 5, " ", "V!Di!N (up)"
 
       iOff = iOff + 5
 
@@ -802,90 +802,90 @@ contains
 
       else
 
-        write (iOutputUnit_, "(I7,A1,a)") iOff + 1, " ", "Ed1"
-        write (iOutputUnit_, "(I7,A1,a)") iOff + 2, " ", "Ed2"
-        write (iOutputUnit_, "(I7,A1,a)") iOff + 3, " ", "Je1"
-        write (iOutputUnit_, "(I7,A1,a)") iOff + 4, " ", "Je2"
-        write (iOutputUnit_, "(I7,A1,a)") iOff + 5, " ", "Magnetic Latitude"
-        write (iOutputUnit_, "(I7,A1,a)") iOff + 6, " ", "Magnetic Longitude"
-        write (iOutputUnit_, "(I7,A1,a)") iOff + 7, " ", "B.F. East"
-        write (iOutputUnit_, "(I7,A1,a)") iOff + 8, " ", "B.F. North"
-        write (iOutputUnit_, "(I7,A1,a)") iOff + 9, " ", "B.F. Vertical"
-        write (iOutputUnit_, "(I7,A1,a)") iOff + 10, " ", "B.F. Magnitude"
-        write (iOutputUnit_, "(I7,A1,a)") iOff + 11, " ", "Potential"
-        write (iOutputUnit_, "(I7,A1,a)") iOff + 12, " ", "E.F. East"
-        write (iOutputUnit_, "(I7,A1,a)") iOff + 13, " ", "E.F. North"
-        write (iOutputUnit_, "(I7,A1,a)") iOff + 14, " ", "E.F. Vertical"
-        write (iOutputUnit_, "(I7,A1,a)") iOff + 15, " ", "E.F. Magnitude"
+        write(iOutputUnit_, "(I7,A1,a)") iOff + 1, " ", "Ed1"
+        write(iOutputUnit_, "(I7,A1,a)") iOff + 2, " ", "Ed2"
+        write(iOutputUnit_, "(I7,A1,a)") iOff + 3, " ", "Je1"
+        write(iOutputUnit_, "(I7,A1,a)") iOff + 4, " ", "Je2"
+        write(iOutputUnit_, "(I7,A1,a)") iOff + 5, " ", "Magnetic Latitude"
+        write(iOutputUnit_, "(I7,A1,a)") iOff + 6, " ", "Magnetic Longitude"
+        write(iOutputUnit_, "(I7,A1,a)") iOff + 7, " ", "B.F. East"
+        write(iOutputUnit_, "(I7,A1,a)") iOff + 8, " ", "B.F. North"
+        write(iOutputUnit_, "(I7,A1,a)") iOff + 9, " ", "B.F. Vertical"
+        write(iOutputUnit_, "(I7,A1,a)") iOff + 10, " ", "B.F. Magnitude"
+        write(iOutputUnit_, "(I7,A1,a)") iOff + 11, " ", "Potential"
+        write(iOutputUnit_, "(I7,A1,a)") iOff + 12, " ", "E.F. East"
+        write(iOutputUnit_, "(I7,A1,a)") iOff + 13, " ", "E.F. North"
+        write(iOutputUnit_, "(I7,A1,a)") iOff + 14, " ", "E.F. Vertical"
+        write(iOutputUnit_, "(I7,A1,a)") iOff + 15, " ", "E.F. Magnitude"
 
         ! AGB: 10/18/17: Add Collision Frequency and Pressure Gradient
         ! to output
 
-        write (iOutputUnit_, "(I7,A1,a)") iOff + 16, " ", "IN Collision Freq"
-        write (iOutputUnit_, "(I7,A1,a)") iOff + 17, " ", "PressGrad (east)"
-        write (iOutputUnit_, "(I7,A1,a)") iOff + 18, " ", "PressGrad (north)"
-        write (iOutputUnit_, "(I7,A1,a)") iOff + 19, " ", "PressGrad (up)"
+        write(iOutputUnit_, "(I7,A1,a)") iOff + 16, " ", "IN Collision Freq"
+        write(iOutputUnit_, "(I7,A1,a)") iOff + 17, " ", "PressGrad (east)"
+        write(iOutputUnit_, "(I7,A1,a)") iOff + 18, " ", "PressGrad (north)"
+        write(iOutputUnit_, "(I7,A1,a)") iOff + 19, " ", "PressGrad (up)"
       end if
 
     end if
 
     if (cType == "3DHME") then
 
-      write (iOutputUnit_, "(I7,A1,a)") 4, " ", "Rho"
+      write(iOutputUnit_, "(I7,A1,a)") 4, " ", "Rho"
 
       iOff = 4
       do iSpecies = 1, nSpeciesTotal
-        write (iOutputUnit_, "(I7,A1,a)") iOff + iSpecies, " ", &
+        write(iOutputUnit_, "(I7,A1,a)") iOff + iSpecies, " ", &
           "["//cSpecies(iSpecies)//"]"
       end do
 
       iOff = 4 + nSpeciesTotal
-      write (iOutputUnit_, "(I7,A1,a)") iOff + 1, " ", "Temperature"
-      write (iOutputUnit_, "(I7,A1,a)") iOff + 2, " ", "V!Dn!N (east)"
-      write (iOutputUnit_, "(I7,A1,a)") iOff + 3, " ", "V!Dn!N (north)"
-      write (iOutputUnit_, "(I7,A1,a)") iOff + 4, " ", "V!Dn!N (up)"
+      write(iOutputUnit_, "(I7,A1,a)") iOff + 1, " ", "Temperature"
+      write(iOutputUnit_, "(I7,A1,a)") iOff + 2, " ", "V!Dn!N (east)"
+      write(iOutputUnit_, "(I7,A1,a)") iOff + 3, " ", "V!Dn!N (north)"
+      write(iOutputUnit_, "(I7,A1,a)") iOff + 4, " ", "V!Dn!N (up)"
 
       iOff = 8 + nSpeciesTotal
       do iSpecies = 1, nSpecies
-        write (iOutputUnit_, "(I7,A1,a)") iOff + iSpecies, " ", &
+        write(iOutputUnit_, "(I7,A1,a)") iOff + iSpecies, " ", &
           "V!Dn!N (up,"//cSpecies(iSpecies)//")"
       end do
 
       iOff = 8 + nSpeciesTotal + nSpecies
       do iIon = 1, nIons
-        write (iOutputUnit_, "(I7,A1,a)") iOff + iIon, " ", "["//cIons(iIon)//"]"
+        write(iOutputUnit_, "(I7,A1,a)") iOff + iIon, " ", "["//cIons(iIon)//"]"
       end do
 
       iOff = iOff + nIons
-      write (iOutputUnit_, "(I7,A1,a)") iOff + 1, " ", "eTemperature"
-      write (iOutputUnit_, "(I7,A1,a)") iOff + 2, " ", "iTemperature"
-      write (iOutputUnit_, "(I7,A1,a)") iOff + 3, " ", "V!Di!N (east)"
-      write (iOutputUnit_, "(I7,A1,a)") iOff + 4, " ", "V!Di!N (north)"
-      write (iOutputUnit_, "(I7,A1,a)") iOff + 5, " ", "V!Di!N (up)"
+      write(iOutputUnit_, "(I7,A1,a)") iOff + 1, " ", "eTemperature"
+      write(iOutputUnit_, "(I7,A1,a)") iOff + 2, " ", "iTemperature"
+      write(iOutputUnit_, "(I7,A1,a)") iOff + 3, " ", "V!Di!N (east)"
+      write(iOutputUnit_, "(I7,A1,a)") iOff + 4, " ", "V!Di!N (north)"
+      write(iOutputUnit_, "(I7,A1,a)") iOff + 5, " ", "V!Di!N (up)"
 
       iOff = iOff + 5
-      write (iOutputUnit_, "(I7,A1,a)") iOff + 1, " ", "PhotoElectron Heating"
-      write (iOutputUnit_, "(I7,A1,a)") iOff + 2, " ", "Joule Heating"
-      write (iOutputUnit_, "(I7,A1,a)") iOff + 3, " ", "Auroral Heating"
-      write (iOutputUnit_, "(I7,A1,a)") iOff + 4, " ", "Specific Heat"
-      write (iOutputUnit_, "(I7,A1,a)") iOff + 5, " ", "Magnetic Latitude"
-      write (iOutputUnit_, "(I7,A1,a)") iOff + 6, " ", "Magnetic Longitude"
-      write (iOutputUnit_, "(I7,A1,a)") iOff + 7, " ", "B.F. East"
-      write (iOutputUnit_, "(I7,A1,a)") iOff + 8, " ", "B.F. North"
-      write (iOutputUnit_, "(I7,A1,a)") iOff + 9, " ", "B.F. Vertical"
-      write (iOutputUnit_, "(I7,A1,a)") iOff + 10, " ", "B.F. Magnitude"
-      write (iOutputUnit_, "(I7,A1,a)") iOff + 11, " ", "Potential"
-      write (iOutputUnit_, "(I7,A1,a)") iOff + 12, " ", "PotentialY"
-      write (iOutputUnit_, "(I7,A1,a)") iOff + 13, " ", "E.F. East"
-      write (iOutputUnit_, "(I7,A1,a)") iOff + 14, " ", "E.F. North"
-      write (iOutputUnit_, "(I7,A1,a)") iOff + 15, " ", "E.F. Vertical"
+      write(iOutputUnit_, "(I7,A1,a)") iOff + 1, " ", "PhotoElectron Heating"
+      write(iOutputUnit_, "(I7,A1,a)") iOff + 2, " ", "Joule Heating"
+      write(iOutputUnit_, "(I7,A1,a)") iOff + 3, " ", "Auroral Heating"
+      write(iOutputUnit_, "(I7,A1,a)") iOff + 4, " ", "Specific Heat"
+      write(iOutputUnit_, "(I7,A1,a)") iOff + 5, " ", "Magnetic Latitude"
+      write(iOutputUnit_, "(I7,A1,a)") iOff + 6, " ", "Magnetic Longitude"
+      write(iOutputUnit_, "(I7,A1,a)") iOff + 7, " ", "B.F. East"
+      write(iOutputUnit_, "(I7,A1,a)") iOff + 8, " ", "B.F. North"
+      write(iOutputUnit_, "(I7,A1,a)") iOff + 9, " ", "B.F. Vertical"
+      write(iOutputUnit_, "(I7,A1,a)") iOff + 10, " ", "B.F. Magnitude"
+      write(iOutputUnit_, "(I7,A1,a)") iOff + 11, " ", "Potential"
+      write(iOutputUnit_, "(I7,A1,a)") iOff + 12, " ", "PotentialY"
+      write(iOutputUnit_, "(I7,A1,a)") iOff + 13, " ", "E.F. East"
+      write(iOutputUnit_, "(I7,A1,a)") iOff + 14, " ", "E.F. North"
+      write(iOutputUnit_, "(I7,A1,a)") iOff + 15, " ", "E.F. Vertical"
 
     end if
 
     if (cType == "2DHME") then
 
-      write (iOutputUnit_, "(I7,A1,a)") 4, " ", "Local Time"
-      write (iOutputUnit_, "(I7,A1,a)") 5, " ", "Vertical TEC"
+      write(iOutputUnit_, "(I7,A1,a)") 4, " ", "Local Time"
+      write(iOutputUnit_, "(I7,A1,a)") 5, " ", "Vertical TEC"
 
     end if
 
@@ -897,50 +897,50 @@ contains
 
     integer :: iOff, iSpecies, iIon
 
-    write (iOutputUnit_, *) "NUMERICAL VALUES"
+    write(iOutputUnit_, *) "NUMERICAL VALUES"
 
-    write (iOutputUnit_, "(I7,6A)") nvars_to_write, " nvars"
-    write (iOutputUnit_, "(I7,7A)") nAlts, " nAltitudes"
-    write (iOutputUnit_, "(I7,7A)") 1, " nLatitudes"
-    write (iOutputUnit_, "(I7,7A)") 1, " nLongitudes"
-    write (iOutputUnit_, *) ""
+    write(iOutputUnit_, "(I7,6A)") nvars_to_write, " nvars"
+    write(iOutputUnit_, "(I7,7A)") nAlts, " nAltitudes"
+    write(iOutputUnit_, "(I7,7A)") 1, " nLatitudes"
+    write(iOutputUnit_, "(I7,7A)") 1, " nLongitudes"
+    write(iOutputUnit_, *) ""
 
-    write (iOutputUnit_, *) "VARIABLE LIST"
-    write (iOutputUnit_, "(I7,A1,a)") 1, " ", "Longitude"
-    write (iOutputUnit_, "(I7,A1,a)") 2, " ", "Local Time"
-    write (iOutputUnit_, "(I7,A1,a)") 3, " ", "Latitude"
-    write (iOutputUnit_, "(I7,A1,a)") 4, " ", "Altitude"
-    write (iOutputUnit_, "(I7,A1,a)") 5, " ", "Solar Zenith Angle"
-    write (iOutputUnit_, "(I7,A1,a)") 6, " ", "Rho"
+    write(iOutputUnit_, *) "VARIABLE LIST"
+    write(iOutputUnit_, "(I7,A1,a)") 1, " ", "Longitude"
+    write(iOutputUnit_, "(I7,A1,a)") 2, " ", "Local Time"
+    write(iOutputUnit_, "(I7,A1,a)") 3, " ", "Latitude"
+    write(iOutputUnit_, "(I7,A1,a)") 4, " ", "Altitude"
+    write(iOutputUnit_, "(I7,A1,a)") 5, " ", "Solar Zenith Angle"
+    write(iOutputUnit_, "(I7,A1,a)") 6, " ", "Rho"
     iOff = 6
     do iSpecies = 1, nSpeciesTotal
-      write (iOutputUnit_, "(I7,A1,a)") iOff + iSpecies, " ", &
+      write(iOutputUnit_, "(I7,A1,a)") iOff + iSpecies, " ", &
         "["//cSpecies(iSpecies)//"]"
     end do
 
     iOff = iOff + nSpeciesTotal
-    write (iOutputUnit_, "(I7,A1,a)") iOff + 1, " ", "Temperature"
-    write (iOutputUnit_, "(I7,A1,a)") iOff + 2, " ", "V!Dn!N (east)"
-    write (iOutputUnit_, "(I7,A1,a)") iOff + 3, " ", "V!Dn!N (north)"
-    write (iOutputUnit_, "(I7,A1,a)") iOff + 4, " ", "V!Dn!N (up)"
+    write(iOutputUnit_, "(I7,A1,a)") iOff + 1, " ", "Temperature"
+    write(iOutputUnit_, "(I7,A1,a)") iOff + 2, " ", "V!Dn!N (east)"
+    write(iOutputUnit_, "(I7,A1,a)") iOff + 3, " ", "V!Dn!N (north)"
+    write(iOutputUnit_, "(I7,A1,a)") iOff + 4, " ", "V!Dn!N (up)"
 
     iOff = iOff + 4
     do iSpecies = 1, nSpecies
-      write (iOutputUnit_, "(I7,A1,a)") iOff + iSpecies, " ", &
+      write(iOutputUnit_, "(I7,A1,a)") iOff + iSpecies, " ", &
         "V!Dn!N (up,"//cSpecies(iSpecies)//")"
     end do
 
     iOff = iOff + nSpecies
     do iIon = 1, nIons
-      write (iOutputUnit_, "(I7,A1,a)") iOff + iIon, " ", "["//cIons(iIon)//"]"
+      write(iOutputUnit_, "(I7,A1,a)") iOff + iIon, " ", "["//cIons(iIon)//"]"
     end do
 
     iOff = iOff + nIons
-    write (iOutputUnit_, "(I7,A1,a)") iOff + 1, " ", "eTemperature"
-    write (iOutputUnit_, "(I7,A1,a)") iOff + 2, " ", "iTemperature"
-    write (iOutputUnit_, "(I7,A1,a)") iOff + 3, " ", "V!Di!N (east)"
-    write (iOutputUnit_, "(I7,A1,a)") iOff + 4, " ", "V!Di!N (north)"
-    write (iOutputUnit_, "(I7,A1,a)") iOff + 5, " ", "V!Di!N (up)"
+    write(iOutputUnit_, "(I7,A1,a)") iOff + 1, " ", "eTemperature"
+    write(iOutputUnit_, "(I7,A1,a)") iOff + 2, " ", "iTemperature"
+    write(iOutputUnit_, "(I7,A1,a)") iOff + 3, " ", "V!Di!N (east)"
+    write(iOutputUnit_, "(I7,A1,a)") iOff + 4, " ", "V!Di!N (north)"
+    write(iOutputUnit_, "(I7,A1,a)") iOff + 5, " ", "V!Di!N (up)"
 
 !    iOff = iOff + 5
 !    do iSpecies = 1, nSpecies
@@ -948,7 +948,7 @@ contains
 !            " "//cSpecies(iSpecies)//"Mixing Ratio"
 !    enddo
 
-    write (iOutputUnit_, *) ""
+    write(iOutputUnit_, *) ""
 
   end subroutine output_header_new
 
@@ -959,16 +959,16 @@ contains
     ! for 1D and 0D do not write blocks
     if (cType(1:2) == "1D" .or. cType(1:2) == "0D") return
 
-    write (iOutputUnit_, *) "BLOCKS"
-    write (iOutputUnit_, "(I7,A)") 1, " nBlocksAlt"
+    write(iOutputUnit_, *) "BLOCKS"
+    write(iOutputUnit_, "(I7,A)") 1, " nBlocksAlt"
     if (cType /= "2DMEL") then
-      write (iOutputUnit_, "(I7,A)") nBlocksLat, " nBlocksLat"
-      write (iOutputUnit_, "(I7,A)") nBlocksLon, " nBlocksLon"
+      write(iOutputUnit_, "(I7,A)") nBlocksLat, " nBlocksLat"
+      write(iOutputUnit_, "(I7,A)") nBlocksLon, " nBlocksLon"
     else
-      write (iOutputUnit_, "(I7,A)") 1, " nBlocksLat"
-      write (iOutputUnit_, "(I7,A)") 1, " nBlocksLon"
+      write(iOutputUnit_, "(I7,A)") 1, " nBlocksLat"
+      write(iOutputUnit_, "(I7,A)") 1, " nBlocksLon"
     end if
-    write (iOutputUnit_, *) ""
+    write(iOutputUnit_, *) ""
 
   end subroutine write_head_blocks
 
@@ -978,15 +978,15 @@ contains
 
   subroutine write_head_time
 
-    write (iOutputUnit_, *) "TIME"
-    write (iOutputUnit_, "(I7,A)") iTimeArray(1), " Year"
-    write (iOutputUnit_, "(I7,A)") iTimeArray(2), " Month"
-    write (iOutputUnit_, "(I7,A)") iTimeArray(3), " Day"
-    write (iOutputUnit_, "(I7,A)") iTimeArray(4), " Hour"
-    write (iOutputUnit_, "(I7,A)") iTimeArray(5), " Minute"
-    write (iOutputUnit_, "(I7,A)") iTimeArray(6), " Second"
-    write (iOutputUnit_, "(I7,A)") iTimeArray(7), " Millisecond"
-    write (iOutputUnit_, *) ""
+    write(iOutputUnit_, *) "TIME"
+    write(iOutputUnit_, "(I7,A)") iTimeArray(1), " Year"
+    write(iOutputUnit_, "(I7,A)") iTimeArray(2), " Month"
+    write(iOutputUnit_, "(I7,A)") iTimeArray(3), " Day"
+    write(iOutputUnit_, "(I7,A)") iTimeArray(4), " Hour"
+    write(iOutputUnit_, "(I7,A)") iTimeArray(5), " Minute"
+    write(iOutputUnit_, "(I7,A)") iTimeArray(6), " Second"
+    write(iOutputUnit_, "(I7,A)") iTimeArray(7), " Millisecond"
+    write(iOutputUnit_, *) ""
 
   end subroutine write_head_time
 
@@ -996,9 +996,9 @@ contains
 
   subroutine write_head_version
 
-    write (iOutputUnit_, *) "VERSION"
-    write (iOutputUnit_, *) GitmVersion + PlanetNum
-    write (iOutputUnit_, *) ""
+    write(iOutputUnit_, *) "VERSION"
+    write(iOutputUnit_, *) GitmVersion + PlanetNum
+    write(iOutputUnit_, *) ""
 
   end subroutine write_head_version
 
@@ -1129,7 +1129,7 @@ subroutine output_3dall(iBlock)
       iiLat = min(max(iLat, 1), nLats)
       do iLon = -1, nLons + 2
         iiLon = min(max(iLon, 1), nLons)
-        write (iOutputUnit_) &
+        write(iOutputUnit_) &
           Longitude(iLon, iBlock), &
           Latitude(iLat, iBlock), &
           Altitude_GB(iLon, iLat, iAlt, iBlock), &
@@ -1223,7 +1223,7 @@ subroutine output_3dlst(iBlock)
           tmp(iOff) = eTemperature(iLon, iLat, iAlt, iBlock)
         end if
 
-        write (iOutputUnit_) tmp(1:iOff)
+        write(iOutputUnit_) tmp(1:iOff)
 
       end do
     end do
@@ -1251,7 +1251,7 @@ subroutine output_3dneu(iBlock)
       iiLat = min(max(iLat, 1), nLats)
       do iLon = -1, nLons + 2
         iiLon = min(max(iLon, 1), nLons)
-        write (iOutputUnit_) &
+        write(iOutputUnit_) &
           Longitude(iLon, iBlock), &
           Latitude(iLat, iBlock), &
           Altitude_GB(iLon, iLat, iAlt, iBlock), &
@@ -1284,7 +1284,7 @@ subroutine output_3dion(iBlock)
   do iAlt = -1, nAlts + 2
     do iLat = -1, nLats + 2
       do iLon = -1, nLons + 2
-        write (iOutputUnit_) &
+        write(iOutputUnit_) &
           Longitude(iLon, iBlock), &
           Latitude(iLat, iBlock), &
           Altitude_GB(iLon, iLat, iAlt, iBlock), &
@@ -1333,7 +1333,7 @@ subroutine output_3dthm(iBlock)
       do iLon = -1, nLons + 2
         iiLon = min(max(iLon, 1), nLons)
 
-        write (iOutputUnit_) &
+        write(iOutputUnit_) &
           Longitude(iLon, iBlock), &
           Latitude(iLat, iBlock), &
           Altitude_GB(iLon, iLat, iAlt, iBlock), &
@@ -1379,7 +1379,7 @@ subroutine output_3dhme(iBlock)
     iiAlt = max(min(iAlt, nAlts), 1)
     do iLat = 1, nLats
       do iLon = 1, nLons
-        write (iOutputUnit_) &
+        write(iOutputUnit_) &
           Longitude(iLon, iBlock), &
           Latitude(iLat, iBlock), &
           Altitude_GB(iLon, iLat, iAlt, iBlock), &
@@ -1430,7 +1430,7 @@ subroutine output_1dthm
       varsL(iSpecies) = NeutralLossesTotal(iialt, iSpecies)
     end do
 
-    write (iOutputUnit_) &
+    write(iOutputUnit_) &
       Longitude(1, 1), &
       Latitude(1, 1), &
       Altitude_GB(1, 1, iAlt, 1), &
@@ -1473,7 +1473,7 @@ subroutine output_1dchm(iBlock)
                      Element_Charge
     end do
 
-    write (iOutputUnit_) &
+    write(iOutputUnit_) &
       Longitude(1, iBlock), &
       Latitude(1, iBlock), &
       Altitude_GB(1, 1, iAlt, iBlock), &
@@ -1514,7 +1514,7 @@ subroutine output_3dchm(iBlock)
 
         end do
 
-        write (iOutputUnit_) &
+        write(iOutputUnit_) &
           Longitude(iLon, iBlock), &
           Latitude(iLat, iBlock), &
           Altitude_GB(iLon, iLat, iAlt, iBlock), &
@@ -1613,7 +1613,7 @@ subroutine output_2dgel(iBlock)
   iAlt = 1
   do iLat = 1, nLats
     do iLon = 1, nLons
-      write (iOutputUnit_) &
+      write(iOutputUnit_) &
         Longitude(iLon, iBlock), &
         Latitude(iLat, iBlock), &
         Altitude_GB(iLon, iLat, iAlt, iBlock), &
@@ -1652,7 +1652,7 @@ subroutine output_2dtec(iBlock)
   iAlt = 1
   do iLat = 1, nLats
     do iLon = 1, nLons
-      write (iOutputUnit_) &
+      write(iOutputUnit_) &
         Longitude(iLon, iBlock), &
         Latitude(iLat, iBlock), &
         Altitude_GB(iLon, iLat, iAlt, iBlock), &
@@ -1686,7 +1686,7 @@ subroutine output_2danc(iBlock)
   iAlt = nAlts
   do iLat = 1, nLats
     do iLon = 1, nLons
-      write (iOutputUnit_) &
+      write(iOutputUnit_) &
         Longitude(iLon, iBlock), &
         Latitude(iLat, iBlock), &
         Altitude_GB(iLon, iLat, iAlt, iBlock), &
@@ -1724,7 +1724,7 @@ subroutine output_3dmag(iBlock)
   do iAlt = -1, nAlts + 2
     do iLat = -1, nLats + 2
       do iLon = -1, nLons + 2
-        write (iOutputUnit_) &
+        write(iOutputUnit_) &
           Longitude(iLon, iBlock), &
           Latitude(iLat, iBlock), &
           Altitude_GB(iLon, iLat, iAlt, iBlock), &
@@ -1756,7 +1756,7 @@ subroutine output_2dmel(iBlock)
   iAlt = 1
   do iLat = 1, nMagLats
     do iLon = 1, nMagLons + 1
-      write (iOutputUnit_) &
+      write(iOutputUnit_) &
         MagLonMC(iLon, iLat)*Pi/180.0, &
         MagLatMC(iLon, iLat)*Pi/180.0, &
         Altitude_GB(iLon, iLat, iAlt, iBlock), &
@@ -1811,7 +1811,7 @@ subroutine output_2dhme(iBlock)
   iAlt = 1
   do iLat = 1, nLats
     do iLon = 1, nLons
-      write (iOutputUnit_) &
+      write(iOutputUnit_) &
         Longitude(iLon, iBlock), &
         Latitude(iLat, iBlock), &
         Altitude_GB(iLon, iLat, iAlt, iBlock), &
@@ -1932,7 +1932,7 @@ subroutine output_1dall(iiLon, iiLat, iBlock, rLon, rLat, iUnit)
 !     Vars(iOff+5) = inter(Tmp,iiLon,iiLat,rlon,rlat)
 !! AGB: End of corrections
 
-    write (iOutputUnit_) Vars
+    write(iOutputUnit_) Vars
 
   end do
 
@@ -2058,7 +2058,7 @@ subroutine output_0dall(iiLon, iiLat, iiAlt, iBlock, rLon, rLat, rAlt, iUnit)
   Vars(iOff + 5) = HeatingEfficiency_CB(1, 1, jAlt, iBlock)
 
   ! Write the output data
-  write (iOutputUnit_) Vars
+  write(iOutputUnit_) Vars
 
 contains
 
@@ -2166,7 +2166,7 @@ subroutine output_1dnew(iiLon, iiLat, iBlock, rLon, rLat, iUnit)
       Vars(iOff + iSpecies) = inter(Tmp, iiLon, iiLat, rlon, rlat)
     end do
 
-    write (iOutputUnit_) Vars
+    write(iOutputUnit_) Vars
 
   end do
 

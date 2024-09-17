@@ -46,7 +46,7 @@ subroutine calc_thermal_conduction(iBlock)
   real :: TmpDiff(nLons, nLats, 0:nAlts + 1)
   real :: TmpMulFac(nLons, nLats, 0:nAlts + 1)
 
-  if (iDebugLevel > 4) write (*, *) "=====> conduction", iproc
+  if (iDebugLevel > 4) write(*, *) "=====> conduction", iproc
   if (UseBarriers) call MPI_BARRIER(iCommGITM, iErr)
 
   Rho110 = Rho(1:nLons, 1:nLats, 0:nAlts + 1, iBlock)

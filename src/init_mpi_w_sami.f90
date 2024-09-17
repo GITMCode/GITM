@@ -40,30 +40,30 @@ subroutine init_mpi_coup
   ! ---------------------------------------------------------------------------
   ! This is a total hack, and I am ashamed.
 
-  inquire (file=cInputFile, EXIST=IsThere)
+  inquire(file=cInputFile, EXIST=IsThere)
   if (.not. IsThere) &
     call stop_gitm(cInputFile//" cannot be found by read_inputs")
 
-  open (iInputUnit_, file=cInputFile, status="old")
+  open(iInputUnit_, file=cInputFile, status="old")
 
   do while (.not. IsDone)
 
-    read (iInputUnit_, '(a)', iostat=iError) cLine
+    read(iInputUnit_, '(a)', iostat=iError) cLine
 
     if (iError /= 0) then
       IsDone = .true.
     else
 
       if (cLine(1:5) == "#GRID") then
-        read (iInputUnit_, *) nBlksLons
-        read (iInputUnit_, *) nBlksLats
+        read(iInputUnit_, *) nBlksLons
+        read(iInputUnit_, *) nBlksLats
         numgitm = nBlksLons*nBlksLats
         HaveGrid = .true.
       end if
 
       if (cLine(1:5) == "#SAMI") then
-        read (iInputUnit_, *) numsami
-        read (iInputUnit_, *) DtCouple
+        read(iInputUnit_, *) numsami
+        read(iInputUnit_, *) DtCouple
         HaveSami = .true.
       end if
 
@@ -73,29 +73,29 @@ subroutine init_mpi_coup
 
   end do
 
-  close (iInputUnit_)
+  close(iInputUnit_)
 
   if (.not. HaveGrid) then
     if (iProcGlobal == 0) then
-      write (*, *) "Can't seem to find #GRID in UAM.in file...??? How???"
+      write(*, *) "Can't seem to find #GRID in UAM.in file...??? How???"
     end if
     stop
   end if
 
   if (.not. HaveSami) then
     if (iProcGlobal == 0) then
-      write (*, *) "Need to add lines in UAM.in:"
-      write (*, *) "#SAMI"
-      write (*, *) "13        numworker + 1 from SAMI - We need to fix this.."
-      write (*, *) "300.0     dtcouple"
+      write(*, *) "Need to add lines in UAM.in:"
+      write(*, *) "#SAMI"
+      write(*, *) "13        numworker + 1 from SAMI - We need to fix this.."
+      write(*, *) "300.0     dtcouple"
     end if
     stop
   end if
 
   ! ---------------------------------------------------------------------------
 
-  allocate (ranks1(numgitm))
-  allocate (ranks2(numsami))
+  allocate(ranks1(numgitm))
+  allocate(ranks2(numsami))
 
   ranks1 = (/(i, i=0, numgitm - 1)/)
   ranks2 = (/(i, i=numgitm, numgitm + numsami - 1)/)

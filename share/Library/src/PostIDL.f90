@@ -124,7 +124,7 @@ program post_idl
   character(len=lStringLine) :: NameCommand, StringLine
   !---------------------------------------------------------------------------
 
-  write (*, '(a)') 'PostIDL (G.Toth 2000-) starting'
+  write(*, '(a)') 'PostIDL (G.Toth 2000-) starting'
 
   ! No file name given, so read from the header file from STDIN
   ! Use MPI_COMM_SELF to indicate serial execution
@@ -157,9 +157,9 @@ program post_idl
       if (DoReadBinary) then
         call read_var('nByteReal', nByteRealRead)
         if (nByteRealRead == nByteReal) then
-          write (*, *) 'nByteReal=', nByteReal
+          write(*, *) 'nByteReal=', nByteReal
         else if (nByteRealRead < nByteReal) then
-          write (*, *) '!!! Warning: PostIDL was compiled with ', &
+          write(*, *) '!!! Warning: PostIDL was compiled with ', &
             nByteReal, ' byte reals but file contains nByteReal=', &
             nByteRealRead
         end if
@@ -207,7 +207,7 @@ program post_idl
 
     case ('#SCALARPARAM')
       call read_var('nParam', nParamPlot)
-      allocate (PlotParam_I(nParamPlot))
+      allocate(PlotParam_I(nParamPlot))
       do i = 1, nParamPlot
         call read_var('Param', PlotParam_I(i))
       end do
@@ -218,7 +218,7 @@ program post_idl
       IsGenRadius = index(TypeGeometry, 'genr') > 0
       if (IsGenRadius) then
         call read_var('nRgen', nRGen)
-        allocate (LogRgen_I(nRgen))
+        allocate(LogRgen_I(nRgen))
         do i = 1, nRgen
           call read_var('LogRgen', LogRgen_I(i))
         end do
@@ -248,7 +248,7 @@ program post_idl
       call read_var('nCellTec', nCellTec)
 
     case default
-      write (*, *) 'WARNING: unknown command ', NameCommand
+      write(*, *) 'WARNING: unknown command ', NameCommand
     end select
 
   end do READPARAM
@@ -286,7 +286,7 @@ program post_idl
   ! Calculate structured grid size
   nCell_D = max(1, nint((CoordMax_D - CoordMin_D)/dCoordPlot_D))
 
-  write (*, *) 'plot area size=', nCell_D
+  write(*, *) 'plot area size=', nCell_D
 
   ! Calculate dimensionality of the cut and add parameters if needed
   nDim = 0
@@ -305,11 +305,11 @@ program post_idl
   end do
 
   if (IsVerbose) then
-    write (*, *) 'dCoordPlot_D=', dCoordPlot_D
-    write (*, *) 'IsStructured=', IsStructured
-    write (*, *) 'NameCoord_D =', NameCoord_D
-    write (*, *) 'nDim        =', nDim
-    write (*, *) 'iDimCut_D   =', iDimCut_D
+    write(*, *) 'dCoordPlot_D=', dCoordPlot_D
+    write(*, *) 'IsStructured=', IsStructured
+    write(*, *) 'NameCoord_D =', NameCoord_D
+    write(*, *) 'nDim        =', nDim
+    write(*, *) 'iDimCut_D   =', iDimCut_D
   end if
 
   if (nDim == 2 .and. NameFileHead(1:3) /= 'cut') then
@@ -340,9 +340,9 @@ program post_idl
     end if
 
     if (IsVerbose) then
-      write (*, *) 'iDim1, iDim2, iDim0=', iDim1, iDim2, iDim0
-      write (*, *) 'CoordShift1, Shift2=', CoordShift1, CoordShift2
-      write (*, *) 'UseDoubleCut       =', UseDoubleCut
+      write(*, *) 'iDim1, iDim2, iDim0=', iDim1, iDim2, iDim0
+      write(*, *) 'CoordShift1, Shift2=', CoordShift1, CoordShift2
+      write(*, *) 'UseDoubleCut       =', UseDoubleCut
     end if
 
   end if
@@ -357,7 +357,7 @@ program post_idl
   n1 = nCell_D(1); n2 = nCell_D(2); n3 = nCell_D(3)
 
   ! Allocate PlotVar_VC and Coord_DC, the arrays of variables and coordinates
-  allocate ( &
+  allocate( &
     PlotVar_V(nPlotVar), &
     PlotVar_VC(nPlotVar, n1, n2, n3), &
     Coord_DC(nDim, n1, n2, n3), &
@@ -365,12 +365,12 @@ program post_idl
   if (iError /= 0) stop 'PostIDL.exe ERROR: could not allocate arrays'
 
   if (.not. IsStructured) then
-    allocate (GenCoord_DI(nDim, nCellPlot), STAT=iError)
+    allocate(GenCoord_DI(nDim, nCellPlot), STAT=iError)
     if (iError /= 0) stop 'PostIDL.exe ERROR: could not allocate enCoord_DI'
   end if
 
-  if (DoReadBinary .and. nByteRealRead == 4) allocate (PlotVar4_V(nPlotVar))
-  if (DoReadBinary .and. nByteRealRead == 8) allocate (PlotVar8_V(nPlotVar))
+  if (DoReadBinary .and. nByteRealRead == 4) allocate(PlotVar4_V(nPlotVar))
+  if (DoReadBinary .and. nByteRealRead == 8) allocate(PlotVar8_V(nPlotVar))
 
   ! Initialize PlotVar_VC and Coord_DC
   PlotVar_VC = 0.0
@@ -420,32 +420,32 @@ program post_idl
   ! Logic for Tecplot conversion
   if (DoReadTecplot) then
     l = len_trim(NameFileHead)
-    write (NameFile, '(a)') NameFileHead(1:l - 2)//".dat"
-    write (*, *) 'reading file=', trim(NameFile), ' ...'
+    write(NameFile, '(a)') NameFileHead(1:l - 2)//".dat"
+    write(*, *) 'reading file=', trim(NameFile), ' ...'
 
-    allocate ( &
+    allocate( &
       XyzTec_DI(3, nNodeTec), &
       PlotVarTec_VI(nPlotVar, nNodeTec), &
       iNodeTec_II(8, nCellTec), &
       STAT=iError)
     if (iError /= 0) stop 'PostIDL.exe ERROR: could not allocate arrays'
 
-    open (UnitTmp_, file=NameFile, status='old', iostat=iError)
+    open(UnitTmp_, file=NameFile, status='old', iostat=iError)
 
     ! Read Tecplot file header
     do iHeaderTec = 1, nHeaderTec
-      read (UnitTmp_, *) StringTecHeader
+      read(UnitTmp_, *) StringTecHeader
     end do
     ! Read the coordinates and variables at the nodes
     do iNodeTec = 1, nNodeTec
-      read (UnitTmp_, *) XyzTec_DI(:, iNodeTec), PlotVarTec_VI(:, iNodeTec)
+      read(UnitTmp_, *) XyzTec_DI(:, iNodeTec), PlotVarTec_VI(:, iNodeTec)
     end do
     ! Read the node indexes of the nodes surrounding each cell center
     do iCellTec = 1, nCellTec
-      read (UnitTmp_, *) iNodeTec_II(:, iCellTec)
+      read(UnitTmp_, *) iNodeTec_II(:, iCellTec)
     end do
 
-    close (UnitTmp_)
+    close(UnitTmp_)
   end if
 
   ! Collect info from all files and put it into PlotVar_VC and Coord_DC
@@ -456,21 +456,21 @@ program post_idl
   do iProc = 0, nProc - 1
     if (.not. DoReadTecplot) then
       if (nProc > 100000) then
-        write (NameFile, '(a,i6.6,a)') NameFileHead(1:l - 2)//"_pe", iProc, '.idl'
+        write(NameFile, '(a,i6.6,a)') NameFileHead(1:l - 2)//"_pe", iProc, '.idl'
       elseif (nProc > 10000) then
-        write (NameFile, '(a,i5.5,a)') NameFileHead(1:l - 2)//"_pe", iProc, '.idl'
+        write(NameFile, '(a,i5.5,a)') NameFileHead(1:l - 2)//"_pe", iProc, '.idl'
       else
-        write (NameFile, '(a,i4.4,a)') NameFileHead(1:l - 2)//"_pe", iProc, '.idl'
+        write(NameFile, '(a,i4.4,a)') NameFileHead(1:l - 2)//"_pe", iProc, '.idl'
       end if
 
-      if (iProc == 0) write (*, *) 'reading files=', trim(NameFile), &
+      if (iProc == 0) write(*, *) 'reading files=', trim(NameFile), &
         '...', nProc - 1, '.idl'
 
       if (DoReadBinary) then
-        open (UnitTmp_, file=NameFile, status='old', form='unformatted', &
-              iostat=iError)
+        open(UnitTmp_, file=NameFile, status='old', form='unformatted', &
+             iostat=iError)
       else
-        open (UnitTmp_, file=NameFile, status='old', iostat=iError)
+        open(UnitTmp_, file=NameFile, status='old', iostat=iError)
       end if
 
       ! Assume that missing files were empty.
@@ -502,14 +502,14 @@ program post_idl
         PlotVar_V = PlotVar_V/8.
       else if (DoReadBinary) then
         if (nByteRealRead == 4) then
-          read (UnitTmp_, ERR=999, END=999) DxCell4, Xyz4_D, PlotVar4_V
+          read(UnitTmp_, ERR=999, END=999) DxCell4, Xyz4_D, PlotVar4_V
           CellSize1 = DxCell4; Xyz_D = Xyz4_D; PlotVar_V = PlotVar4_V
         else
-          read (UnitTmp_, ERR=999, END=999) DxCell8, Xyz8_D, PlotVar8_V
+          read(UnitTmp_, ERR=999, END=999) DxCell8, Xyz8_D, PlotVar8_V
           CellSize1 = DxCell8; Xyz_D = Xyz8_D; PlotVar_V = PlotVar8_V
         end if
       else
-        read (UnitTmp_, *, ERR=999, END=999) CellSize1, Xyz_D, PlotVar_V
+        read(UnitTmp_, *, ERR=999, END=999) CellSize1, Xyz_D, PlotVar_V
       end if
 
       nCellCheck = nCellCheck + 1
@@ -579,7 +579,7 @@ program post_idl
         end do
 
         if (iMax < iMin .or. jMax < jMin .or. kMax < kMin) &
-          write (*, *) '!!! Empty box for cell CellSize_D(1), GenCoord_D=', &
+          write(*, *) '!!! Empty box for cell CellSize_D(1), GenCoord_D=', &
           CellSize_D(1), GenCoord_D
 
         VolumeCheck = VolumeCheck &
@@ -589,14 +589,14 @@ program post_idl
 
 999 continue
 
-    if (.not. DoReadTecplot) close (UnitTmp_)
+    if (.not. DoReadTecplot) close(UnitTmp_)
   end do ! iProc
 
-  if (IsVerbose) write (*, *) 'nCellCheck=', nCellCheck, &
+  if (IsVerbose) write(*, *) 'nCellCheck=', nCellCheck, &
     ' nCellPlot=', nCellPlot
 
   if (nCellCheck /= nCellPlot) &
-    write (*, *) '!!! Discrepancy: nCellCheck=', nCellCheck, &
+    write(*, *) '!!! Discrepancy: nCellCheck=', nCellCheck, &
     ' nCellPlot=', nCellPlot, ' !!!'
 
   if (IsStructured) then
@@ -604,18 +604,18 @@ program post_idl
     if (ndim == 1 .and. abs(VolumeCheck/VolumePlot - 4.0) < 0.0001) then
       PlotVar_VC = 0.25*PlotVar_VC
       Coord_DC = 0.25*Coord_DC
-      write (*, *) 'Averaged 1D structured file everywhere'
+      write(*, *) 'Averaged 1D structured file everywhere'
     elseif (abs(VolumeCheck/VolumePlot - 2.0) < 0.0001) then
       PlotVar_VC = 0.5*PlotVar_VC
       Coord_DC = 0.5*Coord_DC
-      write (*, *) 'Averaged structured file everywhere'
+      write(*, *) 'Averaged structured file everywhere'
     elseif (abs(VolumeCheck/VolumePlot - 1.0) > 0.0001) then
-      write (*, *) '!!! Discrepancy in structured file:', &
+      write(*, *) '!!! Discrepancy in structured file:', &
         'filled VolumeCheck=', VolumeCheck, ' VolumePlot=', VolumePlot, ' !!!'
     end if
   else
     if (iCell /= nCellPlot) &
-      write (*, *) '!!! Error: nCellPlot=', nCellPlot, ' /= iCell=', iCell, ' !!!'
+      write(*, *) '!!! Error: nCellPlot=', nCellPlot, ' /= iCell=', iCell, ' !!!'
 
     n1 = iCell
     nCell_D(1) = iCell
@@ -649,10 +649,10 @@ program post_idl
   else
     NameFile = NameFileHead(1:l - 2)//'.out'
   end if
-  write (*, *) 'writing file =', trim(NameFile)
+  write(*, *) 'writing file =', trim(NameFile)
 
   ! Param_I is the combination of eqpar and ParamExtra_I
-  allocate (Param_I(nParamPlot + nParamExtra))
+  allocate(Param_I(nParamPlot + nParamExtra))
   do i = 1, nParamPlot
     Param_I(i) = PlotParam_I(i)
   end do
@@ -661,15 +661,15 @@ program post_idl
   end do
 
   if (IsVerbose) then
-    write (*, *) 'nParamPlot, nParamExtra=', nParamPlot, nParamExtra
-    write (*, *) ' Param_I=', Param_I
+    write(*, *) 'nParamPlot, nParamExtra=', nParamPlot, nParamExtra
+    write(*, *) ' Param_I=', Param_I
   end if
 
   if (.not. IsStructured .and. (nDim < 3 .or. DoSort3D)) then
-    if (IsVerbose) write (*, *) 'Sorting unstructured grid points'
+    if (IsVerbose) write(*, *) 'Sorting unstructured grid points'
 
     ! Sort points based on (generalized) coordinates
-    allocate (Sort_I(n1), iSort_I(n1), STAT=iError)
+    allocate(Sort_I(n1), iSort_I(n1), STAT=iError)
     if (iError /= 0) stop 'PostIDL.exe ERROR: could not allocate sort arrays'
 
     ! Form sorting function from the generalized coordinates
@@ -683,14 +683,14 @@ program post_idl
     Coord_DC(:, :, 1, 1) = Coord_DC(:, iSort_I, 1, 1)
     PlotVar_VC(:, :, 1, 1) = PlotVar_VC(:, iSort_I, 1, 1)
 
-    if (IsVerbose) write (*, *) 'Sorting is done'
+    if (IsVerbose) write(*, *) 'Sorting is done'
 
     ! Average out coinciding points
     if (nDim < 3) then
-      if (IsVerbose) write (*, *) 'Averaging coinciding points'
+      if (IsVerbose) write(*, *) 'Averaging coinciding points'
       GenCoord_DI = GenCoord_DI(:, iSort_I)
 
-      allocate (StateSum_V(nPlotVar), CellSizeMin_D(nDim))
+      allocate(StateSum_V(nPlotVar), CellSizeMin_D(nDim))
       CellSizeMin_D = dCoordMin_D(iDimCut_D(1:nDim))
       i = 1
       k = 1
@@ -714,7 +714,7 @@ program post_idl
         k = k + 1
         i = j
       end do
-      deallocate (StateSum_V, CellSizeMin_D, GenCoord_DI)
+      deallocate(StateSum_V, CellSizeMin_D, GenCoord_DI)
 
       ! Special judgement for the last point
       if (j == n1) then
@@ -728,19 +728,19 @@ program post_idl
       Coord_DC(:, 1:n1, 1, 1) = Coord_DC(:, iSort_I(1:n1), 1, 1)
       PlotVar_VC(:, 1:n1, 1, 1) = PlotVar_VC(:, iSort_I(1:n1), 1, 1)
 
-      if (IsVerbose) write (*, *) 'Averaging done'
+      if (IsVerbose) write(*, *) 'Averaging done'
     end if
 
-    deallocate (Sort_I, iSort_I)
+    deallocate(Sort_I, iSort_I)
 
     if (IsVerbose) then
-      write (*, *) 'After sorting and averaging n1=', n1
+      write(*, *) 'After sorting and averaging n1=', n1
     end if
   end if
 
   if (IsVerbose) then
-    write (*, *) 'shape(Coord_DC)  =', shape(Coord_DC)
-    write (*, *) 'shape(PlotVar_VC)=', shape(PlotVar_VC)
+    write(*, *) 'shape(Coord_DC)  =', shape(Coord_DC)
+    write(*, *) 'shape(PlotVar_VC)=', shape(PlotVar_VC)
   end if
 
   ! the sizes of Coord_DC and PlotVar_VC may be modified by cell averaging
@@ -756,12 +756,12 @@ program post_idl
                       CoordIn_DIII=Coord_DC(:, 1:n1, :, :), &
                       VarIn_VIII=PlotVar_VC(:, 1:n1, :, :))
 
-  deallocate (Coord_DC, PlotVar_VC, Param_I, PlotVar_V)
-  if (allocated(PlotParam_I)) deallocate (PlotParam_I)
-  if (allocated(PlotVar4_V)) deallocate (PlotVar4_V)
-  if (allocated(PlotVar8_V)) deallocate (PlotVar8_V)
+  deallocate(Coord_DC, PlotVar_VC, Param_I, PlotVar_V)
+  if (allocated(PlotParam_I)) deallocate(PlotParam_I)
+  if (allocated(PlotVar4_V)) deallocate(PlotVar4_V)
+  if (allocated(PlotVar8_V)) deallocate(PlotVar8_V)
 
-  write (*, '(a)') 'PostIDL finished'
+  write(*, '(a)') 'PostIDL finished'
 
 contains
   !===========================================================================
@@ -843,17 +843,17 @@ contains
 
       if (.not. allocated(GridRot_DD)) then
         ! Setup rotation matrix
-        allocate (GridRot_DD(3, 3))
+        allocate(GridRot_DD(3, 3))
 
         ! The rotation matrix should be the same as in BATL_geometry
         GridRot_DD = rot_matrix_z(0.6, 0.8)
 
         ! Find vectors
-        allocate (NameVar_V(nDim + nPlotVar + nParamPlot))
+        allocate(NameVar_V(nDim + nPlotVar + nParamPlot))
         call split_string(NameVar, NameVar_V)
 
         ! Make this array large enough
-        allocate (iVarVector_I(nPlotVar/3))
+        allocate(iVarVector_I(nPlotVar/3))
 
         NameVector = ' '
         do iVar = 1, nPlotVar - 2
@@ -881,7 +881,7 @@ contains
           nVector = nVector + 1
           iVarVector_I(nVector) = iVar
         end do
-        deallocate (NameVar_V)
+        deallocate(NameVar_V)
 
         !write(*,*)'nVector, iVarVector_I=', nVector, iVarVector_I(1:nVector)
 
@@ -958,7 +958,7 @@ contains
         GenCoord_D(3) = GenCoord_D(3) + CoordShift2
 
     case default
-      write (*, *) 'Unknown TypeGeometry='//TypeGeometry
+      write(*, *) 'Unknown TypeGeometry='//TypeGeometry
       stop
     end select
 
@@ -985,7 +985,7 @@ subroutine CON_stop(String)
   implicit none
 
   character(len=*), intent(in):: String
-  write (*, *) 'ERROR in PostIDL: '//String
+  write(*, *) 'ERROR in PostIDL: '//String
   stop
 
 end subroutine CON_stop

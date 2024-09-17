@@ -55,13 +55,13 @@ contains
   subroutine read_in_int(variable)
     integer, intent(out) :: variable
     iline = iline + 1
-    read (StringInputLines(iline), *) variable
+    read(StringInputLines(iline), *) variable
   end subroutine read_in_int
 
   subroutine read_in_logical(variable)
     logical, intent(out) :: variable
     iline = iline + 1
-    read (StringInputLines(iline), *) variable
+    read(StringInputLines(iline), *) variable
   end subroutine read_in_logical
 
   subroutine read_in_string(variable)
@@ -73,14 +73,14 @@ contains
   subroutine read_in_real(variable)
     real :: variable
     iline = iline + 1
-    read (StringInputLines(iline), *) variable
+    read(StringInputLines(iline), *) variable
   end subroutine read_in_real
 
   subroutine read_in_time(variable)
     real*8 :: variable
     integer, dimension(7) :: itime
     iline = iline + 1
-    read (StringInputLines(iline), *) itime(1:6)
+    read(StringInputLines(iline), *) itime(1:6)
     itime(7) = 0
 !    call time_int_to_real(itime, variable)
   end subroutine read_in_time

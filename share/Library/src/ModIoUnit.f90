@@ -73,7 +73,7 @@ contains
     !--------------------------------------------------------------------
 
     do iUnit = MinUnitNumber, MaxUnitNumber
-      inquire ( &
+      inquire( &
         unit=iUnit, &
         exist=IsExisting, &
         opened=IsOpened, &
@@ -98,20 +98,20 @@ contains
     !------------------------------------------------------------------------
     do iUnit = UNITTMP_, iUnitMax
 
-      inquire (iUnit, OPENED=IsOpen, NAME=Name)
+      inquire(iUnit, OPENED=IsOpen, NAME=Name)
       if (IsOpen) then
         ! Clos file so that output is flushed
-        close (iUnit)
+        close(iUnit)
         ! Try to open file and read 1 character
-        open (iUnit, FILE=Name, STATUS='old', IOSTAT=iError)
+        open(iUnit, FILE=Name, STATUS='old', IOSTAT=iError)
         if (iError /= 0) CYCLE
-        read (iUnit, '(a1)', IOSTAT=iError) String
+        read(iUnit, '(a1)', IOSTAT=iError) String
         if (iError < 0) then
           ! Delete empty files
-          close (iUnit, STATUS='delete')
+          close(iUnit, STATUS='delete')
         else
           ! Close file again
-          close (iUnit)
+          close(iUnit)
         end if
       end if
     end do
@@ -124,72 +124,72 @@ contains
     logical :: IsExisting
     !---------------------------------------------------------------------
 
-    write (*, '(a)') 'Testing io_unit_new()'
+    write(*, '(a)') 'Testing io_unit_new()'
     iUnit1 = io_unit_new()
-    if (iUnit1 /= MinUnitNumber) write (*, *) 'test io_unit_new() failed: ', &
+    if (iUnit1 /= MinUnitNumber) write(*, *) 'test io_unit_new() failed: ', &
       'iUnit1=', iUnit1, ' should be MinUnitNumber=', MinUnitNumber
-    open (iUnit1, file='ascii', status='unknown', form='formatted')
-    write (iUnit1, *) 1
+    open(iUnit1, file='ascii', status='unknown', form='formatted')
+    write(iUnit1, *) 1
 
     iUnit2 = io_unit_new()
-    if (iUnit2 /= MinUnitNumber + 1) write (*, *) 'test io_unit_new() failed: ', &
+    if (iUnit2 /= MinUnitNumber + 1) write(*, *) 'test io_unit_new() failed: ', &
       'iUnit2=', iUnit2, ' should be MinUnitNumber+1=', MinUnitNumber + 1
-    open (iUnit2, file='binary', status='unknown', form='unformatted')
-    write (iUnit2) 1
+    open(iUnit2, file='binary', status='unknown', form='unformatted')
+    write(iUnit2) 1
 
     iUnit3 = io_unit_new()
-    if (iUnit3 /= MinUnitNumber + 2) write (*, *) 'test io_unit_new() failed: ', &
+    if (iUnit3 /= MinUnitNumber + 2) write(*, *) 'test io_unit_new() failed: ', &
       'iUnit3=', iUnit3, ' should be MinUnitNumber+2=', MinUnitNumber + 2
-    open (iUnit3, file='empty_ascii', status='unknown', form='formatted')
+    open(iUnit3, file='empty_ascii', status='unknown', form='formatted')
 
     iUnit4 = io_unit_new()
-    if (iUnit4 /= MinUnitNumber + 3) write (*, *) 'test io_unit_new() failed: ', &
+    if (iUnit4 /= MinUnitNumber + 3) write(*, *) 'test io_unit_new() failed: ', &
       'iUnit4=', iUnit4, ' should be MinUnitNumber+3=', MinUnitNumber + 3
-    open (iUnit4, file='empty_binary', status='unknown', form='unformatted')
+    open(iUnit4, file='empty_binary', status='unknown', form='unformatted')
 
-    write (*, '(a)') 'Testing io_unit_clen'
+    write(*, '(a)') 'Testing io_unit_clen'
     call io_unit_clean
 
-    inquire (file='ascii', exist=IsExisting)
+    inquire(file='ascii', exist=IsExisting)
     if (.not. IsExisting) then
-      write (*, *) 'test io_unit_clean failed: ', &
+      write(*, *) 'test io_unit_clean failed: ', &
         'file "ascii" should not have been deleted'
     else
-      open (iUnit1, file='ascii', status='unknown', form='formatted')
-      close (iUnit1, STATUS='delete')
-      inquire (file='ascii', exist=IsExisting)
-      if (IsExisting) write (*, *) 'failed to delete file "ascii"'
+      open(iUnit1, file='ascii', status='unknown', form='formatted')
+      close(iUnit1, STATUS='delete')
+      inquire(file='ascii', exist=IsExisting)
+      if (IsExisting) write(*, *) 'failed to delete file "ascii"'
     end if
 
-    inquire (file='binary', exist=IsExisting)
+    inquire(file='binary', exist=IsExisting)
     if (.not. IsExisting) then
-      write (*, *) 'test io_unit_clean failed: ', &
+      write(*, *) 'test io_unit_clean failed: ', &
         'file "binary" should not have been deleted'
     else
-      open (iUnit2, file='binary', status='unknown', form='unformatted')
-      close (iUnit2, STATUS='delete')
-      inquire (file='binary', exist=IsExisting)
-      if (IsExisting) write (*, *) 'failed to delete file "binary"'
+      open(iUnit2, file='binary', status='unknown', form='unformatted')
+      close(iUnit2, STATUS='delete')
+      inquire(file='binary', exist=IsExisting)
+      if (IsExisting) write(*, *) 'failed to delete file "binary"'
     end if
 
-    inquire (file='empty_ascii', exist=IsExisting)
+    inquire(file='empty_ascii', exist=IsExisting)
     if (IsExisting) then
-      write (*, *) 'test io_unit_clean failed: ', &
+      write(*, *) 'test io_unit_clean failed: ', &
         'file "empty_ascii" should have been deleted'
-      open (iUnit3, file='empty_ascii', status='unknown', form='formatted')
-      close (iUnit3, STATUS='delete')
-      inquire (file='empty_ascii', exist=IsExisting)
-      if (IsExisting) write (*, *) 'failed to delete file "empty_ascii"'
+      open(iUnit3, file='empty_ascii', status='unknown', form='formatted')
+      close(iUnit3, STATUS='delete')
+      inquire(file='empty_ascii', exist=IsExisting)
+      if (IsExisting) write(*, *) 'failed to delete file "empty_ascii"'
     end if
 
-    inquire (file='empty_binary', exist=IsExisting)
+    inquire(file='empty_binary', exist=IsExisting)
     if (IsExisting) then
-      write (*, *) 'test io_unit_clean failed: ', &
+      write(*, *) 'test io_unit_clean failed: ', &
         'file "empty_binary" should have been deleted'
-      open (iUnit4, file='empty_binary', status='unknown', form='unformatted')
-      close (iUnit4, STATUS='delete')
-      inquire (file='empty_binary', exist=IsExisting)
-      if (IsExisting) write (*, *) 'failed to delete file "empty_binary"'
+      open(iUnit4, file='empty_binary', status='unknown', form='unformatted')
+      close(iUnit4, STATUS='delete')
+      inquire(file='empty_binary', exist=IsExisting)
+      if (IsExisting) write(*, *) 'failed to delete file "empty_binary"'
     end if
 
   end subroutine io_unit_test

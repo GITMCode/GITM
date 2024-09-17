@@ -183,15 +183,15 @@ contains
     real, dimension(:), allocatable :: c, s, rs
     !-----------------------------------------------------------------------
 
-    if (DoTest) write (*, *) 'GMRES tol,iter:', Tol, Iter
+    if (DoTest) write(*, *) 'GMRES tol,iter:', Tol, Iter
 
     ! Assign the MPI communicator
     iComm = MPI_COMM_SELF
     if (present(iCommIn)) iComm = iCommIn
 
     ! Allocate arrays that used to be automatic
-    allocate (Krylov_II(n, nKrylov + 2), hh(nKrylov + 1, nKrylov), &
-              c(nKrylov), s(nKrylov), rs(nKrylov + 1))
+    allocate(Krylov_II(n, nKrylov + 2), hh(nKrylov + 1, nKrylov), &
+             c(nKrylov), s(nKrylov), rs(nKrylov + 1))
 
     if (range(1.0) > 100) then
       epsmac = 0.0000000000000001
@@ -225,7 +225,7 @@ contains
         end if
         Tol = ro
         Iter = its
-        deallocate (Krylov_II, hh, c, s, rs)
+        deallocate(Krylov_II, hh, c, s, rs)
         RETURN
       end if
 
@@ -240,7 +240,7 @@ contains
             Tol = ro
             Iter = its
             if (DoTest) print *, 'GMRES: nothing to do. info = ', info
-            deallocate (Krylov_II, hh, c, s, rs)
+            deallocate(Krylov_II, hh, c, s, rs)
             RETURN
           end if
         else
@@ -301,9 +301,9 @@ contains
         if (DoTest) then
           select case (TypeStop)
           case ('rel')
-            write (*, *) its, ' matvecs, ', ' ||rn||/||r0|| =', ro/ro0
+            write(*, *) its, ' matvecs, ', ' ||rn||/||r0|| =', ro/ro0
           case ('abs')
-            write (*, *) its, ' matvecs, ', ' ||rn|| =', ro
+            write(*, *) its, ' matvecs, ', ' ||rn|| =', ro
           end select
         end if
         if (i >= nKrylov .or. (ro <= Tol1)) exit KRYLOVLOOP
@@ -346,7 +346,7 @@ contains
     end if
 
     ! Deallocate arrays that used to be automatic
-    deallocate (Krylov_II, hh, c, s, rs)
+    deallocate(Krylov_II, hh, c, s, rs)
 
   end subroutine gmres
   !=========================================================================
@@ -462,8 +462,8 @@ contains
     if (present(iCommIn)) iComm = iCommIn
 
     ! Allocate arrays that used to be automatic
-    allocate (bicg_r(n), bicg_u(n), bicg_r1(n), bicg_u1(n)); 
-    if (DoTest) write (*, *) 'BiCGSTAB tol,iter:', tol, iter
+    allocate(bicg_r(n), bicg_u(n), bicg_r1(n), bicg_u1(n)); 
+    if (DoTest) write(*, *) 'BiCGSTAB tol,iter:', tol, iter
 
     info = 0
 
@@ -482,7 +482,7 @@ contains
     ! Calculate initial residual
     if (nonzero) then
       ! Store initial guess into qx0
-      allocate (qx0(n))
+      allocate(qx0(n))
       qx0 = qx
       call matvec(qx, bicg_r, n)
       bicg_r = rhs - bicg_r
@@ -542,11 +542,11 @@ contains
       iter = nmv
       info = 3
       if (DoTest) print *, 'BiCGSTAB: nothing to do. info = ', info
-      deallocate (bicg_r, bicg_u, bicg_r1, bicg_u1)
+      deallocate(bicg_r, bicg_u, bicg_r1, bicg_u1)
 
       if (nonzero) then
         qx = qx0
-        deallocate (qx0)
+        deallocate(qx0)
       end if
 
       RETURN
@@ -564,10 +564,10 @@ contains
 
       if (abs(rho0) < assumedzero**2) then
         info = 1
-        deallocate (bicg_r, bicg_u, bicg_r1, bicg_u1)
+        deallocate(bicg_r, bicg_u, bicg_r1, bicg_u1)
         if (nonzero) then
           qx = qx + qx0
-          deallocate (qx0)
+          deallocate(qx0)
         end if
         RETURN
       end if
@@ -586,10 +586,10 @@ contains
 
       if (abs(sigma) < assumedzero**2) then
         info = 1
-        deallocate (bicg_r, bicg_u, bicg_r1, bicg_u1)
+        deallocate(bicg_r, bicg_u, bicg_r1, bicg_u1)
         if (nonzero) then
           qx = qx + qx0
-          deallocate (qx0)
+          deallocate(qx0)
         end if
         RETURN
       end if
@@ -695,7 +695,7 @@ contains
     ! Add initial guess if it is non-zero
     if (nonzero) then
       qx = qx + qx0
-      deallocate (qx0)
+      deallocate(qx0)
     end if
 
     select case (typestop)
@@ -716,7 +716,7 @@ contains
                                                      > rnrmMax0)) info = -info
 
     iter = nmv
-    deallocate (bicg_r, bicg_u, bicg_r1, bicg_u1)
+    deallocate(bicg_r, bicg_u, bicg_r1, bicg_u1)
 
   end subroutine bicgstab
 
@@ -786,10 +786,10 @@ contains
     if (present(iCommIn)) iComm = iCommIn
 
     ! Allocate the vectors needed for CG
-    allocate (Vec_I(n), aDotVec_I(n))
+    allocate(Vec_I(n), aDotVec_I(n))
 
     if (present(JacobiPrec_I) .or. present(preconditioner)) &
-      allocate (PrecRhs_I(n))
+      allocate(PrecRhs_I(n))
 
     MaxIter = nIter
 
@@ -820,7 +820,7 @@ contains
       rDotRMax = Tol**2*max(rDotR0, 1e-99)
     end if
 
-    if (DoTest) write (*, *) 'CG rDotR0, rDotRMax=', rDotR0, rDotRMax
+    if (DoTest) write(*, *) 'CG rDotR0, rDotRMax=', rDotR0, rDotRMax
 
     rDotR = rDotR0
 
@@ -862,13 +862,13 @@ contains
       else
         rDotR = dot_product_mpi(Rhs_I, Rhs_I, iComm)
       end if
-      if (DoTest) write (*, *) 'CG nIter, rDotR=', nIter, rDotR
+      if (DoTest) write(*, *) 'CG nIter, rDotR=', nIter, rDotR
 
     end do
 
     ! Deallocate the temporary vectors
-    deallocate (Vec_I, aDotVec_I)
-    if (allocated(PrecRhs_I)) deallocate (PrecRhs_I)
+    deallocate(Vec_I, aDotVec_I)
+    if (allocated(PrecRhs_I)) deallocate(PrecRhs_I)
 
     ! Calculate the achieved tolerance
     if (TypeStop == 'abs') then
@@ -1171,18 +1171,18 @@ contains
     !call timing_start('precond')
 
     ! Allocate arrays that used to be automatic
-    allocate (dd(N, N), pivot(N))
+    allocate(dd(N, N), pivot(N))
 
     iPrecond = nint(PrecondParam)
 
     if (iPrecond == Dilu_) then
-      allocate (fOrig_VVI(n, n, nBlock))
+      allocate(fOrig_VVI(n, n, nBlock))
       fOrig_VVI = f
       if (present(f1)) then
-        allocate (f1Orig_VVI(n, n, nBlock))
+        allocate(f1Orig_VVI(n, n, nBlock))
         f1Orig_VVI = f1
         if (present(f2)) then
-          allocate (f2Orig_VVI(n, n, nBlock))
+          allocate(f2Orig_VVI(n, n, nBlock))
           f2Orig_VVI = f2
         end if
       end if
@@ -1266,19 +1266,19 @@ contains
     if (iPrecond == Dilu_) then
       ! DILU prec requires original diagonal blocks in U, so restore it
       f = fOrig_VVI
-      deallocate (fOrig_VVI)
+      deallocate(fOrig_VVI)
       if (present(f1)) then
         f1 = f1Orig_VVI
-        deallocate (f1Orig_VVI)
+        deallocate(f1Orig_VVI)
         if (present(f2)) then
           f2 = f2Orig_VVI
-          deallocate (f2Orig_VVI)
+          deallocate(f2Orig_VVI)
         end if
       end if
     end if
 
     ! Deallocate arrays
-    deallocate (dd, pivot)
+    deallocate(dd, pivot)
 
     !call timing_stop('precond')
 
@@ -1468,7 +1468,7 @@ contains
       RETURN
     end if
     ! Allocate arrays that used to be automatic
-    allocate (work(N))
+    allocate(work(N))
     if (n <= 20) then
       ! F90 version
       do j = 1, nblock
@@ -1503,7 +1503,7 @@ contains
 
       end do
     end if
-    deallocate (work)
+    deallocate(work)
 
     !call timing_stop('Lhepta')
 
@@ -1616,7 +1616,7 @@ contains
     !------------------------------------------------------------------------
 
     ! x' = L^{-1}.x = D^{-1}.(x - E2.x'(j-M2) - E1.x'(j-M1) - E.x'(j-1))
-    allocate (x_V(n))
+    allocate(x_V(n))
 
     do j = 1, nBlock
       x_V = x(:, j)
@@ -1656,7 +1656,7 @@ contains
       x(:, j) = x(:, j) - matmul(d(:, :, j), x_V)
 
     end do
-    deallocate (x_V)
+    deallocate(x_V)
 
   end subroutine multiply_dilu
 
@@ -1713,7 +1713,7 @@ contains
                     a_II(1, 1), a_II(1, 2), a_II(1, 3), a_II(1, 4), a_II(1, 5), &
                     a_II(1, 6), a_II(1, 7))
     case default
-      write (*, *) 'ERROR in ', NameSub, ' nDim=', nDim
+      write(*, *) 'ERROR in ', NameSub, ' nDim=', nDim
       call CON_stop(NameSub//': invalid value for nDim')
     end select
 
@@ -1750,7 +1750,7 @@ contains
     end select
 
     if (nDim < 1 .or. nDim > 3) then
-      write (*, *) 'ERROR in ', NameSub, ' nDim=', nDim
+      write(*, *) 'ERROR in ', NameSub, ' nDim=', nDim
       call CON_stop(NameSub//': invalid value for nDim')
     end if
 
@@ -1849,7 +1849,7 @@ contains
     end select
 
     if (nDim < 1 .or. nDim > 3) then
-      write (*, *) 'ERROR in ', NameSub, ' nDim=', nDim
+      write(*, *) 'ERROR in ', NameSub, ' nDim=', nDim
       call CON_stop(NameSub//': invalid value for nDim')
     end if
 
@@ -2009,7 +2009,7 @@ contains
       call Uhepta(.false., nI*nJ*nK, nVar, nI, nI*nJ, x_I, &
                   a_II(1, 3), a_II(1, 5), a_II(1, 7))
     case default
-      write (*, *) 'ERROR in ', NameSub, ' nDim=', nDim
+      write(*, *) 'ERROR in ', NameSub, ' nDim=', nDim
       call CON_stop(NameSub//': invalid value for nDim')
     end select
 
@@ -2147,7 +2147,7 @@ contains
     Param%nMatVec = Param%MaxMatvec
     Param%Error = Param%ErrorMax
 
-    if (DoTest) write (*, *) NameSub, ': Before ', Param%TypeKrylov, &
+    if (DoTest) write(*, *) NameSub, ': Before ', Param%TypeKrylov, &
       ' nMatVec, Error:', Param%nMatVec, Param%Error
 
     ! Solve linear problem
@@ -2188,7 +2188,7 @@ contains
     if (Param%DoPrecond) call precond_right_multiblock(Param, &
                                                        nVar, nDim, nI, nJ, nK, nBlock, Jac_VVCIB, x_I)
 
-    if (DoTest) write (*, *) NameSub, &
+    if (DoTest) write(*, *) NameSub, &
       ': After nMatVec, Error, iError=', &
       Param%nMatvec, Param%Error, Param%iError
 
@@ -2241,10 +2241,10 @@ contains
 
     !-----------------------------------------------------------------------
 
-    allocate (StateEps_GV(-1:nCell + 2, nVar), &
-              RightHand_CV(nCell, nVar), ResidOrig_CV(nCell, nVar), &
-              ResidEps_CV(nCell, nVar), Norm_V(nVar), x_I(nCell*nVar), &
-              Matrix_VVCI(nVar, nVar, nCell, nDiag))
+    allocate(StateEps_GV(-1:nCell + 2, nVar), &
+             RightHand_CV(nCell, nVar), ResidOrig_CV(nCell, nVar), &
+             ResidEps_CV(nCell, nVar), Norm_V(nVar), x_I(nCell*nVar), &
+             Matrix_VVCI(nVar, nVar, nCell, nDiag))
 
     ! Make sure that ghost cells are up-to-date
     call update_boundary(nCell, nVar, State_GV)
@@ -2260,7 +2260,7 @@ contains
       Norm_V(iVar) = sqrt(sum(State_GV(1:nCell, iVar)**2)/nCell)
     end do
 
-    if (DoTestMe) write (*, *) 'Norm_V=', Norm_V, ' Eps=', Eps
+    if (DoTestMe) write(*, *) 'Norm_V=', Norm_V, ' Eps=', Eps
 
     ! Calculate the dR/dU matrix
     do jVar = 1, nVar
@@ -2288,9 +2288,9 @@ contains
     end do
 
     if (DoTestMe) then
-      write (*, '(a,/,3(3f5.1,/))') 'Matrix(:,:,2,1)=', Matrix_VVCI(:, :, 2, 1)
-      write (*, '(a,/,3(3f5.1,/))') 'Matrix(:,:,2,2)=', Matrix_VVCI(:, :, 2, 2)
-      write (*, '(a,/,3(3f5.1,/))') 'Matrix(:,:,2,3)=', Matrix_VVCI(:, :, 2, 3)
+      write(*, '(a,/,3(3f5.1,/))') 'Matrix(:,:,2,1)=', Matrix_VVCI(:, :, 2, 1)
+      write(*, '(a,/,3(3f5.1,/))') 'Matrix(:,:,2,2)=', Matrix_VVCI(:, :, 2, 2)
+      write(*, '(a,/,3(3f5.1,/))') 'Matrix(:,:,2,3)=', Matrix_VVCI(:, :, 2, 3)
     end if
 
     ! Add the diagonal part J = I - delta t*dR/dU
@@ -2327,8 +2327,8 @@ contains
 
     call update_boundary(nCell, nVar, State_GV)
 
-    deallocate (RightHand_CV, ResidOrig_CV, StateEps_GV, ResidEps_CV, &
-                Norm_V, x_I, Matrix_VVCI)
+    deallocate(RightHand_CV, ResidOrig_CV, StateEps_GV, ResidEps_CV, &
+               Norm_V, x_I, Matrix_VVCI)
 
   end subroutine implicit_solver
 
@@ -2343,13 +2343,13 @@ contains
 
     integer :: i
     !---------------------------------------------------------------------
-    write (UNITTMP_, '(a79)') 'linear solver test_hd11'
-    write (UNITTMP_, '(i7,1pe13.5,3i3)') iStep, Time, 1, 1, nVar
-    write (UNITTMP_, '(3i4)') nCell
-    write (UNITTMP_, '(100es13.5)') Gamma
-    write (UNITTMP_, '(a79)') 'x rho rhou p gamma'
+    write(UNITTMP_, '(a79)') 'linear solver test_hd11'
+    write(UNITTMP_, '(i7,1pe13.5,3i3)') iStep, Time, 1, 1, nVar
+    write(UNITTMP_, '(3i4)') nCell
+    write(UNITTMP_, '(100es13.5)') Gamma
+    write(UNITTMP_, '(a79)') 'x rho rhou p gamma'
     do i = 1, nCell
-      write (UNITTMP_, '(100es18.10))') float(i), State_GV(i, rho_:p_)
+      write(UNITTMP_, '(100es18.10))') float(i), State_GV(i, rho_:p_)
     end do
 
   end subroutine save_plot
@@ -2415,7 +2415,7 @@ contains
     State_GV(:, rhou_) = 2.0*State_GV(:, rho_); 
     State_GV(:, p_) = 3.0; State_GV(5:10, p_) = 6.0
 
-    open (UNITTMP_, file='test_linear_solver.out', status='replace')
+    open(UNITTMP_, file='test_linear_solver.out', status='replace')
     Time = 0.0
     call save_plot(0, Time, nCell, nVar, State_GV)
     do iStep = 1, nStep
@@ -2437,12 +2437,12 @@ contains
 
         ! check
         call calc_resid_test(2, DtImpl, nCell, nVar, State_GV, Resid_CV)
-        write (*, *) 'iStep, Max error=', iStep, &
+        write(*, *) 'iStep, Max error=', iStep, &
           maxval(abs(StateOld_GV(1:nCell, :) + Resid_CV - State_GV(1:nCell, :)))
         call save_plot(iStep, Time, nCell, nVar, State_GV)
       end if
     end do
-    close (UNITTMP_)
+    close(UNITTMP_)
 
   end subroutine test_linear_solver
 

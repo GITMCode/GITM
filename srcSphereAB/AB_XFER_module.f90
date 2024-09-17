@@ -62,7 +62,7 @@ contains
 
     ! Allocate space for the number of neighboring blocks belonging to each
     ! processor
-    allocate (xfer%num_nbrs(0:xfer%max_pn), stat=ierror)
+    allocate(xfer%num_nbrs(0:xfer%max_pn), stat=ierror)
     if (ierror .ne. 0) then
       ok = .false.
       call AB_ERROR_set("setup_for_xfers", "allocate error ", ierror)
@@ -81,7 +81,7 @@ contains
     end do
 
     ! Allocate space for nbr order info
-    allocate (xfer%nbr_order(0:xfer%max_pn), stat=ierror)
+    allocate(xfer%nbr_order(0:xfer%max_pn), stat=ierror)
     if (ierror .ne. 0) then
       ok = .false.
       call AB_ERROR_set("setup_for_xfers", "allocate error ", ierror)
@@ -89,7 +89,7 @@ contains
     end if
 
     ! Allocate space for nbr order snd buffers
-    allocate (snd_bufs(0:xfer%max_pn), stat=ierror)
+    allocate(snd_bufs(0:xfer%max_pn), stat=ierror)
     if (ierror .ne. 0) then
       ok = .false.
       call AB_ERROR_set("setup_for_xfers", "allocate error ", ierror)
@@ -98,16 +98,16 @@ contains
 
     ! allocate order info space and snd buffers
     do i = 0, xfer%max_pn
-      allocate (xfer%nbr_order(i)%array(3, xfer%num_nbrs(i)), &
-                stat=ierror)
+      allocate(xfer%nbr_order(i)%array(3, xfer%num_nbrs(i)), &
+               stat=ierror)
       if (ierror .ne. 0) then
         ok = .false.
         call AB_ERROR_set("setup_for_xfers", "allocate error ", ierror)
         return
       end if
 
-      allocate (snd_bufs(i)%array(3, xfer%num_nbrs(i)), &
-                stat=ierror)
+      allocate(snd_bufs(i)%array(3, xfer%num_nbrs(i)), &
+               stat=ierror)
       if (ierror .ne. 0) then
         ok = .false.
         call AB_ERROR_set("setup_for_xfers", "allocate error ", ierror)
@@ -154,9 +154,9 @@ contains
 
     ! Deallocate send buffers
     do i = 0, xfer%max_pn
-      deallocate (snd_bufs(i)%array)
+      deallocate(snd_bufs(i)%array)
     end do
-    deallocate (snd_bufs)
+    deallocate(snd_bufs)
 
     ! wait until we've received everything before exiting
     call AB_COMM_XCHNG_finish_rcv(xfer%xchng, tmp_ok)
@@ -234,7 +234,7 @@ contains
     end if
 
     ! allocate pos array used in transfer procedures
-    allocate (xfer%pos(0:xfer%max_pn), stat=ierror)
+    allocate(xfer%pos(0:xfer%max_pn), stat=ierror)
     if (ierror .ne. 0) then
       ok = .false.
       call AB_ERROR_set("AB_XFER_create", "allocate error ", ierror)
@@ -250,7 +250,7 @@ contains
 
     ! setup snd buffers
     !! allocate snd buffer storage
-    allocate (xfer%snd_buf(0:xfer%max_pn), stat=ierror)
+    allocate(xfer%snd_buf(0:xfer%max_pn), stat=ierror)
     if (ierror .ne. 0) then
       ok = .false.
       call AB_ERROR_set("AB_XFER_create", "allocate error ", ierror)
@@ -258,7 +258,7 @@ contains
     end if
 
     !! allocate array to hold size of snd buffers
-    allocate (xfer%snd_buf_size(0:xfer%max_pn), stat=ierror)
+    allocate(xfer%snd_buf_size(0:xfer%max_pn), stat=ierror)
     if (ierror .ne. 0) then
       ok = .false.
       call AB_ERROR_set("AB_XFER_create", "allocate error ", ierror)
@@ -283,7 +283,7 @@ contains
 
        !!! if there's a buffer to allocate than do so
       if (buf_size .ne. 0) then
-        allocate (xfer%snd_buf(p)%array(buf_size), stat=ierror)
+        allocate(xfer%snd_buf(p)%array(buf_size), stat=ierror)
         if (ierror .ne. 0) then
           ok = .false.
           call AB_ERROR_set("AB_XFER_create", "allocate error ", ierror)
@@ -296,7 +296,7 @@ contains
 
     ! setup rcv buffers
     !! allocate rcv buffer storage
-    allocate (xfer%rcv_buf(0:xfer%max_pn), stat=ierror)
+    allocate(xfer%rcv_buf(0:xfer%max_pn), stat=ierror)
     if (ierror .ne. 0) then
       ok = .false.
       call AB_ERROR_set("AB_XFER_create", "allocate error ", ierror)
@@ -304,7 +304,7 @@ contains
     end if
 
     !! allocate array to hold size of buffers
-    allocate (xfer%rcv_buf_size(0:xfer%max_pn), stat=ierror)
+    allocate(xfer%rcv_buf_size(0:xfer%max_pn), stat=ierror)
     if (ierror .ne. 0) then
       ok = .false.
       call AB_ERROR_set("AB_XFER_create", "allocate error ", ierror)
@@ -330,7 +330,7 @@ contains
 
        !!! if there's a buffer to allocate than do so
       if (buf_size .ne. 0) then
-        allocate (xfer%rcv_buf(p)%array(buf_size), stat=ierror)
+        allocate(xfer%rcv_buf(p)%array(buf_size), stat=ierror)
         if (ierror .ne. 0) then
           ok = .false.
           call AB_ERROR_set("AB_XFER_create", "allocate error ", ierror)
@@ -541,32 +541,32 @@ contains
     ! deallocate buffers
     do p = 0, xfer%max_pn
       if (xfer%snd_buf_size(p) .ne. 0) then
-        deallocate (xfer%snd_buf(p)%array)
+        deallocate(xfer%snd_buf(p)%array)
       end if
 
       if (xfer%rcv_buf_size(p) .ne. 0) then
-        deallocate (xfer%rcv_buf(p)%array)
+        deallocate(xfer%rcv_buf(p)%array)
       end if
     end do
 
     ! deallocate buffer storage
-    deallocate (xfer%snd_buf)
-    deallocate (xfer%rcv_buf)
+    deallocate(xfer%snd_buf)
+    deallocate(xfer%rcv_buf)
 
     ! deallocate buffer size storage
-    deallocate (xfer%snd_buf_size)
-    deallocate (xfer%rcv_buf_size)
+    deallocate(xfer%snd_buf_size)
+    deallocate(xfer%rcv_buf_size)
 
     ! Deallocate nbr number array
-    deallocate (xfer%num_nbrs)
+    deallocate(xfer%num_nbrs)
 
     ! Deallocate nbr order info
     do p = 0, xfer%max_pn
-      deallocate (xfer%nbr_order(p)%array)
+      deallocate(xfer%nbr_order(p)%array)
     end do
 
     ! Deallocate nbr order info array
-    deallocate (xfer%nbr_order)
+    deallocate(xfer%nbr_order)
 
   end subroutine AB_XFER_destroy
 

@@ -49,7 +49,7 @@ subroutine get_mean_bcs
   MeanTempBc = MeanTempBc/SumVolume
 
   if (iDebugLevel > 0) &
-    write (*, *) 'For WP-GITM: iProc, MeanVelBc_D, MeanTempBc=', &
+    write(*, *) 'For WP-GITM: iProc, MeanVelBc_D, MeanTempBc=', &
     iProc, MeanVelBc_D, MeanTempBc
 
 end subroutine get_mean_bcs
@@ -279,7 +279,7 @@ subroutine user_bc_perturbation(LogRhoBc, LogNSBc, VelBc_GD, TempBc)
                  - 4.*Kh2*SoundSpeed2*BouyancyFreq2)/2.)) then
         IsForbidden(iFreq) = .true.
         if (iProc == 0) &
-          write (*, *) 'No longer a upward-propagating waves at Time = ', &
+          write(*, *) 'No longer a upward-propagating waves at Time = ', &
           CurrentTime - StartTime, 'iFreq =', iFreq
         cycle
       end if
@@ -318,7 +318,7 @@ subroutine user_bc_perturbation(LogRhoBc, LogNSBc, VelBc_GD, TempBc)
                                              ((Lat - EpicenterLat)*dLat)**2)/RadialD**2) < 0) then
           IsForbidden(iFreq) = .true.
           if (iProc == 0) &
-            write (*, *) 'No longer a upward-propagating AGW at Time = ', &
+            write(*, *) 'No longer a upward-propagating AGW at Time = ', &
             CurrentTime - StartTime, 'iFreq =', iFreq
           cycle
         end if
@@ -401,7 +401,7 @@ subroutine user_bc_perturbation(LogRhoBc, LogNSBc, VelBc_GD, TempBc)
                           WaveFreqIntri2*Kz**2/ScaleHeight)*WaveCombo2)
 
         if (iDebugLevel > 0) &
-          write (*, *) 'user_bc_perturbation: CurrentTime = ', CurrentTime, &
+          write(*, *) 'user_bc_perturbation: CurrentTime = ', CurrentTime, &
           'Lat, Lon = ', Lat, Lon, 'iFreq = ', iFreq, 'iAlt = ', iAlt, &
           'Kx, Ky, Kz = ', Kx, Ky, Kz, 'WaveFreqIntri=', WaveFreqIntri, &
           'WaveForm = ', WaveForm, 'CoeffS =', CoeffS, 'CoeffC =', CoeffC, &
@@ -521,20 +521,20 @@ subroutine output_header_user(cType, iOutputUnit_)
 
   if (cType(1:2) == '3D') then
 
-    write (iOutputUnit_, *) "NUMERICAL VALUES"
-    write (iOutputUnit_, "(I7,6A)") nVarsUser3d, " nvars"
-    write (iOutputUnit_, "(I7,7A)") nAlts + 4, " nAltitudes"
-    write (iOutputUnit_, "(I7,7A)") nLats + 4, " nLatitudes"
-    write (iOutputUnit_, "(I7,7A)") nLons + 4, " nLongitudes"
+    write(iOutputUnit_, *) "NUMERICAL VALUES"
+    write(iOutputUnit_, "(I7,6A)") nVarsUser3d, " nvars"
+    write(iOutputUnit_, "(I7,7A)") nAlts + 4, " nAltitudes"
+    write(iOutputUnit_, "(I7,7A)") nLats + 4, " nLatitudes"
+    write(iOutputUnit_, "(I7,7A)") nLons + 4, " nLongitudes"
 
-    write (iOutputUnit_, *) ""
+    write(iOutputUnit_, *) ""
 
-    write (iOutputUnit_, *) "VARIABLE LIST"
-    write (iOutputUnit_, "(I7,A1,a)") 1, " ", "Longitude"
-    write (iOutputUnit_, "(I7,A1,a)") 2, " ", "Latitude"
-    write (iOutputUnit_, "(I7,A1,a)") 3, " ", "Altitude"
-    write (iOutputUnit_, "(I7,A1,a)") 4, " ", "Joule Heating"
-    write (iOutputUnit_, "(I7,A1,a)") 5, " ", "JPara"
+    write(iOutputUnit_, *) "VARIABLE LIST"
+    write(iOutputUnit_, "(I7,A1,a)") 1, " ", "Longitude"
+    write(iOutputUnit_, "(I7,A1,a)") 2, " ", "Latitude"
+    write(iOutputUnit_, "(I7,A1,a)") 3, " ", "Altitude"
+    write(iOutputUnit_, "(I7,A1,a)") 4, " ", "Joule Heating"
+    write(iOutputUnit_, "(I7,A1,a)") 5, " ", "JPara"
 
   end if
 
@@ -544,29 +544,29 @@ subroutine output_header_user(cType, iOutputUnit_)
 
   if (cType(1:2) == '2D') then
 
-    write (iOutputUnit_, *) "NUMERICAL VALUES"
-    write (iOutputUnit_, "(I7,6A)") nVarsUser2d, " nvars"
-    write (iOutputUnit_, "(I7,7A)") 1, " nAltitudes"
-    write (iOutputUnit_, "(I7,7A)") nLats, " nLatitudes"
-    write (iOutputUnit_, "(I7,7A)") nLons, " nLongitudes"
+    write(iOutputUnit_, *) "NUMERICAL VALUES"
+    write(iOutputUnit_, "(I7,6A)") nVarsUser2d, " nvars"
+    write(iOutputUnit_, "(I7,7A)") 1, " nAltitudes"
+    write(iOutputUnit_, "(I7,7A)") nLats, " nLatitudes"
+    write(iOutputUnit_, "(I7,7A)") nLons, " nLongitudes"
 
-    write (iOutputUnit_, *) ""
-    write (iOutputUnit_, *) "NO GHOSTCELLS"
-    write (iOutputUnit_, *) ""
+    write(iOutputUnit_, *) ""
+    write(iOutputUnit_, *) "NO GHOSTCELLS"
+    write(iOutputUnit_, *) ""
 
-    write (iOutputUnit_, *) "VARIABLE LIST"
-    write (iOutputUnit_, "(I7,A1,a)") 1, " ", "Longitude"
-    write (iOutputUnit_, "(I7,A1,a)") 2, " ", "Latitude"
-    write (iOutputUnit_, "(I7,A1,a)") 3, " ", "Altitude"
-    write (iOutputUnit_, "(I7,A1,a)") 4, " ", "Potential (kV)"
-    write (iOutputUnit_, "(I7,A1,a)") 5, " ", "Average Energy (keV)"
-    write (iOutputUnit_, "(I7,A1,a)") 6, " ", "Total Energy (ergs)"
-    write (iOutputUnit_, "(I7,A1,a)") 7, " ", "Discrete Average Energy (keV)"
-    write (iOutputUnit_, "(I7,A1,a)") 8, " ", "Discrete Total Energy (ergs)"
-    write (iOutputUnit_, "(I7,A1,a)") 9, " ", "Wave Average Energy (keV)"
-    write (iOutputUnit_, "(I7,A1,a)") 10, " ", "Wave Total Energy (ergs)"
+    write(iOutputUnit_, *) "VARIABLE LIST"
+    write(iOutputUnit_, "(I7,A1,a)") 1, " ", "Longitude"
+    write(iOutputUnit_, "(I7,A1,a)") 2, " ", "Latitude"
+    write(iOutputUnit_, "(I7,A1,a)") 3, " ", "Altitude"
+    write(iOutputUnit_, "(I7,A1,a)") 4, " ", "Potential (kV)"
+    write(iOutputUnit_, "(I7,A1,a)") 5, " ", "Average Energy (keV)"
+    write(iOutputUnit_, "(I7,A1,a)") 6, " ", "Total Energy (ergs)"
+    write(iOutputUnit_, "(I7,A1,a)") 7, " ", "Discrete Average Energy (keV)"
+    write(iOutputUnit_, "(I7,A1,a)") 8, " ", "Discrete Total Energy (ergs)"
+    write(iOutputUnit_, "(I7,A1,a)") 9, " ", "Wave Average Energy (keV)"
+    write(iOutputUnit_, "(I7,A1,a)") 10, " ", "Wave Total Energy (ergs)"
     do n = 1, ED_N_Energies
-      write (iOutputUnit_, "(I7,A6,1P,E9.3,A11)") 10 + n, " Flux@", ED_energies(n), "eV (/cm2/s)"
+      write(iOutputUnit_, "(I7,A6,1P,E9.3,A11)") 10 + n, " Flux@", ED_energies(n), "eV (/cm2/s)"
     end do
   end if
 
@@ -576,17 +576,17 @@ subroutine output_header_user(cType, iOutputUnit_)
 
   if (cType(1:2) == '1D') then
 
-    write (iOutputUnit_, *) "NUMERICAL VALUES"
-    write (iOutputUnit_, "(I7,6A)") nVarsUser1d, " nvars"
-    write (iOutputUnit_, "(I7,7A)") nAlts + 4, " nAltitudes"
-    write (iOutputUnit_, "(I7,7A)") 1, " nLatitudes"
-    write (iOutputUnit_, "(I7,7A)") 1, " nLongitudes"
+    write(iOutputUnit_, *) "NUMERICAL VALUES"
+    write(iOutputUnit_, "(I7,6A)") nVarsUser1d, " nvars"
+    write(iOutputUnit_, "(I7,7A)") nAlts + 4, " nAltitudes"
+    write(iOutputUnit_, "(I7,7A)") 1, " nLatitudes"
+    write(iOutputUnit_, "(I7,7A)") 1, " nLongitudes"
 
-    write (iOutputUnit_, *) "VARIABLE LIST"
-    write (iOutputUnit_, "(I7,A1,a)") 1, " ", "Longitude"
-    write (iOutputUnit_, "(I7,A1,a)") 2, " ", "Latitude"
-    write (iOutputUnit_, "(I7,A1,a)") 3, " ", "Altitude"
-    write (iOutputUnit_, "(I7,A1,a)") 4, " ", "Electron Density"
+    write(iOutputUnit_, *) "VARIABLE LIST"
+    write(iOutputUnit_, "(I7,A1,a)") 1, " ", "Longitude"
+    write(iOutputUnit_, "(I7,A1,a)") 2, " ", "Latitude"
+    write(iOutputUnit_, "(I7,A1,a)") 3, " ", "Altitude"
+    write(iOutputUnit_, "(I7,A1,a)") 4, " ", "Electron Density"
   end if
 
   ! ------------------------------------------
@@ -595,22 +595,22 @@ subroutine output_header_user(cType, iOutputUnit_)
 
   if (cType(1:2) == '0D') then
 
-    write (iOutputUnit_, *) "NUMERICAL VALUES"
-    write (iOutputUnit_, "(I7,6A)") nVarsUser0d, " nvars"
-    write (iOutputUnit_, "(I7,7A)") 1, " nAltitudes"
-    write (iOutputUnit_, "(I7,7A)") 1, " nLatitudes"
-    write (iOutputUnit_, "(I7,7A)") 1, " nLongitudes"
+    write(iOutputUnit_, *) "NUMERICAL VALUES"
+    write(iOutputUnit_, "(I7,6A)") nVarsUser0d, " nvars"
+    write(iOutputUnit_, "(I7,7A)") 1, " nAltitudes"
+    write(iOutputUnit_, "(I7,7A)") 1, " nLatitudes"
+    write(iOutputUnit_, "(I7,7A)") 1, " nLongitudes"
 
-    write (iOutputUnit_, *) "VARIABLE LIST"
-    write (iOutputUnit_, "(I7,A1,a)") 1, " ", "Longitude"
-    write (iOutputUnit_, "(I7,A1,a)") 2, " ", "Latitude"
-    write (iOutputUnit_, "(I7,A1,a)") 3, " ", "Altitude"
-    write (iOutputUnit_, "(I7,A1,a)") 4, " ", "Electron Density"
-    write (iOutputUnit_, "(I7,A1,a)") 5, " ", "Electron Temperature"
-    write (iOutputUnit_, "(I7,A1,a)") 6, " ", "Ion Temperature"
+    write(iOutputUnit_, *) "VARIABLE LIST"
+    write(iOutputUnit_, "(I7,A1,a)") 1, " ", "Longitude"
+    write(iOutputUnit_, "(I7,A1,a)") 2, " ", "Latitude"
+    write(iOutputUnit_, "(I7,A1,a)") 3, " ", "Altitude"
+    write(iOutputUnit_, "(I7,A1,a)") 4, " ", "Electron Density"
+    write(iOutputUnit_, "(I7,A1,a)") 5, " ", "Electron Temperature"
+    write(iOutputUnit_, "(I7,A1,a)") 6, " ", "Ion Temperature"
   end if
 
-  write (iOutputUnit_, *) ""
+  write(iOutputUnit_, *) ""
 
 end subroutine output_header_user
 
@@ -631,7 +631,7 @@ subroutine output_3dUser(iBlock, iOutputUnit_)
   do iAlt = -1, nAlts + 2
     do iLat = -1, nLats + 2
       do iLon = -1, nLons + 2
-        write (iOutputUnit_) &
+        write(iOutputUnit_) &
           Longitude(iLon, iBlock), &
           Latitude(iLat, iBlock), &
           Altitude_GB(iLon, iLat, iAlt, iBlock), &
@@ -659,7 +659,7 @@ subroutine output_2dUser(iBlock, iOutputUnit_)
   iAlt = 1
   do iLat = 1, nLats
     do iLon = 1, nLons
-      write (iOutputUnit_) &
+      write(iOutputUnit_) &
         Longitude(iLon, iBlock), &
         Latitude(iLat, iBlock), &
         Altitude_GB(iLon, iLat, iAlt, iBlock), &
@@ -686,7 +686,7 @@ subroutine output_1dUser(iiLon, iiLat, iBlock, rLon, rLat, iOutputUnit_)
   integer :: iAlt
 
   do iAlt = -1, nAlts + 2
-    write (iOutputUnit_) &
+    write(iOutputUnit_) &
       rLon*Longitude(iiLon, iBlock) + (1 - rLon)*Longitude(iiLon + 1, iBlock), &
       rLat*Latitude(iiLat, iBlock) + (1 - rLat)*Latitude(iiLat + 1, iBlock), &
       Altitude_GB(iiLon, iiLat, iAlt, iBlock), &
@@ -729,7 +729,7 @@ subroutine output_0dUser(iiLon, iiLat, iiAlt, iBlock, rLon, rLat, rAlt, iOutputU
   integer, intent(in) :: iiLat, iiLon, iiAlt, iBlock, iOutputUnit_
   real, intent(in)    :: rLon, rLat, rAlt
 
-  write (iOutputUnit_) &
+  write(iOutputUnit_) &
     rLon*Longitude(iiLon, iBlock) + (1 - rLon)*Longitude(iiLon + 1, iBlock), &
     rLat*Latitude(iiLat, iBlock) + (1 - rLat)*Latitude(iiLat + 1, iBlock), &
     rAlt*Altitude_GB(iiLon, iiLat, iiAlt, iBlock) + &

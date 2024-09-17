@@ -47,7 +47,7 @@ subroutine calc_rates(iBlock)
   ! These are needed for the Euv Heating and other thermodynamics:
   !/
 
-  if (iDebugLevel > 4) write (*, *) "=====> cp and kappatemp", iblock
+  if (iDebugLevel > 4) write(*, *) "=====> cp and kappatemp", iblock
 
   do iAlt = 0, nAlts + 1
 

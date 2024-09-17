@@ -59,11 +59,11 @@ contains
     DxyzFineBlock_D = 0.5*nCell
     DxyzCoarse_D = 1
     DxyzFine_D = 0.5
-    allocate (Xyz_DCB(nDim, nCell_D(1), nCell_D(2), nCell_D(3), &
-                      (2**nDim)*(2**nDim + 1)))
-    Xyz_DCB = 0
-    allocate (Var_CB(nCell_D(1), nCell_D(2), nCell_D(3), &
+    allocate(Xyz_DCB(nDim, nCell_D(1), nCell_D(2), nCell_D(3), &
                      (2**nDim)*(2**nDim + 1)))
+    Xyz_DCB = 0
+    allocate(Var_CB(nCell_D(1), nCell_D(2), nCell_D(3), &
+                    (2**nDim)*(2**nDim + 1)))
     Var_CB = 0
     do iGrid = 1, 2**nDim
       iBlock = iGrid
@@ -144,21 +144,21 @@ contains
         end do
         if (any(abs(Xyz_D - XyzInterpolated_D) > 1.0e-6) .and. &
             IsSecondOrder) then
-          write (*, *) 'Approximation test failed'
-          write (*, *) 'Grid:', iLevelTest_I(1:2**nDim)
-          write (*, *) 'nGridOut=', nGridOut
-          write (*, *) 'Point=', Xyz_D
-          write (*, *) 'Cell_D  iBlock XyzGrid_D Weight_I(iGrid)'
+          write(*, *) 'Approximation test failed'
+          write(*, *) 'Grid:', iLevelTest_I(1:2**nDim)
+          write(*, *) 'nGridOut=', nGridOut
+          write(*, *) 'Point=', Xyz_D
+          write(*, *) 'Cell_D  iBlock XyzGrid_D Weight_I(iGrid)'
           do iGrid = 1, nGridOut
             iCellIndex_D = 1
             iCellIndex_D(1:nDim) = iIndexes_II(1:nDim, iGrid)
             iBlock = iIndexes_II(nIndexes, iGrid)
-            write (*, *) iIndexes_II(1:nDim, iGrid), iBlock, &
+            write(*, *) iIndexes_II(1:nDim, iGrid), iBlock, &
               Xyz_DCB(:, iCellIndex_D(1), iCellIndex_D(2), &
                       iCellIndex_D(3), iBlock), Weight_I(iGrid)
           end do
-          write (*, *) 'Xyz_D=', Xyz_D
-          write (*, *) 'XyzInterpolated_D=', XyzInterpolated_D
+          write(*, *) 'Xyz_D=', Xyz_D
+          write(*, *) 'XyzInterpolated_D=', XyzInterpolated_D
           call CON_stop('Correct code and redo test')
         end if
         !\
@@ -199,38 +199,38 @@ contains
         end do
         if (any(abs(XyzCont_D - XyzInterpolated_D) > 1.0e-6) .and. &
             IsSecondOrder) then
-          write (*, *) 'Approximation test failed'
-          write (*, *) 'Grid:', iLevelTest_I(1:2**nDim)
-          write (*, *) 'nGridOut=', nGridOut
-          write (*, *) 'PointCont=', XyzCont_D
-          write (*, *) 'Cell_D  iBlock XyzGrid_D Weight_I(iGrid)'
+          write(*, *) 'Approximation test failed'
+          write(*, *) 'Grid:', iLevelTest_I(1:2**nDim)
+          write(*, *) 'nGridOut=', nGridOut
+          write(*, *) 'PointCont=', XyzCont_D
+          write(*, *) 'Cell_D  iBlock XyzGrid_D Weight_I(iGrid)'
           do iGrid = 1, nGridOut
             iCellIndex_D = 1
             iCellIndex_D(1:nDim) = iIndexes_II(1:nDim, iGrid)
             iBlock = iIndexes_II(nIndexes, iGrid)
-            write (*, *) iIndexes_II(1:nDim, iGrid), iBlock, &
+            write(*, *) iIndexes_II(1:nDim, iGrid), iBlock, &
               Xyz_DCB(:, iCellIndex_D(1), iCellIndex_D(2), &
                       iCellIndex_D(3), iBlock), Weight_I(iGrid)
           end do
-          write (*, *) 'XyzCont_D=', XyzCont_D
-          write (*, *) 'XyzInterpolated_D=', XyzInterpolated_D
+          write(*, *) 'XyzCont_D=', XyzCont_D
+          write(*, *) 'XyzInterpolated_D=', XyzInterpolated_D
           call CON_stop('Correct code and redo test')
         end if
         if (abs(VarContInterpolated - VarInterpolated) > nDim*0.01) then
-          write (*, *) 'Continuity test failed'
-          write (*, *) 'Grid:', iLevelTest_I
-          write (*, *) 'nGridOut=', nGridOut
-          write (*, *) 'XyzCont=', XyzCont_D
-          write (*, *) 'Cell_D  iBlock XyzGrid_D Weight_I(iGrid)'
+          write(*, *) 'Continuity test failed'
+          write(*, *) 'Grid:', iLevelTest_I
+          write(*, *) 'nGridOut=', nGridOut
+          write(*, *) 'XyzCont=', XyzCont_D
+          write(*, *) 'Cell_D  iBlock XyzGrid_D Weight_I(iGrid)'
           do iGrid = 1, nGridOut
             iCellIndex_D = 1
             iCellIndex_D(1:nDim) = iIndexes_II(1:nDim, iGrid)
             iBlock = iIndexes_II(nIndexes, iGrid)
-            write (*, *) iIndexes_II(1:nDim, iGrid), iBlock, &
+            write(*, *) iIndexes_II(1:nDim, iGrid), iBlock, &
               Xyz_DCB(:, iCellIndex_D(1), iCellIndex_D(2), &
                       iCellIndex_D(3), iBlock), Weight_I(iGrid)
           end do
-          write (*, *) 'Xyz_D=', Xyz_D
+          write(*, *) 'Xyz_D=', Xyz_D
           call interpolate_amr( &
             nDim=nDim, &
             XyzIn_D=Xyz_D, &
@@ -241,12 +241,12 @@ contains
             Weight_I=Weight_I, &
             iIndexes_II=iIndexes_II, &
             IsSecondOrder=IsSecondOrder)
-          write (*, *) 'Cell_D  iBlock XyzGrid_D Weight_I(iGrid)'
+          write(*, *) 'Cell_D  iBlock XyzGrid_D Weight_I(iGrid)'
           do iGrid = 1, nGridOut
             iCellIndex_D = 1
             iCellIndex_D(1:nDim) = iIndexes_II(1:nDim, iGrid)
             iBlock = iIndexes_II(nIndexes, iGrid)
-            write (*, *) iIndexes_II(1:nDim, iGrid), iBlock, &
+            write(*, *) iIndexes_II(1:nDim, iGrid), iBlock, &
               Xyz_DCB(:, iCellIndex_D(1), iCellIndex_D(2), &
                       iCellIndex_D(3), iBlock), Weight_I(iGrid)
           end do
@@ -254,7 +254,7 @@ contains
         end if
       end do SAMPLE
     end do CASE
-    deallocate (Xyz_DCB, Var_CB)
+    deallocate(Xyz_DCB, Var_CB)
 
   end subroutine test_interpolate_amr
   !============================
@@ -342,8 +342,8 @@ subroutine CON_stop(StringError)
   character(len=*), intent(in) :: StringError
   !----------------------------------------------------------------------------
 
-  write (*, '(a)') StringError
-  write (*, '(a)') '!!! SWMF_ABORT !!!'
+  write(*, '(a)') StringError
+  write(*, '(a)') '!!! SWMF_ABORT !!!'
   stop
 
 end subroutine CON_stop

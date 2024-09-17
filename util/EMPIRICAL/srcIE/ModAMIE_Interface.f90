@@ -84,17 +84,17 @@ contains
 
     integer :: iError = 0
 
-    if (allocated(AMIE_Lats)) deallocate (AMIE_Lats)
-    allocate (AMIE_Lats(AMIE_nLats + nCellsPad), stat=iError)
+    if (allocated(AMIE_Lats)) deallocate(AMIE_Lats)
+    allocate(AMIE_Lats(AMIE_nLats + nCellsPad), stat=iError)
     if (iError /= 0) then
-      write (*, *) "Error in allocating array AMIE_Lats in "
+      write(*, *) "Error in allocating array AMIE_Lats in "
       stop
     end if
 
-    if (allocated(AMIE_Mlts)) deallocate (AMIE_Mlts)
-    allocate (AMIE_Mlts(AMIE_nMlts), stat=iError)
+    if (allocated(AMIE_Mlts)) deallocate(AMIE_Mlts)
+    allocate(AMIE_Mlts(AMIE_nMlts), stat=iError)
     if (iError /= 0) then
-      write (*, *) "Error in allocating array Mlts in "
+      write(*, *) "Error in allocating array Mlts in "
       stop
     end if
 
@@ -103,22 +103,22 @@ contains
     ! for a more generalized get variable function
 
     if (AMIE_iDebugLevel > 1) &
-      write (*, *) 'Allocating Variables : ', &
+      write(*, *) 'Allocating Variables : ', &
       AMIE_nMlts, AMIE_nLats, nCellsPad, AMIE_nTimes, AMIE_nBlks
 
-    allocate (AMIE_Storage( &
-              nValues, &
-              AMIE_nMlts, &
-              AMIE_nLats + nCellsPad, &
-              AMIE_nTimes, &
-              AMIE_nBlks), &
-              stat=iError)
+    allocate(AMIE_Storage( &
+             nValues, &
+             AMIE_nMlts, &
+             AMIE_nLats + nCellsPad, &
+             AMIE_nTimes, &
+             AMIE_nBlks), &
+             stat=iError)
     if (iError /= 0) then
-      write (*, *) "Error in allocating array AMIE_Storage in readAMIEoutput"
+      write(*, *) "Error in allocating array AMIE_Storage in readAMIEoutput"
       stop
     end if
 
-    if (AMIE_iDebugLevel > 1) write (*, *) '  --> allocated the big array!'
+    if (AMIE_iDebugLevel > 1) write(*, *) '  --> allocated the big array!'
 
     ! Initialize the variables to background values
     AMIE_Storage(iPotential_, :, :, :, :) = 0.0
@@ -135,10 +135,10 @@ contains
     ! ------------------------
     ! Generic AMIE Value:
 
-    allocate (AMIE_Value( &
-              AMIE_nMlts, AMIE_nLats + nCellsPad, AMIE_nTimes, AMIE_nBlks), stat=iError)
+    allocate(AMIE_Value( &
+             AMIE_nMlts, AMIE_nLats + nCellsPad, AMIE_nTimes, AMIE_nBlks), stat=iError)
     if (iError /= 0) then
-      write (*, *) "Error in allocating array AMIE_Value in "
+      write(*, *) "Error in allocating array AMIE_Value in "
       stop
     end if
 
@@ -147,10 +147,10 @@ contains
     ! ---------------------------------------------------
     ! AMIE Interpolated Value (this is for one time)
 
-    allocate (AMIE_Interpolated( &
-              AMIE_nMlts, AMIE_nLats + nCellsPad, AMIE_nBlks), stat=iError)
+    allocate(AMIE_Interpolated( &
+             AMIE_nMlts, AMIE_nLats + nCellsPad, AMIE_nBlks), stat=iError)
     if (iError /= 0) then
-      write (*, *) "Error in allocating array AMIE_Interpolated in "
+      write(*, *) "Error in allocating array AMIE_Interpolated in "
       stop
     end if
 
@@ -159,13 +159,13 @@ contains
     ! ------------------------
     ! Time:
 
-    allocate (AMIE_Time(AMIE_nTimes, 2), stat=iError)
+    allocate(AMIE_Time(AMIE_nTimes, 2), stat=iError)
     if (iError /= 0) then
-      write (*, *) "Error in allocating array AMIETimes in "
+      write(*, *) "Error in allocating array AMIETimes in "
       stop
     end if
 
-    if (AMIE_iDebugLevel > 1) write (*, *) '  --> done allocating!'
+    if (AMIE_iDebugLevel > 1) write(*, *) '  --> done allocating!'
 
   end subroutine AMIE_allocate_variables
 
@@ -180,20 +180,20 @@ contains
     integer :: iField, iVal
     do iVal = 1, nValues
       if (AMIE_iDebugLevel > 1) &
-        write (*, *) 'Searching for ', trim(AMIE_Names(iVal))
+        write(*, *) 'Searching for ', trim(AMIE_Names(iVal))
       do iField = 1, nFields
         if (index(Fields(iField), trim(AMIE_Names(iVal))) > 0) then
           iMap_(iVal) = iField
           if (AMIE_iDebugLevel > 1) &
-            write (*, *) "<--- ", trim(AMIE_Names(iVal)), " Found", iField
+            write(*, *) "<--- ", trim(AMIE_Names(iVal)), " Found", iField
         end if
       end do
     end do
     if (AMIE_iDebugLevel > 1) then
-      write (*, *) 'Summary of variables found in AMIE file : '
+      write(*, *) 'Summary of variables found in AMIE file : '
       do iVal = 1, nValues
         if (iMap_(iVal) > 0) then
-          write (*, *) 'Expected : ', trim(AMIE_Names(iVal)), &
+          write(*, *) 'Expected : ', trim(AMIE_Names(iVal)), &
             '; found : ', trim(Fields(iMap_(iVal)))
         end if
       end do
@@ -209,19 +209,19 @@ contains
 
     if ((iMap_(iIon_diff_eflux_) > 0) .and. (iMap_(iIon_diff_avee_) > 0)) then
       useIons = .true.
-      if (AMIE_iDebugLevel > 1) write (*, *) "Input Electrodynamics is using Ions!"
+      if (AMIE_iDebugLevel > 1) write(*, *) "Input Electrodynamics is using Ions!"
     else
       useIons = .false.
     end if
     if ((iMap_(iEle_mono_eflux_) > 0) .and. (iMap_(iEle_mono_avee_) > 0)) then
       useMono = .true.
-      if (AMIE_iDebugLevel > 1) write (*, *) "Input Electrodynamics is using Mono!"
+      if (AMIE_iDebugLevel > 1) write(*, *) "Input Electrodynamics is using Mono!"
     else
       useMono = .false.
     end if
     if ((iMap_(iEle_wave_eflux_) > 0) .and. (iMap_(iEle_wave_avee_) > 0)) then
       useWave = .true.
-      if (AMIE_iDebugLevel > 1) write (*, *) "Input Electrodynamics is using Ions!"
+      if (AMIE_iDebugLevel > 1) write(*, *) "Input Electrodynamics is using Ions!"
     else
       useWave = .false.
     end if

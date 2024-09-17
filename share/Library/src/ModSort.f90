@@ -215,15 +215,15 @@ contains
     integer, allocatable:: i_I(:)
     !-----------------------------------------------------------------------
     n = size(a_I)
-    allocate (i_I(n))
+    allocate(i_I(n))
     call sort_quick(n, abs(a_I), i_I)
     SortSum = 0.0
     do i = n, 1, -1
-      if (i_I(i) < 0) write (*, *) 'This avoids ifort 12 optimization error!'
+      if (i_I(i) < 0) write(*, *) 'This avoids ifort 12 optimization error!'
       SortSum = SortSum + a_I(i_I(i))
     end do
     sort_sum = SortSum
-    deallocate (i_I)
+    deallocate(i_I)
 
   end function sort_sum
 
@@ -245,10 +245,10 @@ contains
 
     do iTest = 1, 2
       if (iTest == 1) then
-        write (*, '(a)') 'Testing sort_quick'
+        write(*, '(a)') 'Testing sort_quick'
         call sort_quick(n, a_I, i_I)
       else
-        write (*, '(a)') 'Testing sort_quick_func'
+        write(*, '(a)') 'Testing sort_quick_func'
         call sort_quick_func(n, is_larger_test, i_I)
       end if
       b_I = a_I(i_I)
@@ -256,25 +256,25 @@ contains
       IsError = .false.
       do i = 2, n
         if (b_I(i - 1) > b_I(i)) then
-          write (*, *) 'Error at index i=', i, ': sorted b_I(i-1)=', b_I(i - 1), &
+          write(*, *) 'Error at index i=', i, ': sorted b_I(i-1)=', b_I(i - 1), &
             ' should not exceed b_I(i)=', b_I(i)
           IsError = .true.
         end if
       end do
 
       if (IsError) then
-        write (*, '(a,5f5.0)') 'original array =', a_I
-        write (*, '(a,5i5)') 'sorted index   =', i_I
-        write (*, '(a,5f5.0)') 'sorted array   =', b_I
+        write(*, '(a,5f5.0)') 'original array =', a_I
+        write(*, '(a,5i5)') 'sorted index   =', i_I
+        write(*, '(a,5f5.0)') 'sorted array   =', b_I
       end if
     end do
 
-    write (*, '(a)') 'Testing sort_sum'
+    write(*, '(a)') 'Testing sort_sum'
     a_I = (/1.e-6, 1.e-7, 1.e10, -3.e9, -7.e9/)
 
     SortSum = sort_sum(a_I)
     if (abs(SortSum - 1.1e-6) > 1.1e-12) &
-      write (*, *) 'Error: SortSum should be 1.1e-6, but it is ', SortSum
+      write(*, *) 'Error: SortSum should be 1.1e-6, but it is ', SortSum
 
   end subroutine sort_test
 

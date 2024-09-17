@@ -90,19 +90,19 @@ subroutine output_header_user(cType, iOutputUnit_)
   ! ------------------------------------------
   if (cType(1:2) == '3D') then
 
-    write (iOutputUnit_, *) "NUMERICAL VALUES"
-    write (iOutputUnit_, "(I7,6A)") nVarsUser3d, " nvars"
-    write (iOutputUnit_, "(I7,7A)") nAlts + 4, " nAltitudes"
-    write (iOutputUnit_, "(I7,7A)") nLats + 4, " nLatitudes"
-    write (iOutputUnit_, "(I7,7A)") nLons + 4, " nLongitudes"
+    write(iOutputUnit_, *) "NUMERICAL VALUES"
+    write(iOutputUnit_, "(I7,6A)") nVarsUser3d, " nvars"
+    write(iOutputUnit_, "(I7,7A)") nAlts + 4, " nAltitudes"
+    write(iOutputUnit_, "(I7,7A)") nLats + 4, " nLatitudes"
+    write(iOutputUnit_, "(I7,7A)") nLons + 4, " nLongitudes"
 
-    write (iOutputUnit_, *) ""
+    write(iOutputUnit_, *) ""
 
-    write (iOutputUnit_, *) "VARIABLE LIST"
-    write (iOutputUnit_, "(I7,A1,a)") 1, " ", "Longitude"
-    write (iOutputUnit_, "(I7,A1,a)") 2, " ", "Latitude"
-    write (iOutputUnit_, "(I7,A1,a)") 3, " ", "Altitude"
-    write (iOutputUnit_, "(I7,A1,a)") 4, " ", "Joule Heating"
+    write(iOutputUnit_, *) "VARIABLE LIST"
+    write(iOutputUnit_, "(I7,A1,a)") 1, " ", "Longitude"
+    write(iOutputUnit_, "(I7,A1,a)") 2, " ", "Latitude"
+    write(iOutputUnit_, "(I7,A1,a)") 3, " ", "Altitude"
+    write(iOutputUnit_, "(I7,A1,a)") 4, " ", "Joule Heating"
 
   end if
 
@@ -111,27 +111,27 @@ subroutine output_header_user(cType, iOutputUnit_)
   ! ------------------------------------------
   if (cType(1:2) == '1D') then
 
-    write (iOutputUnit_, *) "NUMERICAL VALUES"
-    write (iOutputUnit_, "(I7,6A)") nVarsUser1d, " nvars"
-    write (iOutputUnit_, "(I7,7A)") nAlts + 4, " nAltitudes"
-    write (iOutputUnit_, "(I7,7A)") 1, " nLatitudes"
-    write (iOutputUnit_, "(I7,7A)") 1, " nLongitudes"
+    write(iOutputUnit_, *) "NUMERICAL VALUES"
+    write(iOutputUnit_, "(I7,6A)") nVarsUser1d, " nvars"
+    write(iOutputUnit_, "(I7,7A)") nAlts + 4, " nAltitudes"
+    write(iOutputUnit_, "(I7,7A)") 1, " nLatitudes"
+    write(iOutputUnit_, "(I7,7A)") 1, " nLongitudes"
 
-    write (iOutputUnit_, *) ""
+    write(iOutputUnit_, *) ""
 
-    write (iOutputUnit_, *) "VARIABLE LIST"
-    write (iOutputUnit_, "(I7,A1,a)") 1, " ", "Longitude"
-    write (iOutputUnit_, "(I7,A1,a)") 2, " ", "Latitude"
-    write (iOutputUnit_, "(I7,A1,a)") 3, " ", "Altitude"
-    write (iOutputUnit_, "(I7,A1,a)") 4, " ", "Temperature"
-    write (iOutputUnit_, "(I7,A1,a)") 5, " ", "VelGradTemp"
-    write (iOutputUnit_, "(I7,A1,a)") 6, " ", "TempDivVel"
-    write (iOutputUnit_, "(I7,A1,a)") 7, " ", "NumDiffTemp"
-    write (iOutputUnit_, "(I7,A1,a)") 8, " ", "StressHeating"
-    write (iOutputUnit_, "(I7,A1,a)") 9, " ", "LowAtmosRad"
-    write (iOutputUnit_, "(I7,A1,a)") 10, " ", "EuvHeating"
-    write (iOutputUnit_, "(I7,A1,a)") 11, " ", "RadCooling"
-    write (iOutputUnit_, "(I7,A1,a)") 12, " ", "Conduction"
+    write(iOutputUnit_, *) "VARIABLE LIST"
+    write(iOutputUnit_, "(I7,A1,a)") 1, " ", "Longitude"
+    write(iOutputUnit_, "(I7,A1,a)") 2, " ", "Latitude"
+    write(iOutputUnit_, "(I7,A1,a)") 3, " ", "Altitude"
+    write(iOutputUnit_, "(I7,A1,a)") 4, " ", "Temperature"
+    write(iOutputUnit_, "(I7,A1,a)") 5, " ", "VelGradTemp"
+    write(iOutputUnit_, "(I7,A1,a)") 6, " ", "TempDivVel"
+    write(iOutputUnit_, "(I7,A1,a)") 7, " ", "NumDiffTemp"
+    write(iOutputUnit_, "(I7,A1,a)") 8, " ", "StressHeating"
+    write(iOutputUnit_, "(I7,A1,a)") 9, " ", "LowAtmosRad"
+    write(iOutputUnit_, "(I7,A1,a)") 10, " ", "EuvHeating"
+    write(iOutputUnit_, "(I7,A1,a)") 11, " ", "RadCooling"
+    write(iOutputUnit_, "(I7,A1,a)") 12, " ", "Conduction"
 
   end if
 
@@ -141,27 +141,27 @@ subroutine output_header_user(cType, iOutputUnit_)
 
   if (cType(1:2) == '2D') then
 
-    write (iOutputUnit_, *) "NUMERICAL VALUES"
-    write (iOutputUnit_, "(I7,6A)") nVarsUser2d, " nvars"
-    write (iOutputUnit_, "(I7,7A)") 1, " nAltitudes"
-    write (iOutputUnit_, "(I7,7A)") nLats, " nLatitudes"
-    write (iOutputUnit_, "(I7,7A)") nLons, " nLongitudes"
+    write(iOutputUnit_, *) "NUMERICAL VALUES"
+    write(iOutputUnit_, "(I7,6A)") nVarsUser2d, " nvars"
+    write(iOutputUnit_, "(I7,7A)") 1, " nAltitudes"
+    write(iOutputUnit_, "(I7,7A)") nLats, " nLatitudes"
+    write(iOutputUnit_, "(I7,7A)") nLons, " nLongitudes"
 
-    write (iOutputUnit_, *) ""
-    write (iOutputUnit_, *) "NO GHOSTCELLS"
-    write (iOutputUnit_, *) ""
+    write(iOutputUnit_, *) ""
+    write(iOutputUnit_, *) "NO GHOSTCELLS"
+    write(iOutputUnit_, *) ""
 
-    write (iOutputUnit_, *) "VARIABLE LIST"
-    write (iOutputUnit_, "(I7,A1,a)") 1, " ", "Longitude"
-    write (iOutputUnit_, "(I7,A1,a)") 2, " ", "Latitude"
-    write (iOutputUnit_, "(I7,A1,a)") 3, " ", "Altitude"
-    write (iOutputUnit_, "(I7,A1,a)") 4, " ", "Potential (kV)"
-    write (iOutputUnit_, "(I7,A1,a)") 5, " ", "Average Energy (keV)"
-    write (iOutputUnit_, "(I7,A1,a)") 6, " ", "Total Energy (ergs)"
+    write(iOutputUnit_, *) "VARIABLE LIST"
+    write(iOutputUnit_, "(I7,A1,a)") 1, " ", "Longitude"
+    write(iOutputUnit_, "(I7,A1,a)") 2, " ", "Latitude"
+    write(iOutputUnit_, "(I7,A1,a)") 3, " ", "Altitude"
+    write(iOutputUnit_, "(I7,A1,a)") 4, " ", "Potential (kV)"
+    write(iOutputUnit_, "(I7,A1,a)") 5, " ", "Average Energy (keV)"
+    write(iOutputUnit_, "(I7,A1,a)") 6, " ", "Total Energy (ergs)"
 
   end if
 
-  write (iOutputUnit_, *) ""
+  write(iOutputUnit_, *) ""
 
 end subroutine output_header_user
 
@@ -182,7 +182,7 @@ subroutine output_3dUser(iBlock, iOutputUnit_)
   do iAlt = -1, nAlts + 2
     do iLat = -1, nLats + 2
       do iLon = -1, nLons + 2
-        write (iOutputUnit_) &
+        write(iOutputUnit_) &
           Longitude(iLon, iBlock), &
           Latitude(iLat, iBlock), &
           Altitude_GB(iLon, iLat, iAlt, iBlock), &
@@ -207,11 +207,11 @@ subroutine output_1dUser(iBlock, iOutputUnit_)
   integer, intent(in) :: iBlock, iOutputUnit_
   integer :: iAlt, iLat, iLon, iiAlt
 
-  write (*, *) "temp: ", UserData1D(1, 1, 42, 1), Temperature(1, 1, 42, 1), TempUnit(1, 1, 42)
+  write(*, *) "temp: ", UserData1D(1, 1, 42, 1), Temperature(1, 1, 42, 1), TempUnit(1, 1, 42)
   do iAlt = -1, nAlts + 2
     iiAlt = max(min(iAlt, nAlts), 1)
 
-    write (iOutputUnit_) &
+    write(iOutputUnit_) &
       Longitude(1, iBlock), &
       Latitude(1, iBlock), &
       Altitude_GB(1, 1, iAlt, iBlock), &
@@ -236,7 +236,7 @@ subroutine output_2dUser(iBlock, iOutputUnit_)
   iAlt = 1
   do iLat = 1, nLats
     do iLon = 1, nLons
-      write (iOutputUnit_) &
+      write(iOutputUnit_) &
         Longitude(iLon, iBlock), &
         Latitude(iLat, iBlock), &
         Altitude_GB(iLon, iLat, iAlt, iBlock), &

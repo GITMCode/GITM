@@ -65,27 +65,27 @@ subroutine read_waccm_tides
   iError = 0
 
   if (iDebugLevel > 2) &
-    write (*, *) "===> Reading File : ", WACCM_file_name
-  open (iInputUnit_, file=WACCM_file_name, &
-        status="old", form="unformatted")
+    write(*, *) "===> Reading File : ", WACCM_file_name
+  open(iInputUnit_, file=WACCM_file_name, &
+       status="old", form="unformatted")
 
-  read (iInputUnit_) version
-  read (iInputUnit_) nLonsWaccm, nLatsWaccm, nAltsWaccm
-  read (iInputUnit_) nVars
+  read(iInputUnit_) version
+  read(iInputUnit_) nLonsWaccm, nLatsWaccm, nAltsWaccm
+  read(iInputUnit_) nVars
 
-  if (.not. allocated(varname)) allocate (varname(nvars))
+  if (.not. allocated(varname)) allocate(varname(nvars))
 
   do ivar = 1, nvars
-    read (iInputUnit_) varname(ivar)
+    read(iInputUnit_) varname(ivar)
   end do
 
-  read (iInputUnit_) iTime
+  read(iInputUnit_) iTime
 
   if (.not. allocated(param)) &
-    allocate (param(nLonsWaccm, nLatsWaccm, nAltsWaccm, nvars))
+    allocate(param(nLonsWaccm, nLatsWaccm, nAltsWaccm, nvars))
 
   if (.not. allocated(t_waccm)) then
-    allocate ( &
+    allocate( &
       t_waccm(nLonsWaccm, nLatsWaccm, nAltsWaccm), &
       t0_waccm(nLonsWaccm, nLatsWaccm, nAltsWaccm), &
       ta1_waccm(nLonsWaccm, nLatsWaccm, nAltsWaccm), &
@@ -148,14 +148,14 @@ subroutine read_waccm_tides
     omegap2_waccm = 0.0
     Alt_Waccm_GitmGrid = 0.0
 
-    if (.not. allocated(lon_Waccm)) allocate (lon_waccm(nLonsWaccm))
-    if (.not. allocated(lat_waccm)) allocate (lat_waccm(nLatsWaccm))
+    if (.not. allocated(lon_Waccm)) allocate(lon_waccm(nLonsWaccm))
+    if (.not. allocated(lat_waccm)) allocate(lat_waccm(nLatsWaccm))
     if (.not. allocated(alt_waccm)) &
-      allocate (alt_waccm(nLonsWaccm, nLatsWaccm, nAltsWaccm))
-    if (.not. allocated(pressure_waccm)) allocate (pressure_waccm(nAltsWaccm))
+      allocate(alt_waccm(nLonsWaccm, nLatsWaccm, nAltsWaccm))
+    if (.not. allocated(pressure_waccm)) allocate(pressure_waccm(nAltsWaccm))
 
     do ivar = 1, nvars
-      read (iInputUnit_) param(:, :, :, ivar)
+      read(iInputUnit_) param(:, :, :, ivar)
     end do
 
     lon_waccm = param(:, 1, 1, 1)
@@ -431,11 +431,11 @@ subroutine init_hme
     galt = Altitude_GB(1, 1, iAlt, 1)/1000.0
 
     if (galt < hmeAlts(1)) then
-      write (*, *) "Well, shoot.  One of the GITM Alts is below HME!!!"
+      write(*, *) "Well, shoot.  One of the GITM Alts is below HME!!!"
       call stop_gitm("I am unsure of what to do now! Stopping!")
     end if
     if (galt > hmeAlts(3)) then
-      write (*, *) "Well, shoot.  One of the GITM Alts is above HME!!!"
+      write(*, *) "Well, shoot.  One of the GITM Alts is above HME!!!"
       call stop_gitm("I am unsure of what to do now! Stopping!")
     end if
 
@@ -607,44 +607,44 @@ subroutine read_tides
     if (UseGswmComp(iComp)) then
 
       if (iDebugLevel > 0) &
-        write (*, *) "=> Reading File : ", gswm_file_name(iComp)
-      open (iInputUnit_, file=gswm_file_name(iComp), &
-            status="old", form="unformatted")
+        write(*, *) "=> Reading File : ", gswm_file_name(iComp)
+      open(iInputUnit_, file=gswm_file_name(iComp), &
+           status="old", form="unformatted")
 
-      read (iInputUnit_) version
-      read (iInputUnit_) nLonsGswm, nLatsGswm, nAltsGswm, nvars
+      read(iInputUnit_) version
+      read(iInputUnit_) nLonsGswm, nLatsGswm, nAltsGswm, nvars
 
-      if (.not. allocated(varname)) allocate (varname(nvars))
+      if (.not. allocated(varname)) allocate(varname(nvars))
 
       do ivar = 1, nvars
-        read (iInputUnit_) varname(ivar)
+        read(iInputUnit_) varname(ivar)
       end do
 
-      read (iInputUnit_) time
+      read(iInputUnit_) time
 
       if (.not. allocated(param)) &
-        allocate (param(nLonsGswm, nLatsGswm, nAltsGswm, nvars, 24))
+        allocate(param(nLonsGswm, nLatsGswm, nAltsGswm, nvars, 24))
       if (.not. allocated(u_gswm)) then
-        allocate (u_gswm(nLonsGswm, nLatsGswm, nAltsGswm, 24))
+        allocate(u_gswm(nLonsGswm, nLatsGswm, nAltsGswm, 24))
         u_gswm(:, :, :, :) = 0.
       end if
 
       if (.not. allocated(v_gswm)) then
-        allocate (v_gswm(nLonsGswm, nLatsGswm, nAltsGswm, 24))
+        allocate(v_gswm(nLonsGswm, nLatsGswm, nAltsGswm, 24))
         v_gswm(:, :, :, :) = 0.
       end if
 
       if (.not. allocated(t_gswm)) then
-        allocate (t_gswm(nLonsGswm, nLatsGswm, nAltsGswm, 24))
+        allocate(t_gswm(nLonsGswm, nLatsGswm, nAltsGswm, 24))
         t_gswm(:, :, :, :) = 0.
       end if
 
-      if (.not. allocated(lon_gswm)) allocate (lon_gswm(nLonsGswm))
-      if (.not. allocated(lat_gswm)) allocate (lat_gswm(nLatsGswm))
+      if (.not. allocated(lon_gswm)) allocate(lon_gswm(nLonsGswm))
+      if (.not. allocated(lat_gswm)) allocate(lat_gswm(nLatsGswm))
 
       do ihour = 1, 24
         do ivar = 1, nvars
-          read (iInputUnit_) param(:, :, :, ivar, ihour)
+          read(iInputUnit_) param(:, :, :, ivar, ihour)
         end do
       end do
 
@@ -657,10 +657,10 @@ subroutine read_tides
       u_gswm(:, :, :, :) = u_gswm(:, :, :, :) + param(:, :, :, 5, :)
       v_gswm(:, :, :, :) = v_gswm(:, :, :, :) + param(:, :, :, 6, :)
 
-      close (iInputUnit_)
+      close(iInputUnit_)
 
-      deallocate (varname)
-      deallocate (param)
+      deallocate(varname)
+      deallocate(param)
 
     end if
 
@@ -703,10 +703,10 @@ subroutine update_tides
           iLatGSWM = min(nLatsGSWM, iLatGSWM)
 
           if (iDebugLevel > 5) then
-            write (*, *) "iLon, iLat : ", iLonGSWM, iLatGSWM
-            write (*, *) "lat/lon : ", Latitude(iLat, iBlock)*180/pi, &
+            write(*, *) "iLon, iLat : ", iLonGSWM, iLatGSWM
+            write(*, *) "lat/lon : ", Latitude(iLat, iBlock)*180/pi, &
               Longitude(iLon, iBlock)*180/pi
-            write (*, *) "gswm lat/lon : ", &
+            write(*, *) "gswm lat/lon : ", &
               lat_gswm(iLatGSWM)*180/pi, lon_gswm(iLonGSWM)*180/pi
           end if
 

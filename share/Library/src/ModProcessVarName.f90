@@ -239,8 +239,8 @@ contains
     nMaterial = 0
 
     ! create standard names and dictionary arrays
-    allocate (SubstanceStandardName_II(nSubstance, nVarPerSubstance))
-    allocate (Dictionary_III(nSubstance, nVarPerSubstance, nSynonym))
+    allocate(SubstanceStandardName_II(nSubstance, nVarPerSubstance))
+    allocate(Dictionary_III(nSubstance, nVarPerSubstance, nSynonym))
     call create_dictionary
 
     ! Look up each var name
@@ -286,11 +286,11 @@ contains
       end if
 
       if (.not. IsFoundVar) then
-        write (*, *) 'ERROR: Var name not in dictionary: ', NameVarIn
-        write (*, *) 'Please use standard variable names in ModEquation '// &
+        write(*, *) 'ERROR: Var name not in dictionary: ', NameVarIn
+        write(*, *) 'Please use standard variable names in ModEquation '// &
           'and recompile:'
         !write(*,*) SubstanceStandardName_II
-        write (*, *) ''
+        write(*, *) ''
         call CON_stop(NameSub//': unknown variable '//NameVarIn)
       end if
 
@@ -301,8 +301,8 @@ contains
     nP = nDistinctSubstanceVar_I(P_)
     nPpar = nDistinctSubstanceVar_I(Ppar_)
 
-    deallocate (Dictionary_III)
-    deallocate (SubstanceStandardName_II)
+    deallocate(Dictionary_III)
+    deallocate(SubstanceStandardName_II)
 
   contains
     !==========================================================================

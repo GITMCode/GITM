@@ -151,7 +151,7 @@ contains
     character(len=*), intent(in):: String
     integer:: iError, nError
 
-    write (*, *) 'ERROR in ModHdf5Utils: ', String
+    write(*, *) 'ERROR in ModHdf5Utils: ', String
     call MPI_abort(MPI_COMM_WORLD, nError, iError)
     stop
 
@@ -209,7 +209,7 @@ contains
     FileID = -1
     call open_hdf5_file(FileID, fileName, iCommOpen)
     if (FileID == -1) then
-      write (*, *) "Error: unable to initialize file"
+      write(*, *) "Error: unable to initialize file"
       call stop_hdf5("unable to initialize hdf5 file")
     end if
 
@@ -233,7 +233,7 @@ contains
       end if
     end if  ! else make a grid
 
-    allocate (UnknownNameArray(nVar))
+    allocate(UnknownNameArray(nVar))
     call split_string(NameUnits, nVar, UnknownNameArray(1:nVar), i)
     iInteger4 = lNameh5
     call pad_string_with_null(nVar, iInteger4, UnknownNameArray, UnknownNameArray)
@@ -256,22 +256,22 @@ contains
                            RealAttribute1=VarMin, RealAttribute2=VarMax, &
                            NameRealAttribute1="minimum", NameRealAttribute2="maximum")
     end do
-    deallocate (UnknownNameArray)
+    deallocate(UnknownNameArray)
 
     iInteger8 = 2
     call write_hdf5_data(FileID, "bounding box", 3, &
                          (/iInteger8, nPlotDim, nBlkUsed/), Rank3RealData=XYZMinMax(:, 1:nPlotDim, :))
 
-    allocate (coordinates(nPlotDim, nBlkUsed))
+    allocate(coordinates(nPlotDim, nBlkUsed))
     do iBlk = 1, nBlkUsed
       coordinates(1:nPlotDim, iBlk) = .5*(XYZMinMax(1, 1:nPlotDim, iBlk) + XYZMinMax(2, 1:nPlotDim, iBlk))
     end do
     call write_hdf5_data(FileID, "coordinates", 2, &
                          (/nPlotDim, nBlkUsed/), Rank2RealData=coordinates)
 
-    deallocate (coordinates)
+    deallocate(coordinates)
 
-    allocate (UnknownNameArray(nPlotDim))
+    allocate(UnknownNameArray(nPlotDim))
     UnknownNameArray(1) = "Y-Axis"
     if (nPlotDim .GE. 2) then
       UnknownNameArray(2) = "Z-Axis"
@@ -283,7 +283,7 @@ contains
     iInteger8 = nPlotDim
     call write_hdf5_data(FileID, "Axis Labels", 1, (/iInteger8/), &
                          CharacterData=UnknownNameArray, nStringChars=lNameH5)
-    deallocate (UnknownNameArray)
+    deallocate(UnknownNameArray)
 
     iLen = len(trim(StringHeader)) + 1
     call pad_string_with_null(1, iLen, StringHeader, HeaderString)
@@ -296,14 +296,14 @@ contains
 
     !As of VisIt 2.5.2 Processor Number and refine level are not required
     !by the plugin.  They are here so older versions of VisIt work
-    allocate (ProcnumAndLevel(nBlkUsed))
+    allocate(ProcnumAndLevel(nBlkUsed))
     ProcnumAndLevel = 1
     call write_hdf5_data(FileID, "refine level", 1, (/nBlkUsed/), &
                          Rank1IntegerData=ProcNumAndLevel)
     procNumAndLevel = iProc
     call write_hdf5_data(FileID, "Processor Number", 1, (/nBlkUsed/), &
                          Rank1IntegerData=ProcNumAndLevel)
-    deallocate (ProcnumAndLevel)
+    deallocate(ProcnumAndLevel)
     iData = 1
     !    AttributeName(1) = 'Simulation Time'
     RealMetaData(iData) = Time
@@ -501,19 +501,19 @@ contains
 
     if (present(nBlocksLocalIn)) then
       nBlocksLocal = nBlocksLocalIn
-      allocate (nCount(DatasetRank))
+      allocate(nCount(DatasetRank))
     else
       nBlocksLocal = nDatasetDimension(DatasetRank)
     end if
     if (present(nCellsLocalIn)) then
       nCellsLocal = nCellsLocalIn
-      allocate (nCount(1))
+      allocate(nCount(1))
     else
       nCellsLocal = nBlocksLocal
     end if
 
     if ((.not. present(nBlocksLocalIn)) .and. (.not. present(nCellsLocalIn))) &
-      allocate (nCount(DatasetRank))
+      allocate(nCount(DatasetRank))
 
     !Set the nDatasetDimensionions of the DatasetID
     iOneOrZero = 0
@@ -570,7 +570,7 @@ contains
         call h5pclose_f(PropertyListID, iErrorHdf)
         call h5sclose_f(DataSpaceId, iErrorHdf)
         call h5dclose_f(DatasetID, iErrorHdf)
-        deallocate (nCount)
+        deallocate(nCount)
         return
       end if
     else
@@ -666,7 +666,7 @@ contains
     call h5pclose_f(PropertyListID, iErrorHdf)
     call h5sclose_f(DataSpaceId, iErrorHdf)
     call h5dclose_f(DatasetID, iErrorHdf)
-    deallocate (nCount)
+    deallocate(nCount)
   end subroutine write_hdf5_data
 
   !=====================================================================
@@ -710,7 +710,7 @@ contains
     !closing the hdf5 interface
     call h5close_f(error)
     if (error == -1) &
-      write (*, *) "close_hdf5_file failed!"
+      write(*, *) "close_hdf5_file failed!"
   end subroutine
   !=====================================================================
   !=====================================================================

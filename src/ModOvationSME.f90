@@ -218,20 +218,20 @@ contains
 
     cFile = "."//cDirectory//infile
 
-    inquire (file=cFile, EXIST=IsThere)
+    inquire(file=cFile, EXIST=IsThere)
     if (.not. IsThere) then
-      write (*, *) cFile//" cannot be found by read_ovationsm_files"
+      write(*, *) cFile//" cannot be found by read_ovationsm_files"
 !         call stop_gitm(cFile//" cannot be found by read_ovationsm_files")
     end if
 
     iError = 0
 
-    open (iInputUnit_, file=cFile, status="old", iostat=iError)
+    open(iInputUnit_, file=cFile, status="old", iostat=iError)
 
     do while (iError == 0)
 
-      read (iInputUnit_, *, iostat=iError) i, j, npnts, mlt_set, mlat_set, B0
-      read (iInputUnit_, *, iostat=iError) Bsme, Bt1, Bt2, Rsq_e
+      read(iInputUnit_, *, iostat=iError) i, j, npnts, mlt_set, mlat_set, B0
+      read(iInputUnit_, *, iostat=iError) Bsme, Bt1, Bt2, Rsq_e
 
       if (iError == 0) then
 
@@ -252,7 +252,7 @@ contains
 
     end do
 
-    close (iInputUnit_)
+    close(iInputUnit_)
 
   end subroutine read_single_file
 

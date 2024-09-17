@@ -30,14 +30,14 @@ subroutine cofrm(date)
   real, parameter :: alt = 0.
 
   if (date < 1900. .or. date > 2030.) then
-    write (6, "('>>> cofrm: date=',f8.2,' Date must be >= 1900 and <= 2030')") date
+    write(6, "('>>> cofrm: date=',f8.2,' Date must be >= 1900 and <= 2030')") date
     stop 'cofrm'
   end if
   if (date > 2025.) then
-    write (6, "('>>> WARNING cofrm:')")
-    write (6, "(/,'   This version of IGRF is intended for use up to ')")
-    write (6, "('     2025. Values for ',f9.3,' will be computed but')") date
-    write (6, "('     may be of reduced accuracy.',/)")
+    write(6, "('>>> WARNING cofrm:')")
+    write(6, "(/,'   This version of IGRF is intended for use up to ')")
+    write(6, "('     2025. Values for ',f9.3,' will be computed but')") date
+    write(6, "('     may be of reduced accuracy.',/)")
   end if
 
   g1(:, 1) = (/ & ! 1900

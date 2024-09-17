@@ -377,7 +377,7 @@ contains
     g_pole(:, 3) = g_pole3(:)
 
     ! allocate global g_buf_pos array used in transfer procedures
-    allocate (g_buf_pos(0:g_max_pn), stat=ierror)
+    allocate(g_buf_pos(0:g_max_pn), stat=ierror)
     if (ierror .ne. 0) then
       ok = .false.
       call AB_ERROR_set("AB_module_setup", "allocate error ", ierror)
@@ -415,7 +415,7 @@ contains
     ok = .true.
 
     ! Allocate space for the blocks
-    allocate (grp%blks(num_blks), stat=ierror)
+    allocate(grp%blks(num_blks), stat=ierror)
     if (ierror .ne. 0) then
       ok = .false.
       call AB_ERROR_set("AB_GRP_create", "allocate error ", ierror)
@@ -423,7 +423,7 @@ contains
     end if
 
     ! Allocate space for adpt values
-    allocate (grp%adpt(num_blks), stat=ierror)
+    allocate(grp%adpt(num_blks), stat=ierror)
     if (ierror .ne. 0) then
       ok = .false.
       call AB_ERROR_set("AB_GRP_create_sphere", "allocate error ", ierror)
@@ -835,26 +835,26 @@ contains
     logical :: done
 
     i = 1
-    write (*, *) "AB_NBR_ITER"
+    write(*, *) "AB_NBR_ITER"
     call AB_NBR_ITER_create(iter, grp)
     call AB_NBR_ITER_reset(iter, b, d, n_p, n_b, done)
     do while (.not. done)
 
-      write (*, *) i, "[", b, ",", d, "]={", n_p, ",", n_b, "}"
+      write(*, *) i, "[", b, ",", d, "]={", n_p, ",", n_b, "}"
       i = i + 1
       call AB_NBR_ITER_next(iter, b, d, n_p, n_b, done)
     end do
 
     i = 1
-    write (*, *)
-    write (*, *) "Just Loops"
+    write(*, *)
+    write(*, *) "Just Loops"
     do b = 1, grp%max_used_blks
 
        !! do direct neighbors
       do d = 1, ab_num_edge_nbrs
         n_p = grp%blks(b)%nbrs_p(ab_rnbr_none, d)
         n_b = grp%blks(b)%nbrs_b(ab_rnbr_none, d)
-        write (*, *) i, "[", b, ",", d, "]={", n_p, ",", n_b, "}"
+        write(*, *) i, "[", b, ",", d, "]={", n_p, ",", n_b, "}"
         i = i + 1
       end do
 
@@ -862,7 +862,7 @@ contains
       do d = 1, ab_num_cnr_nbrs
         n_p = grp%blks(b)%cnrs_p(d)
         n_b = grp%blks(b)%cnrs_b(d)
-        write (*, *) i, "[", b, ",", d + 4, "]={", n_p, ",", n_b, "}"
+        write(*, *) i, "[", b, ",", d + 4, "]={", n_p, ",", n_b, "}"
         i = i + 1
       end do
     end do
@@ -919,10 +919,10 @@ contains
     integer :: p
 
     ! Deallocate adpt array
-    deallocate (grp%adpt)
+    deallocate(grp%adpt)
 
     ! Deallocate blk array
-    deallocate (grp%blks)
+    deallocate(grp%blks)
 
   end subroutine AB_GRP_destroy
 
@@ -983,7 +983,7 @@ contains
     logical :: tmp_ok
 
     ! deallocate global g_buf_pos array
-    deallocate (g_buf_pos)
+    deallocate(g_buf_pos)
 
   end subroutine AB_module_takedown
 

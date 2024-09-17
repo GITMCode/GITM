@@ -20,16 +20,16 @@ subroutine read_inputs(cFile)
 
     nInputLines = 1
 
-    inquire (file=cFile, EXIST=IsThere)
+    inquire(file=cFile, EXIST=IsThere)
     if (.not. IsThere) &
       call stop_gitm(cFile//" cannot be found by read_inputs")
 
-    open (iInputUnit_, file=cFile, status="old")
+    open(iInputUnit_, file=cFile, status="old")
 
     iError = 0
     do while (iError == 0)
 
-      read (iInputUnit_, '(a)', iostat=iError) line
+      read(iInputUnit_, '(a)', iostat=iError) line
 
       if (nInputLines > nInputMaxLines) &
         call stop_gitm("Too many lines of input in read_inputs")
@@ -39,7 +39,7 @@ subroutine read_inputs(cFile)
 
     end do
 
-    close (iInputUnit_)
+    close(iInputUnit_)
 
     if (nInputLines == 0) &
       call stop_gitm("No lines of input read by read_inputs")

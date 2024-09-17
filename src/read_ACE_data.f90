@@ -35,11 +35,11 @@ subroutine read_ACE_data(iOutputError)
   TimeDelay = 3600.0
   iSW = 1
 
-  write (*, *) "ACE Science Center Data Reader"
+  write(*, *) "ACE Science Center Data Reader"
 
   ierror = 0
 
-  open (LunIndices_, file=NameOfIndexFile, status="old", iostat=ierror)
+  open(LunIndices_, file=NameOfIndexFile, status="old", iostat=ierror)
 
   if (ierror .ne. 0) then
     iOutputError = 1
@@ -50,7 +50,7 @@ subroutine read_ACE_data(iOutputError)
 
   do while (.not. done)
 
-    read (LunIndices_, '(a)', iostat=ierror) line
+    read(LunIndices_, '(a)', iostat=ierror) line
     if (ierror .ne. 0) done = .true.
     if (index(line, 'BEGIN DATA') > 0) done = .true.
 
@@ -64,7 +64,7 @@ subroutine read_ACE_data(iOutputError)
 
     do while (.not. done)
 
-      read (LunIndices_, *, iostat=iError) &
+      read(LunIndices_, *, iostat=iError) &
         (ydhm(j), j=1, 4), second, &
         Indices_TV(iIMF, imf_bx_), &
         Indices_TV(iIMF, imf_by_), &
@@ -99,9 +99,9 @@ subroutine read_ACE_data(iOutputError)
 
   end if
 
-  close (LunIndices_)
+  close(LunIndices_)
 
-  open (LunIndices_, file=NameOfSecondIndexFile, status="old", iostat=ierror)
+  open(LunIndices_, file=NameOfSecondIndexFile, status="old", iostat=ierror)
 
   if (ierror .ne. 0) then
     iOutputError = 1
@@ -112,7 +112,7 @@ subroutine read_ACE_data(iOutputError)
 
   do while (.not. done)
 
-    read (LunIndices_, '(a)', iostat=ierror) line
+    read(LunIndices_, '(a)', iostat=ierror) line
     if (ierror .ne. 0) done = .true.
     if (index(line, 'BEGIN DATA') > 0) done = .true.
 
@@ -126,7 +126,7 @@ subroutine read_ACE_data(iOutputError)
 
     do while (.not. done)
 
-      read (LunIndices_, *, iostat=iError) &
+      read(LunIndices_, *, iostat=iError) &
         (ydhm(j), j=1, 4), second, &
         Indices_TV(iSW, sw_n_), &
         Indices_TV(iSW, sw_vx_)
@@ -171,7 +171,7 @@ subroutine read_ACE_data(iOutputError)
 
   end if
 
-  close (LunIndices_)
+  close(LunIndices_)
 
   nIndices_V(imf_bx_) = iIMF - 1
   nIndices_V(imf_by_) = iIMF - 1
@@ -191,7 +191,7 @@ subroutine read_ACE_data(iOutputError)
 
   TimeDelay = 1.5e6/avevx
 
-  write (*, *) "Time Delay : ", TimeDelay/60.0, ' minutes'
+  write(*, *) "Time Delay : ", TimeDelay/60.0, ' minutes'
 
   do iSW = 1, nIndices_V(sw_vx_)
     IndexTimes_TV(iSW, sw_vx_) = IndexTimes_TV(iSW, sw_vx_) &

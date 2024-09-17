@@ -79,7 +79,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
   external :: matvec_gitm
 
   if (Debug) &
-    write (*, *) 'DBG: entered UA_calc_electrodynamics: ', &
+    write(*, *) 'DBG: entered UA_calc_electrodynamics: ', &
     DipoleStrength, UseDynamo, Is1D
 
   if (DipoleStrength == 0) return
@@ -104,49 +104,49 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
     nMagLats = (2*DynamoHighLatBoundary)/MagLatRes + 1
     nMagLons = 360.0/MagLonRes
 
-    allocate (DivJuAltMC(nMagLons + 1, nMagLats), &
-              SigmaHallMC(nMagLons + 1, nMagLats), &
-              SigmaPedersenMC(nMagLons + 1, nMagLats), &
-              SigmaLLMC(nMagLons + 1, nMagLats), &
-              SigmaPPMC(nMagLons + 1, nMagLats), &
-              AverageMC(nMagLons + 1, nMagLats), &
-              SigmaHHMC(nMagLons + 1, nMagLats), &
-              SigmaCCMC(nMagLons + 1, nMagLats), &
-              SigmaLPMC(nMagLons + 1, nMagLats), &
-              SigmaPLMC(nMagLons + 1, nMagLats), &
-              KpmMC(nMagLons + 1, nMagLats), KlmMC(nMagLons + 1, nMagLats), &
-              KDpmMC(nMagLons + 1, nMagLats), &
-              KDlmMC(nMagLons + 1, nMagLats), &
-              MagBufferMC(nMagLons + 1, nMagLats), &
-              LengthMC(nMagLons + 1, nMagLats), &
-              GeoLatMC(nMagLons + 1, nMagLats), &
-              GeoLonMC(nMagLons + 1, nMagLats), &
-              MagLocTimeMC(nMagLons + 1, nMagLats), &
-              MagLonMC(nMagLons + 1, nMagLats), MagLatMC(nMagLons + 1, nMagLats), &
-              solver_a_mc(nMagLons + 1, nMagLats), &
-              solver_b_mc(nMagLons + 1, nMagLats), &
-              solver_c_mc(nMagLons + 1, nMagLats), &
-              solver_d_mc(nMagLons + 1, nMagLats), &
-              solver_e_mc(nMagLons + 1, nMagLats), &
-              solver_s_mc(nMagLons + 1, nMagLats), &
-              deltalmc(nMagLons + 1, nMagLats), deltapmc(nMagLons + 1, nMagLats), &
-              dSigmaLLdlMC(nMagLons + 1, nMagLats), &
-              dSigmaLPdlMC(nMagLons + 1, nMagLats), &
-              dSigmaPLdpMC(nMagLons + 1, nMagLats), &
-              dSigmaLLdpMC(nMagLons + 1, nMagLats), SigmaCowlingMC(nMagLons + 1, nMagLats), &
-              dSigmaCowlingdpMC(nMagLons + 1, nMagLats), dKDlmdpMC(nMagLons + 1, nMagLats), &
-              dSigmaPPdpMC(nMagLons + 1, nMagLats), &
-              dKDpmdpMC(nMagLons + 1, nMagLats), dKlmdlMC(nMagLons + 1, nMagLats), &
-              dKDlmdlMC(nMagLons + 1, nMagLats), dKpmdpMC(nMagLons + 1, nMagLats), &
-              DynamoPotentialMC(nMagLons + 1, nMagLats), &
-              Ed1new(nMagLons + 1, nMagLats), Ed2new(nMagLons + 1, nMagLats), &
-              OldPotMC(nMagLons + 1, nMagLats), &
-              stat=iError)
+    allocate(DivJuAltMC(nMagLons + 1, nMagLats), &
+             SigmaHallMC(nMagLons + 1, nMagLats), &
+             SigmaPedersenMC(nMagLons + 1, nMagLats), &
+             SigmaLLMC(nMagLons + 1, nMagLats), &
+             SigmaPPMC(nMagLons + 1, nMagLats), &
+             AverageMC(nMagLons + 1, nMagLats), &
+             SigmaHHMC(nMagLons + 1, nMagLats), &
+             SigmaCCMC(nMagLons + 1, nMagLats), &
+             SigmaLPMC(nMagLons + 1, nMagLats), &
+             SigmaPLMC(nMagLons + 1, nMagLats), &
+             KpmMC(nMagLons + 1, nMagLats), KlmMC(nMagLons + 1, nMagLats), &
+             KDpmMC(nMagLons + 1, nMagLats), &
+             KDlmMC(nMagLons + 1, nMagLats), &
+             MagBufferMC(nMagLons + 1, nMagLats), &
+             LengthMC(nMagLons + 1, nMagLats), &
+             GeoLatMC(nMagLons + 1, nMagLats), &
+             GeoLonMC(nMagLons + 1, nMagLats), &
+             MagLocTimeMC(nMagLons + 1, nMagLats), &
+             MagLonMC(nMagLons + 1, nMagLats), MagLatMC(nMagLons + 1, nMagLats), &
+             solver_a_mc(nMagLons + 1, nMagLats), &
+             solver_b_mc(nMagLons + 1, nMagLats), &
+             solver_c_mc(nMagLons + 1, nMagLats), &
+             solver_d_mc(nMagLons + 1, nMagLats), &
+             solver_e_mc(nMagLons + 1, nMagLats), &
+             solver_s_mc(nMagLons + 1, nMagLats), &
+             deltalmc(nMagLons + 1, nMagLats), deltapmc(nMagLons + 1, nMagLats), &
+             dSigmaLLdlMC(nMagLons + 1, nMagLats), &
+             dSigmaLPdlMC(nMagLons + 1, nMagLats), &
+             dSigmaPLdpMC(nMagLons + 1, nMagLats), &
+             dSigmaLLdpMC(nMagLons + 1, nMagLats), SigmaCowlingMC(nMagLons + 1, nMagLats), &
+             dSigmaCowlingdpMC(nMagLons + 1, nMagLats), dKDlmdpMC(nMagLons + 1, nMagLats), &
+             dSigmaPPdpMC(nMagLons + 1, nMagLats), &
+             dKDpmdpMC(nMagLons + 1, nMagLats), dKlmdlMC(nMagLons + 1, nMagLats), &
+             dKDlmdlMC(nMagLons + 1, nMagLats), dKpmdpMC(nMagLons + 1, nMagLats), &
+             DynamoPotentialMC(nMagLons + 1, nMagLats), &
+             Ed1new(nMagLons + 1, nMagLats), Ed2new(nMagLons + 1, nMagLats), &
+             OldPotMC(nMagLons + 1, nMagLats), &
+             stat=iError)
 
-    allocate (SmallMagLocTimeMC(nMagLons + 1, 2), &
-              SmallMagLatMC(nMagLons + 1, 2), &
-              SmallPotentialMC(nMagLons + 1, 2), &
-              stat=iError)
+    allocate(SmallMagLocTimeMC(nMagLons + 1, 2), &
+             SmallMagLatMC(nMagLons + 1, 2), &
+             SmallPotentialMC(nMagLons + 1, 2), &
+             stat=iError)
 
     DivJuAltMC = 0.0
     SigmaHallMC = 0.0
@@ -210,7 +210,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
 
     do i = iStart, iEnd
       if (iDebugLevel > 1) &
-        write (*, *) "==> Calculating Apex->Geo", i, iStart, iEnd
+        write(*, *) "==> Calculating Apex->Geo", i, iStart, iEnd
       do j = 1, nMagLats
 
         MagLatMC(i, j) = float(j - 1)*MagLatRes - DynamoHighLatBoundary
@@ -259,7 +259,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
     end do
 
     if (iDebugLevel > 3) &
-      write (*, *) "====> Starting Messagepass for apex_to_geo"
+      write(*, *) "====> Starting Messagepass for apex_to_geo"
 
     bs = nMagLats*(nMagLons + 1)
 
@@ -346,7 +346,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
   q2 = Element_Charge*Element_Charge
 
   do iBlock = 1, nBlocks
-    if (Debug) write (*, *) 'DBG: starting block ', iBlock, ' of ', nBlocks
+    if (Debug) write(*, *) 'DBG: starting block ', iBlock, ' of ', nBlocks
 
     call calc_physics(iBlock)
     call calc_rates(iBlock)
@@ -635,7 +635,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
           xAlt = 1.0
           iAlt = 1
 
-          if (iDebugLevel > 9) write (*, *) "=========> Integrals iLon, iLat: ", iLon, iLat
+          if (iDebugLevel > 9) write(*, *) "=========> Integrals iLon, iLat: ", iLon, iLat
           if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
 
           CALL get_magfield(GeoLat*180.0/pi, GeoLon*180.0/pi, GeoALT/1000.0, &
@@ -688,7 +688,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
 
             SigmaPP(iLon, iLat) = SigmaPP(iLon, iLat) + len*sp_d1d1_d
 
-            if (SigmaPP(iLon, iLat) > 1000.) write (*, *) "integrating :", &
+            if (SigmaPP(iLon, iLat) > 1000.) write(*, *) "integrating :", &
               iLon, iLat, iAlt, SigmaPP(iLon, iLat), len, sp_d1d1_d, &
               Sigma_Pedersen(iLon, iLat, iAlt), &
               b0_d1(iLon, iLat, iAlt, 1:3, iBlock), &
@@ -752,7 +752,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
 
           end do
 
-          if (iDebugLevel > 9) write (*, *) "=========> EndWhile "
+          if (iDebugLevel > 9) write(*, *) "=========> EndWhile "
           if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
 
         end do
@@ -788,7 +788,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
         gLatMC = GeoLatMC(i, j)
         gLonMC = GeoLonMC(i, j)
 
-        if (iDebugLevel > 9) write (*, *) "=========> Moving to mag grid: ", i, j, mLatMC, mltMC
+        if (iDebugLevel > 9) write(*, *) "=========> Moving to mag grid: ", i, j, mLatMC, mltMC
         if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
 
         call find_mag_point(jul, shl, spl, length, spp, sll, shh, scc, &
@@ -833,7 +833,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
 
   end do
 
-  if (iDebugLevel > 2) write (*, *) "===> Beginning Sum of Electrodynamics"
+  if (iDebugLevel > 2) write(*, *) "===> Beginning Sum of Electrodynamics"
   if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
 
   DivJuAltMC(nMagLons + 1, :) = DivJuAltMC(1, :)
@@ -1158,7 +1158,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
       KDlmMC(i, k) = KDlmMC(i, j)
 
       if (SigmaLLMC(i, j) > 10000.0) &
-        write (*, *) 'SigmaLLMC:', iproc, MagLonMC(i, j), MagLatMC(i, j), MagLatMC(i, k), SigmaLLMC(i, j)
+        write(*, *) 'SigmaLLMC:', iproc, MagLonMC(i, j), MagLatMC(i, j), MagLatMC(i, k), SigmaLLMC(i, j)
     end do
 
   end do
@@ -1400,8 +1400,8 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
 
   nX = (nMagLats - 2)*(nMagLons)
 
-  allocate (x(nX), y(nX), rhs(nX), b(nX), &
-            d_I(nX), e_I(nX), e1_I(nX), f_I(nX), f1_I(nX))
+  allocate(x(nX), y(nX), rhs(nX), b(nX), &
+           d_I(nX), e_I(nX), e1_I(nX), f_I(nX), f1_I(nX))
 
   call UA_SetnMLTs(nMagLons + 1)
   call UA_SetnLats(2)
@@ -1413,8 +1413,8 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
   iError = 0
   call UA_SetGrid(SmallMagLocTimeMC, SmallMagLatMC, iError)
   if (iError /= 0) then
-    write (*, *) "Error in routine calc_electrodynamics (UA_SetGrid):"
-    write (*, *) iError
+    write(*, *) "Error in routine calc_electrodynamics (UA_SetGrid):"
+    write(*, *) iError
     call stop_gitm("Stopping in calc_electrodynamics")
   end if
 
@@ -1422,8 +1422,8 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
   call UA_GetPotential(SmallPotentialMC, iError)
 
   if (iError /= 0) then
-    write (*, *) "Error in routine calc_electrodynamics (UA_GetPotential):"
-    write (*, *) iError
+    write(*, *) "Error in routine calc_electrodynamics (UA_GetPotential):"
+    write(*, *) iError
 !     call stop_gitm("Stopping in calc_electrodynamics")
     SmallPotentialMC = 0.0
   end if
@@ -1506,7 +1506,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
   call end_timing("dynamo_solver")
 
   if (iDebugLevel > 0) &
-    write (*, *) "=> gmres : ", MaxIteration, Residual, nIteration, iError
+    write(*, *) "=> gmres : ", MaxIteration, Residual, nIteration, iError
 
   iI = 0
   do iLat = 2, nMagLats - 1
@@ -1534,7 +1534,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
 
   DynamoPotentialMC(nMagLons + 1, :) = DynamoPotentialMC(1, :)
 
-  if (allocated(b)) deallocate (x, y, b, rhs, d_I, e_I, f_I, e1_I, f1_I)
+  if (allocated(b)) deallocate(x, y, b, rhs, d_I, e_I, f_I, e1_I, f1_I)
 ! Electric fields
 
   do j = 1, nMagLats
@@ -1687,7 +1687,7 @@ contains
 
     call interpolate_local(b0_be3(:, :, 1, iBlock), mfac, lfac, ii, jj, be3)
 
-    if (sppline > 1000.) write (*, *) "sppline : ", &
+    if (sppline > 1000.) write(*, *) "sppline : ", &
       mfac, lfac, ii, jj, sppline, &
       SigmaPP(ii, jj), SigmaPP(ii + 1, jj), SigmaPP(jj + 1, ii), SigmaPP(ii + 1, jj + 1)
 

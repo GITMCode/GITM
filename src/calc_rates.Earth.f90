@@ -25,7 +25,7 @@ subroutine calc_rates(iBlock)
   call start_timing("calc_rates")
 
   if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
-  if (iDebugLevel > 4) write (*, *) "=====> mean major mass", iblock
+  if (iDebugLevel > 4) write(*, *) "=====> mean major mass", iblock
 
   ! We add 1 because this is in the denominator a lot, and the corners
   ! don't have anything.
@@ -53,7 +53,7 @@ subroutine calc_rates(iBlock)
   ! These are needed for the Euv Heating and other thermodynamics:
   !/
 
-  if (iDebugLevel > 4) write (*, *) "=====> kappatemp", iblock
+  if (iDebugLevel > 4) write(*, *) "=====> kappatemp", iblock
 
   do iAlt = 0, nAlts + 1
 
@@ -151,7 +151,7 @@ subroutine calc_collisions(iBlock)
   !
 
   if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
-  if (iDebugLevel > 4) write (*, *) "=====> vin", iblock
+  if (iDebugLevel > 4) write(*, *) "=====> vin", iblock
 
   Collisions(:, :, :, iVIN_) = 2.6e-15*(mnd + Ne)/sqrt(MeanMajorMass/AMU)
 
@@ -163,7 +163,7 @@ subroutine calc_collisions(iBlock)
 
   ! O+ (with O, O2, N2, N, NO)
 
-  if (iDebugLevel > 5) write (*, *) "======> o+ ", iblock
+  if (iDebugLevel > 5) write(*, *) "======> o+ ", iblock
 
   where (Tr > 235.0) IonCollisions(:, :, :, iO_4SP_, iO_3P_) = &
     3.67e-17*ODensity*sqrt(Tr)*(1.0 - 0.064*log10(Tr))**2
@@ -189,7 +189,7 @@ subroutine calc_collisions(iBlock)
 
   ! O2+ (with O2, O, N2, N, NO)
 
-  if (iDebugLevel > 5) write (*, *) "======> o2+ ", iblock
+  if (iDebugLevel > 5) write(*, *) "======> o2+ ", iblock
 
   where (tr > 800.) IonCollisions(:, :, :, iO2P_, iO2_) = &
     2.59e-17*NDensityS(:, :, :, iO2_, iBlock)*tr**0.5*(1 - 0.073*log10(tr))**2
@@ -203,7 +203,7 @@ subroutine calc_collisions(iBlock)
 
   ! NO+ (with NO, O, N2, N, O2)
 
-  if (iDebugLevel > 5) write (*, *) "======> no+ ", iblock
+  if (iDebugLevel > 5) write(*, *) "======> no+ ", iblock
 
   ! This resonant ion-neutral is made up, since NO-NO+ doesn't exist
   where (tr > 800.) IonCollisions(:, :, :, iNOP_, iNO_) = &
@@ -217,7 +217,7 @@ subroutine calc_collisions(iBlock)
 
   ! N2+ (with N2, O2, O, N, NO)
 
-  if (iDebugLevel > 5) write (*, *) "======> n2+ ", iblock
+  if (iDebugLevel > 5) write(*, *) "======> n2+ ", iblock
 
   IonCollisions(:, :, :, iN2P_, iN2_) = &
     5.14e-17*NDensityS(:, :, :, iN2_, iBlock)*tr**0.5*(1 - 0.069*log10(tr))**2
@@ -230,7 +230,7 @@ subroutine calc_collisions(iBlock)
 
   ! N+ (with N, O2, N2, O, NO)
 
-  if (iDebugLevel > 5) write (*, *) "======> n+ ", iblock
+  if (iDebugLevel > 5) write(*, *) "======> n+ ", iblock
 
   ! where (Tr > 275.0)
   IonCollisions(:, :, :, iNP_, iN_4S_) = &
@@ -276,7 +276,7 @@ subroutine calc_collisions(iBlock)
 !
 
   if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
-  if (iDebugLevel > 4) write (*, *) "=====> ven", iblock
+  if (iDebugLevel > 4) write(*, *) "=====> ven", iblock
 
   Te = eTemperature(:, :, :, iBlock)
   where (Te <= 0.0) Te = 1000.0
@@ -288,7 +288,7 @@ subroutine calc_collisions(iBlock)
 !
 
   if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
-  if (iDebugLevel > 4) write (*, *) "=====> vei", iblock
+  if (iDebugLevel > 4) write(*, *) "=====> vei", iblock
 
   tmp = (34.0 + 4.18*log((TE**3.0)/(Ne*1.0e-6)))
   Collisions(:, :, :, iVEI_) = tmp*Ne*TE**(-3.0/2.0)*1.0e-6

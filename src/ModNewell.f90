@@ -498,32 +498,32 @@ contains
 
     iError = 0
 
-    open (iInputUnit_, file=cFile, status="old", iostat=iError)
+    open(iInputUnit_, file=cFile, status="old", iostat=iError)
 
     if (iError /= 0) then
-      write (*, *) "Error in read_single_regression_file"
+      write(*, *) "Error in read_single_regression_file"
       call stop_gitm(cFile//" cannot be opened")
     end if
 
-    read (iInputUnit_, *, iostat=iError) year0, day0, year1, day1, nFiles, sf0
+    read(iInputUnit_, *, iostat=iError) year0, day0, year1, day1, nFiles, sf0
 
     if (iError /= 0) then
-      write (*, *) "Error in read_single_regression_file"
+      write(*, *) "Error in read_single_regression_file"
       call stop_gitm(cFile//" cannot read first line")
     end if
 
     do iMlt = 1, nMlts
       do iMlat = 1, nMlats
-        read (iInputUnit_, *, iostat=iError) &
+        read(iInputUnit_, *, iostat=iError) &
           i, j, b1a(iMlt, iMlat), b2a(iMlt, iMlat), rfa(iMlt, iMlat)
         if (iError /= 0) then
-          write (*, *) "Error in read_single_regression_file:", iMlt, iMlat
+          write(*, *) "Error in read_single_regression_file:", iMlt, iMlat
           call stop_gitm(cFile//" error reading file")
         end if
       end do
     end do
 
-    close (iInputUnit_)
+    close(iInputUnit_)
 
   end subroutine read_single_regression_file
 
@@ -541,26 +541,26 @@ contains
 
     iError = 0
 
-    open (iInputUnit_, file=cFile, status="old", iostat=iError)
+    open(iInputUnit_, file=cFile, status="old", iostat=iError)
 
     if (iError /= 0) then
-      write (*, *) "Error in read_single_probability_file"
+      write(*, *) "Error in read_single_probability_file"
       call stop_gitm(cFile//" cannot be opened")
     end if
 
-    read (iInputUnit_, *, iostat=iError) year0, day0, year1, day1, nFiles, sf0
+    read(iInputUnit_, *, iostat=iError) year0, day0, year1, day1, nFiles, sf0
 
     if (iError /= 0) then
-      write (*, *) "Error in read_single_probability_file"
+      write(*, *) "Error in read_single_probability_file"
       call stop_gitm(cFile//" cannot read first line")
     end if
 
     do iMlt = 1, nMlts
       do iMlat = 1, nMlats
-        read (iInputUnit_, *, iostat=iError) &
+        read(iInputUnit_, *, iostat=iError) &
           b1p(iMlt, iMlat), b2p(iMlt, iMlat)
         if (iError /= 0) then
-          write (*, *) "Error in read_single_probability_file:", iMlt, iMlat
+          write(*, *) "Error in read_single_probability_file:", iMlt, iMlat
           call stop_gitm(cFile//" error reading file")
         end if
       end do
@@ -569,16 +569,16 @@ contains
     do iMlt = 1, nMlts
       do iMlat = 1, nMlats
         do idF = 1, ndF
-          read (iInputUnit_, *, iostat=iError) Prob(idF, iMlt, iMlat)
+          read(iInputUnit_, *, iostat=iError) Prob(idF, iMlt, iMlat)
           if (iError /= 0) then
-            write (*, *) "Error in read_single_probability_file:", idF, iMlt, iMlat
+            write(*, *) "Error in read_single_probability_file:", idF, iMlt, iMlat
             call stop_gitm(cFile//" error reading file")
           end if
         end do
       end do
     end do
 
-    close (iInputUnit_)
+    close(iInputUnit_)
 
   end subroutine read_single_probability_file
 

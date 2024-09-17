@@ -250,37 +250,37 @@ contains
                            rot_matrix_z(-LongitudeCme*cDegToRad))
 
     if (iProc == 0) then
-      write (*, *) prefix
-      write (*, *) prefix, '>>>>>>>>>>>>>>>>>>>                   <<<<<<<<<<<<<<<<<<<<<'
-      write (*, *) prefix
-      write (*, *) prefix, '    Twisted Flux Rope Model by Titov & Demoulin, 1999.     '
-      write (*, *) prefix
-      write (*, *) prefix, '>>>>>>>>>>>>>>>>>>>                   <<<<<<<<<<<<<<<<<<<<<'
-      write (*, *) prefix
-      write (*, *) prefix, 'd_TD99      = ', d_TD99*No2Si_V(UnitX_)/1.0E6, '[Mm]'
-      write (*, *) prefix, 'Rtube_TD99  = ', &
+      write(*, *) prefix
+      write(*, *) prefix, '>>>>>>>>>>>>>>>>>>>                   <<<<<<<<<<<<<<<<<<<<<'
+      write(*, *) prefix
+      write(*, *) prefix, '    Twisted Flux Rope Model by Titov & Demoulin, 1999.     '
+      write(*, *) prefix
+      write(*, *) prefix, '>>>>>>>>>>>>>>>>>>>                   <<<<<<<<<<<<<<<<<<<<<'
+      write(*, *) prefix
+      write(*, *) prefix, 'd_TD99      = ', d_TD99*No2Si_V(UnitX_)/1.0E6, '[Mm]'
+      write(*, *) prefix, 'Rtube_TD99  = ', &
         Rtube_TD99*No2Si_V(UnitX_)/1.0E6, '[Mm]'
-      write (*, *) prefix, 'atube_TD99  = ', &
+      write(*, *) prefix, 'atube_TD99  = ', &
         atube_TD99*No2Si_V(UnitX_)/1.0E6, '[Mm]'
-      write (*, *) prefix, 'atube/Rtube = ', atube_TD99/Rtube_TD99, '[-]'
-      write (*, *) prefix, 'Itube_TD99  = ', ItubeDim, '[A]'
-      write (*, *) prefix, 'aratio_TD99 = ', aratio_TD99, '[-]'
-      write (*, *) prefix, 'Mass_TD99   = ', Mass_TD99*1.0e3, '[g] '
-      write (*, *) prefix, 'Rho0_TD99   = ', Rho0_TD99*No2Io_V(UnitRho_), '[g/cm^3]'
-      write (*, *) prefix
-      write (*, *) prefix, 'q_TD99      = ', &
+      write(*, *) prefix, 'atube/Rtube = ', atube_TD99/Rtube_TD99, '[-]'
+      write(*, *) prefix, 'Itube_TD99  = ', ItubeDim, '[A]'
+      write(*, *) prefix, 'aratio_TD99 = ', aratio_TD99, '[-]'
+      write(*, *) prefix, 'Mass_TD99   = ', Mass_TD99*1.0e3, '[g] '
+      write(*, *) prefix, 'Rho0_TD99   = ', Rho0_TD99*No2Io_V(UnitRho_), '[g/cm^3]'
+      write(*, *) prefix
+      write(*, *) prefix, 'q_TD99      = ', &
         q_TD99*No2Si_V(UnitB_)*No2Si_V(UnitX_)**2, '[T m^2]'
-      write (*, *) prefix, 'L_TD99      = ', L_TD99*No2Si_V(UnitX_)/1.0e6, '[Mm]'
-      write (*, *) prefix
-      write (*, *) prefix, 'Free energy of flux rope is ', WFRope, 'Ergs.'
-      write (*, *) prefix, 'Separation of flux rope ends is ', FootSepar, 'Mm,'
-      write (*, *) prefix, '   or ', cPi*FootSepar*1.0e6/(2.0*Rsun)*cRadToDeg, 'deg.'
-      write (*, *) prefix
+      write(*, *) prefix, 'L_TD99      = ', L_TD99*No2Si_V(UnitX_)/1.0e6, '[Mm]'
+      write(*, *) prefix
+      write(*, *) prefix, 'Free energy of flux rope is ', WFRope, 'Ergs.'
+      write(*, *) prefix, 'Separation of flux rope ends is ', FootSepar, 'Mm,'
+      write(*, *) prefix, '   or ', cPi*FootSepar*1.0e6/(2.0*Rsun)*cRadToDeg, 'deg.'
+      write(*, *) prefix
       if (UseVariedCurrent) then
-        write (*, *) prefix, '>>>>>       UseVariedCurrent is set to .true.!!!      <<<<<'
-        write (*, *) prefix, 'CurrentStartTime = ', CurrentStartTime, '[s]'
-        write (*, *) prefix, 'CurrentRiseTime  = ', CurrentRiseTime, '[s]'
-        write (*, *) prefix
+        write(*, *) prefix, '>>>>>       UseVariedCurrent is set to .true.!!!      <<<<<'
+        write(*, *) prefix, 'CurrentStartTime = ', CurrentStartTime, '[s]'
+        write(*, *) prefix, 'CurrentRiseTime  = ', CurrentRiseTime, '[s]'
+        write(*, *) prefix
       end if
     end if
     if (DoEquilItube) then
@@ -296,12 +296,12 @@ contains
       WFRope = 0.5*LInduct*(ItubeDim)**2*1.0e7      ! in [ergs]
     end if
     if (DoEquilItube .and. iProc == 0) then
-      write (*, *) prefix, 'The strapping field, Bq, is added and the EQUILIBRIUM value'
-      write (*, *) prefix, 'of Itube_TD99 is computed!!!'
-      write (*, *) prefix
-      write (*, *) prefix, 'The value of Itube_TD99 is reset to :: ', Itube_TD99
-      write (*, *) prefix, 'The free energy of the flux rope is :: ', WFRope, 'Ergs.'
-      write (*, *) prefix
+      write(*, *) prefix, 'The strapping field, Bq, is added and the EQUILIBRIUM value'
+      write(*, *) prefix, 'of Itube_TD99 is computed!!!'
+      write(*, *) prefix
+      write(*, *) prefix, 'The value of Itube_TD99 is reset to :: ', Itube_TD99
+      write(*, *) prefix, 'The free energy of the flux rope is :: ', WFRope, 'Ergs.'
+      write(*, *) prefix
     end if
 
   end subroutine init_TD99_parameters

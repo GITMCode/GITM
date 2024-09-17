@@ -58,7 +58,7 @@ subroutine run_RCMR
   double precision, dimension(:), allocatable :: TEC_calculated     !ANKIT: holds the value of TEC at AA
   double precision :: TEC_calculated_P1 = 0  !ANKIT: holds the value of TEC at ND
   double precision :: u_sat_level = 0
-  allocate (TEC_calculated(lz))
+  allocate(TEC_calculated(lz))
 
   call MPI_BARRIER(iCommGITM, iError)
 
@@ -134,7 +134,7 @@ subroutine run_RCMR
     llimit = 500
     ulimit = 3000
   else
-    write (*, *) "ERROR: unknown RCMR output type", RCMROutType
+    write(*, *) "ERROR: unknown RCMR output type", RCMROutType
   end if
 
   ! Begin the first RCMR loop
@@ -640,22 +640,22 @@ subroutine RCMR_onestep(u_out1, kk, u_in, z_in, y_in, ESTIMATE)
     PP = (PP - matmul(matmul(matmul(PP, transpose(XX)), Tau), matmul(XX, PP)))/lambda1
 
     if (.false.) then
-      write (*, *) "z_hat is ", z_hat
-      write (*, *) "Zf is ", z_filtered
-      write (*, *) "Uf is ", u_filtered
-      write (*, *) "Phif is ", phi_filtered
+      write(*, *) "z_hat is ", z_hat
+      write(*, *) "Zf is ", z_filtered
+      write(*, *) "Uf is ", u_filtered
+      write(*, *) "Phif is ", phi_filtered
 
-      write (*, *) "XX \n", XX
-      write (*, *) "Zp1 \n", zp1
-      write (*, *) "Rp \n", Rp
-      write (*, *) "Rbarinv \n", Rbarinv
-      write (*, *) "Ginv \n", Ginv
-      write (*, *) "Tau \n", Tau
-      write (*, *) "PpXxpTauInv \n", PpXxpTauInv
-      write (*, *) "Xxtheta \n", XxTheta
-      write (*, *) "Rzp \n", Rzp
-      write (*, *) "thetaout \n", thetaout
-      write (*, *) "PP \n", PP
+      write(*, *) "XX \n", XX
+      write(*, *) "Zp1 \n", zp1
+      write(*, *) "Rp \n", Rp
+      write(*, *) "Rbarinv \n", Rbarinv
+      write(*, *) "Ginv \n", Ginv
+      write(*, *) "Tau \n", Tau
+      write(*, *) "PpXxpTauInv \n", PpXxpTauInv
+      write(*, *) "Xxtheta \n", XxTheta
+      write(*, *) "Rzp \n", Rzp
+      write(*, *) "thetaout \n", thetaout
+      write(*, *) "PP \n", PP
     end if
 
     theta_h(:, 2) = theta_h(:, 1)
@@ -682,18 +682,18 @@ subroutine RCMR_onestep(u_out1, kk, u_in, z_in, y_in, ESTIMATE)
 
   !Ankit 5May2015: The following code writes theta to theta.dat
   IF (kk > C_on) THEN
-    inquire (file="theta.dat", exist=exist)
+    inquire(file="theta.dat", exist=exist)
     if (exist) then
-      open (12345, file="theta.dat", status="old", position="append", action="write")
+      open(12345, file="theta.dat", status="old", position="append", action="write")
     else
-      open (12345, file="theta.dat", status="new", action="write")
+      open(12345, file="theta.dat", status="new", action="write")
     end if
 
     do iii = 1, ltheta
-      write (12345, *) thetaout(iii, 1)
+      write(12345, *) thetaout(iii, 1)
     end do
 
-    close (12345)
+    close(12345)
   end if
 
 end subroutine RCMR_onestep

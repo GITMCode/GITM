@@ -57,7 +57,7 @@ subroutine read_al_onset_list(iOutputError, StartTime, EndTime)
 
   if (nIndices_V(onsetut_) == 0) NameOfOnsetFile = NameOfSecondIndexFile
 
-  open (LunIndices_, file=NameOfOnsetFile, status="old", iostat=ierror)
+  open(LunIndices_, file=NameOfOnsetFile, status="old", iostat=ierror)
 
   if (ierror .ne. 0) then
     iOutputError = 1
@@ -68,7 +68,7 @@ subroutine read_al_onset_list(iOutputError, StartTime, EndTime)
   iTime = 0
   do while (.not. IsDone)
 
-    read (LunIndices_, *, iostat=iError) &
+    read(LunIndices_, *, iostat=iError) &
       (iTime(j), j=1, 5), &
       Indices_TV(iAE, onsetmlat_), &
       Indices_TV(iAE, onsetmlt_)
@@ -116,7 +116,7 @@ subroutine read_al_onset_list(iOutputError, StartTime, EndTime)
 
   end do
 
-  close (LunIndices_)
+  close(LunIndices_)
 
   if (iAE >= MaxIndicesEntries) ReReadOnsetFile = .true.
 
@@ -178,20 +178,20 @@ subroutine read_sme(iOutputError, StartTime, EndTime, doUseAeForHp)
 
   if (nIndices_V(ae_) == 0) NameOfSMEFile = NameOfIndexFile
 
-  open (LunIndices_, file=NameOfSMEFile, status="old", iostat=ierror)
+  open(LunIndices_, file=NameOfSMEFile, status="old", iostat=ierror)
 
   ! Test the type of file
-  read (LunIndices_, *, iostat=iError) line
+  read(LunIndices_, *, iostat=iError) line
   if (line(1:4) == "File") then
     IsDone = .false.
     do while (.not. IsDone)
-      read (LunIndices_, *, iostat=iError) line
+      read(LunIndices_, *, iostat=iError) line
       if (iError /= 0) IsDone = .true.
       if (line(1:6) == "<year>") IsDone = .true.
     end do
     IsDone = .false.
   else
-    rewind (LunIndices_)
+    rewind(LunIndices_)
   end if
 
   if (ierror .ne. 0) then
@@ -203,7 +203,7 @@ subroutine read_sme(iOutputError, StartTime, EndTime, doUseAeForHp)
   iTime = 0
   do while (.not. IsDone)
 
-    read (LunIndices_, *, iostat=iError) &
+    read(LunIndices_, *, iostat=iError) &
       (iTime(j), j=1, 6), &
       Indices_TV(iAE, ae_), &
       Indices_TV(iAE, al_), &
@@ -259,7 +259,7 @@ subroutine read_sme(iOutputError, StartTime, EndTime, doUseAeForHp)
 
   end do
 
-  close (LunIndices_)
+  close(LunIndices_)
 
   if (iAE >= MaxIndicesEntries) ReReadSMEFile = .true.
 
