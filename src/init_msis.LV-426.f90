@@ -19,15 +19,15 @@ subroutine get_msis_temperature(lon, lat, alt, t, h)
   real :: m, r, g
 
   !-------------------------------------------------------
-  
+
   t = 100.0
 
   m = Mass(iH2_)
 
   r = RBody + alt
-  g = Gravitational_Constant * (RBody/r) ** 2
+  g = Gravitational_Constant*(RBody/r)**2
 
-  h = Boltzmanns_Constant * t / (m*g)
+  h = Boltzmanns_Constant*t/(m*g)
 
 end subroutine get_msis_temperature
 
@@ -53,60 +53,60 @@ subroutine init_msis
   ! Initialize data
 
   do iBlock = 1, nBlocks
-     do iAlt = -1, nAlts+2
-        do iLon=-1,nLons+2
-           do iLat=-1,nLats+2
+    do iAlt = -1, nAlts + 2
+      do iLon = -1, nLons + 2
+        do iLat = -1, nLats + 2
 
-              NDensityS(iLon,iLat,iAlt,iH2_,iBlock) = 0.0
+          NDensityS(iLon, iLat, iAlt, iH2_, iBlock) = 0.0
 
-              MeanMajorMass(iLon,iLat,iAlt) = Mass(iH2_)
-  
-              TempUnit(iLon,iLat,iAlt) = &
-                   MeanMajorMass(iLon,iLat,iAlt)/ Boltzmanns_Constant
+          MeanMajorMass(iLon, iLat, iAlt) = Mass(iH2_)
 
-              Temperature(iLon,iLat,iAlt,iBlock) = 100.0
+          TempUnit(iLon, iLat, iAlt) = &
+            MeanMajorMass(iLon, iLat, iAlt)/Boltzmanns_Constant
 
-              Rho(iLon,iLat,iAlt,iBlock) = &
-                   MeanMajorMass(iLon,iLat,iAlt) * &
-                   NDensityS(iLon,iLat,iAlt,iH2_,iBlock)
+          Temperature(iLon, iLat, iAlt, iBlock) = 100.0
 
-              LogNS(iLon,iLat,iAlt,:,iBlock) = &
-                   log(NDensityS(iLon,iLat,iAlt,:,iBlock))
+          Rho(iLon, iLat, iAlt, iBlock) = &
+            MeanMajorMass(iLon, iLat, iAlt)* &
+            NDensityS(iLon, iLat, iAlt, iH2_, iBlock)
 
-              NDensity(iLon,iLat,iAlt,iBlock) = &
-                   sum(NDensityS(iLon,iLat,iAlt,1:nSpecies,iBlock))
+          LogNS(iLon, iLat, iAlt, :, iBlock) = &
+            log(NDensityS(iLon, iLat, iAlt, :, iBlock))
 
-              Velocity(iLon,iLat,iAlt,:,iBlock) = 0.0
+          NDensity(iLon, iLat, iAlt, iBlock) = &
+            sum(NDensityS(iLon, iLat, iAlt, 1:nSpecies, iBlock))
 
-           enddo
-        enddo
-     enddo
+          Velocity(iLon, iLat, iAlt, :, iBlock) = 0.0
 
-     Rho(:,:,:,iBlock) = 0.0
-     NDensity(:,:,:,iBlock) = 0.0
+        end do
+      end do
+    end do
 
-     do iSpecies=1,nSpecies
+    Rho(:, :, :, iBlock) = 0.0
+    NDensity(:, :, :, iBlock) = 0.0
 
-        NDensity(:,:,:,iBlock) = NDensity(:,:,:,iBlock) + &
-             NDensityS(:,:,:,iSpecies,iBlock)
+    do iSpecies = 1, nSpecies
 
-        Rho(:,:,:,iBlock) = Rho(:,:,:,iBlock) + &
-             Mass(iSpecies)*NDensityS(:,:,:,iSpecies,iBlock)
-        
-     enddo
+      NDensity(:, :, :, iBlock) = NDensity(:, :, :, iBlock) + &
+                                  NDensityS(:, :, :, iSpecies, iBlock)
 
-  enddo
- 
+      Rho(:, :, :, iBlock) = Rho(:, :, :, iBlock) + &
+                             Mass(iSpecies)*NDensityS(:, :, :, iSpecies, iBlock)
+
+    end do
+
+  end do
+
 end subroutine init_msis
 
 !--------------------------------------------------------------
 !
 !--------------------------------------------------------------
 
-subroutine msis_bcs(iJulianDay,UTime,Alt,Lat,Lon,Lst, &
-     F107A,F107,AP,LogNS, Temp, LogRho, v)
+subroutine msis_bcs(iJulianDay, UTime, Alt, Lat, Lon, Lst, &
+                    F107A, F107, AP, LogNS, Temp, LogRho, v)
 
-  use ModTime, only : iTimeArray
+  use ModTime, only: iTimeArray
   use ModPlanet
 
   implicit none
@@ -118,10 +118,10 @@ subroutine msis_bcs(iJulianDay,UTime,Alt,Lat,Lon,Lst, &
   real :: h2
 
   h2 = 1.0e10
-  LogNS(iH2_)  = alog(h2)
+  LogNS(iH2_) = alog(h2)
 
-  Temp        = 100.0
-  LogRho      = alog(h2*mass(iH2_))
+  Temp = 100.0
+  LogRho = alog(h2*mass(iH2_))
 
   V(1) = 0.0
   V(2) = 0.0

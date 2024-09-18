@@ -15,7 +15,7 @@ subroutine update_time
 
   integer, external :: jday
   real*8 :: DTime
-  
+
   tSimulation = tSimulation + dt
   CurrentTime = StartTime + tSimulation
 
@@ -23,14 +23,14 @@ subroutine update_time
 
   DTime = CurrentTime - VernalTime
   do while (DTime > DaysPerYearInput*RotationPeriodInput)
-     VernalTime = VernalTime+int(DaysPerYearInput)*RotationPeriodInput
-     DTime = CurrentTime - VernalTime
-  enddo
-  iDay  = DTime / RotationPeriodInput
-  uTime = (DTime / RotationPeriodInput - iDay) * RotationPeriodInput
+    VernalTime = VernalTime + int(DaysPerYearInput)*RotationPeriodInput
+    DTime = CurrentTime - VernalTime
+  end do
+  iDay = DTime/RotationPeriodInput
+  uTime = (DTime/RotationPeriodInput - iDay)*RotationPeriodInput
 
-  iJulianDay = jday(iTimeArray(1), iTimeArray(2), iTimeArray(3)) 
-  
+  iJulianDay = jday(iTimeArray(1), iTimeArray(2), iTimeArray(3))
+
 end subroutine update_time
 
 ! ----------------------------------------------------------------------
@@ -58,11 +58,11 @@ integer function jday(year, mon, day) result(Julian_Day)
   dayofmon(11) = 30
   dayofmon(12) = 31
 
-  if (mod(year,4).eq.0) dayofmon(2) = dayofmon(1) + 1
+  if (mod(year, 4) .eq. 0) dayofmon(2) = dayofmon(1) + 1
   Julian_Day = 0
-  do i = 1, mon-1
-     Julian_Day = Julian_Day + dayofmon(i)
-  enddo
+  do i = 1, mon - 1
+    Julian_Day = Julian_Day + dayofmon(i)
+  end do
   Julian_Day = Julian_Day + day
 
 end
@@ -75,7 +75,7 @@ subroutine time_int_to_real(itime, timereal)
 
   integer, dimension(12) :: dayofmon
   integer, dimension(7), intent(in) :: itime
-  real (Real8_), intent(out) :: timereal
+  real(Real8_), intent(out) :: timereal
   integer :: nyear, nleap, nmonth, nday, nhour, nmin, nsec, i
 
   dayofmon(1) = 31
@@ -91,45 +91,42 @@ subroutine time_int_to_real(itime, timereal)
   dayofmon(11) = 30
   dayofmon(12) = 31
 
-  if (mod(itime(1),4).eq.0) dayofmon(2) = 29
+  if (mod(itime(1), 4) .eq. 0) dayofmon(2) = 29
 
-  timereal = 0.0;
-
+  timereal = 0.0; 
   if (itime(1) > 1900) then
-     nyear = itime(1) - 1965
-  else 
-     if (itime(1) > 65) then
-        nyear = itime(1) - 65 
-     else 
-        nyear = itime(1) + 100 - 65
-     endif
-  endif
+    nyear = itime(1) - 1965
+  else
+    if (itime(1) > 65) then
+      nyear = itime(1) - 65
+    else
+      nyear = itime(1) + 100 - 65
+    end if
+  end if
   nleap = nyear/4
 
   nmonth = itime(2) - 1
 
   nday = 0
 
-  do i=1, nmonth
-     nday = nday + dayofmon(i)
-  enddo
+  do i = 1, nmonth
+    nday = nday + dayofmon(i)
+  end do
 
   nday = nday + itime(3) - 1
   nhour = itime(4)
   nmin = itime(5)
   nsec = itime(6)
 
-  timereal = (dble(nsec) * dble(1.0)) +                  &
-       (dble(nmin) * dble(60.0)) +                       &
-       (dble(nhour) * dble(60.0*60.0)) +                 &
-       (dble(nday) * dble(24.0*60.0*60.0)) +             &
-       (dble(nleap) * dble(24.0*60.0*60.0)) +            &
-       (dble(nyear) * dble(365.0*24.0*60.0*60.0)) +      &
-       itime(7)/1000.0
+  timereal = (dble(nsec)*dble(1.0)) + &
+             (dble(nmin)*dble(60.0)) + &
+             (dble(nhour)*dble(60.0*60.0)) + &
+             (dble(nday)*dble(24.0*60.0*60.0)) + &
+             (dble(nleap)*dble(24.0*60.0*60.0)) + &
+             (dble(nyear)*dble(365.0*24.0*60.0*60.0)) + &
+             itime(7)/1000.0
 
 end subroutine time_int_to_real
-
-
 
 subroutine time_real_to_int(timereal, itime)
 
@@ -162,23 +159,23 @@ subroutine time_real_to_int(timereal, itime)
   nleap = nyear/4
   nday = int((timereal - (dble(nyear)*speryear))/sperday)
 
-  if (nday.le.nleap) then
-     nyear = int((timereal - (dble(nleap)*sperday))/speryear)
-     nleap = nyear/4
-     nday = int((timereal - (dble(nyear)*speryear))/sperday)
-     if (nday.le.nleap) then
-        nyear = int((timereal - (dble(nleap)*sperday))/speryear)
-        nleap = nyear/4
-        nday = int((timereal - (dble(nyear)*speryear))/sperday)
-     endif
-  endif
+  if (nday .le. nleap) then
+    nyear = int((timereal - (dble(nleap)*sperday))/speryear)
+    nleap = nyear/4
+    nday = int((timereal - (dble(nyear)*speryear))/sperday)
+    if (nday .le. nleap) then
+      nyear = int((timereal - (dble(nleap)*sperday))/speryear)
+      nleap = nyear/4
+      nday = int((timereal - (dble(nyear)*speryear))/sperday)
+    end if
+  end if
 
-  if (mod((nyear+65),4).eq.0) dayofmon(2) = dayofmon(2) + 1
+  if (mod((nyear + 65), 4) .eq. 0) dayofmon(2) = dayofmon(2) + 1
 
   nday = nday - nleap
 
   timeleft = timereal - dble(nyear)*speryear
-  timeleft = timeleft - dble(nday+nleap)*sperday
+  timeleft = timeleft - dble(nday + nleap)*sperday
 
   nhour = int(timeleft/sperhour)
   timeleft = timeleft - dble(nhour)*sperhour
@@ -188,11 +185,10 @@ subroutine time_real_to_int(timereal, itime)
 
   nsec = int(timeleft)
 
-  nmonth = 1;
-
-  do while (nday.ge.dayofmon(nmonth))
-     nday = nday - dayofmon(nmonth)
-     nmonth = nmonth + 1
+  nmonth = 1; 
+  do while (nday .ge. dayofmon(nmonth))
+    nday = nday - dayofmon(nmonth)
+    nmonth = nmonth + 1
   end do
 
   itime(1) = nyear + 1965
@@ -201,9 +197,7 @@ subroutine time_real_to_int(timereal, itime)
   itime(4) = nhour
   itime(5) = nmin
   itime(6) = nsec
-  itime(7) = (timeleft - nsec) * 1000
+  itime(7) = (timeleft - nsec)*1000
 
 end subroutine time_real_to_int
-
-
 

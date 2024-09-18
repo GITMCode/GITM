@@ -16,15 +16,15 @@ subroutine read_al_onset_list(iOutputError, StartTime, EndTime)
   logical :: IsDone
 
   ! One line of input
-  character (len=iCharLenIndices_) :: line
+  character(len=iCharLenIndices_) :: line
 
-  real (Real8_) :: TimeDelay, BufferTime
+  real(Real8_) :: TimeDelay, BufferTime
 
   integer, dimension(7) :: itime
   !------------------------------------------------------------------------
   iOutputError = 0
 
-  BufferTime = 24.0*3600.0 * 31.0
+  BufferTime = 24.0*3600.0*31.0
 
   IsDone = .false.
 
@@ -34,95 +34,95 @@ subroutine read_al_onset_list(iOutputError, StartTime, EndTime)
   ! Not sure how to set the onsets to 1, so I am changing it...
   ! if (NameOfSecondIndexFile == "none" .and. nIndices_V(onsetut_) == 1) return
   if (NameOfSecondIndexFile == "none" .and. nIndices_V(onsetut_) == 0) then
-     nIndices_V(onsetut_) = 1
-     return
-  endif
+    nIndices_V(onsetut_) = 1
+    return
+  end if
 
   call init_mod_indices
 
   ! If we have been here before and we read the entire file, leave
-  if (.not.ReReadOnsetFile .and. nIndices_V(onsetut_) > 0) return
+  if (.not. ReReadOnsetFile .and. nIndices_V(onsetut_) > 0) return
 
-  ! This if statement makes sure that we have been here before and 
+  ! This if statement makes sure that we have been here before and
   ! want to be here again
   if (ReReadOnsetFile) then
-     ! If we still have a lot of data in memory, then don't bother
-     ! reading more.
-     if (StartTime + BufferTime < IndexTimes_TV(nIndices_V(onsetut_),onsetut_)) &
-          return
-  endif
+    ! If we still have a lot of data in memory, then don't bother
+    ! reading more.
+    if (StartTime + BufferTime < IndexTimes_TV(nIndices_V(onsetut_), onsetut_)) &
+      return
+  end if
 
   ! Assume that we can read the entire file
   ReReadOnsetFile = .false.
 
   if (nIndices_V(onsetut_) == 0) NameOfOnsetFile = NameOfSecondIndexFile
 
-  open(LunIndices_, file=NameOfOnsetFile, status="old", iostat = ierror)
+  open(LunIndices_, file=NameOfOnsetFile, status="old", iostat=ierror)
 
-  if (ierror.ne.0) then
-     iOutputError = 1
-     return
-  endif
+  if (ierror .ne. 0) then
+    iOutputError = 1
+    return
+  end if
 
   iAE = 1
   iTime = 0
-  do while (.not.IsDone)
-     
-     read(LunIndices_,*,iostat=iError) &
-          (iTime(j),j=1,5), &
-          Indices_TV(iAE,onsetmlat_), &
-          Indices_TV(iAE,onsetmlt_)
+  do while (.not. IsDone)
 
-     iTime(6) = 0
+    read(LunIndices_, *, iostat=iError) &
+      (iTime(j), j=1, 5), &
+      Indices_TV(iAE, onsetmlat_), &
+      Indices_TV(iAE, onsetmlt_)
 
-     if (ierror /= 0) then
-        IsDone = .true.
+    iTime(6) = 0
 
-        ! This means that the GITM time is all AFTER the first 
-        ! line in the file! 
-        if (StartTime > IndexTimes_TV(iAE,onsetut_)) then
-           iAE = iAE +1
-        endif
+    if (ierror /= 0) then
+      IsDone = .true.
 
-     else
+      ! This means that the GITM time is all AFTER the first
+      ! line in the file!
+      if (StartTime > IndexTimes_TV(iAE, onsetut_)) then
+        iAE = iAE + 1
+      end if
 
-        call time_int_to_real(iTime,IndexTimes_TV(iAE,onsetut_))
+    else
 
-        Indices_TV(iAE,onsetut_) = IndexTimes_TV(iAE,onsetut_) - StartTime
+      call time_int_to_real(iTime, IndexTimes_TV(iAE, onsetut_))
 
-        ! This makes sure that we only store the values that we 
-        ! are really interested in
+      Indices_TV(iAE, onsetut_) = IndexTimes_TV(iAE, onsetut_) - StartTime
 
-        if ( IndexTimes_TV(iAE,onsetut_) >= StartTime-BufferTime .and. &
-             IndexTimes_TV(iAE,onsetut_) <= EndTime+BufferTime .and. &
-             iAE < MaxIndicesEntries) then
+      ! This makes sure that we only store the values that we
+      ! are really interested in
 
-           IndexTimes_TV(iAE,onsetmlat_) = IndexTimes_TV(iAE,onsetut_)
-           IndexTimes_TV(iAE,onsetmlt_) = IndexTimes_TV(iAE,onsetut_)
+      if (IndexTimes_TV(iAE, onsetut_) >= StartTime - BufferTime .and. &
+          IndexTimes_TV(iAE, onsetut_) <= EndTime + BufferTime .and. &
+          iAE < MaxIndicesEntries) then
 
-           iAE = iAE + 1
+        IndexTimes_TV(iAE, onsetmlat_) = IndexTimes_TV(iAE, onsetut_)
+        IndexTimes_TV(iAE, onsetmlt_) = IndexTimes_TV(iAE, onsetut_)
 
-        else
+        iAE = iAE + 1
 
-           ! This means that the GITM time is all BEFORE the first 
-           ! line in the file! 
-           if (EndTime < IndexTimes_TV(iAE,onsetut_) .and. iAE == 1) then
-              iAE = iAE +1
-           endif
+      else
 
-        endif
+        ! This means that the GITM time is all BEFORE the first
+        ! line in the file!
+        if (EndTime < IndexTimes_TV(iAE, onsetut_) .and. iAE == 1) then
+          iAE = iAE + 1
+        end if
 
-     endif
+      end if
 
-  enddo
+    end if
+
+  end do
 
   close(LunIndices_)
 
   if (iAE >= MaxIndicesEntries) ReReadOnsetFile = .true.
 
-  nIndices_V(onsetut_)   = iAE - 1
+  nIndices_V(onsetut_) = iAE - 1
   nIndices_V(onsetmlat_) = iAE - 1
-  nIndices_V(onsetmlt_)  = iAE - 1
+  nIndices_V(onsetmlt_) = iAE - 1
 
 end subroutine read_al_onset_list
 
@@ -137,17 +137,17 @@ subroutine read_sme(iOutputError, StartTime, EndTime, doUseAeForHp)
   integer, intent(out)     :: iOutputError
   real(Real8_), intent(in) :: EndTime, StartTime
   logical, intent(in) :: doUseAeForHp
-  
+
   integer :: ierror, iAE, j, npts
   logical :: IsDone
 
   ! One line of input
-  character (len=iCharLenIndices_) :: line
+  character(len=iCharLenIndices_) :: line
 
-  real (Real8_) :: TimeDelay, BufferTime = 180.0
+  real(Real8_) :: TimeDelay, BufferTime = 180.0
 
   real :: hp
-  
+
   integer, dimension(7) :: itime
   !------------------------------------------------------------------------
   iOutputError = 0
@@ -162,102 +162,102 @@ subroutine read_sme(iOutputError, StartTime, EndTime, doUseAeForHp)
   call init_mod_indices
 
   ! If we have been here before and we read the entire file, leave
-  if (.not.ReReadSMEFile .and. nIndices_V(ae_) > 0) return
+  if (.not. ReReadSMEFile .and. nIndices_V(ae_) > 0) return
 
-  ! This if statement makes sure that we have been here before and 
+  ! This if statement makes sure that we have been here before and
   ! want to be here again
   if (ReReadSMEFile) then
-     ! If we still have a lot of data in memory, then don't bother
-     ! reading more.
-     if (StartTime + BufferTime < IndexTimes_TV(nIndices_V(ae_),ae_)) &
-          return
-  endif
+    ! If we still have a lot of data in memory, then don't bother
+    ! reading more.
+    if (StartTime + BufferTime < IndexTimes_TV(nIndices_V(ae_), ae_)) &
+      return
+  end if
 
   ! Assume that we can read the entire file
   ReReadSMEFile = .false.
 
   if (nIndices_V(ae_) == 0) NameOfSMEFile = NameOfIndexFile
 
-  open(LunIndices_, file=NameOfSMEFile, status="old", iostat = ierror)
+  open(LunIndices_, file=NameOfSMEFile, status="old", iostat=ierror)
 
   ! Test the type of file
-  read(LunIndices_,*,iostat=iError) line
+  read(LunIndices_, *, iostat=iError) line
   if (line(1:4) == "File") then
-     IsDone = .false.
-     do while (.not.IsDone)
-        read(LunIndices_,*,iostat=iError) line
-        if (iError /= 0) IsDone = .true.
-        if (line(1:6) == "<year>") IsDone = .true.
-     enddo
-     IsDone = .false.
+    IsDone = .false.
+    do while (.not. IsDone)
+      read(LunIndices_, *, iostat=iError) line
+      if (iError /= 0) IsDone = .true.
+      if (line(1:6) == "<year>") IsDone = .true.
+    end do
+    IsDone = .false.
   else
-     rewind(LunIndices_)
-  endif
-  
-  if (ierror.ne.0) then
-     iOutputError = 1
-     return
-  endif
+    rewind(LunIndices_)
+  end if
+
+  if (ierror .ne. 0) then
+    iOutputError = 1
+    return
+  end if
 
   iAE = 1
   iTime = 0
-  do while (.not.IsDone)
-     
-     read(LunIndices_,*,iostat=iError) &
-          (iTime(j),j=1,6), &
-          Indices_TV(iAE,ae_), &
-          Indices_TV(iAE,al_), &
-          Indices_TV(iAE,au_)
+  do while (.not. IsDone)
 
-     if (ierror /= 0) then
-        IsDone = .true.
+    read(LunIndices_, *, iostat=iError) &
+      (iTime(j), j=1, 6), &
+      Indices_TV(iAE, ae_), &
+      Indices_TV(iAE, al_), &
+      Indices_TV(iAE, au_)
 
-        ! This means that the GITM time is all AFTER the first 
-        ! line in the file! 
-        if (StartTime > IndexTimes_TV(iAE,ae_)) then
-           iAE = iAE +1
-        endif
+    if (ierror /= 0) then
+      IsDone = .true.
 
-     else
+      ! This means that the GITM time is all AFTER the first
+      ! line in the file!
+      if (StartTime > IndexTimes_TV(iAE, ae_)) then
+        iAE = iAE + 1
+      end if
 
-        call time_int_to_real(iTime,IndexTimes_TV(iAE,ae_))
+    else
 
-        ! This makes sure that we only store the values that we 
-        ! are really interested in
+      call time_int_to_real(iTime, IndexTimes_TV(iAE, ae_))
 
-        if ( IndexTimes_TV(iAE,ae_) >= StartTime-BufferTime .and. &
-             IndexTimes_TV(iAE,ae_) <= EndTime+BufferTime .and. &
-             iAE < MaxIndicesEntries) then
+      ! This makes sure that we only store the values that we
+      ! are really interested in
 
-           ! Can now use AE to specify the hemispheric power:
-           ! Formula taken from Wu et al, 2021.
-           !     https://doi.org/10.1029/2020SW002629
-           
-           if (doUseAeForHp) then
-              hp = 0.102 * Indices_TV(iAE, ae_) + 8.953
-              Indices_TV(iAE, hpi_) = hp
-              if (hp > 0) Indices_TV(iAE, hpi_norm_) =  2.09 * ALOG(hp) * 1.0475
-              IndexTimes_TV(iAE, hpi_norm_) = IndexTimes_TV(iAE, ae_)
-              IndexTimes_TV(iAE, hpi_) = IndexTimes_TV(iAE, ae_)
-           endif
-           
-           IndexTimes_TV(iAE,al_) = IndexTimes_TV(iAE,ae_)
-           IndexTimes_TV(iAE,au_) = IndexTimes_TV(iAE,ae_)
-           iAE = iAE + 1
-           
-        else
+      if (IndexTimes_TV(iAE, ae_) >= StartTime - BufferTime .and. &
+          IndexTimes_TV(iAE, ae_) <= EndTime + BufferTime .and. &
+          iAE < MaxIndicesEntries) then
 
-           ! This means that the GITM time is all BEFORE the first 
-           ! line in the file! 
-           if (EndTime < IndexTimes_TV(iAE,ae_) .and. iAE == 1) then
-              iAE = iAE +1
-           endif
+        ! Can now use AE to specify the hemispheric power:
+        ! Formula taken from Wu et al, 2021.
+        !     https://doi.org/10.1029/2020SW002629
 
-        endif
+        if (doUseAeForHp) then
+          hp = 0.102*Indices_TV(iAE, ae_) + 8.953
+          Indices_TV(iAE, hpi_) = hp
+          if (hp > 0) Indices_TV(iAE, hpi_norm_) = 2.09*ALOG(hp)*1.0475
+          IndexTimes_TV(iAE, hpi_norm_) = IndexTimes_TV(iAE, ae_)
+          IndexTimes_TV(iAE, hpi_) = IndexTimes_TV(iAE, ae_)
+        end if
 
-     endif
+        IndexTimes_TV(iAE, al_) = IndexTimes_TV(iAE, ae_)
+        IndexTimes_TV(iAE, au_) = IndexTimes_TV(iAE, ae_)
+        iAE = iAE + 1
 
-  enddo
+      else
+
+        ! This means that the GITM time is all BEFORE the first
+        ! line in the file!
+        if (EndTime < IndexTimes_TV(iAE, ae_) .and. iAE == 1) then
+          iAE = iAE + 1
+        end if
+
+      end if
+
+    end if
+
+  end do
 
   close(LunIndices_)
 
@@ -266,6 +266,6 @@ subroutine read_sme(iOutputError, StartTime, EndTime, doUseAeForHp)
   nIndices_V(ae_) = iAE - 2
   nIndices_V(au_) = iAE - 2
   nIndices_V(al_) = iAE - 2
-  
+
 end subroutine read_sme
 

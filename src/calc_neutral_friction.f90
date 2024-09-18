@@ -1,7 +1,7 @@
 ! Copyright 2021, the GITM Development Team (see srcDoc/dev_team.md for members)
 ! Full license can be found in LICENSE
 
-subroutine calc_neutral_friction(DtIn,oVel, EddyCoef_1d, NDensity_1d, NDensityS_1d, &
+subroutine calc_neutral_friction(DtIn, oVel, EddyCoef_1d, NDensity_1d, NDensityS_1d, &
                                  GradLogCon, Temp)
 
   use ModGITM
@@ -11,13 +11,13 @@ subroutine calc_neutral_friction(DtIn,oVel, EddyCoef_1d, NDensity_1d, NDensityS_
 
   implicit none
 
-  real,intent(in) :: DtIn
-  real,intent(inout) :: oVel(1:nAlts,1:nSpecies)
-  real,intent(in) :: EddyCoef_1d(1:nAlts)
-  real,intent(in) :: NDensity_1d(1:nAlts)
-  real,intent(in) :: NDensityS_1d(1:nAlts,1:nSpecies)
-  real,intent(in) :: GradLogCon(1:nAlts,1:nSpecies)
-  real,intent(in) :: Temp(1:nAlts)
+  real, intent(in) :: DtIn
+  real, intent(inout) :: oVel(1:nAlts, 1:nSpecies)
+  real, intent(in) :: EddyCoef_1d(1:nAlts)
+  real, intent(in) :: NDensity_1d(1:nAlts)
+  real, intent(in) :: NDensityS_1d(1:nAlts, 1:nSpecies)
+  real, intent(in) :: GradLogCon(1:nAlts, 1:nSpecies)
+  real, intent(in) :: Temp(1:nAlts)
 
   integer :: iSpecies, jSpecies
   real :: CoefMatrix(nSpecies, nSpecies), kTOverM
@@ -38,71 +38,71 @@ subroutine calc_neutral_friction(DtIn,oVel, EddyCoef_1d, NDensity_1d, NDensityS_
 
   integer :: iAlt
 
-  call report("calc_neutral_friction",4)
+  call report("calc_neutral_friction", 4)
 
-  if (.not.UseNeutralFriction) return
+  if (.not. UseNeutralFriction) return
 
   EddyContribution(1:nSpecies) = 0.0
 
   do iAlt = 1, nAlts
 
-     Vel = oVel(iAlt,1:nSpecies)
-     CoefMatrix = 0.0
+    Vel = oVel(iAlt, 1:nSpecies)
+    CoefMatrix = 0.0
 
-     mms = 0.0
-     mmwos = 0.0
-     InvDij = 0.0
+    mms = 0.0
+    mmwos = 0.0
+    InvDij = 0.0
 
-     EddyContribution(1:nSpecies) = 0.0
+    EddyContribution(1:nSpecies) = 0.0
 
-     do iSpecies = 1, nSpecies
+    do iSpecies = 1, nSpecies
 
-        InvDij(iSpecies) = 0.0
-        kTOverM = Boltzmanns_Constant * Temp(iAlt) / Mass(iSpecies)
-        denscale = 1.0/NDensity_1d(iAlt) 
-        do jSpecies = 1, nSpecies
-           if (jSpecies == iSpecies) cycle
+      InvDij(iSpecies) = 0.0
+      kTOverM = Boltzmanns_Constant*Temp(iAlt)/Mass(iSpecies)
+      denscale = 1.0/NDensity_1d(iAlt)
+      do jSpecies = 1, nSpecies
+        if (jSpecies == iSpecies) cycle
 
-           if (DoCheckForNans) then
-              if (isnan(Temp(iAlt))) write(*,*) "Friction : Temp is nan", iAlt
-              if (isnan(NDensity_1d(iAlt))) write(*,*) "Friction : NDen is nan", iAlt
-              if (isnan(NDensityS_1d(iAlt,jSpecies))) write(*,*) "Friction : NDenS is nan", iAlt,jSpecies
-           endif
+        if (DoCheckForNans) then
+          if (isnan(Temp(iAlt))) write(*, *) "Friction : Temp is nan", iAlt
+          if (isnan(NDensity_1d(iAlt))) write(*, *) "Friction : NDen is nan", iAlt
+          if (isnan(NDensityS_1d(iAlt, jSpecies))) write(*, *) "Friction : NDenS is nan", iAlt, jSpecies
+        end if
 
-           ! TempDij are the Dij binary coefficients
-           ! Based upon the formulation by Banks and Kokarts.
-           ! These coefficients demand that 
-           ! (1) NDensity be in cm^-3 (hence the 1.0e-06) factor below
-           ! (2) Additionally, the Dij's are in cm^2/s, thus the 1.0e-04 factor
-           TempDij = (1.0e-04)*&              ! Scales the Dij from cm^2/s -> m^2/s
-              (   Diff0(iSpecies,jSpecies)*( Temp(iAlt)**DiffExp(iSpecies,jSpecies) )   ) / &
-              (   NDensity_1d(iAlt)*(1.0e-06) )     ! Converts to #/cm^-3
+        ! TempDij are the Dij binary coefficients
+        ! Based upon the formulation by Banks and Kokarts.
+        ! These coefficients demand that
+        ! (1) NDensity be in cm^-3 (hence the 1.0e-06) factor below
+        ! (2) Additionally, the Dij's are in cm^2/s, thus the 1.0e-04 factor
+        TempDij = (1.0e-04)* &              ! Scales the Dij from cm^2/s -> m^2/s
+                  (Diff0(iSpecies, jSpecies)*(Temp(iAlt)**DiffExp(iSpecies, jSpecies)))/ &
+                  (NDensity_1d(iAlt)*(1.0e-06))     ! Converts to #/cm^-3
 
-           CoefMatrix(iSpecies, jSpecies) = &
-                kTOverM * denscale * NDensityS_1d(iAlt, jSpecies) / &
-                TempDij
+        CoefMatrix(iSpecies, jSpecies) = &
+          kTOverM*denscale*NDensityS_1d(iAlt, jSpecies)/ &
+          TempDij
 
-           InvDij(iSpecies) = InvDij(iSpecies) + &
-                denscale*NDensityS_1d(iAlt, jSpecies)/ &
-                ( TempDij )
+        InvDij(iSpecies) = InvDij(iSpecies) + &
+                           denscale*NDensityS_1d(iAlt, jSpecies)/ &
+                           (TempDij)
 
-        enddo  ! End DO over jSpecies
+      end do  ! End DO over jSpecies
 
-        EddyContribution(iSpecies) =  &
-             -1.0*EddyCoef_1d(iAlt)*GradLogCon(iAlt,iSpecies) 
+      EddyContribution(iSpecies) = &
+        -1.0*EddyCoef_1d(iAlt)*GradLogCon(iAlt, iSpecies)
 
-     enddo  !End DO Over iSpecies
+    end do  !End DO Over iSpecies
 
-     Matrix = -DtIn*CoefMatrix
-     do iSpecies = 1, nSpecies
-        Matrix(iSpecies,iSpecies) = &
-             1.0 + DtIn*(sum(CoefMatrix(iSpecies,:)))
-     enddo
-     call ludcmp(Matrix, nSpecies, nSpecies, iPivot, Parity)
-     call lubksb(Matrix, nSpecies, nSpecies, iPivot, Vel)
+    Matrix = -DtIn*CoefMatrix
+    do iSpecies = 1, nSpecies
+      Matrix(iSpecies, iSpecies) = &
+        1.0 + DtIn*(sum(CoefMatrix(iSpecies, :)))
+    end do
+    call ludcmp(Matrix, nSpecies, nSpecies, iPivot, Parity)
+    call lubksb(Matrix, nSpecies, nSpecies, iPivot, Vel)
 
-     oVel(iAlt, 1:nSpecies) = Vel(1:nSpecies) + & 
-         EddyContribution(1:nSpecies) 
-  enddo
+    oVel(iAlt, 1:nSpecies) = Vel(1:nSpecies) + &
+                             EddyContribution(1:nSpecies)
+  end do
 
 end subroutine calc_neutral_friction

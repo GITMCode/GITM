@@ -8,7 +8,7 @@ subroutine fill_photo(photoion, photoabs, photodis)
 
   implicit none
 
-  real, intent(out) :: photoion(Num_WaveLengths_High, nIons-1)
+  real, intent(out) :: photoion(Num_WaveLengths_High, nIons - 1)
   real, intent(out) :: photoabs(Num_WaveLengths_High, nSpecies)
   real, intent(out) :: photodis(Num_WaveLengths_High, nSpecies)
 
@@ -18,8 +18,8 @@ subroutine fill_photo(photoion, photoabs, photodis)
   PhotoIon = 0.0
   PhotoDis = 0.0
 
-  photoabs(:,iH2_)    = PhotoAbs_H2
-  photoion(:,iH2P_)   = PhotoIon_H2
+  photoabs(:, iH2_) = PhotoAbs_H2
+  photoion(:, iH2P_) = PhotoIon_H2
 
 end subroutine fill_photo
 
@@ -29,7 +29,7 @@ subroutine calc_planet_sources(iBlock)
   use ModSources
   use ModGITM
   use ModTime
-  
+
   implicit none
 
   integer, intent(in) :: iBlock
@@ -39,7 +39,6 @@ subroutine calc_planet_sources(iBlock)
   !\
   ! Cooling ----------------------------------------------------------
   !/
-
 
   ! None
 
@@ -61,7 +60,7 @@ subroutine init_heating_efficiency
   integer :: iLon, iLat, iAlt
   !------------------------------------------------------------------
 
-  HeatingEfficiency_CB(:,:,:,1:nBlocks) = 0.05
+  HeatingEfficiency_CB(:, :, :, 1:nBlocks) = 0.05
 
 end subroutine init_heating_efficiency
 
@@ -73,8 +72,8 @@ subroutine calc_eddy_diffusion_coefficient(iBlock)
 
   use ModSizeGITM
   use ModGITM, only: pressure
-  use ModInputs, only: EddyDiffusionPressure0,EddyDiffusionPressure1, &
-       EddyDiffusionCoef
+  use ModInputs, only: EddyDiffusionPressure0, EddyDiffusionPressure1, &
+                       EddyDiffusionCoef
   use ModSources, only: KappaEddyDiffusion
 
   implicit none
@@ -82,7 +81,7 @@ subroutine calc_eddy_diffusion_coefficient(iBlock)
   integer, intent(in) :: iBlock
   integer :: iAlt, iLat, iLon
 
-  KappaEddyDiffusion=0.
+  KappaEddyDiffusion = 0.
 
 !  do iAlt = -1, nAlts+2
 !
@@ -91,7 +90,7 @@ subroutine calc_eddy_diffusion_coefficient(iBlock)
 !
 !           if (pressure(iLon,iLat,iAlt,iBlock) >EddyDiffusionPressure0) then
 !              KappaEddyDiffusion(iLon,iLat,iAlt,iBlock) = EddyDiffusionCoef
-!              
+!
 !           else if (pressure(iLon,iLat,iAlt,iBlock) > &
 !                EddyDiffusionPressure1) then
 !

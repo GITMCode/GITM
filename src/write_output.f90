@@ -20,52 +20,52 @@ subroutine write_output
 
   real, external :: get_timing
   real :: ProjectedTime, CompletedTime, RealTime
-  integer :: i, nMLTsTmp,nLatsTmp, iBlock
+  integer :: i, nMLTsTmp, nLatsTmp, iBlock
   logical :: IsDone
 
-  if (floor((tSimulation-dt)/DtReport) /= &
-       floor((tsimulation)/DtReport) .and. iDebugLevel >= 0) then
-     if (IsFramework) then
-        if(iProc==0)write(*,"(a,i6,a,3i2.2)") "UA:GITM2 iStep ", iStep, &
-             ", Time : ",iTimeArray(4:6)
-     else
-        RealTime = get_timing("GITM")
-        CompletedTime = (EndTime-CurrentTime)/(CurrentTime-RestartTime)
-        ProjectedTime = RealTime * CompletedTime
-        write(*,"(a,i8,a,i4,2i2.2,a,3i2.2,a,f9.2,a,f9.2)") "iStep: ", iStep, &
-             ", Time: ",iTimeArray(1:3), ' ',iTimeArray(4:6), &
-             ", WallTime: ",RealTime/60.0," min, Proj : ",&
-             ProjectedTime/60.0
-     endif
-  endif
+  if (floor((tSimulation - dt)/DtReport) /= &
+      floor((tsimulation)/DtReport) .and. iDebugLevel >= 0) then
+    if (IsFramework) then
+      if (iProc == 0) write(*, "(a,i6,a,3i2.2)") "UA:GITM2 iStep ", iStep, &
+        ", Time : ", iTimeArray(4:6)
+    else
+      RealTime = get_timing("GITM")
+      CompletedTime = (EndTime - CurrentTime)/(CurrentTime - RestartTime)
+      ProjectedTime = RealTime*CompletedTime
+      write(*, "(a,i8,a,i4,2i2.2,a,3i2.2,a,f9.2,a,f9.2)") "iStep: ", iStep, &
+        ", Time: ", iTimeArray(1:3), ' ', iTimeArray(4:6), &
+        ", WallTime: ", RealTime/60.0, " min, Proj : ", &
+        ProjectedTime/60.0
+    end if
+  end if
 
   DtPlot = DtPlotSave
-  if ( CurrentTime >= PlotTimeChangeStart .and. &
-       CurrentTime <= PlotTimeChangeEnd) then 
-     DtPlot = PlotTimeChangeDt
-  endif
+  if (CurrentTime >= PlotTimeChangeStart .and. &
+      CurrentTime <= PlotTimeChangeEnd) then
+    DtPlot = PlotTimeChangeDt
+  end if
 
   IsDone = .false.
   do i = 1, nOutputTypes
-     if (floor((tSimulation-dt)/DtPlot(i)) /= &
-          floor((tsimulation)/DtPlot(i)) .or. tSimulation == 0.0) then
-        do iBlock = 1, nBlocks
-           call output(outputDir,iBlock, i)
-        enddo
-     endif
-  enddo
+    if (floor((tSimulation - dt)/DtPlot(i)) /= &
+        floor((tsimulation)/DtPlot(i)) .or. tSimulation == 0.0) then
+      do iBlock = 1, nBlocks
+        call output(outputDir, iBlock, i)
+      end do
+    end if
+  end do
 
   call move_satellites
 
-  if (floor((tSimulation-dt)/DtRestart) /= &
-       floor((tsimulation)/DtRestart)) then
-     call write_restart(restartOutDir)
-  endif
+  if (floor((tSimulation - dt)/DtRestart) /= &
+      floor((tsimulation)/DtRestart)) then
+    call write_restart(restartOutDir)
+  end if
 
-  if (floor((tSimulation-dt)/DtLogfile) /= &
-       floor((tsimulation)/DtLogfile)) then
-     call logfile(logDir)
-  endif
+  if (floor((tSimulation - dt)/DtLogfile) /= &
+      floor((tsimulation)/DtLogfile)) then
+    call logfile(logDir)
+  end if
 
 end subroutine write_output
 

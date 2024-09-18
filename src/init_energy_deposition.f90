@@ -17,55 +17,55 @@ subroutine init_energy_deposition
   ! Start doing energy deposition stuff
   !--------------------------------------
 
-  call report("init_energy_deposition",2)
+  call report("init_energy_deposition", 2)
 
-  if (iDebugLevel > 2) write(*,*) "===> ED_Init"
+  if (iDebugLevel > 2) write(*, *) "===> ED_Init"
   call ED_Init(ierr)
 
   if (ierr /= 0) then
-     call stop_gitm("Error in initilizing the energy deposition tables")
-  endif
+    call stop_gitm("Error in initilizing the energy deposition tables")
+  end if
 
-  if (iDebugLevel > 2) write(*,*) "===> ED_Get_Grid_Size"
+  if (iDebugLevel > 2) write(*, *) "===> ED_Get_Grid_Size"
   call ED_Get_Grid_Size(ED_N_Alts)
   allocate(ED_grid(ED_N_Alts), stat=ierr)
   if (ierr /= 0) then
-     call stop_gitm("Error allocating array ED_grid")
-  endif
+    call stop_gitm("Error allocating array ED_grid")
+  end if
 
   allocate(ED_Ion(ED_N_Alts), stat=ierr)
   if (ierr /= 0) then
-     call stop_gitm("Error allocating array ED_Ion")
-  endif
+    call stop_gitm("Error allocating array ED_Ion")
+  end if
 
   allocate(ED_Heating(ED_N_Alts), stat=ierr)
   if (ierr /= 0) then
-     call stop_gitm("Error allocating array ED_Heating")
-  endif
+    call stop_gitm("Error allocating array ED_Heating")
+  end if
 
-  if (iDebugLevel > 2) write(*,*) "===> ED_Get_Number_of_Energies"
+  if (iDebugLevel > 2) write(*, *) "===> ED_Get_Number_of_Energies"
   call ED_Get_Number_of_Energies(ED_N_Energies)
   allocate(ED_Energies(ED_N_Energies), stat=ierr)
-  allocate(ED_Energy_edges(ED_N_Energies+1), stat=ierr)
+  allocate(ED_Energy_edges(ED_N_Energies + 1), stat=ierr)
   allocate(ED_delta_energy(ED_N_Energies), stat=ierr)
   if (ierr /= 0) then
-     call stop_gitm("Error allocating array ED_Energies")
-  endif
+    call stop_gitm("Error allocating array ED_Energies")
+  end if
 
   allocate(ED_Flux(ED_N_Energies), stat=ierr)
   allocate(ED_EnergyFlux(ED_N_Energies), stat=ierr)
   allocate(ED_Ion_Flux(ED_N_Energies), stat=ierr)
   allocate(ED_Ion_EnergyFlux(ED_N_Energies), stat=ierr)
   if (ierr /= 0) then
-     call stop_gitm("Error allocating array ED_Flux")
-  endif
+    call stop_gitm("Error allocating array ED_Flux")
+  end if
 
-  if (iDebugLevel > 2) write(*,*) "===> ED_Get_Grid"
+  if (iDebugLevel > 2) write(*, *) "===> ED_Get_Grid"
   call ED_Get_Grid(ED_grid, .true., ierr)
 
   do iAlt = 1, ED_N_Alts
-     ED_grid(iAlt) = alog(ED_grid(iAlt))
-  enddo
+    ED_grid(iAlt) = alog(ED_grid(iAlt))
+  end do
 
   call ED_Get_Energies(ED_Energies)
 
@@ -75,16 +75,16 @@ subroutine init_energy_deposition
   ED_Energy_edges(1) = ED_Energies(1) + ED_delta_energy(1)/2.0
   iEnergy = 1
   do iEnergy = 2, ED_N_Energies
-     ED_Energy_edges(iEnergy) = &
-          (ED_Energies(iEnergy-1) + ED_Energies(iEnergy))/2
-     ED_delta_energy(iEnergy-1) = &
-          ED_Energy_edges(iEnergy-1) - ED_Energy_edges(iEnergy)
-  enddo
+    ED_Energy_edges(iEnergy) = &
+      (ED_Energies(iEnergy - 1) + ED_Energies(iEnergy))/2
+    ED_delta_energy(iEnergy - 1) = &
+      ED_Energy_edges(iEnergy - 1) - ED_Energy_edges(iEnergy)
+  end do
 
   iEnergy = ED_N_Energies
-  ED_delta_energy(iEnergy) = ED_Energies(iEnergy-1) - ED_Energies(iEnergy)
+  ED_delta_energy(iEnergy) = ED_Energies(iEnergy - 1) - ED_Energies(iEnergy)
 
-  iEnergy = ED_N_Energies+1
-  ED_Energy_edges(iEnergy) = ED_Energies(iEnergy-1) - ED_delta_energy(iEnergy-1)/2
-     
+  iEnergy = ED_N_Energies + 1
+  ED_Energy_edges(iEnergy) = ED_Energies(iEnergy - 1) - ED_delta_energy(iEnergy - 1)/2
+
 end subroutine init_energy_deposition

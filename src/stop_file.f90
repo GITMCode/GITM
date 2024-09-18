@@ -21,33 +21,33 @@ subroutine check_stop
   logical :: IsThere
   integer :: iError
 
-  if (.not.DoCheckStopFile) return
+  if (.not. DoCheckStopFile) return
 
-  call report("check_stop",2)
+  call report("check_stop", 2)
 
   call start_timing("check_stop")
 
   EndTimeLocal = EndTime
 
-  if (iProc == 0) then 
+  if (iProc == 0) then
 
-     inquire(file="GITM.STOP",EXIST=IsThere)
-     if (IsThere) then
-        write(*,*) "GITM.STOP file found. Exiting."
-        EndTimeLocal = CurrentTime - 1.0
-     endif
+    inquire(file="GITM.STOP", EXIST=IsThere)
+    if (IsThere) then
+      write(*, *) "GITM.STOP file found. Exiting."
+      EndTimeLocal = CurrentTime - 1.0
+    end if
 
-  endif
+  end if
 
   if (get_timing("GITM") > CPUTimeMax) then
-     if (iProc == 0) write(*,*) "CPUTimeMax Exceeded. Exiting."
-     EndTimeLocal = CurrentTime - 1.0
-     open(unit=iOutputUnit_, file="GITM.CPU", status="unknown")
-     close(iOutputUnit_)
-  endif
+    if (iProc == 0) write(*, *) "CPUTimeMax Exceeded. Exiting."
+    EndTimeLocal = CurrentTime - 1.0
+    open(unit=iOutputUnit_, file="GITM.CPU", status="unknown")
+    close(iOutputUnit_)
+  end if
 
-  call MPI_AllREDUCE(EndTimeLocal, EndTime,  &
-       1, MPI_DOUBLE_PRECISION, MPI_MIN, iCommGITM, iError)
+  call MPI_AllREDUCE(EndTimeLocal, EndTime, &
+                     1, MPI_DOUBLE_PRECISION, MPI_MIN, iCommGITM, iError)
 
   call check_start
 
@@ -69,25 +69,25 @@ subroutine delete_stop
 
   logical :: IsThere
 
-  call report("delete_stop",2)
+  call report("delete_stop", 2)
 
-  inquire(file='GITM.STOP',EXIST=IsThere)
+  inquire(file='GITM.STOP', EXIST=IsThere)
   if (IsThere .and. iProc == 0) then
-     open(iOutputUnit_, file = 'GITM.STOP', status = 'OLD')
-     close(iOutputUnit_, status = 'DELETE')
-  endif
+    open(iOutputUnit_, file='GITM.STOP', status='OLD')
+    close(iOutputUnit_, status='DELETE')
+  end if
 
-  inquire(file='GITM.DONE',EXIST=IsThere)
+  inquire(file='GITM.DONE', EXIST=IsThere)
   if (IsThere .and. iProc == 0) then
-     open(iOutputUnit_, file = 'GITM.DONE', status = 'OLD')
-     close(iOutputUnit_, status = 'DELETE')
-  endif
+    open(iOutputUnit_, file='GITM.DONE', status='OLD')
+    close(iOutputUnit_, status='DELETE')
+  end if
 
-  inquire(file='GITM.CPU',EXIST=IsThere)
+  inquire(file='GITM.CPU', EXIST=IsThere)
   if (IsThere .and. iProc == 0) then
-     open(iOutputUnit_, file = 'GITM.CPU', status = 'OLD')
-     close(iOutputUnit_, status = 'DELETE')
-  endif
+    open(iOutputUnit_, file='GITM.CPU', status='OLD')
+    close(iOutputUnit_, status='DELETE')
+  end if
 
 end subroutine delete_stop
 
@@ -110,35 +110,35 @@ subroutine check_start
   logical :: IsThere
   integer :: iError
 
-  if ((CurrentTime-dt) < PauseTime .and. CurrentTime > PauseTime) then
+  if ((CurrentTime - dt) < PauseTime .and. CurrentTime > PauseTime) then
 
-     write(*,*) "Pausing"
+    write(*, *) "Pausing"
 
-     IsThere = .false.
+    IsThere = .false.
 
-     do while (.not.IsThere) 
+    do while (.not. IsThere)
 
-        inquire(file="GITM.START",EXIST=IsThere)
-        if (IsThere .and. iProc == 0) then
-           if (iProc == 0) then
-              write(*,*) "GITM.START file found. Continuing."
-              open(iOutputUnit_, file = 'GITM.START', status = 'OLD')
-              close(iOutputUnit_, status = 'DELETE')
-           endif
-        endif
+      inquire(file="GITM.START", EXIST=IsThere)
+      if (IsThere .and. iProc == 0) then
+        if (iProc == 0) then
+          write(*, *) "GITM.START file found. Continuing."
+          open(iOutputUnit_, file='GITM.START', status='OLD')
+          close(iOutputUnit_, status='DELETE')
+        end if
+      end if
 
-        if (.not. IsThere) call sleep(2.0)
+      if (.not. IsThere) call sleep(2.0)
 
-        call MPI_BARRIER(iCommGITM,iError)
+      call MPI_BARRIER(iCommGITM, iError)
 
-     enddo
+    end do
 
-     ! Here is where to open and read the file that will set the new pause time
-     ! and update the state of GITM.
+    ! Here is where to open and read the file that will set the new pause time
+    ! and update the state of GITM.
 
-     PauseTime = PauseTime + 300.0  ! delete this when you read the new file....
+    PauseTime = PauseTime + 300.0  ! delete this when you read the new file....
 
-  endif
+  end if
 
 end subroutine check_start
 

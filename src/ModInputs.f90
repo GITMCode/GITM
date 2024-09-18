@@ -5,31 +5,31 @@ module ModInputs
 
   use ModConstants
   use ModPlanet
-  use ModIoUnit, only : UnitTmp_
-  use ModKind, only:    Real8_
+  use ModIoUnit, only: UnitTmp_
+  use ModKind, only: Real8_
 
   implicit none
 
-  logical :: iRhoOutputList=.true.
-  logical :: iNeutralDensityOutputList(nSpeciesTotal)=.true.
-  logical :: iNeutralWindOutputList(3)=.true.
-  logical :: iIonDensityOutputList(nIons)=.true.
-  logical :: iIonWindOutputList(3)=.true.
-  logical :: iTemperatureOutputList(3)=.true.
+  logical :: iRhoOutputList = .true.
+  logical :: iNeutralDensityOutputList(nSpeciesTotal) = .true.
+  logical :: iNeutralWindOutputList(3) = .true.
+  logical :: iIonDensityOutputList(nIons) = .true.
+  logical :: iIonWindOutputList(3) = .true.
+  logical :: iTemperatureOutputList(3) = .true.
 
   integer                   :: useDART = 0 !alexey, default is to not use DART
 
   ! Max characters per line. In component mode, must match
   ! share/Library/src/ModReadParam.f90 :: lStringLine
-  integer, parameter        :: iCharLen_     = 600
+  integer, parameter        :: iCharLen_ = 600
 
-  character (len=iCharLen_) :: outputDir = "UA/data"
-  character (len=iCharLen_) :: logDir = "UA/data"
-  character (len=iCharLen_) :: restartOutDir = "UA/restartOUT"
-  character (len=iCharLen_) :: restartInDir = "UA/restartIN"
+  character(len=iCharLen_) :: outputDir = "UA/data"
+  character(len=iCharLen_) :: logDir = "UA/data"
+  character(len=iCharLen_) :: restartOutDir = "UA/restartOUT"
+  character(len=iCharLen_) :: restartInDir = "UA/restartIN"
 
-  integer                   :: iOutputUnit_  = UnitTmp_
-  integer                   :: iInputUnit_   = UnitTmp_
+  integer                   :: iOutputUnit_ = UnitTmp_
+  integer                   :: iInputUnit_ = UnitTmp_
   integer                   :: iRestartUnit_ = UnitTmp_
 
   integer                   :: iLogFileUnit_ = 92
@@ -39,17 +39,17 @@ module ModInputs
 
   integer, parameter        :: nInputMaxLines = 10000
   integer                   :: nInputLines
-  character (len=iCharLen_) :: cInputText(nInputMaxLines) = ''
+  character(len=iCharLen_) :: cInputText(nInputMaxLines) = ''
 
-  character (len=iCharLen_) :: cInputFile = "UAM.in"
+  character(len=iCharLen_) :: cInputFile = "UAM.in"
 
-  character (len=iCharLen_) :: cAMIEFileSouth = "none"
-  character (len=iCharLen_) :: cAMIEFileNorth = "none"
+  character(len=iCharLen_) :: cAMIEFileSouth = "none"
+  character(len=iCharLen_) :: cAMIEFileNorth = "none"
 
-  character (len=iCharLen_) :: cAuroralModel = "FRE"
+  character(len=iCharLen_) :: cAuroralModel = "FRE"
 
-  character (len=iCharLen_) :: PotentialModel
-  character (len=iCharLen_) :: AuroralModel
+  character(len=iCharLen_) :: PotentialModel
+  character(len=iCharLen_) :: AuroralModel
 
   logical :: UseCCMCFileName = .false.
 
@@ -68,17 +68,17 @@ module ModInputs
   real    :: AMIELatEnd = 70.0
   real    :: AMIEBoundaryWidth = 4.0  ! lat and lon width to transit to Weimer solution
 
-  logical :: UseNewellAurora   = .false.
+  logical :: UseNewellAurora = .false.
   logical :: UseNewellAveraged = .true.
-  logical :: UseNewellMono     = .false.
-  logical :: UseNewellWave     = .false.
+  logical :: UseNewellMono = .false.
+  logical :: UseNewellWave = .false.
   logical :: DoNewellRemoveSpikes = .true.
-  logical :: DoNewellAverage      = .true.
+  logical :: DoNewellAverage = .true.
 
-  logical :: UseOvationSME     = .false.
+  logical :: UseOvationSME = .false.
   logical :: UseOvationSMEMono = .false.
   logical :: UseOvationSMEWave = .false.
-  logical :: UseOvationSMEIon  = .false.
+  logical :: UseOvationSMEIon = .false.
 
   logical :: UseAeModel = .false.
   logical :: UseFtaModel = .false.
@@ -98,11 +98,11 @@ module ModInputs
   real :: CuspLatHalfWidth = 1.0
 
   logical :: DoOverwriteIonosphere = .false.
-  logical :: DoOverwriteWithIRI    = .true.
-  logical :: DoOverwriteWithSami   = .false.
-  character (len=iCharLen_) :: SamiInFile
+  logical :: DoOverwriteWithIRI = .true.
+  logical :: DoOverwriteWithSami = .false.
+  character(len=iCharLen_) :: SamiInFile
 
-  character (len=iCharLen_) :: TypeLimiter = "mc"
+  character(len=iCharLen_) :: TypeLimiter = "mc"
   real :: BetaLimiter = 2.0
 
   integer, dimension(7) :: iStartTime
@@ -127,7 +127,7 @@ module ModInputs
 
   integer :: nOutputTypes = 0
   integer, parameter :: nMaxOutputTypes = 50
-  character (len=iCharLen_), dimension(nMaxOutputTypes) :: OutputType
+  character(len=iCharLen_), dimension(nMaxOutputTypes) :: OutputType
 
   real :: DtPlot(nMaxOutputTypes)
   real :: DtPlotSave(nMaxOutputTypes)
@@ -142,20 +142,20 @@ module ModInputs
   real    :: HIMEPlotLatStart = 65.0
   real    :: HIMEPlotLatEnd = 70.0
 
-  real :: DtRestart   = 60.0*60.0
-  real :: DtReport    =  1.0*60.0
-  real :: DtAurora    = 60.0*1.0
+  real :: DtRestart = 60.0*60.0
+  real :: DtReport = 1.0*60.0
+  real :: DtAurora = 60.0*1.0
   real :: DtPotential = 60.0*1.0
-  real :: DtGlow      = 60.0
+  real :: DtGlow = 60.0
   real :: TimeDelayHighLat = 0.0
-  real :: TimeDelayEUV     = 0.0
+  real :: TimeDelayEUV = 0.0
 
-  real :: f107  = 150.0
+  real :: f107 = 150.0
   real :: f107a = 150.0
   integer :: iModelSolar = 0
 
-  real :: AltMin = 100.0 * 1000.0
-  real :: AltMax = 500.0 * 1000.0
+  real :: AltMin = 100.0*1000.0
+  real :: AltMax = 500.0*1000.0
 
   real :: ConcentrationLatitude = 45.0
   real :: StretchingPercentage = 0.0
@@ -165,12 +165,12 @@ module ModInputs
 
   logical :: UseTopography = .false.
   real :: AltMinUniform = 0.0
-  real :: AltMinIono=80.0 ! in km
+  real :: AltMinIono = 80.0 ! in km
 
   real :: TempMax = 1000.0
-  real :: TempMin =  200.0
-  real :: TempWidth    =  25.0*1e3
-  real :: TempHeight   = 150.0*1e3
+  real :: TempMin = 200.0
+  real :: TempWidth = 25.0*1e3
+  real :: TempHeight = 150.0*1e3
 
   real :: LogRho0
 
@@ -182,19 +182,19 @@ module ModInputs
   logical :: UseGlow = .false.
 
   real    :: LonStart = 0.0
-  real    :: LonEnd   = 0.0
+  real    :: LonEnd = 0.0
   real    :: LatStart = -pi/4.0
-  real    :: LatEnd   =  pi/4.0
+  real    :: LatEnd = pi/4.0
 
   logical :: UseStretchedAltitude = .true.
 
   logical :: UseApex = .true.
   logical :: UseMSIS = .true.
   real, dimension(25) :: sw_msis = 1.0
-  logical :: UseIRI  = .true.
-  logical :: UseMSISTides  = .true.
-  logical :: UseMSISOnly   = .false.
-  logical :: UseGSWMTides  = .false.
+  logical :: UseIRI = .true.
+  logical :: UseMSISTides = .true.
+  logical :: UseMSISOnly = .false.
+  logical :: UseGSWMTides = .false.
   logical :: UseHmeTides = .false.
   logical :: UseWACCMTides = .false.
   logical :: UseMSISDiurnal = .true.
@@ -231,33 +231,33 @@ module ModInputs
   !/
 
   logical :: UsePressureGradient = .true.
-  logical :: UseGravity          = .true.
-  logical :: UseIonDrag          = .true.
-  logical :: UseViscosity        = .true.
+  logical :: UseGravity = .true.
+  logical :: UseIonDrag = .true.
+  logical :: UseViscosity = .true.
   real    :: TestViscosityFactor = 1.0
-  logical :: UseCoriolis         = .true.
-  logical :: UseGravityWave      = .false.
+  logical :: UseCoriolis = .true.
+  logical :: UseGravityWave = .false.
 
-  logical :: UseHorAdvection     = .true.
-  logical :: UseVerAdvection     = .true.
-  logical :: UseNeutralFriction  = .true.
+  logical :: UseHorAdvection = .true.
+  logical :: UseVerAdvection = .true.
+  logical :: UseNeutralFriction = .true.
 
-  logical :: UseAUSMSolver     = .false.
+  logical :: UseAUSMSolver = .false.
 
   logical :: UseIonPressureGradient = .true.
-  logical :: UseIonGravity          = .true.
-  logical :: UseNeutralDrag         = .true.
-  logical :: UseExB                 = .true.
+  logical :: UseIonGravity = .true.
+  logical :: UseNeutralDrag = .true.
+  logical :: UseExB = .true.
   logical :: UseImplicitChemistry = .false.
-  logical :: IsAsymmetric          = .false.
-  Real :: BetaPointImpl         = 1.0
+  logical :: IsAsymmetric = .false.
+  Real :: BetaPointImpl = 1.0
 
-  logical :: UseDynamo              = .false.
-  real    :: DynamoHighLatBoundary  = 65.0
-  integer :: nItersMax              = 500
-  real    :: MaxResidual            = 1.0
-  logical :: IncludeCowling         = .false.
-  real    :: DynamoLonAverage       = 10.0
+  logical :: UseDynamo = .false.
+  real    :: DynamoHighLatBoundary = 65.0
+  integer :: nItersMax = 500
+  real    :: MaxResidual = 1.0
+  logical :: IncludeCowling = .false.
+  real    :: DynamoLonAverage = 10.0
 
   logical :: UseImprovedIonAdvection = .true.
   logical :: UseNighttimeIonBCs = .true.
@@ -268,17 +268,17 @@ module ModInputs
   logical :: UseGitmBCs = .false.
   character(len=iCharLen_) :: GitmBCsDir
 
-  logical :: UseSolarHeating   = .true.
-  logical :: UseJouleHeating   = .true.
+  logical :: UseSolarHeating = .true.
+  logical :: UseJouleHeating = .true.
   logical :: UseAuroralHeating = .true.
-  logical :: UseNOCooling      = .true.
-  logical :: UseOCooling       = .true.
-  logical :: UseConduction     = .true.
+  logical :: UseNOCooling = .true.
+  logical :: UseOCooling = .true.
+  logical :: UseConduction = .true.
   logical :: UseTurbulentCond = .true.
-  logical :: UseIRHeating      = .false.
+  logical :: UseIRHeating = .false.
 
-  logical :: UseDiffusion      = .false.
-  logical :: UseVerAdvectionT  = .true.
+  logical :: UseDiffusion = .false.
+  logical :: UseVerAdvectionT = .true.
 
   logical :: UseCO2Cooling = .true.
   real    :: CO2ppm = 225.0
@@ -290,14 +290,13 @@ module ModInputs
   real :: DaysPerYearInput = DaysPerYear
   real :: PlanetTiltInput = Tilt
 
-
   real :: PhotoElectronHeatingEfficiency = 0.0
   real :: NeutralHeatingEfficiency = 0.05
 
   real :: KappaTemp0 = 5.6e-4
   real :: ThermalConduction_AO2 = 5.6e-4
-  real :: ThermalConduction_AO  = 7.6e-4
-  real :: ThermalConduction_s   = 0.72
+  real :: ThermalConduction_AO = 7.6e-4
+  real :: ThermalConduction_s = 0.72
   !! Pawlowski says AO2 = 3.6e-4 - 5.6e-4
   !!                AO  = 5.6e-4 - 7.6e-4
   !!                s   = 0.69 - 0.75
@@ -306,12 +305,12 @@ module ModInputs
   real :: EddyDiffusionPressure0 = 0.01
   real :: EddyDiffusionPressure1 = 0.005
   real :: Kappa1DCorrectionFactor = 45.0
-  real :: Kappa1DCorrectionPower  = 1.75
+  real :: Kappa1DCorrectionPower = 1.75
   logical :: UseKappa1DCorrection = .false.
 
-  logical :: UseIonChemistry     = .true.
+  logical :: UseIonChemistry = .true.
   logical :: UseNeutralChemistry = .true.
-  logical :: UseIonAdvection     = .true.
+  logical :: UseIonAdvection = .true.
 
   logical :: DoCheckStopFile = .true.
 
@@ -324,27 +323,27 @@ module ModInputs
   !/
 
   integer, parameter :: cSteadyStateChemType_ = 1
-  integer, parameter :: cImplicitChemType_    = 2
-  integer, parameter :: cSubCycleChemType_    = 3
-  integer, parameter :: nChemTypes_       = 3
+  integer, parameter :: cImplicitChemType_ = 2
+  integer, parameter :: cSubCycleChemType_ = 3
+  integer, parameter :: nChemTypes_ = 3
 
-  character (len=100), dimension(nChemTypes_) :: sChemType
+  character(len=100), dimension(nChemTypes_) :: sChemType
 
-  character (len=100)                         :: sInputIonChemType
-  character (len=100)                         :: sInputNeutralChemType
+  character(len=100)                         :: sInputIonChemType
+  character(len=100)                         :: sInputNeutralChemType
   integer :: iInputIonChemType, iInputNeutralChemType
 
   real :: LogNS0(nSpecies)
 
-  logical                   :: UseEUVAC     = .true.
-  logical                   :: UseTobiska   = .true.
+  logical                   :: UseEUVAC = .true.
+  logical                   :: UseTobiska = .true.
   logical                   :: UseAboveHigh = .true.
-  logical                   :: UseBelowLow  = .true.
+  logical                   :: UseBelowLow = .true.
 
   logical                   :: UseRidleyEUV = .false.
 
-  logical                   :: UseEUVData =.false.
-  character (len=iCharLen_) :: cEUVFile
+  logical                   :: UseEUVData = .false.
+  character(len=iCharLen_) :: cEUVFile
 
   !\
   ! Eclipse Information
@@ -366,24 +365,24 @@ module ModInputs
   ! Setting the depth to which dust is mixed based on a reference dust opacity
   !This can now be read in as a horizontal distribution, or as a constant value
   !using UAM.in
-  character (len=iCharLen_) :: cDustFile="NotSet"
-  character (len=iCharLen_) :: cConrathFile="NotSet"
+  character(len=iCharLen_) :: cDustFile = "NotSet"
+  character(len=iCharLen_) :: cConrathFile = "NotSet"
   real :: CONRNU_temp = 0.03    ! Standard value  ~25km half-height
   !     real :: CONRNU = 0.003   ! ~50 km half-height
   !     real  :: CONRNU = 0.5     ! ~10 km half-height
   ! Global mean dust opacity
-  real :: TAUTOT_temp  = 0.3 !do not set to 0.0 or less
+  real :: TAUTOT_temp = 0.3 !do not set to 0.0 or less
 
   real :: dtDust
-  character (len=iCharLen_) :: DustFileType
+  character(len=iCharLen_) :: DustFileType
 
   !!!!!!!!!!!!!!!!!!!!!!
 
   !   RPTAU   :  Reference Pressure optical depth;  6.1 mbar for now
-  real, parameter :: RPTAU  = 6.1
+  real, parameter :: RPTAU = 6.1
 
   ! Top of the shortwave calculation for lower atmosphere radiation code(mbars)
-  real, parameter :: PRAD  = 1.0E-6 !mb (~115 km)
+  real, parameter :: PRAD = 1.0E-6 !mb (~115 km)
 
   ! Top of the longwave calculation for lower atmosphere radiation code(PASCALS)
   ! and where radcool begins
@@ -394,9 +393,9 @@ module ModInputs
   real, dimension(7) :: Ls_tau
   real, dimension(7) :: Ls_phi
 
-  DATA Ls_a / 0.007, 0.006, 0.004, 0.004, 0.002, 0.002, 0.002 /
-  DATA Ls_tau / 2.2353, 2.7543, 1.1177, 15.7866, 2.1354, 2.4694, 32.8493 /
-  DATA Ls_phi / 49.409, 168.173, 191.837, 21.736, 15.704, 95.528, 49.095 /
+  DATA Ls_a/0.007, 0.006, 0.004, 0.004, 0.002, 0.002, 0.002/
+  DATA Ls_tau/2.2353, 2.7543, 1.1177, 15.7866, 2.1354, 2.4694, 32.8493/
+  DATA Ls_phi/49.409, 168.173, 191.837, 21.736, 15.704, 95.528, 49.095/
 
   !\
   ! Variables for Wave Perturbation (WP) model (in user.f90)
@@ -411,10 +410,10 @@ module ModInputs
   real    :: PerturbWaveHeight          ! in m
   real    :: PerturbWavePeriod          ! in sec
   real    :: EpiDistance                ! in m
-  character (len=iCharLen_) :: cSurfacePerturbFileName
+  character(len=iCharLen_) :: cSurfacePerturbFileName
   integer, parameter :: nMaxPerturbFreq = 100
   real    :: FFTReal(nMaxPerturbFreq), FFTImag(nMaxPerturbFreq), &
-       PerturbWaveFreq(nMaxPerturbFreq)
+             PerturbWaveFreq(nMaxPerturbFreq)
   integer :: nPerturbFreq
 
 contains
@@ -428,8 +427,8 @@ contains
   subroutine set_strings
 
     sChemType(cSteadyStateChemType_) = "steady"
-    sChemType(cImplicitChemType_)    = "implicit"
-    sChemType(cSubCycleChemType_)    = "subcycle"
+    sChemType(cImplicitChemType_) = "implicit"
+    sChemType(cSubCycleChemType_) = "subcycle"
 
   end subroutine set_strings
 
@@ -440,13 +439,13 @@ contains
   subroutine set_defaults
 
     use ModTime
-    use ModPlanet, only:IsEarth
+    use ModPlanet, only: IsEarth
 
     call set_strings
 
-    sInputIonChemType     = sChemType(cSubCycleChemType_)
+    sInputIonChemType = sChemType(cSubCycleChemType_)
     sInputNeutralChemType = sChemType(cSubCycleChemType_)
-    iInputIonChemType     = cSubCycleChemType_
+    iInputIonChemType = cSubCycleChemType_
     iInputNeutralChemType = cSubCycleChemType_
 
     PotentialModel = "Weimer05"
@@ -455,26 +454,26 @@ contains
     dTAurora = 120.0
 
     if (IsEarth) then
-       PhotoElectronHeatingEfficiency = 0.06
-    endif
+      PhotoElectronHeatingEfficiency = 0.06
+    end if
 
     tSimulation = 0.0
 
     iStartTime(1) = 1999
-    iStartTime(2) =    3
-    iStartTime(3) =   21
-    iStartTime(4) =    0
-    iStartTime(5) =    0
-    iStartTime(6) =    0
-    iStartTime(7) =    0
+    iStartTime(2) = 3
+    iStartTime(3) = 21
+    iStartTime(4) = 0
+    iStartTime(5) = 0
+    iStartTime(6) = 0
+    iStartTime(7) = 0
 
     iTimeArray = iStartTime
 
     call time_int_to_real(iStartTime, CurrentTime)
 
     nOutputTypes = 0
-    DtPlot       = -1.0
-    DtRestart    = -1.0
+    DtPlot = -1.0
+    DtRestart = -1.0
 
     ! Initiate Neutral Variables From MSIS90
 
@@ -483,7 +482,7 @@ contains
 
     iModelSolar = 0
 
-    UseApex   = .false.
+    UseApex = .false.
     DoRestart = .false.
 
     call set_planet_defaults

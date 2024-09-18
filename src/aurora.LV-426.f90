@@ -5,7 +5,7 @@ subroutine aurora(iBlock)
 
   use ModGITM
   use ModSources
-  use ModTime, only : tSimulation
+  use ModTime, only: tSimulation
   use ModInputs
   use ModConstants
   use ModUserGITM
@@ -14,17 +14,13 @@ subroutine aurora(iBlock)
 
   integer, intent(in) :: iBlock
 
-
   if (floor((tSimulation - dT)/dTAurora) == &
-       floor(tSimulation/dTAurora)) return
+      floor(tSimulation/dTAurora)) return
 
-  AuroralIonRateS                  = 0.0
-  AuroralHeatingRate(:,:,:,iBlock) = 0.0
+  AuroralIonRateS = 0.0
+  AuroralHeatingRate(:, :, :, iBlock) = 0.0
 
   return
 
 end subroutine aurora
-
-
-
 

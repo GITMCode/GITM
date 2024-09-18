@@ -11,47 +11,47 @@ module ModPlanet
 ! Modified (01/18/07) : SWB :   Aij, s-exponents for mutual diffusion
 ! Modified (06/12/08) : SWB :   ordering to species revised
 ! Modified (06/12/08) : SWB :   nSpecies = 6; nSpeciesTotal = 11
-! Modified (04/21/17) : SWB :   nEmissions = 10; iENOUV = 1 
+! Modified (04/21/17) : SWB :   nEmissions = 10; iENOUV = 1
 ! Majors (6):  COntrol the Pressures Gradients and winds
   integer, parameter :: nSpecies = 8
-  integer, parameter :: iCO2_    = 1
-  integer, parameter :: iCO_     = 2
-  integer, parameter :: iO_      = 3
-  integer, parameter :: iN2_     = 4
-  integer, parameter :: iO2_     = 5
-  integer, parameter :: iAr_     = 6
-  integer, parameter :: iHe_     = 7
-  integer, parameter :: iN4S_  =  8
+  integer, parameter :: iCO2_ = 1
+  integer, parameter :: iCO_ = 2
+  integer, parameter :: iO_ = 3
+  integer, parameter :: iN2_ = 4
+  integer, parameter :: iO2_ = 5
+  integer, parameter :: iAr_ = 6
+  integer, parameter :: iHe_ = 7
+  integer, parameter :: iN4S_ = 8
 
 ! Minors (6) : Ride on background of mean winds derived from majors
-  integer, parameter :: iH_ =  9
-  integer, parameter :: iN2D_ =  10
-  integer, parameter :: iNO_ =  11
+  integer, parameter :: iH_ = 9
+  integer, parameter :: iN2D_ = 10
+  integer, parameter :: iNO_ = 11
   integer, parameter :: nSpeciesTotal = iNO_
 
 ! Major Ions (5):  Most Important to MWACM code
 ! Modified (05/21/08) : SWB :   Add N2+ to major ions list
-  integer, parameter  :: iOP_  = 1
-  integer, parameter  :: iO2P_  = 2
+  integer, parameter  :: iOP_ = 1
+  integer, parameter  :: iO2P_ = 2
   integer, parameter  :: iCO2P_ = 3
-  integer, parameter  :: iN2P_  = 4
-  integer, parameter  :: iNOP_  = 5
-  integer, parameter  :: ie_    = 6
-  integer, parameter  :: nIons  = ie_
+  integer, parameter  :: iN2P_ = 4
+  integer, parameter  :: iNOP_ = 5
+  integer, parameter  :: ie_ = 6
+  integer, parameter  :: nIons = ie_
   integer, parameter  :: nIonsAdvect = 0
   integer, parameter  :: nSpeciesAll = 16 !Ions plus neutrals
 
 ! Extra ions, just to be able to compile merged version (LHR, 07/2017):
-  integer, parameter :: iO_3P_   = -1
-  integer, parameter :: iN_4S_   = -1
+  integer, parameter :: iO_3P_ = -1
+  integer, parameter :: iN_4S_ = -1
   integer, parameter  :: iO_4SP_ = -1
-  integer, parameter  :: iNP_    = -1
+  integer, parameter  :: iNP_ = -1
   integer, parameter  :: iO_2DP_ = -1
   integer, parameter  :: iO_2PP_ = -1
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-  character (len=20) :: cSpecies(nSpeciesTotal)
-  character (len=20) :: cIons(nIons)
+  character(len=20) :: cSpecies(nSpeciesTotal)
+  character(len=20) :: cIons(nIons)
 
   real :: Mass(nSpeciesTotal), MassI(nIons)
 
@@ -61,7 +61,7 @@ module ModPlanet
   integer, parameter :: nPhotoBins = 1
 
   !   CP      :  HEAT CAPACITY (OR SPECIFIC HEAT) OF CO2 GAS.
-  real, parameter :: HeatCapacityCO2           = 735.94              ! J/(Kg*K)
+  real, parameter :: HeatCapacityCO2 = 735.94              ! J/(Kg*K)
 
   ! When you want to program in emissions, you can use this...
   integer, parameter :: iENOUV_ = 1
@@ -74,30 +74,30 @@ module ModPlanet
 
   integer, parameter :: nEmissions = 10
 
-  real, parameter :: GC_Mars                = 3.73                    ! m/s^2
-  real, parameter :: RP_Mars                = 88775.0                 ! seconds
-  real, parameter :: R_Mars                 = 3388.25*1000.0          ! meters
-  real, parameter :: DP_Mars                = 0.0
+  real, parameter :: GC_Mars = 3.73                    ! m/s^2
+  real, parameter :: RP_Mars = 88775.0                 ! seconds
+  real, parameter :: R_Mars = 3388.25*1000.0          ! meters
+  real, parameter :: DP_Mars = 0.0
 
   real, parameter :: Gravitational_Constant = GC_Mars
-  real, parameter :: Rotation_Period        = RP_Mars
-  real, parameter :: RBody                  = R_Mars
-  real, parameter :: DipoleStrength         = DP_Mars
+  real, parameter :: Rotation_Period = RP_Mars
+  real, parameter :: RBody = R_Mars
+  real, parameter :: DipoleStrength = DP_Mars
 
-  real, parameter :: OMEGABody              = 2.00*pi/Rotation_Period  ! rad/s
+  real, parameter :: OMEGABody = 2.00*pi/Rotation_Period  ! rad/s
 
-  real, parameter :: HoursPerDay = Rotation_Period / 3600.0
+  real, parameter :: HoursPerDay = Rotation_Period/3600.0
   real, parameter :: Tilt = 25.19
 
   ! This is the Vernal Equinox at Midnight (Ls = 0!!!)
   ! Revised by D. Pawlwoski:  18-FEB-2013
   ! Earth-Mars clocks are set from this epoch at vernal equinox
-  integer, parameter :: iVernalYear   = 1998
-  integer, parameter :: iVernalMonth  =    7
-  integer, parameter :: iVernalDay    =   14
-  integer, parameter :: iVernalHour   =   13
-  integer, parameter :: iVernalMinute =    40
-  integer, parameter :: iVernalSecond =    0
+  integer, parameter :: iVernalYear = 1998
+  integer, parameter :: iVernalMonth = 7
+  integer, parameter :: iVernalDay = 14
+  integer, parameter :: iVernalHour = 13
+  integer, parameter :: iVernalMinute = 40
+  integer, parameter :: iVernalSecond = 0
 
 ! real, parameter :: SunOrbit_A = 1.52
 ! real, parameter :: SunOrbit_B = 0.04
@@ -105,7 +105,7 @@ module ModPlanet
 ! real, parameter :: SunOrbit_D = 0.00
 ! real, parameter :: SunOrbit_E = 0.00
 
-  ! Use paper "A guide to computing orbital positions of major solar system 
+  ! Use paper "A guide to computing orbital positions of major solar system
   ! bodies: forward and inverse calculations." (Bannister, R. 2001) for A-E
   real, parameter :: SunOrbit_A = 1.52369
   real, parameter :: SunOrbit_B = 0.093379
@@ -127,18 +127,18 @@ module ModPlanet
   real :: meanLongitudedot = meanLongitudedot_Mars
 
   real, parameter :: DaysPerYear = 670.0
-  real, parameter :: SecondsPerYear = DaysPerYear * Rotation_Period
-  
+  real, parameter :: SecondsPerYear = DaysPerYear*Rotation_Period
+
   !Used as a damping term in Vertical solver.
-  real, dimension(nAlts) :: VertTau = 1.0e9 
+  real, dimension(nAlts) :: VertTau = 1.0e9
 
   logical :: IsEarth = .false.
   logical :: IsMars = .true.
   logical :: IsTitan = .false.
   logical :: IsVenus = .false.
   logical :: NonMagnetic = .true.
-  real, parameter :: PlanetNum = 0.04 
-  character (len=10) :: cPlanet = "Mars"
+  real, parameter :: PlanetNum = 0.04
+  character(len=10) :: cPlanet = "Mars"
 
   integer, parameter :: i3371_ = 1
   integer, parameter :: i4278_ = 2
@@ -152,7 +152,6 @@ module ModPlanet
   integer, parameter :: i8446_ = 10
   integer, parameter :: i3726_ = 11
 !  real :: KappaTemp0 = 2.22e-4
-
 
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   ! These are Modified for Mars by SWB: 1/18/07
@@ -169,7 +168,7 @@ module ModPlanet
 !! integer, parameter :: iO2_     = 5
 !! integer, parameter :: iAr_     = 6
 !     !------------------------------------------------+
-!     ! i=C02      CO      O        N2      O2      Ar  
+!     ! i=C02      CO      O        N2      O2      Ar
 !     !------------------------------------------------+
 !       0.0000, 0.7762, 0.2219,  0.6580,  0.5770, 1.1920,         &  ! CO2
 !       0.7762, 0.0000, 0.9466,  0.9280,  0.8300, 0.6625,         &  ! CO
@@ -182,7 +181,7 @@ module ModPlanet
 !
 !   real, parameter, dimension(6, 6) :: DiffExp = reshape( (/ &
 !     !------------------------------------------------+
-!     ! i=C02      CO      O     N2     O2     Ar  
+!     ! i=C02      CO      O     N2     O2     Ar
 !     !------------------------------------------------+
 !       0.000,  0.750,  0.750, 0.752, 0.749, 0.750,  &           ! CO2
 !       0.750,  0.000,  0.750, 0.710, 0.724, 0.750,  &           ! CO
@@ -190,7 +189,7 @@ module ModPlanet
 !       0.752,  0.710,  0.774, 0.000, 0.750, 0.752,  &           ! N2
 !       0.749,  0.724,  0.774, 0.750, 0.000, 0.736,  &           ! O2
 !       0.750,  0.750,  0.841, 0.752, 0.736, 0.000 /), (/6,6/) ) ! AR
-! 
+!
 !!     Arrays filled in init_radcool in data statements (np = 68)
 
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -199,7 +198,7 @@ module ModPlanet
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !real, parameter, dimension(nSpecies, nSpecies) :: Diff0 = 1.0e17 * reshape( (/ &
 !     !----------------------------------------------------------+
-!     ! i=C02      CO      O        N2      O2      Ar    He 
+!     ! i=C02      CO      O        N2      O2      Ar    He
 !     !----------------------------------------------------------+
 !       0.0000, 0.7762, 0.2219,  0.6580,  0.5770, 1.1920, 2.4292, &  ! CO2
 !       0.7762, 0.0000, 0.9466,  0.9280,  0.8300, 0.6625,1159.55, &  ! CO
@@ -214,7 +213,7 @@ module ModPlanet
 !  ! These are s-exponents from B&K (1973) formulation: T**s
 ! real, parameter, dimension(nSpecies, nSpecies) :: DiffExp = reshape( (/ &
 !     !----------------------------------------------------------+
-!     ! i=C02      CO      O     N2     O2     Ar     He 
+!     ! i=C02      CO      O     N2     O2     Ar     He
 !     !----------------------------------------------------------+
 !       0.000,  0.750,  0.750, 0.752, 0.749, 0.750, 0.720, &     ! CO2
 !       0.750,  0.000,  0.750, 0.710, 0.724, 0.750, 0.524, &     ! CO
@@ -223,96 +222,91 @@ module ModPlanet
 !       0.749,  0.724,  0.774, 0.750, 0.000, 0.736, 0.710, &     ! O2
 !       0.750,  0.750,  0.841, 0.752, 0.736, 0.000, 0.524, &     ! Ar
 !       0.720,  0.524,  0.749, 0.524, 0.710, 0.524, 0.000 /), &  ! He
-!       (/nSpecies,nSpecies/) ) 
-
+!       (/nSpecies,nSpecies/) )
 
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
- real, parameter, dimension(nSpecies, nSpecies) :: Diff0 = 1.0e17 * reshape( (/ &
-     !----------------------------------------------------------------+
-     ! i=C02      CO      O        N2      O2      Ar    He       N4S
-     !----------------------------------------------------------------+
-       0.0000, 0.7762, 0.2219,  0.6580,  0.5770, 1.1920, 2.4292, 0.2219,&  ! CO2
-       0.7762, 0.0000, 0.9466,  0.9280,  0.8300, 0.6625,1159.55, 0.9466,&  ! CO
-       0.2219, 0.9466, 0.0000,  0.9690,  0.9690, 0.5510, 3.4346, 0.9690, &  ! O
-       0.6580, 0.9280, 0.9690,  0.0000,  0.7150, 0.6640,1159.55, 0.9690,&  ! N2
-       0.5770, 0.8300, 0.9690,  0.7150,  0.0000, 0.7170, 3.2070, 0.9690,&  ! O2
-       1.1920, 0.6625, 0.5510,  0.6640,  0.7170, 0.0000,1000.00, 0.5510, &  ! Ar
-       2.4292,1159.55, 3.4346,1159.550,  3.2070,1000.00, 0.0000, 3.34346, &  ! He
-       0.2219, 0.9466, 0.9690,  0.9690,  0.9690, 0.5510, 3.4346, 0.0000 /), &  ! N4S
-       (/nSpecies,nSpecies/) )
-
+  real, parameter, dimension(nSpecies, nSpecies) :: &
+    Diff0 = 1.0e17*reshape((/ &
+                           !----------------------------------------------------------------+
+                           ! i=C02      CO      O        N2      O2      Ar    He       N4S
+                           !----------------------------------------------------------------+
+                           0.0000, 0.7762, 0.2219, 0.6580, 0.5770, 1.1920, 2.4292, 0.2219, &  ! CO2
+                           0.7762, 0.0000, 0.9466, 0.9280, 0.8300, 0.6625, 1159.55, 0.9466, &  ! CO
+                           0.2219, 0.9466, 0.0000, 0.9690, 0.9690, 0.5510, 3.4346, 0.9690, &  ! O
+                           0.6580, 0.9280, 0.9690, 0.0000, 0.7150, 0.6640, 1159.55, 0.9690, &  ! N2
+                           0.5770, 0.8300, 0.9690, 0.7150, 0.0000, 0.7170, 3.2070, 0.9690, &  ! O2
+                           1.1920, 0.6625, 0.5510, 0.6640, 0.7170, 0.0000, 1000.00, 0.5510, &  ! Ar
+                           2.4292, 1159.55, 3.4346, 1159.550, 3.2070, 1000.00, 0.0000, 3.34346, &  ! He
+                           0.2219, 0.9466, 0.9690, 0.9690, 0.9690, 0.5510, 3.4346, 0.0000/), &  ! N4S
+                           (/nSpecies, nSpecies/))
 
   ! These are s-exponents from B&K (1973) formulation: T**s
-   real, parameter, dimension(nSpecies, nSpecies) :: DiffExp = reshape( (/ &
-     !----------------------------------------------------------+
-     ! i=C02      CO      O     N2     O2     Ar     He 
-     !----------------------------------------------------------+
-       0.000,  0.750,  0.750, 0.752, 0.749, 0.750, 0.720, 0.750,&  ! CO2
-       0.750,  0.000,  0.750, 0.710, 0.724, 0.750, 0.524, 0.750,&  ! CO
-       0.750,  0.750,  0.000, 0.774, 0.774, 0.841, 0.749, 0.750,&  ! O
-       0.752,  0.710,  0.774, 0.000, 0.750, 0.752, 0.524, 0.774,&  ! N2
-       0.749,  0.724,  0.774, 0.750, 0.000, 0.736, 0.710, 0.774,&  ! O2
-       0.750,  0.750,  0.841, 0.752, 0.736, 0.000, 0.524, 0.841,&  ! Ar
-       0.720,  0.524,  0.749, 0.524, 0.710, 0.524, 0.000, 0.749,&  ! He
-       0.750,  0.750,  0.750, 0.774, 0.774, 0.841, 0.749, 0.000 /), &     ! O
-       (/nSpecies,nSpecies/) ) 
+  real, parameter, dimension(nSpecies, nSpecies) :: &
+    DiffExp = reshape((/ &
+                      !----------------------------------------------------------+
+                      ! i=C02      CO      O     N2     O2     Ar     He
+                      !----------------------------------------------------------+
+                      0.000, 0.750, 0.750, 0.752, 0.749, 0.750, 0.720, 0.750, &  ! CO2
+                      0.750, 0.000, 0.750, 0.710, 0.724, 0.750, 0.524, 0.750, &  ! CO
+                      0.750, 0.750, 0.000, 0.774, 0.774, 0.841, 0.749, 0.750, &  ! O
+                      0.752, 0.710, 0.774, 0.000, 0.750, 0.752, 0.524, 0.774, &  ! N2
+                      0.749, 0.724, 0.774, 0.750, 0.000, 0.736, 0.710, 0.774, &  ! O2
+                      0.750, 0.750, 0.841, 0.752, 0.736, 0.000, 0.524, 0.841, &  ! Ar
+                      0.720, 0.524, 0.749, 0.524, 0.710, 0.524, 0.000, 0.749, &  ! He
+                      0.750, 0.750, 0.750, 0.774, 0.774, 0.841, 0.749, 0.000/), &     ! O
+                      (/nSpecies, nSpecies/))
 
-
-
-
-  integer, parameter :: np=68,nInAlts = 124
-  real,dimension(np) :: pnbr,ef1,ef2,co2vmr,o3pvmr,n2covmr
+  integer, parameter :: np = 68, nInAlts = 124
+  real, dimension(np) :: pnbr, ef1, ef2, co2vmr, o3pvmr, n2covmr
 
   !! Stuff for initial conditions
 
-  real , Dimension(nInAlts) :: newalt
-  real , Dimension(nInAlts) :: InTemp
-  real , Dimension(nInAlts) :: IneTemp
-  real , Dimension(nInAlts) :: InITemp
-  real , Dimension(nInAlts,nSpeciesTotal) :: InNDensityS 
-  real , Dimension(nInAlts,nIons) :: InIDensityS
+  real, Dimension(nInAlts) :: newalt
+  real, Dimension(nInAlts) :: InTemp
+  real, Dimension(nInAlts) :: IneTemp
+  real, Dimension(nInAlts) :: InITemp
+  real, Dimension(nInAlts, nSpeciesTotal) :: InNDensityS
+  real, Dimension(nInAlts, nIons) :: InIDensityS
 
   integer, parameter:: nDustLinesMax = 4000, nDustLats = 36
-  integer :: nDustTimes,nConrathTimes
-  real, dimension(nDustLinesMax) :: TimeDust,TimeConrath
-  real, dimension(nDustLinesMax,nLats,nBlocksMax) :: HorizontalDustProfile
-  real, dimension(nDustLinesMax,nLats,nBlocksMax) :: HorizontalConrathProfile
+  integer :: nDustTimes, nConrathTimes
+  real, dimension(nDustLinesMax) :: TimeDust, TimeConrath
+  real, dimension(nDustLinesMax, nLats, nBlocksMax) :: HorizontalDustProfile
+  real, dimension(nDustLinesMax, nLats, nBlocksMax) :: HorizontalConrathProfile
 
+  real, dimension(nLons, nLats, nBlocksMax) :: &
+    fir, fvis, Tbot, TopL, Psurf, P125, iAltMinIono, DustDistribution, ConrathDistribution
 
-  real, dimension(nLons, nLats,nBlocksMax) :: &
-       fir,fvis,Tbot,TopL,Psurf,P125,iAltMinIono,DustDistribution,ConrathDistribution
-
-  real, dimension(1:nLons,1:nLats,1:nAlts) :: MarsOrbitalDistance
-
+  real, dimension(1:nLons, 1:nLats, 1:nAlts) :: MarsOrbitalDistance
 
 !################ Nelli, April 07 ##########################
 !Setting up parameters needed by the correlated k lower
 !atmosphere radiation code
 
 !     Number of atmospheric layers
-      integer, PARAMETER :: LL_LAYERS  = nAlts
+  integer, PARAMETER :: LL_LAYERS = nAlts
 
 !     Number of atmospheric levels:   2 * LL_LAYERS + 3
-      integer, PARAMETER :: LL_LEVELS  = 2*LL_LAYERS+3
+  integer, PARAMETER :: LL_LEVELS = 2*LL_LAYERS + 3
 
 !C     LL_NLAYRAD is the number of radiation code layers
 !C     LL_NLEVRAD is the number of radiation code levels.  Level N is the
 !C
-       integer, PARAMETER :: LL_NLAYRAD  = LL_LAYERS+1   
-       integer, PARAMETER :: LL_NLEVRAD  = LL_LAYERS+2
+  integer, PARAMETER :: LL_NLAYRAD = LL_LAYERS + 1
+  integer, PARAMETER :: LL_NLEVRAD = LL_LAYERS + 2
 
 ! Bottom layer subsurface temperature
-       real, parameter :: CoreTemp = 175.0
+  real, parameter :: CoreTemp = 175.0
 
 ! Surface and subsurface temperature constants
-       real, parameter :: Pa = 5.927E+7
-       real, parameter :: PdM = 88775.0
+  real, parameter :: Pa = 5.927E+7
+  real, parameter :: PdM = 88775.0
 
 ! Stefan-Boltzmann constant in SI
-       real, parameter :: SBconstant = 5.67E-8
+  real, parameter :: SBconstant = 5.67E-8
 
 !      Ls variable
-       real :: ell_s
+  real :: ell_s
 !C======================================================================C
 !C
 !C     RADINC.H    RADiation INCludes
@@ -321,7 +315,7 @@ module ModPlanet
 !C     number of spectral intervals. . .
 !C
 !C     GCM2.0  Feb 2003
-!C 
+!C
 !C======================================================================C
 
 !C     RADIATION parameters
@@ -331,7 +325,6 @@ module ModPlanet
 !C     temperature as the (vertically isothermal) stratosphere, and
 !C     any time it is explicitly needed, the appropriate quantities will
 !C     be dealt with (aka "top". . .)
-
 
 !C
 !C     L_NSPECTI is the number of IR spectral intervals
@@ -343,7 +336,7 @@ module ModPlanet
 !C     L_NWNGV   is L_NSPECTV*L_NGAUSS;  the total number of "intervals"
 !C               in the VISUAL
 !C
-!C     L_NPREF   is the number of reference pressures that the 
+!C     L_NPREF   is the number of reference pressures that the
 !C               k-coefficients are calculated on
 !C     L_PINT    is the number of Lagrange interpolated reference
 !C               pressures for the CO2 k-coefficients.
@@ -353,10 +346,10 @@ module ModPlanet
 !C               to this value.
 !C
 !C     L_REFH2O  The number of different water-mixing ratio values for
-!C               the k-coefficients that are now CO2+H2O. 
+!C               the k-coefficients that are now CO2+H2O.
 !C
 !C     L_NREFV   The spectral interval number of the visible reference
-!C               wavelength (i.e. the 0.67 micron band) 
+!C               wavelength (i.e. the 0.67 micron band)
 !C
 !C
 !C     L_NLTE    The number of different LTE/NLTE heating rate conversion
@@ -364,22 +357,21 @@ module ModPlanet
 !C
 !C----------------------------------------------------------------------C
 
-      
-      integer, parameter :: L_NSPECTI =  5
-      integer, parameter :: L_NSPECTV =  7
-      integer, parameter :: L_NGAUSS  = 17
+  integer, parameter :: L_NSPECTI = 5
+  integer, parameter :: L_NSPECTV = 7
+  integer, parameter :: L_NGAUSS = 17
 
-      integer, parameter :: L_NPREF   = 11
-      integer, parameter :: L_NTREF   =  7
-      integer, parameter :: L_TAUMAX  = 35
+  integer, parameter :: L_NPREF = 11
+  integer, parameter :: L_NTREF = 7
+  integer, parameter :: L_TAUMAX = 35
 
-      integer, parameter :: L_PINT    = 51
+  integer, parameter :: L_PINT = 51
 
-      integer, parameter :: L_REFH2O  = 10
+  integer, parameter :: L_REFH2O = 10
 
-      integer, parameter :: L_NREFV   = 6
+  integer, parameter :: L_NREFV = 6
 
-      integer, parameter :: L_NLTE    = 37
+  integer, parameter :: L_NLTE = 37
 
 !C----------------------------------------------------------------------C
 !C
@@ -439,70 +431,70 @@ module ModPlanet
 !C     GI       - Asymmetry parameter - in the infrared.
 !C
 !C     VIS2IR   - VISIBLE (0.67 micron band) to IR (9 micron band) ratio.
-!C     
+!C
 !C     XLTEFACTOR - correction factor for over-prediction of heating rates
 !C                  by the LTE code.  Occurs at pressures where NLTE processes
 !C                  become important
 !C
 !C     XLTEPRESSURE - pressure regime at which each factor is to be applied
-!C     
+!C
 !C  "Include" grid.h and radinc.h before this file in code that uses
 !C  some or all of this common data set
 
-      REAL :: WNOI(L_NSPECTI), DWNI(L_NSPECTI), WAVEI(L_NSPECTI)
-      REAL :: WNOV(L_NSPECTV), DWNV(L_NSPECTV), WAVEV(L_NSPECTV)
-      REAL :: SOLARF(L_NSPECTV), TAURAY(L_NSPECTV),SOL(L_NSPECTV)
+  REAL :: WNOI(L_NSPECTI), DWNI(L_NSPECTI), WAVEI(L_NSPECTI)
+  REAL :: WNOV(L_NSPECTV), DWNV(L_NSPECTV), WAVEV(L_NSPECTV)
+  REAL :: SOLARF(L_NSPECTV), TAURAY(L_NSPECTV), SOL(L_NSPECTV)
 
-      real :: CO2I(L_NTREF,L_PINT,L_REFH2O,L_NSPECTI,L_NGAUSS)
-      real :: CO2V(L_NTREF,L_PINT,L_REFH2O,L_NSPECTV,L_NGAUSS)
-      real :: FZEROI(L_NSPECTI)
-      real :: FZEROV(L_NSPECTV)
-      real :: PGASREF(L_NPREF), TGASREF(L_NTREF)
+  real :: CO2I(L_NTREF, L_PINT, L_REFH2O, L_NSPECTI, L_NGAUSS)
+  real :: CO2V(L_NTREF, L_PINT, L_REFH2O, L_NSPECTV, L_NGAUSS)
+  real :: FZEROI(L_NSPECTI)
+  real :: FZEROV(L_NSPECTV)
+  real :: PGASREF(L_NPREF), TGASREF(L_NTREF)
 
-      real :: qextv(L_NSPECTV), qscatv(L_NSPECTV), wv(L_NSPECTV)
-      real :: gv(L_NSPECTV)
-      real :: QextREF, VIS2IR, Cmk, tlimit
+  real :: qextv(L_NSPECTV), qscatv(L_NSPECTV), wv(L_NSPECTV)
+  real :: gv(L_NSPECTV)
+  real :: QextREF, VIS2IR, Cmk, tlimit
 
-      real :: qexti(L_NSPECTI), qscati(L_NSPECTI), wi(L_NSPECTI)
-      real :: gi(L_NSPECTI)
+  real :: qexti(L_NSPECTI), qscati(L_NSPECTI), wi(L_NSPECTI)
+  real :: gi(L_NSPECTI)
 
-      real :: planckir(L_NSPECTI,8501)
+  real :: planckir(L_NSPECTI, 8501)
 
-      real :: PTOP, UBARI,  GWEIGHT(L_NGAUSS)
-      real :: PFGASREF(L_PINT)
+  real :: PTOP, UBARI, GWEIGHT(L_NGAUSS)
+  real :: PFGASREF(L_PINT)
 
 !C  H2O and CO2 k-coefficients mixed
 
-      real :: WREFCO2(L_REFH2O), WREFH2O(L_REFH2O)
+  real :: WREFCO2(L_REFH2O), WREFH2O(L_REFH2O)
 
 !C  LTE/NLTE heating rate conversion factors and associated pressures
-      
-      real :: XLTEFACTOR(L_NLTE),XLTEPRESSURE(L_NLTE)
+
+  real :: XLTEFACTOR(L_NLTE), XLTEPRESSURE(L_NLTE)
 
 !  These are for the Gauss-split 0.95 case
 
-      DATA GWEIGHT  / 4.8083554740D-02, 1.0563099137D-01,&
-                      1.4901065679D-01, 1.7227479710D-01,&
-                      1.7227479710D-01, 1.4901065679D-01,&
-                      1.0563099137D-01, 4.8083554740D-02,&
-                      2.5307134073D-03, 5.5595258613D-03,&
-                      7.8426661469D-03, 9.0670945845D-03,&
-                      9.0670945845D-03, 7.8426661469D-03,&
-                      5.5595258613D-03, 2.5307134073D-03,  0.0D0 /
+  DATA GWEIGHT/4.8083554740D-02, 1.0563099137D-01, &
+    1.4901065679D-01, 1.7227479710D-01, &
+    1.7227479710D-01, 1.4901065679D-01, &
+    1.0563099137D-01, 4.8083554740D-02, &
+    2.5307134073D-03, 5.5595258613D-03, &
+    7.8426661469D-03, 9.0670945845D-03, &
+    9.0670945845D-03, 7.8426661469D-03, &
+    5.5595258613D-03, 2.5307134073D-03, 0.0D0/
 
-      DATA UBARI    / 0.5  /
+  DATA UBARI/0.5/
 
 !C  These are for the CO2+H2O k-coefficients
 
-      DATA WREFCO2 / 9.999999D-1, 9.99999D-1, 9.9999D-1, 9.999D-1,&
-                     9.99D-1, 9.9D-1, 9.0D-1, 8.0D-1, 7.0D-1, 6.0D-1 /
+  DATA WREFCO2/9.999999D-1, 9.99999D-1, 9.9999D-1, 9.999D-1, &
+    9.99D-1, 9.9D-1, 9.0D-1, 8.0D-1, 7.0D-1, 6.0D-1/
 
-      DATA WREFH2O / 1.0D-7, 1.0D-6, 1.0D-5, 1.0D-4, 1.0D-3, 1.0D-2,&
-                     1.0D-1, 2.0D-1, 3.0D-1, 4.0D-1                  /
+  DATA WREFH2O/1.0D-7, 1.0D-6, 1.0D-5, 1.0D-4, 1.0D-3, 1.0D-2, &
+    1.0D-1, 2.0D-1, 3.0D-1, 4.0D-1/
 
-      DATA  Cmk     / 3.51E+22 /
+  DATA Cmk/3.51E+22/
 
-      DATA  TLIMIT  / 0.5      /
+  DATA TLIMIT/0.5/
 
 ! ---------------------------------------------------------------------------
 !  Lopez-Valverde et al. (1998) Table 1, pg. 16809.
@@ -535,23 +527,23 @@ module ModPlanet
 !  Bougher (2011) Calculated wrt QNLTE from MTGCM case for SZA = 0.0
 !  -- Ls = 90;  F10.7 = 70; dust = weak
 
-      DATA  XLTEFACTOR / 1.00,  1.000,  1.000,  1.000,  1.000,&
-                        1.000,  1.000,  1.000,  1.000,  1.000,&
-                        1.000,  1.000,  1.000,  1.000,  1.000,&
-                        1.000,  1.000,  1.020,  1.040,  1.081,&
-                       1.13225, 1.13704, 1.2334, 1.32968, 2.47989,&
-                       5.17858, 9.21052, 13.9471, 19.1293, 25.9336,&
-                       45.9666, 113.783, 146.843, 212.959, 500.000,&
-                       1000.00, 1000.00 /
+  DATA XLTEFACTOR/1.00, 1.000, 1.000, 1.000, 1.000, &
+    1.000, 1.000, 1.000, 1.000, 1.000, &
+    1.000, 1.000, 1.000, 1.000, 1.000, &
+    1.000, 1.000, 1.020, 1.040, 1.081, &
+    1.13225, 1.13704, 1.2334, 1.32968, 2.47989, &
+    5.17858, 9.21052, 13.9471, 19.1293, 25.9336, &
+    45.9666, 113.783, 146.843, 212.959, 500.000, &
+    1000.00, 1000.00/
 !  mbar scale
-      DATA XLTEPRESSURE / 1.122E-1, 8.822E-2, 6.912E-2, 5.397E-2, 4.202E-2,&
-                         3.261E-2, 2.523E-2, 1.946E-2, 1.497E-2, 1.149E-2,&
-                         8.793E-3, 6.713E-3, 5.115E-3, 3.890E-3, 2.953E-3,&
-                         2.239E-3, 1.696E-3, 1.284E-3, 9.719E-4, 7.982E-4,&
-                         4.841E-4, 2.936E-4, 1.781E-4, 1.080E-4, 6.550E-5,&
-                         3.970E-5, 2.410E-5, 1.460E-5, 8.900E-6, 5.400E-6,&
-                         3.300E-6, 2.000E-6, 1.200E-6, 7.000E-7, 5.234E-7,&
-                         4.397E-7, 3.702E-7 /
+  DATA XLTEPRESSURE/1.122E-1, 8.822E-2, 6.912E-2, 5.397E-2, 4.202E-2, &
+    3.261E-2, 2.523E-2, 1.946E-2, 1.497E-2, 1.149E-2, &
+    8.793E-3, 6.713E-3, 5.115E-3, 3.890E-3, 2.953E-3, &
+    2.239E-3, 1.696E-3, 1.284E-3, 9.719E-4, 7.982E-4, &
+    4.841E-4, 2.936E-4, 1.781E-4, 1.080E-4, 6.550E-5, &
+    3.970E-5, 2.410E-5, 1.460E-5, 8.900E-6, 5.400E-6, &
+    3.300E-6, 2.000E-6, 1.200E-6, 7.000E-7, 5.234E-7, &
+    4.397E-7, 3.702E-7/
 ! ---------------------------------------------------------------------------
 
 !C  PLANCK defined variable
@@ -575,62 +567,62 @@ module ModPlanet
 !      WREFCO2, WREFH2O
 
 !#####################################################
-real*4 :: dummyalbedo(24,36), dummyti(24,36)
+  real*4 :: dummyalbedo(24, 36), dummyti(24, 36)
 
 contains
 
   subroutine init_planet
 
     use ModTime
-    use ModIoUnit, only : UnitTmp_
+    use ModIoUnit, only: UnitTmp_
 
-    integer :: iTime(7), iiAlt,ialt
-   
+    integer :: iTime(7), iiAlt, ialt
+
     !   Mass = AMU * mean molecular weight  (unlike TGCM codes)
 
-    Mass(iO_)    = 15.9994 * AMU
-    Mass(iCO_)   = 12.011 * AMU + Mass(iO_)
-    Mass(iCO2_)  = Mass(iCO_) + Mass(iO_)
-    Mass(iN4S_)    = 14.00674 * AMU
-    Mass(iN2D_)    = Mass(iN4S_)
-    Mass(iN2_)   = Mass(iN4S_) * 2
-    Mass(iNO_)   = Mass(iN4S_) + Mass(iO_)
+    Mass(iO_) = 15.9994*AMU
+    Mass(iCO_) = 12.011*AMU + Mass(iO_)
+    Mass(iCO2_) = Mass(iCO_) + Mass(iO_)
+    Mass(iN4S_) = 14.00674*AMU
+    Mass(iN2D_) = Mass(iN4S_)
+    Mass(iN2_) = Mass(iN4S_)*2
+    Mass(iNO_) = Mass(iN4S_) + Mass(iO_)
 
-    Mass(iO2_)   = 2 * Mass(iO_)
-    Mass(iAr_)   = 39.948 * AMU 
-    Mass(iHe_)   = 4.0026 * AMU 
-    Mass(iH_)    = 1.0079 * AMU
+    Mass(iO2_) = 2*Mass(iO_)
+    Mass(iAr_) = 39.948*AMU
+    Mass(iHe_) = 4.0026*AMU
+    Mass(iH_) = 1.0079*AMU
 
-    cSpecies(iO_)    = "O"
-    cSpecies(iO2_)   = "O!D2!N"
-    cSpecies(iN4S_)    = "N"
-    cSpecies(iN2_)   = "N!D2!N"
-    cSpecies(iCO_)   = "CO"
-    cSpecies(iCO2_)  = "CO!D2!N"
-    cSpecies(iNO_)   = "NO"
-    cSpecies(iAr_)   = "Ar"
-    cSpecies(iH_)    = "H"
-    cSpecies(iHe_)   = "He"
+    cSpecies(iO_) = "O"
+    cSpecies(iO2_) = "O!D2!N"
+    cSpecies(iN4S_) = "N"
+    cSpecies(iN2_) = "N!D2!N"
+    cSpecies(iCO_) = "CO"
+    cSpecies(iCO2_) = "CO!D2!N"
+    cSpecies(iNO_) = "NO"
+    cSpecies(iAr_) = "Ar"
+    cSpecies(iH_) = "H"
+    cSpecies(iHe_) = "He"
 
-    cIons(iO2P_)   = "O!D2!U+!N"
-    cIons(iCO2P_)   = "CO!D2!U+!N"
-    cIons(iNOP_)   = "NO!U+!N"
-    cIons(iOP_)    = "O!U+!N"
-    cIons(iN2P_)    = "N!D2!U+!N"
-    cIons(ie_)     = "e-"
+    cIons(iO2P_) = "O!D2!U+!N"
+    cIons(iCO2P_) = "CO!D2!U+!N"
+    cIons(iNOP_) = "NO!U+!N"
+    cIons(iOP_) = "O!U+!N"
+    cIons(iN2P_) = "N!D2!U+!N"
+    cIons(ie_) = "e-"
 
-    Vibration(iCO2_)  = 8.66667  ! This gives Gamma = ~1.3 (experimental value)
+    Vibration(iCO2_) = 8.66667  ! This gives Gamma = ~1.3 (experimental value)
     !Vibration(iCO2_)  = 7.0  ! Corrected by Bougher (01/18/07)!!!!
-    Vibration(iCO_)   = 7.0
-    Vibration(iO_)    = 5.0
-    Vibration(iN2_)   = 7.0
-    Vibration(iHe_)   = 5.0
-    Vibration(iN4S_)   = 5.0
+    Vibration(iCO_) = 7.0
+    Vibration(iO_) = 5.0
+    Vibration(iN2_) = 7.0
+    Vibration(iHe_) = 5.0
+    Vibration(iN4S_) = 5.0
 
-    MassI(iOP_)   = Mass(iO_)
-    MassI(iNOP_)  = Mass(iO_) + Mass(iN2_)/2.0
+    MassI(iOP_) = Mass(iO_)
+    MassI(iNOP_) = Mass(iO_) + Mass(iN2_)/2.0
     MassI(iCO2P_) = Mass(iCO2_)
-    MassI(iO2P_)  = Mass(iO2_)
+    MassI(iO2P_) = Mass(iO2_)
     MassI(ie_) = Mass_Electron
 
     itime = 0
@@ -642,55 +634,52 @@ contains
     itime(6) = iVernalSecond
     call time_int_to_real(itime, VernalTime)
 
-    write(*,*) 'Reading in the Mars_input.txt'
+    write(*, *) 'Reading in the Mars_input.txt'
 
-    open(UNIT = 67, FILE = 'UA/DataIn/ALBEDO_ASCII', &
-         STATUS='OLD', ACTION = 'READ')
-    read(67,*) dummyalbedo
-    close(UNIT = 67)
-    
-    open(UNIT = 68, FILE = 'UA/DataIn/THERMAL_ASCII', &
-         STATUS='OLD', ACTION = 'READ')  
-    read(68,*) dummyti
-    close(UNIT = 68)
+    open(UNIT=67, FILE='UA/DataIn/ALBEDO_ASCII', &
+         STATUS='OLD', ACTION='READ')
+    read(67, *) dummyalbedo
+    close(UNIT=67)
 
-    open(UNIT = UnitTmp_, FILE = 'UA/DataIn/NewMarsAtm_2p5km.txt', &
-         STATUS='OLD', ACTION = 'READ')
+    open(UNIT=68, FILE='UA/DataIn/THERMAL_ASCII', &
+         STATUS='OLD', ACTION='READ')
+    read(68, *) dummyti
+    close(UNIT=68)
 
-111 FORMAT(F6.2,1X, F8.2,1X, F8.2,1X, F8.2,1X,   &  
-         ES10.3,1X, ES10.3, 1X,  ES10.3, 1X, ES10.3, 1X, &
-         ES10.3, 1X, ES10.3, 1X,  ES10.3)
+    open(UNIT=UnitTmp_, FILE='UA/DataIn/NewMarsAtm_2p5km.txt', &
+         STATUS='OLD', ACTION='READ')
 
-    InNDensityS(:,:) = 1.0e+3
-    InIDensityS(:,:) = 1.0e+3
+111 FORMAT(F6.2, 1X, F8.2, 1X, F8.2, 1X, F8.2, 1X, &
+           ES10.3, 1X, ES10.3, 1X, ES10.3, 1X, ES10.3, 1X, &
+           ES10.3, 1X, ES10.3, 1X, ES10.3)
 
-    do iiAlt = 1,124
+    InNDensityS(:, :) = 1.0e+3
+    InIDensityS(:, :) = 1.0e+3
 
-       read(UnitTmp_,111) &
-            newalt(iiAlt), &
-            InTemp(iiAlt), &
-            InITemp(iiAlt), &
-            IneTemp(iiAlt), &
-                                !
-            InNDensityS(iiAlt,iCO2_), &
-            InNDensityS(iiAlt,iO2_), &
-            InNDensityS(iiAlt,iCO_), &
-            InNDensityS(iiAlt,iN2_), &
-                                !
-            InNDensityS(iiAlt,iO_), &
-            InNDensityS(iiAlt,iAr_), &
-            
-            InIDensityS(iiAlt,ie_)
+    do iiAlt = 1, 124
+
+      read(UnitTmp_, 111) &
+        newalt(iiAlt), &
+        InTemp(iiAlt), &
+        InITemp(iiAlt), &
+        IneTemp(iiAlt), &
+        !
+        InNDensityS(iiAlt, iCO2_), &
+        InNDensityS(iiAlt, iO2_), &
+        InNDensityS(iiAlt, iCO_), &
+        InNDensityS(iiAlt, iN2_), &
+        !
+        InNDensityS(iiAlt, iO_), &
+        InNDensityS(iiAlt, iAr_), &
+        InIDensityS(iiAlt, ie_)
 
     end do
 
     InNDensityS = Alog(inNDensityS)
-    close(Unit = UnitTmp_)
-
-  
+    close(Unit=UnitTmp_)
 
     !######## Nelli, April 07 ################################
-    !              
+    !
     !C             PURPOSE IS TO SET UP THE CORRELATED K LOWER ATMOPSHERE
     !C             RADIATION CODE.
     !C             INITIALIZATION CONSISTS MAINLY OF READING INPUT VALUES,
@@ -705,12 +694,11 @@ contains
 
   end subroutine init_planet
 
-
 !################ Nelli, April 07 ##########################
 !Filling arrays needed by the correlated k lower
 !atmosphere radiation code
 
-      subroutine radsetup
+  subroutine radsetup
 
 !C  GCM2.0  Feb 2003
 !C
@@ -722,39 +710,38 @@ contains
 !C
 !C----------------------------------------------------------------------C
 
-      implicit none
+    implicit none
 
-
-      REAL :: FACTOR
-      INTEGER :: NW
+    REAL :: FACTOR
+    INTEGER :: NW
 
 !C======================================================================C
 
-      call setspv
-      call setspi
-      call setrad
+    call setspv
+    call setspi
+    call setrad
 
-!C  Scale IR opacities (Qexti and Qscati) such that 
+!C  Scale IR opacities (Qexti and Qscati) such that
 !C  TAU(0.67 micron)/TAU(9 micron) = VIS2IR, which nominally is 2.
 
-      QextREF = Qextv(L_NREFV)
-      VIS2IR  = 2.75D0
+    QextREF = Qextv(L_NREFV)
+    VIS2IR = 2.75D0
 
-      factor  = Qextv(6)/(VIS2IR*Qexti(4))
+    factor = Qextv(6)/(VIS2IR*Qexti(4))
 
-      DO NW=1,L_NSPECTI
-        Qexti(NW)  = Qexti(NW)*factor
-        Qscati(NW) = Qscati(NW)*factor
-      END DO
+    DO NW = 1, L_NSPECTI
+      Qexti(NW) = Qexti(NW)*factor
+      Qscati(NW) = Qscati(NW)*factor
+    END DO
 
-      PTOP = 10.0**PFGASREF(1)
-      
-      print*,'vis2ir=',vis2ir      
+    PTOP = 10.0**PFGASREF(1)
 
-    end subroutine radsetup
+    print *, 'vis2ir=', vis2ir
+
+  end subroutine radsetup
 
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-      SUBROUTINE SETSPV
+  SUBROUTINE SETSPV
 
 !C  GCM2.0  Feb 2003
 !C
@@ -763,7 +750,7 @@ contains
 !C     on Chris McKay's SETSPV code.
 !C
 !C     AUTHOR
-!C        Jim Schaeffer 
+!C        Jim Schaeffer
 !C
 !C     UPDATES FOR
 !C        Bob Haberle
@@ -792,86 +779,84 @@ contains
 !C                  each spectral interval.  Values are for 1 AU, and
 !C                  are scaled to the Mars distance elsewhere.
 !C     TAURAY     - Array (NSPECTV elements) of the wavelength dependent
-!C                  part of Rayleigh Scattering.  The pressure dependent 
+!C                  part of Rayleigh Scattering.  The pressure dependent
 !C                  part is computed elsewhere (OPTCV).
 !C     CALLED BY
 !C        RADIATION
 !C
 !C     SUBROUTINES CALLED
-!C        NONE 
+!C        NONE
 !C
 !C**********************************************************************C
 
-      implicit none
+    implicit none
 
-     
 !C     BWNV - Bin wavenumber of the edges of the VISUAL spectral bins
 !C     units are inverse centimeters.  Dimension needs to be changed
 !C     if the number of VISUAL bins changes.
 
-      REAL :: BWNV(L_NSPECTV+1)
-      REAL :: SOLAR(L_NSPECTV)
+    REAL :: BWNV(L_NSPECTV + 1)
+    REAL :: SOLAR(L_NSPECTV)
 
-      REAL ::  P0, GRAV, SCALEP, SUM, WL
-      INTEGER :: N, M
+    REAL ::  P0, GRAV, SCALEP, SUM, WL
+    INTEGER :: N, M
 
 !C     P0      - Rayleigh scattering reference pressure in pascals.
 !C     GRAV    - Acceleration due to gravity (g) - MKS
 !C     SCALEP  - multiply by 100 to convert pressure from millibars
 !C               to pascals.
 
-      DATA P0     / 9.423D+6 /
-      DATA GRAV   / 3.72     /
-      DATA SCALEP / 100.0    /
+    DATA P0/9.423D+6/
+    DATA GRAV/3.72/
+    DATA SCALEP/100.0/
 
 !C     Bin wavenumber - wavenumber [cm^(-1)] at the edges of the VISUAL
 !C     spectral bins.  Go from smaller to larger wavenumbers, the same as
 !C     in the IR.
 
-      DATA BWNV / 2222.22D0,  3087.37D0,  4030.63D0,  5370.57D0,&
-                  7651.11D0, 12500.00D0, 25000.00D0, 41666.67D0 /
+    DATA BWNV/2222.22D0, 3087.37D0, 4030.63D0, 5370.57D0, &
+      7651.11D0, 12500.00D0, 25000.00D0, 41666.67D0/
 
 !C     Solar flux within each spectral interval, at 1AU (W/M^2)
 !C     Sum equals 1356 W/m^2 (values from Allen, 4th edition)
 
-      DATA SOLAR /  17.0, 29.0, 52.0, 148.0, 348.0, 643.0, 118.0 /
+    DATA SOLAR/17.0, 29.0, 52.0, 148.0, 348.0, 643.0, 118.0/
 
 !C======================================================================C
 
-!C     Set up mean wavenumbers and wavenumber deltas.  Units of 
+!C     Set up mean wavenumbers and wavenumber deltas.  Units of
 !C     wavenumbers is cm^(-1); units of wavelengths is microns.
 
-      do M=1,L_NSPECTV
-        WNOV(M)  = 0.5*(BWNV(M+1)+BWNV(M))
-        DWNV(M)  = BWNV(M+1)-BWNV(M)
-        WAVEV(M) = 1.0E+4/WNOV(M)
-      end do
+    do M = 1, L_NSPECTV
+      WNOV(M) = 0.5*(BWNV(M + 1) + BWNV(M))
+      DWNV(M) = BWNV(M + 1) - BWNV(M)
+      WAVEV(M) = 1.0E+4/WNOV(M)
+    end do
 
-!C     Sum the solar flux, and write out the result.  
+!C     Sum the solar flux, and write out the result.
 
-      sum = 0.0
-      do N=1,L_NSPECTV
-        SOLARF(N) = SOLAR(N)
-        sum       = sum+SOLARF(N)
-      end do
-      write(6,'("Solar flux at 1AU = ",f7.2," W/M^2")') sum
+    sum = 0.0
+    do N = 1, L_NSPECTV
+      SOLARF(N) = SOLAR(N)
+      sum = sum + SOLARF(N)
+    end do
+    write(6, '("Solar flux at 1AU = ",f7.2," W/M^2")') sum
 
 !C     Set up the wavelength dependent part of Rayleigh Scattering.
 !C     The pressure dependent part will be computed elsewhere (OPTCV).
 !C     WAVEV is in microns.  There is no Rayleigh scattering in the IR.
 
-      do N=1,L_NSPECTV
-        WL        = WAVEV(N)
-        TAURAY(N) = (8.7/grav)*(1.527*(1.0+0.013/wl**2)/wl**4)*&
-                     scalep/P0
-      end do
+    do N = 1, L_NSPECTV
+      WL = WAVEV(N)
+      TAURAY(N) = (8.7/grav)*(1.527*(1.0 + 0.013/wl**2)/wl**4)* &
+                  scalep/P0
+    end do
 
-      
-      END SUBROUTINE SETSPV
+  END SUBROUTINE SETSPV
 
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-      subroutine setspi
+  subroutine setspi
 
 !C  GCM2.0  Feb 2003
 !C
@@ -880,7 +865,7 @@ contains
 !C     Chris McKay's SETSPI code.
 !C
 !C     AUTHOR
-!C        Jim Schaeffer 
+!C        Jim Schaeffer
 !C
 !C     UPDATES FOR
 !C        Bob Haberle
@@ -905,108 +890,106 @@ contains
 !C     WAVEI      - Array (NSPECTI elements long) of the wavelenght
 !C                  (in microns) at the center of each IR spectral
 !C                  interval.
-!C     
+!C
 !C     CALLED BY
 !C        RADIATION
 !C
 !C     SUBROUTINES CALLED
-!C        NONE 
+!C        NONE
 !C
 !C**********************************************************************C
 
-      implicit none
-
+    implicit none
 
 !C     BWNI - Bin wavenumber of the edges of the IR spectral bins
 !C     units are inverse centimeters.  Dimension needs to be changed
 !C     if the number of IR bins changes.
 
-      REAL :: BWNI(L_NSPECTI+1)
+    REAL :: BWNI(L_NSPECTI + 1)
 
-      real :: a, b, x(12), w(12), ans, y, bpa, bma, T
-      real :: c1, c2, wn1, wn2, PI
-      integer :: n, nw, nt, m
+    real :: a, b, x(12), w(12), ans, y, bpa, bma, T
+    real :: c1, c2, wn1, wn2, PI
+    integer :: n, nw, nt, m
 
 !C  C1 and C2 values from Goody and Yung (2nd edition)  MKS units
 !C  These values lead to a "sigma" (sigma*T^4) of 5.67032E-8 W m^-2 K^-4
 
-      data c1 / 3.741832D-16 /     ! W m^-2
-      data c2 / 1.438786D-2  /     ! m K
-      data PI / 3.14159265358979D0 /
-      
-      data x / -0.981560634246719D0,  -0.904117256370475D0,&
-               -0.769902674194305D0,  -0.587317954286617D0,&
-               -0.367831498998180D0,  -0.125233408511469D0,&
-                0.125233408511469D0,   0.367831498998180D0,&
-                0.587317954286617D0,   0.769902674194305D0,&
-                0.904117256370475D0,   0.981560634246719D0    /
+    data c1/3.741832D-16/     ! W m^-2
+    data c2/1.438786D-2/     ! m K
+    data PI/3.14159265358979D0/
 
-      data w /  0.047175336386512D0,   0.106939325995318D0,&
-                0.160078328543346D0,   0.203167426723066D0,&
-                0.233492536538355D0,   0.249147045813403D0,&
-                0.249147045813403D0,   0.233492536538355D0,&
-                0.203167426723066D0,   0.160078328543346D0,&
-                0.106939325995318D0,   0.047175336386512D0   /
+    data x/-0.981560634246719D0, -0.904117256370475D0, &
+      -0.769902674194305D0, -0.587317954286617D0, &
+      -0.367831498998180D0, -0.125233408511469D0, &
+      0.125233408511469D0, 0.367831498998180D0, &
+      0.587317954286617D0, 0.769902674194305D0, &
+      0.904117256370475D0, 0.981560634246719D0/
+
+    data w/0.047175336386512D0, 0.106939325995318D0, &
+      0.160078328543346D0, 0.203167426723066D0, &
+      0.233492536538355D0, 0.249147045813403D0, &
+      0.249147045813403D0, 0.233492536538355D0, &
+      0.203167426723066D0, 0.160078328543346D0, &
+      0.106939325995318D0, 0.047175336386512D0/
 
 !C======================================================================C
 
 !C     Bin wavenumber - wavenumber [cm^(-1)] at the edges of the IR
 !C     spectral bins.
 
-      BWNI( 1) =   10.000D0
-      BWNI( 2) =  166.667D0
-      BWNI( 3) =  416.667D0
-      BWNI( 4) =  833.333D0
-      BWNI( 5) = 1250.000D0
-      BWNI( 6) = 2500.000D0
+    BWNI(1) = 10.000D0
+    BWNI(2) = 166.667D0
+    BWNI(3) = 416.667D0
+    BWNI(4) = 833.333D0
+    BWNI(5) = 1250.000D0
+    BWNI(6) = 2500.000D0
 
-!C     Set up mean wavenumbers and wavenumber deltas.  Units of 
+!C     Set up mean wavenumbers and wavenumber deltas.  Units of
 !C     wavenumbers is cm^(-1); units of wavelengths is microns.
 
-      do M=1,L_NSPECTI
-        WNOI(M)  = 0.5*(BWNI(M+1)+BWNI(M))
-        DWNI(M)  = BWNI(M+1)-BWNI(M)
-        WAVEI(M) = 1.0E+4/WNOI(M)
-      end do
+    do M = 1, L_NSPECTI
+      WNOI(M) = 0.5*(BWNI(M + 1) + BWNI(M))
+      DWNI(M) = BWNI(M + 1) - BWNI(M)
+      WAVEI(M) = 1.0E+4/WNOI(M)
+    end do
 
 !C  For each IR wavelength interval, compute the integral of B(T), the
 !C  Planck function, divided by the wavelength interval, in cm-1.  The
 !C  integration is in MKS units, the final answer is the same as the
 !C  original planck.f; W m^-2 wavenumber^-1, where wavenumber is in CM^-1.
 
-      DO NW=1,L_NSPECTI
-        a = 1.0D-2/BWNI(NW+1)
-        b = 1.0D-2/BWNI(NW)
-        bpa = (b+a)/2.0
-        bma = (b-a)/2.0
-        do nt=500,9000
-          T   = dble(NT)/1.0D+1
-          ans = 0.0D0
-          do m=1,12
-            y    = bma*x(m)+bpa
-            ans  = ans + w(m)*c1/(y**5*(exp(c2/(y*T))-1.0D0))
-          end do
-          planckir(NW,nt-499) = ans*bma/(PI*DWNI(NW))
+    DO NW = 1, L_NSPECTI
+      a = 1.0D-2/BWNI(NW + 1)
+      b = 1.0D-2/BWNI(NW)
+      bpa = (b + a)/2.0
+      bma = (b - a)/2.0
+      do nt = 500, 9000
+        T = dble(NT)/1.0D+1
+        ans = 0.0D0
+        do m = 1, 12
+          y = bma*x(m) + bpa
+          ans = ans + w(m)*c1/(y**5*(exp(c2/(y*T)) - 1.0D0))
         end do
-      END DO
+        planckir(NW, nt - 499) = ans*bma/(PI*DWNI(NW))
+      end do
+    END DO
 
-      
-      end subroutine setspi
+  end subroutine setspi
 
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-      subroutine setrad
+  subroutine setrad
 
 !C  GCM2.0  Feb 2003
 !C
 !C     PURPOSE:
 !C        Set up values used by the radiation code, such as the CO2 gas
-!C     absorption coefficients.  True constants are defined, and the 
-!C     time-independent quantities used by the radiation code are 
-!C     calculated. 
+!C     absorption coefficients.  True constants are defined, and the
+!C     time-independent quantities used by the radiation code are
+!C     calculated.
 !C
 !C     AUTHOR
-!C        
+!C
 !C
 !C     UPDATES FOR
 !C        Jim Pollack
@@ -1021,7 +1004,7 @@ contains
 !C     VERSION 2.0  OCT 2001
 !C
 !C     INPUT PARAMETERS
-!C     DTAU(L,M)      - Dust optical depth of layer L, and for aerosol 
+!C     DTAU(L,M)      - Dust optical depth of layer L, and for aerosol
 !C                      species M.
 !C     ptrop          - Pressure of the tropopause (mb)
 !C     SCALEP         - Factor to convert pressures from millibars to
@@ -1045,7 +1028,7 @@ contains
 !C     Qscati   - Scattering efficiency - in the infrared.
 !C     WI       - Single scattering albedo - in the infrared.
 !C     GI       - Asymmetry parameter - in the infrared.
-!C     
+!C
 !C     CALLED BY
 !C        RAD
 !C
@@ -1054,22 +1037,19 @@ contains
 !C
 !C----------------------------------------------------------------------C
 
-      implicit none
+    implicit none
 
+    integer :: N, NS
 
-      integer :: N, NS
+    real :: qev1(L_NSPECTV)
+    real :: qsv1(L_NSPECTV)
+    real :: gv1(L_NSPECTV)
 
+    real :: qei1(L_NSPECTI)
+    real :: qsi1(L_NSPECTI)
+    real :: gi1(L_NSPECTI)
 
-      real :: qev1(L_NSPECTV)
-      real :: qsv1(L_NSPECTV)
-      real :: gv1(L_NSPECTV)
-
-      real :: qei1(L_NSPECTI)
-      real :: qsi1(L_NSPECTI)
-      real :: gi1(L_NSPECTI)
-
-      integer :: nt, np, nw, ng
-
+    integer :: nt, np, nw, ng
 
 !C----------------------------------------------------------------------C
 
@@ -1078,21 +1058,20 @@ contains
 !C     Qext - Ockert-Bell values (order is increasing waveNUMBER)
 !C     VISULAL WAVELENGTHS.
 
-      data qev1 / 2.529D0, 2.949D0, 3.209D0, 3.337D0, 3.207D0,&
-                  2.938D0, 2.622D0                                   /
+    data qev1/2.529D0, 2.949D0, 3.209D0, 3.337D0, 3.207D0, &
+      2.938D0, 2.622D0/
 
 !C     Qscat - Ockert-Bell values
 !C     VISUAL wavelengths
 
-      data qsv1 / 2.374D0, 2.637D0, 3.049D0, 3.201D0, 3.045D0,& 
-                  2.513D0, 1.623D0                                   /
+    data qsv1/2.374D0, 2.637D0, 3.049D0, 3.201D0, 3.045D0, &
+      2.513D0, 1.623D0/
 
 !C     G - Ockert-Bell values
 !C     VISUAL wavelengths
 
-      data gv1  / 0.635D0, 0.646D0, 0.630D0, 0.630D0, 0.634D0,& 
-                  0.700D0, 0.856D0                                   /
-
+    data gv1/0.635D0, 0.646D0, 0.630D0, 0.630D0, 0.634D0, &
+      0.700D0, 0.856D0/
 
 !C     And now the INFRARED
 
@@ -1101,163 +1080,159 @@ contains
 !C     Planck-weighted values (T=215K)
 !C     INFRARED wavelengths.  (The order is increasing waveNUMBER.)
 
-      data qei1 / 0.193D0, 0.867D0, 1.209D0, 2.173D0, 0.638D0  /
+    data qei1/0.193D0, 0.867D0, 1.209D0, 2.173D0, 0.638D0/
 
 !C     Qsca for a modified gamma-distribution, using the Forget
 !C     optical constants (Nr and Ni).       INFRARED wavelengths
 
-      data qsi1 / 0.027D0, 0.319D0, 0.558D0, 1.136D0, 0.237D0  /
+    data qsi1/0.027D0, 0.319D0, 0.558D0, 1.136D0, 0.237D0/
 
 !C     g for a modified gamma-distribution, using the Forget
 !C     optical constants (Nr and Ni).       INFRARED wavelengths
 
-      data gi1  / 0.024D0, 0.127D0, 0.288D0, 0.423D0, 0.548D0  /
+    data gi1/0.024D0, 0.127D0, 0.288D0, 0.423D0, 0.548D0/
 
 !C=======================================================================
 
 !C     Set the reference pressure and temperature arrays.  These are
 !C     the pressures and temperatures at which we have k-coefficients.
 
-      pgasref( 1) = 1.0E-6
-      pgasref( 2) = 1.0E-5
-      pgasref( 3) = 1.0E-4
-      pgasref( 4) = 1.0E-3
-      pgasref( 5) = 1.0E-2
-      pgasref( 6) = 1.0E-1
-      pgasref( 7) = 1.0
-      pgasref( 8) = 1.0E+1
-      pgasref( 9) = 1.0E+2
-      pgasref(10) = 1.0E+3
-      pgasref(11) = 1.0E+4
+    pgasref(1) = 1.0E-6
+    pgasref(2) = 1.0E-5
+    pgasref(3) = 1.0E-4
+    pgasref(4) = 1.0E-3
+    pgasref(5) = 1.0E-2
+    pgasref(6) = 1.0E-1
+    pgasref(7) = 1.0
+    pgasref(8) = 1.0E+1
+    pgasref(9) = 1.0E+2
+    pgasref(10) = 1.0E+3
+    pgasref(11) = 1.0E+4
 
-      tgasref(1)  =  50.0
-      tgasref(2)  = 100.0
-      tgasref(3)  = 150.0
-      tgasref(4)  = 200.0
-      tgasref(5)  = 250.0
-      tgasref(6)  = 300.0
-      tgasref(7)  = 350.0
- 
+    tgasref(1) = 50.0
+    tgasref(2) = 100.0
+    tgasref(3) = 150.0
+    tgasref(4) = 200.0
+    tgasref(5) = 250.0
+    tgasref(6) = 300.0
+    tgasref(7) = 350.0
+
 !C     Fill the (VISUAL) arrays Qextv, Qscatv, WV, GV
 
-      DO N=1,L_NSPECTV
-        Qextv(n)  = qev1(n)
-        Qscatv(n) = qsv1(n)
-        IF(Qscatv(n).GE.Qextv(n)) then
-          Qscatv(n) = 0.99999*Qextv(n)
-        END IF
-        WV(n)     = Qscatv(n)/Qextv(n)
-        GV(n)     = gv1(n)
-      END DO
+    DO N = 1, L_NSPECTV
+      Qextv(n) = qev1(n)
+      Qscatv(n) = qsv1(n)
+      IF (Qscatv(n) .GE. Qextv(n)) then
+        Qscatv(n) = 0.99999*Qextv(n)
+      END IF
+      WV(n) = Qscatv(n)/Qextv(n)
+      GV(n) = gv1(n)
+    END DO
 
 !C     Fill the (INFRARED) arrays Qexti, Qscati, WI, GI
 
-      DO N=1,L_NSPECTI
-        Qexti(n)  = qei1(n)
-        Qscati(n) = qsi1(n)
-        IF(Qscati(n).GE.Qexti(n)) then
-          Qscati(n) = 0.99999*Qexti(n)
-        END IF
-        WI(n)     = Qscati(n)/Qexti(n)
-        GI(n)     = gi1(n)
-      END DO
+    DO N = 1, L_NSPECTI
+      Qexti(n) = qei1(n)
+      Qscati(n) = qsi1(n)
+      IF (Qscati(n) .GE. Qexti(n)) then
+        Qscati(n) = 0.99999*Qexti(n)
+      END IF
+      WI(n) = Qscati(n)/Qexti(n)
+      GI(n) = gi1(n)
+    END DO
 
 !C     Get CO2 k coefficients, and interpolate them to the finer
 !C     pressure grid.
 
+    call laginterp(pgasref, pfgasref)
 
-      call laginterp(pgasref,pfgasref)
-
-      
-      end subroutine setrad
+  end subroutine setrad
 
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-      subroutine laginterp(pgref,pint)
+  subroutine laginterp(pgref, pint)
 
 !C  GCM2.0  Feb 2003
 
-!C  Lagrange interpolation (linear in log pressure) of the CO2 
+!C  Lagrange interpolation (linear in log pressure) of the CO2
 !C  k-coefficients in the pressure domain.  Subsequent use of these
 !C  values will use a simple linear interpolation in pressure.
 
-      implicit none
+    implicit none
 
+    integer :: n, nt, np, nh, ng, nw, m, i, j, k, l
+    real :: co2i8(L_NTREF, L_NPREF, L_REFH2O, L_NSPECTI, L_NGAUSS)
+    real :: co2v8(L_NTREF, L_NPREF, L_REFH2O, L_NSPECTV, L_NGAUSS)
+    real :: pgref(L_NPREF)
 
-      integer :: n, nt, np, nh, ng, nw, m, i, j, k, l
-      real :: co2i8(L_NTREF,L_NPREF,L_REFH2O,L_NSPECTI,L_NGAUSS)
-      real :: co2v8(L_NTREF,L_NPREF,L_REFH2O,L_NSPECTV,L_NGAUSS)
-      real :: pgref(L_NPREF)
+    real :: x, xi(4), yi(4), ans
+    real :: pint(L_PINT), pin(L_PINT), pref(L_NPREF), p
 
- 
-      real :: x, xi(4), yi(4), ans
-      real :: pint(L_PINT), pin(L_PINT), pref(L_NPREF), p
-
-      data pin / -6.0D0, -5.8D0, -5.6D0, -5.4D0, -5.2D0,&       
-                 -5.0D0, -4.8D0, -4.6D0, -4.4D0, -4.2D0,&
-                 -4.0D0, -3.8D0, -3.6D0, -3.4D0, -3.2D0,&
-                 -3.0D0, -2.8D0, -2.6D0, -2.4D0, -2.2D0,&
-                 -2.0D0, -1.8D0, -1.6D0, -1.4D0, -1.2D0,&
-                 -1.0D0, -0.8D0, -0.6D0, -0.4D0, -0.2D0,&
-                  0.0D0,  0.2D0,  0.4D0,  0.6D0,  0.8D0,&
-                  1.0D0,  1.2D0,  1.4D0,  1.6D0,  1.8D0,&
-                  2.0D0,  2.2D0,  2.4D0,  2.6D0,  2.8D0,&
-                  3.0D0,  3.2D0,  3.4D0,  3.6D0,  3.8D0,&
-                  4.0D0                                    /
+    data pin/-6.0D0, -5.8D0, -5.6D0, -5.4D0, -5.2D0, &
+      -5.0D0, -4.8D0, -4.6D0, -4.4D0, -4.2D0, &
+      -4.0D0, -3.8D0, -3.6D0, -3.4D0, -3.2D0, &
+      -3.0D0, -2.8D0, -2.6D0, -2.4D0, -2.2D0, &
+      -2.0D0, -1.8D0, -1.6D0, -1.4D0, -1.2D0, &
+      -1.0D0, -0.8D0, -0.6D0, -0.4D0, -0.2D0, &
+      0.0D0, 0.2D0, 0.4D0, 0.6D0, 0.8D0, &
+      1.0D0, 1.2D0, 1.4D0, 1.6D0, 1.8D0, &
+      2.0D0, 2.2D0, 2.4D0, 2.6D0, 2.8D0, &
+      3.0D0, 3.2D0, 3.4D0, 3.6D0, 3.8D0, &
+      4.0D0/
 
 !C======================================================================!
 
 !C  Fill pint for output from this subroutine
 
-      do n=1,L_PINT
-        PINT(n) = PIN(n)
-      end do
+    do n = 1, L_PINT
+      PINT(n) = PIN(n)
+    end do
 
 !C  Take log of the reference pressures
 
-      do n=1,L_NPREF
-        pref(n) = LOG10(PGREF(n))
-      end do
+    do n = 1, L_NPREF
+      pref(n) = LOG10(PGREF(n))
+    end do
 
 !C     Get CO2 k coefficients
 
-	OPEN(Unit=25,file='UA/DataIn/CO2H2O_V_12_95_ASCII',ACTION = 'READ')
+    OPEN(Unit=25, file='UA/DataIn/CO2H2O_V_12_95_ASCII', ACTION='READ')
 
-	DO i=1,L_NTREF
-	   DO j=1,L_NPREF
-	      DO k=1,L_REFH2O
-		 DO l=1,L_NSPECTV
-		    DO m=1,L_NGAUSS
-		       read(25,*)co2v8(i,j,k,l,m)
-		    ENDDO
-		 ENDDO
-              ENDDO
-	   ENDDO
-	ENDDO
+    DO i = 1, L_NTREF
+      DO j = 1, L_NPREF
+        DO k = 1, L_REFH2O
+          DO l = 1, L_NSPECTV
+            DO m = 1, L_NGAUSS
+              read(25, *) co2v8(i, j, k, l, m)
+            END DO
+          END DO
+        END DO
+      END DO
+    END DO
 
-	DO i=1,L_NSPECTV
-	    read(25,*)fzerov(i)
-	ENDDO
-	CLOSE(25)
+    DO i = 1, L_NSPECTV
+      read(25, *) fzerov(i)
+    END DO
+    CLOSE(25)
 
-	OPEN(unit=35,file='UA/DataIn/CO2H2O_IR_12_95_ASCII',ACTION = 'READ')
+    OPEN(unit=35, file='UA/DataIn/CO2H2O_IR_12_95_ASCII', ACTION='READ')
 
-	DO i=1,L_NTREF
-	   DO j=1,L_NPREF
-	      DO k=1,L_REFH2O
-		 DO l=1,L_NSPECTI
-		    DO m=1,L_NGAUSS
-		       read(35,*)co2i8(i,j,k,l,m)
-		    ENDDO
-		 ENDDO
-              ENDDO
-	   ENDDO
-	ENDDO
-	
-	DO i=1,L_NSPECTI
-	   read(35,*)fzeroi(i)
-	ENDDO
-	CLOSE(35)
+    DO i = 1, L_NTREF
+      DO j = 1, L_NPREF
+        DO k = 1, L_REFH2O
+          DO l = 1, L_NSPECTI
+            DO m = 1, L_NGAUSS
+              read(35, *) co2i8(i, j, k, l, m)
+            END DO
+          END DO
+        END DO
+      END DO
+    END DO
+
+    DO i = 1, L_NSPECTI
+      read(35, *) fzeroi(i)
+    END DO
+    CLOSE(35)
 
 !!$      print*,'co2v8(3,4,1,3,2) = ',co2v8(3,4,1,3,2)
 !!$      print*,'co2v8(1,2,3,4,5) = ',co2v8(1,2,3,4,5)
@@ -1269,223 +1244,218 @@ contains
 !C  Take Log10 of the values - we interpolate the log10 of the values,
 !C  not the values themselves.   Smallest value is 1.0E-200.
 
-      do nt=1,L_NTREF
-        do np=1,L_NPREF
-          do nh=1,L_REFH2O
-            do ng = 1,L_NGAUSS
+    do nt = 1, L_NTREF
+      do np = 1, L_NPREF
+        do nh = 1, L_REFH2O
+          do ng = 1, L_NGAUSS
 
-              do nw=1,L_NSPECTV
-                if(co2v8(nt,np,nh,nw,ng).gt.1.0e-200) then
-                  co2v8(nt,np,nh,nw,ng) = log10(co2v8(nt,np,nh,nw,ng))
-                else
-                  co2v8(nt,np,nh,nw,ng) = -200.0
-                end if
-              end do
-  
-              do nw=1,L_NSPECTI
-                if(co2i8(nt,np,nh,nw,ng).gt.1.0e-200) then
-                  co2i8(nt,np,nh,nw,ng) = log10(co2i8(nt,np,nh,nw,ng))
-                else
-                  co2i8(nt,np,nh,nw,ng) = -200.0
-                end if
-              end do
-      
+            do nw = 1, L_NSPECTV
+              if (co2v8(nt, np, nh, nw, ng) .gt. 1.0e-200) then
+                co2v8(nt, np, nh, nw, ng) = log10(co2v8(nt, np, nh, nw, ng))
+              else
+                co2v8(nt, np, nh, nw, ng) = -200.0
+              end if
             end do
+
+            do nw = 1, L_NSPECTI
+              if (co2i8(nt, np, nh, nw, ng) .gt. 1.0e-200) then
+                co2i8(nt, np, nh, nw, ng) = log10(co2i8(nt, np, nh, nw, ng))
+              else
+                co2i8(nt, np, nh, nw, ng) = -200.0
+              end if
+            end do
+
           end do
         end do
       end do
+    end do
 
 !C  Interpolate the values:  first the IR
 
-      do nt=1,L_NTREF
-        do nh=1,L_REFH2O
-        do nw=1,L_NSPECTI
-          do ng=1,L_NGAUSS
+    do nt = 1, L_NTREF
+      do nh = 1, L_REFH2O
+      do nw = 1, L_NSPECTI
+        do ng = 1, L_NGAUSS
 
 !C  First, the initial interval (P=1e-6 to 1e-5)
 
-            n = 1 
-            do m=1,5
-              x     = pint(m)
-              xi(1) = pref(n)
-              xi(2) = pref(n+1)
-              xi(3) = pref(n+2)
-              xi(4) = pref(n+3)
-              yi(1) = co2i8(nt,n,nh,nw,ng)
-              yi(2) = co2i8(nt,n+1,nh,nw,ng)
-              yi(3) = co2i8(nt,n+2,nh,nw,ng)
-              yi(4) = co2i8(nt,n+3,nh,nw,ng)
-              call lagrange(x,xi,yi,ans)
-              co2i(nt,m,nh,nw,ng) = 10.0**ans
-            end do 
- 
-            do n=2,L_NPREF-2
-              do m=1,5
-                i     = (n-1)*5+m
-                x     = pint(i)
-                xi(1) = pref(n-1)
-                xi(2) = pref(n)
-                xi(3) = pref(n+1)
-                xi(4) = pref(n+2)
-                yi(1) = co2i8(nt,n-1,nh,nw,ng)
-                yi(2) = co2i8(nt,n,nh,nw,ng)
-                yi(3) = co2i8(nt,n+1,nh,nw,ng)
-                yi(4) = co2i8(nt,n+2,nh,nw,ng)
-                call lagrange(x,xi,yi,ans)
-                co2i(nt,i,nh,nw,ng) = 10.0**ans
-              end do 
+          n = 1
+          do m = 1, 5
+            x = pint(m)
+            xi(1) = pref(n)
+            xi(2) = pref(n + 1)
+            xi(3) = pref(n + 2)
+            xi(4) = pref(n + 3)
+            yi(1) = co2i8(nt, n, nh, nw, ng)
+            yi(2) = co2i8(nt, n + 1, nh, nw, ng)
+            yi(3) = co2i8(nt, n + 2, nh, nw, ng)
+            yi(4) = co2i8(nt, n + 3, nh, nw, ng)
+            call lagrange(x, xi, yi, ans)
+            co2i(nt, m, nh, nw, ng) = 10.0**ans
+          end do
+
+          do n = 2, L_NPREF - 2
+            do m = 1, 5
+              i = (n - 1)*5 + m
+              x = pint(i)
+              xi(1) = pref(n - 1)
+              xi(2) = pref(n)
+              xi(3) = pref(n + 1)
+              xi(4) = pref(n + 2)
+              yi(1) = co2i8(nt, n - 1, nh, nw, ng)
+              yi(2) = co2i8(nt, n, nh, nw, ng)
+              yi(3) = co2i8(nt, n + 1, nh, nw, ng)
+              yi(4) = co2i8(nt, n + 2, nh, nw, ng)
+              call lagrange(x, xi, yi, ans)
+              co2i(nt, i, nh, nw, ng) = 10.0**ans
             end do
+          end do
 
 !C  Now, get the last interval (P=1e+3 to 1e+4)
 
-            n = L_NPREF-1
-      
-            do m=1,5
-              i     = (n-1)*5+m
-              x     = pint(i)
-              xi(1) = pref(n-2)
-              xi(2) = pref(n-1)
-              xi(3) = pref(n)
-              xi(4) = pref(n+1)
-              yi(1) = co2i8(nt,n-2,nh,nw,ng)
-              yi(2) = co2i8(nt,n-1,nh,nw,ng)
-              yi(3) = co2i8(nt,n,nh,nw,ng)
-              yi(4) = co2i8(nt,n+1,nh,nw,ng)
-              call lagrange(x,xi,yi,ans)
-              co2i(nt,i,nh,nw,ng) = 10.0**ans
-            end do  
+          n = L_NPREF - 1
+
+          do m = 1, 5
+            i = (n - 1)*5 + m
+            x = pint(i)
+            xi(1) = pref(n - 2)
+            xi(2) = pref(n - 1)
+            xi(3) = pref(n)
+            xi(4) = pref(n + 1)
+            yi(1) = co2i8(nt, n - 2, nh, nw, ng)
+            yi(2) = co2i8(nt, n - 1, nh, nw, ng)
+            yi(3) = co2i8(nt, n, nh, nw, ng)
+            yi(4) = co2i8(nt, n + 1, nh, nw, ng)
+            call lagrange(x, xi, yi, ans)
+            co2i(nt, i, nh, nw, ng) = 10.0**ans
+          end do
 
 !C  Fill the last pressure point
 
-            co2i(nt,L_PINT,nh,nw,ng) = 10.0**co2i8(nt,L_NPREF,nh,nw,ng)
+          co2i(nt, L_PINT, nh, nw, ng) = 10.0**co2i8(nt, L_NPREF, nh, nw, ng)
 
-          end do
-        end do
         end do
       end do
+      end do
+    end do
 
 !C  Interpolate the values:  now the Visual
 
-      do nt=1,L_NTREF
-        do nh=1,L_REFH2O
-        do nw=1,L_NSPECTV
-          do ng=1,L_NGAUSS
+    do nt = 1, L_NTREF
+      do nh = 1, L_REFH2O
+      do nw = 1, L_NSPECTV
+        do ng = 1, L_NGAUSS
 
 !C  First, the initial interval (P=1e-6 to 1e-5)
 
-            n = 1 
-            do m=1,5
-              x     = pint(m)
-              xi(1) = pref(n)
-              xi(2) = pref(n+1)
-              xi(3) = pref(n+2)
-              xi(4) = pref(n+3)
-              yi(1) = co2v8(nt,n,nh,nw,ng)
-              yi(2) = co2v8(nt,n+1,nh,nw,ng)
-              yi(3) = co2v8(nt,n+2,nh,nw,ng)
-              yi(4) = co2v8(nt,n+3,nh,nw,ng)
-              call lagrange(x,xi,yi,ans)
-              co2v(nt,m,nh,nw,ng) = 10.0**ans
-            end do 
- 
-            do n=2,L_NPREF-2
-              do m=1,5
-                i     = (n-1)*5+m
-                x     = pint(i)
-                xi(1) = pref(n-1)
-                xi(2) = pref(n)
-                xi(3) = pref(n+1)
-                xi(4) = pref(n+2)
-                yi(1) = co2v8(nt,n-1,nh,nw,ng)
-                yi(2) = co2v8(nt,n,nh,nw,ng)
-                yi(3) = co2v8(nt,n+1,nh,nw,ng)
-                yi(4) = co2v8(nt,n+2,nh,nw,ng)
-                call lagrange(x,xi,yi,ans)
-                co2v(nt,i,nh,nw,ng) = 10.0**ans
-              end do 
+          n = 1
+          do m = 1, 5
+            x = pint(m)
+            xi(1) = pref(n)
+            xi(2) = pref(n + 1)
+            xi(3) = pref(n + 2)
+            xi(4) = pref(n + 3)
+            yi(1) = co2v8(nt, n, nh, nw, ng)
+            yi(2) = co2v8(nt, n + 1, nh, nw, ng)
+            yi(3) = co2v8(nt, n + 2, nh, nw, ng)
+            yi(4) = co2v8(nt, n + 3, nh, nw, ng)
+            call lagrange(x, xi, yi, ans)
+            co2v(nt, m, nh, nw, ng) = 10.0**ans
+          end do
+
+          do n = 2, L_NPREF - 2
+            do m = 1, 5
+              i = (n - 1)*5 + m
+              x = pint(i)
+              xi(1) = pref(n - 1)
+              xi(2) = pref(n)
+              xi(3) = pref(n + 1)
+              xi(4) = pref(n + 2)
+              yi(1) = co2v8(nt, n - 1, nh, nw, ng)
+              yi(2) = co2v8(nt, n, nh, nw, ng)
+              yi(3) = co2v8(nt, n + 1, nh, nw, ng)
+              yi(4) = co2v8(nt, n + 2, nh, nw, ng)
+              call lagrange(x, xi, yi, ans)
+              co2v(nt, i, nh, nw, ng) = 10.0**ans
             end do
+          end do
 
 !C  Now, get the last interval (P=1e+3 to 1e+4)
 
-            n = L_NPREF-1
-      
-            do m=1,5
-              i     = (n-1)*5+m
-              x     = pint(i)
-              xi(1) = pref(n-2)
-              xi(2) = pref(n-1)
-              xi(3) = pref(n)
-              xi(4) = pref(n+1)
-              yi(1) = co2v8(nt,n-2,nh,nw,ng)
-              yi(2) = co2v8(nt,n-1,nh,nw,ng)
-              yi(3) = co2v8(nt,n,nh,nw,ng)
-              yi(4) = co2v8(nt,n+1,nh,nw,ng)
-              call lagrange(x,xi,yi,ans)
-              co2v(nt,i,nh,nw,ng) = 10.0**ans
-            end do  
+          n = L_NPREF - 1
+
+          do m = 1, 5
+            i = (n - 1)*5 + m
+            x = pint(i)
+            xi(1) = pref(n - 2)
+            xi(2) = pref(n - 1)
+            xi(3) = pref(n)
+            xi(4) = pref(n + 1)
+            yi(1) = co2v8(nt, n - 2, nh, nw, ng)
+            yi(2) = co2v8(nt, n - 1, nh, nw, ng)
+            yi(3) = co2v8(nt, n, nh, nw, ng)
+            yi(4) = co2v8(nt, n + 1, nh, nw, ng)
+            call lagrange(x, xi, yi, ans)
+            co2v(nt, i, nh, nw, ng) = 10.0**ans
+          end do
 
 !C  Fill the last pressure point
 
-            co2v(nt,L_PINT,nh,nw,ng) = 10.0**co2v8(nt,L_NPREF,nh,nw,ng)
-            
-          end do
-        end do
+          co2v(nt, L_PINT, nh, nw, ng) = 10.0**co2v8(nt, L_NPREF, nh, nw, ng)
+
         end do
       end do
+      end do
+    end do
 
-      
-      end subroutine laginterp
+  end subroutine laginterp
 
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-      subroutine lagrange(x, xi, yi, ans)
+  subroutine lagrange(x, xi, yi, ans)
 
 !C  GCM2.0  Feb 2003
 !C
-!C  Lagrange interpolation - Polynomial interpolation at point x 
+!C  Lagrange interpolation - Polynomial interpolation at point x
 !C  xi(1) <= x <= xi(4).  Yi(n) is the functional value at XI(n).
 
-      implicit none
+    implicit none
 
-      real :: x, xi(4), yi(4), ans
-      real :: fm1, fm2, fm3, fm4
+    real :: x, xi(4), yi(4), ans
+    real :: fm1, fm2, fm3, fm4
 
 !C======================================================================!
 
-      fm1   = x - XI(1)
-      fm2   = x - XI(2)
-      fm3   = x - XI(3)
-      fm4   = x - XI(4)
+    fm1 = x - XI(1)
+    fm2 = x - XI(2)
+    fm3 = x - XI(3)
+    fm4 = x - XI(4)
 
 !C  Get the "answer" at the requested X
- 
-      ans = fm2*fm3*fm4*YI(1)/&
-                      ((XI(1)-XI(2))*(XI(1)-XI(3))*(XI(1)-XI(4)))  +&
-            fm1*fm3*fm4*YI(2)/&
-                      ((XI(2)-XI(1))*(XI(2)-XI(3))*(XI(2)-XI(4)))  +&
-            fm1*fm2*fm4*YI(3)/&
-                      ((XI(3)-XI(1))*(XI(3)-XI(2))*(XI(3)-XI(4)))  +&
-            fm1*fm2*fm3*YI(4)/&
-                      ((XI(4)-XI(1))*(XI(4)-XI(2))*(XI(4)-XI(3))) 
 
-      
-      end subroutine lagrange
+    ans = fm2*fm3*fm4*YI(1)/ &
+          ((XI(1) - XI(2))*(XI(1) - XI(3))*(XI(1) - XI(4))) + &
+          fm1*fm3*fm4*YI(2)/ &
+          ((XI(2) - XI(1))*(XI(2) - XI(3))*(XI(2) - XI(4))) + &
+          fm1*fm2*fm4*YI(3)/ &
+          ((XI(3) - XI(1))*(XI(3) - XI(2))*(XI(3) - XI(4))) + &
+          fm1*fm2*fm3*YI(4)/ &
+          ((XI(4) - XI(1))*(XI(4) - XI(2))*(XI(4) - XI(3)))
 
+  end subroutine lagrange
 
 !##########################################################
-
 
   subroutine init_radcooling
     return
   end subroutine init_radcooling
 
   subroutine init_magheat
-  return
+    return
   end subroutine init_magheat
 
   subroutine init_aerosol
-  return
+    return
   end subroutine init_aerosol
-
 
 end module ModPlanet

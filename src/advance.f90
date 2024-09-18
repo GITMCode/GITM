@@ -21,11 +21,11 @@ subroutine advance
 
   implicit none
 
-  call report("advance",1)
+  call report("advance", 1)
   call start_timing("advance")
 
   ! These are a bunch of user-defined source terms
-  
+
   if (RCMRFlag) call set_RCMR_estimations
   if (UseGSWMTides) call update_tides
   if (UseWACCMTides) call update_waccm_tides
@@ -35,28 +35,28 @@ subroutine advance
 
   if (.not. UseStatisticalModelsOnly) then
 
-     ! Break the time-step up into three parts:
-     ! (1) vertical solver; (2) horizontal solver;
-     ! (3) source terms
+    ! Break the time-step up into three parts:
+    ! (1) vertical solver; (2) horizontal solver;
+    ! (3) source terms
 
-     call advance_vertical_all
-     call add_sources 
-     if (.not. Is1D) call advance_horizontal_all
+    call advance_vertical_all
+    call add_sources
+    if (.not. Is1D) call advance_horizontal_all
 
   else
-     dt = DtStatisticalModels
-  endif
+    dt = DtStatisticalModels
+  end if
 
   ! Increment time and all the time associated variables
   call update_time
-  
+
   ! If you want to just get statistical model results:
 
   if (UseStatisticalModelsOnly) then
-     call init_msis
-     call init_iri
-     call init_b0
-  endif
+    call init_msis
+    call init_iri
+    call init_b0
+  end if
 
   call end_timing("advance")
 

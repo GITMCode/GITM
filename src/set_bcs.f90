@@ -12,58 +12,57 @@ subroutine set_bcs
 
   do iBlock = 1, nBlocks
 
-     ! Bottom
-     Velocity(:,:,-1,iUp_,iBlock) = - Velocity(:,:,2,iUp_,iBlock)
-     Velocity(:,:, 0,iUp_,iBlock) = - Velocity(:,:,1,iUp_,iBlock)
+    ! Bottom
+    Velocity(:, :, -1, iUp_, iBlock) = -Velocity(:, :, 2, iUp_, iBlock)
+    Velocity(:, :, 0, iUp_, iBlock) = -Velocity(:, :, 1, iUp_, iBlock)
 
-     ! Fixed LogRho and Temp
+    ! Fixed LogRho and Temp
 
-     ! if we don't touch LogRho(:,:,-1:0,iBlock) it will never change
+    ! if we don't touch LogRho(:,:,-1:0,iBlock) it will never change
 
-     ! Top
+    ! Top
 
-     do iLon = 1, nLons
-        do iLat = 1, nLats
+    do iLon = 1, nLons
+      do iLat = 1, nLats
 
-           if(Velocity(iLon,iLat,nAlts,iUp_,iBlock)>0.)then
+        if (Velocity(iLon, iLat, nAlts, iUp_, iBlock) > 0.) then
 
-              Velocity(iLon,iLat,nAlts+1,iUp_,iBlock)  = &
-                   Velocity(iLon,iLat,nAlts,iUp_,iBlock)*0.0
-              Velocity(iLon,iLat,nAlts+2,iUp_,iBlock)  = &
-                   Velocity(iLon,iLat,nAlts,iUp_,iBlock)*0.0
+          Velocity(iLon, iLat, nAlts + 1, iUp_, iBlock) = &
+            Velocity(iLon, iLat, nAlts, iUp_, iBlock)*0.0
+          Velocity(iLon, iLat, nAlts + 2, iUp_, iBlock) = &
+            Velocity(iLon, iLat, nAlts, iUp_, iBlock)*0.0
 
-           else
+        else
 
-              Velocity(iLon,iLat,nAlts+1,iUp_,iBlock) = 0.0 ! -Vel(nAlts)
-              Velocity(iLon,iLat,nAlts+2,iUp_,iBlock) = 0.0 ! -Vel(nAlts-1)
+          Velocity(iLon, iLat, nAlts + 1, iUp_, iBlock) = 0.0 ! -Vel(nAlts)
+          Velocity(iLon, iLat, nAlts + 2, iUp_, iBlock) = 0.0 ! -Vel(nAlts-1)
 
-           endif
-        enddo
-     enddo
+        end if
+      end do
+    end do
 
 !     Temperature(:,:,nAlts+1,iBlock) = TempMax/TempUnit
 !     Temperature(:,:,nAlts+2,iBlock) = TempMax/TempUnit
 
-     Temperature(:,:,nAlts+1,iBlock) = Temperature(:,:,nAlts,iBlock)
-     Temperature(:,:,nAlts+2,iBlock) = Temperature(:,:,nAlts,iBlock)
+    Temperature(:, :, nAlts + 1, iBlock) = Temperature(:, :, nAlts, iBlock)
+    Temperature(:, :, nAlts + 2, iBlock) = Temperature(:, :, nAlts, iBlock)
 
+    do iSpecies = 1, nSpecies
+      LogNS(:, :, nAlts + 1, iSpecies, iBlock) = &
+        LogNS(:, :, nAlts, iSpecies, iBlock) + &
+        dAlt(nAlts)*Gravity(nAlts)/Temperature(:, :, nAlts, iBlock)
+      LogNS(:, :, nAlts + 1, iSpecies, iBlock) = &
+        LogNS(:, :, nAlts, iSpecies, iBlock) + &
+        2*dAlt(nAlts)*Gravity(nAlts)/Temperature(:, :, nAlts, iBlock)
+    end do
 
-     do iSpecies=1,nSpecies
-        LogNS(:,:,nAlts+1,iSpecies,iBlock) = &
-             LogNS(:,:,nAlts,iSpecies,iBlock) + &
-             dAlt(nAlts) * Gravity(nAlts)/Temperature(:,:,nAlts,iBlock)
-        LogNS(:,:,nAlts+1,iSpecies,iBlock) = &
-             LogNS(:,:,nAlts,iSpecies,iBlock) + &
-             2*dAlt(nAlts) * Gravity(nAlts)/Temperature(:,:,nAlts,iBlock)
-     enddo
+    LogRho(:, :, nAlts + 1, iBlock) = &
+      LogRho(:, :, nAlts, iBlock) + &
+      dAlt(nAlts)*Gravity(nAlts)/Temperature(:, :, nAlts, iBlock)
+    LogRho(:, :, nAlts + 1, iBlock) = &
+      LogRho(:, :, nAlts, iBlock) + &
+      2*dAlt(nAlts)*Gravity(nAlts)/Temperature(:, :, nAlts, iBlock)
 
-     LogRho(:,:,nAlts+1,iBlock) = &
-          LogRho(:,:,nAlts,iBlock) + &
-          dAlt(nAlts) * Gravity(nAlts)/Temperature(:,:,nAlts,iBlock)
-     LogRho(:,:,nAlts+1,iBlock) = &
-          LogRho(:,:,nAlts,iBlock) + &
-          2*dAlt(nAlts) * Gravity(nAlts)/Temperature(:,:,nAlts,iBlock)
-
-  enddo
+  end do
 
 end subroutine set_bcs
