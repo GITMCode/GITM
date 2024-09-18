@@ -11,45 +11,45 @@ subroutine read_f107(iOutputError)
 
   integer, intent(out)     :: iOutputError
 
-  real, dimension(6,MaxIndicesEntries) :: tmp_all
+  real, dimension(6, MaxIndicesEntries) :: tmp_all
   real :: tmp(7)
   integer :: iError, nPts, iPt
   logical :: done
-  
+
   ! One line of input
-  character (len=iCharLenIndices_) :: line
-  
+  character(len=iCharLenIndices_) :: line
+
   !------------------------------------------------------------------------
   call init_mod_indices
 
   iOutputError = 0
 
-  open(LunIndices_, file=NameOfIndexFile, status="old", iostat = ierror)
+  open(LunIndices_, file=NameOfIndexFile, status="old", iostat=ierror)
 
-  if (ierror.ne.0) then
-     iOutputError = 1
-     return
-  endif
+  if (ierror .ne. 0) then
+    iOutputError = 1
+    return
+  end if
 
-  do iPt=1, 15
-     read(LunIndices_, *) line
-  enddo
-  
+  do iPt = 1, 15
+    read(LunIndices_, *) line
+  end do
+
   done = .false.
 
   iPt = 1
-  do while (.not.done)
-     read(LunIndices_,'(f4.0,5(1x,f2.0),1x,f3.0)', iostat = ierror ) tmp
-     tmp_all(1:5, iPt) = tmp(1:5)
-     tmp_all(6, iPt) = tmp(7)
-     if (ierror /= 0) then 
-        done = .true.
-     endif
-     iPt = iPt + 1
-  enddo
+  do while (.not. done)
+    read(LunIndices_, '(f4.0,5(1x,f2.0),1x,f3.0)', iostat=ierror) tmp
+    tmp_all(1:5, iPt) = tmp(1:5)
+    tmp_all(6, iPt) = tmp(7)
+    if (ierror /= 0) then
+      done = .true.
+    end if
+    iPt = iPt + 1
+  end do
   npts = iPt - 1
 
   call Insert_into_Indices_Array(tmp_all, f107_)
   close(LunIndices_)
-  
+
 end subroutine read_f107

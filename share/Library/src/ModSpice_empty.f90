@@ -9,18 +9,18 @@ module ModSpice
 
   public:: spice_init            ! read in SPICE "kernels", define start time
   public:: spice_rot_matrix      ! return 3x3 rotation matrix
-  public:: spice_rot_vel_matrix  ! return 6x6 matrix for position and 
+  public:: spice_rot_vel_matrix  ! return 6x6 matrix for position and
   !                              !      velocity transform
   public:: spice_get_distance    ! return the distance between two bodies
 
   ! Number of seconds between SWMF and SPICE base times:
-  real, parameter,  public::   DtSpiceSwmf = -1104494336.0 
+  real, parameter, public::   DtSpiceSwmf = -1104494336.0
 
 contains
   !============================================================================
   subroutine spice_init(tStart, NameDirIn)
 
-    real(Real8_),     intent(in):: tStart
+    real(Real8_), intent(in):: tStart
     character(len=*), intent(in), optional:: NameDirIn
     character(len=100):: NameDir
 
@@ -31,10 +31,10 @@ contains
   !============================================================================
   subroutine spice_rot_matrix(tSimulation, NameCoord1, NameCoord2, Rot_DD)
 
-    real,             intent(in) :: tSimulation
+    real, intent(in) :: tSimulation
     character(len=*), intent(in) :: NameCoord1
     character(len=*), intent(in) :: NameCoord2
-    real,             intent(out):: Rot_DD(3,3)
+    real, intent(out):: Rot_DD(3, 3)
 
     real(Real8_):: tSpice
 
@@ -46,10 +46,10 @@ contains
   !============================================================================
   subroutine spice_rot_vel_matrix(tSimulation, NameCoord1, NameCoord2, Rot_II)
 
-    real,             intent(in) :: tSimulation
+    real, intent(in) :: tSimulation
     character(len=*), intent(in) :: NameCoord1
     character(len=*), intent(in) :: NameCoord2
-    real,             intent(out):: Rot_II(6,6)
+    real, intent(out):: Rot_II(6, 6)
 
     character(len=*), parameter:: NameSub = 'spice_rot_vel_matrix'
     !--------------------------------------------------------------------------
@@ -59,10 +59,10 @@ contains
   !============================================================================
   subroutine spice_get_distance(tSimulation, NameBody1, NameBody2, Distance)
 
-    real,             intent(in) :: tSimulation
+    real, intent(in) :: tSimulation
     character(len=*), intent(in) :: NameBody1
     character(len=*), intent(in) :: NameBody2
-    real,             intent(out):: Distance
+    real, intent(out):: Distance
 
     character(len=*), parameter:: NameSub = 'spice_get_distance'
     !--------------------------------------------------------------------------

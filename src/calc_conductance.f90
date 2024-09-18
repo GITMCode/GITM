@@ -9,7 +9,4 @@ subroutine calc_conductance(iBlock)
 
   integer, intent(in) :: iBlock
 
-
-
-
 end subroutine calc_conductance

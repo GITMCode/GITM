@@ -1,9 +1,9 @@
-!  Copyright (C) 2002 Regents of the University of Michigan, portions used with permission 
+!  Copyright (C) 2002 Regents of the University of Michigan, portions used with permission
 !  For more information, see http://csem.engin.umich.edu/tools/swmf
 
 !\
 ! This routine finds a point on in the Spherical system, given
-! a Theta, Phi: 
+! a Theta, Phi:
 ! LocIn(1) = Phi
 ! LocIn(2) = Theta
 ! It returns a 4 element array:
@@ -25,7 +25,7 @@ subroutine EIE_FindPoint(LocIn, LocOut, iError)
   real, dimension(5), intent(out) :: LocOut
   integer, intent(out) :: iError
   real :: MLTIn, LatIn, MLTUp, MLTDown
-  integer :: j,i, iBLK
+  integer :: j, i, iBLK
 
   logical :: IsFound
 
@@ -37,73 +37,73 @@ subroutine EIE_FindPoint(LocIn, LocOut, iError)
   ! Check to see if the point is even on the grid.
   !/
 
-  MLTIn = mod(LocIn(1),24.0)
+  MLTIn = mod(LocIn(1), 24.0)
 
   LatIn = LocIn(2)
   if (LatIn > 90.0) then
-     LatIn = 180.0 - LatIn
-     MLTIn = mod(MLTIn+12.0,24.0)
-  endif
+    LatIn = 180.0 - LatIn
+    MLTIn = mod(MLTIn + 12.0, 24.0)
+  end if
   if (LatIn < -90.0) then
-     LatIn = -180.0 - LatIn
-     MLTIn = mod(MLTIn+12.0,24.0)
-  endif
+    LatIn = -180.0 - LatIn
+    MLTIn = mod(MLTIn + 12.0, 24.0)
+  end if
 
   if (MLTIn > 24.0 .or. MLTIn < 0 .or. LatIn > 90.0 .or. LatIn < -90.0) then
-     iError = ecPointOutofRange_
-     return
-  endif
+    iError = ecPointOutofRange_
+    return
+  end if
 
   iBLK = 1
   do while (iBLK <= EIEi_HavenBLKs)
-     j = 1
-     do while (j < EIEi_HavenMLTs)
-        i = 1
-        do while (i < EIEi_HavenLats)
+    j = 1
+    do while (j < EIEi_HavenMLTs)
+      i = 1
+      do while (i < EIEi_HavenLats)
 
-           !\
-           ! Check to see if the point is within the current cell
-           !/
+        !\
+        ! Check to see if the point is within the current cell
+        !/
 
-           MLTUp = EIEr3_HaveMLTs(j+1,i,iBLK)
-           MLTDown = EIEr3_HaveMLTs(j,i,iBLK)
-           if (MLTUp == 0.0 .and. MLTDown >= 23.0) MLTUp = 24.0
+        MLTUp = EIEr3_HaveMLTs(j + 1, i, iBLK)
+        MLTDown = EIEr3_HaveMLTs(j, i, iBLK)
+        if (MLTUp == 0.0 .and. MLTDown >= 23.0) MLTUp = 24.0
 
-           if (LatIn <  EIEr3_HaveLats(j,i+1,iBLK) .and. &
-               LatIn >= EIEr3_HaveLats(j,i,iBLK) .and. &
-               MLTIn <  MLTUp .and. &
-               MLTIn >= MLTDown) then
+        if (LatIn < EIEr3_HaveLats(j, i + 1, iBLK) .and. &
+            LatIn >= EIEr3_HaveLats(j, i, iBLK) .and. &
+            MLTIn < MLTUp .and. &
+            MLTIn >= MLTDown) then
 
-              !\
-              ! If it is, then store the cell number and calculate
-              ! the interpolation coefficients.
-              !/
+          !\
+          ! If it is, then store the cell number and calculate
+          ! the interpolation coefficients.
+          !/
 
-              LocOut(1) = iBLK
-              LocOut(2) = j
-              LocOut(3) = i
+          LocOut(1) = iBLK
+          LocOut(2) = j
+          LocOut(3) = i
 
-              LocOut(4) = (MLTIn - MLTDown)/&
-                          (MLTUp - MLTDown)
-              LocOut(5) = (LatIn                    -EIEr3_HaveLats(j,i,iBLK))/&
-                          (EIEr3_HaveLats(j,i+1,iBLK)-EIEr3_HaveLats(j,i,iBLK))
+          LocOut(4) = (MLTIn - MLTDown)/ &
+                      (MLTUp - MLTDown)
+          LocOut(5) = (LatIn - EIEr3_HaveLats(j, i, iBLK))/ &
+                      (EIEr3_HaveLats(j, i + 1, iBLK) - EIEr3_HaveLats(j, i, iBLK))
 
-              iBLK = EIEi_HavenBLKs
-              j = EIEi_HavenMLTs
-              i = EIEi_HavenLats
+          iBLK = EIEi_HavenBLKs
+          j = EIEi_HavenMLTs
+          i = EIEi_HavenLats
 
-           endif
+        end if
 
-           i = i + 1
+        i = i + 1
 
-        enddo
+      end do
 
-        j = j + 1
+      j = j + 1
 
-     enddo
+    end do
 
-     iBLK = iBLK + 1
+    iBLK = iBLK + 1
 
-  enddo
+  end do
 
 end subroutine EIE_FindPoint

@@ -9,7 +9,6 @@ module ModRates
 
 !    Temperature Independent (i.e. Static) Reaction Rates
 
-
   integer, parameter  :: nRrTempInd = 1
 
   real :: RrTempInd(nRrTempInd)
@@ -38,8 +37,6 @@ contains
 
     return
 
-
   end subroutine set_RrTempInd
-
 
 end module ModRates

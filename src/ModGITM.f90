@@ -9,7 +9,7 @@ module ModGITM
   implicit none
 
   real :: GitmVersion = 21.11
-  
+
   real :: dt = 0.0
 
   integer :: iCommGITM, iProc, nProcs
@@ -17,169 +17,169 @@ module ModGITM
   integer :: iCommSAMI0
   integer :: SamiMaster, numgitm, numsami
 
-  real, allocatable :: dLonDist_GB(:,:,:,:)
-  real, allocatable :: InvDLonDist_GB(:,:,:,:)
-  real, allocatable :: dLonDist_FB(:,:,:,:)
-  real, allocatable :: InvDLonDist_FB(:,:,:,:)
-  real, allocatable :: dLatDist_GB(:,:,:,:)
-  real, allocatable :: InvDLatDist_GB(:,:,:,:)
-  real, allocatable :: dLatDist_FB(:,:,:,:)
-  real, allocatable :: InvDLatDist_FB(:,:,:,:)
-  real, allocatable :: Altitude_GB(:,:,:,:)
-  real, allocatable :: dAlt_GB(:,:,:,:)
-  real, allocatable :: RadialDistance_GB(:,:,:,:)
-  real, allocatable :: InvRadialDistance_GB(:,:,:,:)
-  real, allocatable :: Gravity_GB(:,:,:,:)
-  real, allocatable :: CellVolume(:,:,:,:)
+  real, allocatable :: dLonDist_GB(:, :, :, :)
+  real, allocatable :: InvDLonDist_GB(:, :, :, :)
+  real, allocatable :: dLonDist_FB(:, :, :, :)
+  real, allocatable :: InvDLonDist_FB(:, :, :, :)
+  real, allocatable :: dLatDist_GB(:, :, :, :)
+  real, allocatable :: InvDLatDist_GB(:, :, :, :)
+  real, allocatable :: dLatDist_FB(:, :, :, :)
+  real, allocatable :: InvDLatDist_FB(:, :, :, :)
+  real, allocatable :: Altitude_GB(:, :, :, :)
+  real, allocatable :: dAlt_GB(:, :, :, :)
+  real, allocatable :: RadialDistance_GB(:, :, :, :)
+  real, allocatable :: InvRadialDistance_GB(:, :, :, :)
+  real, allocatable :: Gravity_GB(:, :, :, :)
+  real, allocatable :: CellVolume(:, :, :, :)
 
   ! RCMR
   real :: f107_est, f107a_est, f107_msis, f107a_msis
-  real :: PhotoElectronHeatingEfficiency_est, EDC_est(1,1)
+  real :: PhotoElectronHeatingEfficiency_est, EDC_est(1, 1)
   integer :: Sat_Loc
 
   ! Topography
-  real, allocatable :: dAltDLon_CB(:,:,:,:)
-  real, allocatable :: dAltDLat_CB(:,:,:,:)
+  real, allocatable :: dAltDLon_CB(:, :, :, :)
+  real, allocatable :: dAltDLat_CB(:, :, :, :)
 
-  real, dimension(-1:nLons+2, nBlocksMax) :: Longitude
-  real, dimension(-1:nLats+2, nBlocksMax) :: Latitude, TanLatitude, CosLatitude
+  real, dimension(-1:nLons + 2, nBlocksMax) :: Longitude
+  real, dimension(-1:nLats + 2, nBlocksMax) :: Latitude, TanLatitude, CosLatitude
 
   real, dimension(nLons, nBlocksMax) :: GradLonM_CB, GradLon0_CB, GradLonP_CB
   real, dimension(nLats, nBlocksMax) :: GradLatM_CB, GradLat0_CB, GradLatP_CB
-  real, dimension(nLons,nLats,nBlocksMax) :: Altzero
+  real, dimension(nLons, nLats, nBlocksMax) :: Altzero
 
-  real, allocatable :: Rho(:,:,:,:)
-  real, allocatable :: ColumnIntegralRho(:,:,:)
-  real, allocatable :: Temperature(:,:,:,:)
-  real, allocatable :: Pressure(:,:,:,:)
-  real, allocatable :: NDensity(:,:,:,:)
-  real, allocatable :: eTemperature(:,:,:,:)
-  real, allocatable :: ITemperature(:,:,:,:)
-  real, allocatable :: IPressure(:,:,:,:)
-  real, allocatable :: ePressure(:,:,:,:)
+  real, allocatable :: Rho(:, :, :, :)
+  real, allocatable :: ColumnIntegralRho(:, :, :)
+  real, allocatable :: Temperature(:, :, :, :)
+  real, allocatable :: Pressure(:, :, :, :)
+  real, allocatable :: NDensity(:, :, :, :)
+  real, allocatable :: eTemperature(:, :, :, :)
+  real, allocatable :: ITemperature(:, :, :, :)
+  real, allocatable :: IPressure(:, :, :, :)
+  real, allocatable :: ePressure(:, :, :, :)
 
-  real, allocatable :: SpeciesDensity(:,:,:,:,:)
-  real, allocatable :: SpeciesDensityOld(:,:,:,:,:)
-  
-  real, allocatable :: LogRhoS(:,:,:,:,:)
-  real, allocatable :: LogNS(:,:,:,:,:)
-  real, allocatable :: VerticalVelocity(:,:,:,:,:)
+  real, allocatable :: SpeciesDensity(:, :, :, :, :)
+  real, allocatable :: SpeciesDensityOld(:, :, :, :, :)
 
-  real, allocatable :: NDensityS(:,:,:,:,:)
+  real, allocatable :: LogRhoS(:, :, :, :, :)
+  real, allocatable :: LogNS(:, :, :, :, :)
+  real, allocatable :: VerticalVelocity(:, :, :, :, :)
 
-  real, allocatable :: IDensityS(:,:,:,:,:)
-  real, allocatable :: IRIDensity(:,:,:,:,:)
+  real, allocatable :: NDensityS(:, :, :, :, :)
 
-  real :: VTEC(-1:nLons+2,-1:nLats+2,nBlocksMax)
+  real, allocatable :: IDensityS(:, :, :, :, :)
+  real, allocatable :: IRIDensity(:, :, :, :, :)
 
-  real, allocatable :: Gamma(:,:,:,:)
+  real :: VTEC(-1:nLons + 2, -1:nLats + 2, nBlocksMax)
 
-  real, allocatable :: KappaTemp(:,:,:,:)
-  real, allocatable :: Ke(:,:,:,:)
-  real, allocatable :: dKe(:,:,:,:)
+  real, allocatable :: Gamma(:, :, :, :)
+
+  real, allocatable :: KappaTemp(:, :, :, :)
+  real, allocatable :: Ke(:, :, :, :)
+  real, allocatable :: dKe(:, :, :, :)
 
   ! JMB:  06/24/2016
   real, dimension(nSpecies) :: ThermalDiffCoefS
 
   real, dimension(nLons, nLats, nBlocksMax) :: &
-       SurfaceAlbedo, SurfaceTemp,SubsurfaceTemp, tinertia, &
-       dSubsurfaceTemp, dSurfaceTemp
+    SurfaceAlbedo, SurfaceTemp, SubsurfaceTemp, tinertia, &
+    dSubsurfaceTemp, dSurfaceTemp
 
-  real, allocatable :: cp(:,:,:,:)
-  real :: ViscCoef(0:nLons+1,0:nLats+1, 0:nAlts+1)
-  real :: ViscCoefS(0:nLons+1,0:nLats+1, 0:nAlts+1,1:nSpecies)
+  real, allocatable :: cp(:, :, :, :)
+  real :: ViscCoef(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1)
+  real :: ViscCoefS(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1, 1:nSpecies)
 
-  real, dimension(-1:nLons+2, -1:nLats+2, -1:nAlts+2) :: &
-       MeanIonMass, MeanMajorMass
+  real, dimension(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2) :: &
+    MeanIonMass, MeanMajorMass
 
-  real, dimension(-1:nLons+2, -1:nLats+2, -1:nAlts+2) :: &
-       e_gyro, i_gyro
+  real, dimension(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2) :: &
+    e_gyro, i_gyro
 
-  real, dimension(-1:nLons+2, -1:nLats+2, -1:nAlts+2, 3) :: Collisions
-  real, dimension(-1:nLons+2, -1:nLats+2, -1:nAlts+2, nIons, nSpecies) :: &
-       IonCollisions
+  real, dimension(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, 3) :: Collisions
+  real, dimension(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, nIons, nSpecies) :: &
+    IonCollisions
 
-  real, allocatable :: B0(:,:,:,:,:)
-  real, allocatable :: MLatitude(:,:,:,:)
-  real :: MLT(-1:nLons+2, -1:nLats+2, -1:nAlts+2)
-  real, allocatable :: MLongitude(:,:,:,:)
-  real, allocatable :: DipAngle(:,:,:,:)
-  real, allocatable :: sinDipAngle(:,:,:,:)
-  real, allocatable :: DecAngle(:,:,:,:)
+  real, allocatable :: B0(:, :, :, :, :)
+  real, allocatable :: MLatitude(:, :, :, :)
+  real :: MLT(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2)
+  real, allocatable :: MLongitude(:, :, :, :)
+  real, allocatable :: DipAngle(:, :, :, :)
+  real, allocatable :: sinDipAngle(:, :, :, :)
+  real, allocatable :: DecAngle(:, :, :, :)
 
-  real, allocatable :: b0_d1(:,:,:,:,:)
-  real, allocatable :: b0_d2(:,:,:,:,:)
-  real, allocatable :: b0_d3(:,:,:,:,:)
-  real, allocatable :: b0_e1(:,:,:,:,:)
-  real, allocatable :: b0_e2(:,:,:,:,:)
-  real, allocatable :: b0_e3(:,:,:,:,:)
-  real, allocatable :: b0_cD(:,:,:,:)
-  real, allocatable :: b0_Be3(:,:,:,:)
+  real, allocatable :: b0_d1(:, :, :, :, :)
+  real, allocatable :: b0_d2(:, :, :, :, :)
+  real, allocatable :: b0_d3(:, :, :, :, :)
+  real, allocatable :: b0_e1(:, :, :, :, :)
+  real, allocatable :: b0_e2(:, :, :, :, :)
+  real, allocatable :: b0_e3(:, :, :, :, :)
+  real, allocatable :: b0_cD(:, :, :, :)
+  real, allocatable :: b0_Be3(:, :, :, :)
 
-  real, allocatable :: cMax_GDB(:,:,:,:,:)
+  real, allocatable :: cMax_GDB(:, :, :, :, :)
 
   real, dimension(1:nLons, 1:nLats, 1:nAlts, 3) :: &
-       IonDrag
+    IonDrag
 
   ! JMB:  07/13/2017
   ! 2nd Order Viscosity Terms
-  real, dimension(1:nLons, 1:nLats, 0:nAlts+1, 3) :: &
-       Viscosity
+  real, dimension(1:nLons, 1:nLats, 0:nAlts + 1, 3) :: &
+    Viscosity
   ! Added this for the Vertical Winds.  Calculated in calc_sources
   ! and used in add_sources
-  real, dimension(1:nLons, 1:nLats, 0:nAlts+1, 1:nSpecies) :: &
-       VerticalViscosityS
+  real, dimension(1:nLons, 1:nLats, 0:nAlts + 1, 1:nSpecies) :: &
+    VerticalViscosityS
 
- ! AGB: Added pressure gradient
-  real, allocatable :: IonPressureGradient(:,:,:,:,:)
+  ! AGB: Added pressure gradient
+  real, allocatable :: IonPressureGradient(:, :, :, :, :)
 
   real, dimension(1:nLons, 1:nLats, 1:nAlts, nSpecies) :: &
-       VerticalIonDrag
+    VerticalIonDrag
 
-  real, allocatable :: Potential(:,:,:,:), PotentialY(:,:,:,:)
+  real, allocatable :: Potential(:, :, :, :), PotentialY(:, :, :, :)
 
-  real, dimension(-1:nLons+2, -1:nLats+2, -1:nAlts+2, 3) :: &
-       ExB, EField
+  real, dimension(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, 3) :: &
+    ExB, EField
 
-  real, dimension(-1:nLons+2, -1:nLats+2) :: &
-       ElectronEnergyFlux, ElectronAverageEnergy, &
-       IonEnergyFlux, IonAverageEnergy, &
-       ElectronEnergyFluxMono, ElectronNumberFluxMono, &
-       ElectronEnergyFluxWave, ElectronNumberFluxWave
+  real, dimension(-1:nLons + 2, -1:nLats + 2) :: &
+    ElectronEnergyFlux, ElectronAverageEnergy, &
+    IonEnergyFlux, IonAverageEnergy, &
+    ElectronEnergyFluxMono, ElectronNumberFluxMono, &
+    ElectronEnergyFluxWave, ElectronNumberFluxWave
 
-  real, allocatable :: Velocity(:,:,:,:,:)
-  real, allocatable :: IVelocity(:,:,:,:,:)
-  real, allocatable :: DivIVelocity(:,:,:,:)
-  real, allocatable :: IVelocityPar(:,:,:,:,:), IVelocityPerp(:,:,:,:,:)
+  real, allocatable :: Velocity(:, :, :, :, :)
+  real, allocatable :: IVelocity(:, :, :, :, :)
+  real, allocatable :: DivIVelocity(:, :, :, :)
+  real, allocatable :: IVelocityPar(:, :, :, :, :), IVelocityPerp(:, :, :, :, :)
 
-  logical            :: isFirstGlow = .True.  
-  logical            :: isInitialGlow 
+  logical            :: isFirstGlow = .True.
+  logical            :: isInitialGlow
 
-  real, allocatable :: Emissions(:,:,:,:,:)
+  real, allocatable :: Emissions(:, :, :, :, :)
 
-  real, allocatable :: vEmissionRate(:,:,:,:,:)
-  
-  real, allocatable :: PhotoElectronDensity(:,:,:,:,:)
-  real, allocatable :: PhotoElectronRate(:,:,:,:,:)
-  real, allocatable :: PhotoEFluxU(:,:,:,:,:)
-  real, allocatable :: PhotoEFluxD(:,:,:,:,:)
-  
-  real, allocatable :: PhotoEFluxTotal(:,:,:,:,:)
-  
+  real, allocatable :: vEmissionRate(:, :, :, :, :)
+
+  real, allocatable :: PhotoElectronDensity(:, :, :, :, :)
+  real, allocatable :: PhotoElectronRate(:, :, :, :, :)
+  real, allocatable :: PhotoEFluxU(:, :, :, :, :)
+  real, allocatable :: PhotoEFluxD(:, :, :, :, :)
+
+  real, allocatable :: PhotoEFluxTotal(:, :, :, :, :)
+
   real, dimension(nPhotoBins)                 :: PhotoEBins
-  real, dimension(-1:nLons+2, -1:nLats+2, -1:nAlts+2) :: TempUnit
+  real, dimension(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2) :: TempUnit
 
-  real :: LocalTime(-1:nLons+2)
+  real :: LocalTime(-1:nLons + 2)
 
-  real :: SubsolarLatitude, SubsolarLongitude 
+  real :: SubsolarLatitude, SubsolarLongitude
   real :: MagneticPoleColat, MagneticPoleLon
   real :: HemisphericPowerNorth, HemisphericPowerSouth
   real :: SunDeclination
 
   ! For WP-GITM: horizontal mean values at GITM's lower boundary
   real :: MeanTempBc, MeanVelBc_D(2), LocalMeanTempBc, LocalMeanVelBc_D(2), &
-       LocalSumVolume, SumVolume
-  
+          LocalSumVolume, SumVolume
+
   integer, parameter :: iEast_ = 1, iNorth_ = 2, iUp_ = 3, iMag_ = 4
   integer, parameter :: iVIN_ = 1, iVEN_ = 2, iVEI_ = 3
 
@@ -187,88 +187,86 @@ contains
   !=========================================================================
   subroutine init_mod_gitm
 
-
-    if(allocated(dLonDist_GB)) RETURN
-    allocate(dLonDist_GB(-1:nLons+2,-1:nLats+2,-1:nAlts+2,nBlocks))
-    allocate(InvDLonDist_GB(-1:nLons+2,-1:nLats+2,-1:nAlts+2,nBlocks))
-    allocate(dLonDist_FB(-1:nLons+2,-1:nLats+2,-1:nAlts+2,nBlocks))
-    allocate(InvDLonDist_FB(-1:nLons+2,-1:nLats+2,-1:nAlts+2,nBlocks))
-    allocate(dLatDist_GB(-1:nLons+2,-1:nLats+2,-1:nAlts+2,nBlocks))
-    allocate(InvDLatDist_GB(-1:nLons+2,-1:nLats+2,-1:nAlts+2,nBlocks))
-    allocate(dLatDist_FB(-1:nLons+2,-1:nLats+2,-1:nAlts+2,nBlocks))
-    allocate(InvDLatDist_FB(-1:nLons+2,-1:nLats+2,-1:nAlts+2,nBlocks))
-    allocate(Altitude_GB(-1:nLons+2,-1:nLats+2,-1:nAlts+2,nBlocks))
-    allocate(dAlt_GB(-1:nLons+2,-1:nLats+2,-1:nAlts+2,nBlocks))
-    allocate(RadialDistance_GB(-1:nLons+2,-1:nLats+2,-1:nAlts+2,nBlocks))
-    allocate(InvRadialDistance_GB(-1:nLons+2,-1:nLats+2,-1:nAlts+2,nBlocks))
-    allocate(Gravity_GB(-1:nLons+2,-1:nLats+2,-1:nAlts+2,nBlocks))
-    allocate(CellVolume(-1:nLons+2,-1:nLats+2,-1:nAlts+2,nBlocks))
-    allocate(dAltDLon_CB(nLons,nLats,nAlts,nBlocks))
-    allocate(dAltDLat_CB(nLons,nLats,nAlts,nBlocks))
-    allocate(Rho(-1:nLons+2, -1:nLats+2, -1:nAlts+2, nBlocks))
-    allocate(ColumnIntegralRho(-1:nLons+2, -1:nLats+2, -1:nAlts+2))
-    allocate(Temperature(-1:nLons+2, -1:nLats+2, -1:nAlts+2, nBlocks))
-    allocate(Pressure(-1:nLons+2, -1:nLats+2, -1:nAlts+2, nBlocks))
-    allocate(NDensity(-1:nLons+2, -1:nLats+2, -1:nAlts+2, nBlocks))
-    allocate(eTemperature(-1:nLons+2, -1:nLats+2, -1:nAlts+2, nBlocks))
-    allocate(ITemperature(-1:nLons+2, -1:nLats+2, -1:nAlts+2, nBlocks))
-    allocate(IPressure(-1:nLons+2, -1:nLats+2, -1:nAlts+2, nBlocks))
-    allocate(ePressure(-1:nLons+2, -1:nLats+2, -1:nAlts+2, nBlocks))
-    allocate(SpeciesDensity(-1:nLons+2, -1:nLats+2, -1:nAlts+2, nSpeciesAll, nBlocks))
-    allocate(SpeciesDensityOld(-1:nLons+2, -1:nLats+2, -1:nAlts+2, nSpeciesAll, nBlocks))
-    allocate(LogRhoS(-1:nLons+2, -1:nLats+2, -1:nAlts+2, &
-       nSpecies, nBlocksMax))
-    allocate(LogNS(-1:nLons+2, -1:nLats+2, -1:nAlts+2, &
-       nSpecies, nBlocksMax))
-    allocate(VerticalVelocity(-1:nLons+2, -1:nLats+2, -1:nAlts+2, &
-       nSpecies, nBlocksMax))
-    allocate(NDensityS(-1:nLons+2, -1:nLats+2, -1:nAlts+2, &
-       nSpeciesTotal, nBlocksMax))
-    allocate(IDensityS(-1:nLons+2, -1:nLats+2, -1:nAlts+2, &
-       nIons, nBlocksMax))
-    allocate(IRIDensity(-1:nLons+2, -1:nLats+2, -1:nAlts+2, &
-       nIons, nBlocksMax))
-    allocate(Gamma(-1:nLons+2,-1:nLats+2,-1:nAlts+2,nBlocks))
-    allocate(KappaTemp(nLons, nLats, 0:nAlts+1, nBlocks))
-    allocate(Ke(nLons, nLats, 0:nAlts+1, nBlocks))
-    allocate(dKe(nLons, nLats, 0:nAlts+1, nBlocks))
-    allocate(cp(nLons,nLats,-1:nAlts+2,nBlocks))
-    allocate(B0(-1:nLons+2,-1:nLats+2,-1:nAlts+2,4,nBlocks))
-    allocate(MLatitude(-1:nLons+2,-1:nLats+2,-1:nAlts+2,nBlocks))
-    allocate(MLongitude(-1:nLons+2,-1:nLats+2,-1:nAlts+2,nBlocks))
-    allocate(DipAngle(-1:nLons+2,-1:nLats+2,-1:nAlts+2,nBlocks))
-    allocate(sinDipAngle(-1:nLons+2,-1:nLats+2,-1:nAlts+2,nBlocks))
-    allocate(DecAngle(-1:nLons+2,-1:nLats+2,-1:nAlts+2,nBlocks))
-    allocate(b0_d1(-1:nLons+2,-1:nLats+2,-1:nAlts+2,3,nBlocks))
-    allocate(b0_d2(-1:nLons+2,-1:nLats+2,-1:nAlts+2,3,nBlocks))
-    allocate(b0_d3(-1:nLons+2,-1:nLats+2,-1:nAlts+2,3,nBlocks))
-    allocate(b0_e1(-1:nLons+2,-1:nLats+2,-1:nAlts+2,3,nBlocks))
-    allocate(b0_e2(-1:nLons+2,-1:nLats+2,-1:nAlts+2,3,nBlocks))
-    allocate(b0_e3(-1:nLons+2,-1:nLats+2,-1:nAlts+2,3,nBlocks))
-    allocate(b0_cD(-1:nLons+2,-1:nLats+2,-1:nAlts+2,nBlocks))
-    allocate(b0_Be3(-1:nLons+2,-1:nLats+2,-1:nAlts+2,nBlocks))
-    allocate(cMax_GDB(0:nLons+1,0:nLats+1,0:nAlts+1,3,nBlocks))
-    allocate(IonPressureGradient(-1:nLons+2, -1:nLats+2, -1:nAlts+2, 3, nBlocks))
-    allocate(Potential(-1:nLons+2, -1:nLats+2, -1:nAlts+2, nBlocks))
-    allocate(PotentialY(-1:nLons+2, -1:nLats+2, -1:nAlts+2, nBlocks))
-    allocate(Velocity(-1:nLons+2, -1:nLats+2, -1:nAlts+2, 3, nBlocks))
-    allocate(IVelocity(-1:nLons+2, -1:nLats+2, -1:nAlts+2, 3, nBlocks))
+    if (allocated(dLonDist_GB)) RETURN
+    allocate(dLonDist_GB(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, nBlocks))
+    allocate(InvDLonDist_GB(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, nBlocks))
+    allocate(dLonDist_FB(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, nBlocks))
+    allocate(InvDLonDist_FB(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, nBlocks))
+    allocate(dLatDist_GB(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, nBlocks))
+    allocate(InvDLatDist_GB(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, nBlocks))
+    allocate(dLatDist_FB(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, nBlocks))
+    allocate(InvDLatDist_FB(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, nBlocks))
+    allocate(Altitude_GB(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, nBlocks))
+    allocate(dAlt_GB(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, nBlocks))
+    allocate(RadialDistance_GB(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, nBlocks))
+    allocate(InvRadialDistance_GB(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, nBlocks))
+    allocate(Gravity_GB(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, nBlocks))
+    allocate(CellVolume(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, nBlocks))
+    allocate(dAltDLon_CB(nLons, nLats, nAlts, nBlocks))
+    allocate(dAltDLat_CB(nLons, nLats, nAlts, nBlocks))
+    allocate(Rho(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, nBlocks))
+    allocate(ColumnIntegralRho(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2))
+    allocate(Temperature(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, nBlocks))
+    allocate(Pressure(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, nBlocks))
+    allocate(NDensity(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, nBlocks))
+    allocate(eTemperature(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, nBlocks))
+    allocate(ITemperature(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, nBlocks))
+    allocate(IPressure(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, nBlocks))
+    allocate(ePressure(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, nBlocks))
+    allocate(SpeciesDensity(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, nSpeciesAll, nBlocks))
+    allocate(SpeciesDensityOld(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, nSpeciesAll, nBlocks))
+    allocate(LogRhoS(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, &
+                     nSpecies, nBlocksMax))
+    allocate(LogNS(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, &
+                   nSpecies, nBlocksMax))
+    allocate(VerticalVelocity(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, &
+                              nSpecies, nBlocksMax))
+    allocate(NDensityS(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, &
+                       nSpeciesTotal, nBlocksMax))
+    allocate(IDensityS(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, &
+                       nIons, nBlocksMax))
+    allocate(IRIDensity(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, &
+                        nIons, nBlocksMax))
+    allocate(Gamma(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, nBlocks))
+    allocate(KappaTemp(nLons, nLats, 0:nAlts + 1, nBlocks))
+    allocate(Ke(nLons, nLats, 0:nAlts + 1, nBlocks))
+    allocate(dKe(nLons, nLats, 0:nAlts + 1, nBlocks))
+    allocate(cp(nLons, nLats, -1:nAlts + 2, nBlocks))
+    allocate(B0(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, 4, nBlocks))
+    allocate(MLatitude(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, nBlocks))
+    allocate(MLongitude(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, nBlocks))
+    allocate(DipAngle(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, nBlocks))
+    allocate(sinDipAngle(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, nBlocks))
+    allocate(DecAngle(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, nBlocks))
+    allocate(b0_d1(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, 3, nBlocks))
+    allocate(b0_d2(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, 3, nBlocks))
+    allocate(b0_d3(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, 3, nBlocks))
+    allocate(b0_e1(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, 3, nBlocks))
+    allocate(b0_e2(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, 3, nBlocks))
+    allocate(b0_e3(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, 3, nBlocks))
+    allocate(b0_cD(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, nBlocks))
+    allocate(b0_Be3(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, nBlocks))
+    allocate(cMax_GDB(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1, 3, nBlocks))
+    allocate(IonPressureGradient(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, 3, nBlocks))
+    allocate(Potential(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, nBlocks))
+    allocate(PotentialY(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, nBlocks))
+    allocate(Velocity(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, 3, nBlocks))
+    allocate(IVelocity(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, 3, nBlocks))
     allocate(DivIVelocity(1:nLons, 1:nLats, 1:nAlts, nBlocks))
-    allocate(IVelocityPar(-1:nLons+2, -1:nLats+2, -1:nAlts+2, 3, nBlocks))
-    allocate(IVelocityPerp(-1:nLons+2, -1:nLats+2, -1:nAlts+2, 3, nBlocks))
-    allocate(Emissions(nLons,nLats,nAlts,nEmissions,nBlocks))
-    allocate(vEmissionRate(nLons,nLats,nAlts,nEmissionWavelengths,nBlocks))
-    allocate(PhotoElectronDensity(nLons,nLats,nAlts,nPhotoBins,nBlocks))
-    allocate(PhotoElectronRate(nLons,nLats,nAlts,nPhotoBins,nBlocks))
-    allocate(PhotoEFluxU(nLons,nLats,nAlts,nPhotoBins,nBlocks))
-    allocate(PhotoEFluxD(nLons,nLats,nAlts,nPhotoBins,nBlocks))
-    allocate(PhotoEFluxTotal(nLons,nLats,nAlts,nBlocks,2))
+    allocate(IVelocityPar(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, 3, nBlocks))
+    allocate(IVelocityPerp(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, 3, nBlocks))
+    allocate(Emissions(nLons, nLats, nAlts, nEmissions, nBlocks))
+    allocate(vEmissionRate(nLons, nLats, nAlts, nEmissionWavelengths, nBlocks))
+    allocate(PhotoElectronDensity(nLons, nLats, nAlts, nPhotoBins, nBlocks))
+    allocate(PhotoElectronRate(nLons, nLats, nAlts, nPhotoBins, nBlocks))
+    allocate(PhotoEFluxU(nLons, nLats, nAlts, nPhotoBins, nBlocks))
+    allocate(PhotoEFluxD(nLons, nLats, nAlts, nPhotoBins, nBlocks))
+    allocate(PhotoEFluxTotal(nLons, nLats, nAlts, nBlocks, 2))
   end subroutine init_mod_gitm
   !=========================================================================
   subroutine clean_mod_gitm
 
-
-    if(.not.allocated(dLonDist_GB)) RETURN
+    if (.not. allocated(dLonDist_GB)) RETURN
     deallocate(dLonDist_GB)
     deallocate(InvDLonDist_GB)
     deallocate(dLonDist_FB)

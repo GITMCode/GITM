@@ -1,4 +1,4 @@
-!  Copyright (C) 2002 Regents of the University of Michigan, portions used with permission 
+!  Copyright (C) 2002 Regents of the University of Michigan, portions used with permission
 !  For more information, see http://csem.engin.umich.edu/tools/swmf
 !BOP
 !MODULE: ModMpiOrig and ModMpi - the MPI variables and functions
@@ -6,7 +6,7 @@
 ! In Fortran 90 it is customary to use a module instead of including files.
 ! The ModMpiOrig and ModMpi modules provide interfaces to mpif.h.
 !
-! In ModMpi the MPI\_REAL parameter is set to the value of the 
+! In ModMpi the MPI\_REAL parameter is set to the value of the
 ! MPI\_DOUBLE\_PRECISION parameter if the code is compiled with double
 ! precision accuracy (Config.pl -double). In this case the iRealPrec
 ! parameter is set to 1.
@@ -14,8 +14,8 @@
 ! If ModMpi is used, it should be compiled with the same precision as the F90
 ! code using it.
 !
-! This module also provides simple interfaces to 
-! MPI\_reduce with MPI\_IN\_PLACE option for real and integer 
+! This module also provides simple interfaces to
+! MPI\_reduce with MPI\_IN\_PLACE option for real and integer
 ! scalars and arrays.
 !
 !REVISION HISTORY:
@@ -33,7 +33,7 @@ module ModMpi
   use ModMpiInterfaces
 
   use ModMpiOrig, &
-       MPI_REAL_ORIG => MPI_REAL, MPI_COMPLEX_ORIG => MPI_COMPLEX
+    MPI_REAL_ORIG => MPI_REAL, MPI_COMPLEX_ORIG => MPI_COMPLEX
 
   implicit none
 
@@ -41,10 +41,10 @@ module ModMpi
   integer, parameter :: iRealPrec = (1.00000000011 - 1.0)*10000000000.0
 
   integer, parameter :: MPI_REAL = &
-       iRealPrec*MPI_DOUBLE_PRECISION + (1-iRealPrec)*MPI_REAL_ORIG
+                        iRealPrec*MPI_DOUBLE_PRECISION + (1 - iRealPrec)*MPI_REAL_ORIG
 
   integer, parameter :: MPI_COMPLEX = &
-       iRealPrec*MPI_DOUBLE_COMPLEX + (1-iRealPrec)*MPI_COMPLEX_ORIG
+                        iRealPrec*MPI_DOUBLE_COMPLEX + (1 - iRealPrec)*MPI_COMPLEX_ORIG
 
   !EOC
 
@@ -65,12 +65,12 @@ contains
     !------------------------------------------------------------------------
     call MPI_comm_rank(iComm, iRank, iError)
 
-    if(iRoot == iRank)then
-       call MPI_reduce(MPI_IN_PLACE, Buffer_I, nSize, MPI_REAL, iOp, &
-            iRoot, iComm, iError)
+    if (iRoot == iRank) then
+      call MPI_reduce(MPI_IN_PLACE, Buffer_I, nSize, MPI_REAL, iOp, &
+                      iRoot, iComm, iError)
     else
-       call MPI_reduce(Buffer_I, Recv_I, nSize, MPI_REAL, iOp, &
-            iRoot, iComm, iError)
+      call MPI_reduce(Buffer_I, Recv_I, nSize, MPI_REAL, iOp, &
+                      iRoot, iComm, iError)
     end if
 
   end subroutine mpi_reduce_real_array
@@ -89,18 +89,18 @@ contains
     !------------------------------------------------------------------------
     call MPI_comm_rank(iComm, iRank, iError)
 
-    if(iRoot == iRank)then
-       call MPI_reduce(MPI_IN_PLACE, Value, 1, MPI_REAL, iOp, &
-            iRoot, iComm, iError)
+    if (iRoot == iRank) then
+      call MPI_reduce(MPI_IN_PLACE, Value, 1, MPI_REAL, iOp, &
+                      iRoot, iComm, iError)
     else
-       call MPI_reduce(Value, Recv, 1, MPI_REAL, iOp, &
-            iRoot, iComm, iError)
+      call MPI_reduce(Value, Recv, 1, MPI_REAL, iOp, &
+                      iRoot, iComm, iError)
     end if
-    
+
   end subroutine mpi_reduce_real_scalar
   !============================================================================
-  subroutine mpi_reduce_integer_array(&
-       iBuffer_I, nSize, iOp, iRoot, iComm, iError)
+  subroutine mpi_reduce_integer_array( &
+    iBuffer_I, nSize, iOp, iRoot, iComm, iError)
 
     integer, intent(inout):: iBuffer_I(*)
     integer, intent(in):: nSize
@@ -114,12 +114,12 @@ contains
     !------------------------------------------------------------------------
     call MPI_comm_rank(iComm, iRank, iError)
 
-    if(iRoot == iRank)then
-       call MPI_reduce(MPI_IN_PLACE, iBuffer_I, nSize, MPI_INTEGER, &
-            iOp, iRoot, iComm, iError)
+    if (iRoot == iRank) then
+      call MPI_reduce(MPI_IN_PLACE, iBuffer_I, nSize, MPI_INTEGER, &
+                      iOp, iRoot, iComm, iError)
     else
-       call MPI_reduce(iBuffer_I, iRecv_I, nSize, MPI_INTEGER, &
-            iOp, iRoot, iComm, iError)
+      call MPI_reduce(iBuffer_I, iRecv_I, nSize, MPI_INTEGER, &
+                      iOp, iRoot, iComm, iError)
     end if
 
   end subroutine mpi_reduce_integer_array
@@ -137,12 +137,12 @@ contains
     !------------------------------------------------------------------------
     call MPI_comm_rank(iComm, iRank, iError)
 
-    if(iRoot == iRank)then
-       call MPI_reduce(MPI_IN_PLACE, iValue, 1, MPI_INTEGER, &
-            iOp, iRoot, iComm, iError)
+    if (iRoot == iRank) then
+      call MPI_reduce(MPI_IN_PLACE, iValue, 1, MPI_INTEGER, &
+                      iOp, iRoot, iComm, iError)
     else
-       call MPI_reduce(iValue, iRecv, 1, MPI_INTEGER, &
-            iOp, iRoot, iComm, iError)
+      call MPI_reduce(iValue, iRecv, 1, MPI_INTEGER, &
+                      iOp, iRoot, iComm, iError)
     end if
 
   end subroutine mpi_reduce_integer_scalar

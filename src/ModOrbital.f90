@@ -8,7 +8,6 @@ module ModOrbital
 
   implicit none
 
-
 !         Orbital Elements
 !            a              e               I                L            long.peri.      long.node.
 !         AU, AU/Cy     rad, rad/Cy     deg, deg/Cy      deg, deg/Cy      deg, deg/Cy     deg, deg/Cy
@@ -37,8 +36,6 @@ module ModOrbital
 !Neptune    0.00026291      0.00005105      0.00035372      218.45945325     -0.32241464     -0.00508664
 !Pluto     -0.00031596      0.00005170      0.00004818      145.20780515     -0.04062942     -0.01183482
 
-
-
   !Venus
   real, parameter :: semimajor_Venus = 0.72333566
   real, parameter :: eccentricity_Venus = 0.00677672
@@ -51,24 +48,23 @@ module ModOrbital
   real, parameter :: eccentricitydot_Venus = -0.00004107
   real, parameter :: inclinationdot_Venus = -0.00078890
   real, parameter :: longitudeNodedot_Venus = -0.27769418
-  real, parameter :: longitudePeriheliondot_Venus =  0.00268329
+  real, parameter :: longitudePeriheliondot_Venus = 0.00268329
   real, parameter :: meanLongitudedot_Venus = 58517.81538729
-
 
   !Earth
 
   real, parameter :: semimajor_Earth = 1.00000261
   real, parameter ::   eccentricity_Earth = 0.01671123
   real, parameter ::   inclination_Earth = -0.00001531
-  real, parameter ::   longitudeNode_Earth =  0.0
+  real, parameter ::   longitudeNode_Earth = 0.0
   real, parameter ::   longitudePerihelion_Earth = 102.93768193
   real, parameter ::   meanLongitude_Earth = 100.46457166
 
-  real, parameter ::   semimajordot_Earth =   0.00000562
+  real, parameter ::   semimajordot_Earth = 0.00000562
   real, parameter ::   eccentricitydot_Earth = -0.00004392
   real, parameter ::   inclinationdot_Earth = -0.01294668
   real, parameter ::   longitudeNodedot_Earth = 0.0
-  real, parameter ::   longitudePeriheliondot_Earth =  0.32327364
+  real, parameter ::   longitudePeriheliondot_Earth = 0.32327364
   real, parameter ::   meanLongitudedot_Earth = 35999.37244981
 
   !Mars
@@ -83,7 +79,7 @@ module ModOrbital
   real, parameter :: eccentricitydot_Mars = 0.00007882
   real, parameter :: inclinationdot_Mars = -0.00813131
   real, parameter :: longitudeNodedot_Mars = -0.29257343
-  real, parameter :: longitudePeriheliondot_Mars =  0.44441088
+  real, parameter :: longitudePeriheliondot_Mars = 0.44441088
   real, parameter :: meanLongitudedot_Mars = 19140.30268499
 
   !Jupiter
@@ -95,16 +91,16 @@ module ModOrbital
   real, parameter :: meanLongitude_Jupiter = 34.39644051
 
   real, parameter :: semimajordot_Jupiter = -0.00011607
-  real, parameter :: eccentricitydot_Jupiter =  -0.00013253
-  real, parameter :: inclinationdot_Jupiter =  -0.00183714
+  real, parameter :: eccentricitydot_Jupiter = -0.00013253
+  real, parameter :: inclinationdot_Jupiter = -0.00183714
   real, parameter :: longitudeNodedot_Jupiter = 0.20469106
-  real, parameter :: longitudePeriheliondot_Jupiter =   0.21252668
+  real, parameter :: longitudePeriheliondot_Jupiter = 0.21252668
   real, parameter :: meanLongitudedot_Jupiter = 3034.74612775
 
   !Saturn
   real, parameter :: semimajor_Saturn = 9.53667594
   real, parameter :: eccentricity_Saturn = 0.05386179
-  real, parameter :: inclination_Saturn =  2.48599187
+  real, parameter :: inclination_Saturn = 2.48599187
   real, parameter :: longitudeNode_Saturn = 113.66242448
   real, parameter :: longitudePerihelion_Saturn = 92.59887831
   real, parameter :: meanLongitude_Saturn = 49.95424423
@@ -113,8 +109,7 @@ module ModOrbital
   real, parameter :: eccentricitydot_Saturn = -0.00050991
   real, parameter :: inclinationdot_Saturn = 0.00193609
   real, parameter :: longitudeNodedot_Saturn = -0.28867794
-  real, parameter :: longitudePeriheliondot_Saturn =  -0.41897216
+  real, parameter :: longitudePeriheliondot_Saturn = -0.41897216
   real, parameter :: meanLongitudedot_Saturn = 1222.49362201
-
 
 end module ModOrbital

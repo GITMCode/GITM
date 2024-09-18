@@ -19,28 +19,28 @@ subroutine init_iri
 
   integer :: iBlock, iAlt, iLat, iLon, iIon
 
-  call report("init_iri",1)
+  call report("init_iri", 1)
 
   do iBlock = 1, nBlocks
-     iTemperature(:,:,:,iBlock) = 200.0
-     eTemperature(:,:,:,iBlock) = 200.0
-     do iAlt = -1, nAlts+2
-        do iLon=-1,nLons+2
-           do iLat=-1,nLats+2
+    iTemperature(:, :, :, iBlock) = 200.0
+    eTemperature(:, :, :, iBlock) = 200.0
+    do iAlt = -1, nAlts + 2
+      do iLon = -1, nLons + 2
+        do iLat = -1, nLats + 2
 
-              IDensityS(iLon,iLat,iAlt,:,iBlock) = 1.0
+          IDensityS(iLon, iLat, iAlt, :, iBlock) = 1.0
 
-              IDensityS(iLon,iLat,iAlt,nIons,iBlock) = 0.0
-              do iIon = 1, nIons-1
-                 IDensityS(iLon,iLat,iAlt,nIons,iBlock) = &
-                      IDensityS(iLon,iLat,iAlt,nIons,iBlock) + &
-                      IDensityS(iLon,iLat,iAlt,iIon,iBlock)
-              enddo
+          IDensityS(iLon, iLat, iAlt, nIons, iBlock) = 0.0
+          do iIon = 1, nIons - 1
+            IDensityS(iLon, iLat, iAlt, nIons, iBlock) = &
+              IDensityS(iLon, iLat, iAlt, nIons, iBlock) + &
+              IDensityS(iLon, iLat, iAlt, iIon, iBlock)
+          end do
 
-           enddo
-        enddo
-     enddo
+        end do
+      end do
+    end do
 
-  enddo
+  end do
 
 end subroutine init_iri

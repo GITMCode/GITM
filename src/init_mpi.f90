@@ -19,6 +19,3 @@ subroutine init_mpi
 
 end subroutine init_mpi
 
-
-
-

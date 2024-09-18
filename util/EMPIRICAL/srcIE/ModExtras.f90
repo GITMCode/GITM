@@ -1,4 +1,4 @@
-!  Copyright (C) 2002 Regents of the University of Michigan, portions used with permission 
+!  Copyright (C) 2002 Regents of the University of Michigan, portions used with permission
 !  For more information, see http://csem.engin.umich.edu/tools/swmf
 
 module ModExtras
@@ -8,6 +8,6 @@ module ModExtras
 
   logical :: north = .true.
 
-  integer, parameter :: MaxInputLines=1000
+  integer, parameter :: MaxInputLines = 1000
 
 end module ModExtras

@@ -25,19 +25,18 @@ program GITM
   implicit none
 
   integer :: iBlock
-  
 
   ! ------------------------------------------------------------------------
   ! initialize stuff
   ! ------------------------------------------------------------------------
-  
+
   call init_mpi
   call start_timing("GITM")
   call delete_stop
 
   call init_planet
   call set_defaults
-   
+
   call read_inputs(cInputFile)
 
   call set_inputs
@@ -46,7 +45,7 @@ program GITM
 
   call write_output
 
-  call report("Starting Main Time Loop",0)
+  call report("Starting Main Time Loop", 0)
 
   ! ------------------------------------------------------------------------
   ! Run for a few iterations
@@ -54,31 +53,31 @@ program GITM
 
   do while (CurrentTime < EndTime)
 
-     call calc_pressure
+    call calc_pressure
 
      !!! We may have to split cMax and Dt calculation!!!
-     if(RCMRFlag) then
-        Dt = 2
-     else
-        Dt = FixedDt
-     end if
+    if (RCMRFlag) then
+      Dt = 2
+    else
+      Dt = FixedDt
+    end if
 
-     call calc_timestep_vertical
-     if (.not. Is1D) call calc_timestep_horizontal
+    call calc_timestep_vertical
+    if (.not. Is1D) call calc_timestep_horizontal
 
-     if(RCMRFlag) then
-        call run_RCMR
-     endif
+    if (RCMRFlag) then
+      call run_RCMR
+    end if
 
-     call advance
+    call advance
 
-     if (.not.IsFramework) then
-        call check_stop
-     endif
-     
-     iStep = iStep + 1
+    if (.not. IsFramework) then
+      call check_stop
+    end if
 
-     call write_output
+    iStep = iStep + 1
+
+    call write_output
   end do
 
   ! ------------------------------------------------------------------------
@@ -95,11 +94,10 @@ end program GITM
 ! for compilation of the stand alone code.
 !============================================================================
 
-
-subroutine CON_set_do_test(String,DoTest,DoTestMe)
+subroutine CON_set_do_test(String, DoTest, DoTestMe)
   implicit none
-  character (len=*), intent(in)  :: String
-  logical          , intent(out) :: DoTest, DoTestMe
+  character(len=*), intent(in)  :: String
+  logical, intent(out) :: DoTest, DoTestMe
 
   DoTest = .false.; DoTestMe = .false.
 
