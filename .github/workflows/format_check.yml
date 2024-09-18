@@ -54,7 +54,5 @@ jobs:
         env:
             ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
         run: |
-          pwd 
-          ls 
-          echo " ____ "
+          cd GITM
           python srcPython/format_GITM.py -l -s ${ALL_CHANGED_FILES}
