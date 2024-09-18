@@ -54,8 +54,4 @@ jobs:
         env:
             ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
         run: 
-          for file in ${ALL_CHANGED_FILES}; do
-            python srcPython/format_GITM.py -l -s $file
-          done
-# if [[ $file == *"".f90"* ]]; then
-# fi
+          python srcPython/format_GITM.py -l -s ${ALL_CHANGED_FILES}
