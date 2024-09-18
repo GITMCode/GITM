@@ -17,7 +17,7 @@ jobs:
     # - For more flexibility and no limitations see "Using local .git directory" above.
 
     runs-on: ubuntu-latest  # windows-latest || macos-latest
-    name: Test Changed Files
+    name: Format Check
     permissions:
       pull-requests: read
 
@@ -26,7 +26,7 @@ jobs:
         uses: actions/checkout@v4
         with: 
           repository: 'abukowski21/fprettify'
-          ref: gitm-customization
+          ref: gitm_customization
           path:
             fprettify
       - name: Install formatter
