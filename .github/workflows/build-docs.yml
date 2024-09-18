@@ -4,6 +4,9 @@ on:
   schedule:           
     # 0 minute, 0 hour, 1st day, every month, any day of week
     - cron:  '0 0 1 * *'
+  push:
+    branches:
+      main
 
 jobs:
   build_documentation:
