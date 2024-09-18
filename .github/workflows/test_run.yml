@@ -18,12 +18,7 @@ jobs:
         run: sudo apt update && sudo apt install -y mpich
       - name: Clone GITM repository
         uses: actions/checkout@v4
-        # with: 
-        #   repository: 'GITMCode/GITM'
-      - name: Compile GITM
+      - name: Run tests in srcTests/auto_test
         run: |
-          ./Config.pl -install -earth -compiler=gfortran10
-          make
-          make rundir
-      - name: First test (default UAM)
-        run: cd run && mpirun -np 4 ./GITM.exe
+          cd srcTests/auto_test
+          ./run_all_tests.sh
