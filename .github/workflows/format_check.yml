@@ -55,4 +55,4 @@ jobs:
             ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
         run: |
           cd GITM
-          python srcPython/format_GITM.py -l -s ${ALL_CHANGED_FILES}
+          python srcPython/format_GITM.py -l -s -v ${ALL_CHANGED_FILES}
