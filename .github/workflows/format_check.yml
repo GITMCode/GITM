@@ -50,7 +50,7 @@ jobs:
           files: |
             **.f90
             **.f
-      - name: Style Guide Check Changed Files
+      - name: Style Check - Only Changed Files
         env:
             ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
         run: |
