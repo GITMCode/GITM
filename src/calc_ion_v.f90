@@ -229,7 +229,6 @@ subroutine calc_ion_v(iBlock)
 
   end if
 
-
   ! Limit the ion velocity to something "reasonable":
   IVelocity(:, :, :, :, iBlock) = min(3000.0, IVelocity(:, :, :, :, iBlock))
   IVelocity(:, :, :, :, iBlock) = max(-3000.0, IVelocity(:, :, :, :, iBlock))

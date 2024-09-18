@@ -1,8 +1,30 @@
 # GITM
-This is the home of the Global Ionosphere/Thermosphere Model (GITM). Regular releases will start in 2023, with this first release.
+This is the home of the Global Ionosphere/Thermosphere Model (GITM). Regular releases will start in ~2023~ 2024, with this first release.
 
 GITM has been developed in fortran-90. It has been tested with gfortran
-on linux and mac osx as well as ifort on NASA's Pleiades computer.
+on Linux and MacOS as well as ifort on NASA's Pleiades computer.
+
+The latest version of the documentation can be accessed at:
+
+[![Build Documentation](https://github.com/abukowski21/GITM/actions/workflows/Documentation.yml/badge.svg)](https://github.com/abukowski21/GITM/actions/workflows/Documentation.yml)
+
+<details>
+<summary><b>GITM's default branch recently changed names. To access the latest features, please update your local refs.</b></summary>
+
+From your local clone of this repository, run the following commands to update the name of the default branch.
+
+```sh
+git branch -m master main
+git fetch origin
+git branch -u origin/main main
+git remote set-head origin -a
+```
+Optionally, run the following command to remove tracking references to the old branch name.
+```sh
+git remote prune origin
+```
+</details>
+
 
 ## Dependencies:
 
@@ -160,6 +182,8 @@ to figure out how to incorporate them.
 3. Please feel free to fork this repository, make changes as you see
 fit, and do a pull request.  Your suggested changes will be reviewed
 and incorporated if they fit.
+
+See [CONTRIBUTING.md](.github/CONTRIBUTING.md) for more details.
 
 ## External Codes:
 

@@ -1,20 +1,21 @@
 ---
 name: Feature request
-about: Suggest an idea for this project
-title: ''
-labels: ''
+about: Suggest an idea for a feature to be added
+title: "[FEAT]"
+labels: enhancement
 assignees: ''
 
 ---
 
-**Is your feature request related to a problem? Please describe.**
-A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
+# [FEAT]: **describe the feature**
 
-**Describe the solution you'd like**
-A clear and concise description of what you want to happen.
+> 1-2 sentence overview of the feature and what functionality it will add to GITM.
 
-**Describe alternatives you've considered**
-A clear and concise description of any alternative solutions or features you've considered.
+## **Justification**
 
-**Additional context**
-Add any other context or screenshots about the feature request here.
+> If you can, describe how the proposed feature is currently handled within GITM, and how the feature would improve GITM.
+
+## *Other Information* (optional)
+
+> - Other information relevant to the feature.
+> - Perhaps outline how this is implemented in other models or what changes to GITM would need to be made.

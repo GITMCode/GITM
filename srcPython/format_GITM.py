@@ -14,6 +14,12 @@ def check_line_lengths(input_args=None):
     max_subroutine_lines = 250
 
     for fdir in input_args.path:
+        # Inputs for `path` could be files or directories.
+        # check if it's a file:
+        if os.path.isfile(fdir):
+            files.append(fdir)
+            continue
+        # Otherwise check recursively:
         for g in glob_strs:
             for path in sorted(Path(fdir).rglob(g)):
                 files.append(path)
