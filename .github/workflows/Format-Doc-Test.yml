@@ -1,4 +1,4 @@
-name: Format Check
+name: Sequential Tests
 
 on:
   pull_request:
