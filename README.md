@@ -4,6 +4,8 @@ This is the home of the Global Ionosphere/Thermosphere Model (GITM). Regular rel
 GITM has been developed in fortran-90. It has been tested with gfortran
 on linux and mac osx as well as ifort on NASA's Pleiades computer.
 
+The latest version of the documentation can be accessed here: [![Build Documentation](https://github.com/abukowski21/GITM/actions/workflows/Documentation.yml/badge.svg)](https://github.com/abukowski21/GITM/actions/workflows/Documentation.yml)
+
 ## Dependencies:
 
 1. GITM needs MPI to work.
