@@ -42,7 +42,6 @@ jobs:
       - name: Format check entire GITM repository
         run: |
           cd GITM
-          git status
           python srcPython/format_GITM.py -f
       - name: Get changed files
         id: changed-files
@@ -50,9 +49,7 @@ jobs:
       - name: Style Guide Check Changed Files
         env:
             ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
-        run: |
-          pwd
-          echo "______"
+        run: 
           for file in ${ALL_CHANGED_FILES}; do
             python srcPython/format_GITM.py -l -s $file
           done
