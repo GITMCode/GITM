@@ -25,7 +25,7 @@ jobs:
       - name: Clone Formatter
         uses: actions/checkout@v4
         with: 
-          repository: 'GITMCode/fprettify'
+          repository: 'abukowski21/fprettify'
           ref: gitm-customization
           path:
             fprettify
