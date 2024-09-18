@@ -81,7 +81,7 @@ submitting many small pull requests!
 a description of it and its uses in both the documentation (`docs/` folder) and
 in comments within the code.
 - **Include new tests**. If you are adding a new feature, please add a sample `UAM.in`
-file with this option enabled in the `tests/` folder. We do not want future updates
+file with this option enabled in the `srcTests/auto_test/` folder. We do not want future updates
 breaking your hard work.
 - **Follow existing code style guidelines**. More details can be found within the
 [code_style](../code_style/) folder. We want to ensure the code remains readable and
