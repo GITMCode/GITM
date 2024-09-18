@@ -3,7 +3,7 @@
 0		debug level (0 = no info, 10 = max info)
 0		cpu to watch
 60.0		dt between normal code output to stdout
-T		usebarriers - forces the code to stop and wait more often
+F		usebarriers - forces the code to stop and wait more often
 
 --------------------------------------------------------------------------
 Gitm can stop and start again:
@@ -65,37 +65,55 @@ Specify Drivers:
 
 ------------ Solar Drivers ------------
 
+#F107
+150.0		f10.7
+150.0		f10.7 averaged over 81 days
 
-#NGDC_INDICES
+or
+
+NGDC_INDICES
 UA/DataIn/f107.txt
 
 (All false below is new model of EUV!)
-#EUVMODEL
+EUVMODEL
 F			UseEUVAC
 F			UseTobiska
 F			UseAboveHigh
 F			UseBelowLow
 
+or
+
+#EUV_DATA
+F						Use FISM solar flux data
+srcData/FISM/fismflux_daily_2002.dat		Filename
+
 ------------ Auroral Drivers ------------
 
-#MHD_INDICES
-DataIn/imf20021221.dat
+Used by Fuller-Rowell and Evans model:
+#HPI
+1.0		hemispheric power
 
-#NOAAHPI_INDICES
-DataIn/power.test.rcmr_quick
+or
+
+# the hemispheric power is not really available after 2013
+NOAAHPI_INDICES
+power file
 
 New auroral model from Wu and Ridley, which is driven by AU/AL/AE
 #FTAMODEL
 T                 Use FTA model of the aurora
 
 Can download AU/AL/AE indices from SuperMAG and use them here:
-#SME_INDICES
-DataIn/ae_20021221.txt
+SME_INDICES
+sme_2010.txt      SME Filename
 none              onset time delay file
 
+This is for OVATION-PRIME:
+#NEWELLAURORA
+F                 Use Newell Ovation model of the aurora
 
 #FANGENERGY
-F		Use Fang 2010 and 2013 energy deposition
+T		Use Fang 2010 and 2013 energy deposition
 
 Can add a cusp:
 #USECUSP
@@ -106,8 +124,8 @@ F		Add a cusp to the electron precipitation
 This will modify the auroral inputs, experimental:
 #AURORAMODS
 F		normalize to hemispheric power
-2.0		avee factor (1 is no mod)
-T		iskappa
+1.0		avee factor (1 is no mod)
+F		iskappa
 4.0		kappa (3 min; higher is maxwellian)
 
 #IONPRECIPITATION
@@ -121,6 +139,17 @@ F		If ions are included in the AMIE file, use them. FangEnergy=T!
 -2.0		IMF Bz
 400.0		Solar wind Vx
 
+or
+
+This is the most common thing - specify an IMF file:
+MHD_INDICES
+imf/solarwind file
+
+This is for SWPC inputs for close to real-time:
+SWPC_INDICES
+imf file
+solar wind file
+
 This is for amie-like inputs:
 #AMIEFILES
 none		northern hemisphere amie file
@@ -128,7 +157,7 @@ none		southern hemisphere amie file
 
 Low-latitude dynamo (only run with higher res). Turn on for higher res sims:
 #DYNAMO
-T		UseDynamo
+F		UseDynamo
 45.0		DynamoHighLatBoundary
 500		nItersMax
 1.0		MaxResidual
@@ -138,9 +167,6 @@ F               UseNewTrace
 
 -----------------------------------------------------------------
 Some new features:
-
-#NANCHECK
-T
 
 #MSISOBC
 T		Shift the [O] density at the lower boundary by 6 months 
@@ -176,7 +202,7 @@ Can set max wall time for the code to run (default = 10 days)
 Solver stuff:
 
 #AUSMSOLVER
-F       	Use AUSM+-up Solvers
+T       	Use AUSM+-up Solvers
 
 #CFL
 0.80		percentage of maximum allowable time-step to take
@@ -210,9 +236,7 @@ F		UseMSISFlat
 T		UseMSISTides
 F		UseGSWMTides
 F		UseWACCMTides
-F   UseHmeTides
 
-these don't work without special input files?
 #GSWMCOMP
 F		Diurnal Migrating
 F		Diurnal NonMigrating

@@ -4,14 +4,6 @@ on:
   schedule:           
     # 0 minute, 0 hour, 1st day, every month, any day of week
     - cron:  '0 0 1 * *'
-  pull_request:
-    branches:
-        develop
-        main
-  workflow_run:
-    workflows: [Format Check]
-    types:
-      - completed
 
 jobs:
   build_documentation:
@@ -19,8 +11,6 @@ jobs:
     steps:
       - name: Clone GITM repository
         uses: actions/checkout@v4
-        # with: 
-          # repository: 'GITMCode/GITM'
       - name: Compile LaTeX document
         uses: xu-cheng/latex-action@v3
         with:
@@ -33,4 +23,4 @@ jobs:
         with:
           name: PDF
           path: GITM_manual.pdf
-          retention-days: 30
+          retention-days: 31
