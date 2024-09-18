@@ -13,12 +13,12 @@ subroutine calc_ion_drag(iBlock)
 
   real :: tmp(nLons, nLats, nAlts)
   real :: RhoI(nLons, nLats, nAlts)
-  
-  if (iDebugLevel > 4) write(*,*) "=====> Ion Drag", iproc
+
+  if (iDebugLevel > 4) write(*, *) "=====> Ion Drag", iproc
   if (UseBarriers) call MPI_BARRIER(iCommGITM, iErr)
-  
-  RhoI = IDensityS(1:nLons,1:nLats,1:nAlts,ie_,iBlock) * &
-       MeanIonMass(1:nLons,1:nLats,1:nAlts)
+
+  RhoI = IDensityS(1:nLons, 1:nLats, 1:nAlts, ie_, iBlock)* &
+         MeanIonMass(1:nLons, 1:nLats, 1:nAlts)
 
   !
   ! This method should work, but seems to be way, way too strong, and I don't know why:
@@ -58,33 +58,32 @@ subroutine calc_ion_drag(iBlock)
 !
 !  endif
 
-  tmp = Collisions(1:nLons, 1:nLats, 1:nAlts, iVIN_)*&
-       RhoI/Rho(1:nLons, 1:nLats, 1:nAlts, iBlock)
+  tmp = Collisions(1:nLons, 1:nLats, 1:nAlts, iVIN_)* &
+        RhoI/Rho(1:nLons, 1:nLats, 1:nAlts, iBlock)
 
   do iDir = 1, 3
-     IonDrag(:,:,:,iDir) = tmp * &
-          (IVelocity(1:nLons, 1:nLats, 1:nAlts, iDir, iBlock) - &
-          Velocity(1:nLons, 1:nLats, 1:nAlts, iDir, iBlock))
-  enddo
+    IonDrag(:, :, :, iDir) = tmp* &
+                             (IVelocity(1:nLons, 1:nLats, 1:nAlts, iDir, iBlock) - &
+                              Velocity(1:nLons, 1:nLats, 1:nAlts, iDir, iBlock))
+  end do
 
   ! F_iondrag = rho_i/rho * Vis * (Ui-Un)
-  ! where Vis = Vin *(Ns/N)  
+  ! where Vis = Vin *(Ns/N)
 
   do iSpecies = 1, nSpecies
 
-     tmp = Collisions(1:nLons,1:nLats,1:nAlts,iVIN_)*&
-          RhoI / &
-          (Mass(iSpecies) * &
-          NDensityS(1:nLons,1:nLats,1:nAlts,iSpecies,iBlock)) * &
-          (NDensityS(1:nLons,1:nLats,1:nAlts,iSpecies,iBlock) / &
-          NDensity(1:nLons,1:nLats,1:nAlts,iBlock))
+    tmp = Collisions(1:nLons, 1:nLats, 1:nAlts, iVIN_)* &
+          RhoI/ &
+          (Mass(iSpecies)* &
+           NDensityS(1:nLons, 1:nLats, 1:nAlts, iSpecies, iBlock))* &
+          (NDensityS(1:nLons, 1:nLats, 1:nAlts, iSpecies, iBlock)/ &
+           NDensity(1:nLons, 1:nLats, 1:nAlts, iBlock))
 
-     VerticalIonDrag(:,:,:,iSpecies) = tmp * &
-          (IVelocity(1:nLons,1:nLats,1:nAlts,iUp_,iBlock) - &
-          VerticalVelocity(1:nLons,1:nLats,1:nAlts,iSpecies,iBlock))
+    VerticalIonDrag(:, :, :, iSpecies) = tmp* &
+                                         (IVelocity(1:nLons, 1:nLats, 1:nAlts, iUp_, iBlock) - &
+                                          VerticalVelocity(1:nLons, 1:nLats, 1:nAlts, iSpecies, iBlock))
 
-  enddo
-  
-  
+  end do
+
 end subroutine calc_ion_drag
-  
+

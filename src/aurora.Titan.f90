@@ -5,7 +5,7 @@ subroutine aurora(iBlock)
 
   use ModGITM
   use ModSources
-  use ModTime, only : tSimulation, CurrentTime
+  use ModTime, only: tSimulation, CurrentTime
   use ModInputs
   use ModConstants
   use ModUserGITM

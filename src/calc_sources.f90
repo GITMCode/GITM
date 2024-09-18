@@ -14,7 +14,7 @@ subroutine calc_GITM_sources(iBlock)
 
   integer :: iError
 
-  call report("calc_GITM_sources",1)
+  call report("calc_GITM_sources", 1)
 
   !\
   ! ---------------------------------------------------------------
@@ -23,7 +23,7 @@ subroutine calc_GITM_sources(iBlock)
   ! ---------------------------------------------------------------
   !/
 
-  call calc_eddy_diffusion_coefficient(iBlock)  
+  call calc_eddy_diffusion_coefficient(iBlock)
   call calc_rates(iBlock)
   call calc_collisions(iBlock)
 
@@ -37,18 +37,18 @@ subroutine calc_GITM_sources(iBlock)
   ! Solar Heating -------------------------------------------------
   !/
 
-  if (iDebugLevel > 4) write(*,*) "=====> solar heating", iproc
-  if (UseBarriers) call MPI_BARRIER(iCommGITM,iError)
+  if (iDebugLevel > 4) write(*, *) "=====> solar heating", iproc
+  if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
 
   if (UseSolarHeating .or. UseIonChemistry) then
 
-     ! So far, calc_physics only has stuff that is needed for solar
-     ! euv, such as solar zenith angles, and local time.
+    ! So far, calc_physics only has stuff that is needed for solar
+    ! euv, such as solar zenith angles, and local time.
 
-     call calc_physics(iBlock)
-     call euv_ionization_heat(iBlock)
+    call calc_physics(iBlock)
+    call euv_ionization_heat(iBlock)
 
-  endif
+  end if
 
   if (.not. UseSolarHeating) EuvHeating = 0.0
 
@@ -64,20 +64,20 @@ subroutine calc_GITM_sources(iBlock)
   !/
 
   if (UseConduction) then
-     call calc_thermal_conduction(iBlock)
+    call calc_thermal_conduction(iBlock)
   else
-     Conduction = 0.0
+    Conduction = 0.0
   end if
 
   !\
   ! IR Heating (Venus Only) ---------------------------------------
   !/
 
-  QnirTOT(:,:,:,:) = 0.0
+  QnirTOT(:, :, :, :) = 0.0
   if (UseIRHeating .and. isVenus) then
-     call calc_ir_heating(iBlock)
-  endif
- 
+    call calc_ir_heating(iBlock)
+  end if
+
   !\
   ! ---------------------------------------------------------------
   ! These terms are for Neutral Winds
@@ -89,21 +89,20 @@ subroutine calc_GITM_sources(iBlock)
   !/
 
   if (UseIonDrag) then
-     call calc_ion_drag(iBlock)
+    call calc_ion_drag(iBlock)
   else
-     IonDrag = 0.0
-     VerticalIonDrag = 0.0
-  endif
-
+    IonDrag = 0.0
+    VerticalIonDrag = 0.0
+  end if
 
   !\
   ! Viscosity ----------------------------------------------------
   !/
 
   if (UseViscosity) then
-     call calc_viscosity(iBlock)
+    call calc_viscosity(iBlock)
   else
-     Viscosity = 0.0
+    Viscosity = 0.0
   end if
 
   !\
@@ -112,20 +111,20 @@ subroutine calc_GITM_sources(iBlock)
   ! ---------------------------------------------------------------
   !/
 
-  if (iDebugLevel > 4) write(*,*) "=====> get_potential", iproc
-  if (UseBarriers) call MPI_BARRIER(iCommGITM,iError)
+  if (iDebugLevel > 4) write(*, *) "=====> get_potential", iproc
+  if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
   call get_potential(iBlock)
 
-  if (iDebugLevel > 4) write(*,*) "=====> Efield", iproc
-  if (UseBarriers) call MPI_BARRIER(iCommGITM,iError)
+  if (iDebugLevel > 4) write(*, *) "=====> Efield", iproc
+  if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
   call calc_efield(iBlock)
 
-  if (iDebugLevel > 4) write(*,*) "=====> Aurora", iproc
-  if (UseBarriers) call MPI_BARRIER(iCommGITM,iError)
+  if (iDebugLevel > 4) write(*, *) "=====> Aurora", iproc
+  if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
   call aurora(iBlock)
 
-  if (iDebugLevel > 4) write(*,*) "=====> Ion Velocity", iproc
-  if (UseBarriers) call MPI_BARRIER(iCommGITM,iError)
+  if (iDebugLevel > 4) write(*, *) "=====> Ion Velocity", iproc
+  if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
   call calc_ion_v(iBlock)
 
   !\
@@ -134,8 +133,8 @@ subroutine calc_GITM_sources(iBlock)
   ! ---------------------------------------------------------------
   !/
 
-  if (iDebugLevel > 4) write(*,*) "=====> Chemistry", iproc
-  if (UseBarriers) call MPI_BARRIER(iCommGITM,iError)
+  if (iDebugLevel > 4) write(*, *) "=====> Chemistry", iproc
+  if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
   call calc_chemistry(iBlock)
 
 end subroutine calc_GITM_sources

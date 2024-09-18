@@ -15,7 +15,7 @@ subroutine init_iri
 
   ! iri variables
 
-  integer :: jmag,nzkm
+  integer :: jmag, nzkm
   real, dimension(1:11, 1:nAlts) :: outf
   real, dimension(1:30) :: oarr
   logical, dimension(1:12) :: jf
@@ -24,7 +24,7 @@ subroutine init_iri
   integer :: iBlock, iAlt, iLat, iLon, iIon
   real :: geo_lat, geo_lon, geo_alt(1), geo_lst
 
-  call report("init_iri",0)
+  call report("init_iri", 0)
 
   !--------------------------------------------------------------------------
   !
@@ -103,7 +103,7 @@ subroutine init_iri
   jf(4) = .false.
   jf(5) = .false.
   jf(6) = .false.
-  ! jf(12) = .false. means all print-out goes to 6, the console, 
+  ! jf(12) = .false. means all print-out goes to 6, the console,
   !          (instead of 12)
   !  jf(12) = .false.
   !  Assume lat/lon are geodetic (jmag=0)
@@ -115,74 +115,74 @@ subroutine init_iri
   !  ursinm = 'ursi.cofcnts'
 
   do iBlock = 1, nBlocks
-     iTemperature(:,:,:,iBlock) = 200.0
-     eTemperature(:,:,:,iBlock) = 200.0
-     do iAlt = -1, nAlts+2
-        do iLon=-1,nLons+2
-           do iLat=-1,nLats+2
+    iTemperature(:, :, :, iBlock) = 200.0
+    eTemperature(:, :, :, iBlock) = 200.0
+    do iAlt = -1, nAlts + 2
+      do iLon = -1, nLons + 2
+        do iLat = -1, nLats + 2
 
-              geo_lat = Latitude(iLat,iBlock)*180.0/pi
-              geo_lon = Longitude(iLon,iBlock)*180.0/pi
+          geo_lat = Latitude(iLat, iBlock)*180.0/pi
+          geo_lon = Longitude(iLon, iBlock)*180.0/pi
 
-              geo_alt(1) = Altitude_GB(iLon, iLat, iAlt, iBlock)/1000.0
-              geo_lst    = mod(utime/3600.0+geo_lon/15.0,24.0)
+          geo_alt(1) = Altitude_GB(iLon, iLat, iAlt, iBlock)/1000.0
+          geo_lst = mod(utime/3600.0 + geo_lon/15.0, 24.0)
 
-              if (geo_lat < -90.0) then
-                 geo_lat = -180.0 - geo_lat
-                 geo_lon = mod(geo_lon + 180.0,360.0)
-              elseif (geo_lat > 90.0) then
-                 geo_lat = 180.0 - geo_lat
-                 geo_lon = mod(geo_lon + 180.0,360.0)
-              endif
+          if (geo_lat < -90.0) then
+            geo_lat = -180.0 - geo_lat
+            geo_lon = mod(geo_lon + 180.0, 360.0)
+          elseif (geo_lat > 90.0) then
+            geo_lat = 180.0 - geo_lat
+            geo_lon = mod(geo_lon + 180.0, 360.0)
+          end if
 
-              !  write(*,*) "iri : ", geo_lat, geo_lon, -f107, -iJulianDay, &
-              !             utime/3600.+25.,geo_alt,nzkm
+          !  write(*,*) "iri : ", geo_lat, geo_lon, -f107, -iJulianDay, &
+          !             utime/3600.+25.,geo_alt,nzkm
 
-              ! zero out densities that are not set below
-              IRIDensity(iLon,iLat,iAlt,:,iBlock) = 1.0
+          ! zero out densities that are not set below
+          IRIDensity(iLon, iLat, iAlt, :, iBlock) = 1.0
 
-              call iri90 (jf,jmag,geo_lat,geo_lon,-f107,-iJulianDay, &
-                   utime/3600.+25.,geo_alt,nzkm,'UA/DataIn/ccir.cofcnts', &
-                   'UA/DataIn/ursi.cofcnts',outf,oarr,iProc)
+          call iri90(jf, jmag, geo_lat, geo_lon, -f107, -iJulianDay, &
+                     utime/3600.+25., geo_alt, nzkm, 'UA/DataIn/ccir.cofcnts', &
+                     'UA/DataIn/ursi.cofcnts', outf, oarr, iProc)
 
-              IRIDensity(iLon,iLat,iAlt,ie_,iBlock)    = abs(outf(1,1))
-              IRIDensity(iLon,iLat,iAlt,iO_4SP_,iBlock) = &
-                   abs(outf(5,1)*outf(1,1))/100.0+1
-              IRIDensity(iLon,iLat,iAlt,iO2P_,iBlock)  = &
-                   abs(outf(8,1)*outf(1,1))/100.0+1
-              IRIDensity(iLon,iLat,iAlt,iNOP_,iBlock)  = &
-                   abs(outf(9,1)*outf(1,1))/100.0+1
-              IRIDensity(iLon,iLat,iAlt,iHP_,iBlock)   = &
-                   1.0 ! abs(outf(6,1)*outf(1,1))/100.0+1
-              IRIDensity(iLon,iLat,iAlt,iHeP_,iBlock)  = &
-                   1.0 ! abs(outf(7,1)*outf(1,1))/100.0+1
+          IRIDensity(iLon, iLat, iAlt, ie_, iBlock) = abs(outf(1, 1))
+          IRIDensity(iLon, iLat, iAlt, iO_4SP_, iBlock) = &
+            abs(outf(5, 1)*outf(1, 1))/100.0 + 1
+          IRIDensity(iLon, iLat, iAlt, iO2P_, iBlock) = &
+            abs(outf(8, 1)*outf(1, 1))/100.0 + 1
+          IRIDensity(iLon, iLat, iAlt, iNOP_, iBlock) = &
+            abs(outf(9, 1)*outf(1, 1))/100.0 + 1
+          IRIDensity(iLon, iLat, iAlt, iHP_, iBlock) = &
+            1.0 ! abs(outf(6,1)*outf(1,1))/100.0+1
+          IRIDensity(iLon, iLat, iAlt, iHeP_, iBlock) = &
+            1.0 ! abs(outf(7,1)*outf(1,1))/100.0+1
 
-              ! IRI Ne from 60(day)/80(night) - 1000 km (-1 missing), 
-              !  ions 100-1000 km
-              ! IRI temperatures from 120-3000 km (-1 is missing)
+          ! IRI Ne from 60(day)/80(night) - 1000 km (-1 missing),
+          !  ions 100-1000 km
+          ! IRI temperatures from 120-3000 km (-1 is missing)
 
-              if (outf(4,1) < 0.) then
-                 eTemperature(iLon,iLat,iAlt,iBlock) =  200.0
-                 ITemperature(iLon,iLat,iAlt,iBlock) =  200.0
-              else
-                 eTemperature(iLon,iLat,iAlt,iBlock) = outf(4,1)
-                 ITemperature(iLon,iLat,iAlt,iBlock) = outf(3,1)
-              endif
+          if (outf(4, 1) < 0.) then
+            eTemperature(iLon, iLat, iAlt, iBlock) = 200.0
+            ITemperature(iLon, iLat, iAlt, iBlock) = 200.0
+          else
+            eTemperature(iLon, iLat, iAlt, iBlock) = outf(4, 1)
+            ITemperature(iLon, iLat, iAlt, iBlock) = outf(3, 1)
+          end if
 
-              IDensityS(iLon,iLat,iAlt,:,iBlock) = &
-                   IRIDensity(iLon,iLat,iAlt,:,iBlock)
+          IDensityS(iLon, iLat, iAlt, :, iBlock) = &
+            IRIDensity(iLon, iLat, iAlt, :, iBlock)
 
-              IDensityS(iLon,iLat,iAlt,nIons,iBlock) = 0.0
-              do iIon = 1, nIons-1
-                 IDensityS(iLon,iLat,iAlt,nIons,iBlock) = &
-                      IDensityS(iLon,iLat,iAlt,nIons,iBlock) + &
-                      IDensityS(iLon,iLat,iAlt,iIon,iBlock)
-              enddo
+          IDensityS(iLon, iLat, iAlt, nIons, iBlock) = 0.0
+          do iIon = 1, nIons - 1
+            IDensityS(iLon, iLat, iAlt, nIons, iBlock) = &
+              IDensityS(iLon, iLat, iAlt, nIons, iBlock) + &
+              IDensityS(iLon, iLat, iAlt, iIon, iBlock)
+          end do
 
-           enddo
-        enddo
-     enddo
+        end do
+      end do
+    end do
 
-  enddo
+  end do
 
 end subroutine init_iri
