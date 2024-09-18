@@ -2,6 +2,8 @@
 !  For more information, see http://csem.engin.umich.edu/tools/swmf
 module ModTriangulate
 
+  use ModUtilities, ONLY: CON_stop
+  
   implicit none
 
   private ! except
