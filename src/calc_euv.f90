@@ -844,7 +844,7 @@ subroutine Set_Euv(iError, StartTime, EndTime)
 
   inquire(file=cEUVFile, EXIST=IsThere)
   if (.not. IsThere) &
-    call stop_gitm(cEUVFile//" cannot be found by read_inputs")
+    call stop_gitm(trim(cEUVFile)//" cannot be found by read_inputs")
 
   open(unit=iInputUnit_, file=cEUVFile, status="old", IOSTAT=iError)
 

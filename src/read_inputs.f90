@@ -22,7 +22,7 @@ subroutine read_inputs(cFile)
 
     inquire(file=cFile, EXIST=IsThere)
     if (.not. IsThere) &
-      call stop_gitm(cFile//" cannot be found by read_inputs")
+      call stop_gitm(trim(cFile)//" cannot be found by read_inputs")
 
     open(iInputUnit_, file=cFile, status="old")
 

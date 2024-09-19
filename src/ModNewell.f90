@@ -502,14 +502,14 @@ contains
 
     if (iError /= 0) then
       write(*, *) "Error in read_single_regression_file"
-      call stop_gitm(cFile//" cannot be opened")
+      call stop_gitm(trim(cFile)//" cannot be opened")
     end if
 
     read(iInputUnit_, *, iostat=iError) year0, day0, year1, day1, nFiles, sf0
 
     if (iError /= 0) then
       write(*, *) "Error in read_single_regression_file"
-      call stop_gitm(cFile//" cannot read first line")
+      call stop_gitm(trim(cFile)//" cannot read first line")
     end if
 
     do iMlt = 1, nMlts
@@ -518,7 +518,7 @@ contains
           i, j, b1a(iMlt, iMlat), b2a(iMlt, iMlat), rfa(iMlt, iMlat)
         if (iError /= 0) then
           write(*, *) "Error in read_single_regression_file:", iMlt, iMlat
-          call stop_gitm(cFile//" error reading file")
+          call stop_gitm(trim(cFile)//" error reading file")
         end if
       end do
     end do
@@ -545,14 +545,14 @@ contains
 
     if (iError /= 0) then
       write(*, *) "Error in read_single_probability_file"
-      call stop_gitm(cFile//" cannot be opened")
+      call stop_gitm(trim(cFile)//" cannot be opened")
     end if
 
     read(iInputUnit_, *, iostat=iError) year0, day0, year1, day1, nFiles, sf0
 
     if (iError /= 0) then
       write(*, *) "Error in read_single_probability_file"
-      call stop_gitm(cFile//" cannot read first line")
+      call stop_gitm(trim(cFile)//" cannot read first line")
     end if
 
     do iMlt = 1, nMlts
@@ -561,7 +561,7 @@ contains
           b1p(iMlt, iMlat), b2p(iMlt, iMlat)
         if (iError /= 0) then
           write(*, *) "Error in read_single_probability_file:", iMlt, iMlat
-          call stop_gitm(cFile//" error reading file")
+          call stop_gitm(trim(cFile)//" error reading file")
         end if
       end do
     end do
@@ -572,7 +572,7 @@ contains
           read(iInputUnit_, *, iostat=iError) Prob(idF, iMlt, iMlat)
           if (iError /= 0) then
             write(*, *) "Error in read_single_probability_file:", idF, iMlt, iMlat
-            call stop_gitm(cFile//" error reading file")
+            call stop_gitm(trim(cFile)//" error reading file")
           end if
         end do
       end do
