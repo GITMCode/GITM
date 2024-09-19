@@ -2,10 +2,10 @@
 ! Full license can be found in LICENSE
 
 module ModNewell
-
+  use ModInputs
   implicit none
 
-  integer, parameter        :: iCharLenNewell_ = 400
+  integer, parameter        :: iCharLenNewell_ = iCharLen_
 
   character(len=iCharLenNewell_) :: dir = "UA/DataIn/Aurora/"
 
