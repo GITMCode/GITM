@@ -106,7 +106,6 @@ contains
           ElectronAverageEnergy(iLon, iLat) = AveE(iMlt, iMlat)
         end if
 
-
       end do
     end do
 

@@ -1,38 +1,35 @@
 ---
 name: Bug report
 about: Create a report to help us improve
-title: ''
-labels: ''
+title: "[BUG]"
+labels: bug
 assignees: ''
 
 ---
 
-**Describe the bug**
-A clear and concise description of what the bug is.
+# [BUG]: **Describe the bug**
 
-**To Reproduce**
-Steps to reproduce the behavior:
-1. Go to '...'
-2. Click on '....'
-3. Scroll down to '....'
-4. See error
+1-2 sentences with a concise overview of what the bug is. Please be brief but
+descriptive, further detail can be listed elsewhere.
 
-**Expected behavior**
-A clear and concise description of what you expected to happen.
+> - Please fill out any of the sections below which are relevant to the bug. 
+> - Feel free to edit, delete, or re-order the sections included in the template.
+> - Please attach any input files necessary to reproduce the bug. If GITM maintainers cannot reproduce the bug, it may cause delays.
 
-**Screenshots**
-If applicable, add screenshots to help explain your problem.
+## To Reproduce
 
-**Desktop (please complete the following information):**
- - OS: [e.g. iOS]
- - Browser [e.g. chrome, safari]
- - Version [e.g. 22]
+> Not necessary if the bug lies within GITM source code (error in a calculation, for example).
 
-**Smartphone (please complete the following information):**
- - Device: [e.g. iPhone6]
- - OS: [e.g. iOS8.1]
- - Browser [e.g. stock browser, safari]
- - Version [e.g. 22]
+## Bug Information
 
-**Additional context**
-Add any other context about the problem here.
+> Attach screenshots or copy outputs (surrounding the pasted lines with three back-ticks " \`\`\` " for readability)
+
+## System Information
+
+> Only relevant if the bug is compiler/system dependent.
+> Include the machine name (if public), OS, compiler, GITM versions, etc.
+
+## Other Information
+  
+> Any other information relevant to the bug.
+> Often, the more details maintainers have, the faster things will be able to be patched.

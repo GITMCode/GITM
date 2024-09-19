@@ -2088,6 +2088,7 @@ contains
 end module ModResolutionCorner
 !================================
 module ModInterpolateAMR23
+  use ModUtilities, ONLY: CON_stop
   use ModCubeGeometry
   implicit none
   integer, parameter:: x_ = 1, y_ = 2, z_ = 3
@@ -4961,6 +4962,7 @@ contains
     end subroutine generate_basic_stencil
     !==================
     subroutine sort_out
+      use ModUtilities, ONLY: CON_stop
       !\
       ! Sorts out zero weights and repeating points
       !/
