@@ -567,7 +567,7 @@ subroutine loadmodel(datafile)
   use NEWmodel
   implicit none
 
-  character(128), intent(in)   :: datafile
+  character(len=*), intent(in)   :: datafile
 
   integer                     :: i, j
   integer                     :: ncomp
@@ -1346,7 +1346,7 @@ subroutine loaddwm(datafile)
 
   implicit none
 
-  character(128), intent(in)   :: datafile
+  character(len=*), intent(in)   :: datafile
 
   external vsh_basis_init
 

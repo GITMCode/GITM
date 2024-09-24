@@ -80,7 +80,7 @@ contains
 
     implicit none
     integer :: LunIndices_, ierror, iOutputError
-    character(len=iCharLenFile_), intent(in) :: NameOfFile
+    character(len=*), intent(in) :: NameOfFile
 
     integer :: i
 
@@ -112,7 +112,7 @@ contains
     implicit none
 
     integer :: LunIndices_, ierror, iOutputError
-    character(len=iCharLenFile_), intent(in) :: NameOfIndexFile
+    character(len=*), intent(in) :: NameOfIndexFile
     character(len=iCharLenLong_) :: line
 
     logical :: done
@@ -175,7 +175,7 @@ contains
 
     implicit none
     integer :: LunIndices_, ierror, iOutputError
-    character(len=iCharLenFile_), intent(in) :: NameOfIndexFile
+    character(len=*), intent(in) :: NameOfIndexFile
     character(len=iCharLenLong_) :: line
 
     logical :: done
@@ -225,7 +225,7 @@ contains
 
     implicit none
     integer :: n, s, tmp
-    character(len=iCharLenHme_), intent(in) :: hme_tmp
+    character(len=*), intent(in) :: hme_tmp
 
     if (hme_tmp(1:1) .eq. 'D') then
       n = 1
@@ -558,7 +558,7 @@ contains
                       temp_a3, temp_p3, dr_rho_a3, dr_rho_p3)
 
     implicit none
-    character(len=iCharLenHme_), intent(in) :: thme
+    character(len=*), intent(in) :: thme
     character(len=iCharLenFile_) :: NameOfHMEFile
     real, dimension(nLatsHme)  :: u_a, u_p, v_a, v_p, geopt_a, geopt_p, &
                                   temp_a, temp_p, dr_rho_a, dr_rho_p

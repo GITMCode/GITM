@@ -13,7 +13,7 @@ subroutine ReadIonHeat(filename, IsIonizationFile)
 
   implicit none
 
-  character(len=iCharLenIE_), intent(in) :: filename
+  character(len=*), intent(in) :: filename
   logical, intent(in)             :: IsIonizationFile
 
   integer ::            ilng, jlat, kalt, i

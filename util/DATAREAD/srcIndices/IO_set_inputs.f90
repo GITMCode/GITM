@@ -7,7 +7,7 @@ subroutine IO_set_inputs(StringInputLines)
 
   implicit none
 
-  character(len=iCharLenIndices_), dimension(*), intent(in) :: StringInputLines
+  character(len=*), dimension(*), intent(in) :: StringInputLines
   character(len=iCharLenIndices_) :: StringLine
   logical :: IsDone
   integer :: iLine

@@ -122,7 +122,7 @@ contains
     implicit none
 
     integer :: LunIndices_, ierror
-    character(len=iCharLenFta_), intent(in) :: NameOfIndexFile
+    character(len=*), intent(in) :: NameOfIndexFile
     character(len=iCharLenLong_) :: line
 
     logical :: done

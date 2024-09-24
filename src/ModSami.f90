@@ -71,7 +71,7 @@ contains
 
     implicit none
 
-    character(len=nSamiCharLength), intent(in) :: InDir
+    character(len=*), intent(in) :: InDir
     SamiDir = InDir
 
   end subroutine SamiSetDir
@@ -111,7 +111,7 @@ contains
 
     implicit none
 
-    character(len=nSamiCharLength), intent(in) :: inFile
+    character(len=*), intent(in) :: inFile
     character(len=nSamiCharLength) :: line
     integer :: iError
 
@@ -199,7 +199,7 @@ contains
 
     implicit none
 
-    character(len=nSamiCharLength), intent(in) :: inFile
+    character(len=*), intent(in) :: inFile
     integer :: iError
     integer :: iT, iHour, iMinute, iSecond, n
     real :: tHours, uts
@@ -232,7 +232,7 @@ contains
 
     implicit none
 
-    character(len=nSamiCharLength), intent(in) :: inFile
+    character(len=*), intent(in) :: inFile
     integer :: iError, iLon
     real :: lon
 
@@ -272,7 +272,7 @@ contains
 
     implicit none
 
-    character(len=nSamiCharLength), intent(in) :: inFile
+    character(len=*), intent(in) :: inFile
     integer :: iError, iLat
     real :: lat
 
@@ -311,7 +311,7 @@ contains
 
     implicit none
 
-    character(len=nSamiCharLength), intent(in) :: inFile
+    character(len=*), intent(in) :: inFile
     integer :: iError, iAlt
     real :: alt
 
@@ -347,7 +347,7 @@ contains
 
     implicit none
 
-    character(len=nSamiCharLength), intent(in) :: inFile
+    character(len=*), intent(in) :: inFile
     integer, intent(in) :: iTime
     integer :: iError, iT
 
