@@ -7,7 +7,7 @@ subroutine check_for_nans_ions(cMarker)
   use ModGITM
   use ModPlanet
   use ieee_arithmetic
-  
+
   implicit none
 
   character(LEN=*), intent(in) :: cMarker
