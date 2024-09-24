@@ -421,6 +421,8 @@ contains
   ! -----------------------------------------------------------------
   subroutine calc_1tide_1day(u_all, v_all, geopt_all, temp_all, dr_rho_all)
 
+    use ieee_arithmetic
+
     implicit none
 
     character(len=iCharLenHme_) :: hme_tmp
@@ -523,8 +525,8 @@ contains
           end do
         end do
       end do
-      if (count(isnan(geopt)) > 0) then
-        write(*, *) isnan(geopt)
+      if (count(ieee_is_nan(geopt)) > 0) then
+        write(*, *) ieee_is_nan(geopt)
         write(*, *) 'i,ilon,ilat,ialt,hme: ', i, ilon, j, k, hme_tmp
         call stop_gitm('nan was found in geopt, stop')
       end if

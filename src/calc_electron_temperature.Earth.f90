@@ -25,6 +25,7 @@ subroutine calc_electron_ion_temperature(iBlock)
   use ModTime
   use ModInputs
   use ModUserGITM
+  use ieee_arithmetic
 
   implicit none
 
@@ -189,22 +190,22 @@ subroutine calc_electron_ion_temperature(iBlock)
 
         if (DoCheckForNans) then
 
-          if (isnan(a(iAlt))) then
+          if (ieee_is_nan(a(iAlt))) then
             write(*, *) "a : ", iLon, iLat, iAlt
             NanFound = .true.
           end if
 
-          if (isnan(b(iAlt))) then
+          if (ieee_is_nan(b(iAlt))) then
             write(*, *) "b : ", iLon, iLat, iAlt
             NanFound = .true.
           end if
 
-          if (isnan(c(iAlt))) then
+          if (ieee_is_nan(c(iAlt))) then
             write(*, *) "c : ", iLon, iLat, iAlt
             NanFound = .true.
           end if
 
-          if (isnan(d(iAlt))) then
+          if (ieee_is_nan(d(iAlt))) then
             write(*, *) "d : ", iLon, iLat, iAlt
             write(*, *) xcoef, tte, eHeatingm(iLon, iLat, iAlt)
             NanFound = .true.
@@ -217,7 +218,7 @@ subroutine calc_electron_ion_temperature(iBlock)
                                         (-2*ilam/hcoef*(zu + zl) + fcoef*(zu**2 - zl**2))*tte
 
         if (DoCheckForNans) then
-          if (isnan(eConduction(iLon, iLat, iAlt))) then
+          if (ieee_is_nan(eConduction(iLon, iLat, iAlt))) then
             write(*, *) "eCondu : ", iLon, iLat, iAlt
             NanFound = .true.
           end if
@@ -240,7 +241,7 @@ subroutine calc_electron_ion_temperature(iBlock)
             (zl**2*neu + zu**2*nel)/hcoef
 
           if (DoCheckForNans) then
-            if (isnan(JParaAlt(iLon, iLat))) then
+            if (ieee_is_nan(JParaAlt(iLon, iLat))) then
               write(*, *) "jpar : ", iLon, iLat, iAlt
               NanFound = .true.
             end if
@@ -479,6 +480,7 @@ subroutine calc_electron_ion_sources(iBlock) !,eHeatingp,iHeatingp,eHeatingm,iHe
   use ModUserGITM
   use ModTime
   use ModInputs
+  use ieee_arithmetic
 
   implicit none
   integer, intent(in) :: iBlock
@@ -624,7 +626,7 @@ subroutine calc_electron_ion_sources(iBlock) !,eHeatingp,iHeatingp,eHeatingm,iHe
     do iLon = 1, nLons
       do iLat = 1, nLats
         do iAlt = 1, nAlts
-          if (isnan(Qphe(iLon, iLat, iAlt))) then
+          if (ieee_is_nan(Qphe(iLon, iLat, iAlt))) then
             write(*, *) iLon, iLat, iAlt
             write(*, *) 'x : ', x(iLon, iLat, iAlt)
             write(*, *) 'ne : ', ne(iLon, iLat, iAlt)
@@ -1252,19 +1254,19 @@ subroutine calc_electron_ion_sources(iBlock) !,eHeatingp,iHeatingp,eHeatingm,iHe
     do iLon = 1, nLons
       do iLat = 1, nLats
         do iAlt = 1, nAlts
-          if (isnan(qphe(iLon, iLat, iAlt))) call stop_gitm('qphe')
-          if (isnan(Qencm(iLon, iLat, iAlt))) call stop_gitm('Qencm')
-          if (isnan(Qeicm(iLon, iLat, iAlt))) call stop_gitm('Qeicm')
-          if (isnan(Qrotm(iLon, iLat, iAlt))) call stop_gitm('Qrotm')
-          if (isnan(Qf(iLon, iLat, iAlt))) call stop_gitm('Qf')
-          if (isnan(Qexc(iLon, iLat, iAlt))) call stop_gitm('Qexc')
-          if (isnan(Qvib_o2(iLon, iLat, iAlt))) call stop_gitm('Qvib_o2')
-          if (isnan(Qvib_n2(iLon, iLat, iAlt))) call stop_gitm('Qvib_n2')
-          if (isnan(Qaurora(iLon, iLat, iAlt))) call stop_gitm('Qaurora')
-          if (isnan(QprecipIon(iLon, iLat, iAlt))) call stop_gitm('QprecipIon')
-          if (isnan(Qenc_v(iLon, iLat, iAlt))) call stop_gitm('Qenc_v')
-          if (isnan(Qeic_v(iLon, iLat, iAlt))) call stop_gitm('Qeic_v')
-          if (isnan(Qeconhm(iLon, iLat, iAlt))) call stop_gitm('Qeconhm')
+          if (ieee_is_nan(qphe(iLon, iLat, iAlt))) call stop_gitm('qphe')
+          if (ieee_is_nan(Qencm(iLon, iLat, iAlt))) call stop_gitm('Qencm')
+          if (ieee_is_nan(Qeicm(iLon, iLat, iAlt))) call stop_gitm('Qeicm')
+          if (ieee_is_nan(Qrotm(iLon, iLat, iAlt))) call stop_gitm('Qrotm')
+          if (ieee_is_nan(Qf(iLon, iLat, iAlt))) call stop_gitm('Qf')
+          if (ieee_is_nan(Qexc(iLon, iLat, iAlt))) call stop_gitm('Qexc')
+          if (ieee_is_nan(Qvib_o2(iLon, iLat, iAlt))) call stop_gitm('Qvib_o2')
+          if (ieee_is_nan(Qvib_n2(iLon, iLat, iAlt))) call stop_gitm('Qvib_n2')
+          if (ieee_is_nan(Qaurora(iLon, iLat, iAlt))) call stop_gitm('Qaurora')
+          if (ieee_is_nan(QprecipIon(iLon, iLat, iAlt))) call stop_gitm('QprecipIon')
+          if (ieee_is_nan(Qenc_v(iLon, iLat, iAlt))) call stop_gitm('Qenc_v')
+          if (ieee_is_nan(Qeic_v(iLon, iLat, iAlt))) call stop_gitm('Qeic_v')
+          if (ieee_is_nan(Qeconhm(iLon, iLat, iAlt))) call stop_gitm('Qeconhm')
         end do
       end do
     end do

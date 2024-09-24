@@ -8,6 +8,7 @@ subroutine calc_neutral_friction(DtIn, oVel, EddyCoef_1d, NDensity_1d, NDensityS
   use ModSources
   use ModPlanet, only: Diff0, DiffExp, IsEarth
   use ModInputs, only: UseNeutralFriction, DoCheckForNans
+  use ieee_arithmetic
 
   implicit none
 
@@ -64,9 +65,9 @@ subroutine calc_neutral_friction(DtIn, oVel, EddyCoef_1d, NDensity_1d, NDensityS
         if (jSpecies == iSpecies) cycle
 
         if (DoCheckForNans) then
-          if (isnan(Temp(iAlt))) write(*, *) "Friction : Temp is nan", iAlt
-          if (isnan(NDensity_1d(iAlt))) write(*, *) "Friction : NDen is nan", iAlt
-          if (isnan(NDensityS_1d(iAlt, jSpecies))) write(*, *) "Friction : NDenS is nan", iAlt, jSpecies
+          if (ieee_is_nan(Temp(iAlt))) write(*, *) "Friction : Temp is nan", iAlt
+          if (ieee_is_nan(NDensity_1d(iAlt))) write(*, *) "Friction : NDen is nan", iAlt
+          if (ieee_is_nan(NDensityS_1d(iAlt, jSpecies))) write(*, *) "Friction : NDenS is nan", iAlt, jSpecies
         end if
 
         ! TempDij are the Dij binary coefficients
