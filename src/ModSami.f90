@@ -139,8 +139,7 @@ contains
         call time_int_to_real(iTime, SamiStartTime)
 
       case ("#COROTATIONPOTENTIALADDED")
-        read(iSamiUnit, '(L8)', iostat=iError) CorotationAdded
-        ! ALB modified the above for nagfor compliance. IDK if its right.
+        read(iSamiUnit, *, iostat=iError) CorotationAdded
 
       case ("#DIR")
         read(iSamiUnit, '(a)', iostat=iError) SamiDir
