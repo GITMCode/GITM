@@ -184,6 +184,8 @@ subroutine aurora(iBlock)
     call MPI_Bcast(avepower, 1, MPI_Real, 0, iCommGITM, ierror)
 
     call get_hpi(CurrentTime, Hpi, iError)
+    
+    if (avepower == 0) avepower = 1
     ratio = Hpi/avepower
 
     if (iDebugLevel >= 0) then
