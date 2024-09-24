@@ -12,6 +12,7 @@ subroutine calc_chemistry(iBlock)
   use ModInputs, only: &
     iDebugLevel, UseIonChemistry, UseNeutralChemistry, f107, DoCheckForNans
   use ModConstants
+  use ieee_arithmetic
 
   implicit none
 
@@ -2360,7 +2361,7 @@ subroutine calc_chemistry(iBlock)
 
         if (DoCheckForNans) then
           do iNeutral = 1, nSpeciesTotal
-            if (isnan(Neutrals(iNeutral))) then
+            if (ieee_is_nan(Neutrals(iNeutral))) then
               write(*, *) "chemistry : Neutral is nan", iLon, iLat, iAlt, iNeutral
               call stop_gitm("Must stop now.")
             end if

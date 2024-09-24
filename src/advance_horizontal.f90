@@ -60,6 +60,7 @@ subroutine advance_horizontal(iBlock)
   use ModGITM
   use ModInputs
   use ModSources, only: HorizontalTempSource
+  use ieee_arithmetic
 
   implicit none
 
@@ -381,7 +382,7 @@ subroutine advance_horizontal(iBlock)
       do iLon = 1, nLons
         do iLat = 1, nLats
           do iDir = 1, 3
-            if (isnan(Velocity(iLon, iLat, iAlt, iDir, 1))) &
+            if (ieee_is_nan(Velocity(iLon, iLat, iAlt, iDir, 1))) &
               write(*, *) 'Velocity is nan : ', iLon, iLat, iAlt, iDir
           end do
         end do
