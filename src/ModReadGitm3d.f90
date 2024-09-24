@@ -59,7 +59,7 @@ contains
 
     implicit none
 
-    character(len=nGitmCharLength), intent(in) :: InDir
+    character(len=*), intent(in) :: InDir
     GitmDir = InDir
 
   end subroutine GitmSetDir
@@ -361,7 +361,7 @@ contains
 
   subroutine GetGitmTime(file, time)
 
-    character(len=nGitmCharLength), intent(in) :: file
+    character(len=*), intent(in) :: file
     real(Real8_), intent(out) :: time
     character(len=nGitmVarCharLength) :: Dummy
 
@@ -450,7 +450,7 @@ contains
 
   subroutine GitmReadFile(InFile, iError)
 
-    character(len=nGitmCharLength), intent(in) :: InFile
+    character(len=*), intent(in) :: InFile
     integer, intent(out) :: iError
 
     character(len=nGitmVarCharLength) :: Dummy

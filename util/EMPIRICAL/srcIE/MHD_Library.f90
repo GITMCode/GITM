@@ -6,7 +6,7 @@ subroutine MHD_SetFileName(cFileNameIn)
   use ModMHD_Interface
   use ModCharSize
   implicit none
-  character(len=iCharLenIE_), intent(in) :: cFileNameIn
+  character(len=*), intent(in) :: cFileNameIn
   MHD_FileName = cFileNameIn
 end subroutine MHD_SetFileName
 

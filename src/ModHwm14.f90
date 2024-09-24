@@ -72,7 +72,7 @@ subroutine hwm14(iyd, sec, alt, glat, glon, stl, f107a, f107, ap, path, w)
   real(4), intent(in)        :: ap(2)
   real(4), intent(out)       :: w(2)
   real(4)                   :: dw(2)
-  character(250), intent(in) :: path
+  character(*), intent(in) :: path
 
   pathdefault = path
   if (hwminit) call inithwm()
@@ -338,7 +338,7 @@ subroutine initqwm(filename)
   use hwm, only: omaxhwm, nmaxhwm
   implicit none
 
-  character(128), intent(in)      :: filename
+  character(*), intent(in)      :: filename
   integer(4)                     :: i, j
   integer(4)                     :: ncomp
 
