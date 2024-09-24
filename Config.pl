@@ -4,7 +4,7 @@
 use strict;
 
 our $Component       = 'UA';
-our $Code            = 'GITM2';
+our $Code            = 'GITM';
 our $MakefileDefOrig = 'srcMake/Makefile.def';
 our @Arguments       = @ARGV;
 
@@ -278,19 +278,19 @@ sub show_settings{
 ############################################################################
 
 sub print_help{
-    print "Additional options for GITM2/Config.pl:
+    print "Additional options for GITM/Config.pl:
 
--Titan      Configure GITM2 for Titan. This flag is case insensitive.
+-Titan      Configure GITM for Titan. This flag is case insensitive.
 
--Mars       Configure GITM2 for Mars. This flag is case insensitive.
+-Mars       Configure GITM for Mars. This flag is case insensitive.
 
--LV-426     Configure GITM2 for Testing. This flag is case insensitive.
+-LV-426     Configure GITM for Testing. This flag is case insensitive.
 
--Earth      Configure GITM2 for Earth. This flag is case insensitive.
+-Earth      Configure GITM for Earth. This flag is case insensitive.
 
 -s          Show current planet.
 
-Additional examples for GITM2/Config.pl:
+Additional examples for GITM/Config.pl:
 
 Install for Titan:
 
@@ -308,7 +308,7 @@ Set grid to nLon=36, nLat=36, nAlt=50 and the number of blocks to 16:
 
     Config.pl -g=36,36,50,16
 
-Show settings for UA/GITM2:
+Show settings for UA/GITM:
 
     Config.pl -s
  ";
