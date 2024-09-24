@@ -442,7 +442,8 @@ subroutine initialize_gitm(TimeIn)
   call calc_pressure
 
   ! The iLon and iLat are dummy variables...
-  call UA_calc_electrodynamics(iLon, iLat)
+  ! Do not initialize GITM's electrodynamics yet within SWMF
+  if (.not. IsFramework) call UA_calc_electrodynamics(iLon, iLat)
 
   do iBlock = 1, nBlocks
     call calc_eddy_diffusion_coefficient(iBlock)
