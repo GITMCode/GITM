@@ -124,6 +124,10 @@ subroutine read_al_onset_list(iOutputError, StartTime, EndTime)
   nIndices_V(onsetmlat_) = iAE - 1
   nIndices_V(onsetmlt_) = iAE - 1
 
+  ! If we have gotten to this point and we have no data, 
+  ! there is something wrong!
+  if (iAE < 2) iOutputError = 1
+
 end subroutine read_al_onset_list
 
 !==============================================================================
@@ -266,6 +270,10 @@ subroutine read_sme(iOutputError, StartTime, EndTime, doUseAeForHp)
   nIndices_V(ae_) = iAE - 2
   nIndices_V(au_) = iAE - 2
   nIndices_V(al_) = iAE - 2
+
+  ! If we have gotten to this point and we have no data, 
+  ! there is something wrong!
+  if (nIndices_V(ae_) < 2) iOutputError = 1
 
 end subroutine read_sme
 

@@ -518,6 +518,10 @@ subroutine calc_scaled_euv
 
     call Set_Euv(iError, CurrentTime, EndTime)
 
+    if (iError /= 0) then
+      call stop_gitm("Stopping in euv_ionization_heat. Error in EUV data. Check times!")
+    endif
+
     do N = 1, Num_WaveLengths_High
       wvavg(N) = (WAVEL(N) + WAVES(N))/2.
     end do
@@ -914,6 +918,7 @@ subroutine Set_Euv(iError, StartTime, EndTime)
   nSeeTimes = iline - 1
 
   if (nSeeTimes > 2) iError = 0
+  if (nSeeTimes < 1) iError = 1
 
 end subroutine Set_Euv
 
