@@ -6,6 +6,7 @@ subroutine check_for_nans_ions(cMarker)
   use ModSizeGitm
   use ModGITM
   use ModPlanet
+  use ieee_arithmetic
 
   implicit none
 
@@ -18,7 +19,7 @@ subroutine check_for_nans_ions(cMarker)
     do iLat = -1, nLats + 2
       do iAlt = -1, nAlts + 2
         do iIon = 1, nIons
-          if (isnan(iDensityS(iLon, iLat, iAlt, iIon, 1))) then
+          if (ieee_is_nan(iDensityS(iLon, iLat, iAlt, iIon, 1))) then
             write(*, *) 'Nan found in iDensityS : '
             write(*, *) cMarker
             write(*, *) iLon, iLat, iAlt, iProc, iIon
@@ -44,6 +45,7 @@ subroutine check_for_nans_neutrals(cMarker)
   use ModSizeGitm
   use ModGITM
   use ModPlanet
+  use ieee_arithmetic
 
   implicit none
 
@@ -56,7 +58,7 @@ subroutine check_for_nans_neutrals(cMarker)
     do iLat = -1, nLats + 2
       do iAlt = -1, nAlts + 2
         do iNeu = 1, nSpecies
-          if (isnan(nDensityS(iLon, iLat, iAlt, iNeu, 1))) then
+          if (ieee_is_nan(nDensityS(iLon, iLat, iAlt, iNeu, 1))) then
             write(*, *) 'Nan found in nDensityS : '
             write(*, *) cMarker
             write(*, *) iLon, iLat, iAlt, iProc, iNeu
@@ -82,6 +84,7 @@ subroutine check_for_nans_temps(cMarker)
   use ModSizeGitm
   use ModGITM
   use ModPlanet
+  use ieee_arithmetic
 
   implicit none
 
@@ -93,19 +96,19 @@ subroutine check_for_nans_temps(cMarker)
   do iLon = -1, nLons + 2
     do iLat = -1, nLats + 2
       do iAlt = -1, nAlts + 2
-        if (isnan(Temperature(iLon, iLat, iAlt, 1))) then
+        if (ieee_is_nan(Temperature(iLon, iLat, iAlt, 1))) then
           write(*, *) 'Nan found in Temperature : '
           write(*, *) cMarker
           write(*, *) iLon, iLat, iAlt, iProc
           IsFound = .true.
         end if
-        if (isnan(iTemperature(iLon, iLat, iAlt, 1))) then
+        if (ieee_is_nan(iTemperature(iLon, iLat, iAlt, 1))) then
           write(*, *) 'Nan found in iTemperature : '
           write(*, *) cMarker
           write(*, *) iLon, iLat, iAlt, iProc
           IsFound = .true.
         end if
-        if (isnan(eTemperature(iLon, iLat, iAlt, 1))) then
+        if (ieee_is_nan(eTemperature(iLon, iLat, iAlt, 1))) then
           write(*, *) 'Nan found in eTemperature : '
           write(*, *) cMarker
           write(*, *) iLon, iLat, iAlt, iProc

@@ -25,6 +25,7 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
   use ModTides, only: TidesNorth, TidesEast, TidesTemp, TidesRhoRat
 
   use EUA_ModMsis90, ONLY: meter6
+  use ieee_arithmetic
 
   implicit none
 

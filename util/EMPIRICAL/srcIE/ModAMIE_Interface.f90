@@ -175,7 +175,7 @@ contains
 
     integer, parameter :: nFieldsMax = 100
     integer, intent(in) :: nFields
-    character(len=30), dimension(nFieldsMax), intent(in) :: Fields
+    character(len=*), dimension(nFieldsMax), intent(in) :: Fields
 
     integer :: iField, iVal
     do iVal = 1, nValues

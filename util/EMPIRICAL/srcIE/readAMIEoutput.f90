@@ -6,7 +6,7 @@ subroutine readAMIEvariables(AmieFile, nVars, varNames, iDebugLevel)
   use ModCharSize
   implicit none
   integer, parameter :: nFieldsMax = 100
-  character(len=iCharLenIE_), intent(in) :: AmieFile
+  character(len=*), intent(in) :: AmieFile
   integer, intent(out) :: nVars
   character(len=30), dimension(nFieldsMax), intent(out) :: varNames
   integer, intent(in) :: iDebugLevel

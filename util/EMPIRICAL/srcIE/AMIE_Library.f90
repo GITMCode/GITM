@@ -5,7 +5,7 @@
 subroutine AMIE_SetFileName(cFileNameIn)
   use ModAMIE_Interface
   implicit none
-  character(len=iCharLenIE_), intent(in) :: cFileNameIn
+  character(len=*), intent(in) :: cFileNameIn
   AMIE_FileName = cFileNameIn
 end subroutine AMIE_SetFileName
 

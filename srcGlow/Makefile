@@ -1,6 +1,6 @@
 include ../Makefile.def
-include ../Makefile.conf
-#include ./Makefile.DEPEND
+include ../srcMake/Makefile.conf
+-include ./Makefile.DEPEND
 #include ./Makefile.RULES
 
 MODULES = Mod_GLOW.o\
@@ -52,10 +52,10 @@ ${MY_LIB}: ${MF} ${MODULES} ${OBJECTS}
 $OBJECTS: $MODULES
 
 
-#DEPEND:
-#	../share/Scripts/depend.pl ./ ../src/ ../share/Library/src/ ${OBJECTS} ${MODULES}
+DEPEND:
+	@perl ${SCRIPTDIR}/depend.pl  ./ ../src/ ../share/Library/src/ ${OBJECTS} ${MODULES}
 
-#GLOW: DEPEND
+GLOW: DEPEND
 	 @make ${EXE}
 #
 #

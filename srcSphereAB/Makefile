@@ -1,7 +1,7 @@
 SHELL = /bin/sh
 
 include ../srcMake/Makefile.conf
-
+-include ./Makefile.DEPEND
 #
 #  Makefile for AB2D code:
 #
@@ -25,6 +25,8 @@ libSphere.a:      ${MF} ${MODULES} ${OBJECTS}
 	@echo 'Creating libSphere library'
 	${AR} libSphere.a ${MODULES} ${OBJECTS}
 
+DEPEND:
+	@perl ${SCRIPTDIR}/depend.pl  ./ ../src/ ../share/Library/src/ ${OBJECTS} ${MODULES}
 
 exposed_objects: AB_module.o AB_XFER_module.o AB_ERROR_module.o \
 	         AB_XFER_array_util.o AB_XFER_1blk_util.o AB_SPH_module.o

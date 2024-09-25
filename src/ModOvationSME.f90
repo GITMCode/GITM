@@ -220,8 +220,7 @@ contains
 
     inquire(file=cFile, EXIST=IsThere)
     if (.not. IsThere) then
-      write(*, *) cFile//" cannot be found by read_ovationsm_files"
-!         call stop_gitm(cFile//" cannot be found by read_ovationsm_files")
+      write(*, *) trim(cFile)//" cannot be found by read_ovationsm_files"
     end if
 
     iError = 0

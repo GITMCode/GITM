@@ -335,10 +335,8 @@ subroutine get_potential(iBlock)
     call init_get_potential
     call UA_SetnMLTs(nLons + 4)
     call UA_SetnLats(nLats + 4)
-    if (.not. IsFramework) then
-      call IO_SetTime(CurrentTime)
-      call set_indices
-    end if
+    call IO_SetTime(CurrentTime)
+    call set_indices
     call UA_SetNorth
 
     call report("Getting Potential", 1)

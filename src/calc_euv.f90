@@ -518,6 +518,10 @@ subroutine calc_scaled_euv
 
     call Set_Euv(iError, CurrentTime, EndTime)
 
+    if (iError /= 0) then
+      call stop_gitm("Stopping in euv_ionization_heat. Error in EUV data. Check times!")
+    end if
+
     do N = 1, Num_WaveLengths_High
       wvavg(N) = (WAVEL(N) + WAVES(N))/2.
     end do
@@ -844,7 +848,7 @@ subroutine Set_Euv(iError, StartTime, EndTime)
 
   inquire(file=cEUVFile, EXIST=IsThere)
   if (.not. IsThere) &
-    call stop_gitm(cEUVFile//" cannot be found by read_inputs")
+    call stop_gitm(trim(cEUVFile)//" cannot be found by read_inputs")
 
   open(unit=iInputUnit_, file=cEUVFile, status="old", IOSTAT=iError)
 
@@ -914,6 +918,7 @@ subroutine Set_Euv(iError, StartTime, EndTime)
   nSeeTimes = iline - 1
 
   if (nSeeTimes > 2) iError = 0
+  if (nSeeTimes < 1) iError = 1
 
 end subroutine Set_Euv
 

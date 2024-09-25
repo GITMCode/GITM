@@ -42,7 +42,7 @@ subroutine init_mpi_coup
 
   inquire(file=cInputFile, EXIST=IsThere)
   if (.not. IsThere) &
-    call stop_gitm(cInputFile//" cannot be found by read_inputs")
+    call stop_gitm(trim(cInputFile)//" cannot be found by read_inputs")
 
   open(iInputUnit_, file=cInputFile, status="old")
 

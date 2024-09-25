@@ -80,7 +80,7 @@ contains
 
     implicit none
     integer :: LunIndices_, ierror, iOutputError
-    character(len=iCharLenFile_), intent(in) :: NameOfFile
+    character(len=*), intent(in) :: NameOfFile
 
     integer :: i
 
@@ -112,7 +112,7 @@ contains
     implicit none
 
     integer :: LunIndices_, ierror, iOutputError
-    character(len=iCharLenFile_), intent(in) :: NameOfIndexFile
+    character(len=*), intent(in) :: NameOfIndexFile
     character(len=iCharLenLong_) :: line
 
     logical :: done
@@ -175,7 +175,7 @@ contains
 
     implicit none
     integer :: LunIndices_, ierror, iOutputError
-    character(len=iCharLenFile_), intent(in) :: NameOfIndexFile
+    character(len=*), intent(in) :: NameOfIndexFile
     character(len=iCharLenLong_) :: line
 
     logical :: done
@@ -225,7 +225,7 @@ contains
 
     implicit none
     integer :: n, s, tmp
-    character(len=iCharLenHme_), intent(in) :: hme_tmp
+    character(len=*), intent(in) :: hme_tmp
 
     if (hme_tmp(1:1) .eq. 'D') then
       n = 1
@@ -421,6 +421,8 @@ contains
   ! -----------------------------------------------------------------
   subroutine calc_1tide_1day(u_all, v_all, geopt_all, temp_all, dr_rho_all)
 
+    use ieee_arithmetic
+
     implicit none
 
     character(len=iCharLenHme_) :: hme_tmp
@@ -523,8 +525,8 @@ contains
           end do
         end do
       end do
-      if (count(isnan(geopt)) > 0) then
-        write(*, *) isnan(geopt)
+      if (count(ieee_is_nan(geopt)) > 0) then
+        write(*, *) ieee_is_nan(geopt)
         write(*, *) 'i,ilon,ilat,ialt,hme: ', i, ilon, j, k, hme_tmp
         call stop_gitm('nan was found in geopt, stop')
       end if
@@ -558,7 +560,7 @@ contains
                       temp_a3, temp_p3, dr_rho_a3, dr_rho_p3)
 
     implicit none
-    character(len=iCharLenHme_), intent(in) :: thme
+    character(len=*), intent(in) :: thme
     character(len=iCharLenFile_) :: NameOfHMEFile
     real, dimension(nLatsHme)  :: u_a, u_p, v_a, v_p, geopt_a, geopt_p, &
                                   temp_a, temp_p, dr_rho_a, dr_rho_p
