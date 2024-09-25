@@ -1689,13 +1689,17 @@ subroutine set_inputs
         call read_in_logical(UseEUVData, iError)
         call read_in_string(cEUVFile, iError)
 
-        if (UseEUVData) call Set_Euv(iError, CurrentTime, EndTime)
         if (iError /= 0) then
           write(*, *) 'Incorrect format for #EUV_DATA'
           write(*, *) 'This is for a FISM or some other solar spectrum file.'
           write(*, *) '#EUV_DATA'
           write(*, *) 'UseEUVData            (logical)'
           write(*, *) 'cEUVFile              (string)'
+        else
+          if (UseEUVData) call Set_Euv(iError, CurrentTime, EndTime)
+          if (iError /= 0) then
+            call stop_gitm("Stopping after set_euv in set_inputs. Error in EUV data. Check times!")
+          end if
         end if
 
       case ("#ECLIPSE")
@@ -1816,23 +1820,24 @@ subroutine set_inputs
                       EndTime + TimeDelayHighLat, doUseAeForHp)
 
         if (iError /= 0) then
-          write(*, *) "read indices was NOT successful (SME file)"
-          IsDone = .true.
-        end if
-
-        ! If the onset file is called "none", then it will
-        ! automatically ignore this:
-
-        call read_al_onset_list(iError, &
-                                CurrentTime + TimeDelayHighLat, &
-                                EndTime + TimeDelayHighLat)
-
-        if (iError /= 0) then
-          write(*, *) "read indices was NOT successful (onset file)"
+          write(*, *) "read_sme was NOT successful (Check SME file!)"
           IsDone = .true.
         else
-          UseVariableInputs = .true.
-        end if
+
+          ! If the onset file is called "none", then it will
+          ! automatically ignore this:
+
+          call read_al_onset_list(iError, &
+                                  CurrentTime + TimeDelayHighLat, &
+                                  EndTime + TimeDelayHighLat)
+
+          if (iError /= 0) then
+            write(*, *) "read indices was NOT successful (onset file)"
+            IsDone = .true.
+          else
+            UseVariableInputs = .true.
+          end if
+        endif
 
       case ("#ACE_DATA")
         cTempLines(1) = cLine
@@ -1909,6 +1914,18 @@ subroutine set_inputs
 
   if (iError /= 0) then
     call stop_gitm("Must Stop!!")
+  end if
+
+  ! We need to check to see if the current time and end time are
+  ! larger than the last F107 time.  If that is the case, the code
+  ! should stop
+  if (iDebugLevel > 0) write(*, *) 'testing indices.... ', currenttime
+  call check_all_indices(CurrentTime, iError)
+  if (iError == 0) then
+    call check_all_indices(EndTime, iError)
+  end if
+  if (iError /= 0) then
+    call stop_gitm("Issue with Indices! Check the file(s) times!")
   end if
 
   RestartTime = CurrentTime
