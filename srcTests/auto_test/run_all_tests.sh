@@ -2,28 +2,61 @@
 
 
 get_help(){
-    echo \> This script will automatically compile GITM
-    echo \& run all tests scripts located within srcTests/auto_test/
-    echo
-    echo \> New UAM.in files should be placed within this folder,
-    echo  with the naming convention UAM.in.__.test
-    echo  Information regarding the test configuration may be added, 
-    echo  though no spaces can be used.
-    echo
-    echo Additional notes about the test may be added. Name must conform to: 
-    echo "            UAM.\*.test"
-    echo and no spaces can be added
-    echo
-    echo Usage:
-    echo
-    echo "      [none]         run automatically"
-    echo "      -h, --help     see this information"
-    echo "      -d, --debug    Configure & compile GITM in -debug"
-    echo "      -c, --clean    run a make clean before make-ing?"
-    echo "      --skip_config  skip running Config.pl?"
-    echo
 
-    exit 1
+  printf "
+------------------------------------------------------------------------------------
+
+> This script will automatically compile GITM
+  run all tests scripts located within srcTests/auto_test/
+
+> New UAM.in files should be placed within this folder,
+  with the naming convention UAM.in.__.test
+  Information regarding the test configuration may be added, 
+  though no spaces can be used.
+
+Additional notes about the test may be added. Name must conform to: 
+            UAM.*.##.test
+and no spaces can be added. Numbers do not need to be increasing, but will be useful 
+when comparing outputs.
+
+------------------------------------------------------------------------------------
+Usage:
+------
+
+- To just check that the code compiles and all tests run, use:
+    > ./run_all_tests.sh
+
+- If a test fails and you have made edits, you don't need to re-config:
+    > ./run_all_tests.sh --skip_config
+
+- For a sanity test, you can force re-configuring & re-compiling everything in 
+  debug mode with:
+    > ./run_all_tests.sh -c -d
+
+- When making large changes that could affect outputs, it may be useful to
+  compare with the latest release. 
+  First, commit your changes then 'git checkout main'. Save the outputs from 
+  the latest release with:
+    > ./run_all_tests.sh --save_to testoutputs_default
+  Then, checkout your branch 'git checkout branch_name' and compare the results with:
+    > ./run_all_tests.sh --compare_with testoutputs_default
+
+------------------------------------------------------------------------------------
+Arguments:
+----------
+
+        [none]                    run automatically with defaults.
+        -h, --help                see this information
+        -d, --debug               Configure & compile GITM in -debug
+        -c, --clean               run a 'make clean' before make-ing?
+        --skip_config             skip running Config.pl?
+        --compare_with [path]     Path to the run directory which has outputs
+                                    from all tests
+        --save_to [path]          Save outputs? Useful to compare when making
+                                    changes that could affect outputs.
+
+"
+  exit 1
 
 }
 
@@ -33,11 +66,11 @@ do_tests(){
     
     cd ../../ 
     
-    if [ $clean -lt 1 ]; then
+    if [ $config = true ]; then
         ./Config.pl -install -earth -compiler=gfortran10 $debug
     fi
     
-    if [ $clean -gt 0 ]; then
+    if [ $clean = true ]; then
       make clean
     fi
 
@@ -57,7 +90,7 @@ do_tests(){
     cd run/
     for test_uam in UAM.*.test; do
         printf "\n\n>> Testing with $test_uam ...\n"
-        # Copy UAM (not the first one though)
+        # Copy UAM 
         cp $test_uam UAM.in
 
         # Run GITM, stop if error.
@@ -78,8 +111,11 @@ do_tests(){
 ## --------------------------- ##
 
 debug=""
-clean=0
-config=0
+clean=false
+config=true
+
+do_save=false
+do_compare=false
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -93,17 +129,41 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     -c|--clean)
-      echo "cleaning before compiling!"
-      clean=1
+      echo "Forcing a 'make clean' before compiling!"
+      clean=true
       shift
       ;;
     --skip_config)
       echo "skipping config!"
-      config=1
+      config=false
       shift
       ;;
+    --compare_with)
+      if [[ -d "$2" ]]; then
+        echo "Comparing with" $2
+        compare_dir=$2
+      else
+        echo "here02"
+        echo "--compare_with directory $2 not found!"
+        exit 1
+      fi
+      shift 2
+      ;;
+    --save_to)
+    if [[ -d "$2" ]]; then
+        echo "--save_to directory $2 already exists! Waiting 5 seconds then overwriting."
+        echo "   cancel with 'Ctrl C'"
+        sleep 5
+        compare_dir=$2
+      else
+        echo "here02"
+        echo "--compare_with directory $2 not found!"
+        exit 1
+      fi
+      shift 2
+      ;;
   esac
-#   shift
+
 done
 
 
