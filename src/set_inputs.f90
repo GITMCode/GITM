@@ -1837,7 +1837,7 @@ subroutine set_inputs
           else
             UseVariableInputs = .true.
           end if
-        endif
+        end if
 
       case ("#ACE_DATA")
         cTempLines(1) = cLine
