@@ -4,6 +4,8 @@ import argparse
 import os
 from glob import glob
 import time
+from pGITM import *
+from datetime import datetime
 
 IsVerbose = True
 DoRm = True
@@ -16,7 +18,7 @@ def parse_args_post():
 
     parser = argparse.ArgumentParser(description =
                                      'Post process and move model results')
-    parser.add_argument('-file',
+    parser.add_argument('-remotefile',
                         help = 'File that contains info. about remote system',
                         default = 'remote')
 
@@ -35,6 +37,10 @@ def parse_args_post():
     parser.add_argument('-sleep',
                         help = 'how long to sleep between loops',
                         default = 300, type = int)
+
+    parser.add_argument('-totaltime',
+                        help = 'specify how long to run in total (in hours)',
+                        default = 24, type = int)
 
     parser.add_argument('-q',
                         help = 'Run with verbose turned off',
@@ -95,13 +101,16 @@ def check_inputs(user, server, dir):
     
     IsRemote = True
     if ((len(user) == 0) or (user == 'none')):
-        print("Can't parse user information")
+        if (IsVerbose):
+            print("Can't parse user information")
         IsRemote = False
     if ((len(server) == 0) or (server == 'none')):
-        print("Can't parse server information")
+        if (IsVerbose):
+            print("Can't parse server information")
         IsRemote = False
     if ((len(dir) == 0) or (dir == 'none')):
-        print("Can't parse dir information")
+        if (IsVerbose):
+            print("Can't parse dir information")
         IsRemote = False
 
     return IsRemote
@@ -259,23 +268,23 @@ def tar_and_zip_gitm():
         
     return DidWork
 
-# ----------------------------------------------------------------------
-# post process GITM files
-# ----------------------------------------------------------------------
-
-def post_process_gitm():
-
-    command = \
-        'cd UA ; ' + \
-        'chmod a+rx data ; '
-    if (IsVerbose):
-        command = command + './pGITM ; '
-    else:
-        command = command + './pGITM > .post_process ; '
-    command = command + 'chmod a+r data/*.bin ; cd ..'
-    DidWork = run_command(command)
-
-    return DidWork
+## ----------------------------------------------------------------------
+## post process GITM files
+## ----------------------------------------------------------------------
+#
+#def post_process_gitm():
+#
+#    command = \
+#        'cd UA ; ' + \
+#        'chmod a+rx data ; '
+#    if (IsVerbose):
+#        command = command + './pGITM ; '
+#    else:
+#        command = command + './pGITM > .post_process ; '
+#    command = command + 'chmod a+r data/*.bin ; cd ..'
+#    DidWork = run_command(command)
+#
+#    return DidWork
 
 # ----------------------------------------------------------------------
 # Transfer file, check if it made it, then delete local (if requested)
@@ -413,7 +422,9 @@ def do_loop(doTarZip, user, server, dir, IsRemote):
     if (doTarZip):
         DidWork = tar_and_zip_gitm()
     else:
-        DidWork = post_process_gitm()
+        processDir = 'UA/data' 
+        DidWork = post_process_gitm(processDir, DoRm, isVerbose = IsVerbose)
+        #DidWork = post_process_gitm()
         
     # 4 - Check if remote data directory exists, make it if it doesn't:
     data_remote = '/data'
@@ -433,24 +444,17 @@ def do_loop(doTarZip, user, server, dir, IsRemote):
     return DidWork
 
 # ----------------------------------------------------------------------
-# Main Code
+# load remote file
 # ----------------------------------------------------------------------
 
-if __name__ == '__main__':  # main code block
+def load_remote_file(args):
 
-    args = parse_args_post()
-
-    # make local variables for arguments:
-    doTarZip = args.tgz
-    file = args.file
-    IsVerbose = not args.q
-    if (args.norm):
-        DoRm = False
-
+    remoteFile = args.remotefile
+    
     # figure out remote system information:
-    if (os.path.exists(file)):
-        print('Found file: ', file)
-        remote = parse_remote_file(file)
+    if (os.path.exists(remoteFile)):
+        print('Found file: ', remoteFile)
+        remote = parse_remote_file(remoteFile)
         user = remote['user']
         server = remote['server']
         dir = remote['dir']
@@ -461,22 +465,50 @@ if __name__ == '__main__':  # main code block
 
     # Check remote system inputs:
     IsRemote = check_inputs(user, server, dir)
+    return IsRemote, user, server, dir
+    
+# ----------------------------------------------------------------------
+# Main Code
+# ----------------------------------------------------------------------
+
+if __name__ == '__main__':  # main code block
+
+    args = parse_args_post()
+
+    # make local variables for arguments:
+    doTarZip = args.tgz
+    IsVerbose = not args.q
+    if (args.norm):
+        DoRm = False
 
     # Check if stop file exists:
     check_for_stop_file(delete = True)
 
     # Very simple main loop - run forever
     DidWork = True
+    startTime = datetime.now()
     while DidWork:
+        # load remote file every iteration so we can change it if needed:
+        IsRemote, user, server, dir = load_remote_file(args)
+        print('Move files to remote system? ', IsRemote)
+        
         DidWork = do_loop(doTarZip, user, server, dir, IsRemote)
         if (DidWork):
             # Check if stop file exists:
             stopCheck = check_for_stop_file()
             if (stopCheck):
-                print("  --> Stopping!")
+                print("  --> Stopping due to stop file existing!")
                 # want to break out of loop, so set loop breaking condition:
                 DidWork = False
             else:
-                # everything ok, go to sleep for a bit
-                print('Sleeping ... ', args.sleep, ' sec.')
-                time.sleep(args.sleep)
+                currentTime = datetime.now()
+                dt = ((currentTime - startTime).total_seconds())/3600.0
+                if (dt > args.totaltime):
+                    print("  --> Stopping due to totaltime exceeded!")
+                    # want to break out of loop, so set loop breaking condition:
+                    DidWork = False
+
+        if (DidWork):
+            # everything ok, go to sleep for a bit
+            print('Sleeping ... ', args.sleep, ' sec.')
+            time.sleep(args.sleep)
