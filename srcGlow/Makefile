@@ -25,8 +25,8 @@ OBJECTS = \
 	vquart.o\
 	GL_library.o
 
-EXE = GLOW.exe
-SEARCH_EXTRA = -I../src 
+EXE = ${BINDIR}/GLOW.exe
+# SEARCH_EXTRA = -I../src 
 
 MYLIB = libGLOW.a
 
