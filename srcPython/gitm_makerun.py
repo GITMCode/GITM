@@ -31,6 +31,14 @@ def parse_args(plotTypes):
     parser.add_argument('end', metavar = 'end', \
                         help = 'end date as YYYYMMDD[.HHMM]')
 
+    parser.add_argument('-restarttime', \
+                        help = 'restart date as YYYYMMDD[.HHMM]', \
+                        default = 'none')
+
+    parser.add_argument('-restart', \
+                        help='turn on RESTART', \
+                        action="store_true")
+    
     parser.add_argument('-imf', \
                         help='set IMF file (find = download IMF from omniweb)')
     
@@ -62,6 +70,18 @@ def parse_args(plotTypes):
     parser.add_argument('-datadir', \
                         help = 'Base directory to find data', \
                         default = '~/Data/')
+
+    parser.add_argument('-gitm', \
+                        help = 'Base directory to find GITM', \
+                        default = 'none')
+
+    parser.add_argument('-cputimemax', type = float, \
+                        help = 'Maximum wallclock time to run (in hours)', \
+                        default = -1)
+
+    parser.add_argument('-f107file', \
+                        help = 'f107 file to get f107 on start day', \
+                        default = 'UA/DataIn/f107.txt')
 
     parser.add_argument('-conduction', nargs = 3, \
                         help = 'set thermal conduction')
@@ -229,7 +249,7 @@ def download_sme_data(start, end):
         current = base + timedelta(seconds = idxdata['tval'][0])
 
         ymd = current.strftime('%Y%m%d')
-        fileout = 'ae_' + ymd + '.txt'
+        fileout = 'ae' + ymd + '.dat'
         print('  --> Writing file ' + fileout)
         
         l0 = 'File created by python code using SuperMAGGetIndices\n'
@@ -315,15 +335,30 @@ plotTypes = ['3dall', '3danc', '3dthm', '3dneu', '3dion',
 
 args = parse_args(plotTypes)
 
+gitmDir = args.gitm
+if (os.path.exists(gitmDir)):
+    useGitmDir = True
+    gitmDir = gitmDir + '/'
+else:
+    useGitmDir = False
+
 # ----------------------------------------
 # read baseline UAM.in file:
 
 file = args.input
 
+inputFound = False
 if (os.path.exists(file)):
+    inputFound = True
+else:
+    if (useGitmDir):
+        file = gitmDir + 'srcData/UAM.in'
+        if (os.path.exists(file)):
+            inputFound = True
+if (inputFound):
     print('--> Reading file : ', file)
     uam = read_uam(file)
-else:
+else:    
     print('Can not find input file ', file, '!')
     print('  Please run with -h if you need help!')
     exit()
@@ -334,61 +369,65 @@ else:
 start = args.start
 end = args.end
 
-yStart = start[0:4]
-mo = start[4:6]
-da = start[6:8]
+def convert_time(sTime):
+    
+    yTime = sTime[0:4]
+    mo = sTime[4:6]
+    da = sTime[6:8]
 
-if (len(start) >= 11):
-    hr = start[9:11]
-    if (len(start) >= 13):
-        mi = start[11:13]
+    if (len(sTime) >= 11):
+        hr = sTime[9:11]
+        if (len(sTime) >= 13):
+            mi = sTime[11:13]
+        else:
+            mi = '00'
     else:
+        hr = '00'
         mi = '00'
-else:
-    hr = '00'
-    mi = '00'
 
-start = datetime(int(yStart), int(mo), int(da), int(hr), int(mi), 0)
+    daTime = datetime(int(yTime), int(mo), int(da), int(hr), int(mi), 0)
+    diTime =  {
+        0: [yTime, ' year'],
+        1: [mo, ' month'],
+        2: [da, ' day'],
+        3: [hr, ' hour'],
+        4: [mi, ' minute'],
+        5: ['00', ' second']
+    }
+    return daTime, diTime
 
-uam['#TIMESTART'] = {
-    0: [yStart, ' year'],
-    1: [mo, ' month'],
-    2: [da, ' day'],
-    3: [hr, ' hour'],
-    4: [mi, ' minute'],
-    5: ['00', ' second'] }
+sDaTime, sDiTime = convert_time(start)
+start = sDaTime
+uam['#TIMESTART'] = sDiTime
+yStart = start.strftime('%Y')
 
-yr = end[0:4]
-mo = end[4:6]
-da = end[6:8]
-
-if (len(end) >= 11):
-    hr = end[9:11]
-    if (len(end) >= 13):
-        mi = end[11:13]
-    else:
-        mi = '00'
-else:
-    hr = '00'
-    mi = '00'
-
-end = datetime(int(yr), int(mo), int(da), int(hr), int(mi), 0)
-
-uam['#TIMEEND'] = {
-    0: [yr, ' year'],
-    1: [mo, ' month'],
-    2: [da, ' day'],
-    3: [hr, ' hour'],
-    4: [mi, ' minute'],
-    5: ['00', ' second'] }
+eDaTime, eDiTime = convert_time(end)
+end = eDaTime
+uam['#TIMEEND'] = eDiTime
 
 print('--> Setting Start Time : ', start)
 print('--> Setting End Time : ', end)
+
+doRestart = args.restart
+if (len(args.restarttime) >= 8): 
+    rDaTime, rDiTime = convert_time(args.restarttime)
+    uam['#TIMEEND'] = rDiTime
+    print('--> Setting Restart Time : ', rDaTime)
 
 # omni needs times as YYYYMMDD, and needs at least 2 days:
 startOmni = start.strftime('%Y%m%d')
 endTemp = end + timedelta(seconds = 86400) 
 endOmni = end.strftime('%Y%m%d')
+
+# ----------------------------------------
+# maximum cputime
+
+if (args.cputimemax > 0):
+    tMax = args.cputimemax * 3600.0 - 300.0
+    print('--> Setting CPU Time Max: ', tMax)
+    tMaxString = "%.1f" % tMax
+    uam['#CPUTIMEMAX'] = {
+        0 : [tMaxString, ' Maximum wallclock time to run in sec'] }
 
 # ----------------------------------------
 # output types
@@ -491,18 +530,28 @@ if (args.imf):
 diff = (end - start).total_seconds()
 mid = start + timedelta(seconds = diff/2)
 
-f107file = 'UA/DataIn/f107.txt'
-if (not os.path.exists(f107file)):
-    print("--> F107 file is not here : ", f107file)
+f107file = args.f107file
+f107Found = False
+if (os.path.exists(f107file)):
+    f107Found = True
+else:
+    if (useGitmDir):
+        f107file = gitmDir + 'srcData/f107.txt'
+        if (os.path.exists(f107file)):
+            f107Found = True
+if (not f107Found):
     f107file = '../srcData/f107.txt'
-    if (not os.path.exists(f107file)):
-        print("--> F107 file is not here : ", f107file)
-        f107file = './f107.txt'
-        if (not os.path.exists(f107file)):
-            print("--> F107 file is not here : ", f107file)
-            print('I cant seem to find the f107 file!')
-            print("giving up...")
-            exit()
+    if (os.path.exists(f107file)):
+        f107Found = True
+if (not f107Found):
+    f107file = './f107.txt'
+    if (os.path.exists(f107file)):
+        f107Found = True
+if (not f107Found):
+    print('I cant seem to find the f107 file in the obvious places!')
+    print('Try setting -f107file or -gitm. Run this with -h to learn more!')
+    print('giving up...')
+    exit()
 
 f107data = read_f107(f107file)
 
@@ -521,12 +570,23 @@ print('--> Setting F107, F107a : ' + f107s + ', ' + f107as)
 # FISM
 
 if (args.fism):
-    fismFile = 'UA/DataIn/FISM/fismflux_daily_' + yStart + '.dat'
+    fismFile = 'fismflux_daily_' + yStart + '.dat'
+    fromRunDir = 'UA/DataIn/FISM/'
+    fismFound = False
+    
     if (os.path.exists(fismFile)):
-        print('--> Setting fism file : ', fismFile)
+        fismFound = True
+    else:
+        if (useGitmDir):
+            print('--> Looking for FISM file here: ', \
+                  gitmDir + 'srcData/FISM/' + fismFile)
+            if (os.path.exists(gitmDir + 'srcData/FISM/' + fismFile)):
+                fismFound = True
+    if (fismFound):
+        print('--> Setting fism file : ', fromRunDir + fismFile)
         uam['#EUV_DATA'] = {
             0: ['T', ' Use FISM Solar Flux Data (daily)'],
-            1: [fismFile, ' FISM Filename'] }
+            1: [fromRunDir + fismFile, ' FISM Filename'] }
     else:
         print('--> ERROR : fism file does not exist : ', fismFile)
         print('    Setting #EUV_DATA to false!')
@@ -537,6 +597,7 @@ if (args.fism):
 # ----------------------------------------
 # HPI file
 
+useHpi = False
 if (args.hpi):
     # find hemispheric power file:
     if (args.hpi.find('find') == 0):
@@ -553,6 +614,7 @@ if (args.hpi):
         print('--> Setting HPI file : ', hpiFile)
         uam['#NOAAHPI_INDICES'] = {
             0: [hpiFile, ' HPI Filename'] }
+        useHpi = True
     else:
         print('--> ERROR : HPI file does not exist : ', hpiFile)
         print('  Taking no action! Check output file!!!')
@@ -572,6 +634,8 @@ if (args.sme):
         uam['#SME_INDICES'] = {
             0: [smeFile, ' SME Filename'],
             1: ['none', ' onset time delay file'] }
+        if (not useHpi):
+            uam['#SME_INDICES'][2] = ['T', ' Convert AE to HP']
     else:
         print('--> ERROR : SME file does not exist : ', smeFile)
         print('  Taking no action! Check output file!!!')
@@ -620,6 +684,7 @@ if (args.dynamo):
         uam['#DYNAMO'] = {
             0 : ['F', ' UseDynamo'] }
 
+
 # ----------------------------------------
 # Fang
 
@@ -655,10 +720,10 @@ if (args.newell):
     uam['#NEWELLAURORA'] = {
         0 : ['T', ' Use Newell Ovation model of the aurora'],
         1 : ['T', ' Use Diffuse Aurora'],
-        2 : ['F', ' Use Monoenergetic Aurora'],
+        2 : ['T', ' Use Monoenergetic Aurora'],
         3 : ['F', ' Use Wave driven Aurora'],
-        4 : ['F', ' Remove spikes'],
-        5 : ['F', ' Average patterns'] }   
+        4 : ['T', ' Remove spikes'],
+        5 : ['T', ' Average patterns'] }   
     print('--> Turning on Newell Ovation Model')
 
     uam['#FTAMODEL'] = {
@@ -671,7 +736,29 @@ if (args.newell):
 fileout = args.output
 if (fileout.find('none') == 0):
     fileout = start.strftime('UAM_%Y%m%d.in')
+
+# Want a restart, AND write out two files:
+if ((doRestart) and (len(args.restarttime) >= 8)):
+    fileStart = fileout + '.Start'
+    fileRestart = fileout + '.Restart'
+    fileout = fileStart
+
+# Want a restart, but don't write out two files:
+if ((doRestart) and (len(args.restarttime) < 8)):
+    print(' --> Turning Restart to True')
+    uam['#RESTART'] = {
+        0 : ['T', ' Restart GITM'] }
     
 print('--> Writing file : ', fileout)
 write_uam(fileout, uam)
+
+if ((doRestart) and (len(args.restarttime) >= 8)):
+    print(' --> Turning Restart to True')
+    uam['#RESTART'] = {
+        0 : ['T', ' Restart GITM'] }
+    print(' --> Setting TimeEnd to actual end time')
+    uam['#TIMEEND'] = eDiTime
+    
+    print('--> Writing restart file : ', fileRestart)
+    write_uam(fileRestart, uam)
 
