@@ -188,5 +188,10 @@ subroutine read_MHDIMF_Indices_new(iOutputError, StartTime, EndTime)
   nIndices_V(sw_n_) = iSW - 2
   nIndices_V(sw_t_) = iSW - 2
 
+  ! If we have gotten to this point and we have no data,
+  ! there is something wrong!
+  if (nIndices_V(imf_bz_) < 2) iOutputError = 1
+  if (nIndices_V(sw_v_) < 2) iOutputError = 1
+
 end subroutine read_MHDIMF_Indices_new
 
