@@ -555,12 +555,12 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
         n4 = alog(LogINS(iAlt - 4, iSpecies))
         n5 = alog(LogINS(iAlt - 5, iSpecies))
         if (DoCheckForNans) then
-          if (isnan(n0)) write(*, *) 'n0 :', iAlt, LogINS(iAlt, iSpecies)
-          if (isnan(n1)) write(*, *) 'n1 :', iAlt - 1, LogINS(iAlt - 1, iSpecies)
-          if (isnan(n2)) write(*, *) 'n2 :', iAlt - 2, LogINS(iAlt - 2, iSpecies)
-          if (isnan(n3)) write(*, *) 'n3 :', iAlt - 3, LogINS(iAlt - 3, iSpecies)
-          if (isnan(n4)) write(*, *) 'n4 :', iAlt - 4, LogINS(iAlt - 4, iSpecies)
-          if (isnan(n5)) write(*, *) 'n5 :', iAlt - 5, LogINS(iAlt - 5, iSpecies)
+          if (ieee_is_nan(n0)) write(*, *) 'n0 :', iAlt, LogINS(iAlt, iSpecies)
+          if (ieee_is_nan(n1)) write(*, *) 'n1 :', iAlt - 1, LogINS(iAlt - 1, iSpecies)
+          if (ieee_is_nan(n2)) write(*, *) 'n2 :', iAlt - 2, LogINS(iAlt - 2, iSpecies)
+          if (ieee_is_nan(n3)) write(*, *) 'n3 :', iAlt - 3, LogINS(iAlt - 3, iSpecies)
+          if (ieee_is_nan(n4)) write(*, *) 'n4 :', iAlt - 4, LogINS(iAlt - 4, iSpecies)
+          if (ieee_is_nan(n5)) write(*, *) 'n5 :', iAlt - 5, LogINS(iAlt - 5, iSpecies)
         end if
       else
         n0 = LogINS(iAlt, iSpecies)
@@ -596,7 +596,7 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
       end if
 
       if (DoCheckForNans) then
-        if (isnan(LogINS(iAlt, 1))) &
+        if (ieee_is_nan(LogINS(iAlt, 1))) &
           write(*, *) 'svbc ', iAlt, LogINS(iAlt, 1), n0, dn, &
           n1, n2, n3, n4, n5, tec, MinTEC, UsePlasmasphereBC, &
           dAlt_F(iAlt)

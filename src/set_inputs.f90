@@ -70,8 +70,6 @@ subroutine set_inputs
       i = index(cLine, ' '); if (i > 0) cLine(i:len(cLine)) = ' '
       i = index(cLine, char(9)); if (i > 0) cLine(i:len(cLine)) = ' '
 
-      print*,"UA_CLINE_FOUND___", trim(cline)
-
       ! If debug level is high, echo lines to stdout:
       if (iDebugLevel > 3) write(*, *) "====> cLine : ", cLine(1:40)
 
@@ -671,9 +669,9 @@ subroutine set_inputs
 
           if (IsFramework) then ! SWMF_TIME_NOT_AVAILABLE
             call read_MHDIMF_Indices(iError)
-          else 
+          else
             call read_MHDIMF_Indices_new(iError, CurrentTime, EndTime)
-          endif
+          end if
           if (iError /= 0) then
             write(*, *) "read indices was NOT successful (imf file)"
             IsDone = .true.
@@ -1757,7 +1755,7 @@ subroutine set_inputs
           call read_NGDC_Indices(iError)
         else
           call read_NGDC_Indices_new(iError, CurrentTime, EndTime)
-        endif
+        end if
 
         if (iError /= 0) then
           write(*, *) "read indices was NOT successful (NGDC file)"
@@ -1796,7 +1794,7 @@ subroutine set_inputs
           call stop_gitm("OMNIWEB AP cannot be read by GITM in component mode")
         else
           call read_OMNIWEB_Ap_Indices_new(iError, CurrentTime, EndTime)
-        endif
+        end if
 
         if (iError /= 0) then
           write(*, *) "read indices was NOT successful (OMNIWEB Ap file)"
@@ -1831,9 +1829,9 @@ subroutine set_inputs
           call stop_gitm("SME cannot be read by GITM in component mode")
         else
           call read_sme(iError, &
-                      CurrentTime + TimeDelayHighLat, &
-                      EndTime + TimeDelayHighLat, doUseAeForHp)
-        endif
+                        CurrentTime + TimeDelayHighLat, &
+                        EndTime + TimeDelayHighLat, doUseAeForHp)
+        end if
 
         if (iError /= 0) then
           write(*, *) "read_sme was NOT successful (Check SME file!)"
@@ -1904,7 +1902,7 @@ subroutine set_inputs
           call read_NOAAHPI_Indices(iError)
         else
           call read_NOAAHPI_Indices_new(iError, StartTime, EndTime)
-        endif
+        end if
 
         if (iError /= 0) then
           write(*, *) "read indices was NOT successful (NOAA HPI file)"
@@ -1950,7 +1948,7 @@ subroutine set_inputs
     if (iError /= 0) then
       call stop_gitm("Issue with Indices! Check the file(s) times!")
     end if
-  endif
+  end if
   RestartTime = CurrentTime
 
 !  KappaTemp0 = 3.6e-4

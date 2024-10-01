@@ -77,7 +77,7 @@ subroutine read_OMNIWEB_Ap_Indices_new(iOutputError, StartTime, EndTime)
 
       end if
 
-      if (iAp >= MaxIndicesEntries) done = 1
+      if (iAp >= MaxIndicesEntries) done = .true.
 
     end if
 
