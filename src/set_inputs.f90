@@ -31,8 +31,6 @@ subroutine set_inputs
   integer, external :: bad_outputtype
   integer, external :: jday
 
-  integer, dimension(7) :: iEndTime
-
   logical :: IsDone, IsStartFound, doUseAeForHp
   integer :: iDebugProc = 0
   character(len=iCharLen_) :: cLine
