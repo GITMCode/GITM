@@ -1,5 +1,3 @@
-SHELL = /bin/sh
-
 include ../srcMake/Makefile.conf
 -include ./Makefile.DEPEND
 #
@@ -18,6 +16,9 @@ OBJECTS = \
 	AB_XFER_array_util.o\
 	AB_XFER_1blk_util.o
 
+DEPEND:
+	@perl ${SCRIPTDIR}/depend.pl  ./ ../src/ ${LIBDIR} ${OBJECTS} ${MODULES}
+
 LIB:    libSphere.a
 	@echo libSphere.a has been brought up to date.
 
@@ -25,30 +26,27 @@ libSphere.a:      ${MF} ${MODULES} ${OBJECTS}
 	@echo 'Creating libSphere library'
 	${AR} libSphere.a ${MODULES} ${OBJECTS}
 
-DEPEND:
-	@perl ${SCRIPTDIR}/depend.pl  ./ ../src/ ../share/Library/src/ ${OBJECTS} ${MODULES}
-
 exposed_objects: AB_module.o AB_XFER_module.o AB_ERROR_module.o \
 	         AB_XFER_array_util.o AB_XFER_1blk_util.o AB_SPH_module.o
 
-AB_module.o: AB_module.f90 AB_COMM_module.o AB_ARRAY_module.o \
+AB_module.o: AB_module.o AB_COMM_module.o AB_ARRAY_module.o \
 	AB_ERROR_module.o
 
-AB_XFER_array_util.o:  AB_XFER_array_util.f90 AB_module.f90
+AB_XFER_array_util.o:  AB_XFER_array_util.o AB_module.o
 
-AB_XFER_1blk_util.o:  AB_XFER_1blk_util.f90 AB_module.f90
+AB_XFER_1blk_util.o:  AB_XFER_1blk_util.o AB_module.o
 
-AB_XFER_module.o: AB_XFER_module.f90 AB_COMM_module.o AB_ARRAY_module.o \
+AB_XFER_module.o: AB_XFER_module.o AB_COMM_module.o AB_ARRAY_module.o \
 	AB_ERROR_module.o AB_module.o
 
-AB_SPH_module.o: AB_SPH_module.f90 AB_module.o AB_COMM_module.o \
+AB_SPH_module.o: AB_SPH_module.o AB_module.o AB_COMM_module.o \
 	AB_ERROR_module.o
 
-AB_COMM_module.o:  AB_COMM_module.f90 AB_ARRAY_module.o AB_ERROR_module.o
+AB_COMM_module.o:  AB_COMM_module.o AB_ARRAY_module.o AB_ERROR_module.o
 
-AB_ARRAY_module.o:  AB_ARRAY_module.f90
+AB_ARRAY_module.o:  AB_ARRAY_module.o
 
-AB_ERROR_module.o:  AB_ERROR_module.f90
+AB_ERROR_module.o:  AB_ERROR_module.o
 
 clean:
 	rm -f *~ core *.o *.mod fort.* a.out *.exe *.a *.so *.protex
