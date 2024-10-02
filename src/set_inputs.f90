@@ -1922,7 +1922,11 @@ subroutine set_inputs
   if (iDebugLevel > 0) write(*, *) 'testing indices.... ', currenttime
   call check_all_indices(CurrentTime, iError)
   if (iError == 0) then
-    call check_all_indices(EndTime, iError)
+     call check_all_indices(EndTime, iError)
+     if (iError /= 0) &
+          write(*, *) 'Error with End Time and check_all_indices' 
+  else
+     write(*, *) 'Error with Current Time and check_all_indices' 
   end if
   if (iError /= 0) then
     call stop_gitm("Issue with Indices! Check the file(s) times!")
