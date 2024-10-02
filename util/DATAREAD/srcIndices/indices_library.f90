@@ -40,7 +40,7 @@ subroutine check_all_indices(TimeIn, iOutputError)
          write(*, *) 'Number of values : ', nIndices_V(iIndex)
          call time_real_to_int(IndexTimes_TV(nIndices_V(iIndex), iIndex), iTime)
          write(*, *) 'Last Index Time : ', iTime
-         call time_real_to_int(EndTime, iTime)
+         call time_real_to_int(TimeIn, iTime)
          write(*, *) 'TimeIn : ', iTime
       end if
     end if
