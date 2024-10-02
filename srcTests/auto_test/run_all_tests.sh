@@ -51,9 +51,9 @@ Arguments:
         -c, --clean               run a 'make clean' before make-ing?
         --skip_config             skip running Config.pl?
         --compare_with [path]     Path to the run directory which has outputs
-                                    from all tests
+                                    from all tests (not implemented yet)
         --save_to [path]          Save outputs? Useful to compare when making
-                                    changes that could affect outputs.
+                                    changes that could affect outputs. (not implemented yet)
 
 "
   exit 1
@@ -143,8 +143,7 @@ while [[ $# -gt 0 ]]; do
         echo "Comparing with" $2
         compare_dir=$2
       else
-        echo "here02"
-        echo "--compare_with directory $2 not found!"
+        echo "ERROR: --compare_with directory $2 not found!"
         exit 1
       fi
       shift 2
@@ -156,8 +155,7 @@ while [[ $# -gt 0 ]]; do
         sleep 5
         compare_dir=$2
       else
-        echo "here02"
-        echo "--compare_with directory $2 not found!"
+        echo "ERROR: --compare_with directory $2 not found!"
         exit 1
       fi
       shift 2
