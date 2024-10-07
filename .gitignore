@@ -48,11 +48,10 @@ srcGlow/libGLOW.a
 srcGlow/Makefile.DEPEND
 srcInterface/Makefile.DEPEND
 srcSphereAB/libSphere.a
-
-
-# Ignore util and share, and component_(util/share)
-# for SWMF coupling.
-util/
-share/
-component_util/
-component_share/
+util/CRASH/src/Makefile.DEPEND
+util/CRASH/src/Makefile.RULES
+util/DATAREAD/srcIndices/Makefile.DEPEND
+util/EMPIRICAL/srcEE/Makefile.DEPEND
+util/EMPIRICAL/srcIE/Makefile.DEPEND
+util/EMPIRICAL/srcUA/Makefile.RULES
+util/NOMPI/src/Makefile.RULES
