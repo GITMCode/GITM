@@ -1,5 +1,7 @@
 include ../srcMake/Makefile.conf
+include ../Makefile.def
 -include ./Makefile.DEPEND
+
 #
 #  Makefile for AB2D code:
 #
@@ -17,36 +19,20 @@ OBJECTS = \
 	AB_XFER_1blk_util.o
 
 DEPEND:
-	@perl ${SCRIPTDIR}/depend.pl  ./ ../src/ ${LIBDIR} ${OBJECTS} ${MODULES}
+	@perl ${SCRIPTDIR}/depend.pl  ./ ${SEARCH} ${LIBDIR} ${OBJECTS} ${MODULES}
 
-LIB:    libSphere.a
-	@echo libSphere.a has been brought up to date.
 
-libSphere.a:      ${MF} ${MODULES} ${OBJECTS}
+MY_LIB = ${LIBDIR}/libSphere.a
+
+LIB:	DEPEND
+	${MAKE} ${MY_LIB}
+	@echo
+	@echo ${MY_LIB} has been brought up to date.
+	@echo
+
+${MY_LIB}: ${MODULES} ${OBJECTS}
 	@echo 'Creating libSphere library'
-	${AR} libSphere.a ${MODULES} ${OBJECTS}
-
-exposed_objects: AB_module.o AB_XFER_module.o AB_ERROR_module.o \
-	         AB_XFER_array_util.o AB_XFER_1blk_util.o AB_SPH_module.o
-
-AB_module.o: AB_module.o AB_COMM_module.o AB_ARRAY_module.o \
-	AB_ERROR_module.o
-
-AB_XFER_array_util.o:  AB_XFER_array_util.o AB_module.o
-
-AB_XFER_1blk_util.o:  AB_XFER_1blk_util.o AB_module.o
-
-AB_XFER_module.o: AB_XFER_module.o AB_COMM_module.o AB_ARRAY_module.o \
-	AB_ERROR_module.o AB_module.o
-
-AB_SPH_module.o: AB_SPH_module.o AB_module.o AB_COMM_module.o \
-	AB_ERROR_module.o
-
-AB_COMM_module.o:  AB_COMM_module.o AB_ARRAY_module.o AB_ERROR_module.o
-
-AB_ARRAY_module.o:  AB_ARRAY_module.o
-
-AB_ERROR_module.o:  AB_ERROR_module.o
+	${AR} ${MY_LIB} ${MODULES} ${OBJECTS}
 
 clean:
 	rm -f *~ core *.o *.mod fort.* a.out *.exe *.a *.so *.protex
