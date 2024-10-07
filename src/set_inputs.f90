@@ -31,8 +31,6 @@ subroutine set_inputs
   integer, external :: bad_outputtype
   integer, external :: jday
 
-  integer, dimension(7) :: iEndTime
-
   logical :: IsDone, IsStartFound, doUseAeForHp
   integer :: iDebugProc = 0
   character(len=iCharLen_) :: cLine
@@ -527,7 +525,7 @@ subroutine set_inputs
           iFreq = 0
           do while (iErrorFile == 0)
             iFreq = iFreq + 1
-            read(iUnitFile, *, iostat=iErrorFile), &
+            read(iUnitFile, *, iostat=iErrorFile) &
               PerturbWaveFreq(iFreq), FFTReal(iFreq), FFTImag(iFreq)
             ! the frequencies are ordered from low to high in the file
             ! include frequencies up to 0.1Hz
@@ -669,7 +667,11 @@ subroutine set_inputs
           iError = 0
           call IO_set_inputs(cTempLines)
 
-          call read_MHDIMF_Indices_new(iError, CurrentTime, EndTime)
+          if (IsFramework) then ! SWMF_TIME_NOT_AVAILABLE
+            call read_MHDIMF_Indices(iError)
+          else
+            call read_MHDIMF_Indices_new(iError, CurrentTime, EndTime)
+          end if
           if (iError /= 0) then
             write(*, *) "read indices was NOT successful (imf file)"
             IsDone = .true.
@@ -1749,10 +1751,14 @@ subroutine set_inputs
         cTempLines(4) = "#END"
 
         call IO_set_inputs(cTempLines)
-        call read_NGDC_Indices_new(iError, CurrentTime, EndTime)
+        if (IsFramework) then !SWMF_TIME_NOT_AVAILABLE
+          call read_NGDC_Indices(iError)
+        else
+          call read_NGDC_Indices_new(iError, CurrentTime, EndTime)
+        end if
 
         if (iError /= 0) then
-          write(*, *) "read indices was NOT successful (NOAA file)"
+          write(*, *) "read indices was NOT successful (NGDC file)"
           IsDone = .true.
         else
           UseVariableInputs = .true.
@@ -1784,7 +1790,11 @@ subroutine set_inputs
         cTempLines(4) = "#END"
 
         call IO_set_inputs(cTempLines)
-        call read_OMNIWEB_Ap_Indices_new(iError, CurrentTime, EndTime)
+        if (IsFramework) then !SWMF_TIME_NOT_AVAILABLE
+          call stop_gitm("OMNIWEB AP cannot be read by GITM in component mode")
+        else
+          call read_OMNIWEB_Ap_Indices_new(iError, CurrentTime, EndTime)
+        end if
 
         if (iError /= 0) then
           write(*, *) "read indices was NOT successful (OMNIWEB Ap file)"
@@ -1815,9 +1825,13 @@ subroutine set_inputs
         cTempLines(5) = "#END"
 
         call IO_set_inputs(cTempLines)
-        call read_sme(iError, &
-                      CurrentTime + TimeDelayHighLat, &
-                      EndTime + TimeDelayHighLat, doUseAeForHp)
+        if (IsFramework) then !SWMF_TIME_NOT_AVAILABLE
+          call stop_gitm("SME cannot be read by GITM in component mode")
+        else
+          call read_sme(iError, &
+                        CurrentTime + TimeDelayHighLat, &
+                        EndTime + TimeDelayHighLat, doUseAeForHp)
+        end if
 
         if (iError /= 0) then
           write(*, *) "read_sme was NOT successful (Check SME file!)"
@@ -1884,7 +1898,11 @@ subroutine set_inputs
         cTempLines(4) = "#END"
 
         call IO_set_inputs(cTempLines)
-        call read_NOAAHPI_Indices_new(iError, StartTime, EndTime)
+        if (IsFramework) then
+          call read_NOAAHPI_Indices(iError)
+        else
+          call read_NOAAHPI_Indices_new(iError, StartTime, EndTime)
+        end if
 
         if (iError /= 0) then
           write(*, *) "read indices was NOT successful (NOAA HPI file)"
@@ -1919,15 +1937,18 @@ subroutine set_inputs
   ! We need to check to see if the current time and end time are
   ! larger than the last F107 time.  If that is the case, the code
   ! should stop
-  if (iDebugLevel > 0) write(*, *) 'testing indices.... ', currenttime
-  call check_all_indices(CurrentTime, iError)
-  if (iError == 0) then
-    call check_all_indices(EndTime, iError)
+  ! NOTE: In component mode, start/end times are not passed in yet.
+  ! -> So we cannot check these. A fix is in the works...
+  if (.not. IsFramework) then !SWMF_TIME_NOT_AVAILABLE
+    if (iDebugLevel > 0) write(*, *) 'testing indices.... ', currenttime
+    call check_all_indices(CurrentTime, iError)
+    if (iError == 0) then
+      call check_all_indices(EndTime, iError)
+    end if
+    if (iError /= 0) then
+      call stop_gitm("Issue with Indices! Check the file(s) times!")
+    end if
   end if
-  if (iError /= 0) then
-    call stop_gitm("Issue with Indices! Check the file(s) times!")
-  end if
-
   RestartTime = CurrentTime
 
 !  KappaTemp0 = 3.6e-4

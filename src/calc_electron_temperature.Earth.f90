@@ -1154,10 +1154,10 @@ subroutine calc_electron_ion_sources(iBlock) !,eHeatingp,iHeatingp,eHeatingm,iHe
         *costheta*dtedphe(1:nLons, 1:nLats)) &
           !!!!! Gradient in lambda !!!!!!
       + cos2dip(1:nLons, 1:nLats, iAlt)/(6.37e6 + alts(1:nLons, 1:nLats, iAlt))**2 &
-      *(cos2dec(1:nLons, 1:nLats, iAlt)*dtedtheta(1:nLons, 1:nLats)*dledtheta(1:nLons, 1:nLats) + &
-        +sin2dec(1:nLons, 1:nLats, iAlt)/sin2theta* &
-        dtedphe(1:nLons, 1:nLats)*dledphe(1:nLons, 1:nLats) + &
-        +sindec(1:nLons, 1:nLats, iAlt)*cosdec(1:nLons, 1:nLats, iAlt)/sintheta &
+      *(cos2dec(1:nLons, 1:nLats, iAlt)*dtedtheta(1:nLons, 1:nLats)*dledtheta(1:nLons, 1:nLats) &
+        + sin2dec(1:nLons, 1:nLats, iAlt)/sin2theta &
+        *dtedphe(1:nLons, 1:nLats)*dledphe(1:nLons, 1:nLats) &
+        + sindec(1:nLons, 1:nLats, iAlt)*cosdec(1:nLons, 1:nLats, iAlt)/sintheta &
         *(dtedtheta(1:nLons, 1:nLats)*dledphe(1:nLons, 1:nLats) &
           + dtedtheta(1:nLons, 1:nLats)*dledphe(1:nLons, 1:nLats)))
 
@@ -1179,12 +1179,12 @@ subroutine calc_electron_ion_sources(iBlock) !,eHeatingp,iHeatingp,eHeatingm,iHe
         /sintheta**2*costheta*dtidphe(1:nLons, 1:nLats)) &
           !!!!! Gradient in lambda !!!!!!
       + cos2dip(1:nLons, 1:nLats, iAlt)/(6.37e6 + alts(1:nLons, 1:nLats, iAlt))**2 &
-      *(cos2dec(1:nLons, 1:nLats, iAlt)*dtidtheta(1:nLons, 1:nLats)*dlidtheta(1:nLons, 1:nLats) + &
-        +sin2dec(1:nLons, 1:nLats, iAlt)/sin2theta* &
-        dtidphe(1:nLons, 1:nLats)*dlidphe(1:nLons, 1:nLats) + &
-        +sindec(1:nLons, 1:nLats, iAlt)*cosdec(1:nLons, 1:nLats, iAlt)/sintheta*( &
-        dtidtheta(1:nLons, 1:nLats)*dlidphe(1:nLons, 1:nLats) &
-        + dtidtheta(1:nLons, 1:nLats)*dlidphe(1:nLons, 1:nLats)))
+      *(cos2dec(1:nLons, 1:nLats, iAlt)*dtidtheta(1:nLons, 1:nLats)*dlidtheta(1:nLons, 1:nLats) &
+        + sin2dec(1:nLons, 1:nLats, iAlt)/sin2theta &
+        *dtidphe(1:nLons, 1:nLats)*dlidphe(1:nLons, 1:nLats) &
+        + sindec(1:nLons, 1:nLats, iAlt)*cosdec(1:nLons, 1:nLats, iAlt)/sintheta &
+        *(dtidtheta(1:nLons, 1:nLats)*dlidphe(1:nLons, 1:nLats) &
+          + dtidtheta(1:nLons, 1:nLats)*dlidphe(1:nLons, 1:nLats)))
 
     Qiconhp(1:nLons, 1:nLats, iAlt) = &
       2.*lami(1:nLons, 1:nLats, iAlt)*cos2dip(1:nLons, 1:nLats, iAlt) &

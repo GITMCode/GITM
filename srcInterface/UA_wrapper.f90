@@ -30,7 +30,7 @@ module UA_wrapper
   public :: UA_find_points
 
   ! Variables for UA-IE coupling:
-  integer, save :: iSizeIeHemi, jSizeIeHemi ! Size of IE grid for 1 hemisphere.
+  integer :: iSizeIeHemi, jSizeIeHemi ! Size of IE grid for 1 hemisphere.
 
   ! CON_coupler_points
   ! These are not called anywhere, should not be public.

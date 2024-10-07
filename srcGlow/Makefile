@@ -25,8 +25,8 @@ OBJECTS = \
 	vquart.o\
 	GL_library.o
 
-EXE = GLOW.exe
-SEARCH_EXTRA = -I../src 
+EXE = ${BINDIR}/GLOW.exe
+# SEARCH_EXTRA = -I../src 
 
 MYLIB = libGLOW.a
 
@@ -39,7 +39,7 @@ libGLOW.a: ${MF} ${MODULES} ${OBJECTS}
 
 MY_LIB=libUPTOGL.a
 
-LIBADD:
+LIBADD: DEPEND
 	make ${MY_LIB}
 	@echo
 	@echo ${MY_LIB} has been brought up to date.
