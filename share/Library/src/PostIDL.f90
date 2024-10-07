@@ -139,7 +139,7 @@ program post_idl
   READPARAM: do
     if (.not. read_line(StringLine)) then
       EXIT READPARAM
-    end if
+    endif
 
     if (.not. read_command(NameCommand)) CYCLE READPARAM
 
@@ -162,8 +162,8 @@ program post_idl
           write(*, *) '!!! Warning: PostIDL was compiled with ', &
             nByteReal, ' byte reals but file contains nByteReal=', &
             nByteRealRead
-        end if
-      end if
+        endif
+      endif
 
       ! Get rid of the directory part
       NameFileHead = NameFileHead( &
@@ -183,19 +183,19 @@ program post_idl
       do i = 1, nDimSim
         call read_var('CoordMin', CoordMin_D(i))
         call read_var('CoordMax', CoordMax_D(i))
-      end do
+      enddo
 
     case ('#PLOTRESOLUTION')
       CellSizePlot_D = 1
       do i = 1, nDimSim
         call read_var('CellSizePlot', CellSizePlot_D(i))
-      end do
+      enddo
 
     case ('#CELLSIZE')
       dCoordMin_D = 1
       do i = 1, nDimSim
         call read_var('CellSizeMin', dCoordMin_D(i))
-      end do
+      enddo
 
     case ('#NCELL')
       call read_var('nCellPlot', nCellPlot)
@@ -210,7 +210,7 @@ program post_idl
       allocate(PlotParam_I(nParamPlot))
       do i = 1, nParamPlot
         call read_var('Param', PlotParam_I(i))
-      end do
+      enddo
 
     case ('#GRIDGEOMETRYLIMIT')
       call read_var('TypeGeometry', TypeGeometry)
@@ -221,19 +221,19 @@ program post_idl
         allocate(LogRgen_I(nRgen))
         do i = 1, nRgen
           call read_var('LogRgen', LogRgen_I(i))
-        end do
-      end if
+        enddo
+      endif
 
       if (TypeGeometry == 'roundcube') then
         call read_var('rRound0', rRound0)
         call read_var('rRound1', rRound1)
         call read_var('SqrtNDim', SqrtNDim)
-      end if
+      endif
 
     case ('#PERIODIC')
       do i = 1, nDimSim
         call read_var('IsPeriodic', IsPeriodic_D(i))
-      end do
+      enddo
 
     case ('#OUTPUTFORMAT')
       call read_var('TypeOutPutFormat', TypeFile)
@@ -251,7 +251,7 @@ program post_idl
       write(*, *) 'WARNING: unknown command ', NameCommand
     end select
 
-  end do READPARAM
+  enddo READPARAM
 
   if (NameFileHead(1:3) == 'sph') then
     NameCoord_D = (/'r    ', 'theta', 'phi  '/)
@@ -268,7 +268,7 @@ program post_idl
     case ('round')
       NameCoord_D = (/'xi   ', 'eta  ', 'zeta '/)
     end select
-  end if
+  endif
 
   ! Save input CellSizePlot_D into dCoordPlot_D that may get overwritten
   dCoordPlot_D = CellSizePlot_D
@@ -301,8 +301,8 @@ program post_idl
       nParamExtra = nParamExtra + 1
       ParamExtra_I(nParamExtra) = 0.5*(CoordMax_D(iDim) + CoordMin_D(iDim))
       NameVar = trim(NameVar)//' cut'//trim(NameCoord_D(iDim))
-    end if
-  end do
+    endif
+  enddo
 
   if (IsVerbose) then
     write(*, *) 'dCoordPlot_D=', dCoordPlot_D
@@ -310,7 +310,7 @@ program post_idl
     write(*, *) 'NameCoord_D =', NameCoord_D
     write(*, *) 'nDim        =', nDim
     write(*, *) 'iDimCut_D   =', iDimCut_D
-  end if
+  endif
 
   if (nDim == 2 .and. NameFileHead(1:3) /= 'cut') then
     ! For double cut
@@ -330,28 +330,28 @@ program post_idl
         ! Use rMin < r' < 2*rMax - rMin as generalized coordinate
         UseDoubleCut = .true.; 
         ! nCell_D(1) = 2*nCell_D(1)
-      end if
+      endif
 
       ! Do not attempt to use structured grid for double cuts
       if (UseDoubleCut) then
         IsStructured = .false.
         CellSizePlot_D = -1.0
-      end if
-    end if
+      endif
+    endif
 
     if (IsVerbose) then
       write(*, *) 'iDim1, iDim2, iDim0=', iDim1, iDim2, iDim0
       write(*, *) 'CoordShift1, Shift2=', CoordShift1, CoordShift2
       write(*, *) 'UseDoubleCut       =', UseDoubleCut
-    end if
+    endif
 
-  end if
+  endif
 
   ! For unstructured grid make the Coord_DC and PlotVar_VC arrays linear
   if (.not. IsStructured) then
     nCell_D(1) = nCellPlot
     nCell_D(2:3) = 1
-  end if
+  endif
 
   ! Set scalars for plot size
   n1 = nCell_D(1); n2 = nCell_D(2); n3 = nCell_D(3)
@@ -367,7 +367,7 @@ program post_idl
   if (.not. IsStructured) then
     allocate(GenCoord_DI(nDim, nCellPlot), STAT=iError)
     if (iError /= 0) stop 'PostIDL.exe ERROR: could not allocate enCoord_DI'
-  end if
+  endif
 
   if (DoReadBinary .and. nByteRealRead == 4) allocate(PlotVar4_V(nPlotVar))
   if (DoReadBinary .and. nByteRealRead == 8) allocate(PlotVar8_V(nPlotVar))
@@ -411,11 +411,11 @@ program post_idl
           NameCoord = trim(NameCoord)//' [deg]'
         end select
         NameCoord = trim(NameCoord)//'", "'
-      end do
+      enddo
 
       NameUnit = NameCoord(1:len_trim(NameCoord) - 2)//NameUnit(l4:len(NameUnit))
-    end if
-  end if
+    endif
+  endif
 
   ! Logic for Tecplot conversion
   if (DoReadTecplot) then
@@ -435,18 +435,18 @@ program post_idl
     ! Read Tecplot file header
     do iHeaderTec = 1, nHeaderTec
       read(UnitTmp_, *) StringTecHeader
-    end do
+    enddo
     ! Read the coordinates and variables at the nodes
     do iNodeTec = 1, nNodeTec
       read(UnitTmp_, *) XyzTec_DI(:, iNodeTec), PlotVarTec_VI(:, iNodeTec)
-    end do
+    enddo
     ! Read the node indexes of the nodes surrounding each cell center
     do iCellTec = 1, nCellTec
       read(UnitTmp_, *) iNodeTec_II(:, iCellTec)
-    end do
+    enddo
 
     close(UnitTmp_)
-  end if
+  endif
 
   ! Collect info from all files and put it into PlotVar_VC and Coord_DC
   VolumeCheck = 0.0
@@ -461,7 +461,7 @@ program post_idl
         write(NameFile, '(a,i5.5,a)') NameFileHead(1:l - 2)//"_pe", iProc, '.idl'
       else
         write(NameFile, '(a,i4.4,a)') NameFileHead(1:l - 2)//"_pe", iProc, '.idl'
-      end if
+      endif
 
       if (iProc == 0) write(*, *) 'reading files=', trim(NameFile), &
         '...', nProc - 1, '.idl'
@@ -471,11 +471,11 @@ program post_idl
              iostat=iError)
       else
         open(UnitTmp_, file=NameFile, status='old', iostat=iError)
-      end if
+      endif
 
       ! Assume that missing files were empty.
       if (iError /= 0) CYCLE
-    end if
+    endif
 
     ! Read file
     do
@@ -496,7 +496,7 @@ program post_idl
           xMaxTec = max(xMaxTec, XyzTec_DI(1, iNodeTec))
           Xyz_D = Xyz_D + XyzTec_DI(:, iNodeTec)
           PlotVar_V = PlotVar_V + PlotVarTec_VI(:, iNodeTec)
-        end do
+        enddo
         CellSize1 = xMaxTec - xMinTec
         Xyz_D = Xyz_D/8.
         PlotVar_V = PlotVar_V/8.
@@ -507,10 +507,10 @@ program post_idl
         else
           read(UnitTmp_, ERR=999, END=999) DxCell8, Xyz8_D, PlotVar8_V
           CellSize1 = DxCell8; Xyz_D = Xyz8_D; PlotVar_V = PlotVar8_V
-        end if
+        endif
       else
         read(UnitTmp_, *, ERR=999, END=999) CellSize1, Xyz_D, PlotVar_V
-      end if
+      endif
 
       nCellCheck = nCellCheck + 1
 
@@ -531,12 +531,12 @@ program post_idl
         do iDim = 1, nDim
           Coord_DC(iDim, iCell, 1, 1) = Xyz_D(iDimCut_D(iDim))
           GenCoord_DI(iDim, iCell) = GenCoord_D(iDimCut_D(iDim))
-        end do
+        enddo
 
         ! We are finished with unstructured
         CYCLE
 
-      end if
+      endif
 
       if (CellSize1 < dCoord1Plot + 1.e-6) then
         ! Cell has the correct size or finer
@@ -548,13 +548,13 @@ program post_idl
           Fraction = (CellSize1/dCoord1Plot)**nDim
         else
           Fraction = 1.0
-        end if
+        endif
 
         PlotVar_VC(:, i, j, k) = PlotVar_VC(:, i, j, k) + Fraction*PlotVar_V
         do iDim = 1, nDim
           Coord_DC(iDim, i, j, k) = Coord_DC(iDim, i, j, k) &
                                     + Fraction*Xyz_D(iDimCut_D(iDim))
-        end do
+        enddo
         VolumeCheck = VolumeCheck + Fraction
       else
         ! Cell is coarser than required resolution
@@ -571,12 +571,12 @@ program post_idl
           PlotVar_VC(iVar, iMin:iMax, jMin:jMax, kMin:kMax) = &
             PlotVar_VC(iVar, iMin:iMax, jMin:jMax, kMin:kMax) &
             + PlotVar_V(iVar)
-        end do
+        enddo
         do iDim = 1, nDim
           Coord_DC(iDim, iMin:iMax, jMin:jMax, kMin:kMax) = &
             Coord_DC(iDim, iMin:iMax, jMin:jMax, kMin:kMax) &
             + Xyz_D(iDimCut_D(iDim))
-        end do
+        enddo
 
         if (iMax < iMin .or. jMax < jMin .or. kMax < kMin) &
           write(*, *) '!!! Empty box for cell CellSize_D(1), GenCoord_D=', &
@@ -584,13 +584,13 @@ program post_idl
 
         VolumeCheck = VolumeCheck &
                       + (iMax - iMin + 1)*(jMax - jMin + 1)*(kMax - kMin + 1)
-      end if
-    end do ! read file
+      endif
+    enddo ! read file
 
 999 continue
 
     if (.not. DoReadTecplot) close(UnitTmp_)
-  end do ! iProc
+  enddo ! iProc
 
   if (IsVerbose) write(*, *) 'nCellCheck=', nCellCheck, &
     ' nCellPlot=', nCellPlot
@@ -612,14 +612,14 @@ program post_idl
     elseif (abs(VolumeCheck/VolumePlot - 1.0) > 0.0001) then
       write(*, *) '!!! Discrepancy in structured file:', &
         'filled VolumeCheck=', VolumeCheck, ' VolumePlot=', VolumePlot, ' !!!'
-    end if
+    endif
   else
     if (iCell /= nCellPlot) &
       write(*, *) '!!! Error: nCellPlot=', nCellPlot, ' /= iCell=', iCell, ' !!!'
 
     n1 = iCell
     nCell_D(1) = iCell
-  end if
+  endif
 
   if (NameFileHead(1:3) == 'cut') then
 
@@ -634,36 +634,36 @@ program post_idl
           do k = 1, n3; do j = 1, n2; do i = 1, n1
               Coord_DC(iDim, i, j, k) = exp(linear(LogRgen_I, 0, nRgen - 1, &
                                                    Coord_DC(iDim, i, j, k)*(nRgen - 1), DoExtrapolate=.true.))
-            end do; end do; end do
-        end if
+            enddo; enddo; enddo
+        endif
 
       case ('phi', 'theta', 'lat')
         Coord_DC(iDim, 1:n1, :, :) = Coord_DC(iDim, 1:n1, :, :)*cRadToDeg
       end select
-    end do
+    enddo
 
-  end if
+  endif
 
   if (TypeFile == 'tec') then
     NameFile = NameFileHead(1:l - 2)//'.dat'
   else
     NameFile = NameFileHead(1:l - 2)//'.out'
-  end if
+  endif
   write(*, *) 'writing file =', trim(NameFile)
 
   ! Param_I is the combination of eqpar and ParamExtra_I
   allocate(Param_I(nParamPlot + nParamExtra))
   do i = 1, nParamPlot
     Param_I(i) = PlotParam_I(i)
-  end do
+  enddo
   do i = 1, nParamExtra
     Param_I(i + nParamPlot) = ParamExtra_I(i)
-  end do
+  enddo
 
   if (IsVerbose) then
     write(*, *) 'nParamPlot, nParamExtra=', nParamPlot, nParamExtra
     write(*, *) ' Param_I=', Param_I
-  end if
+  endif
 
   if (.not. IsStructured .and. (nDim < 3 .or. DoSort3D)) then
     if (IsVerbose) write(*, *) 'Sorting unstructured grid points'
@@ -704,16 +704,16 @@ program post_idl
           nSum = nSum + 1
           j = j + 1
           if (j > n1) EXIT
-        end do
+        enddo
         if (j > i + 1) then
           ! Put average value into i-th element
           PlotVar_VC(:, i, 1, 1) = StateSum_V/nSum
-        end if
+        endif
         ! Save the index for the unique coordinates
         iSort_I(k) = i
         k = k + 1
         i = j
-      end do
+      enddo
       deallocate(StateSum_V, CellSizeMin_D, GenCoord_DI)
 
       ! Special judgement for the last point
@@ -722,26 +722,26 @@ program post_idl
         n1 = k
       else
         n1 = k - 1
-      end if
+      endif
 
       ! move the elements after finding out all the coinciding ones
       Coord_DC(:, 1:n1, 1, 1) = Coord_DC(:, iSort_I(1:n1), 1, 1)
       PlotVar_VC(:, 1:n1, 1, 1) = PlotVar_VC(:, iSort_I(1:n1), 1, 1)
 
       if (IsVerbose) write(*, *) 'Averaging done'
-    end if
+    endif
 
     deallocate(Sort_I, iSort_I)
 
     if (IsVerbose) then
       write(*, *) 'After sorting and averaging n1=', n1
-    end if
-  end if
+    endif
+  endif
 
   if (IsVerbose) then
     write(*, *) 'shape(Coord_DC)  =', shape(Coord_DC)
     write(*, *) 'shape(PlotVar_VC)=', shape(PlotVar_VC)
-  end if
+  endif
 
   ! the sizes of Coord_DC and PlotVar_VC may be modified by cell averaging
   ! in unstructured grids. Only the first dimension (1:n1) needs to be set
@@ -794,7 +794,7 @@ contains
       GenCoord_D = Xyz_D
 
       RETURN
-    end if
+    endif
 
     if (TypeGeometry == 'roundcube') then
 
@@ -816,7 +816,7 @@ contains
           else
             ! No distortion
             GenCoord_D = Xyz_D
-          end if
+          endif
 
         else
           ! The rounded (distorted) grid is inside of the non-distorted part
@@ -830,14 +830,14 @@ contains
             Coef2 = -(1 - Dist1/Dist2)/(rRound0 - rRound1)*Dist1
             Coef2 = (-Coef1 + sqrt(Coef1**2 - 4*Coef2))*0.5
             GenCoord_D = Xyz_D/Coef2
-          end if
-        end if
+          endif
+        endif
 
       else
         GenCoord_D = 0.0
-      end if
+      endif
       RETURN
-    end if
+    endif
 
     if (TypeGeometry(1:7) == 'rotated') then
 
@@ -880,12 +880,12 @@ contains
 
           nVector = nVector + 1
           iVarVector_I(nVector) = iVar
-        end do
+        enddo
         deallocate(NameVar_V)
 
         !write(*,*)'nVector, iVarVector_I=', nVector, iVarVector_I(1:nVector)
 
-      end if
+      endif
 
       ! Unrotate the coordinates for comparison with Cartesian runs
       Xyz_D = matmul(Xyz_D, GridRot_DD)
@@ -895,10 +895,10 @@ contains
       do iVector = 1, nVector
         iVar = iVarVector_I(iVector)
         PlotVar_V(iVar:iVar + 2) = matmul(PlotVar_V(iVar:iVar + 2), GridRot_DD)
-      end do
+      enddo
 
       RETURN
-    end if
+    endif
 
     rCyl = sqrt(Xyz_D(1)**2 + Xyz_D(2)**2)
 
@@ -909,7 +909,7 @@ contains
       GenCoord_D(2) = &
         modulo(atan2(Xyz_D(2), Xyz_D(1)) - CoordMin_D(2), cTwoPi) &
         + CoordMin_D(2)
-    end if
+    endif
 
     select case (TypeGeometry)
     case ('cylindrical', 'cylindrical_lnr', 'cylindrical_genr')
@@ -931,7 +931,7 @@ contains
           if (UseDoubleCut .and. Xyz_D(1) < 0.0) &
             GenCoord_D(1) = GenCoord_D(1) + CoordShift1
         end select
-      end if
+      endif
     case ('spherical', 'spherical_lnr', 'spherical_genr')
       GenCoord_D(1) = sqrt(rCyl**2 + Xyz_D(3)**2)
 
@@ -950,7 +950,7 @@ contains
           ! projecting the points down to the X-Y plane
           Xyz_D(1:2) = Xyz_D(1:2)*GenCoord_D(1)/rCyl
         end select
-      end if
+      endif
       ! Latitude
       GenCoord_D(3) = asin(Xyz_D(3)/GenCoord_D(1))
       ! Shift by width of latitude range for the left half
@@ -970,7 +970,7 @@ contains
                        + (GenCoord_D(1) - LogRgen_I(i)) &
                        /(LogRgen_I(i + 1) - LogRgen_I(i))) &
                       /(nRgen - 1)
-    end if
+    endif
 
   end subroutine set_gen_coord
 

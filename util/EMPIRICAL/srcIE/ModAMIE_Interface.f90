@@ -89,14 +89,14 @@ contains
     if (iError /= 0) then
       write(*, *) "Error in allocating array AMIE_Lats in "
       stop
-    end if
+    endif
 
     if (allocated(AMIE_Mlts)) deallocate(AMIE_Mlts)
     allocate(AMIE_Mlts(AMIE_nMlts), stat=iError)
     if (iError /= 0) then
       write(*, *) "Error in allocating array Mlts in "
       stop
-    end if
+    endif
 
     ! ------------------------------------------------------------
     ! This is the variable that holds all of the variables to allo
@@ -116,7 +116,7 @@ contains
     if (iError /= 0) then
       write(*, *) "Error in allocating array AMIE_Storage in readAMIEoutput"
       stop
-    end if
+    endif
 
     if (AMIE_iDebugLevel > 1) write(*, *) '  --> allocated the big array!'
 
@@ -140,7 +140,7 @@ contains
     if (iError /= 0) then
       write(*, *) "Error in allocating array AMIE_Value in "
       stop
-    end if
+    endif
 
     AMIE_Value = 0.0
 
@@ -152,7 +152,7 @@ contains
     if (iError /= 0) then
       write(*, *) "Error in allocating array AMIE_Interpolated in "
       stop
-    end if
+    endif
 
     AMIE_Value = 0.0
 
@@ -163,7 +163,7 @@ contains
     if (iError /= 0) then
       write(*, *) "Error in allocating array AMIETimes in "
       stop
-    end if
+    endif
 
     if (AMIE_iDebugLevel > 1) write(*, *) '  --> done allocating!'
 
@@ -186,45 +186,45 @@ contains
           iMap_(iVal) = iField
           if (AMIE_iDebugLevel > 1) &
             write(*, *) "<--- ", trim(AMIE_Names(iVal)), " Found", iField
-        end if
-      end do
-    end do
+        endif
+      enddo
+    enddo
     if (AMIE_iDebugLevel > 1) then
       write(*, *) 'Summary of variables found in AMIE file : '
       do iVal = 1, nValues
         if (iMap_(iVal) > 0) then
           write(*, *) 'Expected : ', trim(AMIE_Names(iVal)), &
             '; found : ', trim(Fields(iMap_(iVal)))
-        end if
-      end do
-    end if
+        endif
+      enddo
+    endif
 
     ! Check to see if some of these exist:
     if (iMap_(iPotential_) < 1) then
       call report_error_and_crash(1, "Could not find Potential in file!")
-    end if
+    endif
     if ((iMap_(iEle_diff_eflux_) < 1) .or. (iMap_(iEle_diff_avee_) < 0)) then
       call report_error_and_crash(1, "Could not find Electron Diffuse in file!")
-    end if
+    endif
 
     if ((iMap_(iIon_diff_eflux_) > 0) .and. (iMap_(iIon_diff_avee_) > 0)) then
       useIons = .true.
       if (AMIE_iDebugLevel > 1) write(*, *) "Input Electrodynamics is using Ions!"
     else
       useIons = .false.
-    end if
+    endif
     if ((iMap_(iEle_mono_eflux_) > 0) .and. (iMap_(iEle_mono_avee_) > 0)) then
       useMono = .true.
       if (AMIE_iDebugLevel > 1) write(*, *) "Input Electrodynamics is using Mono!"
     else
       useMono = .false.
-    end if
+    endif
     if ((iMap_(iEle_wave_eflux_) > 0) .and. (iMap_(iEle_wave_avee_) > 0)) then
       useWave = .true.
       if (AMIE_iDebugLevel > 1) write(*, *) "Input Electrodynamics is using Ions!"
     else
       useWave = .false.
-    end if
+    endif
 
   end subroutine AMIE_link_vars_to_keys
 

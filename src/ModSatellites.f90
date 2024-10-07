@@ -86,7 +86,7 @@ contains
         nSatPos(nMaxSats, nMaxSatInputLines), &
         SatDat(nMaxSats, nMaxSatInputLines), &
         SatCurrentDat(nMaxSats), SatAltDat(nMaxSats))
-    end if
+    endif
 
   end subroutine init_mod_satellites_rcmr
 

@@ -77,7 +77,7 @@ subroutine EIE_set_inputs(StringInputLines)
         UseGridBasedEIE = .false.
         UAl_UseGridBasedEIE = .false.
 
-      end if
+      endif
 
       if (index(StringLine, "#AMIEFILES") > 0) then
         call read_in_string(AMIEFileNorth)
@@ -85,35 +85,35 @@ subroutine EIE_set_inputs(StringInputLines)
         EIE_NameOfEFieldModel = "amie"
         UseGridBasedEIE = .true.
         UAl_UseGridBasedEIE = .true.
-      end if
+      endif
 
       if (index(StringLine, "#DEBUG") > 0) then
         call read_in_int(iDebugLevel)
         call read_in_int(iDebugProc)
         if (iDebugProc >= 0 .and. iProc /= iDebugProc) then
           iDebugLevel = -1
-        end if
-      end if
+        endif
+      endif
 
       if (index(StringLine, "#FIXTILT") > 0) then
         call read_in_logical(IsFixedTilt)
-      end if
+      endif
 
       if (index(StringLine, "#END") > 0) then
         IsDone = .true.
-      end if
+      endif
 
       if (iLine >= MaxInputLines) then
         IsDone = .true.
-      end if
+      endif
 
     else
 
       iLine = iLine + 1
 
-    end if
+    endif
 
-  end do
+  enddo
 
 contains
 

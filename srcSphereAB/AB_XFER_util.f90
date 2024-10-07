@@ -46,19 +46,19 @@
              do j = 1, long
                out_array(p) = v_in(j, i, a)
                p = p + 1
-             end do
-           end do
-         end do
+             enddo
+           enddo
+         enddo
        else
          do a = 1, alt
            do i = lat - gcn + 1, lat
              do j = 1, long
                out_array(p) = v_in(j, i, a)
                p = p + 1
-             end do
-           end do
-         end do
-       end if
+             enddo
+           enddo
+         enddo
+       endif
 
      case (ab_south)
        if (pole) then
@@ -67,19 +67,19 @@
              do j = 1, long
                out_array(p) = v_in(j, i, a)
                p = p + 1
-             end do
-           end do
-         end do
+             enddo
+           enddo
+         enddo
        else
          do a = 1, alt
            do i = 1, gcn
              do j = 1, long
                out_array(p) = v_in(j, i, a)
                p = p + 1
-             end do
-           end do
-         end do
-       end if
+             enddo
+           enddo
+         enddo
+       endif
 
      case (ab_east)
        do a = 1, alt
@@ -87,9 +87,9 @@
            do j = long - gcn + 1, long
              out_array(p) = v_in(j, i, a)
              p = p + 1
-           end do
-         end do
-       end do
+           enddo
+         enddo
+       enddo
 
      case (ab_west)
        do a = 1, alt
@@ -97,9 +97,9 @@
            do j = 1, gcn
              out_array(p) = v_in(j, i, a)
              p = p + 1
-           end do
-         end do
-       end do
+           enddo
+         enddo
+       enddo
 
      case (ab_northeast)
        if (pole) then
@@ -108,19 +108,19 @@
              do j = long - gcn + 1, long
                out_array(p) = v_in(j, i, a)
                p = p + 1
-             end do
-           end do
-         end do
+             enddo
+           enddo
+         enddo
        else
          do a = 1, alt
            do i = lat - gcn + 1, lat
              do j = long - gcn + 1, long
                out_array(p) = v_in(j, i, a)
                p = p + 1
-             end do
-           end do
-         end do
-       end if
+             enddo
+           enddo
+         enddo
+       endif
 
      case (ab_northwest)
        if (pole) then
@@ -129,19 +129,19 @@
              do j = 1, gcn
                out_array(p) = v_in(j, i, a)
                p = p + 1
-             end do
-           end do
-         end do
+             enddo
+           enddo
+         enddo
        else
          do a = 1, alt
            do i = lat - gcn + 1, lat
              do j = 1, gcn
                out_array(p) = v_in(j, i, a)
                p = p + 1
-             end do
-           end do
-         end do
-       end if
+             enddo
+           enddo
+         enddo
+       endif
 
      case (ab_southeast)
        if (pole) then
@@ -150,19 +150,19 @@
              do j = long - gcn + 1, long
                out_array(p) = v_in(j, i, a)
                p = p + 1
-             end do
-           end do
-         end do
+             enddo
+           enddo
+         enddo
        else
          do a = 1, alt
            do i = 1, gcn
              do j = long - gcn + 1, long
                out_array(p) = v_in(j, i, a)
                p = p + 1
-             end do
-           end do
-         end do
-       end if
+             enddo
+           enddo
+         enddo
+       endif
 
      case (ab_southwest)
        if (pole) then
@@ -171,19 +171,19 @@
              do j = 1, gcn
                out_array(p) = v_in(j, i, a)
                p = p + 1
-             end do
-           end do
-         end do
+             enddo
+           enddo
+         enddo
        else
          do a = 1, alt
            do i = 1, gcn
              do j = 1, gcn
                out_array(p) = v_in(j, i, a)
                p = p + 1
-             end do
-           end do
-         end do
-       end if
+             enddo
+           enddo
+         enddo
+       endif
 
      end select
 
@@ -206,9 +206,9 @@
            do j = 1, long
              v_out(j, i, a) = in_array(p)
              p = p + 1
-           end do
-         end do
-       end do
+           enddo
+         enddo
+       enddo
 
      case (ab_south)
        do a = 1, alt
@@ -216,9 +216,9 @@
            do j = 1, long
              v_out(j, i, a) = in_array(p)
              p = p + 1
-           end do
-         end do
-       end do
+           enddo
+         enddo
+       enddo
 
      case (ab_east)
        do a = 1, alt
@@ -226,9 +226,9 @@
            do j = long + 1, long + gcn
              v_out(j, i, a) = in_array(p)
              p = p + 1
-           end do
-         end do
-       end do
+           enddo
+         enddo
+       enddo
 
      case (ab_west)
        do a = 1, alt
@@ -236,9 +236,9 @@
            do j = 1 - gcn, 0
              v_out(j, i, a) = in_array(p)
              p = p + 1
-           end do
-         end do
-       end do
+           enddo
+         enddo
+       enddo
 
      case (ab_northeast)
        do a = 1, alt
@@ -246,9 +246,9 @@
            do j = long + 1, long + gcn
              v_out(j, i, a) = in_array(p)
              p = p + 1
-           end do
-         end do
-       end do
+           enddo
+         enddo
+       enddo
 
      case (ab_northwest)
        do a = 1, alt
@@ -256,9 +256,9 @@
            do j = 1 - gcn, 0
              v_out(j, i, a) = in_array(p)
              p = p + 1
-           end do
-         end do
-       end do
+           enddo
+         enddo
+       enddo
 
      case (ab_southeast)
        do a = 1, alt
@@ -266,9 +266,9 @@
            do j = long + 1, long + gcn
              v_out(j, i, a) = in_array(p)
              p = p + 1
-           end do
-         end do
-       end do
+           enddo
+         enddo
+       enddo
 
      case (ab_southwest)
        do a = 1, alt
@@ -276,9 +276,9 @@
            do j = 1 - gcn, 0
              v_out(j, i, a) = in_array(p)
              p = p + 1
-           end do
-         end do
-       end do
+           enddo
+         enddo
+       enddo
 
      end select
 
@@ -320,19 +320,19 @@
                shifted_j = mod(j - 1 + half_long, long) + 1
                out_array(p) = v_in(shifted_j, i, a)
                p = p + 1
-             end do
-           end do
-         end do
+             enddo
+           enddo
+         enddo
        else
          do a = 1, alt
            do i = lat - gcn + 1, lat
              do j = 1, long
                out_array(p) = v_in(j, i, a)
                p = p + 1
-             end do
-           end do
-         end do
-       end if
+             enddo
+           enddo
+         enddo
+       endif
 
      case (ab_south)
        if (pole) then
@@ -342,19 +342,19 @@
                shifted_j = mod(j - 1 + half_long, long) + 1
                out_array(p) = v_in(shifted_j, i, a)
                p = p + 1
-             end do
-           end do
-         end do
+             enddo
+           enddo
+         enddo
        else
          do a = 1, alt
            do i = 1, gcn
              do j = 1, long
                out_array(p) = v_in(j, i, a)
                p = p + 1
-             end do
-           end do
-         end do
-       end if
+             enddo
+           enddo
+         enddo
+       endif
 
      case (ab_east)
        do a = 1, alt
@@ -362,9 +362,9 @@
            do j = long - gcn + 1, long
              out_array(p) = v_in(j, i, a)
              p = p + 1
-           end do
-         end do
-       end do
+           enddo
+         enddo
+       enddo
 
      case (ab_west)
        do a = 1, alt
@@ -372,9 +372,9 @@
            do j = 1, gcn
              out_array(p) = v_in(j, i, a)
              p = p + 1
-           end do
-         end do
-       end do
+           enddo
+         enddo
+       enddo
 
      case (ab_northeast)
        if (pole) then
@@ -384,19 +384,19 @@
                shifted_j = mod(j - 1 + half_long, long) + 1
                out_array(p) = v_in(shifted_j, i, a)
                p = p + 1
-             end do
-           end do
-         end do
+             enddo
+           enddo
+         enddo
        else
          do a = 1, alt
            do i = lat - gcn + 1, lat
              do j = long - gcn + 1, long
                out_array(p) = v_in(j, i, a)
                p = p + 1
-             end do
-           end do
-         end do
-       end if
+             enddo
+           enddo
+         enddo
+       endif
 
      case (ab_northwest)
        if (pole) then
@@ -406,19 +406,19 @@
                shifted_j = mod(j - 1 + half_long, long) + 1
                out_array(p) = v_in(shifted_j, i, a)
                p = p + 1
-             end do
-           end do
-         end do
+             enddo
+           enddo
+         enddo
        else
          do a = 1, alt
            do i = lat - gcn + 1, lat
              do j = 1, gcn
                out_array(p) = v_in(j, i, a)
                p = p + 1
-             end do
-           end do
-         end do
-       end if
+             enddo
+           enddo
+         enddo
+       endif
 
      case (ab_southeast)
        if (pole) then
@@ -428,19 +428,19 @@
                shifted_j = mod(j - 1 + half_long, long) + 1
                out_array(p) = v_in(shifted_j, i, a)
                p = p + 1
-             end do
-           end do
-         end do
+             enddo
+           enddo
+         enddo
        else
          do a = 1, alt
            do i = 1, gcn
              do j = long - gcn + 1, long
                out_array(p) = v_in(j, i, a)
                p = p + 1
-             end do
-           end do
-         end do
-       end if
+             enddo
+           enddo
+         enddo
+       endif
 
      case (ab_southwest)
        if (pole) then
@@ -450,19 +450,19 @@
                shifted_j = mod(j - 1 + half_long, long) + 1
                out_array(p) = v_in(shifted_j, i, a)
                p = p + 1
-             end do
-           end do
-         end do
+             enddo
+           enddo
+         enddo
        else
          do a = 1, alt
            do i = 1, gcn
              do j = 1, gcn
                out_array(p) = v_in(j, i, a)
                p = p + 1
-             end do
-           end do
-         end do
-       end if
+             enddo
+           enddo
+         enddo
+       endif
 
      end select
    end subroutine AB_1blk3_gc_pack
@@ -484,9 +484,9 @@
            do j = 1, long
              v_out(j, i, a) = in_array(p)
              p = p + 1
-           end do
-         end do
-       end do
+           enddo
+         enddo
+       enddo
 
      case (ab_south)
        do a = 1, alt
@@ -494,9 +494,9 @@
            do j = 1, long
              v_out(j, i, a) = in_array(p)
              p = p + 1
-           end do
-         end do
-       end do
+           enddo
+         enddo
+       enddo
 
      case (ab_east)
        do a = 1, alt
@@ -504,9 +504,9 @@
            do j = long + 1, long + gcn
              v_out(j, i, a) = in_array(p)
              p = p + 1
-           end do
-         end do
-       end do
+           enddo
+         enddo
+       enddo
 
      case (ab_west)
        do a = 1, alt
@@ -514,9 +514,9 @@
            do j = 1 - gcn, 0
              v_out(j, i, a) = in_array(p)
              p = p + 1
-           end do
-         end do
-       end do
+           enddo
+         enddo
+       enddo
 
      case (ab_northeast)
        do a = 1, alt
@@ -524,9 +524,9 @@
            do j = long + 1, long + gcn
              v_out(j, i, a) = in_array(p)
              p = p + 1
-           end do
-         end do
-       end do
+           enddo
+         enddo
+       enddo
 
      case (ab_northwest)
        do a = 1, alt
@@ -534,9 +534,9 @@
            do j = 1 - gcn, 0
              v_out(j, i, a) = in_array(p)
              p = p + 1
-           end do
-         end do
-       end do
+           enddo
+         enddo
+       enddo
 
      case (ab_southeast)
        do a = 1, alt
@@ -544,9 +544,9 @@
            do j = long + 1, long + gcn
              v_out(j, i, a) = in_array(p)
              p = p + 1
-           end do
-         end do
-       end do
+           enddo
+         enddo
+       enddo
 
      case (ab_southwest)
        do a = 1, alt
@@ -554,9 +554,9 @@
            do j = 1 - gcn, 0
              v_out(j, i, a) = in_array(p)
              p = p + 1
-           end do
-         end do
-       end do
+           enddo
+         enddo
+       enddo
 
      end select
 
@@ -596,10 +596,10 @@
                do j = 1, long
                  out_array(p) = v_in(j, i, a, e)
                  p = p + 1
-               end do
-             end do
-           end do
-         end do
+               enddo
+             enddo
+           enddo
+         enddo
        else
          do e = 1, eta
            do a = 1, alt
@@ -607,11 +607,11 @@
                do j = 1, long
                  out_array(p) = v_in(j, i, a, e)
                  p = p + 1
-               end do
-             end do
-           end do
-         end do
-       end if
+               enddo
+             enddo
+           enddo
+         enddo
+       endif
 
      case (ab_south)
        if (pole) then
@@ -621,10 +621,10 @@
              do j = 1, long
                out_array(p) = v_in(j, i, a, e)
                p = p + 1
-             end do
-           end do
-         end do
-         end do
+             enddo
+           enddo
+         enddo
+         enddo
        else
          do e = 1, eta
          do a = 1, alt
@@ -632,11 +632,11 @@
              do j = 1, long
                out_array(p) = v_in(j, i, a, e)
                p = p + 1
-             end do
-           end do
-         end do
-         end do
-       end if
+             enddo
+           enddo
+         enddo
+         enddo
+       endif
 
      case (ab_east)
        do e = 1, eta
@@ -645,10 +645,10 @@
            do j = long - gcn + 1, long
              out_array(p) = v_in(j, i, a, e)
              p = p + 1
-           end do
-         end do
-       end do
-       end do
+           enddo
+         enddo
+       enddo
+       enddo
 
      case (ab_west)
        do e = 1, eta
@@ -657,10 +657,10 @@
            do j = 1, gcn
              out_array(p) = v_in(j, i, a, e)
              p = p + 1
-           end do
-         end do
-       end do
-       end do
+           enddo
+         enddo
+       enddo
+       enddo
 
      case (ab_northeast)
        if (pole) then
@@ -670,10 +670,10 @@
              do j = long - gcn + 1, long
                out_array(p) = v_in(j, i, a, e)
                p = p + 1
-             end do
-           end do
-         end do
-         end do
+             enddo
+           enddo
+         enddo
+         enddo
        else
          do e = 1, eta
          do a = 1, alt
@@ -681,11 +681,11 @@
              do j = long - gcn + 1, long
                out_array(p) = v_in(j, i, a, e)
                p = p + 1
-             end do
-           end do
-         end do
-         end do
-       end if
+             enddo
+           enddo
+         enddo
+         enddo
+       endif
 
      case (ab_northwest)
        if (pole) then
@@ -695,10 +695,10 @@
              do j = 1, gcn
                out_array(p) = v_in(j, i, a, e)
                p = p + 1
-             end do
-           end do
-         end do
-         end do
+             enddo
+           enddo
+         enddo
+         enddo
        else
          do e = 1, eta
          do a = 1, alt
@@ -706,11 +706,11 @@
              do j = 1, gcn
                out_array(p) = v_in(j, i, a, e)
                p = p + 1
-             end do
-           end do
-         end do
-         end do
-       end if
+             enddo
+           enddo
+         enddo
+         enddo
+       endif
 
      case (ab_southeast)
        if (pole) then
@@ -720,10 +720,10 @@
              do j = long - gcn + 1, long
                out_array(p) = v_in(j, i, a, e)
                p = p + 1
-             end do
-           end do
-         end do
-         end do
+             enddo
+           enddo
+         enddo
+         enddo
        else
          do e = 1, eta
          do a = 1, alt
@@ -731,11 +731,11 @@
              do j = long - gcn + 1, long
                out_array(p) = v_in(j, i, a, e)
                p = p + 1
-             end do
-           end do
-         end do
-         end do
-       end if
+             enddo
+           enddo
+         enddo
+         enddo
+       endif
 
      case (ab_southwest)
        if (pole) then
@@ -745,10 +745,10 @@
              do j = 1, gcn
                out_array(p) = v_in(j, i, a, e)
                p = p + 1
-             end do
-           end do
-         end do
-         end do
+             enddo
+           enddo
+         enddo
+         enddo
        else
          do e = 1, eta
          do a = 1, alt
@@ -756,11 +756,11 @@
              do j = 1, gcn
                out_array(p) = v_in(j, i, a, e)
                p = p + 1
-             end do
-           end do
-         end do
-         end do
-       end if
+             enddo
+           enddo
+         enddo
+         enddo
+       endif
 
      end select
 
@@ -784,10 +784,10 @@
            do j = 1, long
              v_out(j, i, a, e) = in_array(p)
              p = p + 1
-           end do
-         end do
-       end do
-       end do
+           enddo
+         enddo
+       enddo
+       enddo
 
      case (ab_south)
        do e = 1, eta
@@ -796,10 +796,10 @@
            do j = 1, long
              v_out(j, i, a, e) = in_array(p)
              p = p + 1
-           end do
-         end do
-       end do
-       end do
+           enddo
+         enddo
+       enddo
+       enddo
 
      case (ab_east)
        do e = 1, eta
@@ -808,10 +808,10 @@
            do j = long + 1, long + gcn
              v_out(j, i, a, e) = in_array(p)
              p = p + 1
-           end do
-         end do
-       end do
-       end do
+           enddo
+         enddo
+       enddo
+       enddo
 
      case (ab_west)
        do e = 1, eta
@@ -820,10 +820,10 @@
            do j = 1 - gcn, 0
              v_out(j, i, a, e) = in_array(p)
              p = p + 1
-           end do
-         end do
-       end do
-       end do
+           enddo
+         enddo
+       enddo
+       enddo
 
      case (ab_northeast)
        do e = 1, eta
@@ -832,10 +832,10 @@
            do j = long + 1, long + gcn
              v_out(j, i, a, e) = in_array(p)
              p = p + 1
-           end do
-         end do
-       end do
-       end do
+           enddo
+         enddo
+       enddo
+       enddo
 
      case (ab_northwest)
        do e = 1, eta
@@ -844,10 +844,10 @@
            do j = 1 - gcn, 0
              v_out(j, i, a, e) = in_array(p)
              p = p + 1
-           end do
-         end do
-       end do
-       end do
+           enddo
+         enddo
+       enddo
+       enddo
 
      case (ab_southeast)
        do e = 1, eta
@@ -856,10 +856,10 @@
            do j = long + 1, long + gcn
              v_out(j, i, a, e) = in_array(p)
              p = p + 1
-           end do
-         end do
-       end do
-       end do
+           enddo
+         enddo
+       enddo
+       enddo
 
      case (ab_southwest)
        do e = 1, eta
@@ -868,10 +868,10 @@
            do j = 1 - gcn, 0
              v_out(j, i, a, e) = in_array(p)
              p = p + 1
-           end do
-         end do
-       end do
-       end do
+           enddo
+         enddo
+       enddo
+       enddo
 
      end select
 
@@ -915,10 +915,10 @@
                shifted_j = mod(j - 1 + half_long, long) + 1
                out_array(p) = v_in(shifted_j, i, a, e)
                p = p + 1
-             end do
-           end do
-         end do
-         end do
+             enddo
+           enddo
+         enddo
+         enddo
        else
          do e = 1, eta
          do a = 1, alt
@@ -926,11 +926,11 @@
              do j = 1, long
                out_array(p) = v_in(j, i, a, e)
                p = p + 1
-             end do
-           end do
-         end do
-         end do
-       end if
+             enddo
+           enddo
+         enddo
+         enddo
+       endif
 
      case (ab_south)
        if (pole) then
@@ -941,10 +941,10 @@
                shifted_j = mod(j - 1 + half_long, long) + 1
                out_array(p) = v_in(shifted_j, i, a, e)
                p = p + 1
-             end do
-           end do
-         end do
-         end do
+             enddo
+           enddo
+         enddo
+         enddo
        else
          do e = 1, eta
          do a = 1, alt
@@ -952,11 +952,11 @@
              do j = 1, long
                out_array(p) = v_in(j, i, a, e)
                p = p + 1
-             end do
-           end do
-         end do
-         end do
-       end if
+             enddo
+           enddo
+         enddo
+         enddo
+       endif
 
      case (ab_east)
        do e = 1, eta
@@ -965,10 +965,10 @@
            do j = long - gcn + 1, long
              out_array(p) = v_in(j, i, a, e)
              p = p + 1
-           end do
-         end do
-       end do
-       end do
+           enddo
+         enddo
+       enddo
+       enddo
 
      case (ab_west)
        do e = 1, eta
@@ -977,10 +977,10 @@
            do j = 1, gcn
              out_array(p) = v_in(j, i, a, e)
              p = p + 1
-           end do
-         end do
-       end do
-       end do
+           enddo
+         enddo
+       enddo
+       enddo
 
      case (ab_northeast)
        if (pole) then
@@ -991,10 +991,10 @@
                shifted_j = mod(j - 1 + half_long, long) + 1
                out_array(p) = v_in(shifted_j, i, a, e)
                p = p + 1
-             end do
-           end do
-         end do
-         end do
+             enddo
+           enddo
+         enddo
+         enddo
        else
          do e = 1, eta
          do a = 1, alt
@@ -1002,11 +1002,11 @@
              do j = long - gcn + 1, long
                out_array(p) = v_in(j, i, a, e)
                p = p + 1
-             end do
-           end do
-         end do
-         end do
-       end if
+             enddo
+           enddo
+         enddo
+         enddo
+       endif
 
      case (ab_northwest)
        if (pole) then
@@ -1017,10 +1017,10 @@
                shifted_j = mod(j - 1 + half_long, long) + 1
                out_array(p) = v_in(shifted_j, i, a, e)
                p = p + 1
-             end do
-           end do
-         end do
-         end do
+             enddo
+           enddo
+         enddo
+         enddo
        else
          do e = 1, eta
          do a = 1, alt
@@ -1028,11 +1028,11 @@
              do j = 1, gcn
                out_array(p) = v_in(j, i, a, e)
                p = p + 1
-             end do
-           end do
-         end do
-         end do
-       end if
+             enddo
+           enddo
+         enddo
+         enddo
+       endif
 
      case (ab_southeast)
        if (pole) then
@@ -1043,10 +1043,10 @@
                shifted_j = mod(j - 1 + half_long, long) + 1
                out_array(p) = v_in(shifted_j, i, a, e)
                p = p + 1
-             end do
-           end do
-         end do
-         end do
+             enddo
+           enddo
+         enddo
+         enddo
        else
          do e = 1, eta
          do a = 1, alt
@@ -1054,11 +1054,11 @@
              do j = long - gcn + 1, long
                out_array(p) = v_in(j, i, a, e)
                p = p + 1
-             end do
-           end do
-         end do
-         end do
-       end if
+             enddo
+           enddo
+         enddo
+         enddo
+       endif
 
      case (ab_southwest)
        if (pole) then
@@ -1069,10 +1069,10 @@
                shifted_j = mod(j - 1 + half_long, long) + 1
                out_array(p) = v_in(shifted_j, i, a, e)
                p = p + 1
-             end do
-           end do
-         end do
-         end do
+             enddo
+           enddo
+         enddo
+         enddo
        else
          do e = 1, eta
          do a = 1, alt
@@ -1080,11 +1080,11 @@
              do j = 1, gcn
                out_array(p) = v_in(j, i, a, e)
                p = p + 1
-             end do
-           end do
-         end do
-         end do
-       end if
+             enddo
+           enddo
+         enddo
+         enddo
+       endif
 
      end select
 
@@ -1108,10 +1108,10 @@
            do j = 1, long
              v_out(j, i, a, e) = in_array(p)
              p = p + 1
-           end do
-         end do
-       end do
-       end do
+           enddo
+         enddo
+       enddo
+       enddo
 
      case (ab_south)
        do e = 1, eta
@@ -1120,10 +1120,10 @@
            do j = 1, long
              v_out(j, i, a, e) = in_array(p)
              p = p + 1
-           end do
-         end do
-       end do
-       end do
+           enddo
+         enddo
+       enddo
+       enddo
 
      case (ab_east)
        do e = 1, eta
@@ -1132,10 +1132,10 @@
            do j = long + 1, long + gcn
              v_out(j, i, a, e) = in_array(p)
              p = p + 1
-           end do
-         end do
-       end do
-       end do
+           enddo
+         enddo
+       enddo
+       enddo
 
      case (ab_west)
        do e = 1, eta
@@ -1144,10 +1144,10 @@
            do j = 1 - gcn, 0
              v_out(j, i, a, e) = in_array(p)
              p = p + 1
-           end do
-         end do
-       end do
-       end do
+           enddo
+         enddo
+       enddo
+       enddo
 
      case (ab_northeast)
        do e = 1, eta
@@ -1156,10 +1156,10 @@
            do j = long + 1, long + gcn
              v_out(j, i, a, e) = in_array(p)
              p = p + 1
-           end do
-         end do
-       end do
-       end do
+           enddo
+         enddo
+       enddo
+       enddo
 
      case (ab_northwest)
        do e = 1, eta
@@ -1168,10 +1168,10 @@
            do j = 1 - gcn, 0
              v_out(j, i, a, e) = in_array(p)
              p = p + 1
-           end do
-         end do
-       end do
-       end do
+           enddo
+         enddo
+       enddo
+       enddo
 
      case (ab_southeast)
        do e = 1, eta
@@ -1180,10 +1180,10 @@
            do j = long + 1, long + gcn
              v_out(j, i, a, e) = in_array(p)
              p = p + 1
-           end do
-         end do
-       end do
-       end do
+           enddo
+         enddo
+       enddo
+       enddo
 
      case (ab_southwest)
        do e = 1, eta
@@ -1192,10 +1192,10 @@
            do j = 1 - gcn, 0
              v_out(j, i, a, e) = in_array(p)
              p = p + 1
-           end do
-         end do
-       end do
-       end do
+           enddo
+         enddo
+       enddo
+       enddo
 
      end select
 

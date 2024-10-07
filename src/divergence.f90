@@ -55,7 +55,7 @@ subroutine divergence(InArray, OutArray, iBlock)
                        - RadialDistance_GB(i, j, k - 1, iBlock)
         drmodrp(i, j, k) = drm(i, j, k)/drp(i, j, k)
         drr2(i, j, k) = drmodrp(i, j, k)*drmodrp(i, j, k)
-      end do
+      enddo
 
       k = nAlts
       dr(i, j, k) = RadialDistance_GB(i, j, k, iBlock) &
@@ -66,10 +66,10 @@ subroutine divergence(InArray, OutArray, iBlock)
         dtp(i, j, k) = Latitude(j + 1, iBlock) - Latitude(j, iBlock)
         dtmodtp(i, j, k) = dtm(i, j, k)/dtp(i, j, k)
         dtr2(i, j, k) = dtmodtp(i, j, k)*dtmodtp(i, j, k)
-      end do
+      enddo
 
-    end do
-  end do
+    enddo
+  enddo
 
   !\
   ! East First  (same as the gradient)
@@ -82,9 +82,9 @@ subroutine divergence(InArray, OutArray, iBlock)
         OutArray(i, j, k) = ((InArray(i + 1, j, k) - InArray(i - 1, j, k))/ &
                              (Longitude(i + 1, iBlock) - Longitude(i - 1, iBlock)))/ &
                             (maxi*RadialDistance_GB(i, j, k, iBlock))
-      end do
-    end do
-  end do
+      enddo
+    enddo
+  enddo
 
   !\
   ! North Second
@@ -106,9 +106,9 @@ subroutine divergence(InArray, OutArray, iBlock)
         OutArray(i, j, k) = OutArray(i, j, k) + &
                             maxi*InArray(i, j, k)*InvRadialDistance_GB(i, j, k, iBlock)
 
-      end do
-    end do
-  end do
+      enddo
+    enddo
+  enddo
 
   !\
   ! Up Third
@@ -138,7 +138,7 @@ subroutine divergence(InArray, OutArray, iBlock)
         OutArray(i, j, k) = OutArray(i, j, k) + &
                             2.0*InArray(i, j, k)*InvRadialDistance_GB(i, j, k, iBlock)
 
-      end do
+      enddo
 
       k = nAlts
       OutArray(i, j, k) = OutArray(i, j, k) + &
@@ -149,7 +149,7 @@ subroutine divergence(InArray, OutArray, iBlock)
       OutArray(i, j, k) = OutArray(i, j, k) + &
                           2.0*InArray(i, j, k)*InvRadialDistance_GB(i, j, k, iBlock)
 
-    end do
-  end do
+    enddo
+  enddo
 
 end subroutine divergence

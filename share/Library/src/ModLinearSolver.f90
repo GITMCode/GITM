@@ -197,7 +197,7 @@ contains
       epsmac = 0.0000000000000001
     else
       epsmac = 0.00000001
-    end if
+    endif
 
     its = 0
     !-------------------------------------------------------------
@@ -214,7 +214,7 @@ contains
       else
         ! Save a matvec when starting from zero initial condition
         Krylov_II(:, 1) = Rhs
-      end if
+      endif
       !-------------------------------------------------------------
       ro = sqrt(dot_product_mpi(Krylov_II(:, 1), Krylov_II(:, 1), iComm))
       if (ro == 0.0) then
@@ -222,12 +222,12 @@ contains
           info = 3
         else
           info = 0
-        end if
+        endif
         Tol = ro
         Iter = its
         deallocate(Krylov_II, hh, c, s, rs)
         RETURN
-      end if
+      endif
 
       ! set Tol1 for stopping criterion
       if (its == 0) then
@@ -242,11 +242,11 @@ contains
             if (DoTest) print *, 'GMRES: nothing to do. info = ', info
             deallocate(Krylov_II, hh, c, s, rs)
             RETURN
-          end if
+          endif
         else
           Tol1 = Tol*ro
-        end if
-      end if
+        endif
+      endif
 
       coeff = 1.0/ro
       Krylov_II(:, 1) = coeff*Krylov_II(:, 1)
@@ -269,14 +269,14 @@ contains
           t = dot_product_mpi(Krylov_II(:, j), Krylov_II(:, i1), iComm)
           hh(j, i) = t
           Krylov_II(:, i1) = Krylov_II(:, i1) - t*Krylov_II(:, j)
-        end do
+        enddo
         t = sqrt(dot_product_mpi(Krylov_II(:, i1), Krylov_II(:, i1), iComm))
 
         hh(i1, i) = t
         if (t /= 0.0) then
           t = 1.0/t
           Krylov_II(:, i1) = t*Krylov_II(:, i1)
-        end if
+        endif
         !--------done with modified gram schmidt and arnoldi step
 
         !-------- now  update factorization of hh
@@ -287,7 +287,7 @@ contains
           t = hh(k1, i)
           hh(k1, i) = c(k1)*t + s(k1)*hh(k, i)
           hh(k, i) = -s(k1)*t + c(k1)*hh(k, i)
-        end do
+        enddo
         gam = sqrt(hh(i, i)**2 + hh(i1, i)**2)
         if (gam == 0.0) gam = epsmac
         !-----------#  determine next plane rotation  #-------------------
@@ -305,9 +305,9 @@ contains
           case ('abs')
             write(*, *) its, ' matvecs, ', ' ||rn|| =', ro
           end select
-        end if
+        endif
         if (i >= nKrylov .or. (ro <= Tol1)) exit KRYLOVLOOP
-      end do KRYLOVLOOP
+      enddo KRYLOVLOOP
 
       !
       ! now compute solution. first solve upper triangular system.
@@ -320,20 +320,20 @@ contains
           tmp = rs(j)
           do k = j - 1, 1, -1
             rs(k) = rs(k) - tmp*hh(k, j)
-          end do
-        end if
-      end do
+          enddo
+        endif
+      enddo
 
       ! done with back substitution..
       ! now form linear combination to get solution
       do j = 1, i
         t = rs(j)
         Sol = Sol + t*Krylov_II(:, j)
-      end do
+      enddo
 
       ! exit from outer loop if converged or too many iterations
       if (ro <= Tol1 .or. its >= Iter) exit RESTARTLOOP
-    end do RESTARTLOOP
+    enddo RESTARTLOOP
 
     Iter = its
     Tol = Tol/Tol1*ro ! (relative) tolerance achieved
@@ -343,7 +343,7 @@ contains
       info = 2
     else
       info = -2
-    end if
+    endif
 
     ! Deallocate arrays that used to be automatic
     deallocate(Krylov_II, hh, c, s, rs)
@@ -474,7 +474,7 @@ contains
       assumedzero = 0.0000000000000001
     else
       assumedzero = 0.00000001
-    end if
+    endif
 
     !
     !     --- Initialize first residual
@@ -488,7 +488,7 @@ contains
       bicg_r = rhs - bicg_r
     else
       bicg_r = rhs
-    end if
+    endif
 
     qx = 0.0
     bicg_u = 0.0
@@ -547,10 +547,10 @@ contains
       if (nonzero) then
         qx = qx0
         deallocate(qx0)
-      end if
+      endif
 
       RETURN
-    end if
+    endif
 
     do while (GoOn)
       !
@@ -568,9 +568,9 @@ contains
         if (nonzero) then
           qx = qx + qx0
           deallocate(qx0)
-        end if
+        endif
         RETURN
-      end if
+      endif
       beta = alpha*(rho1/rho0)
       rho0 = rho1
       bicg_u = bicg_r - beta*bicg_u
@@ -590,9 +590,9 @@ contains
         if (nonzero) then
           qx = qx + qx0
           deallocate(qx0)
-        end if
+        endif
         RETURN
-      end if
+      endif
 
       alpha = rho1/sigma
 
@@ -686,7 +686,7 @@ contains
         if (DoTest) print *, nmv, ' matvecs, max(rn) =', rnrmMax
       end select
 
-    end do
+    enddo
     !
     !     =========================
     !     --- End of iterations ---
@@ -696,7 +696,7 @@ contains
     if (nonzero) then
       qx = qx + qx0
       deallocate(qx0)
-    end if
+    endif
 
     select case (typestop)
     case ('rel')
@@ -800,7 +800,7 @@ contains
       Rhs_I = Rhs_I - ADotVec_I
     else
       Sol_I = 0.0
-    end if
+    endif
 
     Vec_I = 0.0
 
@@ -812,13 +812,13 @@ contains
       rDotR0 = dot_product_mpi(Rhs_I, PrecRhs_I, iComm)
     else
       rDotR0 = dot_product_mpi(Rhs_I, Rhs_I, iComm)
-    end if
+    endif
 
     if (TypeStop == 'abs') then
       rDotRMax = Tol**2
     else
       rDotRMax = Tol**2*max(rDotR0, 1e-99)
-    end if
+    endif
 
     if (DoTest) write(*, *) 'CG rDotR0, rDotRMax=', rDotR0, rDotRMax
 
@@ -835,7 +835,7 @@ contains
         Vec_I = Vec_I + Alpha*PrecRhs_I
       else
         Vec_I = Vec_I + Alpha*Rhs_I
-      end if
+      endif
 
       UsePDotADotP = .false.
 
@@ -847,7 +847,7 @@ contains
         UsePDotADotP = .false.
       else
         pDotADotP = dot_product_mpi(Vec_I, aDotVec_I, iComm)
-      end if
+      endif
       Beta = 1.0/pDotADotP
 
       Rhs_I = Rhs_I - Beta*aDotVec_I
@@ -861,10 +861,10 @@ contains
         rDotR = dot_product_mpi(Rhs_I, PrecRhs_I, iComm)
       else
         rDotR = dot_product_mpi(Rhs_I, Rhs_I, iComm)
-      end if
+      endif
       if (DoTest) write(*, *) 'CG nIter, rDotR=', nIter, rDotR
 
-    end do
+    enddo
 
     ! Deallocate the temporary vectors
     deallocate(Vec_I, aDotVec_I)
@@ -875,7 +875,7 @@ contains
       Tol = sqrt(rDotR)
     else
       Tol = sqrt(rDotR/max(rDotR0, 1e-99))
-    end if
+    endif
 
     ! Set the error flag
     if (rDotR0 < rDotRMax) then
@@ -887,7 +887,7 @@ contains
       iError = 2
     else
       iError = -2
-    end if
+    endif
 
   end subroutine cg
 
@@ -935,17 +935,17 @@ contains
       Maximum = 0.0
       do i = 1, n
         Maximum = max(Maximum, abs(a_I(i)*b_I(i)))
-      end do
+      enddo
       if (present(iComm)) then
         if (iComm /= MPI_COMM_SELF) then
           call MPI_COMM_SIZE(iComm, nProc, iError)
           if (nProc > 1) call MPI_allreduce( &
             MPI_IN_PLACE, Maximum, 1, MPI_REAL, MPI_MAX, iComm, iError)
-        end if
-      end if
+        endif
+      endif
       ! Formulate an integer power of 2 near Ratio*Maximum
       Limit = 2.0**exponent(Ratio*Maximum)
-    end if
+    endif
 
     SumPart_I = 0.0
     do i = 1, n
@@ -953,15 +953,15 @@ contains
       Part_I(1) = modulo(a, Limit)
       Part_I(2) = a - Part_I(1)
       SumPart_I = SumPart_I + Part_I
-    end do
+    enddo
 
     if (present(iComm)) then
       if (iComm /= MPI_COMM_SELF) then
         call MPI_allreduce(SumPart_I, SumAllPart_I, nPart, MPI_REAL, &
                            MPI_SUM, iComm, iError)
         SumPart_I = SumAllPart_I
-      end if
-    end if
+      endif
+    endif
 
     accurate_dot_product = sum(SumPart_I)
 
@@ -980,14 +980,14 @@ contains
     if (UseAccurateSum) then
       dot_product_mpi = accurate_dot_product(a_I, b_I, iComm=iComm)
       RETURN
-    end if
+    endif
 
     DotProduct = dot_product(a_I, b_I)
 
     if (iComm == MPI_COMM_SELF) then
       dot_product_mpi = DotProduct
       RETURN
-    end if
+    endif
     call MPI_allreduce(DotProduct, DotProductMpi, 1, MPI_REAL, MPI_SUM, &
                        iComm, iError)
     dot_product_mpi = DotProductMpi
@@ -1008,7 +1008,7 @@ contains
     if (iComm == MPI_COMM_SELF) then
       maxval_abs_mpi = MaxvalAbs
       RETURN
-    end if
+    endif
 
     call MPI_allreduce(MaxvalAbs, MaxvalAbsMpi, 1, MPI_REAL, MPI_MAX, &
                        iComm, iError)
@@ -1184,9 +1184,9 @@ contains
         if (present(f2)) then
           allocate(f2Orig_VVI(n, n, nBlock))
           f2Orig_VVI = f2
-        end if
-      end if
-    end if
+        endif
+      endif
+    endif
 
     do j = 1, nBlock
 
@@ -1201,7 +1201,7 @@ contains
                                    e1(:, :, j), N, f1(:, :, j - M1), n, 1.0, dd, n)
         if (j > m2) call BLAS_gemm('n', 'n', n, n, n, -1.0, &
                                    e2(:, :, j), N, f2(:, :, j - M2), n, 1.0, dd, n)
-      end if
+      endif
       if (iPrecond <= Mbilu_) then
         ! Relaxed Gustafsson modification for MBILU
 
@@ -1215,7 +1215,7 @@ contains
                          e2(:, :, j), N, f(:, :, j - M2), N, 1.0, dd, N)
           call BLAS_GEMM('n', 'n', N, N, N, PrecondParam, &
                          e2(:, :, j), N, f1(:, :, j - M2), N, 1.0, dd, N)
-        end if
+        endif
         if (j > M1) call BLAS_GEMM('n', 'n', N, N, N, PrecondParam, &
                                    e1(:, :, j), N, f(:, :, j - M1), N, 1.0, dd, N)
         if (j > M1 .and. j - M1 <= nBlock - M2) &
@@ -1227,7 +1227,7 @@ contains
         if (j > 1 .and. j - 1 <= nBlock - M1) &
           call BLAS_GEMM('n', 'n', N, N, N, PrecondParam, &
                          e(:, :, j), N, f1(:, :, j - 1), N, 1.0, dd, N)
-      end if
+      endif
 
       ! Invert the diagonal block by first factorizing then solving D.D'=I
       call LAPACK_getrf(n, n, dd, n, pivot, info)
@@ -1235,7 +1235,7 @@ contains
       d(:, :, j) = 0.0
       do i = 1, N
         d(i, i, j) = 1.0
-      end do
+      enddo
       ! Solve the problem, returns D^-1 into d(j)
       call LAPACK_getrs('n', n, n, dd, n, pivot, d(:, :, j), n, info)
 
@@ -1249,19 +1249,19 @@ contains
         dd = f(:, :, j)
         call BLAS_gemm('n', 'n', n, n, n, 1.0, d(:, :, j), n, dd, n, 0.0, &
                        f(:, :, j), n)
-      end if
+      endif
       if (j + M1 <= nBlock) then
         dd = f1(:, :, j)
         call BLAS_gemm('n', 'n', n, n, n, 1.0, d(:, :, j), n, dd, n, 0.0, &
                        f1(:, :, j), n)
-      end if
+      endif
       if (j + M2 <= nBlock) then
         dd = f2(:, :, j)
         call BLAS_gemm('n', 'n', n, n, n, 1.0, d(:, :, j), n, dd, n, 0.0, &
                        f2(:, :, j), n)
-      end if
+      endif
 
-    end do
+    enddo
 
     if (iPrecond == Dilu_) then
       ! DILU prec requires original diagonal blocks in U, so restore it
@@ -1273,9 +1273,9 @@ contains
         if (present(f2)) then
           f2 = f2Orig_VVI
           deallocate(f2Orig_VVI)
-        end if
-      end if
-    end if
+        endif
+      endif
+    endif
 
     ! Deallocate arrays
     deallocate(dd, pivot)
@@ -1343,7 +1343,7 @@ contains
     if (n == 1) then
       call upper_hepta_scalar(inverse, nblock, M1, M2, x, f, f1, f2)
       RETURN
-    end if
+    endif
     if (n <= 20) then
       ! F90 VERSION
       if (inverse) then
@@ -1359,8 +1359,8 @@ contains
                       - matmul(f1(:, :, j), x(:, j + M1))
           else
             x(:, j) = x(:, j) - matmul(f(:, :, j), x(:, j + 1))
-          end if
-        end do
+          endif
+        enddo
       else
         !  x := U.x = x + F.x(j+1) + F1.x(j+M1) + F2.x(j+M2)
         do j = 1, nblock - 1
@@ -1373,9 +1373,9 @@ contains
                       + matmul(f1(:, :, j), x(:, j + M1))
           else
             x(:, j) = x(:, j) + matmul(f(:, :, j), x(:, j + 1))
-          end if
-        end do
-      end if
+          endif
+        enddo
+      endif
     else
       ! BLAS VERSION
       if (inverse) then
@@ -1387,7 +1387,7 @@ contains
                                                f1(:, :, j), n, x(:, j + M1), 1, 1.0, x(:, j), 1)
           if (j + M2 <= nblock) CALL BLAS_gemv('n', n, n, -1.0, &
                                                f2(:, :, j), n, x(:, j + M2), 1, 1.0, x(:, j), 1)
-        end do
+        enddo
       else
         !  x := U.x = x + F.x(j+1) + F1.x(j+M1) + F2.x(j+M2)
         do j = 1, nblock - 1
@@ -1397,9 +1397,9 @@ contains
             'n', n, n, 1.0, f1(:, :, j), n, x(:, j + M1), 1, 1.0, x(:, j), 1)
           if (j + M2 <= nblock) call BLAS_gemv( &
             'n', n, n, 1.0, f2(:, :, j), n, x(:, j + M2), 1, 1.0, x(:, j), 1)
-        end do
-      end if
-    end if
+        enddo
+      endif
+    endif
 
     !call timing_stop('Uhepta')
 
@@ -1466,7 +1466,7 @@ contains
     if (n == 1) then
       call lower_hepta_scalar(nblock, M1, M2, x, d, e, e1, e2)
       RETURN
-    end if
+    endif
     ! Allocate arrays that used to be automatic
     allocate(work(N))
     if (n <= 20) then
@@ -1485,9 +1485,9 @@ contains
         else if (j > 1) then
           work = work &
                  - matmul(e(:, :, j), x(:, j - 1))
-        end if
+        endif
         x(:, j) = matmul(d(:, :, j), work)
-      end do
+      enddo
     else
       ! BLAS VERSION
       do j = 1, nblock
@@ -1501,8 +1501,8 @@ contains
           'n', n, n, -1.0, e2(:, :, j), n, x(:, j - M2), 1, 1.0, work, 1)
         call BLAS_copy(n, work, 1, x(:, j), 1)
 
-      end do
-    end if
+      enddo
+    endif
     deallocate(work)
 
     !call timing_stop('Lhepta')
@@ -1540,8 +1540,8 @@ contains
           x(j) = x(j) - f(j)*x(j + 1) - f1(j)*x(j + M1)
         else
           x(j) = x(j) - f(j)*x(j + 1)
-        end if
-      end do
+        endif
+      enddo
     else
       !  x := U.x = x + F.x(j+1) + F1.x(j+M1) + F2.x(j+M2)
       do j = 1, nblock - 1
@@ -1551,9 +1551,9 @@ contains
           x(j) = x(j) + f(j)*x(j + 1) + f1(j)*x(j + M1)
         else
           x(j) = x(j) + f(j)*x(j + 1)
-        end if
-      end do
-    end if
+        endif
+      enddo
+    endif
 
   end subroutine upper_hepta_scalar
 
@@ -1587,9 +1587,9 @@ contains
         work1 = work1 - e(j)*x(j - 1) - e1(j)*x(j - M1)
       else if (j > 1) then
         work1 = work1 - e(j)*x(j - 1)
-      end if
+      endif
       x(j) = d(j)*work1
-    end do
+    enddo
 
   end subroutine lower_hepta_scalar
 
@@ -1624,18 +1624,18 @@ contains
         do i = 1, n
           x_V(i) = x_V(i) - e(i, i, j)*x(i, j - 1) - e1(i, i, j)*x(i, j - M1) &
                    - e2(i, i, j)*x(i, j - M2)
-        end do
+        enddo
       else if (j > M1) then
         do i = 1, n
           x_V(i) = x_V(i) - e(i, i, j)*x(i, j - 1) - e1(i, i, j)*x(i, j - M1)
-        end do
+        enddo
       else if (j > 1) then
         do i = 1, n
           x_V(i) = x_V(i) - e(i, i, j)*x(i, j - 1)
-        end do
-      end if
+        enddo
+      endif
       x(:, j) = matmul(d(:, :, j), x_V)
-    end do
+    enddo
 
     !  x' := U^{-1}.x = x - D^-1 [F.x'(j+1) - F1.x'(j+M1) - F2.x'(j+M2)]
     do j = nBlock - 1, 1, -1
@@ -1643,19 +1643,19 @@ contains
         do i = 1, n
           x_V(i) = f(i, i, j)*x(i, j + 1) + f1(i, i, j)*x(i, j + M1) &
                    + f2(i, i, j)*x(i, j + M2)
-        end do
+        enddo
       else if (j + M1 <= nBlock) then
         do i = 1, n
           x_V(i) = f(i, i, j)*x(i, j + 1) + f1(i, i, j)*x(i, j + M1)
-        end do
+        enddo
       else
         do i = 1, n
           x_V(i) = f(i, i, j)*x(i, j + 1)
-        end do
-      end if
+        enddo
+      endif
       x(:, j) = x(:, j) - matmul(d(:, :, j), x_V)
 
-    end do
+    enddo
     deallocate(x_V)
 
   end subroutine multiply_dilu
@@ -1676,7 +1676,7 @@ contains
     !------------------------------------------------------------------------
     do iBlock = 1, nBlock
       x_VB(:, iBlock) = matmul(d_VVB(:, :, iBlock), x_VB(:, iBlock))
-    end do
+    enddo
 
   end subroutine multiply_block_jacobi
   !============================================================================
@@ -1752,7 +1752,7 @@ contains
     if (nDim < 1 .or. nDim > 3) then
       write(*, *) 'ERROR in ', NameSub, ' nDim=', nDim
       call CON_stop(NameSub//': invalid value for nDim')
-    end if
+    endif
 
     select case (TypePrecond)
     case ('BLOCKJACOBI')
@@ -1809,7 +1809,7 @@ contains
                       a_II(1, 3), a_II(1, 5), a_II(1, 7))
         end select
 
-      end if
+      endif
     case default
       call CON_stop(NameSub//': unknown value for TypePrecond='//TypePrecond)
     end select
@@ -1851,7 +1851,7 @@ contains
     if (nDim < 1 .or. nDim > 3) then
       write(*, *) 'ERROR in ', NameSub, ' nDim=', nDim
       call CON_stop(NameSub//': invalid value for nDim')
-    end if
+    endif
 
     select case (TypePrecond)
     case ('DILU')
@@ -1874,7 +1874,7 @@ contains
           call Lhepta(nI*nJ*nK, nVar, nI, nI*nJ, x_I, &
                       a_II(1, 1), a_II(1, 2), a_II(1, 4), a_II(1, 6))
         end select
-      end if
+      endif
       ! Multiply with U^-1 from the LU decomposition
       select case (nDim)
       case (1)
@@ -1931,7 +1931,7 @@ contains
         Param%TypePrecond, Param%TypePrecondSide, &
         nVar, nDim, nI, nJ, nK, Jac_VVCIB(1, 1, 1, 1, 1, 1, iBlock), &
         x_I(nVarIJK*(iBlock - 1) + 1))
-    end do
+    enddo
 
   end subroutine precond_left_multiblock
 
@@ -1970,7 +1970,7 @@ contains
         Param%TypePrecond, Param%TypePrecondSide, &
         nVar, nDim, nI, nJ, nK, Jac_VVCIB(1, 1, 1, 1, 1, 1, iBlock), &
         x_I(nVarIJK*(iBlock - 1) + 1))
-    end do
+    enddo
 
   end subroutine precond_right_multiblock
 
@@ -2105,9 +2105,9 @@ contains
               do iVar = 1, nVar
                 n = n + 1
                 JacobiPrec_I(n) = 1.0/Jac_VVCIB(iVar, iVar, i, j, k, 1, iBlock)
-              end do
-            end do; end do; end do; end do
-        end if
+              enddo
+            enddo; enddo; enddo; enddo
+        endif
         if (Param%TypeKrylov /= 'CG') &
           Rhs_I(1:nImpl) = JacobiPrec_I(1:nImpl)*Rhs_I(1:nImpl)
       else
@@ -2138,10 +2138,10 @@ contains
             call multiply_initial_guess( &
             nVar, nDim, nI, nJ, nK, Jac_VVCIB(1, 1, 1, 1, 1, 1, iBlock), &
             x_I(n))
-        end do
+        enddo
 
-      end if
-    end if
+      endif
+    endif
 
     ! Initialize stopping conditions. Solver will return actual values.
     Param%nMatVec = Param%MaxMatvec
@@ -2177,7 +2177,7 @@ contains
                 Param%Error, Param%TypeStop, Param%nMatvec, &
                 Param%iError, DoTest, iComm, &
                 preconditioner=cg_precond)
-      end if
+      endif
     case default
       call CON_stop(NameSub//': Unknown TypeKrylov='//Param%TypeKrylov)
     end select
@@ -2258,7 +2258,7 @@ contains
     ! Calculate the norm for the variables
     do iVar = 1, nVar
       Norm_V(iVar) = sqrt(sum(State_GV(1:nCell, iVar)**2)/nCell)
-    end do
+    enddo
 
     if (DoTestMe) write(*, *) 'Norm_V=', Norm_V, ' Eps=', Eps
 
@@ -2269,7 +2269,7 @@ contains
         StateEps_GV = State_GV
         do i = iStencil, nCell, 3
           StateEps_GV(i, jVar) = StateEps_GV(i, jVar) + Eps*Norm_V(jVar)
-        end do
+        enddo
         call update_boundary(nCell, nVar, StateEps_GV)
         if (DoTestMe) call save_plot(iStep, Time, nCell, nVar, StateEps_GV)
         call calc_residual(1, DtExpl, nCell, nVar, StateEps_GV, ResidEps_CV)
@@ -2281,24 +2281,24 @@ contains
           do iVar = 1, nVar
             Matrix_VVCI(iVar, jVar, i, iDiag) = &
               Coeff*(ResidEps_CV(i, iVar) - ResidOrig_CV(i, iVar))
-          end do
-        end do
+          enddo
+        enddo
 
-      end do
-    end do
+      enddo
+    enddo
 
     if (DoTestMe) then
       write(*, '(a,/,3(3f5.1,/))') 'Matrix(:,:,2,1)=', Matrix_VVCI(:, :, 2, 1)
       write(*, '(a,/,3(3f5.1,/))') 'Matrix(:,:,2,2)=', Matrix_VVCI(:, :, 2, 2)
       write(*, '(a,/,3(3f5.1,/))') 'Matrix(:,:,2,3)=', Matrix_VVCI(:, :, 2, 3)
-    end if
+    endif
 
     ! Add the diagonal part J = I - delta t*dR/dU
     do i = 1, nCell
       do iVar = 1, nVar
         Matrix_VVCI(iVar, iVar, i, 1) = Matrix_VVCI(iVar, iVar, i, 1) + 1.0
-      end do
-    end do
+      enddo
+    enddo
 
     ! L-U decomposition using block ILU (exact in 1D)
     call get_precond_matrix(real(bilu_), nVar, 1, nCell, 1, 1, Matrix_VVCI)
@@ -2309,8 +2309,8 @@ contains
       do iVar = 1, nVar
         iX = iX + 1
         x_I(iX) = RightHand_CV(i, iVar)
-      end do
-    end do
+      enddo
+    enddo
 
     ! x --> U^{-1}.L^{-1}.rhs = A^{-1}.rhs
     call multiply_left_precond('BILU', 'left', nVar, 1, nCell, 1, 1, &
@@ -2322,8 +2322,8 @@ contains
       do iVar = 1, nVar
         iX = iX + 1
         State_GV(i, iVar) = State_GV(i, iVar) + x_I(iX)
-      end do
-    end do
+      enddo
+    enddo
 
     call update_boundary(nCell, nVar, State_GV)
 
@@ -2350,7 +2350,7 @@ contains
     write(UNITTMP_, '(a79)') 'x rho rhou p gamma'
     do i = 1, nCell
       write(UNITTMP_, '(100es18.10))') float(i), State_GV(i, rho_:p_)
-    end do
+    enddo
 
   end subroutine save_plot
 
@@ -2377,7 +2377,7 @@ contains
       Resid_CV(i, p_) = -Dt*Inv2Dx* &
                         (uRight*State_GV(i + 1, p_) - uLeft*State_GV(i - 1, p_) &
                          + (Gamma - 1)*State_GV(i, p_)*(uRight - uLeft))
-    end do
+    enddo
   end subroutine calc_resid_test
 
   !=======================================================================
@@ -2440,8 +2440,8 @@ contains
         write(*, *) 'iStep, Max error=', iStep, &
           maxval(abs(StateOld_GV(1:nCell, :) + Resid_CV - State_GV(1:nCell, :)))
         call save_plot(iStep, Time, nCell, nVar, State_GV)
-      end if
-    end do
+      endif
+    enddo
     close(UNITTMP_)
 
   end subroutine test_linear_solver

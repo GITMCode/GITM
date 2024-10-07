@@ -65,7 +65,7 @@ subroutine calc_ion_drag(iBlock)
     IonDrag(:, :, :, iDir) = tmp* &
                              (IVelocity(1:nLons, 1:nLats, 1:nAlts, iDir, iBlock) - &
                               Velocity(1:nLons, 1:nLats, 1:nAlts, iDir, iBlock))
-  end do
+  enddo
 
   ! F_iondrag = rho_i/rho * Vis * (Ui-Un)
   ! where Vis = Vin *(Ns/N)
@@ -83,7 +83,7 @@ subroutine calc_ion_drag(iBlock)
                                          (IVelocity(1:nLons, 1:nLats, 1:nAlts, iUp_, iBlock) - &
                                           VerticalVelocity(1:nLons, 1:nLats, 1:nAlts, iSpecies, iBlock))
 
-  end do
+  enddo
 
 end subroutine calc_ion_drag
 

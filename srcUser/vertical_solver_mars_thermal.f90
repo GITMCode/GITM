@@ -160,7 +160,7 @@ subroutine advance_vertical_1stage( &
   do iAlt = -1, nAlts + 2
     Press(iAlt) = NT(iAlt)*Boltzmanns_Constant*Temp(iAlt)
     LogPress(iAlt) = alog(Press(iAlt))
-  end do
+  enddo
 
   call calc_rusanov_alts(LogPress, GradLogPress, DiffLogPress)
   call calc_rusanov_alts(LogRho, GradLogRho, DiffLogRho)
@@ -169,7 +169,7 @@ subroutine advance_vertical_1stage( &
   do iDim = 1, 3
     call calc_rusanov_alts(Vel_GD(:, iDim), &
                            GradVel_CD(:, iDim), DiffVel_CD(:, iDim))
-  end do
+  enddo
 
   ! Add geometrical correction to gradient and obtain divergence
   DivVel = GradVel_CD(:, iUp_) + 2*Vel_GD(1:nAlts, iUp_)*InvRadialDistance_C
@@ -186,13 +186,13 @@ subroutine advance_vertical_1stage( &
     DivVertVel(:, iSpecies) = GradVertVel(:, iSpecies) + &
                               2*VertVel(1:nAlts, iSpecies)*InvRadialDistance_C
 
-  end do
+  enddo
 
   do iSpecies = 1, nIonsAdvect
     call calc_rusanov_alts(LogINS(:, iSpecies), GradTmp, DiffTmp)
     GradLogINS(:, iSpecies) = GradTmp
     DiffLogINS(:, iSpecies) = DiffTmp
-  end do
+  enddo
 
   AmpSP = (1.0/(10.0*Dt))
   kSP = nAltsSponge + 1
@@ -209,13 +209,13 @@ subroutine advance_vertical_1stage( &
                                   VertVel(iAlt, iSpecies)*GradLogNS(iAlt, iSpecies)) + &
                                  Dt*DiffLogNS(iAlt, iSpecies)
 
-    end do
+    enddo
 
     do iSpecies = 1, nIonsAdvect
       NewLogINS(iAlt, iSpecies) = NewLogINS(iAlt, iSpecies) - Dt* &
                                   (IVel(iAlt, iUp_)*GradLogINS(iAlt, iSpecies)) &
                                   + Dt*DiffLogINS(iAlt, iSpecies)
-    end do
+    enddo
 
 !     ! dVr/dt = -[ (V grad V)_r + grad T + T grad ln Rho - g ]
 !     ! and V grad V contains the centripetal acceleration
@@ -237,7 +237,7 @@ subroutine advance_vertical_1stage( &
 
       NuSP = 0.0
 
-    end if
+    endif
 
     do iSpecies = 1, nSpecies
 
@@ -257,11 +257,11 @@ subroutine advance_vertical_1stage( &
         NewVertVel(iAlt, ispecies) = NewVertVel(iAlt, ispecies) + Dt*( &
                                      Centrifugal/InvRadialDistance_C(iAlt) + &
                                      Coriolis*Vel_GD(iAlt, iEast_))
-      end if
+      endif
 
-    end do
+    enddo
 
-  end do
+  enddo
 
   do iAlt = 1, nAlts
 
@@ -274,9 +274,9 @@ subroutine advance_vertical_1stage( &
                               NewVertVel(iAlt, iSpecies)* &
                               (Mass(iSpecies)*NS(iAlt, iSpecies)/Rho(iAlt))
 
-    end do
+    enddo
 
-  end do
+  enddo
 
   StressHeating = 0.0
 
@@ -292,9 +292,9 @@ subroutine advance_vertical_1stage( &
                              GradVel_CD(iAlt, iEast_)**2 &
                              ))
 
-    end do
+    enddo
 
-  end if
+  endif
   userdata1d = 0.0
   do iAlt = 1, nAlts
 
@@ -336,12 +336,12 @@ subroutine advance_vertical_1stage( &
 !             ( (Gamma_1d(iAlt) - 1.0)/Gamma_1d(iAlt) )*&
 !               Temp(iAlt)*GradLogPress(iAlt)
 
-  end do
+  enddo
 
   do iAlt = 1, nAlts
     NewSumRho = sum(Mass(1:nSpecies)*exp(NewLogNS(iAlt, 1:nSpecies)))
     NewLogRho(iAlt) = alog(NewSumRho)
-  end do
+  enddo
 
 end subroutine advance_vertical_1stage
 
@@ -419,7 +419,7 @@ subroutine calc_facevalues_alts(Var, VarLeft, VarRight)
 
 !     write(*,*) dVarUp, dVarDown, dVarLimited(i)
 
-  end do
+  enddo
 
   i = 0
   dVarUp = (Var(i + 1) - Var(i))*InvDAlt_F(i + 1)
@@ -434,7 +434,7 @@ subroutine calc_facevalues_alts(Var, VarLeft, VarRight)
   do i = 1, nAlts + 1
     VarLeft(i) = Var(i - 1) + 0.5*dVarLimited(i - 1)*dAlt_F(i)
     VarRight(i) = Var(i) - 0.5*dVarLimited(i)*dAlt_F(i)
-  end do
+  enddo
 
 end subroutine calc_facevalues_alts
 

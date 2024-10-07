@@ -49,10 +49,10 @@ contains
 
     if (rDipole >= 1.0 .or. rDipole < 0.0) then
       call CON_stop('rDipole in #ARCH should be inside the Sun')
-    end if
+    endif
     if (nDipole < 1) then
       call CON_stop('nDipole need to be larger than 0 in #ARCH')
-    end if
+    endif
 
   end subroutine set_parameters_arch
 
@@ -89,13 +89,13 @@ contains
         xDip_DI(z_, iDipole) = 0.0
 
         Bdp = DipoleStrengthSi*Si2No_V(UnitB_)
-      end do
+      enddo
 
       ! Orientation rotates clockwise
       Rotate_DD = matmul(rot_matrix_x(OrientationCme*cDegToRad), &
                          rot_matrix_y(LatitudeCme*cDegToRad))
       Rotate_DD = matmul(Rotate_DD, rot_matrix_z(-LongitudeCme*cDegToRad))
-    end if
+    endif
 
     x_D = matmul(Rotate_DD, x0_D)
 
@@ -113,7 +113,7 @@ contains
       Dp = dot_product(Bdp_D, xShift_D)*3.0*r2_inv
 
       B_D = B_D + (Dp*xShift_D - Bdp_D)*r3_inv
-    end do
+    enddo
 
     B0_D = matmul(B_D, Rotate_DD)
 

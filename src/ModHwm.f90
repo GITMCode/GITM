@@ -63,7 +63,7 @@ subroutine hwm07(iyd, sec, alt, glat, glon, stl, f107a, f107, ap, w)
     w = qw + dw
   else
     w = qw
-  end if
+  endif
 
   return
 
@@ -189,12 +189,12 @@ subroutine HWMQT(IYD, SEC, ALT, GLAT, GLON, STL, F107A, F107, AP, W)
   if (modelinit) then
     call loadmodel(defaultdata)
     call HWMupdate(input, last, gfs, gfl, gfm, gvbar, gwbar, gbz, gbm, gzwght, glev, u, v)
-  end if
+  endif
 
   if (reset) then
     last = 1.0d-32
     reset = .false.
-  end if
+  endif
 
   call HWMupdate(input, last, gfs, gfl, gfm, gvbar, gwbar, gbz, gbm, gzwght, glev, u, v)
 
@@ -274,10 +274,10 @@ subroutine HWMupdate(input, last, fs, fl, fm, vbar, wbar, ebz, ebm, zwght, lev, 
       BB = dble(s)*AA
       fs(s, 1) = dcos(BB)
       fs(s, 2) = dsin(BB)
-    end do
+    enddo
     refresh(1:5) = .true.
     last(1) = input(1)
-  end if
+  endif
 
   ! Hourly time changes, tidal variations
 
@@ -289,11 +289,11 @@ subroutine HWMupdate(input, last, fs, fl, fm, vbar, wbar, ebz, ebm, zwght, lev, 
       CC = dble(l)*BB
       fl(l, 1) = dcos(CC)
       fl(l, 2) = dsin(CC)
-    end do
+    enddo
 
     refresh(3) = .true.
     last(2) = input(2)
-  end if
+  endif
 
   ! Longitudinal variations, planetary waves
 
@@ -303,10 +303,10 @@ subroutine HWMupdate(input, last, fs, fl, fm, vbar, wbar, ebz, ebm, zwght, lev, 
       BB = dble(m)*AA
       fm(m, 1) = dcos(BB)
       fm(m, 2) = dsin(BB)
-    end do
+    enddo
     refresh(2) = .true.
     last(3) = input(3)
-  end if
+  endif
 
   ! Latitude
 
@@ -318,14 +318,14 @@ subroutine HWMupdate(input, last, fs, fl, fm, vbar, wbar, ebz, ebm, zwght, lev, 
     refresh(3) = .true.
     refresh(4) = .true.
     last(4) = input(4)
-  end if
+  endif
 
   ! Altitude
 
   if (input(5) .ne. last(5)) then
     call vertwght(input(5), zwght, lev)
     last(5) = input(5)
-  end if
+  endif
 
   ! ====================================================================
   ! Linearize the VSH functions
@@ -370,7 +370,7 @@ subroutine HWMupdate(input, last, fs, fl, fm, vbar, wbar, ebz, ebm, zwght, lev, 
         bm(c) = 0.0d0            ! Cr
         bm(c + 1) = 0.5d0*vbar(n, 0)  ! Br
         c = c + 2
-      end do
+      enddo
 
       do s = 1, AMAXS                   ! seasonal variations
         cs = fs(s, 1)
@@ -391,12 +391,12 @@ subroutine HWMupdate(input, last, fs, fl, fm, vbar, wbar, ebz, ebm, zwght, lev, 
           bm(c + 2) = AA   ! Br
           bm(c + 3) = -BB   ! Bi
           c = c + 4
-        end do
-      end do
+        enddo
+      enddo
       cseason = c
     else
       c = cseason
-    end if
+    endif
 
     ! ---------------- Stationary planetary waves --------------------
 
@@ -424,7 +424,7 @@ subroutine HWMupdate(input, last, fs, fl, fm, vbar, wbar, ebz, ebm, zwght, lev, 
 
           c = c + 4
 
-        end do
+        enddo
 
         do s = 1, pmaxs
 
@@ -455,14 +455,14 @@ subroutine HWMupdate(input, last, fs, fl, fm, vbar, wbar, ebz, ebm, zwght, lev, 
 
             c = c + 8
 
-          end do
+          enddo
 
-        end do
+        enddo
         cwave = c
-      end do
+      enddo
     else
       c = cwave
-    end if
+    endif
 
     ! ---------------- Migrating Solar Tides ---------------------
 
@@ -490,7 +490,7 @@ subroutine HWMupdate(input, last, fs, fl, fm, vbar, wbar, ebz, ebm, zwght, lev, 
 
           c = c + 4
 
-        end do
+        enddo
 
         do s = 1, tmaxs
 
@@ -523,14 +523,14 @@ subroutine HWMupdate(input, last, fs, fl, fm, vbar, wbar, ebz, ebm, zwght, lev, 
             bm(c + 7) = -vb*sl*ss    ! Bis * (slss) * -vb
 
             c = c + 8
-          end do
+          enddo
 
-        end do
+        enddo
         ctide = c
-      end do
+      enddo
     else
       c = ctide
-    end if
+    endif
 
     ! ---------------- Non-Migrating Solar Tides ------------------
 
@@ -545,7 +545,7 @@ subroutine HWMupdate(input, last, fs, fl, fm, vbar, wbar, ebz, ebm, zwght, lev, 
     if (component(0)) u = u + zwght(b)*dot_product(bz(1:c), mparm(1:c, d))
     if (component(1)) v = v + zwght(b)*dot_product(bm(1:c), mparm(1:c, d))
 
-  end do
+  enddo
 
   return
 
@@ -575,7 +575,7 @@ subroutine loadmodel(datafile)
   if (allocated(vnode)) then
     deallocate(order, nb, vnode, mparm)
     deallocate(gfs, gfm, gfl, gvbar, gwbar, gzwght, gbz, gbm)
-  end if
+  endif
 
   open(unit=23, file=trim(datafile), form='unformatted', status='old')
   read(23) nbf, maxs, maxm, maxl, maxn, ncomp
@@ -592,7 +592,7 @@ subroutine loadmodel(datafile)
     read(23) order(1:ncomp, i)
     read(23) nb(i)
     read(23) mparm(1:nbf, i)
-  end do
+  enddo
   close(23)
 
   ! Set transition levels
@@ -663,7 +663,7 @@ subroutine vertwght(alt, wght, iz)
     wght(3) = bspline(p, nnode, vnode, iz + 2, alt)
     wght(4) = bspline(p, nnode, vnode, iz + 3, alt)
     return
-  end if
+  endif
   if (alt .gt. 250.0d0) then
     we(0) = 0.0d0
     we(1) = 0.0d0
@@ -676,7 +676,7 @@ subroutine vertwght(alt, wght, iz)
     we(2) = bspline(p, nnode, vnode, iz + 4, alt)
     we(3) = 0.0d0
     we(4) = 0.0d0
-  end if
+  endif
   wght(3) = dot_product(we, e1)
   wght(4) = dot_product(we, e2)
 
@@ -702,17 +702,17 @@ contains
     if ((i .eq. 0) .and. (u .eq. V(0))) then
       bspline = 1.d0
       return
-    end if
+    endif
 
     if ((i .eq. (m - p - 1)) .and. (u .eq. V(m))) then
       bspline = 1.d0
       return
-    end if
+    endif
 
     if (u .lt. V(i) .or. u .ge. V(i + p + 1)) then
       bspline = 0.d0
       return
-    end if
+    endif
 
     N = 0.0d0
     do j = 0, p
@@ -720,15 +720,15 @@ contains
         N(j) = 1.0d0
       else
         N(j) = 0.0d0
-      end if
-    end do
+      endif
+    enddo
 
     do k = 1, p
       if (N(0) .eq. 0.d0) then
         saved = 0.d0
       else
         saved = ((u - V(i))*N(0))/(V(i + k) - V(i))
-      end if
+      endif
       do j = 0, p - k
         Vleft = V(i + j + 1)
         Vright = V(i + j + k + 1)
@@ -739,9 +739,9 @@ contains
           temp = N(j + 1)/(Vright - Vleft)
           N(j) = saved + (Vright - u)*temp
           saved = (u - Vleft)*temp
-        end if
-      end do
-    end do
+        endif
+      enddo
+    enddo
 
     bspline = N(0)
 
@@ -765,7 +765,7 @@ contains
     if (u .ge. V(n + 1)) then
       findspan = n
       return
-    end if
+    endif
 
     low = p
     high = n + 1
@@ -776,9 +776,9 @@ contains
         high = mid
       else
         low = mid
-      end if
+      endif
       mid = (low + high)/2
-    end do
+    enddo
 
     findspan = mid
     return
@@ -859,7 +859,7 @@ subroutine vshbasis(maxn, maxo, theta, vbar, wbar)
     do n = 0, nmm - 1
       pb(n) = -cost
       td(n) = sf(n, m)
-    end do
+    enddo
     if (abs(p0i) .ge. abs(p1i)) then
       pb(0) = p0i
       r = -td(0)*pb(0)
@@ -869,18 +869,18 @@ subroutine vshbasis(maxn, maxo, theta, vbar, wbar)
       pb(1) = p1i
       r = -td(1)*pb(1)
       call tridiag(nmm - 2, r, td(1), pb(2), td(2))
-    end if
+    endif
     do n = m, nmax - 1
       i = nmax - n - 1
       pbar(n, m) = pb(i)
-    end do
-  end do
+    enddo
+  enddo
 
   ! Vector Spherical Harmonic Basis Functions from Pbar
 
   do n = 0, maxn
     vbar(n, 0) = -pbar(n, 1)
-  end do
+  enddo
 
   do m = 1, maxo
     mm1 = m - 1
@@ -889,8 +889,8 @@ subroutine vshbasis(maxn, maxo, theta, vbar, wbar)
       nm1 = n - 1
       vbar(n, m) = a(n, m)*pbar(n, mp1) + b(n, m)*pbar(n, mm1)
       wbar(n, m) = c(n, m)*pbar(nm1, mm1) + d(n, m)*pbar(nm1, mp1)
-    end do
-  end do
+    enddo
+  enddo
 
   return
 
@@ -914,7 +914,7 @@ contains
     if (n .le. 0 .and. m .le. 0) then
       lfpt = dsqrt(0.5d0)
       return
-    end if
+    endif
     cdt = dcos(theta + theta)
     sdt = dsin(theta + theta)
     if (mod(n, 2) .le. 0) then
@@ -928,7 +928,7 @@ contains
           st = sdt*ct + cdt*st
           ct = cth
           lfpt = lfpt + cp(k)*ct
-        end do
+        enddo
       else
         kdo = n/2
         do k = 1, kdo
@@ -936,8 +936,8 @@ contains
           st = sdt*ct + cdt*st
           ct = cth
           lfpt = lfpt + cp(k)*st
-        end do
-      end if
+        enddo
+      endif
     else
       kdo = (n + 1)/2
       ct = dcos(theta)
@@ -948,16 +948,16 @@ contains
           st = sdt*ct + cdt*st
           ct = cth
           lfpt = lfpt + cp(k)*ct
-        end do
+        enddo
       else
         do k = 1, kdo
           cth = cdt*ct - sdt*st
           st = sdt*ct + cdt*st
           ct = cth
           lfpt = lfpt + cp(k)*st
-        end do
-      end if
-    end if
+        enddo
+      endif
+    endif
     return
   end function lfpt
 
@@ -999,8 +999,8 @@ contains
           bih1 = qih - bih*b(i + 1)
           qih = -bih*c(i)
           bih = bih1
-        end if
-      end do
+        endif
+      enddo
     end select
     if (abs(bih) .ge. abs(c(1))) then
       q2 = qih/bih
@@ -1014,12 +1014,12 @@ contains
       b1 = rih/bih
       b(2) = (r - b(1)*b1)/c(1)
       b(1) = b1
-    end if
+    endif
     if (n - 3 .ge. 0) then
       do i = 3, n
         b(i) = -b(i)*b(i - 1) - c(i - 1)*b(i - 2)
-      end do
-    end if
+      enddo
+    endif
     return
   end subroutine tridiag
 
@@ -1056,8 +1056,8 @@ subroutine vshengineinit()
       fnpm = fnpm - 1.d0
       sf(i, m) = dsqrt(dble(fnmm*fnpm/(fnpn*(fnpn + 2.d0))))
       i = i + 1
-    end do
-  end do
+    enddo
+  enddo
 
   ! Theta indepedent scaling factors for calculation of Vbar and Wbar
   ! from Pbar.
@@ -1072,8 +1072,8 @@ subroutine vshengineinit()
       b(n, m) = nfac1*dsqrt(dble(npm*(nmm + 1)))
       c(n, m) = nfac2*dsqrt(dble(npm*(npm - 1)))
       d(n, m) = nfac2*dsqrt(dble(nmm*(nmm - 1)))
-    end do
-  end do
+    enddo
+  enddo
 
   return
 
@@ -1094,19 +1094,19 @@ contains
     if (m .gt. n) then
       cp(1) = 0.0d0
       return
-    end if
+    endif
     if (n .le. 0) then
       cp(1) = dsqrt(2.d0)
       return
-    end if
+    endif
     if (n .eq. 1) then
       if (m .eq. 0) then
         cp(1) = dsqrt(1.5d0)
       else
         cp(1) = dsqrt(0.75d0)
-      end if
+      endif
       return
-    end if
+    endif
     if (mod(n + m, 2) .eq. 0) then
       nmms2 = (n - m)/2
       fnum = dble(n + m + 1)
@@ -1117,7 +1117,7 @@ contains
       fnum = dble(n + m + 2)
       fnmh = dble(n - m + 2)
       pm1 = -1.0d0
-    end if
+    endif
     t1 = 1.0d0
     t2 = 1.0d0
     if (nmms2 .ge. 1) then
@@ -1126,14 +1126,14 @@ contains
         t1 = fnum*t1/fden
         fnum = fnum + 2.0d0
         fden = fden + 2.0d0
-      end do
-    end if
+      enddo
+    endif
     if (m .ne. 0) then
       do i = 1, m
         t2 = fnmh*t2/(fnmh + pm1)
         fnmh = fnmh + 2.0d0
-      end do
-    end if
+      enddo
+    endif
     if (mod(m/2, 2) .ne. 0) t1 = -t1
     cp2 = t1*dsqrt((dble(n) + 0.5d0)*t2)/(2.0d0**(n - 1))
     fnnp1 = dble(n*(n + 1))
@@ -1154,7 +1154,7 @@ contains
       c1 = (fk + 1.0d0)*(fk + 2.0d0) - fnnp1
       cp(l - 1) = -(b1*cp(l) + c1*cp(l + 1))/a1
       l = l - 1
-    end do
+    enddo
     return
   end subroutine alfk
 
@@ -1326,7 +1326,7 @@ subroutine dwm07b(mlt, mlat, kp, mmpwind, mzpwind)
     if (termarr(1, iterm) .ne. 999) termval_temp = termval_temp*kp_terms(termarr(1, iterm))
     if (termarr(2, iterm) .ne. 999) termval_temp = termval_temp*latwgt_terms
     termval(0:1, iterm) = termval_temp
-  end do
+  enddo
 
   !APPLY COEFFICIENTS
   mmpwind = dot_product(coeff, termval(0, 0:nterm - 1))
@@ -1434,10 +1434,10 @@ subroutine vsh_basis_init
           fn_map0(ifn)%irrotational = j
           fn_map0(ifn)%M = m
           fn_map0(ifn)%N = n
-        end do
-      end do
-    end do
-  end do
+        enddo
+      enddo
+    enddo
+  enddo
   nvshfn = ifn + 1
   allocate(fn_map1(0:nvshfn - 1))
   do ifn = 0, nvshfn - 1
@@ -1445,7 +1445,7 @@ subroutine vsh_basis_init
     fn_map1(ifn)%irrotational = fn_map0(ifn)%irrotational
     fn_map1(ifn)%M = fn_map0(ifn)%M
     fn_map1(ifn)%N = fn_map0(ifn)%N
-  end do
+  enddo
 
   !CREATE ARRAY THAT WILL CONTAIN VSH BASIS VALUES
   allocate(vsh_terms(0:1, 0:nvshfn - 1))
@@ -1470,12 +1470,12 @@ subroutine vsh_basis_init
   do m = 0, m_max
     cm(m) = dsqrt(1 + 0.5/dble(max(m, 1)))
     m_arr(m) = dble(m)
-  end do
+  enddo
   do n = 0, n_max
     n_arr(n) = dble(n)
     cn(n) = 1/dsqrt(dble(max(n, 1))*dble(n + 1))
     e0n(n) = dsqrt(dble(n*(n + 1))/2.0)
-  end do
+  enddo
   anm = 0
   bnm = 0
   fnm = 0
@@ -1485,8 +1485,8 @@ subroutine vsh_basis_init
       anm(m, n) = dsqrt(dble((2*n - 1)*(2*n + 1))/dble((n - m)*(n + m)))
       bnm(m, n) = dsqrt(dble((2*n + 1)*(n + m - 1)*(n - m - 1))/dble((n - m)*(n + m)*(2*n - 3)))
       fnm(m, n) = dsqrt(dble((n - m)*(n + m)*(2*n + 1))/dble(2*n - 1))
-    end do
-  end do
+    enddo
+  enddo
 
   return
 
@@ -1542,22 +1542,22 @@ subroutine vsh_basis(theta, phi)
   if (m_max .ge. 1) B(1, 1) = dsqrt(3D0)
   do m = 2, m_max
     B(m, m) = y*cm(m)*B(m - 1, m - 1)
-  end do
+  enddo
   do m = 1, m_max
     do n = m + 1, n_max
       B(m, n) = anm(m, n)*x*B(m, n - 1) - bnm(m, n)*B(m, n - 2)
-    end do
-  end do
+    enddo
+  enddo
 
   !CALCULATE d(Pnm) / d(theta)
   do m = 1, m_max
     do n = m, n_max
       A(m, n) = n_arr(n)*x*B(m, n) - fnm(m, n)*B(m, n - 1)
-    end do
-  end do
+    enddo
+  enddo
   do n = 1, n_max
     A(0, n) = -e0n(n)*y*B(1, n)
-  end do
+  enddo
 
   !CALCULATE m(Pnm) / sin(theta) AND APPLY SECTORAL NORMALIZATION
   do m = 0, m_max
@@ -1565,12 +1565,12 @@ subroutine vsh_basis(theta, phi)
       norm_m = 1D0/sqrt(2D0)  !Holmes and Featherstone norm factor adjusted to match Swartztrauber
     else
       norm_m = 0.5D0          !Holmes and Featherstone norm factor adjusted to match Swartztrauber
-    end if
+    endif
     do n = m, n_max
       B(m, n) = B(m, n)*m_arr(m)*cn(n)*norm_m
       A(m, n) = A(m, n)*cn(n)*norm_m
-    end do
-  end do
+    enddo
+  enddo
 
   !CALCULATE VECTOR SPHERICAL HARMONIC FUNCTIONS
 
@@ -1578,7 +1578,7 @@ subroutine vsh_basis(theta, phi)
     mz = dble(m)*z
     cosmz(m) = cos(mz)
     sinmz(m) = sin(mz)
-  end do
+  enddo
   do ifn = 0, nvshfn - 1
     m = fn_map1(ifn)%M
     n = fn_map1(ifn)%N
@@ -1597,7 +1597,7 @@ subroutine vsh_basis(theta, phi)
       vsh_terms(0, ifn) = real(B(m, n)*cosmz(m))  !Multiplies imag. pt of solen. coeff. (c)
       vsh_terms(1, ifn) = real(A(m, n)*sinmz(m))  !Multiplies imag. pt of solen. coeff. (c)
     end select
-  end do
+  enddo
 
   return
 
@@ -1785,11 +1785,11 @@ subroutine bspline_calc(nnode0, x0, node0, bspline, order, periodic)
     node = (/node0, node0(1:order) + perspan/)
     do i = 0, nnode0 + order - 1
       node1(i) = pershift(node(i), perint)
-    end do
+    enddo
   else
     node = node0
     node1 = node
-  end if
+  endif
 
   !COMPUTE SPLINES
   do i = 0, nnode - 2
@@ -1798,8 +1798,8 @@ subroutine bspline_calc(nnode0, x0, node0, bspline, order, periodic)
       if ((x .ge. node1(i)) .and. (x .lt. node1(i + 1))) bspline0(i) = 1.0
     else
       if ((x .ge. node1(i)) .or. (x .lt. node1(i + 1))) bspline0(i) = 1.0
-    end if
-  end do
+    endif
+  enddo
   do j = 2, k
     do i = 0, nnode - j - 1
       dx1 = x - node1(i)
@@ -1807,11 +1807,11 @@ subroutine bspline_calc(nnode0, x0, node0, bspline, order, periodic)
       if (periodic .eq. 1) then
         if (dx1 .lt. 0) dx1 = dx1 + perspan
         if (dx2 .lt. 0) dx2 = dx2 + perspan
-      end if
+      endif
       bspline0(i) = bspline0(i)*dx1/(node(i + j - 1) - node(i)) &
                     + bspline0(i + 1)*dx2/(node(i + j) - node(i + 1))
-    end do
-  end do
+    enddo
+  enddo
   bspline = bspline0(0:nspl - 1)
   deallocate(node, node1, bspline0)
 
@@ -1851,7 +1851,7 @@ function pershift(x, perint)
     offset = x - a
     offset1 = mod(offset, span)
     if (abs(offset1) .lt. tol) offset1 = 0
-  end if
+  endif
   pershift = a + offset1
   if ((offset .lt. 0) .and. (offset1 .ne. 0)) pershift = pershift + span
 
@@ -1894,12 +1894,12 @@ function ap_to_kp(ap0)
   i = 1
   do while (ap .gt. apgrid(i))
     i = i + 1
-  end do
+  enddo
   if (ap .eq. apgrid(i)) then
     ap_to_kp = kpgrid(i)
   else
     ap_to_kp = kpgrid(i - 1) + (ap - apgrid(i - 1))/(3.0*(apgrid(i) - apgrid(i - 1)))
-  end if
+  endif
 
   return
 

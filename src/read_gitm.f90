@@ -33,7 +33,7 @@ program read_gitm
     lons(iPoint) = 360 - 5.0*(iPoint - 1)
     lats(iPoint) = -90.0 + 2.0*(iPoint - 1)
     alts(iPoint) = 100.0 + 10.0*(iPoint - 1)
-  end do
+  enddo
 
   call GitmSetnPointsToGet(nPoints)
 
@@ -46,10 +46,10 @@ program read_gitm
     if (iErr == 0) then
       call GitmGetData(data)
       write(*, *) data(:, 1)/dtor
-    end if
+    endif
     time = time + 60.0
     lons = lons - 1.0
-  end do
+  enddo
 
   write(*, *) data(:, 2)/dtor
   write(*, *) data(:, 3)/1000

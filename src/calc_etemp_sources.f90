@@ -241,9 +241,9 @@ subroutine calc_etemp_sources(Heating, Cooling, iBlock)
 
         if (altitude(k)/1000. < 250.) then
           cooling(i, j, k) = 0.99*Heating(i, j, k)
-        end if
+        endif
 
-      end do
+      enddo
 
       do k = 1, nAlts
 
@@ -252,10 +252,10 @@ subroutine calc_etemp_sources(Heating, Cooling, iBlock)
         if (cooling(i, j, k) < 0.6*Heating(i, j, k)) &
           cooling(i, j, k) = 0.6*Heating(i, j, k)
 
-      end do
+      enddo
 
-    end do
-  end do
+    enddo
+  enddo
 
 end subroutine calc_etemp_sources
 

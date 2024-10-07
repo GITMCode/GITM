@@ -18,8 +18,8 @@ subroutine finalize_gitm
   do iOutputType = 1, nOutputTypes
     do iBlock = 1, nBlocks
       call output("UA/data/", iBlock, iOutputType)
-    end do
-  end do
+    enddo
+  enddo
 
   if (IsOpenLogFile) close(iLogFileUnit_)
 
@@ -28,7 +28,7 @@ subroutine finalize_gitm
   if (iProc == 0) then
     open(unit=iOutputUnit_, file="GITM.DONE", status="unknown")
     close(iOutputUnit_)
-  end if
+  endif
 
   call end_timing("GITM")
 
@@ -41,9 +41,9 @@ subroutine finalize_gitm
     if (.not. IsOk) then
       call UAM_write_error()
       if (.not. IsFrameWork) call stop_gitm("problem with finalize")
-    end if
+    endif
 
-  end if
+  endif
 
   ! cleanup mpi
   if (.not. IsFrameWork) call MPI_FINALIZE(iError)

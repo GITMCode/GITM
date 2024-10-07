@@ -38,7 +38,7 @@ subroutine calc_avesza(iLon, iLat, iBlock, SinDec, CosDec)
         X6a = Longitude(iLon, iBlock)/pi + 1.0
       else
         X6a = Longitude(iLon, iBlock)/pi - 1.0
-      end if
+      endif
       X6 = pi*X6a !same as 2*pi*X6a/2
       X3 = SinDec*sin(Latitude(iLat, iBlock))
       X4 = CosDec*cos(Latitude(iLat, iBlock))
@@ -100,7 +100,7 @@ subroutine calc_avesza(iLon, iLat, iBlock, SinDec, CosDec)
 
           IF (TRR .LT. XT1 .OR. TRR .GT. XT2) THEN
             TRR = XT2
-          END IF
+          ENDIF
 
           AveCosSza(iLon, iLat, iBlock) = &
             (X3*(XT2 - TRR) + X4*(SIN(X5*XT2 + X6) - &
@@ -112,19 +112,19 @@ subroutine calc_avesza(iLon, iLat, iBlock, SinDec, CosDec)
 
           IF (TRR .LT. XT1 .OR. TRR .GT. XT2) THEN
             TRR = XT1
-          END IF
+          ENDIF
 
           AveCosSza(iLon, iLat, iBlock) = &
             (X3*(TRR - XT1) + X4*(SIN(X5*TRR + X6) - &
                                   SIN(X5*XT1 + X6))/X5)/NDT
 
-        END IF
+        ENDIF
 
-      END IF
+      ENDIF
 
-    end if
+    endif
 
-  end if
+  endif
   !##########################################################
 
 end subroutine calc_avesza

@@ -54,7 +54,7 @@ contains
                            -1:(nAlts + 4)*nBlocks - 2, &
                            nprocs))
 
-    end if
+    endif
 
     !! how to take the coratation into consideration when coupling
     ! This then implies that the grid is in local time, so we need to
@@ -93,7 +93,7 @@ contains
                  (iBlock - 1)*(nLats + 4) - 1:iBlock*(nLats + 4) - 2, &
                  (iBlock - 1)*(nAlts + 4) - 1:iBlock*(nAlts + 4) - 2) = &
           NDensityS(:, :, :, loc(iParam), iBlock)
-      end do
+      enddo
 
       GITMVars(8, &
                (iBlock - 1)*(nLons + 4) - 1:iBlock*(nLons + 4) - 2, &
@@ -124,17 +124,17 @@ contains
       do iLon = -1, nLons + 2
         GITMVars(11, (iBlock - 1)*(nLons + 4) + iLon, :, :) = &
           Longitude(iLon, iBlock)
-      end do
+      enddo
 
       do iLat = -1, nLats + 2
         GITMVars(12, :, (iBlock - 1)*(nLats + 4) + iLat, :) = &
           Latitude(iLat, iBlock)
-      end do
+      enddo
       do iAlt = -1, nAlts + 2
         GITMVars(13, :, :, (iBlock - 1)*(nAlts + 4) + iAlt) = &
           Altitude_GB(1, 1, iAlt, iBlock)
-      end do
-    end do
+      enddo
+    enddo
 
     call MPI_Gather(GITMLons, &
                     (nLons + 4)*nBlocks, &
@@ -245,7 +245,7 @@ contains
               if ((xd00*xd01*xd10*xd11*yd0*yd1*zd) < 0) then
                 print *, '===>> Dist', iLon, iLat, iAlt, xd00, xd01, xd10, xd11, yd0, yd1, zd
                 stop
-              end if
+              endif
               InterpFactors(1, iLon, iLat, iAlt) = xd00
               InterpFactors(2, iLon, iLat, iAlt) = xd01
               InterpFactors(3, iLon, iLat, iAlt) = xd10
@@ -254,15 +254,15 @@ contains
               InterpFactors(6, iLon, iLat, iAlt) = yd1
               InterpFactors(7, iLon, iLat, iAlt) = zd
 
-            end if
+            endif
 
-          end do
-        end do
-      end do
+          enddo
+        enddo
+      enddo
 
       IsFirstTime = .false.
 
-    end if
+    endif
 
     if (iproc == 0) &
       print *, '---- GITM Couping init Done!!!', iproc
@@ -368,8 +368,8 @@ contains
               else
 
                 IDensityS(iLon, iLat, iAlt, locgitm(iIon), iBlock) = data_inp(3 + iIon)*1e6
-              end if
-            end do
+              endif
+            enddo
 
             IDensityS(iLon, iLat, iAlt, ie_, iBlock) = &
               sum(IDensityS(iLon, iLat, iAlt, 1:nIons - 1, iBlock))
@@ -380,18 +380,18 @@ contains
                 data_inp(1:2), data_inp(3) - re, data_inp(9), 9
             else
               iTemperature(iLon, iLat, iAlt, iBlock) = data_inp(9)
-            end if
+            endif
             if (data_inp(10) <= 0) then
               print *, '===>>4 Magnetic Lon/Lat ', iproc, gitm_mlon, gitm_mlat, gitm_alt
               print *, '===>>4 The interpolated value', iproc, &
                 data_inp(1:2), data_inp(3) - re, data_inp(10), 10
             else
               eTemperature(iLon, iLat, iAlt, iBlock) = data_inp(10)
-            end if
-          end if
-        end do
-      end do
-    end do
+            endif
+          endif
+        enddo
+      enddo
+    enddo
 
     if (iproc == 0) &
       print *, 'GITM overwrite Done!', iproc
@@ -463,7 +463,7 @@ contains
 
         !print*,'SAMIPhi_g a',SAMIPhi_g(:,1)
 
-      end if
+      endif
 
       call report("GITM Broadcasting SAMI Data", 0)
 
@@ -486,7 +486,7 @@ contains
 
           !if (iProcGlobal == 30) write(*,*) "Looping exchange after barrier", iProcGlobal, i, iZ
 
-        end do
+        enddo
 
 !          call MPI_BARRIER(iCommGITM,iError)
 !          if (iProcGlobal == 30) write(*,*) "Looping exchange start", iProcGlobal, i, nf*nz*nlt
@@ -501,7 +501,7 @@ contains
 !
 !          if (iProcGlobal == 30) write(*,*) "Looping exchange after barrier", iProcGlobal, i
 
-      end do
+      enddo
 
       !write(*,*) "GITM Proc, after bcast : ", irank, iProcGlobal
 
@@ -536,8 +536,8 @@ contains
 
         !print*,'SAMIPhi sami',SAMIPhi(:,1)
 
-      end if
-    end if
+      endif
+    endif
 
     if (iCommGITM /= MPI_COMM_NULL) then
 
@@ -592,12 +592,12 @@ contains
             !endif
             !print*,'-- ip,iLon,iBlockLon,iiLon',ip,iLon,iBlockLon,iiLon
 
-          end do
+          enddo
 
           do iLat = -1, nLats + 2
             iiLat = (iBlockLat - 1)*(nLats) + iLat
             GatLatitude_g0(iiLat) = GatLatitude(iLat, ip)/pi*180.0
-          end do
+          enddo
 
           do iLon = -1, nLons + 2
 
@@ -624,11 +624,11 @@ contains
                   do iAlt = -1, nAlts + 2
                     GatGITMVars_g0(:, iiLon, iiLat, iAlt) = &
                       GatGITMVars(:, iLon, iLat, iAlt, ip)
-                  end do
-                end if
-              end do
-            end if
-          end do
+                  enddo
+                endif
+              enddo
+            endif
+          enddo
 
           !             do iLon = -1, nLons+2
           !                iiLon = (iBlockLon-1)*(nLons) + iLon
@@ -643,7 +643,7 @@ contains
           !                enddo
           !             enddo
 
-        end do
+        enddo
 
         GatAltitude_g0 = GatAltitude(-1:nAlts + 2, 1)/1000.0
 
@@ -669,7 +669,7 @@ contains
 
         deallocate(GatLongitude, GatLatitude, GatAltitude, GatGITMVars)
 
-      end if
+      endif
 
     else if (iCommSAMI0 /= MPI_COMM_NULL) then
 
@@ -698,7 +698,7 @@ contains
         call MPI_RECV(nBlocksLat, 1, MPI_INTEGER, 0, tag_SandR1, &
                       intercomm2, status, iError)
 
-      end if
+      endif
 
       ! if (irank==0) write(*,*) "> SAMI bcasting blocks"
 
@@ -740,7 +740,7 @@ contains
                                1:nLatsTotal, &
                                1:nAltsTotal))
         IsFirstTime = .false.
-      end if
+      endif
 
       call MPI_COMM_RANK(intercomm2, irank, iError)
 
@@ -762,7 +762,7 @@ contains
         call MPI_RECV(GatGITMVars_g, nParams*nPointsTotal, &
                       MPI_REAL, 0, tag_SandR2, intercomm2, status, iError)
 
-      end if
+      endif
 
       ! -------------------------------
       ! Pass the data out to other SAMI PEs
@@ -794,7 +794,7 @@ contains
           ! Move data into temp variable to bcast:
           GatGITMVar = GatGITMVars_g(i, :, :, :)
           ! write(*,*) "> done = ",i
-        end if
+        endif
         ! Pass temp variable to other PEs:
         call mpi_bcast(GatGITMVar, nPointsTotal, MPI_REAL, 0, iCommSAMI0, iError)
         call MPI_BARRIER(iCommSAMI0, iError)
@@ -802,8 +802,8 @@ contains
           ! write(*,*) "> Moving bcast data: ",irank, i
           ! Move data from temp array to permenant array:
           GatGITMVars_g(i, :, :, :) = GatGITMVar
-        end if
-      end do
+        endif
+      enddo
 
       ! write(*,*) "SAMI Proc, after bcast : ", irank
 
@@ -812,13 +812,13 @@ contains
 
       ! if (irank==0) write(*,*) "> SAMI bcasting - done!"
 
-    end if
+    endif
 
     if (iCommGITM /= MPI_COMM_NULL) then
 
       if (iproc == 0) &
         deallocate(GatLongitude_g0, GatLatitude_g0, GatAltitude_g0, GatGITMVars_g0)
-    end if
+    endif
 
     call MPI_BARRIER(iCommGlobal, iError)
 
@@ -897,7 +897,7 @@ contains
             if ((phi_xd00*phi_xd10*phi_yd0) < 0) then
               print *, '===>> Dist', phi_xd00, phi_xd10, phi_yd0
               stop
-            end if
+            endif
 
             phi_InterpFactors(1, iLon, iLat) = phi_xd00
             phi_InterpFactors(2, iLon, iLat) = phi_xd10
@@ -906,14 +906,14 @@ contains
             !call  interp_with_4points(phi_InterpFactors(1,iLon,iLat),&
             !             phi_InterpFactors(2,iLon,iLat),phi_InterpFactors(3,iLon,iLat),&
             !             data_inp2)
-          end if
+          endif
 
-        end do
-      end do
+        enddo
+      enddo
 
       IsFirstTime = .false.
 
-    end if
+    endif
 
     if (iproc == 0) &
       print *, '-- GITM Couping Init Potential Done!!!', iproc
@@ -951,9 +951,9 @@ contains
 
           pot(iLon, iLat) = data_inp
 
-        end if
-      end do
-    end do
+        endif
+      enddo
+    enddo
 
     if (iproc == 0) &
       print *, 'GITM Overwrite_potential Done!', iproc

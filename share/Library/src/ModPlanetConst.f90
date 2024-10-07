@@ -338,7 +338,7 @@ contains
     ! make all the planet names upper case
     do i = NoPlanet_, MaxPlanet + 1
       call upper_case(NamePlanet_I(i))  ! make all the names upper case
-    end do
+    enddo
 
   end subroutine init_planet_const
 

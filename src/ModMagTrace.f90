@@ -60,7 +60,7 @@ contains
       MMTaltLoc = -9.; 
       MMTlatLoc = -9.; 
       MMTlonLoc = -9.; 
-    end if
+    endif
 
     if (MMTDebug) write(*, *) iProc, ' MMT_Init:  ', nProcs, '  ', &
       nAlts, nLons, NLats, '  ', nBlocksMax, '  ', MaxMMTPoints
@@ -73,11 +73,11 @@ contains
         if (GeoLat > pi/2.) then
           GeoLat = pi - GeoLat
           GeoLon = mod(GeoLon + pi, twopi)
-        end if
+        endif
         if (GeoLat < -pi/2.) then
           GeoLat = -pi - GeoLat
           GeoLon = mod(GeoLon + pi, twopi)
-        end if
+        endif
         GeoLon = mod(GeoLon + twopi, twopi)
 
         GeoAlt = Altitude_GB(iLon, iLat, 1, iBlock)
@@ -98,7 +98,7 @@ contains
           if (iLoop > MaxMMTPoints) then
             write(*, *) 'ERROR: increase size of MaxMMTPoints, ', MaxMMTPoints
             stop
-          end if
+          endif
 
           ! save values
           LOCalt(iLoop, iLon, iLat, iBlock) = GeoAlt
@@ -108,7 +108,7 @@ contains
           else
             LOClat(iLoop, iLon, iLat, iBlock) = GeoLat
             LOClon(iLoop, iLon, iLat, iBlock) = GeoLon
-          end if
+          endif
 
           ! this "integral" is computed now as the length is the integral of 1.0 along fieldline
           LengthFieldLine(iLon, iLat) = LengthFieldLine(iLon, iLat) + MMTlen
@@ -133,20 +133,20 @@ contains
               if (GeoLat > pi/2.) then
                 GeoLat = pi - GeoLat
                 GeoLon = mod(GeoLon + pi, twopi)
-              end if
+              endif
               if (GeoLat < -pi/2.) then
                 GeoLat = -pi - GeoLat
                 GeoLon = mod(GeoLon + pi, twopi)
-              end if
+              endif
               GeoLon = mod(GeoLon, twopi)
               if (GeoLon < 0.) GeoLon = GeoLon + twopi
 
-            end if
-          end if
+            endif
+          endif
 
-        end do  !! while
+        enddo  !! while
 
-      end do; end do; end do
+      enddo; enddo; enddo
 
     iSize = MaxMMTPoints*(nLons + 4)*(nLats + 4)*nBlocks
     call MPI_ALLGATHER(LOCalt, iSize, MPI_REAL, MMTalt, iSize, MPI_REAL, iCommGITM, iError)
@@ -170,7 +170,7 @@ contains
                     if (IsFound) then
                       write(*, *) 'WARNING, BLOCK FOUND TWICE=] ', i, iLon, iLat, iBlock, k, &
                         '  ', GeoLat*180.0/pi, GeoLon*180.0/pi, GeoALT/1000.0
-                    end if
+                    endif
                     IsFound = .true.
                     iCount = iCount + 1
 
@@ -183,8 +183,8 @@ contains
                                                               (Latitude(m + 1, j) - Latitude(m, j))
                         jLat = m
                         exit
-                      end if
-                    end do
+                      endif
+                    enddo
                     do m = 0, nLons
                       if (GeoLon >= Longitude(m, j) .and. &
                           GeoLon < Longitude(m + 1, j)) then
@@ -193,8 +193,8 @@ contains
                                                               (Longitude(m + 1, j) - Longitude(m, j))
                         jLon = m
                         exit
-                      end if
-                    end do
+                      endif
+                    enddo
                     do m = 1, nAlts
                       if (GeoAlt >= Altitude_GB(jLon, jLat, m, j) .and. &
                           GeoAlt < Altitude_GB(jLon, jLat, m + 1, j)) then
@@ -202,22 +202,22 @@ contains
                           m + (GeoAlt - Altitude_GB(jLon, jLat, m, j))/ &
                           (Altitude_GB(jLon, jLat, m + 1, j) - Altitude_GB(jLon, jLat, m, j))
                         exit
-                      end if
-                    end do
+                      endif
+                    enddo
                     if (MMTlatLoc(i, iLon, iLat, iBlock, k) == -9 .or. &
                         MMTlonLoc(i, iLon, iLat, iBlock, k) == -9 .or. &
                         MMTaltLoc(i, iLon, iLat, iBlock, k) == -9) then
                       write(*, *) 'WARNING, BLOCK VALUE NOT VALID=] ', i, iLon, iLat, iBlock, k, &
                         '  ', GeoLat*180.0/pi, GeoLon*180.0/pi, GeoALT/1000.0
-                    end if
+                    endif
 
-                  end if
-                end do
-              end if
-            end do; end do
-          end do; end do; end do
+                  endif
+                enddo
+              endif
+            enddo; enddo
+          enddo; enddo; enddo
       if (MMTDebug) write(*, *) iProc, ' MMT_Init total processor fieldline length=', iCount*MMTlen
-    end if
+    endif
 
     if (MMTDebug) call MMT_Test
     if (MMTDebug) stop
@@ -275,7 +275,7 @@ contains
                     if (IsFound) then
                       write(*, *) 'WARNING, BLOCK FOUND TWICE=] ', i, iLon, iLat, iBlock, k, &
                         '  ', GeoLat*180.0/pi, GeoLon*180.0/pi, GeoALT/1000.0
-                    end if
+                    endif
                     IsFound = .true.
                     iCount = iCount + 1
 
@@ -288,8 +288,8 @@ contains
                                  (Latitude(m + 1, j) - Latitude(m, j))
                         jLat = m
                         exit
-                      end if
-                    end do
+                      endif
+                    enddo
                     do m = 0, nLons
                       if (GeoLon >= Longitude(m, j) .and. &
                           GeoLon < Longitude(m + 1, j)) then
@@ -298,8 +298,8 @@ contains
                                  (Longitude(m + 1, j) - Longitude(m, j))
                         jLon = m
                         exit
-                      end if
-                    end do
+                      endif
+                    enddo
                     do m = 1, nAlts
                       if (GeoAlt >= Altitude_GB(jLon, jLat, m, j) .and. &
                           GeoAlt < Altitude_GB(jLon, jLat, m + 1, j)) then
@@ -307,19 +307,19 @@ contains
                                  (GeoAlt - Altitude_GB(jLon, jLat, m, j))/ &
                                  (Altitude_GB(jLon, jLat, m + 1, j) - Altitude_GB(jLon, jLat, m, j))
                         exit
-                      end if
-                    end do
+                      endif
+                    enddo
                     if (latLoc == -9 .or. &
                         lonLoc == -9 .or. &
                         altLoc == -9) then
                       write(*, *) 'WARNING, BLOCK VALUE NOT VALID=] ', i, iLon, iLat, iBlock, k, &
                         '  ', GeoLat*180.0/pi, GeoLon*180.0/pi, GeoALT/1000.0
-                    end if
+                    endif
 
-                  end if
-                end do
-              end if
-            end if
+                  endif
+                enddo
+              endif
+            endif
             if (jBlk > 0) then
               !Set location
               i1 = floor(lonLoc)
@@ -349,13 +349,13 @@ contains
 
               PartialIntegral(iLon, iLat, iBlock, k) = &
                 PartialIntegral(iLon, iLat, iBlock, k) + InterpValue
-            end if
-          end do; end do
-        end do; end do; end do
+            endif
+          enddo; enddo
+        enddo; enddo; enddo
 
     if (.not. MMTSaveInterp) then
       if (MMTDebug) write(*, *) iProc, ' MMT_Integrate total processor fieldline length=', iCount*MMTlen
-    end if
+    endif
 
     iSize = (nLons + 4)*(nLats + 4)*nBlocks*nProcs
     call MPI_AllREDUCE(PartialIntegral, FullIntegral, iSize, MPI_REAL, MPI_SUM, iCommGITM, iError)

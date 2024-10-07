@@ -256,8 +256,8 @@ contains
           NameVar_V(iName) = NameVarExtraStandardized_I(iVar)
           IsFoundVar = .true.
           CYCLE NAMELOOP
-        end if
-      end do
+        endif
+      enddo
 
       ! check dictionary ( loop over density, momentum. pressure, energy)
       do iVar = 1, nVarPerSubstance
@@ -267,8 +267,8 @@ contains
           nDistinctSubstanceVar_I(iVar) = &
             nDistinctSubstanceVar_I(iVar) + 1
           CYCLE NAMELOOP
-        end if
-      end do
+        endif
+      enddo
 
       ! variable name may correspond to numbered wave/material
       ! These names are created  in BATSRUS:MH_set_parameters
@@ -277,13 +277,13 @@ contains
         nWave = nWave + 1
         IsFoundVar = .true.
         CYCLE NAMELOOP
-      end if
+      endif
 
       if (lge(NameVarIn, 'm1') .and. lle(NameVarIn, 'm9')) then
         nMaterial = nMaterial + 1
         IsFoundVar = .true.
         CYCLE NAMELOOP
-      end if
+      endif
 
       if (.not. IsFoundVar) then
         write(*, *) 'ERROR: Var name not in dictionary: ', NameVarIn
@@ -292,9 +292,9 @@ contains
         !write(*,*) SubstanceStandardName_II
         write(*, *) ''
         call CON_stop(NameSub//': unknown variable '//NameVarIn)
-      end if
+      endif
 
-    end do NAMELOOP
+    enddo NAMELOOP
 
     nDensity = nDistinctSubstanceVar_I(Rho_)
     nSpeed = nDistinctSubstanceVar_I(RhoUx_)
@@ -328,10 +328,10 @@ contains
               NameVar_V(iName) = &
                 SubstanceStandardName_II(iSubstanceFound, iVar)
               RETURN
-            end if
-          end if
-        end do
-      end do
+            endif
+          endif
+        enddo
+      enddo
     end subroutine find_substance_replace_name
 
   end subroutine process_var_list
@@ -349,8 +349,8 @@ contains
         SubstanceStandardName_II(iSubstance, iVar) = &
           ''//trim(NameSubstance_I(iSubstance))//NameSubstanceVar_I(iVar)
 
-      end do
-    end do
+      enddo
+    enddo
 
   end subroutine create_standard_name
   ! =========================================================================
@@ -377,7 +377,7 @@ contains
     do iSubstance = 1, nSubstance
       Dictionary_III(iSubstance, Energy_, 2) = &
         ''//trim(NameSubstance_I(iSubstance))//'e'
-    end do
+    enddo
 
     ! main plasma fluid
     Dictionary_III(Main_, RhoUx_, 2) = 'rhoux'

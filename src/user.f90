@@ -37,7 +37,7 @@ subroutine get_mean_bcs
     LocalSumVolume = LocalSumVolume + &
                      sum(CellVolume(1:nLons, 1:nLats, -1:0, iBlock))
 
-  end do
+  enddo
 
   call MPI_ALLREDUCE(LocalMeanVelBc_D, MeanVelBc_D, 2, &
                      MPI_REAL, MPI_SUM, iCommGITM, iError)
@@ -111,7 +111,7 @@ subroutine user_perturbation
   if (CurrentTime < PerturbTimeStart) then
     tsave = sum(temperature(1:nLons, 1:nLats, 1, 1:nBlocks))/ &
             (nLons*nLats*nBlocks)
-  end if
+  endif
 
   DuringPerturb = .false.
 
@@ -136,7 +136,7 @@ subroutine user_perturbation
               exp(-((longitude(iLon, iBlock) - loncenter)/lonwidth)**2)
           else
             f(iLon, iLat) = 0.0
-          end if
+          endif
 
           iAlt = 1
           UserHeatingRate(iLon, iLat, iAlt, iBlock) = &
@@ -145,8 +145,8 @@ subroutine user_perturbation
             TempUnit(iLon, iLat, iAlt)/ &
             cp(iLon, iLat, iAlt, iBlock)/ &
             rho(iLon, iLat, iAlt, iBlock)
-        end do
-      end do
+        enddo
+      enddo
 
 !        temperature(:,:,-1,iBlock) = tsave + 5.0 * f * tsave
 !        temperature(:,:, 0,iBlock) = tsave + 5.0 * f * tsave
@@ -159,9 +159,9 @@ subroutine user_perturbation
 !        Velocity(:,:,-1, iUp_, iBlock) = 2*f
 !        Velocity(:,:, 0, iUp_, iBlock) = 2*f
 !        Velocity(:,:, 1, iUp_, iBlock) = 2*f
-    end do
+    enddo
 
-  end if
+  endif
 
 !  NDensityS(nLons/2,nLats/2,2,1:3,1) = NDensityS(nLons/2,nLats/2,2,1:3,1)*50.0
 !  temperature(nLons/2,nLats/2,2,1) = temperature(nLons/2,nLats/2,2,1)*100.0
@@ -243,7 +243,7 @@ subroutine user_bc_perturbation(LogRhoBc, LogNSBc, VelBc_GD, TempBc)
     Slope = tan(pi/2.+PerturbWaveDirection*pi/180.)
     WaveSpeedLat = PerturbWaveSpeed/sin(PerturbWaveDirection*pi/180.)
     IsFirstCall = .false.
-  end if
+  endif
 
   if (CurrentTime /= OldTime) then
     ! These are the same for all grid cells within each time step
@@ -251,7 +251,7 @@ subroutine user_bc_perturbation(LogRhoBc, LogNSBc, VelBc_GD, TempBc)
     BouyancyFreq2 = (Gamma_const - 1)/Gamma_const*AvgGravity/ScaleHeight
     SoundSpeed2 = Gamma_const*AvgGravity*ScaleHeight
     OldTime = CurrentTime
-  end if
+  endif
 
   ! longitude degree-meter conversion factor of the current Lat
   dLon = pi*Rbody*cos(Lat*pi/180.)/180.
@@ -282,7 +282,7 @@ subroutine user_bc_perturbation(LogRhoBc, LogNSBc, VelBc_GD, TempBc)
           write(*, *) 'No longer a upward-propagating waves at Time = ', &
           CurrentTime - StartTime, 'iFreq =', iFreq
         cycle
-      end if
+      endif
 
       Kz = sqrt(WaveFreqIntri2/SoundSpeed2 + &
                 (BouyancyFreq2 - WaveFreqIntri2)*Kh2/WaveFreqIntri2 - &
@@ -301,8 +301,8 @@ subroutine user_bc_perturbation(LogRhoBc, LogNSBc, VelBc_GD, TempBc)
           .and. (Lat - RefLat)*dLat - Slope*(Lon - RefLon)*dLon <= &
           WaveSpeedLat*(CurrentTime - StartTime - PerturbTimeDelay &
                         - PerturbDuration)
-      end if
-    end if
+      endif
+    endif
 
     do iAlt = -1, 0
 
@@ -321,7 +321,7 @@ subroutine user_bc_perturbation(LogRhoBc, LogNSBc, VelBc_GD, TempBc)
             write(*, *) 'No longer a upward-propagating AGW at Time = ', &
             CurrentTime - StartTime, 'iFreq =', iFreq
           cycle
-        end if
+        endif
 
         Kr = sqrt(WaveFreqIntri2*(WaveFreqIntri2 - SoundSpeed2/ &
                                   (4.*ScaleHeight**2))/SoundSpeed2 &
@@ -338,7 +338,7 @@ subroutine user_bc_perturbation(LogRhoBc, LogNSBc, VelBc_GD, TempBc)
                      (CurrentTime - StartTime - PerturbTimeDelay) &
                      .and. RadialD >= PerturbWaveFreq(iFreq)/Kr* &
                      (CurrentTime - StartTime - PerturbTimeDelay - PerturbDuration))
-      end if
+      endif
 
       if (DoPerturb) then
 
@@ -374,7 +374,7 @@ subroutine user_bc_perturbation(LogRhoBc, LogNSBc, VelBc_GD, TempBc)
                    FFTReal(iFreq)*exp(Altitude_G(iAlt)/(2.*ScaleHeight))
           WaveCombo1 = (CoeffS*SineWave + CoeffC*CosineWave)/RadialD
           WaveCombo2 = (CoeffS*CosineWave + CoeffC*SineWave)/RadialD
-        end if
+        endif
 
         dRho = exp(-Altitude_G(iAlt)/ScaleHeight)*Rho0*WaveFreqIntri/Coeff3* &
                ((Coeff2*WaveFreqIntri2 + Coeff1/ScaleHeight)*Kz*WaveCombo1 - &
@@ -407,9 +407,9 @@ subroutine user_bc_perturbation(LogRhoBc, LogNSBc, VelBc_GD, TempBc)
           'WaveForm = ', WaveForm, 'CoeffS =', CoeffS, 'CoeffC =', CoeffC, &
           'dRho = ', dRho, 'dVel = ', dVel
 
-      end if
-    end do
-  end do
+      endif
+    enddo
+  enddo
 
 end subroutine user_bc_perturbation
 
@@ -536,7 +536,7 @@ subroutine output_header_user(cType, iOutputUnit_)
     write(iOutputUnit_, "(I7,A1,a)") 4, " ", "Joule Heating"
     write(iOutputUnit_, "(I7,A1,a)") 5, " ", "JPara"
 
-  end if
+  endif
 
   ! ------------------------------------------
   ! 2D Output Header
@@ -567,8 +567,8 @@ subroutine output_header_user(cType, iOutputUnit_)
     write(iOutputUnit_, "(I7,A1,a)") 10, " ", "Wave Total Energy (ergs)"
     do n = 1, ED_N_Energies
       write(iOutputUnit_, "(I7,A6,1P,E9.3,A11)") 10 + n, " Flux@", ED_energies(n), "eV (/cm2/s)"
-    end do
-  end if
+    enddo
+  endif
 
   ! ------------------------------------------
   ! 1D Output Header
@@ -587,7 +587,7 @@ subroutine output_header_user(cType, iOutputUnit_)
     write(iOutputUnit_, "(I7,A1,a)") 2, " ", "Latitude"
     write(iOutputUnit_, "(I7,A1,a)") 3, " ", "Altitude"
     write(iOutputUnit_, "(I7,A1,a)") 4, " ", "Electron Density"
-  end if
+  endif
 
   ! ------------------------------------------
   ! 0D Output Header
@@ -608,7 +608,7 @@ subroutine output_header_user(cType, iOutputUnit_)
     write(iOutputUnit_, "(I7,A1,a)") 4, " ", "Electron Density"
     write(iOutputUnit_, "(I7,A1,a)") 5, " ", "Electron Temperature"
     write(iOutputUnit_, "(I7,A1,a)") 6, " ", "Ion Temperature"
-  end if
+  endif
 
   write(iOutputUnit_, *) ""
 
@@ -636,9 +636,9 @@ subroutine output_3dUser(iBlock, iOutputUnit_)
           Latitude(iLat, iBlock), &
           Altitude_GB(iLon, iLat, iAlt, iBlock), &
           UserData3D(iLon, iLat, iAlt, 1:nVarsUser3d - 3, iBlock)
-      end do
-    end do
-  end do
+      enddo
+    enddo
+  enddo
 
 end subroutine output_3dUser
 
@@ -664,8 +664,8 @@ subroutine output_2dUser(iBlock, iOutputUnit_)
         Latitude(iLat, iBlock), &
         Altitude_GB(iLon, iLat, iAlt, iBlock), &
         UserData2D(iLon, iLat, iAlt, 1:nVarsUser2d - 3, iBlock)
-    end do
-  end do
+    enddo
+  enddo
 
 end subroutine output_2dUser
 
@@ -692,7 +692,7 @@ subroutine output_1dUser(iiLon, iiLat, iBlock, rLon, rLat, iOutputUnit_)
       Altitude_GB(iiLon, iiLat, iAlt, iBlock), &
       inter(IDensityS(0:nLons + 1, 0:nLats + 1, iAlt, ie_, iBlock), &
             iiLon, iiLat, rLon, rLat)
-  end do
+  enddo
 
 contains
 

@@ -33,8 +33,8 @@ subroutine time_int_to_real(itime, timereal)
       nyear = itime(1) - 65
     else
       nyear = itime(1) + 100 - 65
-    end if
-  end if
+    endif
+  endif
   nleap = nyear/4
 
   nmonth = itime(2) - 1
@@ -43,7 +43,7 @@ subroutine time_int_to_real(itime, timereal)
 
   do i = 1, nmonth
     nday = nday + dayofmon(i)
-  end do
+  enddo
 
   nday = nday + itime(3) - 1
   nhour = itime(4)
@@ -120,13 +120,13 @@ program PostProcess
   if (iStart > 0) then
   else
     iStart = index(FileName, " ") - 1
-  end if
+  endif
 
   inquire(file=FileName(1:iStart)//".header", EXIST=IsThere)
   if (.not. IsThere) then
     write(*, *) "Could not find header file : ", FileName(1:iStart)//".header"
     stop
-  end if
+  endif
 
   open(iInputUnitH_, file=FileName(1:iStart)//".header", status="old")
 
@@ -154,14 +154,14 @@ program PostProcess
         read(iInputUnitH_, *) nBlocksAlt
         read(iInputUnitH_, *) nBlocksLat
         read(iInputUnitH_, *) nBlocksLon
-      end if
+      endif
 
       if (index(cLine, "NUMERICAL") > 0) then
         read(iInputUnitH_, *) nVars
         read(iInputUnitH_, *) nAlts
         read(iInputUnitH_, *) nLats
         read(iInputUnitH_, *) nLons
-      end if
+      endif
 
       if (index(cLine, "TIME") > 0) then
         read(iInputUnitH_, *) iYear
@@ -171,11 +171,11 @@ program PostProcess
         read(iInputUnitH_, *) iMinute
         read(iInputUnitH_, *) iSecond
         read(iInputUnitH_, *) iMilli
-      end if
+      endif
 
       if (index(cLine, "VERSION") > 0) then
         read(iInputUnitH_, *) Version
-      end if
+      endif
 
       if (index(cLine, "VARIABLE") > 0) then
         do iVar = 1, nVars
@@ -188,32 +188,32 @@ program PostProcess
                 cSingle(i:i) /= "]") then
               cSingleTemp(j:j) = cSingle(i:i)
               j = j + 1
-            end if
-          end do
+            endif
+          enddo
           write(*, *) cSingleTemp
           Variables(iVar) = cSingleTemp
-        end do
-      end if
+        enddo
+      endif
 
       if (index(cLine, "NGHOSTCELLS") > 0) then
         read(iInputUnitH_, *) nGhostAlts
         read(iInputUnitH_, *) nGhostLats
         read(iInputUnitH_, *) nGhostLons
-      end if
+      endif
 
       if (index(cLine, "NO GHOSTCELLS") > 0) then
         UseGhostCells = .false.
         nGhostLats = 0
         nGhostLons = 0
         nGhostAlts = 0
-      end if
+      endif
 
       if (index(cLine, "END") > 0) then
         iError = 1
         IsEnd = .true.
-      end if
+      endif
 
-    end do
+    enddo
 
     if (nAlts > 0) then
 
@@ -221,7 +221,7 @@ program PostProcess
       if (nLons == 1 .and. nLats == 1) then
         nBlocksLon = 1
         nBlocksLat = 1
-      end if
+      endif
 
       write(*, *) "Inputs :"
       write(*, *) "  nBlocksLon, nBlocksLat, nBlocksAlt : ", &
@@ -237,7 +237,7 @@ program PostProcess
         nLonsTotal = nBlocksLon*nLons
         nLatsTotal = nBlocksLat*nLats
         nAltsTotal = nBlocksAlt*nAlts
-      end if
+      endif
       write(*, *) "  nLonsTotal, nLatsTotal, nAltsTotal : ", &
         nLonsTotal, nLatsTotal, nAltsTotal, " (Predicted Values)"
 
@@ -260,7 +260,7 @@ program PostProcess
 
         iError = nf90_open(FileName(1:iStart)//".nc", nf90_write, ncid)
 
-      end if
+      endif
 
       ! Define the dimensions
       iError = nf90_def_dim(ncid, 'Longitude', nLonsTotal, DimId_iLon)
@@ -283,7 +283,7 @@ program PostProcess
         iError = nf90_def_var(ncid, Variables(iVar), NF90_REAL, &
                               DimIds, VarId(iVar))
         write(*, *) "var ", iVar, Variables(iVar), iError, VarId(iVar)
-      end do
+      enddo
 
       ! We need to do Units and other Attributes here....
       iError = nf90_put_att(ncid, NF90_GLOBAL, "Version", Version)
@@ -307,7 +307,7 @@ program PostProcess
             if (.not. IsThere) then
               write(*, *) "Must be a satellite file...."
               cBlock = ".sat"
-            end if
+            endif
 
             !write(*,*) "Reading File : ",FileName(1:iStart)//cBlock
 
@@ -316,7 +316,7 @@ program PostProcess
               open(iInputUnitD_, file=FileName(1:iStart)//cBlock, &
                    status="old", form="unformatted")
               IsFirstTime = .false.
-            end if
+            endif
 
             do iAlt = 1, nAlts
               do iLat = 1, nLats
@@ -345,7 +345,7 @@ program PostProcess
                     if (iBlockAlt /= nBlocksAlt .and. &
                         iAlt > nAlts - nGhostAlts) DoWrite = .false.
 
-                  end if
+                  endif
 
                   if (DoWrite) then
 
@@ -361,7 +361,7 @@ program PostProcess
                       iiLat = (iBlockLat - 1)*(nLats) + iLat
                       iiAlt = (iBlockAlt - 1)*(nAlts) + iAlt
 
-                    end if
+                    endif
 
                     AllData(iiLon, iiLat, iiAlt, 1:nVars) = Data(1:nVars)
 
@@ -369,19 +369,19 @@ program PostProcess
                     if (iiLat > nLatsTotal) nLatsTotal = iiLat
                     if (iiAlt > nAltsTotal) nAltsTotal = iiAlt
 
-                  end if
+                  endif
 
-                end do
-              end do
-            end do
+                enddo
+              enddo
+            enddo
 
             if (.not. IsEnd .or. nBlocksLat > 1) close(iInputUnitD_)
 
             iBlock = iBlock + 1
 
-          end do
-        end do
-      end do
+          enddo
+        enddo
+      enddo
 
       iTime(1) = iYear
       iTime(2) = iMonth
@@ -401,7 +401,7 @@ program PostProcess
         tmpData = AllData(:, :, :, iVar)
         iError = nf90_put_var(ncid, VarId(iVar), tmpData, &
                               start=start, count=count)
-      end do
+      enddo
 
       close(iOutputUnit_)
       deallocate(AllData)
@@ -409,8 +409,8 @@ program PostProcess
       ! close file
       iError = nf90_close(ncid)
 
-    end if
+    endif
 
-  end do
+  enddo
 
 end program PostProcess

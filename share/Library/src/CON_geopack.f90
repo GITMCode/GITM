@@ -86,7 +86,7 @@ contains
     if (iYear < 1901 .or. iYear > 2099) then
       write(*, *) NameSub, ' ERROR: No ephemeris data for the year of ', iYear
       call CON_stop('CON_geopack ERROR')
-    end if
+    endif
     FDAY = dble(IHOUR*3600 + iMIN*60 + ISEC)/86400.E0
     DJ = 365*(IYear - 1900) + (IYear - 1901)/4 + jDAY - 0.5E0 + FDAY
     Century = DJ/36525.0
@@ -179,10 +179,10 @@ contains
           MinYear
         write(*, *) NameSub, ': setting iYear=', MinYear, ' iDay=1'
         DoWarnSmallYear = .false.
-      end if
+      endif
       iYear = MinYear
       iDay = 1
-    end if
+    endif
     if (iYearIn > MaxYear + DnYear) then
       if (DoWarnLargeYear) then
         write(*, *) 'WARNING!!! Update IGRF coefficients in ', NameSub, &
@@ -190,10 +190,10 @@ contains
         write(*, *) NameSub, ': no IGRF coefficients beyond year ', MaxYear
         write(*, *) NameSub, ': setting iYear=', MaxYear + DnYear, ' iDay=365'
         DoWarnLargeYear = .false.
-      end if
+      endif
       iYear = MaxYear + DnYear
       iDay = 365
-    end if
+    endif
 
     ! No need to recalculate if the call uses the same values as last time
     if (iYear == iYearLast .and. iDay == iDayLast) RETURN

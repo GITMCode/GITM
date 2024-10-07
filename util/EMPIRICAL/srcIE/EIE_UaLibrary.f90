@@ -72,9 +72,9 @@ subroutine UA_SetMLTs(MLTsIn, iError)
     do i = 1, UAi_NeednMLTs
       do j = 1, UAi_NeednLats
         UAr2_NeedMLTs(i, j) = mod((MLTsIn(i, j) + 24.0), 24.0)
-      end do
-    end do
-  end if
+      enddo
+    enddo
+  endif
 
 end subroutine UA_SetMLTs
 
@@ -99,7 +99,7 @@ subroutine UA_SetLats(LatsIn, iError)
   else
     UAr2_NeedLats(1:UAi_NeednMLTs, 1:UAi_NeednLats) = &
       LatsIn(1:UAi_NeednMLTs, 1:UAi_NeednLats)
-  end if
+  endif
 
 end subroutine UA_SetLats
 
@@ -136,7 +136,7 @@ subroutine UA_SetGrid(MLTsIn, LatsIn, iError)
     if (iError /= 0) then
       iError = ecAllocationError_
       return
-    end if
+    endif
 
     if (allocated(UAr3_InterpolationRatios)) &
       deallocate(UAr3_InterpolationRatios)
@@ -145,7 +145,7 @@ subroutine UA_SetGrid(MLTsIn, LatsIn, iError)
     if (iError /= 0) then
       iError = ecAllocationError_
       return
-    end if
+    endif
 
     do i = 1, UAi_NeednLats
       do j = 1, UAi_NeednMLTs
@@ -160,12 +160,12 @@ subroutine UA_SetGrid(MLTsIn, LatsIn, iError)
           UAr3_InterpolationRatios(j, i, 1:2) = EIEr1_Location(4:5)
         else
           UAi3_InterpolationIndices(j, i, 1) = -1
-        end if
+        endif
 
-      end do
-    end do
+      enddo
+    enddo
 
-  end if
+  endif
 
 end subroutine UA_SetGrid
 
@@ -210,10 +210,10 @@ subroutine UA_GetValue(ValueIn, ValueOut, Filler, iError)
           (dM)*(dL)*ValueIn(iM + 1, IL + 1, iB) + &
           (dM)*(1.0 - dL)*ValueIn(iM + 1, IL, iB)
 
-      end if
+      endif
 
-    end do
-  end do
+    enddo
+  enddo
 
 end subroutine UA_GetValue
 
@@ -249,7 +249,7 @@ subroutine UA_GetPotential(PotentialOut, iError)
       stop
     else
       PotentialOut = ValueOut
-    end if
+    endif
 
   else
 
@@ -269,12 +269,12 @@ subroutine UA_GetPotential(PotentialOut, iError)
                                      ValueOut(iMlt, iLat - 1) + &
                                      ValueOut(iMlt + 1, iLat) + &
                                      ValueOut(iMlt, iLat + 1))/4.0
-            end if
-          end if
-        end do
-      end do
+            endif
+          endif
+        enddo
+      enddo
 
-    end if
+    endif
 
     if (iError == 0) then
       PotentialOut = ValueOut
@@ -282,9 +282,9 @@ subroutine UA_GetPotential(PotentialOut, iError)
       write(*, *) 'error in UA_GetPotential (nongrid): ', cErrorCodes(iError)
       stop
       PotentialOut = -1.0e32
-    end if
+    endif
 
-  end if
+  endif
 
 end subroutine UA_GetPotential
 
@@ -321,66 +321,66 @@ subroutine UA_GetNonGridBasedPotential(PotentialOut, iError)
 
   if (index(EIE_NameOfEFieldModel, 'zero') > 0) then
     return
-  end if
+  endif
 
   if (IOd_NeedTime < 0.0) then
     iError = ecTimeNotSet_
     return
-  end if
+  endif
 
   if (index(EIE_NameOfEFieldModel, 'hpi') <= 0) then
     if (IOr_NeedIMFBz < -1000.0) then
       iError = ecIMFBzNotSet_
       return
-    end if
+    endif
     if (IOr_NeedIMFBy < -1000.0) then
       iError = ecIMFByNotSet_
       return
-    end if
-  end if
+    endif
+  endif
 
   if (index(EIE_NameOfEFieldModel, 'weimer05') > 0) then
     if (IOr_NeedSWV < -1000.0) then
       iError = ecSWVNotSet_
       return
-    end if
+    endif
     if (IOr_NeedSWN < -1000.0) then
       iError = ecSWNNotSet_
       return
-    end if
+    endif
     iChange = 1
-  end if
+  endif
 
   if (index(EIE_NameOfEFieldModel, 'weimer01') > 0) then
     if (IOr_NeedSWV < -1000.0) then
       iError = ecSWVNotSet_
       return
-    end if
+    endif
     iChange = 1
-  end if
+  endif
 
   if (index(EIE_NameOfEFieldModel, 'weimer96') > 0) then
     if (IOr_NeedSWV < -1000.0) then
       iError = ecSWVNotSet_
       return
-    end if
+    endif
     iChange = 1
-  end if
+  endif
 
   if (index(EIE_NameOfEFieldModel, 'millstone') > 0) then
     if (IOr_NeedHPI < -1000.0) then
       iError = ecHPINotSet_
       return
-    end if
-  end if
+    endif
+  endif
 
   if (index(EIE_NameOfEFieldModel, 'hmr89') > 0) then
     if (IOr_NeedKP < -1000.0) then
       iError = ecKPNotSet_
       return
-    end if
+    endif
     iChange = 1
-  end if
+  endif
 
   call time_real_to_int(IOd_NeedTime, itime)
 
@@ -401,7 +401,7 @@ subroutine UA_GetNonGridBasedPotential(PotentialOut, iError)
       else
         if (UAr2_NeedLats(iMLT, iLat)*UAr2_NeedLats(iMLT, iLat - 1) <= 0.0) &
           iChange = 1
-      end if
+      endif
 
       MLT = UAr2_NeedMLTs(iMLT, iLat)
       Lat = UAr2_NeedLats(iMLT, iLat)
@@ -412,11 +412,11 @@ subroutine UA_GetNonGridBasedPotential(PotentialOut, iError)
         else
           Lat = abs(Lat)
           iHemisphere = -1
-        end if
+        endif
       else
         iHemisphere = -1
         if (Lat < 0.0) Lat = abs(Lat)
-      end if
+      endif
 
       if (index(EIE_NameOfEFieldModel, 'weimer05') > 0) then
         if (abs(lat) >= 45.0) then
@@ -425,7 +425,7 @@ subroutine UA_GetNonGridBasedPotential(PotentialOut, iError)
             tilt = 0.0
           else
             tilt = iHemisphere*get_tilt(iYear, iMonth, iDay, hr)
-          end if
+          endif
           call setmodel(IOr_NeedIMFBy, IOr_NeedIMFBz, tilt, &
                         IOr_NeedSWV, IOr_NeedSWN, 'epot')
           call epotval(lat, mlt, 0.0, Potential)
@@ -435,8 +435,8 @@ subroutine UA_GetNonGridBasedPotential(PotentialOut, iError)
           Potential = 0.0
           ETheta = 0.0
           EPhi = 0.0
-        end if
-      end if
+        endif
+      endif
 
       if (index(EIE_NameOfEFieldModel, 'weimer96') > 0) then
         if (abs(lat) >= 45.0) then
@@ -451,38 +451,38 @@ subroutine UA_GetNonGridBasedPotential(PotentialOut, iError)
           Potential = 0.0
           ETheta = 0.0
           EPhi = 0.0
-        end if
-      end if
+        endif
+      endif
 
       if (index(EIE_NameOfEFieldModel, 'millstone_hpi') > 0) then
         call MHEMODL(Lat, mlt, IOr_NeedHPI, IOr_NeedIMFBy, &
                      IOr_NeedIMFBz, 1, ETheta, EPhi, Potential)
         Potential = Potential*1000.0
-      end if
+      endif
 
       if (index(EIE_NameOfEFieldModel, 'millstone_imf') > 0) then
         call MHEMODL(lat, mlt, IOr_NeedHPI, IOr_NeedIMFBy, &
                      IOr_NeedIMFBz, 2, ETheta, EPhi, Potential)
         Potential = Potential*1000.0
-      end if
+      endif
 
       if (index(EIE_NameOfEFieldModel, 'hmr89') > 0) then
         call HMREPOT(lat, mlt, IOr_NeedIMFBy, IOr_NeedIMFBz, &
                      IOr_NeedKp, iChange, ETheta, EPhi, Potential)
         Potential = Potential*1000.0
         iChange = 0
-      end if
+      endif
 
       if (index(EIE_NameOfEFieldModel, 'izmem') > 0) then
         call IZEPOT(iMonth, lat, mlt, iHemisphere*IOr_NeedIMFBy, &
                     IOr_NeedIMFBz, ETheta, EPhi, Potential)
         Potential = Potential*1000.0
-      end if
+      endif
 
       PotentialOut(iMLT, iLat) = Potential
 
-    end do
-  end do
+    enddo
+  enddo
 
 end subroutine UA_GetNonGridBasedPotential
 
@@ -514,7 +514,7 @@ subroutine UA_GetAveE(AveEOut, iError)
       write(*, *) cErrorCodes(iError)
     else
       AveEOut = ValueOut
-    end if
+    endif
 
   else
 
@@ -524,9 +524,9 @@ subroutine UA_GetAveE(AveEOut, iError)
       AveEOut = ValueOut
     else
       AveEOut = -1.0e32
-    end if
+    endif
 
-  end if
+  endif
 
 end subroutine UA_GetAveE
 
@@ -552,7 +552,7 @@ subroutine UA_GetNonGridBasedAveE(AveEOut, iError)
   if (IOr_NeedHPINorm < -1000.0) then
     iError = ecHPINotSet_
     return
-  end if
+  endif
 
   do iMLT = 1, UAi_NeednMLTs
     do iLat = 1, UAi_NeednLats
@@ -566,8 +566,8 @@ subroutine UA_GetNonGridBasedAveE(AveEOut, iError)
 
       AveEOut(iMLT, iLat) = avkev
 
-    end do
-  end do
+    enddo
+  enddo
 
 end subroutine UA_GetNonGridBasedAveE
 
@@ -600,7 +600,7 @@ subroutine UA_GetEFlux(EFluxOut, iError)
       stop
     else
       EFluxOut = ValueOut
-    end if
+    endif
 
   else
 
@@ -610,9 +610,9 @@ subroutine UA_GetEFlux(EFluxOut, iError)
       EFluxOut = ValueOut
     else
       EFluxOut = -1.0e32
-    end if
+    endif
 
-  end if
+  endif
 
 end subroutine UA_GetEFlux
 
@@ -639,7 +639,7 @@ subroutine UA_GetNonGridBasedEFlux(EFluxOut, iError)
   if (IOr_NeedHPINorm < -1000.0) then
     iError = ecHPINotSet_
     return
-  end if
+  endif
 
   do iMLT = 1, UAi_NeednMLTs
     do iLat = 1, UAi_NeednLats
@@ -652,8 +652,8 @@ subroutine UA_GetNonGridBasedEFlux(EFluxOut, iError)
 
       EFluxOut(iMLT, iLat) = eflx
 
-    end do
-  end do
+    enddo
+  enddo
 
 end subroutine UA_GetNonGridBasedEFlux
 
@@ -685,7 +685,7 @@ subroutine UA_GetIonAveE(IonAveEOut, iError)
       write(*, *) cErrorCodes(iError)
     else
       IonAveEOut = ValueOut
-    end if
+    endif
 
   else
 
@@ -695,9 +695,9 @@ subroutine UA_GetIonAveE(IonAveEOut, iError)
       IonAveEOut = ValueOut
     else
       IonAveEOut = 0.0
-    end if
+    endif
 
-  end if
+  endif
 
 end subroutine UA_GetIonAveE
 
@@ -749,7 +749,7 @@ subroutine UA_GetIonEFlux(IonEFluxOut, iError)
       stop
     else
       IonEFluxOut = ValueOut
-    end if
+    endif
 
   else
 
@@ -759,9 +759,9 @@ subroutine UA_GetIonEFlux(IonEFluxOut, iError)
       IonEFluxOut = ValueOut
     else
       IonEFluxOut = -1.0e32
-    end if
+    endif
 
-  end if
+  endif
 
 end subroutine UA_GetIonEFlux
 

@@ -24,17 +24,17 @@ subroutine check_for_nans_ions(cMarker)
             write(*, *) cMarker
             write(*, *) iLon, iLat, iAlt, iProc, iIon
             IsFound = .true.
-          end if
+          endif
           if (iDensityS(iLon, iLat, iAlt, iIon, 1) < 0.0) then
             write(*, *) 'Negative density found in iDensityS : '
             write(*, *) cMarker
             write(*, *) iLon, iLat, iAlt, iProc, iIon
             IsFound = .true.
-          end if
-        end do
-      end do
-    end do
-  end do
+          endif
+        enddo
+      enddo
+    enddo
+  enddo
 
   if (IsFound) call stop_gitm("Stopping...")
 
@@ -63,17 +63,17 @@ subroutine check_for_nans_neutrals(cMarker)
             write(*, *) cMarker
             write(*, *) iLon, iLat, iAlt, iProc, iNeu
             IsFound = .true.
-          end if
+          endif
           if (nDensityS(iLon, iLat, iAlt, iNeu, 1) < 0.0) then
             write(*, *) 'Negative density found in nDensityS : '
             write(*, *) cMarker
             write(*, *) iLon, iLat, iAlt, iProc, iNeu
             IsFound = .true.
-          end if
-        end do
-      end do
-    end do
-  end do
+          endif
+        enddo
+      enddo
+    enddo
+  enddo
 
   if (IsFound) call stop_gitm("Stopping...")
 
@@ -101,41 +101,41 @@ subroutine check_for_nans_temps(cMarker)
           write(*, *) cMarker
           write(*, *) iLon, iLat, iAlt, iProc
           IsFound = .true.
-        end if
+        endif
         if (ieee_is_nan(iTemperature(iLon, iLat, iAlt, 1))) then
           write(*, *) 'Nan found in iTemperature : '
           write(*, *) cMarker
           write(*, *) iLon, iLat, iAlt, iProc
           IsFound = .true.
-        end if
+        endif
         if (ieee_is_nan(eTemperature(iLon, iLat, iAlt, 1))) then
           write(*, *) 'Nan found in eTemperature : '
           write(*, *) cMarker
           write(*, *) iLon, iLat, iAlt, iProc
           IsFound = .true.
-        end if
+        endif
         ! Check for negative Temperatures:
         if (Temperature(iLon, iLat, iAlt, 1) < 0.0) then
           write(*, *) 'Negative found in Temperature : '
           write(*, *) cMarker
           write(*, *) iLon, iLat, iAlt, iProc
           IsFound = .true.
-        end if
+        endif
         if (iTemperature(iLon, iLat, iAlt, 1) < 0.0) then
           write(*, *) 'Negative found in iTemperature : '
           write(*, *) cMarker
           write(*, *) iLon, iLat, iAlt, iProc
           IsFound = .true.
-        end if
+        endif
         if (eTemperature(iLon, iLat, iAlt, 1) < 0.0) then
           write(*, *) 'Negative found in eTemperature : '
           write(*, *) cMarker
           write(*, *) iLon, iLat, iAlt, iProc
           IsFound = .true.
-        end if
-      end do
-    end do
-  end do
+        endif
+      enddo
+    enddo
+  enddo
 
   if (IsFound) call stop_gitm("Stopping...")
 

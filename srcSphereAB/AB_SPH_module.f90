@@ -117,19 +117,19 @@ contains
       ok = .false.
       call AB_ERROR_set("AB_SPH_create", "not enough blocks")
       return
-    end if
+    endif
 
     if ((num_lat*num_long) < np) then
       ok = .false.
       call AB_ERROR_set("AB_SPH_create", "too many processors")
       return
-    end if
+    endif
 
     if ((num_long .ne. 1) .and. (mod(num_long, 2) .ne. 0)) then
       ok = .false.
       call AB_ERROR_set("AB_SPH_create", "num_long not even")
       return
-    end if
+    endif
 
     ! Initialize sph variables
     sph%cpb_long = cpb_long
@@ -168,7 +168,7 @@ contains
       lat = i/num_long
       long = i - (lat*num_long)
       call AB_create(grp, i - min_blk + 1, long + 1, lat + 1)
-    end do
+    enddo
 
     ! Connect blks into a spherical shell
     do i = min_blk, max_blk
@@ -199,13 +199,13 @@ contains
           else
             nbrs_p(ab_north) = me
             nbrs_b(ab_north) = arr_pos
-          end if
+          endif
         else
           nbrs_p(ab_north) = -1
           nbrs_b(ab_north) = -1
-        end if
+        endif
         next_to_north = .true.
-      end if
+      endif
 
        !! do south neighbor connection
       if (lat > 0) then
@@ -223,13 +223,13 @@ contains
           else
             nbrs_p(ab_south) = me
             nbrs_b(ab_south) = arr_pos
-          end if
+          endif
         else
           nbrs_p(ab_south) = -1
           nbrs_b(ab_south) = -1
-        end if
+        endif
         next_to_south = .true.
-      end if
+      endif
 
        !! do east neighbor connection
       if (long < num_long - 1) then
@@ -240,7 +240,7 @@ contains
         call coord_to_pb(proc, blk, lat, 0, num_long, num_per_proc, max_pn)
         nbrs_p(ab_east) = proc
         nbrs_b(ab_east) = blk + 1
-      end if
+      endif
 
        !! do west neighbor connection
       if (long > 0) then
@@ -251,7 +251,7 @@ contains
         call coord_to_pb(proc, blk, lat, num_long - 1, num_long, num_per_proc, max_pn)
         nbrs_p(ab_west) = proc
         nbrs_b(ab_west) = blk + 1
-      end if
+      endif
 
        !! do northeast corner connection
       if (lat < num_lat - 1) then
@@ -264,7 +264,7 @@ contains
           call coord_to_pb(proc, blk, lat + 1, 0, num_long, num_per_proc, max_pn)
           nbrs_p(ab_northeast) = proc
           nbrs_b(ab_northeast) = blk + 1
-        end if
+        endif
       else
         if (n_pole_conn) then
           if (num_long .ne. 1) then
@@ -276,12 +276,12 @@ contains
           else
             nbrs_p(ab_northeast) = me
             nbrs_b(ab_northeast) = arr_pos
-          end if
+          endif
         else
           nbrs_p(ab_northeast) = -1
           nbrs_b(ab_northeast) = -1
-        end if
-      end if
+        endif
+      endif
 
        !! do northwest corner connection
       if (lat < num_lat - 1) then
@@ -295,7 +295,7 @@ contains
                            num_per_proc, max_pn)
           nbrs_p(ab_northwest) = proc
           nbrs_b(ab_northwest) = blk + 1
-        end if
+        endif
       else
         if (n_pole_conn) then
           if (num_long .ne. 1) then
@@ -308,12 +308,12 @@ contains
           else
             nbrs_p(ab_northwest) = me
             nbrs_b(ab_northwest) = arr_pos
-          end if
+          endif
         else
           nbrs_p(ab_northwest) = -1
           nbrs_b(ab_northwest) = -1
-        end if
-      end if
+        endif
+      endif
 
        !! do southeast corner connection
       if (lat > 0) then
@@ -326,7 +326,7 @@ contains
           call coord_to_pb(proc, blk, lat - 1, 0, num_long, num_per_proc, max_pn)
           nbrs_p(ab_southeast) = proc
           nbrs_b(ab_southeast) = blk + 1
-        end if
+        endif
       else
         if (s_pole_conn) then
           if (num_long .ne. 1) then
@@ -338,12 +338,12 @@ contains
           else
             nbrs_p(ab_southeast) = me
             nbrs_b(ab_southeast) = arr_pos
-          end if
+          endif
         else
           nbrs_p(ab_southeast) = -1
           nbrs_b(ab_southeast) = -1
-        end if
-      end if
+        endif
+      endif
 
        !! do southwest corner connection
       if (lat > 0) then
@@ -357,7 +357,7 @@ contains
                            num_per_proc, max_pn)
           nbrs_p(ab_southwest) = proc
           nbrs_b(ab_southwest) = blk + 1
-        end if
+        endif
       else
         if (s_pole_conn) then
           if (num_long .ne. 1) then
@@ -370,17 +370,17 @@ contains
           else
             nbrs_p(ab_southwest) = me
             nbrs_b(ab_southwest) = arr_pos
-          end if
+          endif
         else
           nbrs_p(ab_southwest) = -1
           nbrs_b(ab_southwest) = -1
-        end if
-      end if
+        endif
+      endif
 
       ! set the current block to use these neighbor connections
       call AB_set_all_nbrs(grp, arr_pos, nbrs_p, nbrs_b, &
                            next_to_north, next_to_south)
-    end do
+    enddo
 
   contains
     ! Note: this function assumes ranges start at 0
@@ -398,7 +398,7 @@ contains
       else
         min_blk = num_per_proc*me
         max_blk = (num_per_proc*(me + 1)) - 1
-      end if
+      endif
 
     end subroutine calc_block_range
 
@@ -418,7 +418,7 @@ contains
       proc = blk_pos/num_per_proc
       if (proc > max_pn) then
         proc = max_pn
-      end if
+      endif
       blk = blk_pos - (proc*num_per_proc)
     end subroutine coord_to_pb
 
@@ -488,11 +488,11 @@ contains
           z(j, i, a) = alt*sin(th) + cz
 
           ph = ph + phi_cell_width
-        end do
+        enddo
         lgp = lgp + lat_cell_width
-      end do
+      enddo
       alt = alt + alt_cell_width
-    end do
+    enddo
 
   end subroutine AB_SPH_get_xyztp
 

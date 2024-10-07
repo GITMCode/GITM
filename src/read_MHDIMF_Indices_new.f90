@@ -50,7 +50,7 @@ subroutine read_MHDIMF_Indices_new(iOutputError, StartTime, EndTime)
     ! If we still have a lot of data in memory, then don't bother
     ! reading more.
     if (StartTime + BufferTime < IndexTimes_TV(nIndices_V(imf_bx_), imf_by_)) return
-  end if
+  endif
 
   ! Assume that we can read the entire file
   ReReadIMFFile = .false.
@@ -63,7 +63,7 @@ subroutine read_MHDIMF_Indices_new(iOutputError, StartTime, EndTime)
   if (ierror .ne. 0) then
     iOutputError = 1
     return
-  end if
+  endif
 
   do while (.not. done)
 
@@ -73,7 +73,7 @@ subroutine read_MHDIMF_Indices_new(iOutputError, StartTime, EndTime)
     if (index(line, '#DELAY') > 0) then
       read(LunIndices_, *, iostat=iError) TimeDelay
       if (iError /= 0) done = .true.
-    end if
+    endif
 
     if (index(line, '#START') > 0) then
 
@@ -103,7 +103,7 @@ subroutine read_MHDIMF_Indices_new(iOutputError, StartTime, EndTime)
           if (StartTime > IndexTimes_TV(iIMF, imf_bx_)) then
             iIMF = iIMF + 1
             iSW = iSW + 1
-          end if
+          endif
 
         else
 
@@ -116,8 +116,8 @@ subroutine read_MHDIMF_Indices_new(iOutputError, StartTime, EndTime)
             if (DeltaT == -1.0e32) then
               DeltaT = IndexTimes_TV(iIMF, imf_bx_) - FirstTime
               if (DeltaT > BufferTime) BufferTime = 10.0*DeltaT
-            end if
-          end if
+            endif
+          endif
 
           IndexTimes_TV(iIMF, imf_bx_) = IndexTimes_TV(iIMF, imf_bx_) &
                                          + TimeDelay
@@ -160,19 +160,19 @@ subroutine read_MHDIMF_Indices_new(iOutputError, StartTime, EndTime)
             if (EndTime < IndexTimes_TV(iIMF, imf_bx_) .and. iIMF == 1) then
               iIMF = iIMF + 1
               iSW = iSW + 1
-            end if
+            endif
 
-          end if
+          endif
 
-        end if
+        endif
 
-      end do
+      enddo
 
       done = done_inner
 
-    end if
+    endif
 
-  end do
+  enddo
 
   close(LunIndices_)
 

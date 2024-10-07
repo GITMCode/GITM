@@ -58,7 +58,7 @@ subroutine calc_rates(iBlock)
     MeanMajorMass = MeanMajorMass + &
                     Mass(iSpecies)* &
                     NDensityS(:, :, :, iSpecies, iBlock)/(NDensity(:, :, :, iBlock) + 1.0)
-  end do
+  enddo
 
   ! Once again, in the corners, the meanmajormass is 0.
   where (MeanMajorMass == 0) MeanMajorMass = Mass(1)
@@ -67,7 +67,7 @@ subroutine calc_rates(iBlock)
     MeanIonMass = MeanIonMass + &
                   MassI(iIon)*IDensityS(:, :, :, iIon, iBlock)/ &
                   IDensityS(:, :, :, ie_, iBlock)
-  end do
+  enddo
 
   !TempUnit = MeanMajorMass / Boltzmanns_Constant
   TempUnit = Mass(iN2_)/Boltzmanns_Constant
@@ -331,7 +331,7 @@ subroutine calc_viscosity_coef(iBlock)
   do iSpecies = 1, nSpecies
     ViscCoefS(1:nLons, 1:nLats, 0:nAlts + 1, iSpecies) = &
       ViscCoef(1:nLons, 1:nLats, 0:nAlts + 1)
-  end do
+  enddo
 
   ViscCoefS(1:nLons, 1:nLats, 0:nAlts + 1, iN2_) = &
     ViscN2(1:nLons, 1:nLats, 0:nAlts + 1)

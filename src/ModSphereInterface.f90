@@ -162,7 +162,7 @@ contains
       call AB_ERROR_set("UAM_module_setup", &
                         "too many cells per block")
       return
-    end if
+    endif
 
     cpb_lat = cells_lat  ! /blks_lat
     if (cpb_lat .gt. nLats) then
@@ -170,7 +170,7 @@ contains
       call AB_ERROR_set("UAM_module_setup", &
                         "too many cells per block")
       return
-    end if
+    endif
 
     cpb_alt = cells_alt
     if (cpb_alt .gt. nAlts) then
@@ -178,7 +178,7 @@ contains
       call AB_ERROR_set("UAM_module_setup", &
                         "too many cells per block")
       return
-    end if
+    endif
 
     ! setup various handy constants
     alt_cell_width = thickness/cpb_alt
@@ -194,14 +194,14 @@ contains
     if (.not. tmp_ok) then
       if (present(ok)) ok = .false.
       return
-    end if
+    endif
 
     ! create AB_GRP
     call AB_GRP_create(uam_grp, nBlocksMax, tmp_ok)
     if (.not. tmp_ok) then
       if (present(ok)) ok = .false.
       return
-    end if
+    endif
 
     ! allocate AB sphere
     call AB_SPH_create(uam_sph, uam_grp, cpb_long, cpb_lat, cpb_alt, gcn, &
@@ -211,7 +211,7 @@ contains
     if (.not. tmp_ok) then
       if (present(ok)) ok = .false.
       return
-    end if
+    endif
 
     ! Initialize stuff for sphere
     call AB_ITER_create(iter, uam_grp)
@@ -228,7 +228,7 @@ contains
 
       call AB_ITER_next(iter, index, done)
 
-    end do
+    enddo
 
   end subroutine UAM_module_setup
 
@@ -269,7 +269,7 @@ contains
     if (UseIonAdvection) then
       call AB_1blk4_gc_add_size(nLons, nLats, nAlts, nIons, 2, size)
       call AB_1blk4_gc_add_size(nLons, nLats, nAlts, 3, 2, size)
-    end if
+    endif
 
   end subroutine size_vars_1blk
 
@@ -314,10 +314,10 @@ contains
         iVelTmp = IVelocity(:, :, 1:nAlts, :, index)
       else
         iVelTmp = IVelocityPar(:, :, 1:nAlts, :, index)
-      end if
+      endif
       call AB_1blk4_gc_pack(nLons, nLats, nAlts, 3, 2, &
                             iVelTmp, dir, pole, p, out_array)
-    end if
+    endif
   end subroutine pack_vars_1blk
 
   subroutine unpack_vars_1blk(index, dir, in_array)
@@ -357,8 +357,8 @@ contains
       else
         call AB_1blk4_gc_unpack(nLons, nLats, nAlts, 3, 2, &
                                 IVelocityPar(:, :, 1:nAlts, :, index), dir, p, in_array)
-      end if
-    end if
+      endif
+    endif
 
   end subroutine unpack_vars_1blk
 
@@ -383,7 +383,7 @@ contains
     if (UseIonAdvection) then
       call AB_array4_gc_add_size(nLons, nLats, nAlts, nIons, 2, size)
       call AB_array4_gc_add_size(nLons, nLats, nAlts, 3, 2, size)
-    end if
+    endif
 
   end subroutine size_vars_nblk
 
@@ -424,21 +424,21 @@ contains
     if (UseIonAdvection) then
       do iIon = 1, nIons
         tmpI(:, :, :, iIon) = IDensityS(:, :, 1:nAlts, iIon, index)
-      end do
+      enddo
       call AB_array4_gc_pack(nLons, nLats, nAlts, nIons, 2, &
                              tmpI, dir, pole, p, out_array)
       if (NonMagnetic) then
         do iComp = 1, 3
           tmpV(:, :, :, iComp) = IVelocity(:, :, 1:nAlts, iComp, index)
-        end do
+        enddo
       else
         do iComp = 1, 3
           tmpV(:, :, :, iComp) = IVelocityPar(:, :, 1:nAlts, iComp, index)
-        end do
-      end if
+        enddo
+      endif
       call AB_array4_gc_pack(nLons, nLats, nAlts, 3, 2, &
                              tmpV, dir, pole, p, out_array)
-    end if
+    endif
   end subroutine pack_vars_nblk
 
   subroutine unpack_vars_nblk(index, dir, in_array)
@@ -479,20 +479,20 @@ contains
     if (UseIonAdvection) then
       do iIon = 1, nIons
         tmpI(:, :, :, iIon) = IDensityS(:, :, 1:nAlts, iIon, index)
-      end do
+      enddo
       call AB_array4_gc_unpack(nLons, nLats, nAlts, nIons, 2, &
                                tmpI, dir, p, in_array)
       do iIon = 1, nIons
         IDensityS(:, :, 1:nAlts, iIon, index) = tmpI(:, :, :, iIon)
-      end do
+      enddo
 
       do iComp = 1, 3
         if (NonMagnetic) then
           tmpV(:, :, :, iComp) = IVelocity(:, :, 1:nAlts, iComp, index)
         else
           tmpV(:, :, :, iComp) = IVelocityPar(:, :, 1:nAlts, iComp, index)
-        end if
-      end do
+        endif
+      enddo
       call AB_array4_gc_unpack(nLons, nLats, nAlts, 3, 2, &
                                tmpV, dir, p, in_array)
       do iComp = 1, 3
@@ -500,9 +500,9 @@ contains
           IVelocity(:, :, 1:nAlts, iComp, index) = tmpV(:, :, :, iComp)
         else
           IVelocityPar(:, :, 1:nAlts, iComp, index) = tmpV(:, :, :, iComp)
-        end if
-      end do
-    end if
+        endif
+      enddo
+    endif
 
   end subroutine unpack_vars_nblk
 
@@ -546,9 +546,9 @@ contains
                         from(ind_ph + 1, ind_th + 1), &
                         p, t, tmp_to)
           to(j, i) = tmp_to
-        end if
-      end do
-    end do
+        endif
+      enddo
+    enddo
 
   contains
 
@@ -570,14 +570,14 @@ contains
           out_ind = i
           fnd = .true.
           return
-        end if
-      end do
+        endif
+      enddo
 
       ! take care of the case where the point is on the upper edge
       if (x == list(num_list)) then
         out_ind = num_list - 1
         fnd = .true.
-      end if
+      endif
 
     end subroutine find_in_list
 
@@ -622,9 +622,9 @@ contains
                         from(ind_ph + 1, ind_th + 1), &
                         ph, th, tmp_to)
           to(j, i) = tmp_to
-        end if
-      end do
-    end do
+        endif
+      enddo
+    enddo
 
   end subroutine map_reg_grid
 
@@ -787,7 +787,7 @@ contains
       call size_vars_1blk(size)
     else
       call size_vars_nblk(size)
-    end if
+    endif
 
     ! create XFER structure
     call AB_XFER_create(uam_xfer, uam_grp, size, 0, tmp_ok)
@@ -818,7 +818,7 @@ contains
     else
       call AB_XFER_start(uam_xfer, pack_vars_nblk, pack_vars_nblk, &
                          tmp_ok)
-    end if
+    endif
 
     if (present(ok)) ok = tmp_ok
 
@@ -850,7 +850,7 @@ contains
     else
       call AB_XFER_finish(uam_xfer, unpack_vars_nblk, unpack_vars_nblk, &
                           tmp_ok)
-    end if
+    endif
 
     if (present(ok)) ok = tmp_ok
 
@@ -882,12 +882,12 @@ contains
     else
       call AB_XFER_start(uam_xfer, pack_vars_nblk, pack_vars_nblk, &
                          tmp_ok)
-    end if
+    endif
 
     if (.not. tmp_ok) then
       if (present(ok)) ok = .false.
       return
-    end if
+    endif
 
     if (blks_long == 1) then
       call AB_XFER_finish(uam_xfer, unpack_vars_1blk, unpack_vars_1blk, &
@@ -895,12 +895,12 @@ contains
     else
       call AB_XFER_finish(uam_xfer, unpack_vars_nblk, unpack_vars_nblk, &
                           tmp_ok)
-    end if
+    endif
 
     if (.not. tmp_ok) then
       if (present(ok)) ok = .false.
       return
-    end if
+    endif
 
   end subroutine UAM_XFER_at_once
 
@@ -980,7 +980,7 @@ contains
                         Rho(:, :, alt, ind))
 
       call AB_ITER_next(iter, ind, done)
-    end do
+    enddo
 
   end subroutine UAM_map_reg_grid_to_Eta
 
@@ -1035,7 +1035,7 @@ contains
                     Rho(:, :, alt, ind))
 
       call AB_ITER_next(iter, ind, done)
-    end do
+    enddo
 
   end subroutine UAM_map_grid_to_Eta
 

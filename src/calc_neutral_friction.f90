@@ -68,7 +68,7 @@ subroutine calc_neutral_friction(DtIn, oVel, EddyCoef_1d, NDensity_1d, NDensityS
           if (ieee_is_nan(Temp(iAlt))) write(*, *) "Friction : Temp is nan", iAlt
           if (ieee_is_nan(NDensity_1d(iAlt))) write(*, *) "Friction : NDen is nan", iAlt
           if (ieee_is_nan(NDensityS_1d(iAlt, jSpecies))) write(*, *) "Friction : NDenS is nan", iAlt, jSpecies
-        end if
+        endif
 
         ! TempDij are the Dij binary coefficients
         ! Based upon the formulation by Banks and Kokarts.
@@ -87,23 +87,23 @@ subroutine calc_neutral_friction(DtIn, oVel, EddyCoef_1d, NDensity_1d, NDensityS
                            denscale*NDensityS_1d(iAlt, jSpecies)/ &
                            (TempDij)
 
-      end do  ! End DO over jSpecies
+      enddo  ! End DO over jSpecies
 
       EddyContribution(iSpecies) = &
         -1.0*EddyCoef_1d(iAlt)*GradLogCon(iAlt, iSpecies)
 
-    end do  !End DO Over iSpecies
+    enddo  !End DO Over iSpecies
 
     Matrix = -DtIn*CoefMatrix
     do iSpecies = 1, nSpecies
       Matrix(iSpecies, iSpecies) = &
         1.0 + DtIn*(sum(CoefMatrix(iSpecies, :)))
-    end do
+    enddo
     call ludcmp(Matrix, nSpecies, nSpecies, iPivot, Parity)
     call lubksb(Matrix, nSpecies, nSpecies, iPivot, Vel)
 
     oVel(iAlt, 1:nSpecies) = Vel(1:nSpecies) + &
                              EddyContribution(1:nSpecies)
-  end do
+  enddo
 
 end subroutine calc_neutral_friction

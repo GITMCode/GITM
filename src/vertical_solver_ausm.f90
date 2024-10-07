@@ -17,9 +17,9 @@ subroutine check_ion_densities(iDen)
     do iAlt = 1, nAlts + 2
       if (iDen(iAlt, iIon) < 0.0) then
         iDen(iAlt, iIon) = max(iDen(iAlt - 1, iIon)*0.99, 10.0)
-      end if
-    end do
-  end do
+      endif
+    enddo
+  enddo
 
 end subroutine check_ion_densities
 
@@ -585,7 +585,7 @@ subroutine advance_vertical_1stage_ausm(DtIn, &
     EffectiveGravity(iAlt) = &
       Gravity_G(iAlt) + &
       Centrifugal/InvRadialDistance_C(iAlt)
-  end do
+  enddo
 
   NS = exp(LogNS)
 
@@ -594,18 +594,18 @@ subroutine advance_vertical_1stage_ausm(DtIn, &
   nFilter = 10
   do iAlt = -1, nAlts + 2
     RadialDistance_C(iAlt) = 1.0/InvRadialDistance_C(iAlt)
-  end do
+  enddo
 
   NT(-1:nAlts + 2) = 0.0
   do iSpecies = 1, nSpecies
     NT(-1:nAlts + 2) = NT(-1:nAlts + 2) + &
                        NS(-1:nAlts + 2, iSpecies)
-  end do
+  enddo
 
   do iAlt = -1, nAlts + 2
     Press(iAlt) = NT(iAlt)*Boltzmanns_Constant*Temp(iAlt)
     LogPress(iAlt) = alog(Press(iAlt))
-  end do
+  enddo
 
   call calc_rusanov_alts_ausm(LogPress, GradLogPress, DiffLogPress)
   call calc_rusanov_alts_ausm(LogRho, GradLogRho, DiffLogRho)
@@ -617,7 +617,7 @@ subroutine advance_vertical_1stage_ausm(DtIn, &
     ! call calc_rusanov_alts_ausm(iVel(:,iDim), &
     call calc_rusanov_alts_rusanov(iVel(:, iDim), &
                                    GradiVel_CD(:, iDim), DiffiVel_CD(:, iDim))
-  end do
+  enddo
 
   ! Add geometrical correction to gradient and obtain divergence
   DivVel = GradVel_CD(:, iUp_) + 2*Vel_GD(1:nAlts, iUp_)*InvRadialDistance_C(1:nAlts)
@@ -635,14 +635,14 @@ subroutine advance_vertical_1stage_ausm(DtIn, &
     DivVertVel(:, iSpecies) = GradVertVel(:, iSpecies) + &
                               2*VertVel(1:nAlts, iSpecies)*InvRadialDistance_C(1:nAlts)
 
-  end do
+  enddo
 
   do iSpecies = 1, nIons - 1
     ! call calc_rusanov_alts_ausm(LogINS(:,iSpecies), GradTmp, DiffTmp)
     call calc_rusanov_alts_rusanov(LogINS(:, iSpecies), GradTmp, DiffTmp)
     GradLogINS(:, iSpecies) = GradTmp
     DiffLogINS(:, iSpecies) = DiffTmp
-  end do
+  enddo
 
   ! Step 1:  Calculate Ln(rho_{s}/Rho)
   do iSpecies = 1, nSpecies
@@ -650,7 +650,7 @@ subroutine advance_vertical_1stage_ausm(DtIn, &
       alog(Mass(iSpecies)*NS(-1:nAlts + 2, iSpecies)/Rho(-1:nAlts + 2))
     !LogConS(-1:nAlts+2,iSpecies) = &
     !     alog(NS(-1:nAlts+2,iSpecies)/NT(-1:nAlts+2))
-  end do
+  enddo
 
   do iAlt = 1, nAlts
 
@@ -683,8 +683,8 @@ subroutine advance_vertical_1stage_ausm(DtIn, &
         + MeshCoef2*LogConS(iAlt, iSpecies) &
         + MeshCoef3*LogConS(iAlt + 1, iSpecies) &
         + MeshCoef4*LogConS(iAlt + 2, iSpecies)
-    end do  ! iSpecies Loop
-  end do ! iAlt Loop
+    enddo  ! iSpecies Loop
+  enddo ! iAlt Loop
 
   !!!! JMB AUSM: BEGIN THE HYDROSTATIC BACKGROUND
   !!!! We define a hydrostatic background to subtract off
@@ -701,7 +701,7 @@ subroutine advance_vertical_1stage_ausm(DtIn, &
                      (Boltzmanns_Constant*MeanTemp)
     HydroNT(iAlt) = HydroNT(iAlt - 1)*(Temp(iAlt - 1)/Temp(iAlt))* &
                     exp(-1.0*dAlt_F(iAlt)*InvScaleHeight)
-  end do
+  enddo
   iAlt = -1
   MeanMass = 0.5*(MeanMajorMass_1d(-1) + MeanMajorMass_1d(0))
   MeanGravity = 0.5*(EffectiveGravity(iAlt + 1) + EffectiveGravity(iAlt))
@@ -725,8 +725,8 @@ subroutine advance_vertical_1stage_ausm(DtIn, &
       HydroNS(iAlt, iSpecies) = &
         HydroNS(iAlt - 1, iSpecies)*(Temp(iAlt - 1)/Temp(iAlt))* &
         exp(-1.0*dAlt_F(iAlt)*InvScaleHeight)
-    end do
-  end do
+    enddo
+  enddo
   ! Extend the densities downward with the mean mass of the atmosphere
   do iSpecies = 1, nSpecies
     iAlt = -1
@@ -738,16 +738,16 @@ subroutine advance_vertical_1stage_ausm(DtIn, &
     HydroNS(iAlt, iSpecies) = &
       HydroNS(iAlt + 1, iSpecies)*(Temp(iAlt + 1)/Temp(iAlt))* &
       exp(dAlt_F(iAlt)*InvScaleHeight)
-  end do
+  enddo
   do iAlt = -1, nAlts + 2
     do iSpecies = 1, nSpecies
       HydroPressureS(iAlt, iSpecies) = &
         HydroNS(iAlt, iSpecies)*Boltzmanns_Constant*Temp(iAlt)
       HydroRhoS(iAlt, iSpecies) = Mass(iSpecies)*HydroNS(iAlt, iSpecies)
-    end do
+    enddo
     HydroPressure(iAlt) = HydroNT(iAlt)*Boltzmanns_Constant*Temp(iAlt)
     HydroRho(iAlt) = HydroNT(iAlt)*MeanMajorMass_1d(iAlt)
-  end do
+  enddo
   do iSpecies = 1, nSpecies
     RhoS(-1:nAlts + 2, iSpecies) = &
       Mass(iSpecies)*NS(-1:nAlts + 2, iSpecies)
@@ -758,7 +758,7 @@ subroutine advance_vertical_1stage_ausm(DtIn, &
     PressureS(-1:nAlts + 2, iSpecies) = &
       NS(-1:nAlts + 2, iSpecies)*Temp(-1:nAlts + 2)* &
       Boltzmanns_Constant
-  end do
+  enddo
 
   do iAlt = -1, nAlts + 2
     TotalEnergy(iAlt) = &
@@ -766,10 +766,10 @@ subroutine advance_vertical_1stage_ausm(DtIn, &
       0.5*Rho(iAlt)*(Vel_GD(iAlt, iUp_)**2.0 + &
                      Vel_GD(iAlt, iNorth_)**2.0 + &
                      Vel_GD(iAlt, iEast_)**2.0)
-  end do
+  enddo
   do iDim = 1, 3
     Momentum(-1:nAlts + 2, iDim) = Rho(-1:nAlts + 2)*Vel_GD(-1:nAlts + 2, iDim)
-  end do
+  enddo
 
   DeviationRhoSRatio(-1:nAlts + 2, 1:nSpecies) = &
     abs(RhoS(-1:nAlts + 2, 1:nSpecies) - &
@@ -786,9 +786,9 @@ subroutine advance_vertical_1stage_ausm(DtIn, &
         SubtractHydrostatic(iAlt, iSpecies) = .false.
       else
         SubtractHydrostatic(iAlt, iSpecies) = .true.
-      end if
-    end do
-  end do
+      endif
+    enddo
+  enddo
 
   NewRho = Rho
   NewPress = Press
@@ -811,7 +811,7 @@ subroutine advance_vertical_1stage_ausm(DtIn, &
       NewRhoS(iAlt, iSpecies) = RhoS(iAlt, iSpecies) &
                                 - DtIn*(AUSMRhoSFluxes(iAlt, iSpecies))
       NewLogNS(iAlt, iSpecies) = alog(NewRhoS(iAlt, iSpecies)/Mass(iSpecies))
-    end do
+    enddo
 
     do iSpecies = 1, nIonsAdvect
 !        if (UseImprovedIonAdvection) then
@@ -825,9 +825,9 @@ subroutine advance_vertical_1stage_ausm(DtIn, &
                                   (IVel(iAlt, iUp_)*GradLogINS(iAlt, iSpecies)) &
                                   + DtIn*DiffLogINS(iAlt, iSpecies)
 !        endif
-    end do
+    enddo
 
-  end do !iAlt = 1,nAlts
+  enddo !iAlt = 1,nAlts
 
   NewNS = 0.0
   NewNT = 0.0
@@ -842,19 +842,19 @@ subroutine advance_vertical_1stage_ausm(DtIn, &
 
       NewNT(iAlt) = NewNT(iAlt) + &
                     NewNS(iAlt, iSpecies)
-    end do
-  end do
+    enddo
+  enddo
 
   if (iAlt >= (nAlts - nAltsSponge)) then
     NuSP = AmpSP*(1.0 - cos(pi*(kSP - (nAlts - iAlt))/kSP))
   else
     NuSP = 0.0
-  end if
+  endif
 
   if (UseDamping) then
     VertTau(iAlt) = &
       15 - (1 - exp(-1.0*altitude_G(ialt)/1000.0/40.0))*5.0
-  end if
+  endif
 
   do iAlt = 1, nAlts
     do iSpecies = 1, nSpecies
@@ -867,7 +867,7 @@ subroutine advance_vertical_1stage_ausm(DtIn, &
         NewMomentumS(iAlt, iSpecies) = MomentumS(iAlt, iSpecies) - &
                                        DtIn*(AUSMMomentumSFluxes(iAlt, iSpecies)) + &
                                        DtIn*DeviationRhoS(iAlt, iSpecies)*EffectiveGravity(iAlt)
-      end if
+      endif
 
 !        NewMomentumS(iAlt,iSpecies) = NewMomentumS(iAlt,iSpecies) + &
 !              DtIn*ChemSources_1d(iAlt,iSpecies)*&
@@ -884,7 +884,7 @@ subroutine advance_vertical_1stage_ausm(DtIn, &
       if (UseCoriolis) then
         NewVertVel(iAlt, ispecies) = NewVertVel(iAlt, ispecies) + DtIn*( &
                                      Coriolis*Vel_GD(iAlt, iEast_))
-      end if
+      endif
       ! Thermal Diffusion Effects (For Light Species H2, H, and He)
       ! ThermalDiffCoefS is set in calc_rates
       ! Note:  ThermalDiffCoefS is < 0.0 for light species
@@ -892,9 +892,9 @@ subroutine advance_vertical_1stage_ausm(DtIn, &
       NewVertVel(iAlt, iSpecies) = NewVertVel(iAlt, iSpecies) - &
                                    DtIn*(ThermalDiffCoefS(iSpecies)*Boltzmanns_Constant* &
                                          GradTemp(iAlt))/Mass(iSpecies)
-    end do ! iSpecies
+    enddo ! iSpecies
 
-  end do ! iAlt
+  enddo ! iAlt
 
   if (UseNeutralFriction) then
     nVel(1:nAlts, 1:nSpecies) = NewVertVel(1:nAlts, 1:nSpecies)
@@ -907,7 +907,7 @@ subroutine advance_vertical_1stage_ausm(DtIn, &
                                GradLogConS(1:nAlts, 1:nSpecies), &
                                Temp(1:nAlts))
     NewVertVel(1:nAlts, 1:nSpecies) = nVel(1:nAlts, 1:nSpecies)
-  end if
+  endif
 
   do iAlt = -1, nAlts + 2
     do iSpecies = 1, nSpecies
@@ -915,8 +915,8 @@ subroutine advance_vertical_1stage_ausm(DtIn, &
                                        NewVertVel(iAlt, iSpecies))
       NewVertVel(iAlt, iSpecies) = min(MaximumVerticalVelocity, &
                                        NewVertVel(iAlt, iSpecies))
-    end do
-  end do
+    enddo
+  enddo
 
   NewVel_GD(-1:nAlts + 2, iUp_) = 0.0
   do iAlt = -1, nAlts + 2
@@ -933,8 +933,8 @@ subroutine advance_vertical_1stage_ausm(DtIn, &
 !
       NewVel_GD(iAlt, iUp_) = NewVel_GD(iAlt, iUp_) + &
                               NewVertVel(iAlt, iSpecies)*NewRhoS(iAlt, iSpecies)/NewRho(iAlt)
-    end do
-  end do
+    enddo
+  enddo
 
   do iAlt = 1, nAlts
 
@@ -984,12 +984,12 @@ subroutine advance_vertical_1stage_ausm(DtIn, &
 !       0.25*exp(-1.0*(Altitude_G(iAlt) - Altitude_G(0))/&
 !       (45.0e+03)) * DtIn*DiffTemp(iAlt)
 
-  end do ! iAlt
+  enddo ! iAlt
 
   do iAlt = 1, nAlts
     NewSumRho = sum(Mass(1:nSpecies)*exp(NewLogNS(iAlt, 1:nSpecies)))
     NewLogRho(iAlt) = alog(NewSumRho)
-  end do
+  enddo
 
 end subroutine advance_vertical_1stage_ausm
 
@@ -1065,7 +1065,7 @@ subroutine calc_facevalues_alts_ausm(Var, VarLeft, VarRight)
 
     dVarLimited(i) = Limiter_mc(dVarUp, dVarDown)
 
-  end do
+  enddo
 
   i = 0
   dVarUp = (Var(i + 1) - Var(i))*InvDAlt_F(i + 1)
@@ -1080,7 +1080,7 @@ subroutine calc_facevalues_alts_ausm(Var, VarLeft, VarRight)
   do i = 1, nAlts + 1
     VarLeft(i) = Var(i - 1) + 0.5*dVarLimited(i - 1)*dAlt_F(i)
     VarRight(i) = Var(i) - 0.5*dVarLimited(i)*dAlt_F(i)
-  end do
+  enddo
 
 end subroutine calc_facevalues_alts_ausm
 
@@ -1340,8 +1340,8 @@ subroutine calc_all_fluxes_hydro(DtIn, RhoS, PressureS, HydroPressureS, HydroRho
 
       LiouKpS(iAlt, iSpecies) = exp(LogKpS(iAlt, iSpecies))
       Ku(iAlt, iSpecies) = exp(LogKuS(iAlt, iSpecies))
-    end do
-  end do
+    enddo
+  enddo
 
 !!!! Grab the left and right states of the Variables
 !!!!  on boh Interfaces (P12 = +1/2 and M12 = -1/2)
@@ -1359,7 +1359,7 @@ subroutine calc_all_fluxes_hydro(DtIn, RhoS, PressureS, HydroPressureS, HydroRho
     RhoSLeft_P12(:, iSpecies) = exp(LogRhoSLeft_P12(:, iSpecies))
     RhoSRight_P12(:, iSpecies) = exp(LogRhoSRight_P12(:, iSpecies))
 
-  end do
+  enddo
 
 !    write(*,*) '==================== CALC_HYDRO_FLUXES ================'
 !    write(*,*) '======= M12 FACEVALUES ========'
@@ -1402,7 +1402,7 @@ subroutine calc_all_fluxes_hydro(DtIn, RhoS, PressureS, HydroPressureS, HydroRho
     HydroPressureSRight_P12(:, iSpecies) = &
       exp(LogHydroPressureSRight_P12(:, iSpecies))
 
-  end do
+  enddo
 
   do iSpecies = 1, nSpecies
          !! Calculate the Left and Right Faces of the PressureS
@@ -1416,14 +1416,14 @@ subroutine calc_all_fluxes_hydro(DtIn, RhoS, PressureS, HydroPressureS, HydroRho
     PressureSLeft_P12(:, iSpecies) = exp(LogPressureSLeft_P12(:, iSpecies))
     PressureSRight_P12(:, iSpecies) = exp(LogPressureSRight_P12(:, iSpecies))
 
-  end do
+  enddo
 
   do iSpecies = 1, nSpecies
          !! Calculate the Left and Right Faces of the Var (Rho)
     call calc_kt_facevalues(VertVel(:, iSpecies), &
                             VelLeft_M12(:, iSpecies), VelRight_M12(:, iSpecies), &
                             VelLeft_P12(:, iSpecies), VelRight_P12(:, iSpecies))
-  end do
+  enddo
 
 !    write(*,*) '======= M12 VELOCITY FACEVALUES ========'
 !    do iSpecies = 1, nSpecies
@@ -1461,7 +1461,7 @@ subroutine calc_all_fluxes_hydro(DtIn, RhoS, PressureS, HydroPressureS, HydroRho
                            RhoSLeft_P12(1:nAlts, iSpecies)
     RhoRight_P12(1:nAlts) = RhoRight_P12(1:nAlts) + &
                             RhoSRight_P12(1:nAlts, iSpecies)
-  end do
+  enddo
 
   PLeft_M12(:) = 0.0
   PRight_M12(:) = 0.0
@@ -1479,7 +1479,7 @@ subroutine calc_all_fluxes_hydro(DtIn, RhoS, PressureS, HydroPressureS, HydroRho
                          PressureSLeft_P12(1:nAlts, iSpecies)
     PRight_P12(1:nAlts) = PRight_P12(1:nAlts) + &
                           PressureSRight_P12(1:nAlts, iSpecies)
-  end do
+  enddo
 
   do iDim = 1, 3
       !! Calculate the Left and Right Faces of the Var (Rho)
@@ -1488,7 +1488,7 @@ subroutine calc_all_fluxes_hydro(DtIn, RhoS, PressureS, HydroPressureS, HydroRho
                             VelGDRight_M12(:, iDim), &
                             VelGDLeft_P12(:, iDim), &
                             VelGDRight_P12(:, iDim))
-  end do
+  enddo
 
   VelGDLeft_M12(:, iUp_) = 0.0
   VelGDRight_M12(:, iUp_) = 0.0
@@ -1517,7 +1517,7 @@ subroutine calc_all_fluxes_hydro(DtIn, RhoS, PressureS, HydroPressureS, HydroRho
       VelGDRight_P12(1:nAlts, iUp_) + &
       RhoSRight_P12(1:nAlts, iSpecies)* &
       VelRight_P12(1:nAlts, iSpecies)/RhoRight_P12(1:nAlts)
-  end do
+  enddo
 
         !! Calculate the Left and Right Faces of the Pressure
   call calc_kt_facevalues(Gamma_1d(:), GammaLeft_M12(:), GammaRight_M12(:), &
@@ -1549,7 +1549,7 @@ subroutine calc_all_fluxes_hydro(DtIn, RhoS, PressureS, HydroPressureS, HydroRho
       (VelGDRight_P12(iAlt, iUp_)**2.0 + VelGDRight_P12(iAlt, iEast_)**2.0 + &
        VelGDRight_P12(iAlt, iNorth_)**2.0)
 
-  end do
+  enddo
 
 !!!! Liou et al. [2006] suggest using the Enthalpy for the
 !!!! numerical speed of sound.
@@ -1596,7 +1596,7 @@ subroutine calc_all_fluxes_hydro(DtIn, RhoS, PressureS, HydroPressureS, HydroRho
 !      write(*,*) ' PLeft_M12(iAlt), PRight_M12, PLeft_P12, PRight_P12 =', &
 !            PLeft_M12(iAlt), PRight_M12(iAlt), PLeft_P12(iAlt), &
 !            PRight_P12(iAlt)
-  end do
+  enddo
 
 !!! Liou Methodology
 
@@ -1635,7 +1635,7 @@ subroutine calc_all_fluxes_hydro(DtIn, RhoS, PressureS, HydroPressureS, HydroRho
 
 !      write(*,*) 'iAlt, InterfaceCS_M12(iAlt), InterfaceCS_P12(iAlt) =',&
 !                  iAlt, InterfaceCS_M12(iAlt), InterfaceCS_P12(iAlt)
-  end do
+  enddo
 
 !stop
 
@@ -1664,7 +1664,7 @@ subroutine calc_all_fluxes_hydro(DtIn, RhoS, PressureS, HydroPressureS, HydroRho
   do iAlt = 1, nAlts
     MeanCS_P12(iAlt) = InterfaceCS_P12(iAlt)
     MeanCS_M12(iAlt) = InterfaceCS_M12(iAlt)
-  end do
+  enddo
 
 !!! Next, define local mach numbers at the interfaces
 
@@ -1683,8 +1683,8 @@ subroutine calc_all_fluxes_hydro(DtIn, RhoS, PressureS, HydroPressureS, HydroRho
       MRight_P12(iAlt, iSpecies) = &
         VelRight_P12(iAlt, iSpecies)/MeanCS_P12(iAlt)
 
-    end do
-  end do
+    enddo
+  enddo
 
   do iSpecies = 1, nSpecies
     M2Bar_M12(1:nAlts, iSpecies) = &
@@ -1694,7 +1694,7 @@ subroutine calc_all_fluxes_hydro(DtIn, RhoS, PressureS, HydroPressureS, HydroRho
     M2Bar_P12(1:nAlts, iSpecies) = &
       0.5*(MLeft_P12(1:nAlts, iSpecies)**2.0 + &
            MRight_P12(1:nAlts, iSpecies)**2.0)
-  end do
+  enddo
 
   do iSpecies = 1, nSpecies
     do iAlt = 1, nAlts
@@ -1707,8 +1707,8 @@ subroutine calc_all_fluxes_hydro(DtIn, RhoS, PressureS, HydroPressureS, HydroRho
       MZero_M12(iAlt, iSpecies) = sqrt(M2Zero_M12(iAlt, iSpecies))
       MZero_P12(iAlt, iSpecies) = sqrt(M2Zero_P12(iAlt, iSpecies))
 
-    end do
-  end do
+    enddo
+  enddo
 
   do iSpecies = 1, nSpecies
     do iAlt = 1, nAlts
@@ -1718,8 +1718,8 @@ subroutine calc_all_fluxes_hydro(DtIn, RhoS, PressureS, HydroPressureS, HydroRho
       FA_P12(iAlt, iSpecies) = &
         MZero_P12(iAlt, iSpecies)*(2.0 - MZero_P12(iAlt, iSpecies))
 
-    end do
-  end do
+    enddo
+  enddo
 
   do iSpecies = 1, nSpecies
     do iAlt = 1, nAlts
@@ -1743,8 +1743,8 @@ subroutine calc_all_fluxes_hydro(DtIn, RhoS, PressureS, HydroPressureS, HydroRho
         0.5*(MRight_P12(iAlt, iSpecies) + abs(MRight_P12(iAlt, iSpecies)))
       MF1N_Right_P12(iAlt, iSpecies) = &
         0.5*(MRight_P12(iAlt, iSpecies) - abs(MRight_P12(iAlt, iSpecies)))
-    end do
-  end do
+    enddo
+  enddo
 
   do iSpecies = 1, nSpecies
     do iAlt = 1, nAlts
@@ -1761,8 +1761,8 @@ subroutine calc_all_fluxes_hydro(DtIn, RhoS, PressureS, HydroPressureS, HydroRho
       MF2P_Right_P12(iAlt, iSpecies) = 0.25*(MRight_P12(iAlt, iSpecies) + 1.0)**2.0
       MF2N_Right_P12(iAlt, iSpecies) = -0.25*(MRight_P12(iAlt, iSpecies) - 1.0)**2.0
 
-    end do
-  end do
+    enddo
+  enddo
 
 !!! Begin 4th Order Mach Number Polynomials
   do iSpecies = 1, nSpecies
@@ -1772,31 +1772,31 @@ subroutine calc_all_fluxes_hydro(DtIn, RhoS, PressureS, HydroPressureS, HydroRho
       else
         MF4P_Left_M12(iAlt, iSpecies) = MF2P_Left_M12(iAlt, iSpecies)* &
                                         (1.0 - 16.0*LiouBeta*MF2N_Left_M12(iAlt, iSpecies))
-      end if
+      endif
 
       if (abs(MRight_M12(iAlt, iSpecies)) .ge. 1.0) then
         MF4N_Right_M12(iAlt, iSpecies) = MF1N_Right_M12(iAlt, iSpecies)
       else
         MF4N_Right_M12(iAlt, iSpecies) = MF2N_Right_M12(iAlt, iSpecies)* &
                                          (1.0 + 16.0*LiouBeta*MF2P_Right_M12(iAlt, iSpecies))
-      end if
+      endif
 
       if (abs(MLeft_P12(iAlt, iSpecies)) .ge. 1.0) then
         MF4P_Left_P12(iAlt, iSpecies) = MF1P_Left_P12(iAlt, iSpecies)
       else
         MF4P_Left_P12(iAlt, iSpecies) = MF2P_Left_P12(iAlt, iSpecies)* &
                                         (1.0 - 16.0*LiouBeta*MF2N_Left_P12(iAlt, iSpecies))
-      end if
+      endif
 
       if (abs(MRight_P12(iAlt, iSpecies)) .ge. 1.0) then
         MF4N_Right_P12(iAlt, iSpecies) = MF1N_Right_P12(iAlt, iSpecies)
       else
         MF4N_Right_P12(iAlt, iSpecies) = MF2N_Right_P12(iAlt, iSpecies)* &
                                          (1.0 + 16.0*LiouBeta*MF2P_Right_P12(iAlt, iSpecies))
-      end if
+      endif
 
-    end do
-  end do
+    enddo
+  enddo
 
 !!! Begin 2nd Order Mach Number Polynomials
   do iSpecies = 1, nSpecies
@@ -1843,9 +1843,9 @@ subroutine calc_all_fluxes_hydro(DtIn, RhoS, PressureS, HydroPressureS, HydroRho
            (FA_M12(iAlt, iSpecies)*MeanCS_M12(iAlt) + &
             ModifiedZeta(iAlt, iSpecies)*dAlt_C(iAlt)/DtIn))
 
-      end if
-    end do ! iSpecies
-  end do ! iAlt
+      endif
+    enddo ! iSpecies
+  enddo ! iAlt
 
   do iAlt = 1, nAlts
     do iSpecies = 1, nSpecies
@@ -1863,8 +1863,8 @@ subroutine calc_all_fluxes_hydro(DtIn, RhoS, PressureS, HydroPressureS, HydroRho
 
       LiouNumericalVelocity_P12(iAlt, iSpecies) = &
         MeanCS_P12(iAlt)*InterfaceMach_P12(iAlt, iSpecies)
-    end do ! iSpecies
-  end do  ! iAlt
+    enddo ! iSpecies
+  enddo  ! iAlt
 
   NumericalVelocity_M12(1:nAlts, 1:nSpecies) = &
     LiouNumericalVelocity_M12(1:nAlts, 1:nSpecies)
@@ -1904,10 +1904,10 @@ subroutine calc_all_fluxes_hydro(DtIn, RhoS, PressureS, HydroPressureS, HydroRho
           ((RhoSRight_M12(iAlt, iSpecies))*VelRight_M12(iAlt, iSpecies) - &
            (RhoSLeft_M12(iAlt, iSpecies))*VelLeft_M12(iAlt, iSpecies))
 
-      end if
+      endif
 
-    end do !!iAlt = 1, nAlts
-  end do !!! nSpecies
+    enddo !!iAlt = 1, nAlts
+  enddo !!! nSpecies
 
   do iSpecies = 1, nSpecies
     do iAlt = 1, nAlts
@@ -1925,7 +1925,7 @@ subroutine calc_all_fluxes_hydro(DtIn, RhoS, PressureS, HydroPressureS, HydroRho
         MomentumSFlux_P12(iAlt, iSpecies) = &
           (RhoSRight_P12(iAlt, iSpecies)*VelRight_P12(iAlt, iSpecies)* &
            NumericalVelocity_P12(iAlt, iSpecies))
-      end if
+      endif
       if (NumericalVelocity_M12(iAlt, iSpecies) .ge. 0.0) then
         RhoSFlux_M12(iAlt, iSpecies) = &
           (RhoSLeft_M12(iAlt, iSpecies)*NumericalVelocity_M12(iAlt, iSpecies))
@@ -1940,9 +1940,9 @@ subroutine calc_all_fluxes_hydro(DtIn, RhoS, PressureS, HydroPressureS, HydroRho
         MomentumSFlux_M12(iAlt, iSpecies) = &
           (RhoSRight_M12(iAlt, iSpecies)*VelRight_M12(iAlt, iSpecies)* &
            NumericalVelocity_M12(iAlt, iSpecies))
-      end if
-    end do
-  end do
+      endif
+    enddo
+  enddo
 
   BulkNumericalVelocity_P12(1:nAlts) = 0.0
   BulkNumericalVelocity_M12(1:nAlts) = 0.0
@@ -1959,7 +1959,7 @@ subroutine calc_all_fluxes_hydro(DtIn, RhoS, PressureS, HydroPressureS, HydroRho
       (RhoSLeft_M12(1:nAlts, iSpecies) + RhoSRight_M12(1:nAlts, iSpecies))* &
       NumericalVelocity_M12(1:nAlts, iSpecies)/ &
       (RhoLeft_M12(1:nAlts) + RhoRight_M12(1:nAlts))
-  end do
+  enddo
 
   do iAlt = 1, nAlts
     if (BulkNumericalVelocity_P12(iAlt) .ge. 0.0) then
@@ -1978,7 +1978,7 @@ subroutine calc_all_fluxes_hydro(DtIn, RhoS, PressureS, HydroPressureS, HydroRho
       Momentum_P12(iAlt, 1:3) = &
         RhoRight_P12(iAlt)*VelGDRight_P12(iAlt, 1:3)* &
         BulkNumericalVelocity_P12(iAlt)
-    end if
+    endif
     if (BulkNumericalVelocity_M12(iAlt) .ge. 0.0) then
       EnergyFlux_M12(iAlt) = &
         (ELeft_M12(iAlt) + PLeft_M12(iAlt)) &
@@ -1995,20 +1995,20 @@ subroutine calc_all_fluxes_hydro(DtIn, RhoS, PressureS, HydroPressureS, HydroRho
       Momentum_M12(iAlt, 1:3) = &
         RhoRight_M12(iAlt)*VelGDRight_M12(iAlt, 1:3)* &
         BulkNumericalVelocity_M12(iAlt)
-    end if
-  end do !! End iAlt Loop
+    endif
+  enddo !! End iAlt Loop
 
   do iAlt = 1, nAlts
     LeftRadius(iAlt) = 0.5*(RadDist(iAlt) + RadDist(iAlt - 1))
     RightRadius(iAlt) = 0.5*(RadDist(iAlt) + RadDist(iAlt + 1))
-  end do
+  enddo
 
   do iAlt = 1, nAlts
     AreaFunction_P12(iAlt) = RightRadius(iAlt)**2.0
     AreaFunction_M12(iAlt) = LeftRadius(iAlt)**2.0
     LocalCellVolume(iAlt) = &
       (1.0/3.0)*(RightRadius(iAlt)**3.0 - LeftRadius(iAlt)**3.0)
-  end do
+  enddo
 
   do iSpecies = 1, nSpecies
     RhoSFlux(1:nAlts, iSpecies) = &
@@ -2025,7 +2025,7 @@ subroutine calc_all_fluxes_hydro(DtIn, RhoS, PressureS, HydroPressureS, HydroRho
       MomentumSFlux(1:nAlts, iSpecies) + &
       (NumericalPressure_P12(1:nAlts, iSpecies) - &
        NumericalPressure_M12(1:nAlts, iSpecies))/dAlt_C(1:nAlts)
-  end do
+  enddo
 
   EnergyFlux(1:nAlts) = &
     ((AreaFunction_P12(1:nAlts))*EnergyFlux_P12(1:nAlts) - &
@@ -2037,7 +2037,7 @@ subroutine calc_all_fluxes_hydro(DtIn, RhoS, PressureS, HydroPressureS, HydroRho
       (AreaFunction_P12(1:nAlts)*Momentum_P12(1:nAlts, iDim) - &
        AreaFunction_M12(1:nAlts)*Momentum_M12(1:nAlts, iDim))/ &
       LocalCellVolume(1:nAlts)
-  end do
+  enddo
 
 end subroutine calc_all_fluxes_hydro
 
@@ -2065,7 +2065,7 @@ subroutine calc_kt_facevalues(Var, VarLeft_M12, VarRight_M12, &
     dVarUp = (Var(i + 1) - Var(i))*InvDAlt_F(i + 1)
     dVarDown = (Var(i) - Var(i - 1))*InvDAlt_F(i)
     dVarLimited(i) = Limiter_mc(dVarUp, dVarDown)
-  end do
+  enddo
 
   do i = 1, nAlts
     VarLeft_M12(i) = Var(i - 1) + 0.5*dVarLimited(i - 1)*dAlt_F(i - 1)
@@ -2073,7 +2073,7 @@ subroutine calc_kt_facevalues(Var, VarLeft_M12, VarRight_M12, &
 
     VarLeft_P12(i) = Var(i) + 0.5*dVarLimited(i)*dAlt_F(i)
     VarRight_P12(i) = Var(i + 1) - 0.5*dVarLimited(i + 1)*dAlt_F(i + 1)
-  end do
+  enddo
 
 !        do i=1,nAlts
 !            VarLeft_M12(i) = Var(i-1) + 0.5*dVarLimited(i-1) * dAlt_F(i  )

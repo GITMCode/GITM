@@ -36,17 +36,17 @@ subroutine set_horizontal_bcs(iBlock)
     call GetGitmFileList(iErr)
     if (iErr /= 0) then
       call stop_gitm("Error in trying to read GITM 3D Filelist in horizontal bcs")
-    end if
+    endif
 
     call GetGitmGeneralHeaderInfo(iErr)
     if (iErr /= 0) then
       call stop_gitm("Error in reading gitm header information in horizontal bcs")
-    end if
+    endif
 
     call GitmGetnVars(nVars)
     if (iErr /= 0) then
       call stop_gitm("Error in getting number of variables in horizontal bcs")
-    end if
+    endif
 
     allocate(vars(nVars))
     call GitmGetVars(vars)
@@ -60,28 +60,28 @@ subroutine set_horizontal_bcs(iBlock)
         minval(Longitude(:, iBlock)) < LonStart) then
       nPoints = nPoints + (nAlts + 4)*(nLats + 4)*2
       IsWestBC = .true.
-    end if
+    endif
 
     ! Eastern Boundary
     if (LonStart /= LonEnd .and. &
         maxval(Longitude(:, iBlock)) > LonEnd) then
       nPoints = nPoints + (nAlts + 4)*(nLats + 4)*2
       IsEastBC = .true.
-    end if
+    endif
 
     ! South Boundary
     if (LatStart > -pi/2.0 .and. &
         minval(Latitude(:, iBlock)) < LatStart) then
       nPoints = nPoints + (nAlts + 4)*(nLons + 4)*2
       IsSouthBC = .true.
-    end if
+    endif
 
     ! North Boundary
     if (LatStart > -pi/2.0 .and. &
         maxval(Latitude(:, iBlocK)) > LatEnd) then
       nPoints = nPoints + (nAlts + 4)*(nLons + 4)*2
       IsNorthBC = .true.
-    end if
+    endif
 
     call GitmSetnPointsToGet(nPoints)
 
@@ -100,10 +100,10 @@ subroutine set_horizontal_bcs(iBlock)
             latsBCs(iPoint) = latitude(iLat, iBlock)
             altsBCs(iPoint) = Altitude_GB(iLon, iLat, iAlt, iBlock)
             iPoint = iPoint + 1
-          end do
-        end do
-      end do
-    end if
+          enddo
+        enddo
+      enddo
+    endif
 
     if (IsEastBC) then
       do iLon = nLons + 1, nLons + 2
@@ -113,10 +113,10 @@ subroutine set_horizontal_bcs(iBlock)
             latsBCs(iPoint) = latitude(iLat, iBlock)
             altsBCs(iPoint) = Altitude_GB(iLon, iLat, iAlt, iBlock)
             iPoint = iPoint + 1
-          end do
-        end do
-      end do
-    end if
+          enddo
+        enddo
+      enddo
+    endif
 
     if (IsSouthBC) then
       do iLon = -1, nLons + 2
@@ -126,10 +126,10 @@ subroutine set_horizontal_bcs(iBlock)
             latsBCs(iPoint) = latitude(iLat, iBlock)
             altsBCs(iPoint) = Altitude_GB(iLon, iLat, iAlt, iBlock)
             iPoint = iPoint + 1
-          end do
-        end do
-      end do
-    end if
+          enddo
+        enddo
+      enddo
+    endif
 
     if (IsNorthBC) then
       do iLon = -1, nLons + 2
@@ -139,10 +139,10 @@ subroutine set_horizontal_bcs(iBlock)
             latsBCs(iPoint) = latitude(iLat, iBlock)
             altsBCs(iPoint) = Altitude_GB(iLon, iLat, iAlt, iBlock)
             iPoint = iPoint + 1
-          end do
-        end do
-      end do
-    end if
+          enddo
+        enddo
+      enddo
+    endif
 
     if (iPoint > 1) then
 
@@ -153,11 +153,11 @@ subroutine set_horizontal_bcs(iBlock)
 
       call GitmSetGrid(lonsBCs, latsBCs, altsBCs)
 
-    end if
+    endif
 
     IsFirstTime = .false.
 
-  end if
+  endif
 
   if (UseGitmBCs) then
 
@@ -167,7 +167,7 @@ subroutine set_horizontal_bcs(iBlock)
     else
       write(*, *) 'Error in getting GITM data in set_horizontal_BCs!'
       call stop_gitm('Must Stop!')
-    end if
+    endif
 
     iPoint = 1
 
@@ -177,10 +177,10 @@ subroutine set_horizontal_bcs(iBlock)
           do iAlt = -1, nAlts + 2
             call set_horizontal_bcs_1point(iLon, iLat, iAlt, iBlock, iPoint)
             iPoint = iPoint + 1
-          end do
-        end do
-      end do
-    end if
+          enddo
+        enddo
+      enddo
+    endif
 
     if (IsEastBC) then
       do iLon = nLons + 1, nLons + 2
@@ -188,10 +188,10 @@ subroutine set_horizontal_bcs(iBlock)
           do iAlt = -1, nAlts + 2
             call set_horizontal_bcs_1point(iLon, iLat, iAlt, iBlock, iPoint)
             iPoint = iPoint + 1
-          end do
-        end do
-      end do
-    end if
+          enddo
+        enddo
+      enddo
+    endif
 
     if (IsSouthBC) then
       do iLon = -1, nLons + 2
@@ -199,10 +199,10 @@ subroutine set_horizontal_bcs(iBlock)
           do iAlt = -1, nAlts + 2
             call set_horizontal_bcs_1point(iLon, iLat, iAlt, iBlock, iPoint)
             iPoint = iPoint + 1
-          end do
-        end do
-      end do
-    end if
+          enddo
+        enddo
+      enddo
+    endif
 
     if (IsNorthBC) then
       do iLon = -1, nLons + 2
@@ -210,10 +210,10 @@ subroutine set_horizontal_bcs(iBlock)
           do iAlt = -1, nAlts + 2
             call set_horizontal_bcs_1point(iLon, iLat, iAlt, iBlock, iPoint)
             iPoint = iPoint + 1
-          end do
-        end do
-      end do
-    end if
+          enddo
+        enddo
+      enddo
+    endif
 
   else
 
@@ -230,7 +230,7 @@ subroutine set_horizontal_bcs(iBlock)
               VerticalVelocity(iLon + 1, :, iAlt, iSpecies, iBlock)
             nDensityS(iLon, :, iAlt, iSpecies, iBlock) = &
               nDensityS(iLon + 1, :, iAlt, iSpecies, iBlock)
-          end do
+          enddo
 
           Rho(iLon, :, iAlt, iBlock) = &
             Rho(iLon + 1, :, iAlt, iBlock)
@@ -244,7 +244,7 @@ subroutine set_horizontal_bcs(iBlock)
           do iIon = 1, nIons
             IDensityS(iLon, :, iAlt, iIon, iBlock) = &
               IDensityS(iLon + 1, :, iAlt, iIon, iBlock)
-          end do
+          enddo
 
           Velocity(iLon, :, iAlt, iNorth_, iBlock) = &
             Velocity(iLon + 1, :, iAlt, iNorth_, iBlock)
@@ -260,9 +260,9 @@ subroutine set_horizontal_bcs(iBlock)
           iVelocity(iLon, :, iAlt, iUp_, iBlock) = &
             iVelocity(iLon + 1, :, iAlt, iUp_, iBlock)
 
-        end do
-      end do
-    end if
+        enddo
+      enddo
+    endif
 
     if (LonStart /= LonEnd .and. &
         maxval(Longitude(:, iBlock)) > LonEnd) then
@@ -278,7 +278,7 @@ subroutine set_horizontal_bcs(iBlock)
 !              nDensityS(iLon,:,iAlt,iSpecies,iBlock) = &
 !                   2*nDensityS(iLon-1,:,iAlt,iSpecies,iBlock) - &
 !                   nDensityS(iLon-2,:,iAlt,iSpecies,iBlock)
-          end do
+          enddo
 
           Rho(iLon, :, iAlt, iBlock) = &
             Rho(iLon - 1, :, iAlt, iBlock)
@@ -308,7 +308,7 @@ subroutine set_horizontal_bcs(iBlock)
 !              IDensityS(iLon,:,iAlt,iIon,iBlock) = &
 !                   2*IDensityS(iLon-1,:,iAlt,iIon,iBlock) - &
 !                   IDensityS(iLon-2,:,iAlt,iIon,iBlock)
-          end do
+          enddo
 
           Velocity(iLon, :, iAlt, iNorth_, iBlock) = &
             Velocity(iLon - 1, :, iAlt, iNorth_, iBlock)
@@ -324,9 +324,9 @@ subroutine set_horizontal_bcs(iBlock)
           iVelocity(iLon, :, iAlt, iUp_, iBlock) = &
             iVelocity(iLon - 1, :, iAlt, iUp_, iBlock)
 
-        end do
-      end do
-    end if
+        enddo
+      enddo
+    endif
 
     ! Southern Boundary
 
@@ -344,7 +344,7 @@ subroutine set_horizontal_bcs(iBlock)
 !              nDensityS(:,iLat,iAlt,iSpecies,iBlock) = &
 !                   2*nDensityS(:,iLat+1,iAlt,iSpecies,iBlock)- &
 !                   nDensityS(:,iLat+2,iAlt,iSpecies,iBlock)
-          end do
+          enddo
 
           Rho(:, iLat, iAlt, iBlock) = &
             Rho(:, iLat + 1, iAlt, iBlock)
@@ -362,7 +362,7 @@ subroutine set_horizontal_bcs(iBlock)
           do iIon = 1, nIons
             IDensityS(:, iLat, iAlt, iIon, iBlock) = &
               IDensityS(:, iLat + 1, iAlt, iIon, iBlock)
-          end do
+          enddo
 
           Velocity(:, iLat, iAlt, iNorth_, iBlock) = &
             Velocity(:, iLat + 1, iAlt, iNorth_, iBlock)
@@ -378,9 +378,9 @@ subroutine set_horizontal_bcs(iBlock)
           iVelocity(:, iLat, iAlt, iUp_, iBlock) = &
             iVelocity(:, iLat + 1, iAlt, iUp_, iBlock)
 
-        end do
-      end do
-    end if
+        enddo
+      enddo
+    endif
 
     if (LatEnd < pi/2.0 .and. &
         maxval(Latitude(:, iBlocK)) > LatEnd) then
@@ -396,7 +396,7 @@ subroutine set_horizontal_bcs(iBlock)
 !              nDensityS(:,iLat,iAlt,iSpecies,iBlock) = &
 !                   2*nDensityS(:,iLat-1,iAlt,iSpecies,iBlock) - &
 !                   nDensityS(:,iLat-2,iAlt,iSpecies,iBlock)
-          end do
+          enddo
 
           Rho(:, iLat, iAlt, iBlock) = &
             Rho(:, iLat - 1, iAlt, iBlock)
@@ -414,7 +414,7 @@ subroutine set_horizontal_bcs(iBlock)
           do iIon = 1, nIons
             IDensityS(:, iLat, iAlt, iIon, iBlock) = &
               IDensityS(:, iLat - 1, iAlt, iIon, iBlock)
-          end do
+          enddo
 
           Velocity(:, iLat, iAlt, iNorth_, iBlock) = &
             Velocity(:, iLat - 1, iAlt, iNorth_, iBlock)
@@ -430,11 +430,11 @@ subroutine set_horizontal_bcs(iBlock)
           iVelocity(:, iLat, iAlt, iUp_, iBlock) = &
             iVelocity(:, iLat - 1, iAlt, iUp_, iBlock)
 
-        end do
-      end do
-    end if
+        enddo
+      enddo
+    endif
 
-  end if
+  endif
 
 end subroutine set_horizontal_bcs
 
@@ -457,14 +457,14 @@ subroutine set_horizontal_bcs_1point(iLon, iLat, iAlt, iBlock, iPoint)
 !     if (iProc == 0) then
 !        write(*,*) 'ndensity : ',iSpecies, GitmFileData(iPoint,iSpecies+iNeutralStart_-1)
 !     endif
-  end do
+  enddo
   do iSpecies = 1, nIons
     IDensityS(iLon, iLat, iAlt, iSpecies, iBlock) = &
       GitmFileData(iPoint, iSpecies + iIonStart_ - 1)
 !     if (iProc == 0) then
 !        write(*,*) 'idensity : ',iSpecies, GitmFileData(iPoint,iSpecies+iIonStart_-1)
 !     endif
-  end do
+  enddo
 
   ! Need to calculate tempunit to get normalized temperature
   MeanMajorMass(iLon, iLat, iAlt) = 0.0
@@ -473,7 +473,7 @@ subroutine set_horizontal_bcs_1point(iLon, iLat, iAlt, iBlock, iPoint)
       MeanMajorMass(iLon, iLat, iAlt) + &
       Mass(iSpecies)*NDensityS(iLon, iLat, iAlt, iSpecies, iBlock)/ &
       sum(NDensityS(iLon, iLat, iAlt, :, iBlock))
-  end do
+  enddo
   TempUnit(iLon, iLat, iAlt) = MeanMajorMass(iLon, iLat, iAlt)/Boltzmanns_Constant
   Temperature(iLon, iLat, iAlt, iBlock) = &
     GitmFileData(iPoint, iTn_)/TempUnit(iLon, iLat, iAlt)
@@ -486,12 +486,12 @@ subroutine set_horizontal_bcs_1point(iLon, iLat, iAlt, iBlock, iPoint)
       GitmFileData(iPoint, iVn_ + iDir - 1)
     iVelocity(iLon, iLat, iAlt, iDir, iBlock) = &
       GitmFileData(iPoint, iVi_ + iDir - 1)
-  end do
+  enddo
   ! Vertical Velocities
   do iSpecies = 1, nSpecies
     VerticalVelocity(iLon, iLat, iAlt, iSpecies, iBlock) = &
       GitmFileData(iPoint, iVn_ + 3 + iSpecies - 1)
-  end do
+  enddo
 
 end subroutine set_horizontal_bcs_1point
 

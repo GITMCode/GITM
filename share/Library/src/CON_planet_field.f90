@@ -95,7 +95,7 @@ contains
     if (TypeBField == 'NONE') then
       b_D = 0
       RETURN
-    end if
+    endif
 
     if (len(TypeCoord) < 3) call CON_stop(NameSub// &
                                           ' SWMF_ERROR: coordinate type should be at least 3 characters,'// &
@@ -106,7 +106,7 @@ contains
       Xyz_D = XyzIn_D
     else
       Xyz_D = XyzIn_D/RadiusPlanet
-    end if
+    endif
 
     Xyz_D = Xyz_D - MagCenter_D
 
@@ -116,7 +116,7 @@ contains
       ! return zero field if very small
       b_D = 0
       RETURN
-    end if
+    endif
 
     ! Update axes
     call set_axes(TimeSim)
@@ -316,7 +316,7 @@ contains
     else
       Xyz_D = XyzIn_D/RadiusPlanet
       rMap = rMapIn/RadiusPlanet
-    end if
+    endif
 
     ! Check if the mapping radius is outside of the planet
     if (rMap < rNormLimit) then
@@ -324,7 +324,7 @@ contains
       write(*, *) NameSub, ' normalized mapping radius rMap=', rMap
       call CON_stop(NameSub// &
                     ' SWMF_ERROR mapping radius is less than planet radius')
-    end if
+    endif
 
     ! Convert input position into MAG or SMG system
     DoConvert = .true.
@@ -363,7 +363,7 @@ contains
       write(*, *) NameSub, ' normalized radius r=', r
       call CON_stop(NameSub// &
                     ' SWMF_ERROR radial distance is less than planet radius')
-    end if
+    endif
 
     ! Check if the mapping radius differs from the radius of input position
     if (abs(r - rMap) < DrNormLimit .and. .not. present(DdirDxyz_DD)) then
@@ -375,11 +375,11 @@ contains
       else
         ! Trivial mapping
         XyzMap_D = XyzIn_D
-      end if
+      endif
       ! The hemisphere has been established already
       RETURN
 
-    end if
+    endif
 
     ! Find the mapped position
     select case (TypeBField)
@@ -414,7 +414,7 @@ contains
         ! Calculate the Z component of the mapped position
         ! Select the same hemisphere as for the input position
         XyzMap_D(3) = iHemisphere*sqrt(rMap2 - XyMap2)
-      end if
+      endif
 
       if (present(DdirDxyz_DD)) then
         ! dTheta/dx = -xMap*(0.5-1.5*z^2/r^2)/(zMap*sqrt(x^2+y^2))
@@ -442,7 +442,7 @@ contains
         ! dDir/dXyzIn = dDir/dXyzSMGMAG . dXyzSMGMAG/dXyzIn
         if (DoConvert) DdirDxyz_DD = matmul(DdirDxyz_DD, Convert_DD)
 
-      end if
+      endif
 
     case default
       call CON_stop(NameSub//' unimplemented TypeBField='//TypeBField)
@@ -456,7 +456,7 @@ contains
     if (index(TypeCoord, "NORM") <= 0) then
       Xyzmap_D = Xyzmap_D*RadiusPlanet
       if (present(DdirDxyz_DD)) DdirDxyz_DD = DdirDxyz_DD/RadiusPlanet
-    end if
+    endif
 
   end subroutine map_planet_field11
 

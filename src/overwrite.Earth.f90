@@ -23,8 +23,8 @@ subroutine overwrite_ionosphere
     call report('Overwriting Ionosphere with SAMI-3!', 0)
     do iBlock = 1, nBlocks
       call ionosphere_overwrite_sami(iBlock)
-    end do
-  end if
+    enddo
+  endif
 
 end subroutine overwrite_ionosphere
 
@@ -86,9 +86,9 @@ subroutine ionosphere_overwrite_sami(iBlock)
           GitmLats(iPoint) = latitude(iLat, iBlock)
           GitmAlts(iPoint) = Altitude_GB(iLon, iLat, iAlt, iBlock)
           iPoint = iPoint + 1
-        end do
-      end do
-    end do
+        enddo
+      enddo
+    enddo
 
     if (iPoint > 1) then
 
@@ -99,11 +99,11 @@ subroutine ionosphere_overwrite_sami(iBlock)
 
       call SamiSetGrid(GitmLons, GitmLats, GitmAlts)
 
-    end if
+    endif
 
     IsFirstTime = .false.
 
-  end if
+  endif
 
   if (CorotationAdded) then
     ! This then implies that the grid is in local time, so we need to
@@ -117,18 +117,18 @@ subroutine ionosphere_overwrite_sami(iBlock)
           GitmLons(iPoint) = LocalTime(iLon)*15.0
           if (iAlt == 1 .and. iLat == 1) write(*, *) iLon, LocalTime(iLon), GitmLons(iPoint)
           iPoint = iPoint + 1
-        end do
-      end do
-    end do
+        enddo
+      enddo
+    enddo
 
     if (iPoint > 1) call SamiSetGrid(GitmLons, GitmLats, GitmAlts)
 
-  end if
+  endif
 
   call SamiUpdateTime(CurrentTime, iErr)
   if (iErr == 0) then
     call SamiGetData(SamiFileData)
-  end if
+  endif
 
   iPoint = 1
 
@@ -149,8 +149,8 @@ subroutine ionosphere_overwrite_sami(iBlock)
         iTemperature(iLon, iLat, iAlt, iBlock) = SamiFileData(iPoint, iSami_Ti_)
 
         iPoint = iPoint + 1
-      end do
-    end do
-  end do
+      enddo
+    enddo
+  enddo
 
 end subroutine ionosphere_overwrite_sami
