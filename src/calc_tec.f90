@@ -63,7 +63,7 @@ subroutine calc_single_vtec(iLon, iLat, iBlock, single_vtec)
 
     ! Sum successive incrimentations of height * density
     single_vtec = single_vtec + height*density
-  end do
+  enddo
 
   ! Convert from SI units to TEC units
 
@@ -93,8 +93,8 @@ subroutine calc_vtec(iBlock)
   do iLon = -1, nLons + 2
     do iLat = -1, nLats + 2
       call calc_single_vtec(iLon, iLat, iBlock, VTEC(iLon, iLat, iBlock))
-    end do
-  end do
+    enddo
+  enddo
 
   return
 end subroutine calc_vtec
@@ -124,7 +124,7 @@ subroutine calc_single_vtec_interp(LonFind, LatFind, single_vtec)
 
   if (iiLon .lt. 0 .or. iiLat .lt. 0 .or. iiLon .gt. nLons .or. iiLat .gt. nLats) then
     return
-  end if
+  endif
 
   ! Interpolate electron density
 
@@ -140,7 +140,7 @@ subroutine calc_single_vtec_interp(LonFind, LatFind, single_vtec)
     height = Altitude_GB(iiLon, iiLat, i + 1, iiBlock) &
              - Altitude_GB(iiLon, iiLat, i, iiBlock)
     single_vtec = single_vtec + height*(column(i) + column(i + 1))/2.0
-  end do
+  enddo
 
   !  VTEC is in TECU while electron density is in m^-3
 

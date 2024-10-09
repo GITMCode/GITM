@@ -36,7 +36,7 @@ subroutine read_al_onset_list(iOutputError, StartTime, EndTime)
   if (NameOfSecondIndexFile == "none" .and. nIndices_V(onsetut_) == 0) then
     nIndices_V(onsetut_) = 1
     return
-  end if
+  endif
 
   call init_mod_indices
 
@@ -50,7 +50,7 @@ subroutine read_al_onset_list(iOutputError, StartTime, EndTime)
     ! reading more.
     if (StartTime + BufferTime < IndexTimes_TV(nIndices_V(onsetut_), onsetut_)) &
       return
-  end if
+  endif
 
   ! Assume that we can read the entire file
   ReReadOnsetFile = .false.
@@ -62,7 +62,7 @@ subroutine read_al_onset_list(iOutputError, StartTime, EndTime)
   if (ierror .ne. 0) then
     iOutputError = 1
     return
-  end if
+  endif
 
   iAE = 1
   iTime = 0
@@ -82,7 +82,7 @@ subroutine read_al_onset_list(iOutputError, StartTime, EndTime)
       ! line in the file!
       if (StartTime > IndexTimes_TV(iAE, onsetut_)) then
         iAE = iAE + 1
-      end if
+      endif
 
     else
 
@@ -108,13 +108,13 @@ subroutine read_al_onset_list(iOutputError, StartTime, EndTime)
         ! line in the file!
         if (EndTime < IndexTimes_TV(iAE, onsetut_) .and. iAE == 1) then
           iAE = iAE + 1
-        end if
+        endif
 
-      end if
+      endif
 
-    end if
+    endif
 
-  end do
+  enddo
 
   close(LunIndices_)
 
@@ -175,7 +175,7 @@ subroutine read_sme(iOutputError, StartTime, EndTime, doUseAeForHp)
     ! reading more.
     if (StartTime + BufferTime < IndexTimes_TV(nIndices_V(ae_), ae_)) &
       return
-  end if
+  endif
 
   ! Assume that we can read the entire file
   ReReadSMEFile = .false.
@@ -192,16 +192,16 @@ subroutine read_sme(iOutputError, StartTime, EndTime, doUseAeForHp)
       read(LunIndices_, *, iostat=iError) line
       if (iError /= 0) IsDone = .true.
       if (line(1:6) == "<year>") IsDone = .true.
-    end do
+    enddo
     IsDone = .false.
   else
     rewind(LunIndices_)
-  end if
+  endif
 
   if (ierror .ne. 0) then
     iOutputError = 1
     return
-  end if
+  endif
 
   iAE = 1
   iTime = 0
@@ -220,7 +220,7 @@ subroutine read_sme(iOutputError, StartTime, EndTime, doUseAeForHp)
       ! line in the file!
       if (StartTime > IndexTimes_TV(iAE, ae_)) then
         iAE = iAE + 1
-      end if
+      endif
 
     else
 
@@ -243,7 +243,7 @@ subroutine read_sme(iOutputError, StartTime, EndTime, doUseAeForHp)
           if (hp > 0) Indices_TV(iAE, hpi_norm_) = 2.09*ALOG(hp)*1.0475
           IndexTimes_TV(iAE, hpi_norm_) = IndexTimes_TV(iAE, ae_)
           IndexTimes_TV(iAE, hpi_) = IndexTimes_TV(iAE, ae_)
-        end if
+        endif
 
         IndexTimes_TV(iAE, al_) = IndexTimes_TV(iAE, ae_)
         IndexTimes_TV(iAE, au_) = IndexTimes_TV(iAE, ae_)
@@ -255,13 +255,13 @@ subroutine read_sme(iOutputError, StartTime, EndTime, doUseAeForHp)
         ! line in the file!
         if (EndTime < IndexTimes_TV(iAE, ae_) .and. iAE == 1) then
           iAE = iAE + 1
-        end if
+        endif
 
-      end if
+      endif
 
-    end if
+    endif
 
-  end do
+  enddo
 
   close(LunIndices_)
 

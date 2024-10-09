@@ -89,9 +89,9 @@ subroutine MHD_GetLats(EIEi_nMLTs, EIEi_nLats, EIEi_nBLKs, LatsOut)
   do i = 1, EIEi_nMLTs
     do j = EIEi_nLats, 1, -1
       LatsOut(i, j, MHD_North_) = MHD_Lats(EIEi_nLats - j + 1)
-    end do
+    enddo
     LatsOut(i, 1:EIEi_nLats, MHD_South_) = -MHD_Lats(1:EIEi_nLats)
-  end do
+  enddo
 
 end subroutine MHD_GetLats
 
@@ -110,7 +110,7 @@ subroutine MHD_GetMLTs(EIEi_nMLTs, EIEi_nLats, EIEi_nBLKs, MLTsOut)
   do j = 1, EIEi_nLats
     MLTsOut(1:EIEi_nMLTs, j, 1) = MHD_MLTs(1:EIEi_nMLTs)
     MLTsOut(1:EIEi_nMLTs, j, 2) = MHD_MLTs(1:EIEi_nMLTs)
-  end do
+  enddo
 
 end subroutine MHD_GetMLTs
 
@@ -141,7 +141,7 @@ subroutine MHD_GetPotential(TimeIn, Method, &
     stop
   else
     PotentialOut = ValueOut
-  end if
+  endif
 
 end subroutine MHD_GetPotential
 
@@ -172,7 +172,7 @@ subroutine MHD_GetEFlux(TimeIn, Method, &
     stop
   else
     EFluxOut = ValueOut
-  end if
+  endif
 
 end subroutine MHD_GetEFlux
 
@@ -202,7 +202,7 @@ subroutine MHD_GetAveE(TimeIn, Method, &
     stop
   else
     AveEOut = ValueOut
-  end if
+  endif
 
 end subroutine MHD_GetAveE
 
@@ -237,9 +237,9 @@ subroutine MHD_GetValue(TimeIn, Method, &
       if ((iTime == MHD_nTimes) .and. (.not. IsDone)) then
         iTime = iTime + 1
         IsDone = .true.
-      end if
+      endif
       iTime = iTime + 1
-    end do
+    enddo
 
     if (iTime <= MHD_nTimes + 1) then
 
@@ -255,8 +255,8 @@ subroutine MHD_GetValue(TimeIn, Method, &
           ValueOut = -1.0e32
           iError = ecBeforeStartTime_
           return
-        end if
-      end if
+        endif
+      endif
     else
       dT = MHD_Time(2, iBLK) - MHD_Time(1, iBLK)
 
@@ -269,8 +269,8 @@ subroutine MHD_GetValue(TimeIn, Method, &
         ValueOut = -1.0e32
         iError = ecAfterEndTime_
         return
-      end if
-    end if
+      endif
+    endif
 
     if (Method == MHD_After_) then
       if (iBLK == MHD_South_) then
@@ -281,16 +281,16 @@ subroutine MHD_GetValue(TimeIn, Method, &
         do iLat = MHD_nLats, 1, -1
           ValueOut(1:MHD_nMLTs, iLat, iBLK) = &
             MHD_Value(1:MHD_nMLTs, MHD_nLats - iLat + 1, iTime, iBLK)
-        end do
-      end if
-    end if
+        enddo
+      endif
+    endif
 
     if (Method == MHD_Closest_) then
       if (iTime > 1) then
         if (abs(TimeIn - MHD_Time(iTime, iBLK)) > &
             abs(TimeIn - MHD_Time(iTime - 1, iBLK))) &
           iTime = iTime - 1
-      end if
+      endif
       if (iBLK == MHD_South_) then
         ValueOut(1:MHD_nMLTs, 1:MHD_nLats, iBLK) = &
           MHD_Value(1:MHD_nMLTs, 1:MHD_nLats, iTime, iBLK)
@@ -299,9 +299,9 @@ subroutine MHD_GetValue(TimeIn, Method, &
         do iLat = MHD_nLats, 1, -1
           ValueOut(1:MHD_nMLTs, iLat, iBLK) = &
             MHD_Value(1:MHD_nMLTs, MHD_nLats - iLat + 1, iTime, iBLK)
-        end do
-      end if
-    end if
+        enddo
+      endif
+    endif
 
     if (Method == MHD_Interpolate_) then
       ! This will do extrapolation if it is before the first time
@@ -322,11 +322,11 @@ subroutine MHD_GetValue(TimeIn, Method, &
             (1.0 - dt)*MHD_Value(1:MHD_nMLTs, MHD_nLats - iLat + 1, &
                                  iTime, iBLK) + &
             dt*MHD_Value(1:MHD_nMLTs, MHD_nLats - iLat + 1, iTime - 1, iBLK)
-        end do
-      end if
-    end if
+        enddo
+      endif
+    endif
 
-  end do
+  enddo
 
 end subroutine MHD_GetValue
 

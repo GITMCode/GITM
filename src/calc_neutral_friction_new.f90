@@ -106,7 +106,7 @@ subroutine calc_neutral_friction(oVel, EddyCoef_1d, NDensity_1d, NDensityS_1d, &
                                denscale*NDensityS_1d(iAlt, jSpecies)/ &
                                (TempDij)
 
-          end if   !! UseBoqueho And Blelly
+          endif   !! UseBoqueho And Blelly
 
         else   !! Not Earth
 
@@ -129,7 +129,7 @@ subroutine calc_neutral_friction(oVel, EddyCoef_1d, NDensity_1d, NDensityS_1d, &
             InvDij(iSpecies) = InvDij(iSpecies) + &
                                denscale*NDensityS_1d(iAlt, jSpecies)/ &
                                (TempDij)
-          end if
+          endif
 
           if (UseBoquehoAndBlelly) then
             EddyDiffCorrection(iSpecies) = &
@@ -141,11 +141,11 @@ subroutine calc_neutral_friction(oVel, EddyCoef_1d, NDensity_1d, NDensityS_1d, &
               EddyDiffCorrection(iSpecies) + &
               Dt*CoefMatrix(iSpecies, jSpecies)* &
               EddyCoef_1d(iAlt)*GradLogCon(iAlt, jSpecies)
-          end if
+          endif
 
-        end if   ! Check if IsEarth
+        endif   ! Check if IsEarth
 
-      end do  ! End DO over jSpecies
+      enddo  ! End DO over jSpecies
 
       if (UseBoquehoAndBlelly) then
 
@@ -155,7 +155,7 @@ subroutine calc_neutral_friction(oVel, EddyCoef_1d, NDensity_1d, NDensityS_1d, &
         if (UseEddyCorrection) then
           EddyCoefRatio_1d(iAlt, iSpecies) = &
             EddyCoefRatio_1d(iAlt, iSpecies) - EddyDiffCorrection(iSpecies)
-        end if
+        endif
 
       else
 
@@ -166,11 +166,11 @@ subroutine calc_neutral_friction(oVel, EddyCoef_1d, NDensity_1d, NDensityS_1d, &
         if (UseEddyCorrection) then
           EddyCoefRatio_1d(iAlt, iSpecies) = &
             EddyCoefRatio_1d(iAlt, iSpecies) + EddyDiffCorrection(iSpecies)
-        end if
+        endif
 
-      end if
+      endif
 
-    end do  !End DO Over iSpecies
+    enddo  !End DO Over iSpecies
 
     Vel(1:nSpecies) = Vel(1:nSpecies) + EddyCoefRatio_1d(iAlt, 1:nSpecies)
 
@@ -182,7 +182,7 @@ subroutine calc_neutral_friction(oVel, EddyCoef_1d, NDensity_1d, NDensityS_1d, &
     do iSpecies = 1, nSpecies
       Matrix(iSpecies, iSpecies) = &
         1.0 + dt*(sum(CoefMatrix(iSpecies, :)))
-    end do
+    enddo
 
     BulkWind = 0.0
     MassDensity = 0.0
@@ -190,20 +190,20 @@ subroutine calc_neutral_friction(oVel, EddyCoef_1d, NDensity_1d, NDensityS_1d, &
       BulkWind = BulkWind + &
                  vel(iSpecies)*mass(iSpecies)*NDensityS_1d(iAlt, iSpecies)
       MassDensity = MassDensity + mass(iSpecies)*NDensityS_1d(iAlt, iSpecies)
-    end do
+    enddo
     BulkWind = BulkWind/MassDensity
 
     do iSpecies = 1, nSpecies
       r = Matrix(iSpecies, iSpecies)/sum(Matrix(iSpecies, :)) - 1.0
 !        write(*,*) iAlt, iSpecies, vel(iSpecies), r, BulkWind
       if (r > 1.0) vel(iSpecies) = BulkWind
-    end do
+    enddo
 
     call ludcmp(Matrix, nSpecies, nSpecies, iPivot, Parity)
     call lubksb(Matrix, nSpecies, nSpecies, iPivot, Vel)
 
     oVel(iAlt, 1:nSpecies) = Vel(1:nSpecies) !+ EddyCoefRatio_1d(iAlt,1:nSpecies)
 
-  end do
+  enddo
 
 end subroutine calc_neutral_friction

@@ -37,7 +37,7 @@ program read_sami
     lons(iPoint) = 360 - 5.0*(iPoint - 1)
     lats(iPoint) = -90.0 + 2.0*(iPoint - 1)
     alts(iPoint) = 100.0 + 10.0*(iPoint - 1)
-  end do
+  enddo
 
   call SamiSetnPointsToGet(nPoints)
   call SamiSetGrid(lons, lats, alts)
@@ -51,9 +51,9 @@ program read_sami
     if (iErr == 0) then
       call SamiGetData(data)
       write(*, *) data(:, 1)
-    end if
+    endif
     time = time + 600.0
-  end do
+  enddo
 
   call SamiShutDown
 

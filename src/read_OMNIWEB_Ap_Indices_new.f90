@@ -36,7 +36,7 @@ subroutine read_OMNIWEB_Ap_Indices_new(iOutputError, StartTime, EndTime)
   if (ierror .ne. 0) then
     iOutputError = 1
     return
-  end if
+  endif
 
   iAp = 1
 
@@ -73,15 +73,15 @@ subroutine read_OMNIWEB_Ap_Indices_new(iOutputError, StartTime, EndTime)
         ! line in the file!
         if (EndTime < IndexTimes_TV(iAp, ap_) .and. iAp == 1) then
           iAp = iAp + 1
-        end if
+        endif
 
-      end if
+      endif
 
       if (iAp >= MaxIndicesEntries) done = .true.
 
-    end if
+    endif
 
-  end do
+  enddo
 
   close(LunIndices_)
 

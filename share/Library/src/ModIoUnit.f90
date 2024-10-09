@@ -81,8 +81,8 @@ contains
       if (IsExisting .and. .not. IsOpened .and. iError == 0) then
         iUnitMax = max(iUnitMax, iUnit)
         return
-      end if
-    end do
+      endif
+    enddo
 
     iUnit = -1
 
@@ -112,9 +112,9 @@ contains
         else
           ! Close file again
           close(iUnit)
-        end if
-      end if
-    end do
+        endif
+      endif
+    enddo
 
   end subroutine io_unit_clean
   !==========================================================================
@@ -159,7 +159,7 @@ contains
       close(iUnit1, STATUS='delete')
       inquire(file='ascii', exist=IsExisting)
       if (IsExisting) write(*, *) 'failed to delete file "ascii"'
-    end if
+    endif
 
     inquire(file='binary', exist=IsExisting)
     if (.not. IsExisting) then
@@ -170,7 +170,7 @@ contains
       close(iUnit2, STATUS='delete')
       inquire(file='binary', exist=IsExisting)
       if (IsExisting) write(*, *) 'failed to delete file "binary"'
-    end if
+    endif
 
     inquire(file='empty_ascii', exist=IsExisting)
     if (IsExisting) then
@@ -180,7 +180,7 @@ contains
       close(iUnit3, STATUS='delete')
       inquire(file='empty_ascii', exist=IsExisting)
       if (IsExisting) write(*, *) 'failed to delete file "empty_ascii"'
-    end if
+    endif
 
     inquire(file='empty_binary', exist=IsExisting)
     if (IsExisting) then
@@ -190,7 +190,7 @@ contains
       close(iUnit4, STATUS='delete')
       inquire(file='empty_binary', exist=IsExisting)
       if (IsExisting) write(*, *) 'failed to delete file "empty_binary"'
-    end if
+    endif
 
   end subroutine io_unit_test
 

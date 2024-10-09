@@ -97,7 +97,7 @@ contains
         call check_dir("UA/DataIn")
         call check_dir("UA/data")
         call check_dir("UA/restartOUT")
-      end if
+      endif
 
       IsFramework = .true.
 
@@ -198,7 +198,7 @@ contains
         write(*, *) NameSub, " Error in allocating variables"
         write(*, *) " Lat_I, Lon_I, iProc_A, LatPE_I, LonPE_I, iProcPE_A"
         call CON_stop(NameSub//' UA_ERROR')
-      end if
+      endif
 
       LatPE_I = -1.0e32
       LonPE_I = -1.0e32
@@ -215,7 +215,7 @@ contains
         ! write(*,*) 'iProc: ',iProc
         iProcPE_A(iBlock) = iProc
 
-      end do
+      enddo
 
       ! call MPI_allreduce( LatPE_I, CoLat_I, nBlocksLon*nBlocksLat*nLats, &
       !          MPI_REAL, MPI_MAX, iComm, iError)
@@ -231,7 +231,7 @@ contains
     else
       allocate(CoLat_I(1), Lon_I(1), iProc_A(1), Alt_I(1), stat=iError)
       call check_allocate(iError, NameSub)
-    end if
+    endif
 
     if (DoTest) write(*, *) NameSub//': nCell: ', nLats, nLons, nAlts
 
@@ -297,7 +297,7 @@ contains
         write(*, '(a, 7i5)') NameSub//' End time     = ', iTimeDebug
         call time_real_to_int(CurrentTime, iTimeDebug)
         write(*, '(a, 7i5)') NameSub//' Current time = ', iTimeDebug
-      end if
+      endif
 
       call fix_vernal_time
 
@@ -306,7 +306,7 @@ contains
 
       IsFirstTime = .false.
 
-    end if
+    endif
 
   end subroutine UA_init_session
 
@@ -337,7 +337,7 @@ contains
     if (iDebugLevel > 1) then
       call time_real_to_int(CurrentTime, time_array)
       write(*, "(a,i5,5i3,i3)") "> Running UA from time : ", time_array(1:7)
-    end if
+    endif
 
     call calc_pressure
 
@@ -421,7 +421,7 @@ contains
     if (DoTestMe) then
       write(*, *) NameSub//': nVar=', nVar
       if (present(NameVar_V)) write(*, *) NameSub//': NameVar_V=', NameVar_V
-    end if
+    endif
 
   end subroutine UA_get_info_for_ie
 
@@ -476,7 +476,7 @@ contains
       EIEr3_HavePotential = 0.0
       EIEr3_HaveAveE = 0.0
       EIEr3_HaveEFlux = 0.0
-    end if
+    endif
 
     ! Debug: print basic coupling info:
     if (DoTest .and. (iProcGITM == 0)) then
@@ -489,7 +489,7 @@ contains
       write(*, *) 'Shape of Buffer_IIV = ', shape(Buffer_IIV)
       write(*, *) 'ncell_id(IE_) = ', ncell_id(IE_)
       write(*, *) 'iSizeIeHemi, jSizeIeHemi = ', iSizeIeHemi, jSizeIeHemi
-    end if
+    endif
 
     ! Debug statement: print max/mins of transferred variables.
     if (DoTest .and. (iProcGITM == 0)) write(*, *) &
@@ -507,8 +507,8 @@ contains
           if (iBlock == 2) ii = EIEi_HavenLats - i + 1
           do j = 1, EIEi_HavenMlts
             EIEr3_HavePotential(j, i, iBlock) = Buffer_IIV(ii, j, iVar)
-          end do
-        end do
+          enddo
+        enddo
         if (DoTest .and. (iProcGITM == 0)) write(*, '(a, 2(e12.5,1x))') 'UA pot: ', &
           maxval(EIEr3_HavePotential(:, :, iBlock)), &
           minval(EIEr3_HavePotential(:, :, iBlock))
@@ -521,8 +521,8 @@ contains
           if (iBlock == 2) ii = EIEi_HavenLats - i + 1
           do j = 1, EIEi_HavenMlts
             EIEr3_HaveAveE(j, i, iBlock) = Buffer_IIV(ii, j, iVar)
-          end do
-        end do
+          enddo
+        enddo
         if (DoTest .and. (iProcGITM == 0)) write(*, '(a, 2(e12.5,1x))') 'UA ave: ', &
           maxval(EIEr3_HaveAveE(:, :, iBlock)), &
           minval(EIEr3_HaveAveE(:, :, iBlock))
@@ -536,8 +536,8 @@ contains
           do j = 1, EIEi_HavenMlts
             EIEr3_HaveEFlux(j, i, iBlock) = &
               Buffer_IIV(ii, j, iVar)/(1.0e-7*100.0*100.0)
-          end do
-        end do
+          enddo
+        enddo
         if (DoTest .and. (iProcGITM == 0)) write(*, '(a, 2(e12.5,1x))') 'UA tot: ', &
           maxval(EIEr3_HaveEFlux(:, :, iBlock)), &
           minval(EIEr3_HaveEFlux(:, :, iBlock))
@@ -546,7 +546,7 @@ contains
         call CON_stop(NameSub//' invalid NameVarIn='//NameVarIn_V(iVar))
 
       end select
-    end do
+    enddo
 
     ! This bypasses some internal GITM issues.
     UAl_UseGridBasedEIE = .true.
@@ -594,7 +594,7 @@ contains
       write(*, *) NameSub//' UA E&M grid nLon, nLats = ', UAi_nMlts, UAi_nLats
       write(*, *) NameSub//' UA-IE coupling buffer nLon, nLats = ', nMltIn, nLatIn
       call CON_stop(NameSub//' Array size mismatch.')
-    end if
+    endif
 
     ! Collect relevant values using native GITM functions:
     allocate(UAr2_Fac(UAi_nMlts, UAi_nLats), &
@@ -641,7 +641,7 @@ contains
                       NameVarIn_V(iVar))
       end select
 
-    end do
+    enddo
 
     ! Dump contents to file in debug mode:
     if (DoTestMe) then
@@ -654,7 +654,7 @@ contains
       ! Fill output array to match required ordering
       do iVar = 1, nVarIn
         BufferPlot_VII(iVar, :, :) = BufferOut_IIBV(:, :, 1, iVar)
-      end do
+      enddo
 
       ! Create list of var names that includes dimensions:
       NameVarSave_V(1:2) = (/'mlt', 'lat'/)
@@ -671,7 +671,7 @@ contains
                           Coord1In_I=BufferPlot_VII(1, :, 1), &
                           Coord2In_I=BufferPlot_VII(2, 1, :), &
                           VarIn_VII=BufferPlot_VII(3:nVarIn, :, :))
-    end if
+    endif
 
     ! Deallocate intermediate variables:
     deallocate(UAr2_Fac, UAr2_Ped, UAr2_Hal, UAr2_Lats, UAr2_Mlts)

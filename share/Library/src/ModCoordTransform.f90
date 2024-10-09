@@ -487,7 +487,7 @@ contains
     else
       SinPhi = 0
       CosPhi = 0
-    end if
+    endif
     !EOC
 
   end subroutine xyz_to_dir34
@@ -891,7 +891,7 @@ contains
       write(*, *) 'Error in ', NameSub, ' for matrix:'
       call show_rot_matrix(a_DD)
       call CON_stop('Singular matrix in '//NameSub)
-    end if
+    endif
 
   end function inverse_matrix
 
@@ -916,7 +916,7 @@ contains
       atan2_check = 0
     else
       atan2_check = atan2(x, y)
-    end if
+    endif
     if (atan2_check < 0.0) atan2_check = atan2_check + cTwoPi
     !EOC
   end function atan2_check

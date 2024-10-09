@@ -673,7 +673,7 @@ contains
         InNDensityS(iiAlt, iAr_), &
         InIDensityS(iiAlt, ie_)
 
-    end do
+    enddo
 
     InNDensityS = Alog(inNDensityS)
     close(Unit=UnitTmp_)
@@ -732,7 +732,7 @@ contains
     DO NW = 1, L_NSPECTI
       Qexti(NW) = Qexti(NW)*factor
       Qscati(NW) = Qscati(NW)*factor
-    END DO
+    ENDDO
 
     PTOP = 10.0**PFGASREF(1)
 
@@ -831,7 +831,7 @@ contains
       WNOV(M) = 0.5*(BWNV(M + 1) + BWNV(M))
       DWNV(M) = BWNV(M + 1) - BWNV(M)
       WAVEV(M) = 1.0E+4/WNOV(M)
-    end do
+    enddo
 
 !C     Sum the solar flux, and write out the result.
 
@@ -839,7 +839,7 @@ contains
     do N = 1, L_NSPECTV
       SOLARF(N) = SOLAR(N)
       sum = sum + SOLARF(N)
-    end do
+    enddo
     write(6, '("Solar flux at 1AU = ",f7.2," W/M^2")') sum
 
 !C     Set up the wavelength dependent part of Rayleigh Scattering.
@@ -850,7 +850,7 @@ contains
       WL = WAVEV(N)
       TAURAY(N) = (8.7/grav)*(1.527*(1.0 + 0.013/wl**2)/wl**4)* &
                   scalep/P0
-    end do
+    enddo
 
   END SUBROUTINE SETSPV
 
@@ -951,7 +951,7 @@ contains
       WNOI(M) = 0.5*(BWNI(M + 1) + BWNI(M))
       DWNI(M) = BWNI(M + 1) - BWNI(M)
       WAVEI(M) = 1.0E+4/WNOI(M)
-    end do
+    enddo
 
 !C  For each IR wavelength interval, compute the integral of B(T), the
 !C  Planck function, divided by the wavelength interval, in cm-1.  The
@@ -969,10 +969,10 @@ contains
         do m = 1, 12
           y = bma*x(m) + bpa
           ans = ans + w(m)*c1/(y**5*(exp(c2/(y*T)) - 1.0D0))
-        end do
+        enddo
         planckir(NW, nt - 499) = ans*bma/(PI*DWNI(NW))
-      end do
-    END DO
+      enddo
+    ENDDO
 
   end subroutine setspi
 
@@ -1124,10 +1124,10 @@ contains
       Qscatv(n) = qsv1(n)
       IF (Qscatv(n) .GE. Qextv(n)) then
         Qscatv(n) = 0.99999*Qextv(n)
-      END IF
+      ENDIF
       WV(n) = Qscatv(n)/Qextv(n)
       GV(n) = gv1(n)
-    END DO
+    ENDDO
 
 !C     Fill the (INFRARED) arrays Qexti, Qscati, WI, GI
 
@@ -1136,10 +1136,10 @@ contains
       Qscati(n) = qsi1(n)
       IF (Qscati(n) .GE. Qexti(n)) then
         Qscati(n) = 0.99999*Qexti(n)
-      END IF
+      ENDIF
       WI(n) = Qscati(n)/Qexti(n)
       GI(n) = gi1(n)
-    END DO
+    ENDDO
 
 !C     Get CO2 k coefficients, and interpolate them to the finer
 !C     pressure grid.
@@ -1186,13 +1186,13 @@ contains
 
     do n = 1, L_PINT
       PINT(n) = PIN(n)
-    end do
+    enddo
 
 !C  Take log of the reference pressures
 
     do n = 1, L_NPREF
       pref(n) = LOG10(PGREF(n))
-    end do
+    enddo
 
 !C     Get CO2 k coefficients
 
@@ -1204,15 +1204,15 @@ contains
           DO l = 1, L_NSPECTV
             DO m = 1, L_NGAUSS
               read(25, *) co2v8(i, j, k, l, m)
-            END DO
-          END DO
-        END DO
-      END DO
-    END DO
+            ENDDO
+          ENDDO
+        ENDDO
+      ENDDO
+    ENDDO
 
     DO i = 1, L_NSPECTV
       read(25, *) fzerov(i)
-    END DO
+    ENDDO
     CLOSE(25)
 
     OPEN(unit=35, file='UA/DataIn/CO2H2O_IR_12_95_ASCII', ACTION='READ')
@@ -1223,15 +1223,15 @@ contains
           DO l = 1, L_NSPECTI
             DO m = 1, L_NGAUSS
               read(35, *) co2i8(i, j, k, l, m)
-            END DO
-          END DO
-        END DO
-      END DO
-    END DO
+            ENDDO
+          ENDDO
+        ENDDO
+      ENDDO
+    ENDDO
 
     DO i = 1, L_NSPECTI
       read(35, *) fzeroi(i)
-    END DO
+    ENDDO
     CLOSE(35)
 
 !!$      print*,'co2v8(3,4,1,3,2) = ',co2v8(3,4,1,3,2)
@@ -1254,21 +1254,21 @@ contains
                 co2v8(nt, np, nh, nw, ng) = log10(co2v8(nt, np, nh, nw, ng))
               else
                 co2v8(nt, np, nh, nw, ng) = -200.0
-              end if
-            end do
+              endif
+            enddo
 
             do nw = 1, L_NSPECTI
               if (co2i8(nt, np, nh, nw, ng) .gt. 1.0e-200) then
                 co2i8(nt, np, nh, nw, ng) = log10(co2i8(nt, np, nh, nw, ng))
               else
                 co2i8(nt, np, nh, nw, ng) = -200.0
-              end if
-            end do
+              endif
+            enddo
 
-          end do
-        end do
-      end do
-    end do
+          enddo
+        enddo
+      enddo
+    enddo
 
 !C  Interpolate the values:  first the IR
 
@@ -1292,7 +1292,7 @@ contains
             yi(4) = co2i8(nt, n + 3, nh, nw, ng)
             call lagrange(x, xi, yi, ans)
             co2i(nt, m, nh, nw, ng) = 10.0**ans
-          end do
+          enddo
 
           do n = 2, L_NPREF - 2
             do m = 1, 5
@@ -1308,8 +1308,8 @@ contains
               yi(4) = co2i8(nt, n + 2, nh, nw, ng)
               call lagrange(x, xi, yi, ans)
               co2i(nt, i, nh, nw, ng) = 10.0**ans
-            end do
-          end do
+            enddo
+          enddo
 
 !C  Now, get the last interval (P=1e+3 to 1e+4)
 
@@ -1328,16 +1328,16 @@ contains
             yi(4) = co2i8(nt, n + 1, nh, nw, ng)
             call lagrange(x, xi, yi, ans)
             co2i(nt, i, nh, nw, ng) = 10.0**ans
-          end do
+          enddo
 
 !C  Fill the last pressure point
 
           co2i(nt, L_PINT, nh, nw, ng) = 10.0**co2i8(nt, L_NPREF, nh, nw, ng)
 
-        end do
-      end do
-      end do
-    end do
+        enddo
+      enddo
+      enddo
+    enddo
 
 !C  Interpolate the values:  now the Visual
 
@@ -1361,7 +1361,7 @@ contains
             yi(4) = co2v8(nt, n + 3, nh, nw, ng)
             call lagrange(x, xi, yi, ans)
             co2v(nt, m, nh, nw, ng) = 10.0**ans
-          end do
+          enddo
 
           do n = 2, L_NPREF - 2
             do m = 1, 5
@@ -1377,8 +1377,8 @@ contains
               yi(4) = co2v8(nt, n + 2, nh, nw, ng)
               call lagrange(x, xi, yi, ans)
               co2v(nt, i, nh, nw, ng) = 10.0**ans
-            end do
-          end do
+            enddo
+          enddo
 
 !C  Now, get the last interval (P=1e+3 to 1e+4)
 
@@ -1397,16 +1397,16 @@ contains
             yi(4) = co2v8(nt, n + 1, nh, nw, ng)
             call lagrange(x, xi, yi, ans)
             co2v(nt, i, nh, nw, ng) = 10.0**ans
-          end do
+          enddo
 
 !C  Fill the last pressure point
 
           co2v(nt, L_PINT, nh, nw, ng) = 10.0**co2v8(nt, L_NPREF, nh, nw, ng)
 
-        end do
-      end do
-      end do
-    end do
+        enddo
+      enddo
+      enddo
+    enddo
 
   end subroutine laginterp
 

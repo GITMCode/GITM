@@ -455,7 +455,7 @@ contains
 
     if (IsEarth) then
       PhotoElectronHeatingEfficiency = 0.06
-    end if
+    endif
 
     tSimulation = 0.0
 

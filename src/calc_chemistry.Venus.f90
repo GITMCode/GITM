@@ -46,8 +46,8 @@ subroutine calc_chemistry(iBlock)
     do iIon = 1, nIons
       write(*, *) "====> start calc_chemistry: Max Ion Density: ", iIon, &
         maxval(IDensityS(1:nLons, 1:nLats, (nAlts*4)/5, iIon, iBlock))
-    end do
-  end if
+    enddo
+  endif
 
   ChemicalHeatingRate = 0.0
   ChemicalHeatingRateIon = 0.0
@@ -88,9 +88,9 @@ subroutine calc_chemistry(iBlock)
             if (.not. UseIonConstituent(iIon)) then
               IonSources(iIon) = 0.0
               IonLosses(iIon) = 0.0
-            end if
-          end do
-        end if
+            endif
+          enddo
+        endif
 
         if (.not. UseNeutralChemistry) then
           NeutralSources = 0.0
@@ -100,9 +100,9 @@ subroutine calc_chemistry(iBlock)
             if (.not. UseNeutralConstituent(iNeutral)) then
               NeutralSources(iNeutral) = 0.0
               NeutralLosses(iNeutral) = 0.0
-            end if
-          end do
-        end if
+            endif
+          enddo
+        endif
 
         ! Take Implicit time step
         Ions(ie_) = 0.0
@@ -113,7 +113,7 @@ subroutine calc_chemistry(iBlock)
                        (1 + DtSub*ionlo)
           ! sum for e-
           Ions(ie_) = Ions(ie_) + Ions(iIon)
-        end do
+        enddo
 
         do iNeutral = 1, nSpeciesTotal
 
@@ -123,7 +123,7 @@ subroutine calc_chemistry(iBlock)
           Neutrals(iNeutral) = (Neutrals(iNeutral) + neuso*DtSub)/ &
                                (1 + DtSub*neulo)
 
-        end do
+        enddo
 
         NDensityS(iLon, iLat, iAlt, :, iBlock) = Neutrals
         IDensityS(iLon, iLat, iAlt, :, iBlock) = Ions
@@ -141,9 +141,9 @@ subroutine calc_chemistry(iBlock)
 
         EmissionTotals = EmissionTotals + Emission*DtSub
 
-      end do
-    end do
-  end do
+      enddo
+    enddo
+  enddo
 
   ChemicalHeatingRate(:, :, :) = &
     ChemicalHeatingRate(:, :, :)*Element_Charge/ &
@@ -159,8 +159,8 @@ subroutine calc_chemistry(iBlock)
     do iIon = 1, nIons
       write(*, *) "====> calc_chemistry: Max Ion Density: ", iIon, &
         maxval(IDensityS(1:nLons, 1:nLats, (nAlts*4)/5, iIon, iBlock))
-    end do
-  end if
+    enddo
+  endif
   call end_timing("calc_chemistry")
 
 end subroutine calc_chemistry

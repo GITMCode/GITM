@@ -236,12 +236,12 @@ subroutine calc_planet_sources(iBlock)
     else
       !write(*,*) 'Call cool to space'
       call calc_cooltospace(iBlock)
-    end if
+    endif
   elseif (maxval(HCNCoolRatio) .eq. 0.0) then
     call calc_radcooling(iBlock)
   else
     call calc_radcooling(iBlock)
-  end if
+  endif
 
   RadCooling(1:nLons, 1:nLats, 1:nAlts, iBlock) = &
     RadCoolingRate(1:nLons, 1:nLats, 1:nAlts, iBlock)/ &
@@ -394,15 +394,15 @@ subroutine calc_planet_sources(iBlock)
 
             call get_glow(iLon, iLat, iBlock)
 
-          end do
-        end do
+          enddo
+        enddo
 
         call end_timing("glow")
 
-      end if
-    end if
+      endif
+    endif
     PhotoElectronDensity(:, :, :, :, iBlock) = PhotoElectronRate(:, :, :, :, iBlock)*dt
-  end if
+  endif
 
 end subroutine calc_planet_sources
 
@@ -462,9 +462,9 @@ subroutine calc_eddy_diffusion_coefficient(iBlock)
 !
 !           endif
 
-      end do
-    end do
-  end do
+      enddo
+    enddo
+  enddo
 
 end subroutine calc_eddy_diffusion_coefficient
 
@@ -683,8 +683,8 @@ subroutine calc_radcooling(iBlock)
                 + pmat(iLine, 8)*(T(iAlt)**7) &
                 + pmat(iLine, 9)*(T(iAlt)**8))
 
-        end do! iLine = 1, NLINES
-      end do !iAlt = -1, nAlts+2
+        enddo! iLine = 1, NLINES
+      enddo !iAlt = -1, nAlts+2
 
 ! ------------------------------------------------------------------------
 ! Frequency Integration Variables TM,VJM,ZM,NHCNM (1:nlines,1:nAlts)
@@ -711,8 +711,8 @@ subroutine calc_radcooling(iBlock)
           ALPHAL(iLine, iAlt) = &
             GammaNew(iLine, iAlt)*(Speed_Light*100.0)   !! This is AlphaL in Hz
 
-        end do  ! End iLine
-      end do ! End iAlt
+        enddo  ! End iLine
+      enddo ! End iAlt
 
 ! ------------------------------------------------------------------------
 ! DOPPLER HALFWIDTHS AT GIVEN TEMPERATURES -------------------------------
@@ -757,7 +757,7 @@ subroutine calc_radcooling(iBlock)
           (FreqQuadAbscissas(k + 1)*(VULIM - VLLIM) + VULIM + VLLIM)*.5
         NewV(MiddleFreqIndex + k, :, :) = &
           (-1.0*FreqQuadAbscissas(k + 1)*(VULIM - VLLIM) + VULIM + VLLIM)*.5
-      end do
+      enddo
 
       DFACT = SQRT(alog(2.0)/PI)
 
@@ -817,9 +817,9 @@ subroutine calc_radcooling(iBlock)
                ((Speed_Light)**2))* &
               (NewV(iFreq, iLine, iAlt)**3)*Bfactor
 
-          end do
-        end do
-      end do
+          enddo
+        enddo
+      enddo
 
 ! ------------------------------------------------------------------------
 ! Cooling CALCULATIONS
@@ -834,7 +834,7 @@ subroutine calc_radcooling(iBlock)
         Y1 = NewBv(MiddleFreqIndex - iFreq, :, :)*NewVOI(MiddleFreqIndex - iFreq, :, :)
         Y2 = NewBv(MiddleFreqIndex + iFreq, :, :)*NewVOI(MiddleFreqIndex + iFreq, :, :)
         NEW = NEW + FreqQuadWeights(iFreq + 1)*(Y1 + Y2)
-      end do
+      enddo
 
       gcool(:, :) = (VULIM(:, :) - VLLIM(:, :))*NEW*0.5
 ! Multiply by the Intensity of the lines and a geometric factor of 4pi
@@ -920,8 +920,8 @@ subroutine calc_radcooling(iBlock)
 
 !   real , Dimension(1:nLons,1:nLats,1:nAlts,nBlocksMax) :: HCNCoolRatio
 
-    end do  ! End Outer Latitude-Loop
-  end do  ! End Outer Longitude-Loop
+    enddo  ! End Outer Latitude-Loop
+  enddo  ! End Outer Longitude-Loop
 
   call end_timing("calc_radcooling")
 
@@ -994,7 +994,7 @@ contains
 
       do iAlt = -1, nAlts + 2
         TauMax(1:NLINES, iAlt) = TauIn(iFreq, 1:NLINES, -1)
-      end do
+      enddo
       DTAU(:, :) = TauMax(:, :) - TauIn(iFreq, :, :)
       call expint1(DTau(:, 0:nAlts + 2), EXPTAU(:, 0:nAlts + 2), nAlts)
 !
@@ -1003,14 +1003,14 @@ contains
         FACTOR20(:, iAlt) = &
           EXP(-DTAU(:, iAlt)) - &
           DTAU(:, iAlt)*EXPTAU(:, iAlt)
-      end do
+      enddo
 
       do iAlt = -1, nAlts + 2
         TOTAL(iFreq, :, iAlt) = &
           FACTOR20(:, iAlt)* &
           PHI(iFreq, :, iAlt)
-      end do
-    end do ! Outer iFreq loop
+      enddo
+    enddo ! Outer iFreq loop
 
     S = 0.0   ! This is our Integral Sum
     S = S + FreqQuadWeights(1)* &
@@ -1021,7 +1021,7 @@ contains
       S = S + FreqQuadWeights(iFreq + 1)* &
           (Planck(MiddleFreqIndex + iFreq, :, :)*TOTAL(MiddleFreqIndex + iFreq, :, :) + &
            Planck(MiddleFreqIndex - iFreq, :, :)*TOTAL(MiddleFreqIndex - iFreq, :, :))
-    end do
+    enddo
 
     gheat1 = (0.5)*(B - A)*S
 
@@ -1101,7 +1101,7 @@ contains
     DO
       IF (2**m .EQ. NPTS) EXIT
       m = m + 1
-    END DO
+    ENDDO
 !      write(*,*) 'm = ', m
 !!!! We integrate from the top downward
 !!!! We can then add each increment to the next
@@ -1117,8 +1117,8 @@ contains
 !!! Store TopDepth in our Optical Depth Array
         ITAU(iFreq, iLine, nAlts + 2) = TopDepth(iFreq, iLine)  !! Top Optical Depth
 !            write(*,*) 'iFreq, iLine, TopDepth = ', iFreq, iLine, TopDepth(iFreq,iLine)
-      end do  ! Rotational Lines Loop
-    end do  ! Frequency Gaussian Points Loop
+      enddo  ! Rotational Lines Loop
+    enddo  ! Frequency Gaussian Points Loop
 
 !!!! Begin Altitude Loop -------- Integrate Downward
     do iAlt = nAlts + 1, -1, -1
@@ -1133,7 +1133,7 @@ contains
       do k = 1, NPTS/2
         x(2*k - 1) = 0.5*(Qf1(k, m)*(B - A) + B + A)
         x(2*k) = 0.5*(-Qf1(k, m)*(B - A) + B + A)
-      end do
+      enddo
 
       ! Do the Middle Frequency (the core of the lineshape)
       NewTotalAbove(1:NLINES) = PHI(MiddleFreqIndex, 1:NLINES, iAlt + 1)* &
@@ -1157,7 +1157,7 @@ contains
 
         DEPTH(n, MiddleFreqIndex, 1:NLINES, iAlt) = &
           exp(InterpLnTotal(1:NLINES))
-      end do
+      enddo
 
 !!! Optical Depth of the Line Center
       TauSum(1:NLINES) = 0.0
@@ -1166,7 +1166,7 @@ contains
           TauSum(1:NLINES) + &
           Qd(k, m)*(DEPTH(2*k - 1, MiddleFreqIndex, 1:NLINES, iAlt) + &
                     DEPTH(2*k, MiddleFreqIndex, 1:NLINES, iAlt))
-      end do ! Loop over Altitude Points
+      enddo ! Loop over Altitude Points
       TauSum(1:NLINES) = 0.5*TauSum(1:NLINES)*(B - A)
 
       ITAU(MiddleFreqIndex, 1:NLINES, iAlt) = &
@@ -1203,7 +1203,7 @@ contains
           DEPTH(n, MiddleFreqIndex - iFreq, 1:NLINES, iAlt) = &
             exp(InterpLnTotal(1:NLINES))
 
-        end do  ! Loop over Altitude Gaussian Points
+        enddo  ! Loop over Altitude Gaussian Points
 
 !!! Now Calculate the Optical Depth of the new layer (iAlt)
 !!! And add the layer above it (iAlt + 1)
@@ -1213,7 +1213,7 @@ contains
             TauSum(1:NLINES) + &
             Qd(k, m)*(DEPTH(2*k - 1, MiddleFreqIndex + iFreq, 1:NLINES, iAlt) + &
                       DEPTH(2*k, MiddleFreqIndex + iFreq, 1:NLINES, iAlt))
-        end do ! Loop over Altitude Points
+        enddo ! Loop over Altitude Points
         TauSum(1:NLINES) = 0.5*TauSum(1:NLINES)*(B - A)
 
         ITAU(MiddleFreqIndex + iFreq, 1:NLINES, iAlt) = &
@@ -1223,8 +1223,8 @@ contains
         ITAU(MiddleFreqIndex - iFreq, 1:NLINES, iAlt) = &
           ITAU(MiddleFreqIndex - iFreq, 1:NLINES, iAlt + 1) + &
           TauSum(1:NLINES)
-      end do !k = 1, iFreq, FreqIndexMax
-    end do !iAlt = nAlts+1, -1, -1
+      enddo !k = 1, iFreq, FreqIndexMax
+    enddo !iAlt = nAlts+1, -1, -1
   end subroutine Sumfgausstau
 
   subroutine Newheat4gauss(V, SJ, ALPHAD, NHCNM, gheat4, TM, &
@@ -1335,7 +1335,7 @@ contains
     DO
       IF (2**m .EQ. NPTS) EXIT
       m = m + 1
-    END DO
+    ENDDO
 
 ! ---------------
 ! FOR LOOP BEGIN-
@@ -1387,7 +1387,7 @@ contains
             !write(*,*) 'GaussPoint(2p), GaussPoint(2p-1)  = ', &
             !           p, LocalXH(2*p-1), LocalXH(2*p)
 
-          end do
+          enddo
           ! At each Gausspoint, we need to do a linear interpolation:
 !              write(*,*) 'Tau(jAlt) and Tau(jAlt+1) = ', &
 !                  TAU(iFreq,35,jAlt), TAU(iFreq,35,jAlt+1)
@@ -1427,7 +1427,7 @@ contains
             ! The Integrand is Bv*E1(Tau(z) - Tau(z'))*dTau
             ! The dTAu is the size of the "slab" of atmosphere between
             ! jAlt + 1 and jAlt
-          end do
+          enddo
 
             !! Add the Altitudes together to get a total contribution from the slab
           ! We need to keep adding each slab to this ConFuncBelow Variable
@@ -1437,7 +1437,7 @@ contains
               0.5*Qd(p, m)*(Integrand(2*p, 1:NLINES) + &
                             Integrand(2*p - 1, 1:NLINES))* &
               (TAU(iFreq, 1:NLINES, jAlt) - TAU(iFreq, 1:NLINES, jAlt + 1))
-          end do ! p loop
+          enddo ! p loop
 
           ! Assume Symmetry around the Central Frequency
           ContFuncBelow(MiddleFreqIndex - k, :, iAlt) = &
@@ -1445,7 +1445,7 @@ contains
           ! This Loop integrates over the Interpolation points,
           ! Which completely accounts for the atmospheric slab
           ! Between jAlt and jAlt+1
-        end do ! Loop over jAlt (Z') Bell et al. [2008]
+        enddo ! Loop over jAlt (Z') Bell et al. [2008]
 
         ! Same as jAlt Loop above, but now for the
         ! Atmosphere above you
@@ -1470,7 +1470,7 @@ contains
 !              write(*,*) 'GaussPoint(2p), GaussPoint(2p-1)  = ', &
 !                         p, LocalXH(2*p-1), LocalXH(2*p)
 
-          end do
+          enddo
 
           ! At each Gausspoint, we need to do a linear interpolation:
 
@@ -1510,7 +1510,7 @@ contains
             ! The Integrand is Bv*E1(Tau(z) - Tau(z'))*dTau
             ! The dTAu is the size of the "slab" of atmosphere between
             ! jAlt + 1 and jAlt
-          end do
+          enddo
 
            !! Add the Altitudes together to get a total contribution from the slab
           ! We need to keep adding each slab to this ConFuncBelow Variable
@@ -1521,16 +1521,16 @@ contains
                             Integrand(2*p - 1, 1:NLINES))* &
               (TAU(iFreq, 1:NLINES, jAlt - 1) - TAU(iFreq, 1:NLINES, jAlt))
 
-          end do ! p loop
+          enddo ! p loop
           ContFuncAbove(MiddleFreqIndex - k, :, iAlt) = &
             ContFuncAbove(iFreq, :, iAlt)
           ! This Loop integrates over the Interpolation points,
           ! Which completely accounts for the atmospheric slab
           ! Between jAlt and jAlt+1
-        end do ! Loop over jAlt (Z') Bell et al. [2008]
+        enddo ! Loop over jAlt (Z') Bell et al. [2008]
 
-      end do !iAlt  Outer Integration Loop
-    end do !k = 0,FreqIndexMax
+      enddo !iAlt  Outer Integration Loop
+    enddo !k = 0,FreqIndexMax
 
     ! NewNFreqs, NLines, -1:nAlts+2
     QTOT(:, :, 1:nAlts) = &
@@ -1548,7 +1548,7 @@ contains
       S = S + FreqQuadWeights(iFreq + 1)* &
           (QTOT(MiddleFreqIndex + iFreq, :, :)*PHI(MiddleFreqIndex + iFreq, :, :) + &
            QTOT(MiddleFreqIndex - iFreq, :, :)*PHI(MiddleFreqIndex - iFreq, :, :))
-    end do
+    enddo
     gheat4 = 0.5*(VULIM - VLLIM)*S
 
   end subroutine Newheat4gauss
@@ -1601,7 +1601,7 @@ contains
       del = c*d
       h = h*del
       IF (MAXVAL(ABS(del) - 1.0) <= EPS*1.0D13) EXIT
-    END DO
+    ENDDO
 
     EXPH = h*exp(-x)
 
@@ -1619,7 +1619,7 @@ contains
       del = -fact/i
       EXPL = EXPL + del
       IF (MAXVAL(ABS(del)) <= MAXVAL(ABS(EXPL))*EPS) EXIT
-    END DO
+    ENDDO
 
     WHERE (x < 1.0D0)
       ans = EXPL
@@ -1675,7 +1675,7 @@ contains
       del = c*d
       h = h*del
       IF (MAXVAL(ABS(del) - 1.0) <= EPS*1.0e13) EXIT
-    END DO
+    ENDDO
 
     EXPH = h*exp(-x)
 
@@ -1693,7 +1693,7 @@ contains
       del = -fact/i
       EXPL = EXPL + del
       IF (MAXVAL(ABS(del)) <= MAXVAL(ABS(EXPL))*EPS) EXIT
-    END DO
+    ENDDO
 
     WHERE (x < 1.0)
       ans = EXPL
@@ -1797,9 +1797,9 @@ subroutine calc_saturn_tides(iBlock)
           (6.0*e_titan*cos(Latitude(iLat, iBlock))*cos(2.0*Longitude(iLon, iBlock)))* &
           sin(OmegaBodyInput*tSimulation)
 
-      end do !iLon = -1, nLons+2
-    end do !iLat = -1, nLats+2
-  end do !iAlt = -1, nAlts+2
+      enddo !iLon = -1, nLons+2
+    enddo !iLat = -1, nLats+2
+  enddo !iAlt = -1, nAlts+2
 
   ! Remove the tides for now
   TideADep = 0.0
@@ -1977,8 +1977,8 @@ subroutine calc_cooltospace(iBlock)
                 + pmat(iLine, 8)*(T(iAlt)**7) &
                 + pmat(iLine, 9)*(T(iAlt)**8))
 
-        end do! iLine = 1, NLINES
-      end do !iAlt = -1, nAlts+2
+        enddo! iLine = 1, NLINES
+      enddo !iAlt = -1, nAlts+2
 
 ! ------------------------------------------------------------------------
 ! Frequency Integration Variables TM,VJM,ZM,NHCNM (1:nlines,1:nAlts)
@@ -2005,8 +2005,8 @@ subroutine calc_cooltospace(iBlock)
           ALPHAL(iLine, iAlt) = &
             GammaNew(iLine, iAlt)*(Speed_Light*100.0)   !! This is AlphaL in Hz
 
-        end do  ! End iLine
-      end do ! End iAlt
+        enddo  ! End iLine
+      enddo ! End iAlt
 
 ! ------------------------------------------------------------------------
 ! DOPPLER HALFWIDTHS AT GIVEN TEMPERATURES -------------------------------
@@ -2051,7 +2051,7 @@ subroutine calc_cooltospace(iBlock)
           (FreqQuadAbscissas(k + 1)*(VULIM - VLLIM) + VULIM + VLLIM)*.5
         NewV(MiddleFreqIndex + k, :, :) = &
           (-1.0*FreqQuadAbscissas(k + 1)*(VULIM - VLLIM) + VULIM + VLLIM)*.5
-      end do
+      enddo
 
       DFACT = SQRT(alog(2.0)/PI)
 
@@ -2111,9 +2111,9 @@ subroutine calc_cooltospace(iBlock)
                ((Speed_Light)**2))* &
               (NewV(iFreq, iLine, iAlt)**3)*Bfactor
 
-          end do
-        end do
-      end do
+          enddo
+        enddo
+      enddo
 
 ! ------------------------------------------------------------------------
 ! Cooling CALCULATIONS
@@ -2128,7 +2128,7 @@ subroutine calc_cooltospace(iBlock)
         Y1 = NewBv(MiddleFreqIndex - iFreq, :, :)*NewVOI(MiddleFreqIndex - iFreq, :, :)
         Y2 = NewBv(MiddleFreqIndex + iFreq, :, :)*NewVOI(MiddleFreqIndex + iFreq, :, :)
         NEW = NEW + FreqQuadWeights(iFreq + 1)*(Y1 + Y2)
-      end do
+      enddo
 
       gcool(:, :) = (VULIM(:, :) - VLLIM(:, :))*NEW*0.5
 ! Multiply by the Intensity of the lines and a geometric factor of 4pi
@@ -2147,8 +2147,8 @@ subroutine calc_cooltospace(iBlock)
       RadCoolingRate(iLon, iLat, 1:nAlts, iBlock) = &
         COOL(1:nAlts)*HCNCoolRatio(iLon, iLat, 1:nAlts, iBlock)
 
-    end do ! iLat
-  end do ! iLon
+    enddo ! iLat
+  enddo ! iLon
 
 end subroutine !calc_cooltospace(iBlock)
 

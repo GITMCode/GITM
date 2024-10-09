@@ -67,8 +67,8 @@ integer function MPI_TYPE_SIZE(datatype)
       byte_i = byte_i/byte_c
       byte_r = byte_r/byte_c
       byte_d = byte_d/byte_c
-    end if
-  end if
+    endif
+  endif
 
   ! Some datatype values may coincide, so we use IF ELSEIF instead of CASE
 
@@ -85,7 +85,7 @@ integer function MPI_TYPE_SIZE(datatype)
   else
     write(*, *) 'Error in MPI_TYPE_SIZE: unknown datatype=', datatype
     MPI_TYPE_SIZE = -1
-  end if
+  endif
 
 end function MPI_TYPE_SIZE
 
@@ -131,7 +131,7 @@ subroutine MPI_SIMPLE_COPY(caller, sendbuf, sendcount, sendtype, &
     write(*, *) 'Error in MPI_SIMPLE_COPY called from '//caller// &
       'unknown data type(s)'
     stop
-  end if
+  endif
 
   if (recvbyte < sendbyte) then
     write(*, *) 'sendcount,sendtype,recvcount,recvtype,sendbyte,recvbyte=', &
@@ -139,7 +139,7 @@ subroutine MPI_SIMPLE_COPY(caller, sendbuf, sendcount, sendtype, &
     write(*, *) 'Error in MPI_SIMPLE_COPY called from '//caller// &
       ': recvbyte<sendbyte'
     stop
-  end if
+  endif
 
   recvbuf(1:sendbyte) = sendbuf(1:sendbyte)
 
@@ -189,13 +189,13 @@ subroutine MPI_LOCAL_MSG(caller, buf, count, datatype, rank, tag)
     write(*, *) 'Error in MPI_LOCAL_MSG called by '//caller// &
       ': source/dest rank is not 0'
     stop
-  end if
+  endif
 
   if (tag < 0 .and. tag /= MPI_ANY_TAG) then
     write(*, *) 'count,datatype,tag=', count, datatype, tag
     write(*, *) 'Error in MPI_LOCAL_MSG called by '//caller//': invalid tag'
     stop
-  end if
+  endif
 
   msg_length = MPI_TYPE_SIZE(datatype)*count
 
@@ -203,7 +203,7 @@ subroutine MPI_LOCAL_MSG(caller, buf, count, datatype, rank, tag)
     write(*, *) 'count,datatype,tag,msg_length=', count, datatype, tag, msg_length
     write(*, *) 'Error in MPI_LOCAL_MSG called by '//caller//': msg_length<1'
     stop
-  end if
+  endif
 
   if (.not. allocated(buffer)) then
     !write(*,*)'initial allocation: max_msg_length,max_msg_number=',&
@@ -214,7 +214,7 @@ subroutine MPI_LOCAL_MSG(caller, buf, count, datatype, rank, tag)
       msg_len(max_msg_number))
     msg_tag = MPI_ANY_TAG - 1
     msg_len = 0
-  end if
+  endif
 
   if (index(caller, 'RECV') > 0) then
     !write(*,*)'Receiving'
@@ -233,15 +233,15 @@ subroutine MPI_LOCAL_MSG(caller, buf, count, datatype, rank, tag)
           write(*, *) 'Error in MPI_LOCAL_MSG called by '//caller// &
             ': receive buffer is shorter than message'
           stop
-        end if
+        endif
         do j = 1, msg_len(i)
           buf(j:j) = buffer(j, i)
-        end do
+        enddo
         msg_tag(i) = MPI_ANY_TAG - 1
         msg_len(i) = 0
         RETURN
-      end if
-    end do
+      endif
+    enddo
     ! No matching message tag was found
     write(*, *) 'tag,count,datatype=', tag, count, datatype
     write(*, *) caller, ' was issued before corresponding SEND'
@@ -249,8 +249,8 @@ subroutine MPI_LOCAL_MSG(caller, buf, count, datatype, rank, tag)
       stop 'Error in MPI_LOCAL_COPY: change order of IRECV/SEND'
     else
       stop 'Error in MPI_LOCAL_COPY: incorrect order of RECV/SEND'
-    end if
-  end if ! RECV
+    endif
+  endif ! RECV
 
   ! SEND: store message into buffer
 
@@ -270,7 +270,7 @@ subroutine MPI_LOCAL_MSG(caller, buf, count, datatype, rank, tag)
 
     !write(*,*)'Increased max_msg_length from,to=',max_msg_length,2*msg_length
     max_msg_length = 2*msg_length
-  end if
+  endif
 
   if (msg_number > max_msg_number) then
     ! Increase second dimension of buffer, and length of msg_tag, msg_len
@@ -296,7 +296,7 @@ subroutine MPI_LOCAL_MSG(caller, buf, count, datatype, rank, tag)
     !write(*,*)'Increased max_msg_number from,to=',&
     !     max_msg_number,2*max_msg_number
     max_msg_number = 2*max_msg_number
-  end if
+  endif
 
   ! Store message into buffer
   do i = 1, msg_number
@@ -304,12 +304,12 @@ subroutine MPI_LOCAL_MSG(caller, buf, count, datatype, rank, tag)
       ! write(*,*)'Storing message into line i=',i
       do j = 1, msg_length
         buffer(j, i) = buf(j:j)
-      end do
+      enddo
       msg_tag(i) = tag
       msg_len(i) = msg_length
       RETURN
-    end if
-  end do
+    endif
+  enddo
 
   stop 'Impossible to get here in MPI_LOCAL_MSG'
 

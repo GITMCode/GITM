@@ -103,9 +103,9 @@ subroutine calc_chemistry(iBlock)
               if (.not. UseIonConstituent(iIon)) then
                 IonSources(iIon) = 0.0
                 IonLosses(iIon) = 0.0
-              end if
-            end do
-          end if
+              endif
+            enddo
+          endif
 
           tli = DtSub*IonLosses
           tsi = DtSub*IonSources + Ions
@@ -117,11 +117,11 @@ subroutine calc_chemistry(iBlock)
                   (IonSources(iIon) + Ions(iIon)/DtSub)*0.9
               else
                 DtSub = DtSub/2.0
-              end if
+              endif
               tli(iIon) = DtSub*IonLosses(iIon)
               tsi(iIon) = DtSub*IonSources(iIon) + Ions(iIon)
-            end do
-          end do
+            enddo
+          enddo
 
           !---- Neutrals
 
@@ -133,9 +133,9 @@ subroutine calc_chemistry(iBlock)
               if (.not. UseNeutralConstituent(iNeutral)) then
                 NeutralSources(iNeutral) = 0.0
                 NeutralLosses(iNeutral) = 0.0
-              end if
-            end do
-          end if
+              endif
+            enddo
+          endif
 
           tln = DtSub*NeutralLosses
           tsn = DtSub*NeutralSources + 0.1*Neutrals
@@ -143,7 +143,7 @@ subroutine calc_chemistry(iBlock)
             DtSub = DtSub/2.0
             tln = DtSub*NeutralLosses
             tsn = DtSub*NeutralSources + 0.1*Neutrals
-          end do
+          enddo
 
           Ions(nIons) = 0.0
 
@@ -156,7 +156,7 @@ subroutine calc_chemistry(iBlock)
             else
               Ions(iIon) = Ions(iIon) + &
                            (IonSources(iIon) - IonLosses(iIon))*DtSub
-            end if
+            endif
 
 !                 Ions(iIon) = max(0.01,Ions(iIon))
 
@@ -168,8 +168,8 @@ subroutine calc_chemistry(iBlock)
                 iIon, iLon, iLat, iAlt, &
                 Ions(iIon), &
                 IonSources(iIon), IonLosses(iIon)
-            end if
-          end do
+            endif
+          enddo
 
           do iNeutral = 1, nSpeciesTotal
             Neutrals(iNeutral) = &
@@ -190,9 +190,9 @@ subroutine calc_chemistry(iBlock)
                 iNeutral, iLon, iLat, iAlt, DtSub, &
                 Neutrals(iNeutral), &
                 NeutralSources(iNeutral), NeutralLosses(iNeutral)
-            end if
+            endif
 
-          end do
+          enddo
 
           ChemicalHeatingRate(iLon, iLat, iAlt) = &
             ChemicalHeatingRate(iLon, iLat, iAlt) + &
@@ -215,19 +215,19 @@ subroutine calc_chemistry(iBlock)
             do iIon = 1, nIons
               write(*, *) "Ion Source/Loss : ", &
                 iIon, IonSources(iIon), IonLosses(iIon)
-            end do
+            enddo
             do iNeutral = 1, nSpeciesTotal
               write(*, *) "Neutral Source/Loss : ", iAlt, &
                 iNeutral, NeutralSources(iNeutral), &
                 NeutralLosses(iNeutral), Neutrals(iNeutral)
-            end do
+            enddo
 
             call stop_gitm("Chemistry is too fast!!")
-          end if
+          endif
 
           nIters = nIters + 1
 
-        end do
+        enddo
 
         IDensityS(iLon, iLat, iAlt, :, iBlock) = Ions
         NDensityS(iLon, iLat, iAlt, :, iBlock) = Neutrals
@@ -235,9 +235,9 @@ subroutine calc_chemistry(iBlock)
         Emissions(iLon, iLat, iAlt, :, iBlock) = &
           Emissions(iLon, iLat, iAlt, :, iBlock) + EmissionTotal
 
-      end do
-    end do
-  end do
+      enddo
+    enddo
+  enddo
 
   ChemicalHeatingRate(:, :, :) = &
     ChemicalHeatingRate(:, :, :)*Element_Charge/ &

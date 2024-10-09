@@ -492,7 +492,7 @@ contains
         ChemicalHeatingS(io2p_e) + &
         Reaction*5.0
 
-    end if
+    endif
 
     IonLosses(iO2P_) = IonLosses(iO2P_) + Reaction
 
@@ -619,7 +619,7 @@ contains
         ChemicalHeatingSub + &
         Reaction*3.31
 
-    end if
+    endif
 
     IonSources(iO_4SP_) = IonSources(iO_4SP_) + Reaction
     IonLosses(iO_2DP_) = IonLosses(iO_2DP_) + Reaction
@@ -1081,7 +1081,7 @@ contains
 
       NeutralSources(iO_3P_) = NeutralSources(iO_3P_) + Reaction
 
-    end if
+    endif
 
     IonSources(iNOP_) = IonSources(iNOP_) + Reaction
     IonLosses(iNP_) = IonLosses(iNP_) + Reaction
@@ -1229,7 +1229,7 @@ contains
         ChemicalHeatingSub + &
         Reaction*2.38
 
-    end if
+    endif
 
     NeutralSources(iN_4S_) = NeutralSources(iN_4S_) + Reaction
     NeutralLosses(iN_2D_) = NeutralLosses(iN_2D_) + Reaction
@@ -1363,7 +1363,7 @@ contains
         ChemicalHeatingSub + &
         Reaction*3.76
 
-    end if
+    endif
     NeutralSources(iNO_) = NeutralSources(iNO_) + Reaction
     NeutralLosses(iN_2D_) = NeutralLosses(iN_2D_) + Reaction
     NeutralLosses(iO2_) = NeutralLosses(iO2_) + Reaction
@@ -1510,7 +1510,7 @@ contains
         ChemicalHeatingS(io1d_o) + &
         Reaction*1.96
 
-    end if
+    endif
 
     ! ----------------------------------------------------------
     ! NO

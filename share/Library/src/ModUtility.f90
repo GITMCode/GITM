@@ -141,7 +141,7 @@ contains
       iPermission = 493 ! which is O'0755'
     else
       iPermission = iPermissionIn
-    end if
+    endif
 
     ! Create the directory.
     ! If NameDir contains one or more /, then create the top directory first
@@ -169,13 +169,13 @@ contains
           write(*, *) NameSub, ' iError, iErrorNumber=', iError, iErrorNumber
           call CON_stop(NameSub// &
                         ' failed to open directory '//trim(NameDir))
-        end if
-      end if
+        endif
+      endif
 
       i = j + 1
       if (i > l) EXIT
 
-    end do
+    enddo
 
     if (present(iErrorOut)) iErrorOut = iError
     if (present(iErrorNumberOut)) iErrorNumberOut = iErrorNumber
@@ -219,7 +219,7 @@ contains
                     //trim(NameDir))
     else
       close(UNITTMP_, status='DELETE')
-    end if
+    endif
 
   end subroutine check_dir
 
@@ -321,28 +321,28 @@ contains
             if (present(NameCaller)) write(*, *) 'NameCaller=', NameCaller
             call CON_stop(NameSub// &
                           ' processor 0 could not open file='//trim(File))
-          end if
+          endif
           ! Make sure all processors wait until proc 0 has opened file
           call MPI_barrier(iComm, iError)
           ! Other processors open with status "old"
           if (iProc > 0) &
             open(iUnit, FILE=File, FORM=TypeForm, STATUS='old', &
                  ACCESS=TypeAccess, RECL=Recl, IOSTAT=iError)
-        end if
+        endif
       else
         open(iUnit, FILE=File, FORM=TypeForm, STATUS=TypeStatus, &
              ACCESS=TypeAccess, RECL=Recl, IOSTAT=iError)
-      end if
+      endif
     else
       open(iUnit, FILE=File, FORM=TypeForm, STATUS=TypeStatus, &
            POSITION=TypePosition, ACCESS=TypeAccess, IOSTAT=iError)
-    end if
+    endif
 
     if (iError /= 0) then
       write(*, *) NameSub, ' iUnit, iError=', iUnit, iError
       if (present(NameCaller)) write(*, *) 'NameCaller=', NameCaller
       call CON_stop(NameSub//' could not open file='//trim(File))
-    end if
+    endif
 
   end subroutine open_file
 
@@ -373,13 +373,13 @@ contains
       close(iUnit, STATUS=Status, IOSTAT=iError)
     else
       close(iUnit, IOSTAT=iError)
-    end if
+    endif
 
     if (iError /= 0) then
       write(*, *) NameSub, ' iUnit, iError=', iUnit, iError
       if (present(NameCaller)) write(*, *) 'NameCaller=', NameCaller
       call CON_stop(NameSub//' could not close unit')
-    end if
+    endif
 
   end subroutine close_file
 
@@ -511,7 +511,7 @@ contains
     else
       StringSep = ' '
       lSep = 1
-    end if
+    endif
 
     UseArraySyntax = .false.
     if (present(UseArraySyntaxIn)) UseArraySyntax = UseArraySyntaxIn
@@ -519,7 +519,7 @@ contains
     lKeep = 0
     if (present(DoAddSeparator)) then
       if (DoAddSeparator) lKeep = lSep
-    end if
+    endif
 
     nString = 0
     StringTmp = String
@@ -533,7 +533,7 @@ contains
 
       if (lKeep > 0) then                         ! Do not keep added separator
         if (i + lKeep >= len_trim(StringTmp)) lKeep = 0
-      end if
+      endif
 
       String_I(nString) = StringTmp(1:i - 1 + lKeep) ! Put part into string array
       StringTmp = StringTmp(i + lSep:l + lSep) ! Delete part+separator from string
@@ -541,7 +541,7 @@ contains
       if (UseArraySyntax) call expand_array(String_I(nString))
 
       if (nString == MaxString) EXIT        ! Check for maximum number of parts
-    end do
+    enddo
 
     if (present(nStringOut)) nStringOut = nString
 
@@ -579,7 +579,7 @@ contains
       else
         iFirst = 1
         l = j
-      end if
+      endif
 
       ! Check for a second colon
       m = index(String1, ':', back=.true.)
@@ -591,7 +591,7 @@ contains
       else
         Di = 1
         m = k
-      end if
+      endif
 
       ! read the last index value between the l and m positions
       read(String1(l + 1:m - 1), *, IOSTAT=iError) iLast
@@ -616,7 +616,7 @@ contains
 
         if (nString == MaxString) RETURN
 
-      end do
+      enddo
     end subroutine expand_array
 
   end subroutine split_string
@@ -673,12 +673,12 @@ contains
     else
       StringSep = ' '
       l = 1
-    end if
+    endif
     String = String_I(1)
 
     do i = 2, nString
       String = trim(String)//StringSep(1:l)//String_I(i)
-    end do
+    enddo
 
   end subroutine join_string
 
@@ -700,7 +700,7 @@ contains
     do i = 1, len_trim(String)
       iC = ichar(String(i:i))
       if (iC >= iA .and. iC <= iZ) String(i:i) = char(iC + Di)
-    end do
+    enddo
 
   end subroutine upper_case
 
@@ -722,7 +722,7 @@ contains
     do i = 1, len_trim(String)
       iC = ichar(String(i:i))
       if (iC >= iA .and. iC <= iZ) String(i:i) = char(iC + Di)
-    end do
+    enddo
 
   end subroutine lower_case
 
@@ -747,7 +747,7 @@ contains
     n = len_trim(String)
     do i = 1, n
       String_I(i) = String(i:i)
-    end do
+    enddo
     String_I(n + 1) = c_null_char
 
   end subroutine string_to_char_array
@@ -772,7 +772,7 @@ contains
     do i = 1, len(String)
       if (String_I(i) == c_null_char) EXIT
       String(i:i) = String_I(i)
-    end do
+    enddo
 
   end subroutine char_array_to_string
 
@@ -796,7 +796,7 @@ contains
     tCpu0 = MPI_WTIME()
     do
       if (MPI_WTIME() > tCpu0 + DtCpu) RETURN
-    end do
+    enddo
     !EOC
   end subroutine sleep
 
@@ -827,7 +827,7 @@ contains
       kGCD = i
     else
       kGCD = greatest_common_divisor(j, mod(i, j))
-    end if
+    endif
 
   end function greatest_common_divisor
   !============================================================================
@@ -907,25 +907,25 @@ contains
     write(*, '(a,i3,a)') 'with space separator split to', nString, ' parts:'
     do iString = 1, nString
       write(*, '(a)') trim(String_I(iString))
-    end do
+    enddo
 
     call split_string(String, String_I, nString, ",")
     write(*, '(a,i3,a)') 'with "," separator split to', nString, ' parts:'
     do iString = 1, nString
       write(*, '(a)') trim(String_I(iString))
-    end do
+    enddo
 
     call split_string(String, String_I, nString, ") ", DoAddSeparator=.true.)
     write(*, '(a,i3,a)') 'with ") " separator split to', nString, ' parts:'
     do iString = 1, nString
       write(*, '(a)') trim(String_I(iString))
-    end do
+    enddo
 
     call split_string(String, String_I, nString, UseArraySyntaxIn=.true.)
     write(*, '(a,i3,a)') 'with UseArraySyntax split to', nString, ' parts:'
     do iString = 1, nString
       write(*, '(a)') trim(String_I(iString))
-    end do
+    enddo
 
     write(*, '(/,a)') 'testing join_string'
     call join_string(nString, String_I, String)

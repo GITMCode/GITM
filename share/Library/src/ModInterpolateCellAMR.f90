@@ -109,7 +109,7 @@ contains
       DXyzInvInput_D = 0.50*DXyzInv_D
     else
       DXyzInvInput_D = DXyzInv_D
-    end if
+    endif
     !\
     ! call interpolation routine
     !/
@@ -271,7 +271,7 @@ contains
       do iGrid = 1, nGrid
         XyzGridCoarse_DII(:, 0, iGrid) = XyzCoarseCenter_D + &
                                          DXyz_D*(2*iShift_DI(1:nDim, iGrid) - 1)
-      end do
+      enddo
       !\
       ! Store an info about the coarse cell
       !/
@@ -294,7 +294,7 @@ contains
         XyzGridCoarse_DII(:, iGrid, iGridCoarse) = &
           XyzGridCoarse_DII(:, 0, iGridCoarse) + &
           DXyz_D*(-0.50 + iShift_DI(1:nDim, iGrid))
-      end do
+      enddo
 
       iDiscrSubGrid_D = nint(0.50 + SIGN(0.50, XyzCell_D &
                                          - XyzGridCoarse_DII(:, 0, iGridCoarse)))
@@ -302,7 +302,7 @@ contains
       iCellIdCoarse_III(:, iSubGrid, iGridCoarse) = &
         iCellId_I
       IsOutCoarse_I(iGridCoarse) = .false.
-    end if
+    endif
     !\
     !Construct an ordered list of neighbors
     !/
@@ -333,7 +333,7 @@ contains
             NameSub//': neighbor is inside the central cell')
           if (any(iDiscr_D > 1 .or. iDiscr_D < -1)) call CON_stop( &
             NameSub//': neighbor does not contact the central cell')
-        end if
+        endif
         !\
         !Initialize the grid coordinates, if needed
         !/
@@ -364,8 +364,8 @@ contains
               XyzGridCoarse_DII(:, iGrid, iGridCoarse) = &
                 XyzGridCoarse_DII(:, 0, iGridCoarse) + &
                 DXyz_D*(-0.50 + iShift_DI(1:nDim, iGrid))
-            end do
-          end if
+            enddo
+          endif
           iDiscrSubGrid_D = nint(0.50 + SIGN(0.50, XyzNeighbor_DI(:, iNeighbor) &
                                              - XyzGridCoarse_DII(:, 0, iGridCoarse)))
           iSubGrid = sum(iDiscrSubGrid_D*iPowerOf2_D(1:nDim)) + 1
@@ -373,7 +373,7 @@ contains
             iCellId_II(:, iNeighbor)
           IsOutCoarse_I(iGridCoarse) = &
             IsOutCoarse_I(iGridCoarse) .or. IsOut_I(iNeighbor)
-        end if
+        endif
       case (1)
         iDiscr_D(1:nDim) = &
           floor((XyzNeighbor_DI(:, iNeighbor) - XyzCorner_D)*DXyzInv_D)
@@ -385,7 +385,7 @@ contains
             NameSub//': neighbor is inside the central cell')
           if (any(iDiscr_D > 1 .or. iDiscr_D < -1)) call CON_stop( &
             NameSub//': neighbor does not contact the central cell')
-        end if
+        endif
         if (DoRefineGrid_III(iDiscr_D(1), iDiscr_D(2), iDiscr_D(3))) then
           DoRefineGrid_III(iDiscr_D(1), iDiscr_D(2), iDiscr_D(3)) = .false.
           !\
@@ -398,8 +398,8 @@ contains
             XyzGrid_DIIII(:, iGrid, iDiscr_D(1), iDiscr_D(2), iDiscr_D(3)) = &
               XyzGrid_DIIII(:, 0, iDiscr_D(1), iDiscr_D(2), iDiscr_D(3)) + &
               DXyz_D*0.50*(-0.50 + iShift_DI(1:nDim, iGrid))
-          end do
-        end if
+          enddo
+        endif
         !\
         ! Put the neighbor info into the ordered list
         !/
@@ -437,9 +437,9 @@ contains
           if (DoTest) then
             if (all(iDiscr_D == 0)) call CON_stop( &
               NameSub//': neighbor is inside the central cell')
-          end if
+          endif
           iLevel_III(iDiscr_D(1), iDiscr_D(2), iDiscr_D(3)) = -1
-        end do
+        enddo
         if (iNeighbor == iCoarseNeighbor) CYCLE
         !\
         !Store the coarse cell information in coarse extended stencil
@@ -452,7 +452,7 @@ contains
         iLevelCoarse_I(iGridCoarse) = -1
         IsOutCoarse_I(iGridCoarse) = IsOut_I(iNeighbor)
       end select
-    end do
+    enddo
     !\
     !Form output arrays
     !/
@@ -484,8 +484,8 @@ contains
 
         iCellId_IIII(:, :, :, iGrid) = iCellIdCoarse_III
         XyzGrid_DIII(:, :, :, iGrid) = XyzGridCoarse_DII
-      end if
-    end do
+      endif
+    enddo
   end subroutine order_connectivity_list
   !
 end module ModInterpolateCellAMR

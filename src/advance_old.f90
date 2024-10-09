@@ -69,9 +69,9 @@ subroutine advance
                                             DivVel(iLon, iLat, iAlt)) &
                                       + Dt*DiffTemp(iLon, iLat, iAlt)
 
-        end do
-      end do
-    end do
+        enddo
+      enddo
+    enddo
 
     iLon = 3
     iLat = 3
@@ -88,7 +88,7 @@ subroutine advance
     do iAlt = 1, nAlts
       NewTemp(1:nLons, 1:nLats, iAlt) = NewTemp(1:nLons, 1:nLats, iAlt) + &
                                         dt*EuvHeating(1:nLons, 1:nLats, iAlt, iBlock)
-    end do
+    enddo
 
     ! Conduction (1/rho)*d(kappa dT/dZ)/dZ
     do iAlt = 1, nAlts + 1
@@ -96,7 +96,7 @@ subroutine advance
                                (Temperature(1:nLons, 1:nLats, iAlt, iBlock) - &
                                 Temperature(1:nLons, 1:nLats, iAlt - 1, iBlock))/ &
                                dAlt(iAlt)
-    end do
+    enddo
     do iAlt = 1, nAlts
 
       NewTemp(1:nLons, 1:nLats, iAlt) = NewTemp(1:nLons, 1:nLats, iAlt) + &
@@ -105,7 +105,7 @@ subroutine advance
                                          Conduction(1:nLons, 1:nLats, iAlt))/ &
                                         (dAlt(iAlt)*exp(LogRho(1:nLons, 1:nLats, iAlt, iBlock)))
 
-    end do
+    enddo
 
     LogRho(1:nLons, 1:nLats, 1:nAlts, iBlock) = &
       NewLogRho(1:nLons, 1:nLats, 1:nAlts)
@@ -117,7 +117,7 @@ subroutine advance
 !     write(*,*) "logrho : ", minval(NewLogRho(1:nLons,1:nLats,1:nAlts)), &
 !          maxval(NewLogRho(1:nLons,1:nLats,1:nAlts))
 
-  end do
+  enddo
 
 !  if (iProc == 0) then
 !     write(*,*) "mm(velocity) : ",&

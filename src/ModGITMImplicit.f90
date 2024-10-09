@@ -125,12 +125,12 @@ contains
           EpsPointImpl = 1.e-6
         else
           EpsPointImpl = 1.e-9
-        end if
+        endif
         EpsPointImpl_V = 1.e-12
       else
         EpsPointImpl = 1.e-3
         EpsPointImpl_V = 1.e-6
-      end if
+      endif
 
       ! This call should allocate and set the iVarPointImpl_I index array,
       ! set IsPointImplMatrixSet=.true. if the dS/dU matrix is analytic,
@@ -143,14 +143,14 @@ contains
       if (.not. allocated(iVarPointImpl_I)) call stop_GITM( &
         'calc_user_sources did not set iVarPointImpl_I')
 
-    end if
+    endif
 
     ! The beta parameter is always one in the first stage
     if (iStep == 1) then
       BetaStage = 1.0
     else
       BetaStage = BetaPointImpl
-    end if
+    endif
 
     ! Store explicit update
     StateExpl_VC(1:nSpeciesAll) = SpeciesDensity(iLon, iLat, iAlt, :, iBlock) ! After  the solver
@@ -224,7 +224,7 @@ contains
             jvar = ijvar
             DsDu_VVC(jVar, iVar) = DsDu_VVC(jVar, iVar) + &
                                    (Source_VC(jVar) - Source0_VC(jVar))/Epsilon
-          end do
+          enddo
 
         else
 
@@ -253,21 +253,21 @@ contains
             DsDu_VVC(jVar, iVar) = DsDu_VVC(jVar, iVar) + &
                                    0.5*(Source1_VC(jVar) - Source_VC(jVar)) &
                                    /Epsilon
-          end do
+          enddo
 
-        end if
+        endif
 
         !Restore unperturbed state
         State_VGB(iVar) = State0_C
 
-      end do
+      enddo
 
       ! Restore unperturbed source
       Source_VC(1:nVar) = Source0_VC
 
       IsPointImplPerturbed = .false.
 
-    end if
+    endif
 
     ! Do the implicit update
 
@@ -281,7 +281,7 @@ contains
       Rhs_I(iIVar) = StateExpl_VC(iVar) &
                      - StateOld_VCB(iVar) &
                      + DtCell*Source_VC(iVar)
-    end do
+    enddo
 
     ! The matrix to be solved for is A = (I - beta*Dt*dS/dU)
     do iIVar = 1, nVar
@@ -290,11 +290,11 @@ contains
         jvar = ijvar
         Matrix_II(iIVar, iJVar) = -BetaStage*DtCell* &
                                   DsDu_VVC(iVar, jVar)
-      end do
+      enddo
       ! Add unit matrix
       Matrix_II(iIVar, iIVar) = Matrix_II(iIVar, iIVar) + 1.0
 
-    end do
+    enddo
 
     ! Solve the A.dU = RHS equation
     call linear_equation_solver(nVarPointImpl, Matrix_II, Rhs_I)
@@ -305,7 +305,7 @@ contains
       State_VGB(iVar) = &
         StateOld_VCB(iVar) + Rhs_I(iIVar)
 
-    end do
+    enddo
 
     ! Fix negative species densities
     State_VGB = max(1e-5, State_VGB)
@@ -369,9 +369,9 @@ contains
       LHSMAX = 0.00
       DO JL = 1, nVar
         IF (ABS(Matrix_VV(IL, JL)) .GT. LHSMAX) LHSMAX = ABS(Matrix_VV(IL, JL))
-      END DO
+      ENDDO
       SCALING(IL) = 1.00/LHSMAX
-    END DO
+    ENDDO
 
     !\
     ! Peform the LU decompostion using Crout's method.
@@ -381,39 +381,39 @@ contains
         TOTALSUM = Matrix_VV(IL, JL)
         DO KL = 1, IL - 1
           TOTALSUM = TOTALSUM - Matrix_VV(IL, KL)*Matrix_VV(KL, JL)
-        END DO
+        ENDDO
         Matrix_VV(IL, JL) = TOTALSUM
-      END DO
+      ENDDO
       LHSMAX = 0.00
       DO IL = JL, nVar
         TOTALSUM = Matrix_VV(IL, JL)
         DO KL = 1, JL - 1
           TOTALSUM = TOTALSUM - Matrix_VV(IL, KL)*Matrix_VV(KL, JL)
-        END DO
+        ENDDO
         Matrix_VV(IL, JL) = TOTALSUM
         LHSTEMP = SCALING(IL)*ABS(TOTALSUM)
         IF (LHSTEMP .GE. LHSMAX) THEN
           ILMAX = IL
           LHSMAX = LHSTEMP
-        END IF
-      END DO
+        ENDIF
+      ENDDO
       IF (JL .NE. ILMAX) THEN
         DO KL = 1, nVar
           LHSTEMP = Matrix_VV(ILMAX, KL)
           Matrix_VV(ILMAX, KL) = Matrix_VV(JL, KL)
           Matrix_VV(JL, KL) = LHSTEMP
-        END DO
+        ENDDO
         SCALING(ILMAX) = SCALING(JL)
-      END IF
+      ENDIF
       INDX(JL) = ILMAX
       IF (abs(Matrix_VV(JL, JL)) .EQ. 0.00) Matrix_VV(JL, JL) = TINY
       IF (JL .NE. nVar) THEN
         LHSTEMP = 1.00/Matrix_VV(JL, JL)
         DO IL = JL + 1, nVar
           Matrix_VV(IL, JL) = Matrix_VV(IL, JL)*LHSTEMP
-        END DO
-      END IF
-    END DO
+        ENDDO
+      ENDIF
+    ENDDO
 
     !\
     ! Peform the forward and back substitution to obtain
@@ -427,19 +427,19 @@ contains
       IF (II .NE. 0) THEN
         DO JL = II, IL - 1
           TOTALSUM = TOTALSUM - Matrix_VV(IL, JL)*Rhs_V(JL)
-        END DO
+        ENDDO
       ELSE IF (TOTALSUM .NE. 0.00) THEN
         II = IL
-      END IF
+      ENDIF
       Rhs_V(IL) = TOTALSUM
-    END DO
+    ENDDO
     DO IL = nVar, 1, -1
       TOTALSUM = Rhs_V(IL)
       DO JL = IL + 1, nVar
         TOTALSUM = TOTALSUM - Matrix_VV(IL, JL)*Rhs_V(JL)
-      END DO
+      ENDDO
       Rhs_V(IL) = TOTALSUM/Matrix_VV(IL, IL)
-    END DO
+    ENDDO
 
   end subroutine linear_equation_solver
 
@@ -454,7 +454,7 @@ contains
 
     do iVar = 1, nVar
       iVarPointImpl_I(iVar) = iVar
-    end do
+    enddo
 
   end subroutine init_pt_implicit
 

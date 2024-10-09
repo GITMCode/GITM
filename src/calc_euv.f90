@@ -39,7 +39,7 @@ subroutine euv_ionization_heat(iBlock)
   else
     if (floor((tSimulation - dT)/dTAurora) == &
         floor(tSimulation/dTAurora)) return
-  end if
+  endif
 
   call report("euv_ionization_heat", 2)
   call start_timing("euv_ionization_heat")
@@ -66,7 +66,7 @@ subroutine euv_ionization_heat(iBlock)
       do iSpecies = 1, nSpecies
         Tau = Tau + &
               photoabs(iWave, iSpecies)*ChapmanLittle(:, :, iSpecies)
-      end do
+      enddo
 
       Intensity = Flux_of_EUV(iWave)*exp(-1.0*Tau)
 
@@ -82,8 +82,8 @@ subroutine euv_ionization_heat(iBlock)
             (1.0 + PhotoElecIon(iWave, iIon))
         else
           EuvIonRateS(:, :, iAlt, iIon, iBlock) = 0.0
-        end if
-      end do
+        endif
+      enddo
 
       do iSpecies = 1, nSpecies
         EuvDissRateS(:, :, iAlt, iSpecies, iBlock) = &
@@ -91,15 +91,15 @@ subroutine euv_ionization_heat(iBlock)
           Intensity*PhotoDis(iWave, iSpecies)* &
           NeutralDensity(:, :, iSpecies)* &
           (1.0 + PhotoElecDiss(iWave, iSpecies))
-      end do
+      enddo
 
       do iSpecies = 1, nSpecies
         EHeat = EHeat + &
                 Intensity*PhotonEnergy(iWave)* &
                 photoabs(iWave, iSpecies)*NeutralDensity(:, :, iSpecies)
-      end do
+      enddo
 
-    end do
+    enddo
 
     EuvHeating(:, :, iAlt, iBlock) = EHeat*HeatingEfficiency_CB(:, :, iAlt, iBlock)
     eEuvHeating(:, :, iAlt, iBlock) = EHeat*eHeatingEfficiency_CB(:, :, iAlt, iBlock)
@@ -114,7 +114,7 @@ subroutine euv_ionization_heat(iBlock)
     !   enddo
     !enddo
 
-  end do
+  enddo
 
   if (IncludeEclipse) call calc_eclipse_effects
   if (IsEarth) call night_euv_ionization
@@ -147,11 +147,11 @@ subroutine euv_ionization_heat(iBlock)
                                      TempUnit(1:nLons, 1:nLats, iAlt)/ &
                                      HeatingEfficiency_CB(:, :, iAlt, iBlock)
 
-    end do
+    enddo
 
   else
     EuvHeating = 0.0
-  end if
+  endif
 
   call end_timing("euv_ionization_heat")
 
@@ -227,7 +227,7 @@ contains
                 EuvIonRateS(iLon, iLat, iAlt, iIon, iBlock) = &
                   EuvIonRateS(iLon, iLat, iAlt, iIon, iBlock)* &
                   Factor(iLon, iLat, iAlt)
-              end do
+              enddo
               EuvHeating(iLon, iLat, iAlt, iBlock) = &
                 EuvHeating(iLon, iLat, iAlt, iBlock)* &
                 Factor(iLon, iLat, iAlt)
@@ -241,13 +241,13 @@ contains
               CH4PERateS(iLon, iLat, iAlt, :, iBlock) = &
                 CH4PERateS(iLon, iLat, iAlt, :, iBlock)*Factor(iLon, iLat, iAlt)
 
-            end if
+            endif
 
-          end do
-        end do
-      end do
+          enddo
+        enddo
+      enddo
 
-    end if
+    endif
 
   end subroutine calc_eclipse_effects
 
@@ -330,7 +330,7 @@ contains
       nighteuvflux(iWave, :, :, iBlock) = tempflux
       nPhotonEnergy(iWave) = tempPhotonEnergy
 
-    end do
+    enddo
 
     !! Calculate Tau
     do iAlt = nAlts, 1, -1
@@ -349,10 +349,10 @@ contains
             /(-Gravity_GB(1:nLons, 1:nLats, iAlt, iBlock)*Mass(iSpecies))
           night_col(:, :, iAlt, iSpecies) = nNeutralDensity(:, :, iSpecies) &
                                             *ScaleHeightS
-        end if
+        endif
 
-      end do
-    end do
+      enddo
+    enddo
 
     do iAlt = 1, nAlts
       nEHeat = 0.0
@@ -364,7 +364,7 @@ contains
         do iSpecies = 1, nSpecies
           nTau = nTau + &
                  night_photoabs(iWave, iSpecies)*night_col(:, :, iAlt, iSpecies)
-        end do
+        enddo
 
         nIntensity = nighteuvflux(iWave, :, :, iBlock)*exp(-1.0*nTau)
 
@@ -377,8 +377,8 @@ contains
               nEuvIonRateS(:, :, iAlt, iIon, iBlock) + &
               nIntensity*night_photoion(iWave, iIon)* &
               nNeutralDensity(:, :, iNeutral)
-          end if
-        end do
+          endif
+        enddo
 
         do iSpecies = 1, nSpecies
           nEHeat = nEHeat + &
@@ -387,9 +387,9 @@ contains
                    night_photoabs(iWave, iSpecies)* &
                    nNeutralDensity(:, :, iSpecies)
 
-        end do
+        enddo
 
-      end do
+      enddo
 
       nEuvHeating(:, :, iAlt) = nEHeat*HeatingEfficiency_CB(:, :, iAlt, iBlock)
       neEuvHeating(:, :, iAlt) = nEHeat*eHeatingEfficiency_CB(:, :, iAlt, iBlock)
@@ -398,11 +398,11 @@ contains
           if (Altitude_GB(iLon, iLat, iAlt, iBlock) .lt. 80000.0) then
             nEUVHeating(iLon, iLat, iAlt) = 0.0
             neEUVHeating(iLon, iLat, iAlt) = 0.0
-          end if
-        end do
-      end do
+          endif
+        enddo
+      enddo
 
-    end do
+    enddo
 
   end subroutine night_euv_ionization
 
@@ -450,7 +450,7 @@ subroutine calc_euv
     IF (FLXFAC .LT. 0.8) FLXFAC = 0.8
     EUV_Flux(i) = F74113(II)*FLXFAC*1.0E9*10000.
 
-  end do
+  enddo
 
 end subroutine calc_euv
 
@@ -505,14 +505,14 @@ subroutine calc_scaled_euv
     write(*, *) "Error in getting F107 value.  Is this set?"
     write(*, *) "Code : ", iError
     call stop_gitm("Stopping in euv_ionization_heat")
-  end if
+  endif
 
   call get_f107a(CurrentTime, f107a, iError)
   if (iError /= 0) then
     write(*, *) "Error in getting F107a value.  Is this set?"
     write(*, *) "Code : ", iError
     call stop_gitm("Stopping in euv_ionization_heat")
-  end if
+  endif
 
   if (UseEUVData) then
 
@@ -520,18 +520,18 @@ subroutine calc_scaled_euv
 
     if (iError /= 0) then
       call stop_gitm("Stopping in euv_ionization_heat. Error in EUV data. Check times!")
-    end if
+    endif
 
     do N = 1, Num_WaveLengths_High
       wvavg(N) = (WAVEL(N) + WAVES(N))/2.
-    end do
+    enddo
 
     call start_timing("new_euv")
     SeeTime(:) = 0
 
     do N = 1, nSeeTimes
       SeeTime(N) = TimeSee(N)
-    end do
+    enddo
 
     tDiff = CurrentTime - SeeTime
 
@@ -571,17 +571,17 @@ subroutine calc_scaled_euv
               Timed_Flux = k*exp(-1*m*x)
             else
               DuringFlare = .False.
-            end if
-          end if
-        end if
-      end if
-    end if
+            endif
+          endif
+        endif
+      endif
+    endif
 
      !!need to convert from W/m^2 to photons/m^2/s
     do N = 1, Num_WaveLengths_High
       Flux_of_EUV(N) = Timed_Flux(N)*wvavg(N)*1.0e-10/(6.626e-34*2.998e8) &
                        /(SunPlanetDistance**2)
-    end do
+    enddo
     call end_timing("new_euv")
 
   else
@@ -597,7 +597,7 @@ subroutine calc_scaled_euv
         wvavg(N) = (WAVEL(N) + WAVES(N))/2.
         Flux_of_EUV(N) = Solar_Flux(N)*wvavg(N)*1.0e-10/(6.626e-34*2.998e8) &
                          /(SunPlanetDistance**2)
-      end do
+      enddo
 
     else
 
@@ -618,7 +618,7 @@ subroutine calc_scaled_euv
       f107_ratio = (f107 - 68.0)/(243.0 - 68.0)
       do N = 1, Num_WaveLengths_High
         Solar_Flux(N) = RFLUX(N) + (XFLUX(N) - RFLUX(N))*f107_Ratio
-      end do
+      enddo
 
       ! This is a total hack, just comparing FISM to these fluxes:
       Solar_flux(Num_WaveLengths_High - 4) = Solar_flux(Num_WaveLengths_High - 4)*3.0
@@ -640,15 +640,15 @@ subroutine calc_scaled_euv
           hlymod = heiew*3.77847e9 + 8.40317e10
         else
           hlymod = 8.70e8*F107 + 1.90e11
-        end if
+        endif
 
-      end if
+      endif
 
       if (heiew > 0.001) then
         heimod = heiew*3.77847e9 + 8.40317e10
       else
         heimod = hlymod
-      end if
+      endif
 
       ! hlymod is SME Lyman-alpha
       ! heimod is He I 10,830A, scaled to Lyman-alpha
@@ -659,7 +659,7 @@ subroutine calc_scaled_euv
                         TCOR0(N) + &
                         TCOR1(N)*f107 + &
                         TCOR2(N)*f107A
-      end do
+      enddo
 
       !
       ! Substitute in H Lyman-alpha and XUVFAC if provided:
@@ -670,7 +670,7 @@ subroutine calc_scaled_euv
         xuvf = xuvfac
       else
         xuvf = 1.0
-      end if
+      endif
 
       !
       ! Convert from gigaphotons to photons, cm^-2 to m^-2, etc.:
@@ -683,7 +683,7 @@ subroutine calc_scaled_euv
         ! I don't know why we scale this...
         IF ((WAVEL(N) < 251.0) .AND. (WAVES(N) > 15.0)) then
           Solar_Flux(N) = Solar_Flux(N)*xuvf
-        end if
+        endif
 
         !
         ! Convert to photons/m^2/s
@@ -698,12 +698,12 @@ subroutine calc_scaled_euv
         wavelength_ave = (WAVEL(N) + WAVES(N))/2.0
         PhotonEnergy(N) = 6.626e-34*2.998e8/(wavelength_ave*1.0e-10)
 
-      end do
+      enddo
       ! Solar_Flux has the Tobiska and Hinteregger fluxes in there already:
 
       do N = 1, Num_WaveLengths_High
         Flux_of_EUV(N) = Solar_Flux(N)
-      end do
+      enddo
 
       if (UseEUVAC) then
         do N = 1, Num_WaveLengths_Low
@@ -712,22 +712,22 @@ subroutine calc_scaled_euv
             Flux_of_EUV(NN) = 0.5*(EUV_Flux(N) + Solar_Flux(NN))
           else
             Flux_of_EUV(NN) = EUV_Flux(N)
-          end if
-        end do
-      end if
+          endif
+        enddo
+      endif
 
       ! Take into account the sun distance to the planet:
       Flux_of_EUV = Flux_of_EUV/(SunPlanetDistance**2)
 
-    end if
+    endif
 
-  end if
+  endif
 
   do N = 1, Num_WaveLengths_High
     ! Calculate the energy in the bin:
     wavelength_ave = (WAVEL(N) + WAVES(N))/2.0
     PhotonEnergy(N) = 6.626e-34*2.998e8/(wavelength_ave*1.0e-10)
-  end do
+  enddo
 
 end subroutine calc_scaled_euv
 
@@ -753,7 +753,7 @@ subroutine init_euv
 
     RLMSRC(N) = RLMEUV(N)
 
-  end do
+  enddo
 
   DO N = 1, Num_WaveLengths_Low
 
@@ -763,7 +763,7 @@ subroutine init_euv
     IF (N .GT. 14) then
       BranchingRatio_OPlus2P(N) = &
         1.-BranchingRatio_OPlus2D(N) - BranchingRatio_OPlus4S(N)
-    end if
+    endif
 
     PhotoAbs_O2(NN) = Photoabsorption_O2(N)
     PhotoAbs_O(NN) = Photoabsorption_O(N)
@@ -783,7 +783,7 @@ subroutine init_euv
     BranchingRatio_N2(NN) = BranchingRatio_N2_to_NPlus(N)
     BranchingRatio_O2(NN) = BranchingRatio_O2_to_OPlus(N)
 
-  end do
+  enddo
 
   ! Convert everything from /cm2 to /m2
 
@@ -839,7 +839,7 @@ subroutine Set_Euv(iError, StartTime, EndTime)
     ! If we still have a lot of data in memory, then don't bother
     ! reading more.
     if (StartTime + BufferTime < TimeSee(nSeeTimes)) return
-  end if
+  endif
 
   ! Assume that we can read the entire file
   ReReadEUVFile = .false.
@@ -856,7 +856,7 @@ subroutine Set_Euv(iError, StartTime, EndTime)
     write(*, *) "Error in opening EUV file  Is this set?"
     write(*, *) "Code : ", iError, cEUVFile
     call stop_gitm("Stopping in calc_euv")
-  end if
+  endif
 
   iline = 1
 
@@ -877,17 +877,17 @@ subroutine Set_Euv(iError, StartTime, EndTime)
           read(iInputUnit_, *) TimeOfFlare(1:6)
           TimeOfFlare(7) = 0
           call time_int_to_real(TimeOfFlare, FlareTimes(i))
-        end do
+        enddo
 
       case ('#START')
         NotDone = .false.
 
       end select
-    end if
+    endif
 
     iline = iline + 1
 
-  end do
+  enddo
 
   TimeSee(:) = 0
   iline = 1
@@ -910,9 +910,9 @@ subroutine Set_Euv(iError, StartTime, EndTime)
     if (iline > nSeeLinesMax - 1) then
       iErrortemp = 1
       ReReadEUVFile = .true.
-    end if
+    endif
 
-  end do
+  enddo
 
   close(iInputUnit_)
   nSeeTimes = iline - 1
@@ -944,13 +944,13 @@ subroutine read_euv_waves(iError)
     write(*, *) "Error in opening RidleyEUVFile  Is this set?"
     write(*, *) "Code : ", iError, cRidleyEUVFile
     call stop_gitm("Stopping in read_euv_waves")
-  end if
+  endif
 
   read(iInputUnit_, *, iostat=iError) nFiles
 
   do i = 1, nFiles
     read(iInputUnit_, *, iostat=iError) cline
-  end do
+  enddo
 
   read(iInputUnit_, *, iostat=iError) nWaves
 
@@ -958,7 +958,7 @@ subroutine read_euv_waves(iError)
     write(*, *) "Error in RidleyEUVFile - nWaves /= Num_wavelengths_high"
     write(*, *) "Values : ", nWaves, Num_WaveLengths_High
     call stop_gitm("Stopping in read_euv_waves")
-  end if
+  endif
 
   read(iInputUnit_, *, iostat=iError) cline
 
@@ -972,7 +972,7 @@ subroutine read_euv_waves(iError)
     RidleyPowers(1, i) = tmp(5)
     RidleyPowers(2, i) = tmp(6)
 
-  end do
+  enddo
 
   close(iInputUnit_)
 

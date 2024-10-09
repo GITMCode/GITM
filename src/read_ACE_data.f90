@@ -44,7 +44,7 @@ subroutine read_ACE_data(iOutputError)
   if (ierror .ne. 0) then
     iOutputError = 1
     return
-  end if
+  endif
 
   done = .false.
 
@@ -54,7 +54,7 @@ subroutine read_ACE_data(iOutputError)
     if (ierror .ne. 0) done = .true.
     if (index(line, 'BEGIN DATA') > 0) done = .true.
 
-  end do
+  enddo
 
   if (ierror == 0) then
 
@@ -91,13 +91,13 @@ subroutine read_ACE_data(iOutputError)
 
           iIMF = iIMF + 1
 
-        end if
+        endif
 
-      end if
+      endif
 
-    end do
+    enddo
 
-  end if
+  endif
 
   close(LunIndices_)
 
@@ -106,7 +106,7 @@ subroutine read_ACE_data(iOutputError)
   if (ierror .ne. 0) then
     iOutputError = 1
     return
-  end if
+  endif
 
   done = .false.
 
@@ -116,7 +116,7 @@ subroutine read_ACE_data(iOutputError)
     if (ierror .ne. 0) done = .true.
     if (index(line, 'BEGIN DATA') > 0) done = .true.
 
-  end do
+  enddo
 
   if (ierror == 0) then
 
@@ -163,13 +163,13 @@ subroutine read_ACE_data(iOutputError)
 
           iSW = iSW + 1
 
-        end if
+        endif
 
-      end if
+      endif
 
-    end do
+    enddo
 
-  end if
+  endif
 
   close(LunIndices_)
 
@@ -187,7 +187,7 @@ subroutine read_ACE_data(iOutputError)
 
   do iSW = 1, nIndices_V(sw_vx_)
     avevx = avevx + Indices_TV(iSW, sw_v_)/nIndices_V(sw_vx_)
-  end do
+  enddo
 
   TimeDelay = 1.5e6/avevx
 
@@ -206,7 +206,7 @@ subroutine read_ACE_data(iOutputError)
                                 + TimeDelay
     IndexTimes_TV(iSW, sw_t_) = IndexTimes_TV(iSW, sw_t_) &
                                 + TimeDelay
-  end do
+  enddo
 
   do iIMF = 1, nIndices_V(imf_bx_)
     IndexTimes_TV(iIMF, imf_bx_) = IndexTimes_TV(iIMF, imf_bx_) + &
@@ -215,7 +215,7 @@ subroutine read_ACE_data(iOutputError)
                                    TimeDelay
     IndexTimes_TV(iIMF, imf_bz_) = IndexTimes_TV(iIMF, imf_bz_) + &
                                    TimeDelay
-  end do
+  enddo
 
 end subroutine read_ACE_data
 

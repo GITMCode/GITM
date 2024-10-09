@@ -246,7 +246,7 @@ contains
       iComm = iCommIn
     else
       iComm = MPI_COMM_WORLD
-    end if
+    endif
 
     ! If no file name is given, read from STDIN
     DoReadStdIn = .not. present(NameFile)
@@ -258,7 +258,7 @@ contains
     else
       call MPI_comm_rank(iComm, iProc, iError)
       call MPI_comm_size(iComm, nProc, iError)
-    end if
+    endif
 
     ! Read all input file(s) into memory and broadcast
     if (iProc == 0) then
@@ -273,7 +273,7 @@ contains
                                          trim(NameFile)//" cannot be found")
         iUnit_I(iFile) = io_unit_new()
         call open_file(iUnit_I(iFile), FILE=NameFile, STATUS="old")
-      end if
+      endif
       do
         read(iUnit_I(iFile), '(a)', ERR=100, END=100) StringLine
         NameCommand = StringLine
@@ -302,16 +302,16 @@ contains
               call CON_stop("Correct input")
             else
               call CON_stop("Correct "//trim(NameFile))
-            end if
-          end if
+            endif
+          endif
           if (DoInclude) then
             StringLine = NameRestartFile
           else
             StringLine = ' ' ! remove #RESTART command
-          end if
+          endif
         else
           DoInclude = .false.
-        end if
+        endif
         if (DoInclude) then
           iFile = iFile + 1
           if (iFile > MaxNestedFile) call CON_stop(NameSub// &
@@ -330,7 +330,7 @@ contains
                                              " SWMF_ERROR: too many lines of input")
           StringLine_I(nLine) = StringLine
           CYCLE
-        end if
+        endif
 
 100     continue
         call close_file(iUnit_I(iFile))
@@ -341,11 +341,11 @@ contains
         else
           ! The base file ended, stop reading
           EXIT
-        end if
-      end do
+        endif
+      enddo
       if (nLine == 0) call CON_stop(NameSub// &
                                     " SWMF_ERROR: no lines of input read")
-    end if
+    endif
 
     if (nProc > 1) then
       ! Broadcast the number of lines and the text itself to all processors
@@ -359,7 +359,7 @@ contains
 
       if (iError > 0) call CON_stop(NameSub// &
                                     " MPI_ERROR: text could not be broadcast")
-    end if
+    endif
 
     if (iProc == 0) write(*, '(a,i4,a)') NameSub// &
       ': read and broadcast nLine=', nLine, ' lines of text'
@@ -384,7 +384,7 @@ contains
       iSessionNew = iSessionIn
     else
       iSessionNew = 1
-    end if
+    endif
 
     if (iSessionNew > MaxSession) call CON_stop(NameSub// &
                                                 " ERROR: too many sessions in input")
@@ -398,7 +398,7 @@ contains
       NameComp = NameCompIn
     else
       NameComp = ''
-    end if
+    endif
 
     ! Set iLine to 0 for session 1 only (multi-session uses previous value)
     if (iSession == 1) iLine = 0
@@ -408,17 +408,17 @@ contains
       nLine = nLineIn
     else
       nLine = size(StringLine_I)
-    end if
+    endif
     if (present(iIoUnitIn)) then
       iIoUnit = iIoUnitIn
     else
       iIoUnit = StdOut_
-    end if
+    endif
     if (iIoUnit == StdOut_ .and. len_trim(NameComp) > 0) then
       StringPrefix = NameComp//': '
     else
       StringPrefix = ''
-    end if
+    endif
 
   end subroutine read_init
 
@@ -458,7 +458,7 @@ contains
     else
       if (present(StringLineOut)) StringLineOut = ''
       read_line = .false.
-    end if
+    endif
 
   end function read_line
 
@@ -484,7 +484,7 @@ contains
       if (DoEcho) then
         write(iIoUnit, '(a)') trim(StringPrefix)
         write(iIoUnit, '(a)') trim(StringPrefix)//trim(StringLine)
-      end if
+      endif
 
       ! Remove anything after a space or TAB
       i = index(StringLine, ' '); if (i > 0) StringLine(i:len(StringLine)) = ' '
@@ -501,7 +501,7 @@ contains
     else
       NameCommand = ''
       read_command = .false.
-    end if
+    endif
 
   end function read_command
 
@@ -526,8 +526,8 @@ contains
       else
         call CON_stop( &
           'Unexpected end of text after line='//StringLine)
-      end if
-    end if
+      endif
+    endif
     StringLine = StringLine_I(iLine)
 
     ! Get rid of leading spaces
@@ -541,9 +541,9 @@ contains
         i = min(i, j)      ! Both TAB and 3 spaces found, take the closer one
       else
         i = max(i, j)      ! Take the one that was found (if any)
-      end if
+      endif
       if (i > 0) StringParam(i:lStringLine) = ' '
-    end if
+    endif
 
     if (len_trim(StringParam) == 0) call read_error('missing', Name, iError)
 
@@ -591,7 +591,7 @@ contains
       write(*, '(a,i3)') 'Error in component '//NameComp//' in session', iSession
       call CON_stop('Error reading '//Type//' variable '//Name// &
                     ' from line='//StringLine)
-    end if
+    endif
 
   end subroutine read_error
 
@@ -636,10 +636,10 @@ contains
 
     if (present(IsLowerCase)) then
       if (IsLowerCase) call lower_case(StringVar)
-    end if
+    endif
     if (present(IsUpperCase)) then
       if (IsUpperCase) call upper_case(StringVar)
-    end if
+    endif
 
   end subroutine read_var_c
 
@@ -731,7 +731,7 @@ contains
       if (iReadError /= 0) call read_error('denominator', Name, iError)
       if (Denominator == 0.0) call read_error('zero denominator', Name, iError)
       RealTmp = Numerator/Denominator
-    end if
+    endif
     if (DoEcho) call read_echo(Name)
     RealVar = RealTmp
 
@@ -816,8 +816,8 @@ contains
       if (NameCommand == NameCommand_II(i, j)) then
         i_line_command = iLineCommand_II(i, j)
         RETURN
-      end if
-    end do
+      endif
+    enddo
 
     ! Could not find command, return -1
     i_line_command = -1

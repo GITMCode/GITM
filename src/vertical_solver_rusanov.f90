@@ -474,7 +474,7 @@ subroutine advance_vertical_1stage( &
                                    GradVel_CD(:, iDim), DiffVel_CD(:, iDim))
     call calc_rusanov_alts_rusanov(iVel(:, iDim), &
                                    GradiVel_CD(:, iDim), DiffiVel_CD(:, iDim))
-  end do
+  enddo
 
   ! Add geometrical correction to gradient and obtain divergence
   DivVel = GradVel_CD(:, iUp_) + 2*Vel_GD(1:nAlts, iUp_)*InvRadialDistance_C(1:nAlts)
@@ -490,20 +490,20 @@ subroutine advance_vertical_1stage( &
     DiffVertVel(:, iSpecies) = DiffTmp
     DivVertVel(:, iSpecies) = GradVertVel(:, iSpecies) + &
                               2*VertVel(1:nAlts, iSpecies)*InvRadialDistance_C(1:nAlts)
-  end do
+  enddo
 
   do iSpecies = 1, nIons - 1
     call calc_rusanov_alts_rusanov(LogINS(:, iSpecies), GradTmp, DiffTmp)
     GradLogINS(:, iSpecies) = GradTmp
     DiffLogINS(:, iSpecies) = DiffTmp
-  end do
+  enddo
 
   ! Use Colegrove Method
   ! Step 1:  Calculate Ln(rho_{s}/Rho)
   do iSpecies = 1, nSpecies
     LogConS(-1:nAlts + 2, iSpecies) = &
       alog(Mass(iSpecies)*NS(-1:nAlts + 2, iSpecies)/Rho(-1:nAlts + 2))
-  end do
+  enddo
 
   do iAlt = 1, nAlts
 
@@ -536,8 +536,8 @@ subroutine advance_vertical_1stage( &
         + MeshCoef2*LogConS(iAlt, iSpecies) &
         + MeshCoef3*LogConS(iAlt + 1, iSpecies) &
         + MeshCoef4*LogConS(iAlt + 2, iSpecies)
-    end do  ! iSpecies Loop
-  end do ! iAlt Loop
+    enddo  ! iSpecies Loop
+  enddo ! iAlt Loop
 
   AmpSP = (1.0/(10.0*Dt))
   kSP = nAltsSponge + 1
@@ -549,7 +549,7 @@ subroutine advance_vertical_1stage( &
                                  (DivVertVel(iAlt, iSpecies) + &
                                   VertVel(iAlt, iSpecies)*GradLogNS(iAlt, iSpecies)) + &
                                  Dt*DiffLogNS(iAlt, iSpecies)
-    end do
+    enddo
 
     do iSpecies = 1, nIonsAdvect
 !        if (UseImprovedIonAdvection) then
@@ -562,7 +562,7 @@ subroutine advance_vertical_1stage( &
                                   (IVel(iAlt, iUp_)*GradLogINS(iAlt, iSpecies)) &
                                   + Dt*DiffLogINS(iAlt, iSpecies)
 !        endif
-    end do
+    enddo
 
     ! Bulk Velocity defined as the mass-weighted average of the
     ! species' velocities
@@ -572,12 +572,12 @@ subroutine advance_vertical_1stage( &
       NuSP = AmpSP*(1.0 - cos(pi*(kSP - (nAlts - iAlt))/kSP))
     else
       NuSP = 0.0
-    end if
+    endif
 
     if (UseDamping) then
       VertTau(iAlt) = &
         15 - (1 - exp(-1.0*altitude_G(ialt)/1000.0/40.0))*5.0
-    end if
+    endif
 
     do iSpecies = 1, nSpecies
       !The tau term was added as a vertical wind damping term
@@ -597,7 +597,7 @@ subroutine advance_vertical_1stage( &
         NewVertVel(iAlt, ispecies) = NewVertVel(iAlt, ispecies) + Dt*( &
                                      Centrifugal/InvRadialDistance_C(iAlt) + &
                                      Coriolis*Vel_GD(iAlt, iEast_))
-      end if
+      endif
 
       ! Thermal Diffusion Effects (For Light Species H2, H, and He)
       ! ThermalDiffCoefS is set in calc_rates
@@ -607,9 +607,9 @@ subroutine advance_vertical_1stage( &
                                    Dt*(ThermalDiffCoefS(iSpecies)*Boltzmanns_Constant* &
                                        GradTemp(iAlt))/Mass(iSpecies)
 
-    end do
+    enddo
 
-  end do
+  enddo
 
   ! Add Neutral Friction Between Species
   ! Needed for each increment in the RK-4 Solver
@@ -633,7 +633,7 @@ subroutine advance_vertical_1stage( &
                                GradLogConS(1:nAlts, 1:nSpecies), &
                                Temp(1:nAlts))
     NewVertVel(1:nAlts, 1:nSpecies) = nVel(1:nAlts, 1:nSpecies)
-  end if
+  endif
 
   do iAlt = 1, nAlts
 
@@ -648,9 +648,9 @@ subroutine advance_vertical_1stage( &
                               NewVertVel(iAlt, iSpecies)* &
                               (Mass(iSpecies)*NS(iAlt, iSpecies)/Rho(iAlt))
 
-    end do
+    enddo
 
-  end do
+  enddo
 
   do iAlt = 1, nAlts
 
@@ -672,11 +672,11 @@ subroutine advance_vertical_1stage( &
                      Temp(iAlt)*DivVel(iAlt))) &
                     + Dt*DiffTemp(iAlt)
 
-  end do
+  enddo
   do iAlt = 1, nAlts
     NewSumRho = sum(Mass(1:nSpecies)*exp(NewLogNS(iAlt, 1:nSpecies)))
     NewLogRho(iAlt) = alog(NewSumRho)
-  end do
+  enddo
 
 end subroutine advance_vertical_1stage
 
@@ -754,7 +754,7 @@ subroutine calc_facevalues_alts_rusanov(Var, VarLeft, VarRight)
 
 !     write(*,*) dVarUp, dVarDown, dVarLimited(i)
 
-  end do
+  enddo
 
   i = 0
   dVarUp = (Var(i + 1) - Var(i))*InvDAlt_F(i + 1)
@@ -769,7 +769,7 @@ subroutine calc_facevalues_alts_rusanov(Var, VarLeft, VarRight)
   do i = 1, nAlts + 1
     VarLeft(i) = Var(i - 1) + 0.5*dVarLimited(i - 1)*dAlt_F(i)
     VarRight(i) = Var(i) - 0.5*dVarLimited(i)*dAlt_F(i)
-  end do
+  enddo
 
 end subroutine calc_facevalues_alts_rusanov
 

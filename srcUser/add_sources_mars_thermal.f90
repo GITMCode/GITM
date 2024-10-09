@@ -22,8 +22,8 @@ subroutine add_sources
       ! The iLon and iLat are dummy variables...
       call UA_calc_electrodynamics(iLon, iLat)
       IsFirstTime = .false.
-    end if
-  end if
+    endif
+  endif
 
   do iBlock = 1, nBlocks
 
@@ -59,7 +59,7 @@ subroutine add_sources
     userdata1D(1, 1, :, 9) = Conduction(1, 1, 1:nAlts)
     do ialt = 1, nalts
       userdata1D(1, 1, iAlt, :) = userdata1D(1, 1, ialt, :)*tempunit(1, 1, iAlt)
-    end do
+    enddo
     !-------------------------------------------
     ! This is an example of a user output:
 
@@ -90,11 +90,11 @@ subroutine add_sources
                 ChemicalHeatingRate(iLon, iLat, iAlt)
               call stop_gitm('Negative Temperature Found')
 
-            end if
-          end do
-        end do
-      end do
-    end do
+            endif
+          enddo
+        enddo
+      enddo
+    enddo
 
     if (iDebugLevel > 2 .and. Is1D) then
 !        do iAlt = 1,nAlts
@@ -108,7 +108,7 @@ subroutine add_sources
         ChemicalHeatingRate(1, 1, iAlt), &
         Conduction(1, 1, iAlt), temperature(1, 1, iAlt, iBlock)
 !        enddo
-    end if
+    endif
 
     iAlt = nAlts - 2
     if (iDebugLevel > 2) &
@@ -135,7 +135,7 @@ subroutine add_sources
         Dt*(VerticalIonDrag(:, :, :, iSpecies)) + &
         NeutralFriction(:, :, :, iSpecies)
 
-    end do
+    enddo
 
     call planet_limited_fluxes(iBlock)
 
@@ -157,9 +157,9 @@ subroutine add_sources
                 NDensityS(iLon, iLat, iAlt, 1:nSpecies, iBlock))
           NDensity(iLon, iLat, iAlt, iBlock) = &
             sum(NDensityS(iLon, iLat, iAlt, 1:nSpecies, iBlock))
-        end do
-      end do
-    end do
+        enddo
+      enddo
+    enddo
 
     Velocity(1:nLons, 1:nLats, 1:nAlts, iUp_, iBlock) = 0.0
     do iSpecies = 1, nSpecies
@@ -169,8 +169,8 @@ subroutine add_sources
         Mass(iSpecies)* &
         NDensityS(1:nLons, 1:nLats, 1:nAlts, iSpecies, iBlock)/ &
         Rho(1:nLons, 1:nLats, 1:nAlts, iBlock)
-    end do
+    enddo
 
-  end do
+  enddo
 
 end subroutine add_sources

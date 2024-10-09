@@ -80,7 +80,7 @@ contains
       iRandom = random_integer(6, iSeed1, iSeed2, iSeed3)
       Average = Average + iRandom
       Average2 = Average2 + iRandom**2
-    end do
+    enddo
     Average = Average/nSample
     Average2 = Average2/nSample
     StdDev = sqrt((Average2 - Average**2))
@@ -102,7 +102,7 @@ contains
       Random = random_real(iSeed)
       Average = Average + Random
       Average2 = Average2 + Random**2
-    end do
+    enddo
     Average = Average/nSample
     Average2 = Average2/nSample
     StdDev = sqrt((Average2 - Average**2))

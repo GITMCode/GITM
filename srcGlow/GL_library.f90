@@ -39,7 +39,7 @@ subroutine GL_setloc(alt, n, lat, lon, npb, ierror)
     iError = 1
   else
     iError = 0
-  end if
+  endif
 end subroutine GL_setloc
 
 !-----------------------------------------------------
@@ -82,7 +82,7 @@ subroutine GL_interp_flux(GITM_wave_l, GITM_wave_s, GITM_flux, nGitmWaves)
   do l = 1, lmax
     wave1(l) = waveS(lmax - (l - 1))
     wave2(l) = waveL(lmax - (l - 1))
-  end do
+  enddo
 
   SFLUX = 0.0
 
@@ -90,13 +90,13 @@ subroutine GL_interp_flux(GITM_wave_l, GITM_wave_s, GITM_flux, nGitmWaves)
 
     if (wave2(i) .ge. GITM_wave_l(1)) then
       istart = i
-    end if
+    endif
 
     if (WAVE1(i) .ge. GITM_wave_s(nGitmWaves)) then
       ifinish = i - 1
-    end if
+    endif
 
-  end do
+  enddo
 
   do i = istart, ifinish
 
@@ -109,13 +109,13 @@ subroutine GL_interp_flux(GITM_wave_l, GITM_wave_s, GITM_flux, nGitmWaves)
     countS = 1
     do j = 1, nGitmWaves
       if (dwaveL(j) .lt. dwaveL(countL)) countL = j
-    end do
+    enddo
     do j = 1, nGitmWaves
       if (dwaveS(j) .gt. -900) then
         countS = j
         goto 300
-      end if
-    end do
+      endif
+    enddo
 
 300 incL = 0
     incS = 0
@@ -130,9 +130,9 @@ subroutine GL_interp_flux(GITM_wave_l, GITM_wave_s, GITM_flux, nGitmWaves)
       else
         incU = incU + 1
         incL = incU
-      end if
+      endif
       goto 100
-    end if
+    endif
 
     incU = 0
     incD = 0
@@ -145,9 +145,9 @@ subroutine GL_interp_flux(GITM_wave_l, GITM_wave_s, GITM_flux, nGitmWaves)
       else
         incU = incU + 1
         incS = incU
-      end if
+      endif
       goto 200
-    end if
+    endif
 
     countS = countS + incS
     countL = countL + incL
@@ -172,10 +172,10 @@ subroutine GL_interp_flux(GITM_wave_l, GITM_wave_s, GITM_flux, nGitmWaves)
         if (GITM_wave_l(countL + icount) .ne. &
             GITM_wave_s(countL + icount)) then
           SFLUX(i) = SFLUX(i) + GITM_flux(countL + icount)
-        end if
-      end do
-    end if
-  end do
+        endif
+      enddo
+    endif
+  enddo
 
   !Deal with beginning and end of GLOW spectrum if not already
   if (istart .ne. 1) then
@@ -184,7 +184,7 @@ subroutine GL_interp_flux(GITM_wave_l, GITM_wave_s, GITM_flux, nGitmWaves)
     S_factor = (GITM_wave_s(1) - WAVE1(1))/ &
                (GITM_wave_s(1) - 0)
     SFLUX(i) = GITM_flux(1)*(S_Factor + L_factor)
-  end if
+  endif
 
   if (ifinish .ne. LMAX) then
     L_factor = (wave2(LMAX) - GITM_wave_l(nGitmWaves))/ &
@@ -192,7 +192,7 @@ subroutine GL_interp_flux(GITM_wave_l, GITM_wave_s, GITM_flux, nGitmWaves)
     S_factor = (GITM_wave_l(nGitmWaves) - WAVE1(LMAX))/ &
                (GITM_wave_l(nGitmWaves) - GITM_wave_s(nGitmWaves))
     SFLUX(i) = GITM_flux(nGitmWaves)*(S_Factor + L_factor)
-  end if
+  endif
   !Now take care of individual lines in GITM
   do j = 1, nGitmWaves
     if (GITM_wave_l(j) .eq. GITM_wave_s(j)) then
@@ -201,9 +201,9 @@ subroutine GL_interp_flux(GITM_wave_l, GITM_wave_s, GITM_flux, nGitmWaves)
             wave2(i) .ge. GITM_wave_l(j)) &
           SFLUX(i) = SFLUX(i) + GITM_flux(j)
 
-      end do
-    end if
-  end do
+      enddo
+    endif
+  enddo
 
   !Convert to cm
   SFLUX = SFLUX/(10000.0)
@@ -314,7 +314,7 @@ subroutine GL_getvals(ipin, emisrate, upeflx, downeflx, photoErate, ebins)
 !Downward flux at conjugate point = upward flux at location
   do N = 1, NBINS
     PHITOP(N) = UFLX(N, JMAX)
-  end do
+  enddo
 
 !Call Glow for conjugate point (same neutral atmosphere)
 
@@ -323,7 +323,7 @@ subroutine GL_getvals(ipin, emisrate, upeflx, downeflx, photoErate, ebins)
 !Upward flux at conjugate point = downward flux at location
   do N = 1, NBINS
     PHITOP(N) = UFLX(N, JMAX)
-  end do
+  enddo
 
 !Call Glow again at location
   SZAC = SZA
@@ -468,7 +468,7 @@ subroutine GL_getvals(ipin, emisrate, upeflx, downeflx, photoErate, ebins)
           doy = 0
           do imonth = 1, month - 1
             doy = doy + dayofmon(imonth)
-          end do
+          enddo
 
           doy = doy + day
 

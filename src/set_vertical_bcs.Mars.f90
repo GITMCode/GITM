@@ -52,7 +52,7 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
     call meter6(.true.)
     sw = 1
     IsFirstTime = .true.
-  end if
+  endif
 
   if (UseMsisBCs) then
     call get_HPI(CurrentTime, HP, iError)
@@ -66,12 +66,12 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
                     F107A, F107, AP, LogNS(iAlt, :), Temp(iAlt), &
                     LogRho(iAlt))
 
-    end do
+    enddo
   else
 
     ! do nothing - which means don't change the initial condition.
 
-  end if
+  endif
 
   ! Let the winds blow !!!!
   Vel_GD(-1:0, iEast_) = 0.0
@@ -86,7 +86,7 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
 
     LogINS(0, iSpecies) = LogINS(1, iSpecies) - dn
     LogINS(-1, iSpecies) = LogINS(0, iSpecies) - dn
-  end do
+  enddo
 
   ! Lower boundary for NO on Earth
 
@@ -98,7 +98,7 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
   else
     LogNS(0, iN4S_) = LogNS(1, iN4S_) + dn
     LogNS(-1, iN4S_) = LogNS(0, iN4S_) + dn
-  end if
+  endif
 !  endif
 !
   ! Lower boundary for O on Mars
@@ -111,7 +111,7 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
   else
     LogNS(0, iO_) = LogNS(1, iO_) + dn
     LogNS(-1, iO_) = LogNS(0, iO_) + dn
-  end if
+  endif
 !  endif
 
   if (VertVel(1, iN4S_) .gt. 0.0) then
@@ -121,7 +121,7 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
   else
     VertVel(0, iN4S_) = 1.0*VertVel(1, iN4S_)
     VertVel(-1, iN4S_) = 1.0*VertVel(1, iN4S_)
-  end if
+  endif
 
   if (VertVel(1, iO_) .gt. 0.0) then
     ! Don't allow upwelling of N4S
@@ -130,7 +130,7 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
   else
     VertVel(0, iO_) = 1.0*VertVel(1, iO_)
     VertVel(-1, iO_) = 1.0*VertVel(1, iO_)
-  end if
+  endif
 !
 !  ! Lower boundary for NO on Earth
 !  if (nSpecies == iNO_) then
@@ -181,7 +181,7 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
     Vel_GD(nAlts + 2, iUp_) = -Vel_GD(nAlts - 1, iUp_)
     VertVel(nAlts + 1, :) = -VertVel(nAlts, :)
     VertVel(nAlts + 2, :) = -VertVel(nAlts - 1, :)
-  end if
+  endif
 
   ! Constant temperature (zero gradient)
 
@@ -201,7 +201,7 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
     if (dn > 0) dn = -0.1*LogINS(nAlts, iSpecies)
     LogINS(nAlts + 1, iSpecies) = LogINS(nAlts, iSpecies) + dn
     LogINS(nAlts + 2, iSpecies) = LogINS(nAlts + 1, iSpecies) + dn
-  end do
+  enddo
 
   ! Hydrostatic pressure for the neutrals
 
@@ -217,9 +217,9 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
           Gravity_G(nAlts), Mass(iSpecies), Temp(nAlts), &
           LogNS(nAlts, iSpecies), LogNS(nAlts + 1, iSpecies), &
           dAlt_F(nAlts), LogNS(nAlts + 2, iSpecies)
-      end if
-    end do
-  end do
+      endif
+    enddo
+  enddo
 
 end subroutine set_vertical_bcs
 

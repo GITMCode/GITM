@@ -45,11 +45,11 @@ subroutine UAM_Gradient(Array_G, Gradient_CD, iBlock)
              + GradLon0_CB(iLon, iBlock)*Array_G(iLon, iLat, iAlt) &
              + GradLonP_CB(iLon, iBlock)*Array_G(iLon + 1, iLat, iAlt) &
              )*InvRadialDistance_GB(iLon, iLat, iAlt, iBlock)*InvCosLat
-        end do
-      end do
-    end do
+        enddo
+      enddo
+    enddo
 
-  end if
+  endif
 
   !\
   ! North Second
@@ -64,11 +64,11 @@ subroutine UAM_Gradient(Array_G, Gradient_CD, iBlock)
              + GradLat0_CB(iLat, iBlock)*Array_G(iLon, iLat, iAlt) &
              + GradLatP_CB(iLat, iBlock)*Array_G(iLon, iLat + 1, iAlt) &
              )*InvRadialDistance_GB(iLon, iLat, iAlt, iBlock)
-        end do
-      end do
-    end do
+        enddo
+      enddo
+    enddo
 
-  end if
+  endif
 
   !\
   ! Up Third
@@ -93,11 +93,11 @@ subroutine UAM_Gradient(Array_G, Gradient_CD, iBlock)
              - Array_G(iLon, iLat, iAlt - 1) &
              - (Drr2 - 1)*Array_G(iLon, iLat, iAlt))/Bottom
 
-        end do
-      end do
-    end do
+        enddo
+      enddo
+    enddo
 
-  end if
+  endif
 
 end subroutine UAM_Gradient
 
@@ -146,11 +146,11 @@ subroutine UAM_Gradient_GC(Array_G, Gradient_GC, iBlock)
              + InvDenom*(1 - Ratio2)*Array_G(iLon, iLat, iAlt) &
              + InvDenom*Ratio2*Array_G(iLon + 1, iLat, iAlt) &
              )*InvRadialDistance_GB(iLon, iLat, iAlt, iBlock)*InvCosLat
-        end do
-      end do
-    end do
+        enddo
+      enddo
+    enddo
 
-  end if
+  endif
 
   !\
   ! North Second
@@ -169,11 +169,11 @@ subroutine UAM_Gradient_GC(Array_G, Gradient_GC, iBlock)
              + InvDenom*(1 - Ratio2)*Array_G(iLon, iLat, iAlt) &
              + InvDenom*Ratio2*Array_G(iLon, iLat + 1, iAlt) &
              )*InvRadialDistance_GB(iLon, iLat, iAlt, iBlock)
-        end do
-      end do
-    end do
+        enddo
+      enddo
+    enddo
 
-  end if
+  endif
 
   !\
   ! Up Third
@@ -198,10 +198,10 @@ subroutine UAM_Gradient_GC(Array_G, Gradient_GC, iBlock)
              - Array_G(iLon, iLat, iAlt - 1) &
              - (Drr2 - 1)*Array_G(iLon, iLat, iAlt))/Bottom
 
-        end do
-      end do
-    end do
+        enddo
+      enddo
+    enddo
 
-  end if
+  endif
 
 end subroutine UAM_Gradient_GC

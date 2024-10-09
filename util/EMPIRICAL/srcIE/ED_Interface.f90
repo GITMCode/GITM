@@ -57,7 +57,7 @@ subroutine ED_Get_Grid(grid, PressureCoordinates, iError)
 
       grid(i) = R_EDEP_ALT_VALUE(I, 2)
 
-    end do
+    enddo
 
   else
 
@@ -67,9 +67,9 @@ subroutine ED_Get_Grid(grid, PressureCoordinates, iError)
 
       grid(i) = R_EDEP_ALT_VALUE(I, 4)*100.0
 
-    end do
+    enddo
 
-  end if
+  endif
 
 end subroutine ED_Get_Grid
 
@@ -133,6 +133,6 @@ subroutine ED_Get_Energies(energies)
 
   do i = 1, spectra_levels
     energies(spectra_levels - (i - 1)) = 10.0**(logmin + (i - 1)*de)
-  end do
+  enddo
 
 end subroutine ED_Get_Energies

@@ -16,7 +16,7 @@ subroutine start_timing(cTimingNameIn)
     Timings = 0.0
     iTimingLevel = 0
     IsTiming = .false.
-  end if
+  endif
 
   iLevel = 0
   iTiming = -1
@@ -24,14 +24,14 @@ subroutine start_timing(cTimingNameIn)
     if (IsTiming(i)) iLevel = iLevel + 1
     if (index(cTimingNames(i), cTimingNameIn) > 0) then
       iTiming = i
-    end if
-  end do
+    endif
+  enddo
 
   if (iTiming < 0) then
     nTiming = nTiming + 1
     cTimingNames(nTiming) = cTimingNameIn
     iTiming = nTiming
-  end if
+  endif
 
   IsTiming(iTiming) = .true.
   if (iTimingLevel(iTiming) < iLevel) iTimingLevel(iTiming) = iLevel
@@ -56,13 +56,13 @@ subroutine end_timing(cTimingNameIn)
   do i = 1, nTiming
     if (index(cTimingNames(i), cTimingNameIn) > 0) then
       iTiming = i
-    end if
-  end do
+    endif
+  enddo
 
   if (iTiming < 0) then
     write(*, *) "Unknown timing : ", cTimingNameIn
     return
-  end if
+  endif
 
   IsTiming(iTiming) = .false.
   Timings(iTiming, 2) = Timings(iTiming, 2) + &
@@ -87,8 +87,8 @@ real function get_timing(cTimingNameIn)
   do i = 1, nTiming
     if (index(cTimingNames(i), cTimingNameIn) > 0) then
       iTiming = i
-    end if
-  end do
+    endif
+  enddo
 
   if (iTiming < 0) then
     write(*, *) "Error!!"
@@ -99,8 +99,8 @@ real function get_timing(cTimingNameIn)
       get_timing = mpi_wtime() - Timings(iTiming, 1)
     else
       get_timing = Timings(iTiming, 2)
-    end if
-  end if
+    endif
+  endif
 
 end function get_timing
 
@@ -129,21 +129,21 @@ subroutine report_timing(cTimingNameIn)
         clevelSpace(1:5 - iTimingLevel(iTiming)), &
         " took ", Timings(iTiming, 2), &
         " seconds to complete"
-    end do
+    enddo
     return
-  end if
+  endif
 
   iTiming = -1
   do i = 1, nTiming
     if (index(cTimingNames(i), cTimingNameIn) > 0) then
       iTiming = i
-    end if
-  end do
+    endif
+  enddo
 
   if (iTiming < 0) then
     write(*, *) "Unknown timing : ", cTimingNameIn
     return
-  end if
+  endif
 
   write(*, "(a,a,f7.1,a)") &
     cTimingNames(iTiming), " took ", Timings(iTiming, 2), &

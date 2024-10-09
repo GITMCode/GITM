@@ -38,7 +38,7 @@ subroutine read_NGDC_Indices_new(iOutputError, StartTime, EndTime)
   if (ierror .ne. 0) then
     iOutputError = 1
     return
-  end if
+  endif
 
   done = .false.
 
@@ -56,78 +56,78 @@ subroutine read_NGDC_Indices_new(iOutputError, StartTime, EndTime)
     if (index(line, '#Element: dst') > 0) then
       call read_values
       call Insert_into_Indices_Array(tmp, dst_)
-    end if
+    endif
 
     if (index(line, '#Element: kp') > 0) then
       call read_values
       call Insert_into_Indices_Array(tmp, kp_)
-    end if
+    endif
 
     if (index(line, '#Element: ap') > 0) then
       call read_values
       call Insert_into_Indices_Array(tmp, ap_)
-    end if
+    endif
 
     if (index(line, '#Element: bx') > 0) then
       read(LunIndices_, '(a)', iostat=ierror) line
       if (index(line, '#Table: IMFMin') > 0) then
         call read_values
         call Insert_into_Indices_Array(tmp, imf_bx_)
-      end if
-    end if
+      endif
+    endif
 
     if (index(line, '#Element: by') > 0) then
       read(LunIndices_, '(a)', iostat=ierror) line
       if (index(line, '#Table: IMFMin') > 0) then
         call read_values
         call Insert_into_Indices_Array(tmp, imf_by_)
-      end if
-    end if
+      endif
+    endif
 
     if (index(line, '#Element: bz') > 0) then
       read(LunIndices_, '(a)', iostat=ierror) line
       if (index(line, '#Table: IMFMin') > 0) then
         call read_values
         call Insert_into_Indices_Array(tmp, imf_bz_)
-      end if
-    end if
+      endif
+    endif
 
     if (index(line, '#Element: flow') > 0) then
       call read_values
       call Insert_into_Indices_Array(tmp, sw_v_)
-    end if
+    endif
 
     if (index(line, '#Element: swVelX') > 0) then
       call read_values
       call Insert_into_Indices_Array(tmp, sw_vx_)
-    end if
+    endif
 
     if (index(line, '#Element: swVelY') > 0) then
       call read_values
       call Insert_into_Indices_Array(tmp, sw_vy_)
-    end if
+    endif
 
     if (index(line, '#Element: swVelZ') > 0) then
       call read_values
       call Insert_into_Indices_Array(tmp, sw_vz_)
-    end if
+    endif
 
     if (index(line, '#Element: observed') > 0) then
       call read_values
       call Insert_into_Indices_Array(tmp, f107_)
-    end if
+    endif
 
     if (index(line, '#Element: adjusted') > 0) then
       BufferTime = 81.0*24.0*3600.0
       call read_values
       call Insert_into_Indices_Array(tmp, f107_)
-    end if
+    endif
 
     if (index(line, '#Element: flux') > 0 .or. index(line, '#Table: Flux') > 0) then
       BufferTime = 81.0*24.0*3600.0
       call read_values
       call Insert_into_Indices_Array(tmp, f107_)
-    end if
+    endif
 
     ! This has to be before the DMSP stuff because of the
     ! extra N and S on the end of the Element line.
@@ -139,7 +139,7 @@ subroutine read_NGDC_Indices_new(iOutputError, StartTime, EndTime)
       call read_values
       call merge_hpi_data
 !           endif
-    end if
+    endif
 !     else
 !        if(index(line,'#Element: power')>0)then
 !           read(LunIndices_,'(a)', iostat = ierror ) line
@@ -158,7 +158,7 @@ subroutine read_NGDC_Indices_new(iOutputError, StartTime, EndTime)
 !        endif
 !     endif
 
-  end do
+  enddo
 
   close(LunIndices_)
 
@@ -170,7 +170,7 @@ subroutine read_NGDC_Indices_new(iOutputError, StartTime, EndTime)
       call time_real_to_int(ut_keep(i), itime)
       tmp(1:5, i) = itime(1:5)
       tmp(6, i) = data_keep(i)
-    end do
+    enddo
 
     call Insert_into_Indices_Array(tmp, hpi_)
 
@@ -183,10 +183,10 @@ subroutine read_NGDC_Indices_new(iOutputError, StartTime, EndTime)
       if (Indices_TV(i, hpi_) > 0) then
         Indices_TV(i, hpi_norm_) = &
           2.09*ALOG(Indices_TV(i, hpi_))*1.0475
-      end if
-    end do
+      endif
+    enddo
 
-  end if
+  endif
 
   if (Input_Coor_System == GSE_) then
 
@@ -202,9 +202,9 @@ subroutine read_NGDC_Indices_new(iOutputError, StartTime, EndTime)
       Indices_TV(i, imf_bx_:imf_bz_) = &
         matmul(GsmGse_DD, Indices_TV(i, imf_bx_:imf_bz_))
 
-    end do
+    enddo
 
-  end if
+  endif
 
 contains
 
@@ -229,7 +229,7 @@ contains
 
       if (index(line, 'GSE') > 0) Input_Coor_System = GSE_
 
-    end do
+    enddo
 
     missingPlusTol = missing + abs(missing)*0.01
     missingMinusTol = missing - abs(missing)*0.01
@@ -259,17 +259,17 @@ contains
               i = i + 1
             else
               tmp(1:6, i) = 0.0
-            end if
+            endif
           else
             tmp(1:6, i) = 0.0
-          end if
-        end if
+          endif
+        endif
 
-      end do
+      enddo
 
       npts = i - 1
 
-    end if
+    endif
 
   end subroutine read_values
 
@@ -281,7 +281,7 @@ contains
       itime(1:5) = tmp(1:5, i)
       call time_int_to_real(itime, ut_new(i))
       data_new(i) = tmp(6, i)
-    end do
+    enddo
 
     if (npts_hpi == 0) then
       npts_hpi = npts
@@ -323,15 +323,15 @@ contains
               data_keep(k) = data_new(i)
               k = k + 1
               i = i + 1
-            end if
-          end if
-        end if
+            endif
+          endif
+        endif
 
-      end do
+      enddo
 
       npts_hpi = npts_hpi + npts
 
-    end if
+    endif
 
   end subroutine merge_hpi_data
 

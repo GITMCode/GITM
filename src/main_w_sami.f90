@@ -80,7 +80,7 @@ program GITM
 
     if (taskid == 0) master_sami = iprocglob
 
-  end if
+  endif
 
   ! broadcast CurrentTime to global procs
   call mpi_bcast(EndTime, 1, MPI_REAL, 0, iCommGlobal, iError)
@@ -109,26 +109,26 @@ program GITM
           Dt = 2
         else
           Dt = FixedDt
-        end if
+        endif
 
         call calc_timestep_vertical
         if (.not. Is1D) call calc_timestep_horizontal
 
         if (RCMRFlag) then
           call run_RCMR
-        end if
+        endif
 
         call advance
 
         if (.not. IsFramework) then
           call check_stop
-        end if
+        endif
 
         iStep = iStep + 1
 
         call write_output
 
-      end do
+      enddo
 
     else if (iCommSAMI0 /= MPI_COMM_NULL) then
 
@@ -140,7 +140,7 @@ program GITM
 
           call Sami_run(IsValidTime, DtCouple)
 
-        end do
+        enddo
 
         if (taskid == 1) &
           print *, '---- SAMI3 completed one iter', (hrut - hrinit)*3600.0, nIter*DtCouple, IsValidTime, taskid
@@ -150,8 +150,8 @@ program GITM
                       iCommSami, iError)
         if (taskid == 1) &
           write(*, *) '---- Done with sending xxx !!!', taskid
-      end if
-    end if
+      endif
+    endif
 
     ! turn on coupling flags and exchange data
 
@@ -168,7 +168,7 @@ program GITM
 
       if (taskid > 0) IsCoupGITM = .true.
 
-    end if
+    endif
 
     call MPI_BARRIER(iCommGlobal, iError)
 
@@ -179,7 +179,7 @@ program GITM
     if (iCommSAMI0 /= MPI_COMM_NULL) then
       if (taskid > 0 .and. IsCoupGITM) &
         call init_coup
-    end if
+    endif
 
     call MPI_BARRIER(iCommGlobal, iError)
 
@@ -187,7 +187,7 @@ program GITM
 
     nIter = nIter + 1
 
-  end do !(end while gobal)
+  enddo !(end while gobal)
 
   ! ------------------------------------------------------------------------
   ! Finish run

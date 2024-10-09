@@ -92,11 +92,11 @@ contains
       iOutputError = 1
       write(*, *) 'No Hme Input file was found'
       return
-    end if
+    endif
 
     do i = 1, nHme
       read(LunIndices_, *) hme_arr(i), lpHme_slt(i)
-    end do
+    enddo
 
     close(LunIndices_)
 
@@ -129,7 +129,7 @@ contains
       iOutputError = 1
       write(*, *) 'No HME file was found. Please check the directory of data'
       return
-    end if
+    endif
 
     done = .false.
 
@@ -142,11 +142,11 @@ contains
       else
 
         done = .true.
-      end if
+      endif
 
       ipt = ipt + 1
 
-    end do
+    enddo
 
     read(LunIndices_, *) tmp
 
@@ -191,7 +191,7 @@ contains
       iOutputError = 1
       write(*, *) 'No tidi coef file found. Please check the directory of data'
       return
-    end if
+    endif
 
     done = .false.
 
@@ -204,15 +204,15 @@ contains
       else
 
         done = .true.
-      end if
+      endif
 
       ipt = ipt + 1
 
-    end do
+    enddo
 
     do i = 1, nHme
       read(LunIndices_, *) hme_arr(i), amp_fac_arr(i), pha_shift_arr(i)
-    end do
+    enddo
 
     close(LunIndices_)
 
@@ -236,7 +236,7 @@ contains
     else
       write(*, *) 'Please check hme_tmp', hme_tmp
       call stop_gitm("I am unsure of what to do now! Stopping!")
-    end if
+    endif
 
     if (hme_tmp(2:2) .eq. 'W') then
       read(hme_tmp(3:3), *) s
@@ -250,7 +250,7 @@ contains
     else
       write(*, *) 'Plese check hme_tmp', hme_tmp
       call stop_gitm("I am unsure of what to do now! Stopping!")
-    end if
+    endif
 
   end subroutine get_ns
 
@@ -285,11 +285,11 @@ contains
       ! Use the stored values:
       amp_fac_arr = Storage_Tidi_amp(:, 1)
       pha_shift_arr = Storage_Tidi_phase(:, 1)
-    end if
+    endif
 
     if (count(lpHme_slt) .eq. 0) then
       call stop_gitm('No HMEs found! Plese check selected calc_1tide_iday)')
-    end if
+    endif
 
     ! select HME component
     allocate(hmes_slt(count(lpHme_slt)))
@@ -341,14 +341,14 @@ contains
 
       if (count(lpHme_slt) .eq. 0) then
         call stop_gitm('No HMEs found! Plese check selected calc_1tide)')
-      end if
+      endif
       Storage_Tidi_amp(:, 1) = amp_fac_arr
       Storage_Tidi_phase(:, 1) = pha_shift_arr
     else
       ! Use the stored values:
       amp_fac_arr = Storage_Tidi_amp(:, 1)
       pha_shift_arr = Storage_Tidi_phase(:, 1)
-    end if
+    endif
 
     ! select HME component
     allocate(hmes_slt(count(lpHme_slt)))
@@ -378,7 +378,7 @@ contains
       ! Use the stored values:
       amp_fac_arr = Storage_Tidi_amp(:, 2)
       pha_shift_arr = Storage_Tidi_phase(:, 2)
-    end if
+    endif
 
     ! select HME component
     allocate(amps_slt(count(lpHme_slt)))
@@ -409,9 +409,9 @@ contains
                              (temp2(i, j, k) - temp1(i, j, k)) + temp1(i, j, k)
           dr_rho_3d(i, j, k) = (iday - day1)/(day2 - day1)* &
                                (dr_rho2(i, j, k) - dr_rho1(i, j, k)) + dr_rho1(i, j, k)
-        end do
-      end do
-    end do
+        enddo
+      enddo
+    enddo
 
   end subroutine calc_1tide
 
@@ -487,7 +487,7 @@ contains
         StorageR_amp(i, :, :) = dr_rho_a3
         StorageR_phase(i, :, :) = dr_rho_p3
 
-      end if
+      endif
 
       do j = 1, nLatsHme
         do k = 1, nAltHme ! alt = 95.0, 97.5, 100 km
@@ -522,14 +522,14 @@ contains
                    s*lon(ilon) - dr_rho_p3(j, k)*(n*omega) - &
                    pha_shift) &
                   *pi/180.0)
-          end do
-        end do
-      end do
+          enddo
+        enddo
+      enddo
       if (count(ieee_is_nan(geopt)) > 0) then
         write(*, *) ieee_is_nan(geopt)
         write(*, *) 'i,ilon,ilat,ialt,hme: ', i, ilon, j, k, hme_tmp
         call stop_gitm('nan was found in geopt, stop')
-      end if
+      endif
 
       if (ipt .eq. 1) then
         u_all = u
@@ -543,11 +543,11 @@ contains
         geopt_all = geopt_all + geopt
         temp_all = temp_all + temp
         dr_rho_all = dr_rho_all + dr_rho
-      end if
+      endif
 
       ipt = ipt + 1
 
-    end do
+    enddo
 
     IsReadInHme = .true.
 
@@ -591,7 +591,7 @@ contains
       dr_rho_a3(:, i) = dr_rho_a
       dr_rho_p3(:, i) = dr_rho_p
 
-    end do
+    enddo
 
   end subroutine hme_3alt
 

@@ -65,7 +65,7 @@ subroutine write_restart(dir)
     write(iRestartUnit_, '(a)') "#TIMESTART"
     do i = 1, 6
       write(iRestartUnit_, *) iStartTime(i)
-    end do
+    enddo
 
     write(iRestartUnit_, *) ""
     write(iRestartUnit_, '(a)') "#SPHERE"
@@ -81,7 +81,7 @@ subroutine write_restart(dir)
 
     close(iRestartUnit_)
 
-  end if
+  endif
 
   do iBlock = 1, nBlocks
 
@@ -97,15 +97,15 @@ subroutine write_restart(dir)
       write(iRestartUnit_) Altitude_GB(:, :, :, iBlock)
     else
       write(iRestartUnit_) Altitude_GB(1, 1, :, iBlock)
-    end if
+    endif
 
     do iSpecies = 1, nSpeciesTotal
       write(iRestartUnit_) NDensityS(:, :, :, iSpecies, iBlock)
-    end do
+    enddo
 
     do iSpecies = 1, nIons
       write(iRestartUnit_) IDensityS(:, :, :, iSpecies, iBlock)
-    end do
+    enddo
 
     !alexey start
     MeanMajorMass(:, :, :) = 0
@@ -113,7 +113,7 @@ subroutine write_restart(dir)
       MeanMajorMass(:, :, :) = MeanMajorMass(:, :, :) + &
                                Mass(iSpecies)*NDensityS(:, :, :, iSpecies, iBlock)/ &
                                sum(NDensityS(:, :, :, 1:3, iBlock), 4)
-    end do
+    enddo
     TempUnit(:, :, :) = &
       MeanMajorMass(:, :, :)/Boltzmanns_Constant
     write(iRestartUnit_) Temperature(:, :, :, iBlock)*TempUnit(:, :, :)
@@ -181,7 +181,7 @@ subroutine write_restart(dir)
             call sleep(1.0)
             inquire(file='../advance_temp_e'//trim(adjustl(ens_cs))//'/here.txt', &
                     EXIST=IsThere)
-          end do
+          enddo
 
           if (iDebugLevel > 4) write(*, *) '=====> rst.f90: here.txt file found. Continuing  in advance_temp_e' &
             //trim(adjustl(ens_cs))
@@ -196,7 +196,7 @@ subroutine write_restart(dir)
           read(103, *) f_tmp(ens_c)
           close(103, status='DELETE')
           if (iDebugLevel > 4) write(*, *) '=====> rst.f90: f_tmp', f_tmp
-        end do
+        enddo
 
         mean_f = samp_mean(f_tmp)
         var_f = samp_var(f_tmp)
@@ -247,7 +247,7 @@ subroutine write_restart(dir)
           if (iDebugLevel > 4) &
             write(*, *) '=====> rst.f90: wrote here2.txt in ../advance_temp_e' &
             //trim(adjustl(ens_cs))//' with iostat of', iError
-        end do
+        enddo
 
         f107 = f_tmp2(1) !master should read his inflated f107
         if (iDebugLevel > 4) &
@@ -255,7 +255,7 @@ subroutine write_restart(dir)
 
         deallocate(f_tmp) !clean up
         deallocate(f_tmp2)
-      end if
+      endif
       !+ this is b-casted so that all blocks have the same f107
       call MPI_BCAST(f107, 1, MPI_Real, 0, iCommGITM, iError)
       if (iDebugLevel > 4) &
@@ -287,7 +287,7 @@ subroutine write_restart(dir)
           write(*, *) '=====> rst.f90: here2.txt file NOT found. Waiting.'
           call sleep(1.0)
           inquire(file='here2.txt', EXIST=IsThere)
-        end do
+        enddo
 
         if (iDebugLevel > 4) &
           write(*, *) '=====> rst.f90: here2.txt file found. Continuing.'
@@ -304,14 +304,14 @@ subroutine write_restart(dir)
         if (iDebugLevel > 4) &
           write(*, *) '=====> rst.f90: write_rst_f107', f107
 
-      end if
+      endif
       !+ this is b-casted so that all blocks have the same f107
       call MPI_BCAST(f107, 1, MPI_Real, 0, iCommGITM, iError)
       if (iDebugLevel > 4) &
         write(*, *) '=====> rst.f90: broadcasted to iproc, f107:', &
         iProc, f107
 
-    end if
+    endif
 
     !alexey write f107 into the restart file (for DART)
     write(iRestartUnit_) f107
@@ -323,10 +323,10 @@ subroutine write_restart(dir)
       write(iRestartUnit_) SubSurfaceTemp(:, :, iBlock)
       write(iRestartUnit_) dSurfaceTemp(:, :, iBlock)
       write(iRestartUnit_) dSubSurfaceTemp(:, :, iBlock)
-    end if
+    endif
     close(iRestartUnit_)
 
-  end do
+  enddo
 
 !routines alexey needed
 contains
@@ -389,15 +389,15 @@ subroutine read_restart(dir)
       read(iRestartUnit_) Altitude_GB(1, 1, :, iBlock)
       do iAlt = -1, nAlts + 2
         Altitude_GB(:, :, iAlt, iBlock) = Altitude_GB(1, 1, iAlt, iBlock)
-      end do
-    end if
+      enddo
+    endif
 !     read(iRestartUnit_) Altitude_GB(:,:,:,iBlock)
 
     do iSpecies = 1, nSpeciesTotal
       if (iDebugLevel > 3) &
         write(*, *) "====> Reading Species", iSpecies, Mass(iSpecies)
       read(iRestartUnit_) NDensityS(:, :, :, iSpecies, iBlock)
-    end do
+    enddo
 
     Rho(:, :, :, iBlock) = 0.0
     NDensity(:, :, :, iBlock) = 0.0
@@ -406,13 +406,13 @@ subroutine read_restart(dir)
                              Mass(iSpecies)*NDensityS(:, :, :, iSpecies, iBlock)
       NDensity(:, :, :, iBlock) = NDensity(:, :, :, iBlock) + &
                                   NDensityS(:, :, :, iSpecies, iBlock)
-    end do
+    enddo
 
     do iSpecies = 1, nIons
       if (iDebugLevel > 4) &
         write(*, *) "=====> Reading Ion Species", iSpecies, Mass(iSpecies)
       read(iRestartUnit_) IDensityS(:, :, :, iSpecies, iBlock)
-    end do
+    enddo
 
     if (iDebugLevel > 4) write(*, *) "=====> Reading Temperature"
     read(iRestartUnit_) Temperature(:, :, :, iBlock)
@@ -423,7 +423,7 @@ subroutine read_restart(dir)
       MeanMajorMass(:, :, :) = MeanMajorMass(:, :, :) + &
                                Mass(iSpecies)*NDensityS(:, :, :, iSpecies, iBlock)/ &
                                sum(NDensityS(:, :, :, 1:3, iBlock), 4)
-    end do
+    enddo
     TempUnit(:, :, :) = &
       MeanMajorMass(:, :, :)/Boltzmanns_Constant
     Temperature(:, :, :, iBlock) = Temperature(:, :, :, iBlock)/TempUnit(:, :, :)
@@ -451,7 +451,7 @@ subroutine read_restart(dir)
       call IO_set_f107_single(f107)
       !replace f107 81-day average with the SAME estimate
       call IO_set_f107a_single(f107)
-    end if
+    endif
 
     !read Rho, but hope DART will affect GITM via other vars instead
     read(iRestartUnit_) Rho(:, :, :, iBlock)
@@ -463,10 +463,10 @@ subroutine read_restart(dir)
       read(iRestartUnit_) SubSurfaceTemp(:, :, iBlock)
       read(iRestartUnit_) dSurfaceTemp(:, :, iBlock)
       read(iRestartUnit_) dSubSurfaceTemp(:, :, iBlock)
-    end if
+    endif
     close(iRestartUnit_)
 
-  end do
+  enddo
 
   if (.not. Is1D) call exchange_messages_sphere
 

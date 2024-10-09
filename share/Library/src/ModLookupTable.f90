@@ -154,10 +154,10 @@ contains
       if (nTable > MaxTable) then
         write(*, *) NameSub, ' MaxTable =', MaxTable
         call CON_stop(NameSub//': number of tables exceeded MaxTable')
-      end if
+      endif
 
       iTable = nTable
-    end if
+    endif
 
     ! For sake of more concise source code, use a pointer to the table
     Ptr => Table_I(iTable)
@@ -180,7 +180,7 @@ contains
     if (Ptr%NameCommand == "load") then
       call load_lookup_table(iTable)
       RETURN
-    end if
+    endif
 
     ! Save size of table and index ranges
     Ptr%nIndex = size(nIndex_I)
@@ -199,13 +199,13 @@ contains
       if (nParam > 0) allocate(Ptr%Param_I(nParam))
     else
       Ptr%nParam = 0
-    end if
+    endif
 
     if (present(StringDescription)) then
       Ptr%StringDescription = StringDescription
     else
       Ptr%StringDescription = NameTable
-    end if
+    endif
 
     Ptr%NameVar = NameVar
 
@@ -285,10 +285,10 @@ contains
         if (nTable > MaxTable) then
           write(*, *) NameSub, ' MaxTable =', MaxTable
           call CON_stop(NameSub//': number of tables exceeded MaxTable')
-        end if
+        endif
 
         iTable = nTable
-      end if
+      endif
 
       ! For sake of more concise source code, use a pointer to the table
       Ptr => Table_I(iTable)
@@ -320,8 +320,8 @@ contains
             DoReadTableParam = .false.
           else
             NameCommand = "save"
-          end if
-        end if
+          endif
+        endif
 
         ! The table parameters have to be the same for all tables
         if (DoReadTableParam) then
@@ -331,17 +331,17 @@ contains
           allocate(TableParam_I(nTableParam))
           do iTableParam = 1, nTableParam
             call read_var('TableParam', TableParam_I(iTableParam))
-          end do
-        end if
+          enddo
+        endif
 
-      end if
+      endif
 
       if (NameCommand /= "para") Ptr%NameCommand = NameCommand
 
       if (NameCommand == "load" .or. NameCommand == "save") then
         Ptr%NameFile = NameFile_I(iTableName)
         Ptr%TypeFile = TypeFile
-      end if
+      endif
 
       ! Load table on all processors
       if (NameCommand == "load") call load_lookup_table(iTable)
@@ -354,9 +354,9 @@ contains
         Ptr%Param_I = TableParam_I
         if (NameCommand == "load" .or. NameCommand == "para") &
           Ptr%NameVar = trim(Ptr%NameVar)//' '//trim(NameParam)
-      end if
+      endif
 
-    end do
+    enddo
 
     if (DoReadTableParam) deallocate(TableParam_I)
 
@@ -389,8 +389,8 @@ contains
       if (Ptr%IsLogIndex_I(iIndex)) then
         Ptr%IndexMin_I(iIndex) = log10(Ptr%IndexMin_I(iIndex))
         Ptr%IndexMax_I(iIndex) = log10(Ptr%IndexMax_I(iIndex))
-      end if
-    end do
+      endif
+    enddo
     ! Calculate increments
     Ptr%dIndex_I = (Ptr%IndexMax_I - Ptr%IndexMin_I)/(Ptr%nIndex_I - 1)
 
@@ -413,7 +413,7 @@ contains
         nString = 1
         Name_I(1) = Name
         RETURN
-      end if
+      endif
 
       call split_string(Name(iBracePosition1 + 1:iBracePosition2 - 1), &
                         MaxTableName, Name_I, nString)
@@ -421,15 +421,15 @@ contains
       if (iBracePosition1 > 1) then
         do iString = 1, nString
           Name_I(iString) = Name(1:iBracePosition1 - 1)//trim(Name_I(iString))
-        end do
-      end if
+        enddo
+      endif
 
       if (iBracePosition2 < len_trim(Name)) then
         do iString = 1, nString
           Name_I(iString) = trim(Name_I(iString))// &
                             Name(iBracePosition2 + 1:len_trim(Name))
-        end do
-      end if
+        enddo
+      endif
 
     end subroutine check_braces
 
@@ -450,8 +450,8 @@ contains
       if (Table_I(iTable)%NameTable == Name) then
         i_lookup_table = iTable
         RETURN
-      end if
-    end do
+      endif
+    enddo
     i_lookup_table = -1
 
   end function i_lookup_table
@@ -496,7 +496,7 @@ contains
       if (allocated(Ptr%Param_I)) deallocate(Ptr%Param_I)
       allocate(Ptr%Param_I(Ptr%nParam))
       Ptr%Param_I = TableParam_I(1:Ptr%nParam)
-    end if
+    endif
 
     ! Figure out which index is logarithmic
     call split_string(Ptr%NameVar, MaxVar, NameVar_I, nVar)
@@ -568,7 +568,7 @@ contains
     else
       iProc = 0
       nProc = 1
-    end if
+    endif
 
     if (iProc == 0) write(*, '(3a)') NameSub, ' is creating table ', Ptr%NameTable
 
@@ -582,7 +582,7 @@ contains
       Index1 = Index1Min + (i1 - 1)*dIndex1
       if (IsLog1) Index1 = 10**Index1
       call calc_table_var(iTable, Index1, Value_VC(:, i1))
-    end do
+    enddo
 
     ! Collect (or copy) result into table
     if (nProc > 1) then
@@ -590,7 +590,7 @@ contains
                          MPI_REAL, MPI_SUM, iComm, iError)
     else
       Ptr%Value_VC(:, :, 1, 1) = Value_VC
-    end if
+    endif
 
     deallocate(Value_VC)
 
@@ -617,8 +617,8 @@ contains
           CoordMinIn_D=Ptr%IndexMin_I, &
           CoordMaxIn_D=Ptr%IndexMax_I, &
           VarIn_VIII=Ptr%Value_VC)
-      end if
-    end if
+      endif
+    endif
 
     ! Make sure that all processors are done
     if (nProc > 1) call MPI_barrier(iComm, iError)
@@ -684,7 +684,7 @@ contains
     else
       iProc = 0
       nProc = 1
-    end if
+    endif
 
     if (iProc == 0) write(*, '(3a)') NameSub, ' is creating table ', Ptr%NameTable
 
@@ -701,8 +701,8 @@ contains
         Index1 = Index1Min + (i1 - 1)*dIndex1
         if (IsLog1) Index1 = 10**Index1
         call calc_table_var(iTable, Index1, Index2, Value_VC(:, i1, i2))
-      end do
-    end do
+      enddo
+    enddo
 
     ! Collect (or copy) result into table
     if (nProc > 1) then
@@ -710,7 +710,7 @@ contains
                          MPI_REAL, MPI_SUM, iComm, iError)
     else
       Ptr%Value_VC(:, :, :, 1) = Value_VC
-    end if
+    endif
 
     deallocate(Value_VC)
 
@@ -737,8 +737,8 @@ contains
           CoordMinIn_D=Ptr%IndexMin_I, &
           CoordMaxIn_D=Ptr%IndexMax_I, &
           VarIn_VIII=Ptr%Value_VC)
-      end if
-    end if
+      endif
+    endif
 
     ! Make sure that all processors are done
     if (nProc > 1) call MPI_barrier(iComm, iError)
@@ -810,7 +810,7 @@ contains
     else
       iProc = 0
       nProc = 1
-    end if
+    endif
 
     if (iProc == 0) write(*, '(3a)') NameSub, ' is creating table ', Ptr%NameTable
 
@@ -834,9 +834,9 @@ contains
           if (IsLog1) Index1 = 10**Index1
           call calc_table_var(iTable, Index1, Index2, Index3, &
                               Value_VC(:, i1, i2, i3))
-        end do
-      end do
-    end do
+        enddo
+      enddo
+    enddo
 
     ! Collect (or copy) result into table
     if (nProc > 1) then
@@ -844,7 +844,7 @@ contains
                          MPI_REAL, MPI_SUM, iComm, iError)
     else
       Ptr%Value_VC = Value_VC
-    end if
+    endif
 
     deallocate(Value_VC)
 
@@ -871,8 +871,8 @@ contains
           CoordMinIn_D=Ptr%IndexMin_I, &
           CoordMaxIn_D=Ptr%IndexMax_I, &
           VarIn_VIII=Ptr%Value_VC)
-      end if
-    end if
+      endif
+    endif
 
     ! Make sure that all processors are done
     if (nProc > 1) call MPI_barrier(iComm, iError)
@@ -1119,7 +1119,7 @@ contains
     if (present(Arg1Out)) then
       Arg1Out = (i1 - 1 + Dx1)*Ptr%dIndex_I(1) + Ptr%IndexMin_I(1)
       if (Ptr%IsLogIndex_I(1)) Arg1Out = 10**Arg1Out
-    end if
+    endif
 
   end subroutine interpolate_with_known_val
   !===========================================================================
@@ -1165,8 +1165,8 @@ contains
         Param_I(1:Ptr%nParam) = Ptr%Param_I
       else
         Param_I = Ptr%Param_I(1:size(Param_I))
-      end if
-    end if
+      endif
+    endif
     if (present(Param)) then
       ! return one parameter, the first one by default
       iParam = 1
@@ -1175,8 +1175,8 @@ contains
         Param = -777.77
       else
         Param = Ptr%Param_I(iParam)
-      end if
-    end if
+      endif
+    endif
 
   end subroutine get_lookup_table
 
@@ -1216,12 +1216,12 @@ contains
     if (iTable /= -1) then
       write(*, *) 'iTable = ', iTable, ' should be -1'
       call CON_stop(NameSub)
-    end if
+    endif
     iTable = i_lookup_table("RhoE")
     if (iTable /= 1) then
       write(*, *) 'iTable = ', iTable, ' should be 1'
       call CON_stop(NameSub)
-    end if
+    endif
     Ptr => Table_I(1)
 
     if (iProc == 0) write(*, *) 'testing get_lookup_table'
@@ -1230,20 +1230,20 @@ contains
     if (nIndex /= 2) then
       write(*, *) 'nIndex=', nIndex, ' is different from 2'
       call CON_stop(NameSub)
-    end if
+    endif
     if (nParam /= 3) then
       write(*, *) 'nParam=', nParam, ' is different from 3'
       call CON_stop(NameSub)
-    end if
+    endif
     ValueGood_I = (/54.0, 4.0, -4.0/)
     if (any(Value_I /= ValueGood_I)) then
       write(*, *) 'Param_I=', Value_I, ' is different from ', ValueGood_I
       call CON_stop(NameSub)
-    end if
+    endif
     if (Arg /= ValueGood_I(2)) then
       write(*, *) 'Param=', Arg, ' is different from ', ValueGood_I(2)
       call CON_stop(NameSub)
-    end if
+    endif
 
     if (iProc == 0) write(*, *) 'testing make_lookup_table'
     call make_lookup_table(iTable, eos_rho_e, MPI_COMM_WORLD)
@@ -1257,7 +1257,7 @@ contains
       write(*, *) 'Value_I=', Value_I, ' is different from ValueGood_I=', &
         ValueGood_I
       call CON_stop(NameSub)
-    end if
+    endif
 
     if (iProc == 0) write(*, *) 'testing load_lookup_table'
 
@@ -1273,7 +1273,7 @@ contains
     if (iTable /= 2) then
       write(*, *) 'iTable = ', iTable, ' should be 2'
       call CON_stop(NameSub)
-    end if
+    endif
     Ptr2 => Table_I(iTable)
     call compare_tables
 
@@ -1283,7 +1283,7 @@ contains
       write(*, *) 'Value_I=', Value_I, ' is different from ValueGood_I=', &
         ValueGood_I
       call CON_stop(NameSub)
-    end if
+    endif
 
     ! Test with the condition that Value_I(3)=3.0 and find first argument Arg
     call interpolate_lookup_table(2, 3, 3.0, 2.0, Value_I, Arg)
@@ -1291,7 +1291,7 @@ contains
       write(*, *) 'Value_I=', Value_I, ' Arg =', Arg, &
         ' are different from ValueGood_I=', ValueGood_I, ' ArgGood = 1.0'
       call CON_stop(NameSub)
-    end if
+    endif
 
     ! Test 1D lookup table
     if (iProc == 0) write(*, *) 'testing 1D lookup table'
@@ -1311,7 +1311,7 @@ contains
     if (iTable /= 3) then
       write(*, *) 'iTable = ', iTable, ' should be 3'
       call CON_stop(NameSub)
-    end if
+    endif
     Ptr => Table_I(iTable)
 
     if (iProc == 0) write(*, *) 'testing make_lookup_table_1d'
@@ -1324,7 +1324,7 @@ contains
     if (abs(Value - ValueGood) > 1e-5) then
       write(*, *) 'Value=', Value, ' is different from ValueGood=', ValueGood
       call CON_stop(NameSub)
-    end if
+    endif
 
     if (iProc == 0) write(*, *) 'testing 1D load_lookup_table'
 
@@ -1340,7 +1340,7 @@ contains
     if (iTable /= 4) then
       write(*, *) 'iTable = ', iTable, ' should be 4'
       call CON_stop(NameSub)
-    end if
+    endif
     Ptr2 => Table_I(iTable)
     call compare_tables
 
@@ -1349,7 +1349,7 @@ contains
     if (abs(Value - ValueGood) > 1e-5) then
       write(*, *) 'Value=', Value, ' is different from ValueGood=', ValueGood
       call CON_stop(NameSub)
-    end if
+    endif
 
     ! Test 3D lookup table
     if (iProc == 0) write(*, *) 'testing 3D lookup table'
@@ -1368,7 +1368,7 @@ contains
     if (iTable /= 5) then
       write(*, *) 'iTable = ', iTable, ' should be 5'
       call CON_stop(NameSub)
-    end if
+    endif
     Ptr => Table_I(iTable)
 
     if (iProc == 0) write(*, *) 'testing make_lookup_table_3d'
@@ -1382,7 +1382,7 @@ contains
       write(*, *) 'Value_I=', Value_I, ' is different from ValueGood_I=', &
         ValueGood_I
       call CON_stop(NameSub)
-    end if
+    endif
 
     if (iProc == 0) write(*, *) 'testing 3D load_lookup_table'
 
@@ -1398,7 +1398,7 @@ contains
     if (iTable /= 6) then
       write(*, *) 'iTable = ', iTable, ' should be 6'
       call CON_stop(NameSub)
-    end if
+    endif
     Ptr2 => Table_I(iTable)
     call compare_tables
 
@@ -1408,7 +1408,7 @@ contains
     if (abs(Value - ValueGood) > 1e-5) then
       write(*, *) 'Value=', Value, ' is different from ValueGood=', ValueGood
       call CON_stop(NameSub)
-    end if
+    endif
 
   contains
 
@@ -1426,41 +1426,41 @@ contains
       if (Ptr2%nValue /= Ptr%nValue) then
         write(*, *) 'nValue=', Ptr2%nValue, ' is different from ', Ptr%nValue
         call CON_stop(NameSub)
-      end if
+      endif
       if (Ptr2%nIndex /= Ptr%nIndex) then
         write(*, *) 'nIndex=', Ptr2%nIndex, ' is different from ', Ptr%nIndex
         call CON_stop(NameSub)
-      end if
+      endif
       if (any(abs(Ptr2%IndexMin_I - Ptr%IndexMin_I) > 1e-5)) then
         write(*, *) 'IndexMin_I=', Ptr2%IndexMin_I, ' is different from ', &
           Ptr%IndexMin_I
         call CON_stop(NameSub)
-      end if
+      endif
       if (any(abs(Ptr2%IndexMax_I - Ptr%IndexMax_I) > 1e-5)) then
         write(*, *) 'IndexMax_I=', Ptr2%IndexMax_I, ' is different from ', &
           Ptr%IndexMax_I
         call CON_stop(NameSub)
-      end if
+      endif
       if (any(abs(Ptr2%dIndex_I - Ptr%dIndex_I) > 1e-6)) then
         write(*, *) 'dIndex_I=', Ptr2%dIndex_I, ' is different from ', &
           Ptr%dIndex_I
         call CON_stop(NameSub)
-      end if
+      endif
       if (any(Ptr2%IsLogIndex_I .neqv. Ptr%IsLogIndex_I)) then
         write(*, *) 'IsLogIndex_I=', Ptr2%IsLogIndex_I, ' is different from ', &
           Ptr%IsLogIndex_I
         call CON_stop(NameSub)
-      end if
+      endif
       if (Ptr2%nParam /= Ptr%nParam) then
         write(*, *) 'nParam=', Ptr2%nParam, ' is different from ', Ptr%nParam
         call CON_stop(NameSub)
-      end if
+      endif
       if (Ptr%nParam > 0) then
         if (any(Ptr2%Param_I /= Ptr%Param_I)) then
           write(*, *) 'Param_I=', Ptr2%Param_I, ' is different from ', Ptr%Param_I
           call CON_stop(NameSub)
-        end if
-      end if
+        endif
+      endif
 
     end subroutine compare_tables
 

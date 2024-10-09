@@ -26,7 +26,7 @@ subroutine amiedt(ilat, ilon, ntime, etheta, ephi, potkv)
     potkv = 0.0
     etheta = 0.0
     ephi = 0.0
-  end if
+  endif
 
 end subroutine amiedt
 
@@ -216,7 +216,7 @@ subroutine amiespot(by, bz, rmlat, rmlt, etheta, ephi, potkv)
   if (fmla1 > 90.) then
     fmla1 = 180.-fmla1
     xmlt1 = xmlt1 + 12.
-  end if
+  endif
   call amiemodel(xmlt1, fmla1, by, bz, p1, IncludeBackground)
   call amiemodel(xmlt, fmla - 1., by, bz, p2, IncludeBackground)
   etheta = (p1 - p2)/stepa
@@ -248,10 +248,10 @@ subroutine amiespot(by, bz, rmlat, rmlt, etheta, ephi, potkv)
     if (fmla1 .gt. 90.) then
       fmla1 = 180.-fmla1
       xmlt1 = xmlt1 + 12.
-    end if
+    endif
     call amiemodel(xmlt1, fmla1, by, bz, p1, IncludeBackground)
     call amiemodel(xmlt, fmla - 1., by, bz, p2, IncludeBackground)
-  end if
+  endif
 
   ephi = (p2 - p1)/step2
 
@@ -282,7 +282,7 @@ subroutine amiemodel(inmlt, inmlat, by, bz, pot, IncludeBackground)
   if (DebugLevel > 3) then
     write(*, *) "  ====> In subroutine amiemodel"
     write(*, *) "        inputs : ", inmlt, inmlat, by, bz, IncludeBackground
-  end if
+  endif
 
   ! turn latitude and mlt into grid point number
   ! with floating point, so if it is between a grid point, then we can
@@ -349,7 +349,7 @@ subroutine amiemodel(inmlt, inmlat, by, bz, pot, IncludeBackground)
 
     back = 0.0
 
-  end if
+  endif
 
   if (by <= 0.0) then
     poty = by*aspyn(ilon1, ilat1)*lowt1*lawt1 + &
@@ -361,7 +361,7 @@ subroutine amiemodel(inmlt, inmlat, by, bz, pot, IncludeBackground)
            by*aspyp(ilon1, ilat2)*lowt1*lawt2 + &
            by*aspyp(ilon2, ilat1)*lowt2*lawt1 + &
            by*aspyp(ilon2, ilat2)*lowt2*lawt2
-  end if
+  endif
 
   poty = poty/(lowt1*lawt1 + lowt1*lawt2 + lowt2*lawt1 + lowt2*lawt2)
 
@@ -375,7 +375,7 @@ subroutine amiemodel(inmlt, inmlat, by, bz, pot, IncludeBackground)
            bz*aspzp(ilon1, ilat2)*lowt1*lawt2 + &
            bz*aspzp(ilon2, ilat1)*lowt2*lawt1 + &
            bz*aspzp(ilon2, ilat2)*lowt2*lawt2
-  end if
+  endif
 
   potz = potz/(lowt1*lawt1 + lowt1*lawt2 + lowt2*lawt1 + lowt2*lawt2)
 
@@ -420,63 +420,63 @@ subroutine read_amies(unitin)
     read(unitin, '(A100)') line
     do i = 1, inlat
       read(unitin, fmt) (aspx(k, i), k=1, inlon)
-    end do
+    enddo
 
     read(unitin, '(A100)') line
     do i = 1, inlat
       read(unitin, fmt) (aspxi(k, i), k=1, inlon)
-    end do
+    enddo
 
     read(unitin, '(A100)') line
     do i = 1, inlat
       read(unitin, fmt) (aspyn(k, i), k=1, inlon)
-    end do
+    enddo
 
     read(unitin, '(A100)') line
     do i = 1, inlat
       read(unitin, fmt) (aspyni(k, i), k=1, inlon)
-    end do
+    enddo
 
     read(unitin, '(A100)') line
     do i = 1, inlat
       read(unitin, fmt) (aspyp(k, i), k=1, inlon)
-    end do
+    enddo
 
     read(unitin, '(A100)') line
     do i = 1, inlat
       read(unitin, fmt) (aspypi(k, i), k=1, inlon)
-    end do
+    enddo
 
     read(unitin, '(A100)') line
     do i = 1, inlat
       read(unitin, fmt) (aspzn(k, i), k=1, inlon)
-    end do
+    enddo
 
     read(unitin, '(A100)') line
     do i = 1, inlat
       read(unitin, fmt) (aspzni(k, i), k=1, inlon)
-    end do
+    enddo
 
     read(unitin, '(A100)') line
     do i = 1, inlat
       read(unitin, fmt) (aspzp(k, i), k=1, inlon)
-    end do
+    enddo
 
     read(unitin, '(A100)') line
     do i = 1, inlat
       read(unitin, fmt) (aspzpi(k, i), k=1, inlon)
-    end do
+    enddo
 
     read(unitin, '(A100)') line
     do i = 1, inlat
       read(unitin, fmt) (aspf(k, i), k=1, inlon)
-    end do
+    enddo
 
     read(unitin, '(A100)') line
     do i = 1, inlat
       read(unitin, fmt) (aspfi(k, i), k=1, inlon)
-    end do
+    enddo
 
-  end if
+  endif
 
 end subroutine read_amies

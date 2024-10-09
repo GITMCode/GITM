@@ -48,7 +48,7 @@ subroutine calc_GITM_sources(iBlock)
     call calc_physics(iBlock)
     call euv_ionization_heat(iBlock)
 
-  end if
+  endif
 
   if (.not. UseSolarHeating) EuvHeating = 0.0
 
@@ -67,7 +67,7 @@ subroutine calc_GITM_sources(iBlock)
     call calc_thermal_conduction(iBlock)
   else
     Conduction = 0.0
-  end if
+  endif
 
   !\
   ! IR Heating (Venus Only) ---------------------------------------
@@ -76,7 +76,7 @@ subroutine calc_GITM_sources(iBlock)
   QnirTOT(:, :, :, :) = 0.0
   if (UseIRHeating .and. isVenus) then
     call calc_ir_heating(iBlock)
-  end if
+  endif
 
   !\
   ! ---------------------------------------------------------------
@@ -93,7 +93,7 @@ subroutine calc_GITM_sources(iBlock)
   else
     IonDrag = 0.0
     VerticalIonDrag = 0.0
-  end if
+  endif
 
   !\
   ! Viscosity ----------------------------------------------------
@@ -103,7 +103,7 @@ subroutine calc_GITM_sources(iBlock)
     call calc_viscosity(iBlock)
   else
     Viscosity = 0.0
-  end if
+  endif
 
   !\
   ! ---------------------------------------------------------------

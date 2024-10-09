@@ -19,7 +19,7 @@ subroutine report(str, iLevel)
 
   do i = 1, iLevel
     cArrow(i:i) = "="
-  end do
+  enddo
   cArrow(iLevel + 1:iLevel + 1) = ">"
 
   write(*, *) cArrow(1:iLevel + 1), " ", str
@@ -48,7 +48,7 @@ subroutine stop_gitm(str)
     write(*, *) 'Stopping execution! iProc=', iProc, ' with msg=', str
     call MPI_abort(iCommGITM, erno, ierror)
     stop
-  end if
+  endif
 
 end subroutine stop_gitm
 
@@ -67,12 +67,12 @@ subroutine i2s(iValue, cOut, iLength)
     write(cFormat, "('(I',I1,')')") iLength
   else
     write(cFormat, "('(I',I2,')')") iLength
-  end if
+  endif
 
   write(cOut, cFormat) iValue
 
   do i = 1, iLength
     if (cOut(i:i) == ' ') cOut(i:i) = '0'
-  end do
+  enddo
 
 end subroutine i2s

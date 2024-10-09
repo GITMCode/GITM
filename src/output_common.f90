@@ -46,16 +46,16 @@ integer function bad_outputtype()
       if (index(OutputType(iOutputType), NameValidTypes(j)) /= 0) then
         IsFound = .true.
         exit strloop
-      end if
-    end do strloop
+      endif
+    enddo strloop
 
     ! If not found, set error code and return:
     if (.not. IsFound) then
       bad_outputtype = iOutputType
       return
-    end if
+    endif
 
-  end do
+  enddo
 
   bad_outputtype = 0
   return
@@ -112,15 +112,15 @@ subroutine output(dir, iBlock, iOutputType)
     cType = OutputType(iOutputType)
     if (cType(1:2) == "3D" .and. Is1D) then
       cType(1:2) = "1D"
-    end if
-  end if
+    endif
+  endif
 
   if (Is1D) then
     iiLat = 1
     iiLon = 1
     rLon = 1.0
     rLat = 1.0
-  end if
+  endif
 
   ! If there are satellites, initialize the current satellite so that
   ! the maximum from all processors will contain the real value.  This is
@@ -129,7 +129,7 @@ subroutine output(dir, iBlock, iOutputType)
 
   if (CurrSat > 0 .and. RCMRFlag) then
     SatAltDat(CurrSat) = -1.0e32
-  end if
+  endif
 
   if (iOutputType <= -1) then
     LatFind = CurrentSatellitePosition(iNorth_)
@@ -141,17 +141,17 @@ subroutine output(dir, iBlock, iOutputType)
       call BlockAltIndex(AltFind, iBlock, iiLon, iiLat, iiAlt, rAlt)
 
       if (iiAlt < 0) return
-    end if
+    endif
 
     if (iDebugLevel > 2) then
       write(*, *) 'For BlockLocationIndex:'
       write(*, *) 'LonFind, LatFind = ', LonFind, LatFind
       write(*, *) 'Found iBlock, iiLon, iiLat, rLon, rLat =', &
         iBlock, iiLon, iiLat, rLon, rLat
-    end if
+    endif
 
     if (iiLon < 0 .or. iiLat < 0) return
-  end if
+  endif
 
   ! Xing Meng 2020-03-16: HIME type output, save output for user-defined region only
   ! It only works under the assumption of one block per processor
@@ -167,13 +167,13 @@ subroutine output(dir, iBlock, iOutputType)
             .and. Latitude(iLat, iBlock) <= HIMEPlotLatEnd*pi/180.) then
           DoSaveHIMEPlot = .true.
           EXIT
-        end if
-      end do
-    end do
+        endif
+      enddo
+    enddo
     ! Do not write output at all if the current block is outside of the
     ! user-defined region. iProc=0 writes the header file
     if (iProc /= 0 .and. .not. DoSaveHIMEPlot) return
-  end if
+  endif
 
   if ((iProc == 0 .and. iBlock == 1) .and. (iOutputType > -1)) &
     write(*, '(a,i7,i5,5i3)') &
@@ -223,12 +223,12 @@ subroutine output(dir, iBlock, iOutputType)
     else
       cTime = "t"//cYear//cMonth//cDay//"_"//cHour//cMinute//cSecond
       cL = 14
-    end if
+    endif
 
     if (IsFirstTime) cTimeSave = cTime
   else
     cTime = cTimeSave
-  end if
+  endif
 
   !! ---------------------------------------------
   !! Write the binary data files
@@ -245,7 +245,7 @@ subroutine output(dir, iBlock, iOutputType)
       open(unit=iOutputUnit_, form="unformatted", &
            file=trim(dir)//"/"//trim(CurrentSatelliteName)//"_"//cTime(1:cL)//".sat", &
            status="unknown", position='append')
-    end if
+    endif
   else
     ! For HME type output, open file only if DoSaveHIMEPlot=T. This is for iProc=0,
     ! because other iProcs with DoSaveHIMEPlot=F exit the subroutine earlier.
@@ -261,9 +261,9 @@ subroutine output(dir, iBlock, iOutputType)
         open(unit=iOutputUnit_, form="unformatted", &
              file=trim(dir)//"/"//cType//"_"//cTime(1:cL)//"."//cBlock, &
              status="unknown", position='append')
-      end if
-    end if
-  end if
+      endif
+    endif
+  endif
 
   nGCs = 2
 
@@ -280,19 +280,19 @@ subroutine output(dir, iBlock, iOutputType)
     if (iRhoOutputList) nvars_to_write = nvars_to_write + 1
     do iSpecies = 1, nSpeciesTotal
       if (iNeutralDensityOutputList(iSpecies)) nvars_to_write = nvars_to_write + 1
-    end do
+    enddo
     do i = 1, 3
       if (iNeutralWindOutputList(i)) nvars_to_write = nvars_to_write + 1
-    end do
+    enddo
     do iSpecies = 1, nIons
       if (iIonDensityOutputList(iSpecies)) nvars_to_write = nvars_to_write + 1
-    end do
+    enddo
     do i = 1, 3
       if (iIonWindOutputList(i)) nvars_to_write = nvars_to_write + 1
-    end do
+    enddo
     do i = 1, 3
       if (iTemperatureOutputList(i)) nvars_to_write = nvars_to_write + 1
-    end do
+    enddo
 
     call output_3dlst(iBlock)
 
@@ -439,7 +439,7 @@ subroutine output(dir, iBlock, iOutputType)
         open(unit=iOutputUnit_, &
              file=trim(dir)//"/"//trim(CurrentSatelliteName)//"_"//cTime(1:cL)//".header", &
              status="unknown", position='append')
-      end if
+      endif
     else
       inquire(file=trim(dir)//"/"//cType//"_"//cTime(1:cL)//".header", &
               EXIST=IsThere)
@@ -451,8 +451,8 @@ subroutine output(dir, iBlock, iOutputType)
         open(unit=iOutputUnit_, &
              file=trim(dir)//"/"//cType//"_"//cTime(1:cL)//".header", &
              status="unknown", position='append')
-      end if
-    end if
+      endif
+    endif
 
     call write_head_blocks
     call write_head_time
@@ -464,7 +464,7 @@ subroutine output(dir, iBlock, iOutputType)
       call output_header_new
     else
       call output_header
-    end if
+    endif
 
     write(iOutputUnit_, *) ""
     write(iOutputUnit_, *) "END"
@@ -472,7 +472,7 @@ subroutine output(dir, iBlock, iOutputType)
 
     close(unit=iOutputUnit_)
 
-  end if
+  endif
 
   IsFirstTime = .false.
 
@@ -495,7 +495,7 @@ contains
       write(iOutputUnit_, "(I7,7A)") nAlts + 4, " nAltitudes"
     else
       write(iOutputUnit_, "(I7,7A)") 1, " nAltitudes"
-    end if
+    endif
     if (cType(1:2) == "1D" .or. cType(1:2) == '0D') then
       write(iOutputUnit_, "(I7,7A)") 1, " nLatitudes"
       write(iOutputUnit_, "(I7,7A)") 1, " nLongitudes"
@@ -517,8 +517,8 @@ contains
       else
         write(iOutputUnit_, "(I7,7A)") nLats + nGCs*2, " nLatitudes"
         write(iOutputUnit_, "(I7,7A)") nLons + nGCs*2, " nLongitudes"
-      end if
-    end if
+      endif
+    endif
     write(iOutputUnit_, *) ""
 
     write(iOutputUnit_, *) "VARIABLE LIST"
@@ -532,62 +532,62 @@ contains
       if (iRhoOutputList) then
         write(iOutputUnit_, "(I7,A1,a)") iOff, " ", "Rho (kg/m3)"
         iOff = iOff + 1
-      end if
+      endif
       do iSpecies = 1, nSpeciesTotal
         if (iNeutralDensityOutputList(iSpecies)) then
           write(iOutputUnit_, "(I7,A1,a)") iOff, " ", &
             "["//cSpecies(iSpecies)//"] (/m3)"
           iOff = iOff + 1
-        end if
-      end do
+        endif
+      enddo
       if (iNeutralWindOutputList(1)) then
         write(iOutputUnit_, "(I7,A1,a)") iOff, " ", "Vn (east) (m/s)"
         iOff = iOff + 1
-      end if
+      endif
       if (iNeutralWindOutputList(2)) then
         write(iOutputUnit_, "(I7,A1,a)") iOff, " ", "Vn (north) (m/s)"
         iOff = iOff + 1
-      end if
+      endif
       if (iNeutralWindOutputList(3)) then
         write(iOutputUnit_, "(I7,A1,a)") iOff, " ", "Vn (up) (m/s)"
         iOff = iOff + 1
-      end if
+      endif
 
       do iSpecies = 1, nIons
         if (iIonDensityOutputList(iSpecies)) then
           write(iOutputUnit_, "(I7,A1,a)") iOff, " ", &
             "["//cIons(iSpecies)//"] (/m3)"
           iOff = iOff + 1
-        end if
-      end do
+        endif
+      enddo
 
       if (iIonWindOutputList(1)) then
         write(iOutputUnit_, "(I7,A1,a)") iOff, " ", "Vi (east) (m/s)"
         iOff = iOff + 1
-      end if
+      endif
       if (iIonWindOutputList(2)) then
         write(iOutputUnit_, "(I7,A1,a)") iOff, " ", "Vi (north) (m/s)"
         iOff = iOff + 1
-      end if
+      endif
       if (iIonWindOutputList(3)) then
         write(iOutputUnit_, "(I7,A1,a)") iOff, " ", "Vi (up) (m/s)"
         iOff = iOff + 1
-      end if
+      endif
 
       if (iTemperatureOutputList(1)) then
         write(iOutputUnit_, "(I7,A1,a)") iOff, " ", "Neutral Temperature (K)"
         iOff = iOff + 1
-      end if
+      endif
       if (iTemperatureOutputList(2)) then
         write(iOutputUnit_, "(I7,A1,a)") iOff, " ", "Ion Temperature (K)"
         iOff = iOff + 1
-      end if
+      endif
       if (iTemperatureOutputList(3)) then
         write(iOutputUnit_, "(I7,A1,a)") iOff, " ", "Electron Temperature (K)"
         iOff = iOff + 1
-      end if
+      endif
 
-    end if
+    endif
 
     if (cType(3:5) == "MAG") then
       write(iOutputUnit_, "(I7,A1,a)") 4, " ", "Magnetic Latitude"
@@ -596,7 +596,7 @@ contains
       write(iOutputUnit_, "(I7,A1,a)") 7, " ", "B.F. North"
       write(iOutputUnit_, "(I7,A1,a)") 8, " ", "B.F. Vertical"
       write(iOutputUnit_, "(I7,A1,a)") 9, " ", "B.F. Magnitude"
-    end if
+    endif
 
     if (cType(3:5) == "GEL") then
 
@@ -611,7 +611,7 @@ contains
       write(iOutputUnit_, "(I7,A1,a)") 12, " ", "DivJu FL"
       write(iOutputUnit_, "(I7,A1,a)") 13, " ", "FL Length"
 
-    end if
+    endif
 
     if (cType(1:5) == "2DANC") then
 
@@ -628,14 +628,14 @@ contains
       write(iOutputUnit_, "(I7,A1,a)") 12, " ", "AltIntNOCooling (W/m2)"
       write(iOutputUnit_, "(I7,A1,a)") 12, " ", "AltIntOCooling (W/m2)"
 
-    end if
+    endif
 
     if (cType(3:5) == "TEC") then
 
       write(iOutputUnit_, "(I7,A1,a)") 4, " ", "Solar Zenith Angle"
       write(iOutputUnit_, "(I7,A1,a)") 5, " ", "Vertical TEC"
 
-    end if
+    endif
 
     if (cType(3:5) == "THM") then
 
@@ -654,20 +654,20 @@ contains
         do iSpecies = 1, nSpeciesTotal
           write(iOutputUnit_, "(I7,A1,a,a)") 11 + iSpecies, " ", &
             "Production Rate ", cSpecies(iSpecies)
-        end do
+        enddo
         do iSpecies = 1, nSpeciesTotal
           write(iOutputUnit_, "(I7,A1,a,a)") 11 + nSpeciesTotal + iSpecies, " ", &
             "Loss Rate ", cSpecies(iSpecies)
 
-        end do
+        enddo
       else
         write(iOutputUnit_, "(I7,A1,a)") 15, " ", "Cp"
         write(iOutputUnit_, "(I7,A1,a)") 16, " ", "Rho"
         write(iOutputUnit_, "(I7,A1,a)") 17, " ", "E-Field Mag"
         write(iOutputUnit_, "(I7,A1,a)") 18, " ", "Sigma Ped"
-      end if
+      endif
 
-    end if
+    endif
 
     if (cType(3:5) == "CHM") then
 
@@ -699,7 +699,7 @@ contains
       write(iOutputUnit_, "(I7,A1,a)") 29, " ", "O!U+!N(2P) + N!D2!N"
       write(iOutputUnit_, "(I7,A1,a)") 30, " ", "Chemical Heating Rate"
 
-    end if
+    endif
 
     if (cType(3:5) == "GLO") then
 
@@ -707,7 +707,7 @@ contains
       write(iOutputUnit_, "(I7,A1,a)") 5, " ", "PhotoElectronUp"
       write(iOutputUnit_, "(I7,A1,a)") 6, " ", "PhotoElectronDown"
 
-    end if
+    endif
 
     if (cType(3:5) == "MEL") then
 
@@ -738,7 +738,7 @@ contains
       write(iOutputUnit_, "(I7,A1,a)") 28, " ", "Kphi"
       write(iOutputUnit_, "(I7,A1,a)") 29, " ", "Klamda"
 
-    end if
+    endif
 
     if (cType(3:5) == "ALL" .or. cType(3:5) == "NEU") then
 
@@ -748,7 +748,7 @@ contains
       do iSpecies = 1, nSpeciesTotal
         write(iOutputUnit_, "(I7,A1,a)") iOff + iSpecies, " ", &
           "["//cSpecies(iSpecies)//"]"
-      end do
+      enddo
 
       iOff = 4 + nSpeciesTotal
       write(iOutputUnit_, "(I7,A1,a)") iOff + 1, " ", "Temperature"
@@ -760,9 +760,9 @@ contains
       do iSpecies = 1, nSpecies
         write(iOutputUnit_, "(I7,A1,a)") iOff + iSpecies, " ", &
           "V!Dn!N (up,"//cSpecies(iSpecies)//")"
-      end do
+      enddo
 
-    end if
+    endif
 
     if (cType(3:5) == "ALL" .or. cType(3:5) == "ION") then
 
@@ -770,7 +770,7 @@ contains
       if (cType(3:5) == "ALL") iOff = 8 + nSpeciesTotal + nSpecies
       do iIon = 1, nIons
         write(iOutputUnit_, "(I7,A1,a)") iOff + iIon, " ", "["//cIons(iIon)//"]"
-      end do
+      enddo
 
       iOff = iOff + nIons
 
@@ -825,9 +825,9 @@ contains
         write(iOutputUnit_, "(I7,A1,a)") iOff + 17, " ", "PressGrad (east)"
         write(iOutputUnit_, "(I7,A1,a)") iOff + 18, " ", "PressGrad (north)"
         write(iOutputUnit_, "(I7,A1,a)") iOff + 19, " ", "PressGrad (up)"
-      end if
+      endif
 
-    end if
+    endif
 
     if (cType == "3DHME") then
 
@@ -837,7 +837,7 @@ contains
       do iSpecies = 1, nSpeciesTotal
         write(iOutputUnit_, "(I7,A1,a)") iOff + iSpecies, " ", &
           "["//cSpecies(iSpecies)//"]"
-      end do
+      enddo
 
       iOff = 4 + nSpeciesTotal
       write(iOutputUnit_, "(I7,A1,a)") iOff + 1, " ", "Temperature"
@@ -849,12 +849,12 @@ contains
       do iSpecies = 1, nSpecies
         write(iOutputUnit_, "(I7,A1,a)") iOff + iSpecies, " ", &
           "V!Dn!N (up,"//cSpecies(iSpecies)//")"
-      end do
+      enddo
 
       iOff = 8 + nSpeciesTotal + nSpecies
       do iIon = 1, nIons
         write(iOutputUnit_, "(I7,A1,a)") iOff + iIon, " ", "["//cIons(iIon)//"]"
-      end do
+      enddo
 
       iOff = iOff + nIons
       write(iOutputUnit_, "(I7,A1,a)") iOff + 1, " ", "eTemperature"
@@ -880,14 +880,14 @@ contains
       write(iOutputUnit_, "(I7,A1,a)") iOff + 14, " ", "E.F. North"
       write(iOutputUnit_, "(I7,A1,a)") iOff + 15, " ", "E.F. Vertical"
 
-    end if
+    endif
 
     if (cType == "2DHME") then
 
       write(iOutputUnit_, "(I7,A1,a)") 4, " ", "Local Time"
       write(iOutputUnit_, "(I7,A1,a)") 5, " ", "Vertical TEC"
 
-    end if
+    endif
 
   end subroutine output_header
 
@@ -916,7 +916,7 @@ contains
     do iSpecies = 1, nSpeciesTotal
       write(iOutputUnit_, "(I7,A1,a)") iOff + iSpecies, " ", &
         "["//cSpecies(iSpecies)//"]"
-    end do
+    enddo
 
     iOff = iOff + nSpeciesTotal
     write(iOutputUnit_, "(I7,A1,a)") iOff + 1, " ", "Temperature"
@@ -928,12 +928,12 @@ contains
     do iSpecies = 1, nSpecies
       write(iOutputUnit_, "(I7,A1,a)") iOff + iSpecies, " ", &
         "V!Dn!N (up,"//cSpecies(iSpecies)//")"
-    end do
+    enddo
 
     iOff = iOff + nSpecies
     do iIon = 1, nIons
       write(iOutputUnit_, "(I7,A1,a)") iOff + iIon, " ", "["//cIons(iIon)//"]"
-    end do
+    enddo
 
     iOff = iOff + nIons
     write(iOutputUnit_, "(I7,A1,a)") iOff + 1, " ", "eTemperature"
@@ -967,7 +967,7 @@ contains
     else
       write(iOutputUnit_, "(I7,A)") 1, " nBlocksLat"
       write(iOutputUnit_, "(I7,A)") 1, " nBlocksLon"
-    end if
+    endif
     write(iOutputUnit_, *) ""
 
   end subroutine write_head_blocks
@@ -1142,9 +1142,9 @@ subroutine output_3dall(iBlock)
           eTemperature(iLon, iLat, iAlt, iBlock), &
           ITemperature(iLon, iLat, iAlt, iBlock), &
           (Ivelocity(iLon, iLat, iAlt, i, iBlock), i=1, 3)
-      end do
-    end do
-  end do
+      enddo
+    enddo
+  enddo
 
 end subroutine output_3dall
 
@@ -1180,54 +1180,54 @@ subroutine output_3dlst(iBlock)
         if (iRhoOutputList) then
           iOff = iOff + 1
           tmp(iOff) = Rho(iLon, iLat, iAlt, iBlock)
-        end if
+        endif
 
         do iSpecies = 1, nSpeciesTotal
           if (iNeutralDensityOutputList(iSpecies)) then
             iOff = iOff + 1
             tmp(iOff) = NDensityS(iLon, iLat, iAlt, iSpecies, iBlock)
-          end if
-        end do
+          endif
+        enddo
 
         do i = 1, 3
           if (iNeutralWindOutputList(i)) then
             iOff = iOff + 1
             tmp(iOff) = Velocity(iLon, iLat, iAlt, i, iBlock)
-          end if
-        end do
+          endif
+        enddo
 
         do iSpecies = 1, nIons
           if (iIonDensityOutputList(iSpecies)) then
             iOff = iOff + 1
             tmp(iOff) = IDensityS(iLon, iLat, iAlt, iSpecies, iBlock)
-          end if
-        end do
+          endif
+        enddo
 
         do i = 1, 3
           if (iIonWindOutputList(i)) then
             iOff = iOff + 1
             tmp(iOff) = IVelocity(iLon, iLat, iAlt, i, iBlock)
-          end if
-        end do
+          endif
+        enddo
 
         if (iTemperatureOutputList(1)) then
           iOff = iOff + 1
           tmp(iOff) = Temperature(iLon, iLat, iAlt, iBlock)*TempUnit(iLon, iLat, iAlt)
-        end if
+        endif
         if (iTemperatureOutputList(2)) then
           iOff = iOff + 1
           tmp(iOff) = ITemperature(iLon, iLat, iAlt, iBlock)
-        end if
+        endif
         if (iTemperatureOutputList(3)) then
           iOff = iOff + 1
           tmp(iOff) = eTemperature(iLon, iLat, iAlt, iBlock)
-        end if
+        endif
 
         write(iOutputUnit_) tmp(1:iOff)
 
-      end do
-    end do
-  end do
+      enddo
+    enddo
+  enddo
 
 end subroutine output_3dlst
 
@@ -1260,9 +1260,9 @@ subroutine output_3dneu(iBlock)
           Temperature(iLon, iLat, iAlt, iBlock)*TempUnit(iLon, iLat, iAlt), &
           velocity(iLon, iLat, iAlt, :, iBlock), &
           VerticalVelocity(iLon, iLat, iAlt, :, iBlock)
-      end do
-    end do
-  end do
+      enddo
+    enddo
+  enddo
 
 end subroutine output_3dneu
 
@@ -1305,9 +1305,9 @@ subroutine output_3dion(iBlock)
           sqrt(sum(EField(iLon, iLat, iAlt, :)**2)), & ! magnitude of E.F.
           Collisions(iLon, iLat, iAlt, iVIN_), & ! AGB: nu_in
           IonPressureGradient(iLon, iLat, iAlt, :, iBlock) ! AGB: 3D Grad P
-      end do
-    end do
-  end do
+      enddo
+    enddo
+  enddo
 
 end subroutine output_3dion
 
@@ -1353,9 +1353,9 @@ subroutine output_3dthm(iBlock)
           sqrt(sum(EField(iLon, iLat, iAlt, :)**2)), & ! magnitude of E.F.
           Sigma_Pedersen(iLon, iLat, iAlt)
 
-      end do
-    end do
-  end do
+      enddo
+    enddo
+  enddo
 
 end subroutine output_3dthm
 
@@ -1402,9 +1402,9 @@ subroutine output_3dhme(iBlock)
           Potential(iLon, iLat, iAlt, iBlock), &
           PotentialY(iLon, iLat, iAlt, iBlock), &
           EField(iLon, iLat, iAlt, :)
-      end do
-    end do
-  end do
+      enddo
+    enddo
+  enddo
 
 end subroutine output_3dhme
 
@@ -1428,7 +1428,7 @@ subroutine output_1dthm
     do iSpecies = 1, nSpeciesTotal
       varsS(iSpecies) = NeutralSourcesTotal(iialt, iSpecies)
       varsL(iSpecies) = NeutralLossesTotal(iialt, iSpecies)
-    end do
+    enddo
 
     write(iOutputUnit_) &
       Longitude(1, 1), &
@@ -1447,7 +1447,7 @@ subroutine output_1dthm
       EuvTotal(1, 1, iiAlt, 1)*dt, &
       varsS, varsL
 
-  end do
+  enddo
 
 end subroutine output_1dthm
 
@@ -1471,7 +1471,7 @@ subroutine output_1dchm(iBlock)
     do iReact = 1, nReactions
       vars(iReact) = ChemicalHeatingSpecies(1, 1, iiAlt, iReact)/ &
                      Element_Charge
-    end do
+    enddo
 
     write(iOutputUnit_) &
       Longitude(1, iBlock), &
@@ -1482,7 +1482,7 @@ subroutine output_1dchm(iBlock)
       cp(1, 1, iiAlt, iBlock)* &
       Rho(1, 1, iiAlt, iBlock)*TempUnit(1, 1, iiAlt)/ &
       Element_Charge
-  end do
+  enddo
 
 end subroutine output_1dchm
 
@@ -1512,7 +1512,7 @@ subroutine output_3dchm(iBlock)
           vars(iReact) = ChemicalHeatingSpecies(iiLon, iiLat, iiAlt, iReact)/ &
                          Element_Charge
 
-        end do
+        enddo
 
         write(iOutputUnit_) &
           Longitude(iLon, iBlock), &
@@ -1523,9 +1523,9 @@ subroutine output_3dchm(iBlock)
           cp(iilon, iiLat, iiAlt, iBlock)* &
           Rho(iilon, iiLat, iiAlt, iBlock)*TempUnit(iilon, iiLat, iiAlt)/ &
           Element_Charge
-      end do
-    end do
-  end do
+      enddo
+    enddo
+  enddo
 
 end subroutine output_3dchm
 
@@ -1627,8 +1627,8 @@ subroutine output_2dgel(iBlock)
         HallFieldLine(iLon, iLat), &
         DivJuFieldLine(iLon, iLat), &
         LengthFieldLine(iLon, iLat)
-    end do
-  end do
+    enddo
+  enddo
 
 end subroutine output_2dgel
 
@@ -1658,8 +1658,8 @@ subroutine output_2dtec(iBlock)
         Altitude_GB(iLon, iLat, iAlt, iBlock), &
         Sza(iLon, iLat, iBlock), &
         VTEC(iLon, iLat, iBlock)
-    end do
-  end do
+    enddo
+  enddo
 
 end subroutine output_2dtec
 
@@ -1702,8 +1702,8 @@ subroutine output_2danc(iBlock)
         CO2Cooling2d(iLon, iLat), &
         NOCooling2d(iLon, iLat), &
         OCooling2d(iLon, iLat)
-    end do
-  end do
+    enddo
+  enddo
 
 end subroutine output_2danc
 
@@ -1732,9 +1732,9 @@ subroutine output_3dmag(iBlock)
           mLongitude(iLon, iLat, iAlt, iBlock), &
           B0(iLon, iLat, iAlt, :, iBlock)
         ! B0 has 4 elements of the geomag field, the E, N, Up, and magnitude
-      end do
-    end do
-  end do
+      enddo
+    enddo
+  enddo
 
 end subroutine output_3dmag
 
@@ -1786,8 +1786,8 @@ subroutine output_2dmel(iBlock)
         Ed2new(iLon, iLat), &
         kpmMC(iLon, iLat), &
         klmMC(iLon, iLat)
-    end do
-  end do
+    enddo
+  enddo
 
 end subroutine output_2dmel
 
@@ -1817,8 +1817,8 @@ subroutine output_2dhme(iBlock)
         Altitude_GB(iLon, iLat, iAlt, iBlock), &
         LocalTime(iLon), &
         VTEC(iLon, iLat, iBlock)
-    end do
-  end do
+    enddo
+  enddo
 
 end subroutine output_2dhme
 
@@ -1861,7 +1861,7 @@ subroutine output_1dall(iiLon, iiLat, iBlock, rLon, rLat, iUnit)
     do iSpecies = 1, nSpeciesTotal
       Tmp = NDensityS(0:nLons + 1, 0:nLats + 1, iAlt, iSpecies, iBlock)
       Vars(iOff + iSpecies) = inter(Tmp, iiLon, iiLat, rlon, rlat)
-    end do
+    enddo
 
     Tmp = Temperature(0:nLons + 1, 0:nLats + 1, iAlt, iBlock)* &
           TempUnit(0:nLons + 1, 0:nLats + 1, iAlt)
@@ -1871,19 +1871,19 @@ subroutine output_1dall(iiLon, iiLat, iBlock, rLon, rLat, iUnit)
     do iDir = 1, 3
       Tmp = Velocity(0:nLons + 1, 0:nLats + 1, iAlt, iDir, iBlock)
       Vars(iOff + iDir) = inter(Tmp, iiLon, iiLat, rlon, rlat)
-    end do
+    enddo
 
     iOff = 8 + nSpeciesTotal
     do iSpecies = 1, nSpecies
       Tmp = VerticalVelocity(0:nLons + 1, 0:nLats + 1, iAlt, iSpecies, iBlock)
       Vars(iOff + iSpecies) = inter(Tmp, iiLon, iiLat, rlon, rlat)
-    end do
+    enddo
 
     iOff = 8 + nSpeciesTotal + nSpecies
     do iIon = 1, nIons
       Tmp = IDensityS(0:nLons + 1, 0:nLats + 1, iAlt, iIon, iBlock)
       Vars(iOff + iIon) = inter(Tmp, iiLon, iiLat, rlon, rlat)
-    end do
+    enddo
 
     iOff = 8 + nSpeciesTotal + nSpecies + nIons + 1
     Tmp = eTemperature(0:nLons + 1, 0:nLats + 1, iAlt, iBlock)
@@ -1934,7 +1934,7 @@ subroutine output_1dall(iiLon, iiLat, iBlock, rLon, rLat, iUnit)
 
     write(iOutputUnit_) Vars
 
-  end do
+  enddo
 
 contains
 
@@ -1994,7 +1994,7 @@ subroutine output_0dall(iiLon, iiLat, iiAlt, iBlock, rLon, rLat, rAlt, iUnit)
   do iSpecies = 1, nSpeciesTotal
     Tmp = NDensityS(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1, iSpecies, iBlock)
     Vars(iOff + iSpecies) = inter(Tmp, iiLon, iiLat, iiAlt, rLon, rLat, rAlt)
-  end do
+  enddo
 
   Tmp = Temperature(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1, iBlock)* &
         TempUnit(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1)
@@ -2004,19 +2004,19 @@ subroutine output_0dall(iiLon, iiLat, iiAlt, iBlock, rLon, rLat, rAlt, iUnit)
   do iDir = 1, 3
     Tmp = Velocity(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1, iDir, iBlock)
     Vars(iOff + iDir) = inter(Tmp, iiLon, iiLat, iiAlt, rLon, rLat, rAlt)
-  end do
+  enddo
 
   iOff = 8 + nSpeciesTotal
   do iSpecies = 1, nSpecies
     Tmp = VerticalVelocity(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1, iSpecies, iBlock)
     Vars(iOff + iSpecies) = inter(Tmp, iiLon, iiLat, iiAlt, rLon, rLat, rAlt)
-  end do
+  enddo
 
   iOff = 8 + nSpeciesTotal + nSpecies
   do iIon = 1, nIons
     Tmp = IDensityS(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1, iIon, iBlock)
     Vars(iOff + iIon) = inter(Tmp, iiLon, iiLat, iiAlt, rLon, rLat, rAlt)
-  end do
+  enddo
 
   iOff = 8 + nSpeciesTotal + nSpecies + nIons + 1
   Tmp = eTemperature(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1, iBlock)
@@ -2042,7 +2042,7 @@ subroutine output_0dall(iiLon, iiLat, iiAlt, iBlock, rLon, rLat, rAlt, iUnit)
     Tmp = NDensityS(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1, iSpecies, iBlock) &
           /NDensity(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1, iBlock)
     Vars(iOff + iSpecies) = inter(Tmp, iiLon, iiLat, iiAlt, rLon, rLat, rAlt)
-  end do
+  enddo
 
   iOff = iOff + nSpecies
   Vars(iOff + 1) = Dt*RadCooling(1, 1, jAlt, iBlock)*TempUnit(1, 1, jAlt)
@@ -2121,7 +2121,7 @@ subroutine output_1dnew(iiLon, iiLat, iBlock, rLon, rLat, iUnit)
     do iSpecies = 1, nSpeciesTotal
       Tmp = NDensityS(0:nLons + 1, 0:nLats + 1, iAlt, iSpecies, iBlock)
       Vars(iOff + iSpecies) = inter(Tmp, iiLon, iiLat, rlon, rlat)
-    end do
+    enddo
 
     Tmp = Temperature(0:nLons + 1, 0:nLats + 1, iAlt, iBlock)* &
           TempUnit(0:nLons + 1, 0:nLats + 1, iAlt)
@@ -2131,19 +2131,19 @@ subroutine output_1dnew(iiLon, iiLat, iBlock, rLon, rLat, iUnit)
     do iDir = 1, 3
       Tmp = Velocity(0:nLons + 1, 0:nLats + 1, iAlt, iDir, iBlock)
       Vars(iOff + iDir) = inter(Tmp, iiLon, iiLat, rlon, rlat)
-    end do
+    enddo
 
     iOff = 10 + nSpeciesTotal
     do iSpecies = 1, nSpecies
       Tmp = VerticalVelocity(0:nLons + 1, 0:nLats + 1, iAlt, iSpecies, iBlock)
       Vars(iOff + iSpecies) = inter(Tmp, iiLon, iiLat, rlon, rlat)
-    end do
+    enddo
 
     iOff = 10 + nSpeciesTotal + nSpecies
     do iIon = 1, nIons
       Tmp = IDensityS(0:nLons + 1, 0:nLats + 1, iAlt, iIon, iBlock)
       Vars(iOff + iIon) = inter(Tmp, iiLon, iiLat, rlon, rlat)
-    end do
+    enddo
 
     iOff = iOff + 1
     Tmp = eTemperature(0:nLons + 1, 0:nLats + 1, iAlt, iBlock)
@@ -2157,18 +2157,18 @@ subroutine output_1dnew(iiLon, iiLat, iBlock, rLon, rLat, iUnit)
     do iDir = 1, 3
       Tmp = IVelocity(0:nLons + 1, 0:nLats + 1, iAlt, iDir, iBlock)
       Vars(iOff + iDir) = inter(Tmp, iiLon, iiLat, rlon, rlat)
-    end do
+    enddo
 
     iOff = iOff
     do iSpecies = 1, nSpecies
       Tmp = NDensityS(0:nLons + 1, 0:nLats + 1, iAlt, iSpecies, iBlock) &
             /NDensity(0:nLons + 1, 0:nLats + 1, iAlt, iBlock)
       Vars(iOff + iSpecies) = inter(Tmp, iiLon, iiLat, rlon, rlat)
-    end do
+    enddo
 
     write(iOutputUnit_) Vars
 
-  end do
+  enddo
 
 contains
 

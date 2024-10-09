@@ -58,9 +58,9 @@ subroutine AMIE_GetLats(LatsOut)
   do i = 1, AMIE_nMLTs
     do j = AMIE_nLats, 1, -1
       LatsOut(i, j, AMIE_North_) = AMIE_Lats(AMIE_nLats - j + 1)
-    end do
+    enddo
     LatsOut(i, 1:AMIE_nLats, AMIE_South_) = -AMIE_Lats(1:AMIE_nLats)
-  end do
+  enddo
 
 end subroutine AMIE_GetLats
 
@@ -77,7 +77,7 @@ subroutine AMIE_GetMLTs(MLTsOut)
   do j = 1, AMIE_nLats
     MLTsOut(1:AMIE_nMLTs, j, 1) = AMIE_MLTs(1:AMIE_nMLTs)
     MLTsOut(1:AMIE_nMLTs, j, 2) = AMIE_MLTs(1:AMIE_nMLTs)
-  end do
+  enddo
 
 end subroutine AMIE_GetMLTs
 
@@ -98,7 +98,7 @@ subroutine report_error_and_crash(iError, StringSource)
     write(*, *) "Source : ", StringSource
     write(*, *) cErrorCodes(iError)
     isOk = .false.
-  end if
+  endif
 
 end subroutine report_error_and_crash
 
@@ -206,7 +206,7 @@ subroutine AMIE_GetIonEFlux_New(TimeIn, Method, IonEFluxOut, iError)
     IonEFluxOut = AMIE_Interpolated
   else
     IonEFluxOut = rDummyeFlux
-  end if
+  endif
 
 end subroutine AMIE_GetIonEFlux_New
 
@@ -230,7 +230,7 @@ subroutine AMIE_GetIonAveE_New(TimeIn, Method, IonAveEOut, iError)
     IonAveEOut = AMIE_Interpolated
   else
     IonAveEOut = rDummyIonAveE
-  end if
+  endif
 
 end subroutine AMIE_GetIonAveE_New
 
@@ -254,7 +254,7 @@ subroutine AMIE_GetEleWaveEflux_New(TimeIn, Method, EleWaveEfluxOut, iError)
     EleWaveEfluxOut = AMIE_Interpolated
   else
     EleWaveEfluxOut = rDummyeFlux
-  end if
+  endif
 
 end subroutine AMIE_GetEleWaveEflux_New
 
@@ -278,7 +278,7 @@ subroutine AMIE_GetEleWaveAveE_New(TimeIn, Method, EleWaveAveEOut, iError)
     EleWaveAveEOut = AMIE_Interpolated
   else
     EleWaveAveEOut = rDummyAveE
-  end if
+  endif
 
 end subroutine AMIE_GetEleWaveAveE_New
 
@@ -302,7 +302,7 @@ subroutine AMIE_GetEleMonoEflux_New(TimeIn, Method, EleMonoEfluxOut, iError)
     EleMonoEfluxOut = AMIE_Interpolated
   else
     EleMonoEfluxOut = rDummyeFlux
-  end if
+  endif
 
 end subroutine AMIE_GetEleMonoEflux_New
 
@@ -326,7 +326,7 @@ subroutine AMIE_GetEleMonoAveE_New(TimeIn, Method, EleMonoAveEOut, iError)
     EleMonoAveEOut = AMIE_Interpolated
   else
     EleMonoAveEOut = rDummyAveE
-  end if
+  endif
 
 end subroutine AMIE_GetEleMonoAveE_New
 
@@ -363,9 +363,9 @@ subroutine AMIE_GetValue_New2(iVarIn, TimeIn, Method, iError)
       if ((iTime == AMIE_nTimes) .and. (.not. IsDone)) then
         iTime = iTime + 1
         IsDone = .true.
-      end if
+      endif
       iTime = iTime + 1
-    end do
+    enddo
 
     if (iTime <= AMIE_nTimes + 1) then
 
@@ -381,8 +381,8 @@ subroutine AMIE_GetValue_New2(iVarIn, TimeIn, Method, iError)
           AMIE_Interpolated = -1.0e32
           iError = ecBeforeStartTime_
           return
-        end if
-      end if
+        endif
+      endif
     else
       dT = AMIE_Time(2, iBLK) - AMIE_Time(1, iBLK)
 
@@ -395,8 +395,8 @@ subroutine AMIE_GetValue_New2(iVarIn, TimeIn, Method, iError)
         AMIE_Interpolated = -1.0e32
         iError = ecAfterEndTime_
         return
-      end if
-    end if
+      endif
+    endif
 
     if (Method == AMIE_After_ .or. &
         Method == AMIE_Closest_) then
@@ -406,8 +406,8 @@ subroutine AMIE_GetValue_New2(iVarIn, TimeIn, Method, iError)
           if (abs(TimeIn - AMIE_Time(iTime, iBLK)) > &
               abs(TimeIn - AMIE_Time(iTime - 1, iBLK))) &
             iTime = iTime - 1
-        end if
-      end if
+        endif
+      endif
 
       if (iBLK == AMIE_South_) then
         AMIE_Interpolated(1:AMIE_nMLTs, 1:AMIE_nLats, iBLK) = &
@@ -417,10 +417,10 @@ subroutine AMIE_GetValue_New2(iVarIn, TimeIn, Method, iError)
         do iLat = AMIE_nLats, 1, -1
           AMIE_Interpolated(1:AMIE_nMLTs, iLat, iBLK) = &
             AMIE_Storage(iVarIn, 1:AMIE_nMLTs, AMIE_nLats - iLat + 1, iTime, iBLK)
-        end do
-      end if
+        enddo
+      endif
 
-    end if
+    endif
 
     if (Method == AMIE_Interpolate_) then
       ! This will do extrapolation if it is before the first time
@@ -442,11 +442,11 @@ subroutine AMIE_GetValue_New2(iVarIn, TimeIn, Method, iError)
           AMIE_Interpolated(1:AMIE_nMLTs, iLat, iBLK) = &
             (1.0 - dt)*AMIE_Storage(iVarIn, 1:AMIE_nMLTs, iL, iTime, iBLK) + &
             dt*AMIE_Storage(iVarIn, 1:AMIE_nMLTs, iL, iTime - 1, iBLK)
-        end do
-      end if
-    end if
+        enddo
+      endif
+    endif
 
-  end do
+  enddo
 
 end subroutine AMIE_GetValue_New2
 
@@ -476,21 +476,21 @@ subroutine get_AMIE_values(rtime)
   else
     EIEr3_HaveIonAveE = EIE_fill_IonAveE
     EIEr3_HaveIonEFlux = EIE_fill_eFlux
-  end if
+  endif
   if (useWave) then
     call AMIE_GetEleWaveAveE_New(rtime, EIE_Closest_, EIEr3_HaveWaveAveE, iError)
     call AMIE_GetEleWaveEFlux_New(rtime, EIE_Closest_, EIEr3_HaveWaveEFlux, iError)
   else
     EIEr3_HaveWaveAveE = EIE_fill_AveE
     EIEr3_HaveWaveEFlux = EIE_fill_eFlux
-  end if
+  endif
   if (useMono) then
     call AMIE_GetEleMonoAveE_New(rtime, EIE_Closest_, EIEr3_HaveMonoAveE, iError)
     call AMIE_GetEleMonoEFlux_New(rtime, EIE_Closest_, EIEr3_HaveMonoEFlux, iError)
   else
     EIEr3_HaveMonoAveE = EIE_fill_AveE
     EIEr3_HaveMonoEFlux = EIE_fill_eFlux
-  end if
+  endif
 
 end subroutine get_AMIE_values
 

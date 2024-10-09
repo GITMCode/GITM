@@ -183,7 +183,7 @@ subroutine loadapxsh(datafilenew, epochnew)
     call allocatearrays
     read(23) epochgrid, coeff0
     close(23)
-  end if
+  endif
 
   !LOAD COEFFICIENTS AND INTEPOLATE TO SELECTED EPOCH
   if ((epochnew .ne. epochlast) .or. (datafilenew .ne. datafilelast) .or. (loadflag)) then
@@ -200,20 +200,20 @@ subroutine loadapxsh(datafilenew, epochnew)
       iepoch0 = nepoch - 1
       do while ((epochgrid(iepoch0) .ge. epoch) .and. (iepoch0 .gt. 0))
         iepoch0 = iepoch0 - 1
-      end do
+      enddo
       iepoch1 = iepoch0 + 1
       we0 = dble((epochgrid(iepoch1) - epoch)/(epochgrid(iepoch1) - epochgrid(iepoch0)))
       we1 = 1D0 - we0
-    end if
+    endif
     do icoord = 0, 2
     do iterm = 0, nterm - 1
       qcoeff0(iterm, icoord) = we0*coeff0(iterm, iepoch0, icoord) + we1*coeff0(iterm, iepoch1, icoord)
       gcoeff0(iterm, icoord) = we0*coeff0(iterm, iepoch0, icoord + 3) + we1*coeff0(iterm, iepoch1, icoord + 3)
-    end do
-    end do
+    enddo
+    enddo
     altlastq = -999.0
     altlastg = -999.0
-  end if
+  endif
 
   !UPDATE LOAD VARIABLES
   loadflag = .false.
@@ -322,7 +322,7 @@ subroutine apxg2q(glat, glon, alt, vecflagin, qlatout, qlonout, f1, f2, f)
   if (loadflag) then
     print *, 'No coefficients loaded. Call LOADAPXSH first.'
     return
-  end if
+  endif
 
   !COPY INPUT FLAG
   vecflag = vecflagin
@@ -335,7 +335,7 @@ subroutine apxg2q(glat, glon, alt, vecflagin, qlatout, qlonout, f1, f2, f)
     do l = 1, lmax
       polynomq(l) = polynomq(l - 1)*rho
       dpolynomq(l) = dble(l)*polynomq(l - 1)
-    end do
+    enddo
     xqcoeff = 0
     yqcoeff = 0
     zqcoeff = 0
@@ -351,10 +351,10 @@ subroutine apxg2q(glat, glon, alt, vecflagin, qlatout, qlonout, f1, f2, f)
         dxqdrhocoeff(itermsh) = dxqdrhocoeff(itermsh) + qcoeff0(iterm, 0)*dpolynomq(l)
         dyqdrhocoeff(itermsh) = dyqdrhocoeff(itermsh) + qcoeff0(iterm, 1)*dpolynomq(l)
         dzqdrhocoeff(itermsh) = dzqdrhocoeff(itermsh) + qcoeff0(iterm, 2)*dpolynomq(l)
-      end do
-    end do
+      enddo
+    enddo
     altlastq = alt
-  end if
+  endif
 
   !COMPUTE SPHERICAL HARMONICS
   theta = (90D0 - dble(glat))*dtor
@@ -405,7 +405,7 @@ subroutine apxg2q(glat, glon, alt, vecflagin, qlatout, qlonout, f1, f2, f)
     f2(2) = sngl(qlongrad(1))
     f = f1(1)*f2(2) - f1(2)*f2(1)
 
-  end if
+  endif
 
   return
 
@@ -433,7 +433,7 @@ subroutine apxg2all(glat, glon, alt, hr, vecflagin, &
   if (loadflag) then
     print *, 'No coordinates loaded. Call LOADAPXSH first.'
     stop
-  end if
+  endif
 
   !INITIALIZE OUTPUT ARGUMENTS
   mlat = missing
@@ -457,7 +457,7 @@ subroutine apxg2all(glat, glon, alt, hr, vecflagin, &
   if (cosmlat .le. 1D0) then
     mlat = sngl(dacos(cosmlat)/dtor)
     if (qlat .lt. 0D0) mlat = -mlat
-  end if
+  endif
 
   !MODIFIED APEX BASE VECTOR CALCULATIONS
   if (vecflag .ne. 0) then
@@ -476,7 +476,7 @@ subroutine apxg2all(glat, glon, alt, hr, vecflagin, &
     do i = 1, 3
       d1(i) = sngl(Rrat*dsqrt(Rrat)*qlongrad(i))
       d2(i) = sngl(-2D0*Rrat*sinqlat*qlatgrad(i)/denom)
-    end do
+    enddo
     d2(3) = d2(3) - sngl(Rrat*cosqlat/denom)
     e3(1) = d1(2)*d2(3) - d1(3)*d2(2)
     e3(2) = d1(3)*d2(1) - d1(1)*d2(3)
@@ -484,7 +484,7 @@ subroutine apxg2all(glat, glon, alt, hr, vecflagin, &
     d = e3(1)**2 + e3(2)**2 + e3(3)**2
     do i = 1, 3
       d3(i) = e3(i)/d
-    end do
+    enddo
     d = sqrt(d)
     e1(1) = d2(2)*d3(3) - d2(3)*d3(2)
     e1(2) = d2(3)*d3(1) - d2(1)*d3(3)
@@ -493,7 +493,7 @@ subroutine apxg2all(glat, glon, alt, hr, vecflagin, &
     e2(2) = d3(3)*d1(1) - d3(1)*d1(3)
     e2(3) = d3(1)*d1(2) - d3(2)*d1(1)
 
-  end if
+  endif
 
   return
 
@@ -524,14 +524,14 @@ subroutine apxq2g(qlat0, qlon0, alt, prec, glatout, glonout, error)
   if (loadflag) then
     print *, 'No coordinates loaded. Call LOADAPXSH first.'
     stop
-  end if
+  endif
 
   !COMPUTE SPATIAL COEFFICIENTS FOR THE SPECIFIED HEIGHT
   if (alt .ne. altlastg) then
     rho = Re/(Re + dble(alt))
     do l = 1, lmax
       polynomg(l) = polynomg(l - 1)*rho
-    end do
+    enddo
     xgcoeff = 0
     ygcoeff = 0
     zgcoeff = 0
@@ -541,10 +541,10 @@ subroutine apxq2g(qlat0, qlon0, alt, prec, glatout, glonout, error)
         xgcoeff(itermsh) = xgcoeff(itermsh) + gcoeff0(iterm, 0)*polynomg(l)
         ygcoeff(itermsh) = ygcoeff(itermsh) + gcoeff0(iterm, 1)*polynomg(l)
         zgcoeff(itermsh) = zgcoeff(itermsh) + gcoeff0(iterm, 2)*polynomg(l)
-      end do
-    end do
+      enddo
+    enddo
     altlastg = alt
-  end if
+  endif
 
   !COMPUTE SPHERICAL HARMONICS
   phi = dble(qlon0)*dtor
@@ -598,7 +598,7 @@ subroutine apxq2g(qlat0, qlon0, alt, prec, glatout, glonout, error)
         errorlast = error
         error = sngl(acos(coserror)/dtor)
         niter = niter + 1
-      end do
+      enddo
       !NEAR QD POLES
     else if (error .gt. prec) then
       cosqlon0 = dcos(phi)
@@ -621,9 +621,9 @@ subroutine apxq2g(qlat0, qlon0, alt, prec, glatout, glonout, error)
         errorlast = error
         error = sngl(acos(coserror)/dtor)
         niter = niter + 1
-      end do
-    end if
-  end if
+      enddo
+    endif
+  endif
 
   return
 
@@ -651,7 +651,7 @@ subroutine shcalc(theta, phi)
     shgradphi(i1) = 0
     i = i + 1
     i1 = i1 + 1
-  end do
+  enddo
   do m = 1, mmax
     mphi = dble(m)*phi
     cosmphi = dcos(mphi)
@@ -660,7 +660,7 @@ subroutine shcalc(theta, phi)
       sh(i) = pbar(n, m)*cosmphi
       sh(i + 1) = pbar(n, m)*sinmphi
       i = i + 2
-    end do
+    enddo
     if (vecflag .ne. 0) then
       do n = m, nmax
         shgradtheta(i1) = vbar(n, m)*cosmphi
@@ -668,9 +668,9 @@ subroutine shcalc(theta, phi)
         shgradphi(i1) = -wbar(n, m)*sinmphi
         shgradphi(i1 + 1) = wbar(n, m)*cosmphi
         i1 = i1 + 2
-      end do
-    end if
-  end do
+      enddo
+    endif
+  enddo
 
 end subroutine shcalc
 
@@ -719,7 +719,7 @@ subroutine alfbasisinit(nmax0in, mmax0in)
     en(n) = dsqrt(dble(n*(n + 1)))
     anm(n, 0) = dsqrt(dble((2*n - 1)*(2*n + 1)))/narr(n)
     bnm(n, 0) = dsqrt(dble((2*n + 1)*(n - 1)*(n - 1))/dble(2*n - 3))/narr(n)
-  end do
+  enddo
   do m = 1, mmax0
     marr(m) = dble(m)
     cm(m) = dsqrt(dble(2*m + 1)/dble(2*m))
@@ -727,8 +727,8 @@ subroutine alfbasisinit(nmax0in, mmax0in)
       anm(n, m) = dsqrt(dble((2*n - 1)*(2*n + 1))/dble((n - m)*(n + m)))
       bnm(n, m) = dsqrt(dble((2*n + 1)*(n + m - 1)*(n - m - 1))/dble((n - m)*(n + m)*(2*n - 3)))
       dnm(n, m) = dsqrt(dble((n - m)*(n + m)*(2*n + 1))/dble(2*n - 1))
-    end do
-  end do
+    enddo
+  enddo
 
   return
 
@@ -763,17 +763,17 @@ subroutine alfbasis(nmax, mmax, theta, P, V, W)
       P(n, m) = y*W(n, m)
       V(n, m) = narr(n)*x*W(n, m) - dnm(n, m)*W(n - 1, m)
       W(n - 2, m) = marr(m)*W(n - 2, m)
-    end do
+    enddo
     W(nmax - 1, m) = marr(m)*W(nmax - 1, m)
     W(nmax, m) = marr(m)*W(nmax, m)
     V(m, m) = x*W(m, m)
-  end do
+  enddo
   P(1, 0) = anm(1, 0)*x*P(0, 0)
   V(1, 0) = -en(1)*P(1, 1)
   do n = 2, nmax
     P(n, 0) = anm(n, 0)*x*P(n - 1, 0) - bnm(n, 0)*P(n - 2, 0)
     V(n, 0) = -en(n)*P(n, 1)
-  end do
+  enddo
 
   return
 

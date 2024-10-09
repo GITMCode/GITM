@@ -68,7 +68,7 @@ subroutine chapman_integrals(iBlock)
 
             Integrals(iLon, iLat, iAlt, iSpecies) = &
               NDensityS(iLon, iLat, iAlt, iSpecies, iBlock)*ScaleHeightS
-          end if
+          endif
           ScaleHeightS = &
             Temperature(iLon, iLat, iAlt, iBlock) &
             *TempUnit(iLon, iLat, iAlt)*Boltzmanns_Constant &
@@ -87,10 +87,10 @@ subroutine chapman_integrals(iBlock)
             erfcy(iLon, iLat, iAlt, iSpecies) = (a + b*y)/(c + d*y + y**2)
           else
             erfcy(iLon, iLat, iAlt, iSpecies) = f/(g + y)
-          end if
-        end do
-      end do
-    end do
+          endif
+        enddo
+      enddo
+    enddo
 
     ColumnIntegralRho(1:nLons, 1:nLats, 1:nAlts) = &
       ColumnIntegralRho(1:nLons, 1:nLats, 1:nAlts) + &
@@ -110,7 +110,7 @@ subroutine chapman_integrals(iBlock)
             if (chapman(iLon, iLat, iAlt, iSpecies, iBlock) > &
                 MaxCh(iSpecies)) then
               MaxCh(iSpecies) = chapman(iLon, iLat, iAlt, iSpecies, iBlock)
-            end if
+            endif
 
           else
             ! Determine if the grazing angle (X = 90 deg) lies
@@ -124,7 +124,7 @@ subroutine chapman_integrals(iBlock)
               iiAlt = iAlt
               do while (RadialDistance_GB(iLon, iLat, iiAlt - 1, iBlock) > y)
                 iiAlt = iiAlt - 1
-              end do
+              enddo
               iiAlt = iiAlt - 1
 
               ! Variables for Linear Interpolation:
@@ -171,26 +171,26 @@ subroutine chapman_integrals(iBlock)
               if (chapman(iLon, iLat, iAlt, iSpecies, iBlock) > &
                   MaxCh(iSpecies)) then
                 MaxCh(iSpecies) = chapman(iLon, iLat, iAlt, iSpecies, iBlock)
-              end if
+              endif
 
               ! you're within the "shadow" and so make champan huge
             else
               chapman(iLon, iLat, iAlt, iSpecies, iBlock) = 1.0e26
 
-            end if
+            endif
 
-          end if
+          endif
 
-        end do
-      end do
-    end do
+        enddo
+      enddo
+    enddo
 
     if (MaxCh(iSpecies) == 0.0) &
       MaxCh(iSpecies) = maxval(chapman(:, :, :, iSpecies, iBlock))
     if (iDebugLevel > 3) &
       write(*, *) "====> MaxChapman : ", iSpecies, MaxCh(iSpecies)
 
-  end do
+  enddo
 
   call end_timing("chapman_integrals")
 

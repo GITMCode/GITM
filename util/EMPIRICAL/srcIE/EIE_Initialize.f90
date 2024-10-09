@@ -44,7 +44,7 @@ subroutine EIE_Initialize(iOutputError)
 
   if (index(EIE_NameOfEFieldModel, 'zero') > 0) then
     IsFound_EFieldModel = .true.
-  end if
+  endif
 
   if (index(EIE_NameOfEFieldModel, 'weimer96') > 0) then
     IsFound_EFieldModel = .true.
@@ -53,10 +53,10 @@ subroutine EIE_Initialize(iOutputError)
     if (iError /= 0) then
       write(6, *) 'Error opening file :', weimer96_file
       iOutputError = ecFileNotFound_
-    end if
+    endif
     call ReadCoef96(UnitTmp_)
     close(UnitTmp_)
-  end if
+  endif
 
   if (index(EIE_NameOfEFieldModel, 'weimer01') > 0) then
     IsFound_EFieldModel = .true.
@@ -66,10 +66,10 @@ subroutine EIE_Initialize(iOutputError)
     if (iError /= 0) then
       write(6, *) 'Error opening file :', weimer01_file
       iOutputError = ecFileNotFound_
-    end if
+    endif
     call ReadCoef01(UnitTmp_)
     close(UnitTmp_)
-  end if
+  endif
 
   if (index(EIE_NameOfEFieldModel, 'weimer05') > 0) then
     IsFound_EFieldModel = .true.
@@ -82,7 +82,7 @@ subroutine EIE_Initialize(iOutputError)
     inFileName = 'W05scBndy.dat'
     call merge_str(EIE_NameOfModelDir, inFileName)
     call read_bndy(inFileName)
-  end if
+  endif
 
 !  if (index(EIE_NameOfEFieldModel,'samie') > 0) then
 !     IsFound_EFieldModel = .true.
@@ -103,10 +103,10 @@ subroutine EIE_Initialize(iOutputError)
     if (iError /= 0) then
       write(6, *) 'Error opening file :', millstone_hill_i_file
       iOutputError = ecFileNotFound_
-    end if
+    endif
     call mhinit(1, UnitTmp_, 1, iDebugLevel)
     close(UnitTmp_)
-  end if
+  endif
 
   if (index(EIE_NameOfEFieldModel, 'millstone_imf') > 0) then
     IsFound_EFieldModel = .true.
@@ -115,10 +115,10 @@ subroutine EIE_Initialize(iOutputError)
     if (iError /= 0) then
       write(6, *) 'Error opening file :', millstone_hill_s_file
       iOutputError = ecFileNotFound_
-    end if
+    endif
     call mhinit(2, UnitTmp_, 1, iDebugLevel)
     close(UnitTmp_)
-  end if
+  endif
 
   if (index(EIE_NameOfEFieldModel, 'hmr89') > 0) then
     IsFound_EFieldModel = .true.
@@ -127,10 +127,10 @@ subroutine EIE_Initialize(iOutputError)
     if (iError /= 0) then
       write(6, *) 'Error opening file :', hepner_maynard_file
       iOutputError = ecFileNotFound_
-    end if
+    endif
     call gethmr(UnitTmp_)
     close(UnitTmp_)
-  end if
+  endif
 
   if (index(EIE_NameOfEFieldModel, 'izmem') > 0) then
     IsFound_EFieldModel = .true.
@@ -139,10 +139,10 @@ subroutine EIE_Initialize(iOutputError)
     if (iError /= 0) then
       write(6, *) 'Error opening file :', izmem_file
       iOutputError = ecFileNotFound_
-    end if
+    endif
     call izinit(UnitTmp_)
     close(UnitTmp_)
-  end if
+  endif
 
   !\
   ! --------------------------------------------------------------------
@@ -177,7 +177,7 @@ subroutine EIE_Initialize(iOutputError)
     else
       call AMIE_SetFileName(AMIEFileSouth)
       call readAMIEOutput(South_, .false., iDebugLevel, iError)
-    end if
+    endif
 
     call AMIE_GetnLats(nAmieLats)
     call AMIE_GetnMLTs(nAmieMlts)
@@ -189,11 +189,11 @@ subroutine EIE_Initialize(iOutputError)
 
     return
 
-  end if
+  endif
 
   if (.not. IsFound_EFieldModel) then
     iOutputError = ecEFieldModelNotFound_
-  end if
+  endif
 
   if (iDebugLevel > 3) write(*, *) "====> Done with EIE_Initialize"
 
@@ -225,84 +225,84 @@ subroutine EIE_InitGrid(nLats, nMlts, nBlocks, iOutputError)
     write(*, *) "=> EIEi_HavenBLKs : ", EIEi_HavenBLKs
     write(*, *) "=> EIEi_HavenLats : ", EIEi_HavenLats
     write(*, *) "=> EIEi_HavenMLTs : ", EIEi_HavenMLTs
-  end if
+  endif
 
   allocate(EIEr3_HaveLats(EIEi_HavenMlts, EIEi_HavenLats, EIEi_HavenBLKs), &
            stat=iError)
   if (iError /= 0) then
     write(*, *) "Error in allocating array EIEr3_HaveLats in Interface"
     stop
-  end if
+  endif
 
   allocate(EIEr3_HaveMlts(EIEi_HavenMlts, EIEi_HavenLats, EIEi_HavenBLKs), &
            stat=iError)
   if (iError /= 0) then
     write(*, *) "Error in allocating array EIEr3_HaveMlts in Interface"
     stop
-  end if
+  endif
 
   allocate(EIEr3_HavePotential(EIEi_HavenMlts, EIEi_HavenLats, EIEi_HavenBLKs), &
            stat=iError)
   if (iError /= 0) then
     write(*, *) "Error in allocating array EIEr3_HavePotential in Interface"
     stop
-  end if
+  endif
 
   allocate(EIEr3_HaveEFlux(EIEi_HavenMlts, EIEi_HavenLats, EIEi_HavenBLKs), &
            stat=iError)
   if (iError /= 0) then
     write(*, *) "Error in allocating array EIEr3_HaveEFlux in Interface"
     stop
-  end if
+  endif
 
   allocate(EIEr3_HaveAveE(EIEi_HavenMlts, EIEi_HavenLats, EIEi_HavenBLKs), &
            stat=iError)
   if (iError /= 0) then
     write(*, *) "Error in allocating array EIEr3_HaveAveE in Interface"
     stop
-  end if
+  endif
 
   allocate(EIEr3_HaveIonEFlux(EIEi_HavenMlts, EIEi_HavenLats, EIEi_HavenBLKs), &
            stat=iError)
   if (iError /= 0) then
     write(*, *) "Error in allocating array EIEr3_HaveIonEFlux in Interface"
     stop
-  end if
+  endif
 
   allocate(EIEr3_HaveIonAveE(EIEi_HavenMlts, EIEi_HavenLats, EIEi_HavenBLKs), &
            stat=iError)
   if (iError /= 0) then
     write(*, *) "Error in allocating array EIEr3_HaveIonAveE in Interface"
     stop
-  end if
+  endif
 
   allocate(EIEr3_HaveMonoEFlux(EIEi_HavenMlts, EIEi_HavenLats, EIEi_HavenBLKs), &
            stat=iError)
   if (iError /= 0) then
     write(*, *) "Error in allocating array EIEr3_HaveMonoEFlux in Interface"
     stop
-  end if
+  endif
 
   allocate(EIEr3_HaveMonoAveE(EIEi_HavenMlts, EIEi_HavenLats, EIEi_HavenBLKs), &
            stat=iError)
   if (iError /= 0) then
     write(*, *) "Error in allocating array EIEr3_HaveMonoAveE in Interface"
     stop
-  end if
+  endif
 
   allocate(EIEr3_HaveWaveEFlux(EIEi_HavenMlts, EIEi_HavenLats, EIEi_HavenBLKs), &
            stat=iError)
   if (iError /= 0) then
     write(*, *) "Error in allocating array EIEr3_HaveWaveEFlux in Interface"
     stop
-  end if
+  endif
 
   allocate(EIEr3_HaveWaveAveE(EIEi_HavenMlts, EIEi_HavenLats, EIEi_HavenBLKs), &
            stat=iError)
   if (iError /= 0) then
     write(*, *) "Error in allocating array EIEr3_HaveWaveAveE in Interface"
     stop
-  end if
+  endif
 
   iOutputError = iError
 
@@ -327,7 +327,7 @@ subroutine EIE_FillLats(Lats, iOutputError)
 
   do iMlt = 1, EIEi_HavenMlts
     EIEr3_HaveLats(iMlt, :, 1) = Lats
-  end do
+  enddo
 
 end subroutine EIE_FillLats
 
@@ -351,7 +351,7 @@ subroutine EIE_FillMltsOffset(Mlts, iOutputError)
   do iLat = 1, EIEi_HavenLats
     EIEr3_HaveMlts(1, iLat, 1) = Mlts(EIEi_HavenMlts - 2) - 360.0
     EIEr3_HaveMlts(2:EIEi_HavenMlts, iLat, 1) = Mlts
-  end do
+  enddo
 
 end subroutine EIE_FillMltsOffset
 

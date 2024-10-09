@@ -80,9 +80,9 @@ subroutine calc_efield(iBlock)
         efield(j, i, k, iNorth_) = efield(j, i, k, iNorth_) - edotb*bdir(iNorth_)
         efield(j, i, k, iUp_) = efield(j, i, k, iUp_) - edotb*bdir(iUp_)
 
-      end do
-    end do
-  end do
+      enddo
+    enddo
+  enddo
 
   ExB(:, :, :, iEast_) = EField(:, :, :, iNorth_)*B0(:, :, :, iUp_, iBlock) - &
                          EField(:, :, :, iUp_)*B0(:, :, :, iNorth_, iBlock)
@@ -116,13 +116,13 @@ subroutine calc_efield(iBlock)
               dLonDist_GB(j, i, k, iBlock), &
               ExB(j, i, k, iNorth_), B0(j, i, k, iMag_, iBlock)
             maxi = abs(ExB(j, i, k, iNorth_))
-          end if
+          endif
 
-        end do
-      end do
-    end do
+        enddo
+      enddo
+    enddo
 
-  end if
+  endif
 
   if (iDebugLevel > 3) then
 
@@ -131,7 +131,7 @@ subroutine calc_efield(iBlock)
     write(*, *) "====> Max ExB : ", maxval(ExB(:, :, :, iEast_)), &
       maxval(ExB(:, :, :, iNorth_)), maxval(ExB(:, :, :, iUp_))
 
-  end if
+  endif
 
   call end_timing("calc_efield")
 

@@ -35,12 +35,12 @@ subroutine init_iri
             IDensityS(iLon, iLat, iAlt, nIons, iBlock) = &
               IDensityS(iLon, iLat, iAlt, nIons, iBlock) + &
               IDensityS(iLon, iLat, iAlt, iIon, iBlock)
-          end do
+          enddo
 
-        end do
-      end do
-    end do
+        enddo
+      enddo
+    enddo
 
-  end do
+  enddo
 
 end subroutine init_iri

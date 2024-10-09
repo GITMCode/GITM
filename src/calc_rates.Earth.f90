@@ -36,7 +36,7 @@ subroutine calc_rates(iBlock)
     MeanMajorMass = MeanMajorMass + &
                     Mass(iSpecies)* &
                     NDensityS(:, :, :, iSpecies, iBlock)/(NDensity(:, :, :, iBlock) + 1.0)
-  end do
+  enddo
 
   ! Once again, in the corners, the meanmajormass is 0.
   where (MeanMajorMass == 0) MeanMajorMass = Mass(1)
@@ -45,7 +45,7 @@ subroutine calc_rates(iBlock)
     MeanIonMass = MeanIonMass + &
                   MassI(iIon)*IDensityS(:, :, :, iIon, iBlock)/ &
                   IDensityS(:, :, :, ie_, iBlock)
-  end do
+  enddo
 
   TempUnit = MeanMajorMass/Boltzmanns_Constant
 
@@ -76,7 +76,7 @@ subroutine calc_rates(iBlock)
       (Temperature(1:nLons, 1:nLats, iAlt, iBlock)* &
        TempUnit(1:nLons, 1:nLats, iAlt))**0.648
 
-  end do
+  enddo
 
   ! Thermal Diffusion is zero for all but the lightest species
   ! Banks and Kockarts suggest Alpha_T = -0.38 for He
@@ -134,7 +134,7 @@ subroutine calc_collisions(iBlock)
   NeMajor = 0.0
   do iSpecies = 1, nIonsAdvect
     NeMajor = NeMajor + IDensityS(:, :, :, iSpecies, iBlock)
-  end do
+  enddo
 
   !\
   ! -----------------------------------------------------------
@@ -324,7 +324,7 @@ subroutine calc_viscosity_coef(iBlock)
     ViscCoefS(1:nLons, 1:nLats, 0:nAlts + 1, iSpecies) = &
       ViscCoef(1:nLons, 1:nLats, 0:nAlts + 1)* &
       sqrt(Mass(iSpecies)/MeanMajorMass(1:nLons, 1:nLats, 0:nAlts + 1))
-  end do
+  enddo
 
 end subroutine calc_viscosity_coef
 

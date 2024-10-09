@@ -28,7 +28,7 @@ subroutine ReadIonHeat(filename, IsIonizationFile)
   ! skip the first 3 lines
   do i = 1, 3
     read(UnitTmp_, '(a120)') fileline
-  end do
+  enddo
 
   ! number of altitude
   read(UnitTmp_, *) NAlt
@@ -38,13 +38,13 @@ subroutine ReadIonHeat(filename, IsIonizationFile)
     ALLOCATE(glat(NLat))
     ALLOCATE(alt(NAlt))
     IsFirstTime = .false.
-  end if
+  endif
 
   if (IsIonizationFile) then
     ALLOCATE(IonizationRate(NLng, NLat, NAlt))
   else
     ALLOCATE(HeatingRate(NLng, NLat, NAlt))
-  end if
+  endif
 
   ! altitude grid
   read(UnitTmp_, *) (alt(kalt), kalt=NAlt, 1, -1)
@@ -59,19 +59,19 @@ subroutine ReadIonHeat(filename, IsIonizationFile)
       else
         read(UnitTmp_, *) glng(ilng), glat(jlat), &
           (HeatingRate(ilng, jlat, kalt), kalt=NAlt, -1)
-      end if
+      endif
 
       ! data(ilng,jlat,kalt) is on the geographic longitude of glng(ilng),
       ! the geographic latitude of glat(jlat) and the altitude of alt(kalt)
 
-    end do ! jlat
-  end do ! ilng
+    enddo ! jlat
+  enddo ! ilng
 
   if (IsIonizationFile) then
     IonizationRate = IonizationRate*1.0e6
   else
     HeatingRate = HeatingRate*1.0e6*1.602e-19
-  end if
+  endif
 
   close(UnitTmp_)
 
@@ -123,16 +123,16 @@ subroutine interpolate_ions(nLons, nLats, nAlts, &
     iLons(iLon) = int(rLons(iLon))
     rLons(iLon) = rLons(iLon) - iLons(iLon)
     if (iLons(iLon) > NLng) iLons(iLon) = 0
-  end do
+  enddo
 
   do iLat = 1, nLats
     if (LatsDeg(iLat) <= glat(1)) iLats(iLat) = -1
     do i = 1, NLat
       if (LatsDeg(iLat) >= glat(i)) iLats(iLat) = i
-    end do
+    enddo
     i = iLats(iLat)
     if (i > 0) rLats(iLat) = (LatsDeg(iLat) - glat(i))/(glat(2) - glat(1))
-  end do
+  enddo
 
   do iLon = 1, nLons
     do iLat = 1, nLats
@@ -146,17 +146,17 @@ subroutine interpolate_ions(nLons, nLats, nAlts, &
         else
           do i = 1, NAlt
             if (AltsKms(iAlt) >= alt(i)) iAlts(iAlt) = i
-          end do
-        end if
+          enddo
+        endif
         i = iAlts(iAlt)
         if (i >= 1) then
           if (i == NAlt) then
             rAlts(iAlt) = (AltsKms(iAlt) - alt(NAlt))/(alt(NAlt) - alt(NAlt - 1))
           else
             rAlts(iAlt) = (AltsKms(iAlt) - alt(i))/(alt(i + 1) - alt(i))
-          end if
-        end if
-      end do
+          endif
+        endif
+      enddo
 
       do iAlt = 1, nAlts
         if (iAlts(iAlt) < 1 .or. iAlts(iAlt) >= nAlt) CYCLE
@@ -188,8 +188,8 @@ subroutine interpolate_ions(nLons, nLats, nAlts, &
           (rlo)*(rla)*(ral)*HeatingRate(i + 1, j + 1, k + 1) + &
           (1 - rlo)*(rla)*(ral)*HeatingRate(i, j + 1, k + 1)
 
-      end do
-    end do
-  end do
+      enddo
+    enddo
+  enddo
 
 end subroutine interpolate_ions

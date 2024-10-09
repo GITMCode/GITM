@@ -80,9 +80,9 @@ subroutine calc_electron_temperature(iBlock, eHeatingp, iHeatingp, eHeatingm, iH
                Temperature(iLon, iLat, iAlt, iBlock)*TempUnit(iLon, iLat, iAlt))* &
           (1.0 + tanh((Altitude_GB(iLon, iLat, iAlt, iBlock) - 1900.0e+03)/200.0e+03)) + &
           Temperature(iLon, iLat, iAlt, iBlock)*TempUnit(iLon, iLat, iAlt)
-      end do !iAlt = -1, nAlts+2
-    end do !iLat = -1, nLats+2
-  end do !iLon = -1, nLons+2
+      enddo !iAlt = -1, nAlts+2
+    enddo !iLat = -1, nLats+2
+  enddo !iLon = -1, nLons+2
 
 !!!! Upper Boundary Conditions!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!![Reference: 1. J.T. Hastings and R.G. Roble, Planet. Space Sci., Vol.25, pp.209, 1977.  Equation(31)
@@ -382,14 +382,14 @@ contains
       m = b(iAlt) - cpp(iAlt - 1)*a(iAlt)
       cpp(iAlt) = c(iAlt)/m
       dpp(iAlt) = (d(iAlt) - dpp(iAlt - 1)*a(iAlt))/m
-    end do
+    enddo
 
     ! initialize u
     u(nAlts) = dpp(nAlts)
     ! solve for u from the vectors c-prime and d-prime
     do iAlt = nAlts - 1, 1, -1
       u(iAlt) = dpp(iAlt) - cpp(iAlt)*u(iAlt + 1)
-    end do
+    enddo
 
   end subroutine tridag
 
@@ -415,7 +415,7 @@ contains
                                (iVelo(:, :, :, iDir) - eVelo(:, :, :, iDir))
 
       OverB0(:, :, :, iDir) = B0(:, :, :, iDir, iBlock)/B0(:, :, :, iMag_, iBlock)**2
-    end do
+    enddo
 
     do iAlt = -1, nAlts + 2
       do iLat = -1, nLats + 2
@@ -423,9 +423,9 @@ contains
           JuTotalDotB(iLon, iLat, iAlt) = sum( &
                                           JuTotal(iLon, iLat, iAlt, 1:3)* &
                                           B0(iLon, iLat, iAlt, 1:3, iBlock))
-        end do
-      end do
-    end do
+        enddo
+      enddo
+    enddo
 
     DivJPerp = 0.0
     do iDir = 1, 3
@@ -439,14 +439,14 @@ contains
       call UAM_Gradient_GC(OverB0(:, :, :, iDir), Gradient_GC, iBlock)
       DivJPerp(:, :, :) = DivJPerp(:, :, :) - Gradient_GC(:, :, :, iDir) &
                           *JuTotalDotB(:, :, :)
-    end do
+    enddo
 
     PartialJPara = -DivJPerp
 
     JParaAlt = 0.0
     do iAlt = 1, nAlts
       JParaAlt(:, :) = JParaAlt(:, :) - DivJPerp(:, :, iAlt)*dAlt_GB(:, :, iAlt, iBlock)
-    end do
+    enddo
 
   end Subroutine calc_thermoelectric_current
 
@@ -879,19 +879,19 @@ subroutine calc_electron_ion_sources(iBlock, eHeatingp, iHeatingp, eHeatingm, iH
               Qvib_n2(iLon, iLat, iAlt) + &
               (1.-exp(-3353./ttn))*10**logQv0(iLon, iLat, iAlt, iLevel) &
               *(1.-exp(iLevel*3353.*(1./tte - 1./ttn)))
-          end do
+          enddo
 
           do iLevel = 2, 9
             Qvib_n2(iLon, iLat, iAlt) = Qvib_n2(iLon, iLat, iAlt) + &
                                         (1.-exp(-3353./ttn))*exp(-3353./ttn) &
                                         *10**logQv1(iLon, iLat, iAlt, iLevel)* &
                                         (1.-exp((iLevel - 1)*3353.*(1./tte - 1./ttn)))
-          end do
+          enddo
 
-        end if
-      end do
-    end do
-  end do
+        endif
+      enddo
+    enddo
+  enddo
   ! No N2-vibration below 300 K
 
   Qvib_n2 = -ne*nn2*1.e-12*Qvib_n2*1.6e-13
@@ -983,7 +983,7 @@ subroutine calc_electron_ion_sources(iBlock, eHeatingp, iHeatingp, eHeatingm, iH
   do iDir = 1, 3
     dv2 = dv2 + (IVelocity(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1, iDir, iBlock) &
                  - Velocity(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1, iDir, iBlock))**2
-  end do
+  enddo
 
   ! Next sum over the ion-neutral pairs
   ! Heating due to the Tn - Ti
@@ -1126,7 +1126,7 @@ subroutine calc_electron_ion_sources(iBlock, eHeatingp, iHeatingp, eHeatingm, iH
   do iLat = 1, nLats
     sintheta(:, iLat) = sin(PI/2.-Latitude(iLat, iBlock))
     costheta(:, iLat) = cos(PI/2.-Latitude(iLat, iBlock))
-  end do
+  enddo
 
   where (sintheta .LT. 0.1 .AND. sintheta .GE. 0.0) sintheta = 0.1
   where (sintheta .GT. -0.1 .AND. sintheta .LE. 0.0) sintheta = -0.1
@@ -1218,7 +1218,7 @@ subroutine calc_electron_ion_sources(iBlock, eHeatingp, iHeatingp, eHeatingm, iH
     !      + sin2dec(1:nLons,1:nLats,iAlt) / sin2theta  &
     !      * (ti_con(2:nLons+1,1:nLats,iAlt) + ti_con(0:nLons-1,1:nLats,iAlt) &
 ! - 2*ti_con(1:nLons,1:nLats,iAlt)) / dLon**2 )
-  end do
+  enddo
 
   if (UseJouleHeating .and. UseIonDrag) then
 
@@ -1234,7 +1234,7 @@ subroutine calc_electron_ion_sources(iBlock, eHeatingp, iHeatingp, eHeatingm, iH
 
     JouleHeating = 0.0
 
-  end if
+  endif
 
   ElectronHeating = -Qenc(1:nLons, 1:nLats, 1:nAlts)/ &
                     TempUnit(1:nLons, 1:nLats, 1:nAlts)/ &

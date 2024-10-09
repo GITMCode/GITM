@@ -68,15 +68,15 @@ subroutine readMHDoutput(iBLK, iError)
         if (iFirstFile < 0) iFirstFile = ihr*60 + imi + 1
         MHD_ntimes = MHD_ntimes + 1
         FileNameList(ihr*60 + imi + 1) = FileName
-      end if
+      endif
 
-    end do
-  end do
+    enddo
+  enddo
 
   if (iFirstFile < 0) then
     write(*, *) "Could not find any MHD files which you specified!!!"
     stop
-  end if
+  endif
 
   FileName = FileNameList(iFirstFile)
 
@@ -84,7 +84,7 @@ subroutine readMHDoutput(iBLK, iError)
   if (iError .ne. 0) then
     write(*, *) "Error opening file:", FileName
     stop
-  end if
+  endif
   MHD_nLats = 0
 
   IsDone = .false.
@@ -112,14 +112,14 @@ subroutine readMHDoutput(iBLK, iError)
       if (iError /= 0) then
         write(*, *) "Error in allocating array MHD_Lats in "
         stop
-      end if
+      endif
 
       if (allocated(MHD_Mlts)) deallocate(MHD_Mlts)
       allocate(MHD_Mlts(MHD_nMlts), stat=iError)
       if (iError /= 0) then
         write(*, *) "Error in allocating array Mlts in "
         stop
-      end if
+      endif
 
       if (.not. allocated(MHD_Potential)) then
 
@@ -128,52 +128,52 @@ subroutine readMHDoutput(iBLK, iError)
         if (iError /= 0) then
           write(*, *) "Error in allocating array MHD_Potential in "
           stop
-        end if
+        endif
 
         allocate(MHD_EFlux(MHD_nMlts, MHD_nLats, &
                            MHD_nTimes, 2), stat=iError)
         if (iError /= 0) then
           write(*, *) "Error in allocating array MHD_EFlux in "
           stop
-        end if
+        endif
 
         allocate(MHD_AveE(MHD_nMlts, MHD_nLats, &
                           MHD_nTimes, 2), stat=iError)
         if (iError /= 0) then
           write(*, *) "Error in allocating array MHD_AveE in "
           stop
-        end if
+        endif
 
         allocate(MHD_Value(MHD_nMlts, MHD_nLats, &
                            MHD_nTimes, 2), stat=iError)
         if (iError /= 0) then
           write(*, *) "Error in allocating array MHD_Value in "
           stop
-        end if
+        endif
 
         allocate(SigmaP(MHD_nMlts, MHD_nLats, &
                         MHD_nTimes, 2), stat=iError)
         if (iError /= 0) then
           write(*, *) "Error in allocating array SigmaP in "
           stop
-        end if
+        endif
 
         allocate(SigmaH(MHD_nMlts, MHD_nLats, &
                         MHD_nTimes, 2), stat=iError)
         if (iError /= 0) then
           write(*, *) "Error in allocating array SigmaH in "
           stop
-        end if
+        endif
 
         allocate(MHD_Time(MHD_nTimes, 2), stat=iError)
         if (iError /= 0) then
           write(*, *) "Error in allocating array MHDTimes in "
           stop
-        end if
+        endif
 
-      end if
+      endif
 
-    end if
+    endif
 
     if (index(cLine, "BEGIN") > 0) then
 
@@ -183,14 +183,14 @@ subroutine readMHDoutput(iBLK, iError)
         i = mod(iMLT + (MHD_nMlts - 1)/2 - 1, (MHD_nMlts - 1)) + 1
         do iLat = 1, MHD_nLats
           read(UnitTmp_, *) MHD_Lats(iLat), MHD_Mlts(i)
-        end do
-      end do
+        enddo
+      enddo
 
       IsDone = .true.
 
-    end if
+    endif
 
-  end do
+  enddo
 
   MHD_Mlts(MHD_nMLTs) = MHD_Mlts(1)
 
@@ -200,20 +200,20 @@ subroutine readMHDoutput(iBLK, iError)
   do iMLT = 1, MHD_nMlts - 1
     if (MHD_Mlts(iMLT) - 12 > MHD_Mlts(iMLT + 1)) &
       MHD_Mlts(iMLT) = MHD_Mlts(iMLT) - 24
-  end do
+  enddo
 
   MHD_Lats = 90.0 - MHD_Lats
 
   if (nFields > nFieldsMax) then
     write(*, *) "Maximum number of fields in MHD is ", nFieldsMax
     stop
-  end if
+  endif
 
   allocate(AllData(MHD_nMlts, MHD_nLats, nFields), stat=iError)
   if (iError /= 0) then
     write(*, *) "Error in allocating array AllData in "
     stop
-  end if
+  endif
 
   MHD_iDebugLevel = 0
 
@@ -222,7 +222,7 @@ subroutine readMHDoutput(iBLK, iError)
       read(UnitTmp_) Fields(iField)
     else
       read(UnitTmp_, '(a)') Fields(iField)
-    end if
+    endif
 
     if (MHD_iDebugLevel > 1) write(*, *) Fields(iField)
 
@@ -230,21 +230,21 @@ subroutine readMHDoutput(iBLK, iError)
         (index(Fields(iField), "odel") < 1)) then
       iPot_ = iField
       if (MHD_iDebugLevel > 1) write(*, *) "<--- Potential Found", iPot_
-    end if
+    endif
 
     if ((index(Fields(iField), "Mean Energy") > 0) .and. &
         (index(Fields(iField), "odel") < 1)) then
       iAveE_ = iField
       if (MHD_iDebugLevel > 1) write(*, *) "<--- Mean Energy Found", iAveE_
-    end if
+    endif
 
     if ((index(Fields(iField), "Energy Flux") > 0) .and. &
         (index(Fields(iField), "odel") < 1)) then
       iEFlux_ = iField
       if (MHD_iDebugLevel > 1) write(*, *) "<--- Energy Flux Found", iEFlux_
-    end if
+    endif
 
-  end do
+  enddo
 
   do iTime = 1, MHD_ntimes
 
@@ -255,7 +255,7 @@ subroutine readMHDoutput(iBLK, iError)
 
       do iField = 1, nfields
         read(UnitTmp_) ((AllData(j, i, iField), j=1, MHD_nMlts), i=1, MHD_nLats)
-      end do
+      enddo
 
     else
 
@@ -264,9 +264,9 @@ subroutine readMHDoutput(iBLK, iError)
 
       do iField = 1, nfields
         read(UnitTmp_, *) ((AllData(j, i, iField), j=1, MHD_nMlts), i=1, MHD_nLats)
-      end do
+      enddo
 
-    end if
+    endif
 
     itime_i(1) = iyr
     itime_i(2) = imo
@@ -300,10 +300,10 @@ subroutine readMHDoutput(iBLK, iError)
         MHD_Potential(i, j, iTime, iBLK) = &
           MHD_Potential(i, j - 1, iTime, iBLK) - dPotential
 
-      end do
-    end do
+      enddo
+    enddo
 
-  end do
+  enddo
 
   MHD_nLats = MHD_nLats + nCellsPad
 

@@ -107,7 +107,7 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
     EffectiveGravity(iAlt) = &
       Gravity_G(iAlt) + &
       Centrifugal/InvRadialDistance_C(iAlt)
-  end do
+  enddo
 
   ! Update the -1 Cell only for Temp, LogNS, and Vel_GD
   ! The 0 Cell is set by MSIS or User-supplied Settings
@@ -150,7 +150,7 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
   Temp(iAlt) = Temp(iAlt + 1)
   do iDir = 1, 3
     Vel_GD(iAlt, iDir) = Vel_GD(iAlt + 1, iDir)
-  end do
+  enddo
 
 !    do iSpecies = 1, nSpecies
 !       dLogNS = MeshCoef0*LogNS(iAlt+1,iSpecies) + &
@@ -289,9 +289,9 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
         LogNS(iAlt, iSpecies) = LogNS(iAlt + 1, iSpecies) - &
                                 dAlt_F(iAlt + 1)*dLogNS
 
-      end do !iAlt = 0,-1,-1
-    end if ! PhotoChemical Check
-  end do  ! iSpecies loop
+      enddo !iAlt = 0,-1,-1
+    endif ! PhotoChemical Check
+  enddo  ! iSpecies loop
 
   ! Ion Lower Boundaries
   do iAlt = 0, -1, -1
@@ -328,7 +328,7 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
       dLogINS = max(0.0, dLogINS)
       LogINS(iAlt, iSpecies) = LogINS(iAlt + 1, iSpecies) &
                                - dAlt_F(iAlt + 1)*dLogINS
-    end do ! Ions Advect
+    enddo ! Ions Advect
 
     do iSpecies = 1, nSpecies
       ! For Photochemical Species
@@ -342,7 +342,7 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
 
       VertVel(iAlt, iSpecies) = VertVel(iAlt + 1, iSpecies) - &
                                 dAlt_F(iAlt + 1)*dVertVel
-    end do ! nSpecies
+    enddo ! nSpecies
 
     ! Set the Bulk Winds
     Vel_GD(iAlt, iUp_) = 0.0
@@ -350,7 +350,7 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
       Vel_GD(iAlt, iUp_) = Vel_GD(iAlt, iUp_) + &
                            NS(iAlt, iSpecies)*Mass(iSpecies)* &
                            VertVel(iAlt, iSpecies)/exp(LogRho(iAlt))
-    end do
+    enddo
 
     ! Set the Ion Bulk Winds
     do iDir = 1, 3
@@ -362,9 +362,9 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
 
       IVel(iAlt, iDir) = IVel(iAlt + 1, iDir) - &
                          dAlt_F(iAlt + 1)*dVertVel
-    end do  ! iDir
+    enddo  ! iDir
 
-  end do ! End Outer IAlt Loop (0, -1, -1)
+  enddo ! End Outer IAlt Loop (0, -1, -1)
 
   ! Special Case for PhotoChemical Species
   ! Allow O to flow upward
@@ -377,9 +377,9 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
       VertVel(-1, iSpecies) = -1.0*VertVel(1, iSpecies)
     else
       ! Do nothing (already taken care of)
-    end if
+    endif
 
-  end do
+  enddo
 
   ! Neutral Bulk Winds (East and West)
 
@@ -413,7 +413,7 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
 
     Vel_GD(iAlt, iDir) = Vel_GD(iAlt + 1, iDir) - &
                          dAlt_F(iAlt + 1)*dVertVel
-  end do
+  enddo
 
   !-----------------------------------------------------------
   ! Top
@@ -445,7 +445,7 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
 !             PI/Mass(iSpecies)))*&
 !             (1.0 + Lambda_Jeans)*exp( -1.0*Lambda_Jeans)
 !     endif
-  end do
+  enddo
 
   ! Slip flow at the top
   ! Assume zero gradients in the velocities & temps
@@ -477,7 +477,7 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
 
       VertVel(nAlts + 1, iSpecies) = UpperBoundaryVelocity
       VertVel(nAlts + 2, iSpecies) = VertVel(nAlts + 1, iSpecies)
-    end if
+    endif
 !     else
 
     !    ! Can't have photochemical species flowing downward
@@ -488,7 +488,7 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
 !       endif
 !    endif
 
-  end do
+  enddo
 !
   if (IVel(nAlts, iUp_) .lt. 0.0) then
     IVel(nAlts + 1, iUp_) = -1.0*IVel(nAlts, iUp_)
@@ -496,7 +496,7 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
   else
     IVel(nAlts + 1, iUp_) = IVel(nAlts, iUp_)
     IVel(nAlts + 2, iUp_) = IVel(nAlts, iUp_)
-  end if
+  endif
 
 !  if(Vel_GD(nAlts,iUp_) .lt. 0.0) then
 !     Vel_GD(nAlts+1,iUp_) = -1.0*Vel_GD(nAlts,iUp_)
@@ -521,7 +521,7 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
     if (dn > -0.25*LogINS(nAlts, iSpecies)) dn = -0.25*LogINS(nAlts, iSpecies)
     LogINS(nAlts + 1, iSpecies) = LogINS(nAlts, iSpecies) + dn
     LogINS(nAlts + 2, iSpecies) = LogINS(nAlts + 1, iSpecies) + dn
-  end do
+  enddo
 
   ! Hydrostatic pressure for the neutrals
 
@@ -546,9 +546,9 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
           Gravity_G(nAlts), Mass(iSpecies), Temp(nAlts), &
           LogNS(nAlts, iSpecies), LogNS(nAlts + 1, iSpecies), &
           dAlt_F(nAlts), LogNS(nAlts + 2, iSpecies)
-      end if
-    end do
-  end do
+      endif
+    enddo
+  enddo
 
 !  do iAlt = nAlts + 1, nAlts + 2
 !
@@ -629,9 +629,9 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
     do iSpecies = 1, nSpecies
       SumRho = SumRho + &
                Mass(iSpecies)*exp(LogNS(iAlt, iSpecies))
-    end do
+    enddo
     LogRho(iAlt) = alog(SumRho)
-  end do
+  enddo
 !
 
 end subroutine set_vertical_bcs

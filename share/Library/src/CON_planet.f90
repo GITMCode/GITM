@@ -162,7 +162,7 @@ contains
       call CON_stop(NameSub// &
                     ' ERROR: attempt to change planet name from '// &
                     trim(NamePlanet)//' to '//NamePlanetIn)
-    end if
+    endif
 
     NamePlanet = NamePlanetIn
     IsInitialized = .true.
@@ -173,13 +173,13 @@ contains
         IsKnown = .true.
         Planet_ = i
         EXIT
-      end if
-    end do
+      endif
+    enddo
 
     if (.not. IsKnown) then
       Planet_ = NewPlanet_
       NamePlanet = NamePlanetIN
-    end if
+    endif
 
     ! Set all values for the selected planet
     RadiusPlanet = rPlanet_I(Planet_)
@@ -191,12 +191,12 @@ contains
       OmegaRotation = 0.0
     else
       OmegaRotation = cTwoPi/RotationPeriodPlanet_I(Planet_)
-    end if
+    endif
     if (OrbitalPeriodPlanet_I(Planet_) == 0.0) then
       OmegaOrbit = 0.0
     else
       OmegaOrbit = cTwoPi/OrbitalPeriodPlanet_I(Planet_)
-    end if
+    endif
     OmegaPlanet = OmegaRotation + OmegaOrbit
     AngleEquinox = &
       cTwoPi*(iHourEquinoxPlanet_I(Planet_)*3600 + iMinuteEquinoxPlanet_I(Planet_)*60 &
@@ -262,7 +262,7 @@ contains
           RotPeriodPlanet = cTwoPi/OmegaPlanet
         else
           RotPeriodPlanet = 0.0
-        end if
+        endif
         call read_var('TiltRotation', TiltRotation)
         TiltRotation = TiltRotation*cDegToRad
         call read_var('TypeBField', TypeBField)
@@ -290,12 +290,12 @@ contains
           if (TypeBField == 'QUADRUPOLE') then
             call CON_stop(NameSub// &
                           ' ERROR: quadrupole field unimplemented')
-          end if
+          endif
 
           if (TypeBField == 'OCTUPOLE') then
             call CON_stop(NameSub// &
                           ' ERROR: octupole field unimplemented')
-          end if
+          endif
 
         case default
           call CON_stop(NameSub// &
@@ -303,7 +303,7 @@ contains
 
         end select
 
-      end if
+      endif
 
     case ('#IDEALAXES')
       ! This is a short version of setting one axis parallel with Z
@@ -342,7 +342,7 @@ contains
       else
         if (.not. IsMagAxisPrimary) call CON_stop(NameSub// &
                                                   ' ERROR: either rotation or magnetic axis must be primary')
-      end if
+      endif
 
     case ('#MAGNETICAXIS')
 
@@ -365,7 +365,7 @@ contains
       else
         if (.not. IsRotAxisPrimary) call CON_stop(NameSub// &
                                                   ' ERROR: either rotation or magnetic axis must be primary')
-      end if
+      endif
 
     case ('#MAGNETICCENTER')
 
@@ -388,7 +388,7 @@ contains
         call read_var('Rotation period [hours]', RotPeriodPlanet)
         RotPeriodPlanet = RotPeriodPlanet*3600
         OmegaPlanet = cTwoPi/RotPeriodPlanet
-      end if
+      endif
 
     case ('#NONDIPOLE')
 
@@ -401,7 +401,7 @@ contains
       else
         call CON_stop(NameSub// &
                       ' ERROR: nondipole magnetic field unimplemented')
-      end if
+      endif
 
     case ('#DIPOLE')
 
@@ -413,7 +413,7 @@ contains
         TypeBField = "NONE"
       else
         TypeBField = "DIPOLE"
-      end if
+      endif
 
     case ('#UPDATEB0')
 
