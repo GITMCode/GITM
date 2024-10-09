@@ -232,8 +232,8 @@ subroutine read_sme(iOutputError, StartTime, EndTime, doUseAeForHp)
                     IndexTimes_TV(iAE, ae_) <= EndTime + BufferTime .and. &
                     iAE < MaxIndicesEntries)
       IsGoodData = (abs(Indices_TV(iAE, ae_)) < 90000 .and. &
-           abs(Indices_TV(iAE, al_)) < 90000 .and. &
-           abs(Indices_TV(iAE, au_)) < 90000)
+                    abs(Indices_TV(iAE, al_)) < 90000 .and. &
+                    abs(Indices_TV(iAE, au_)) < 90000)
       if (IsGoodTime .and. IsGoodData) then
 
         ! Can now use AE to specify the hemispheric power:
