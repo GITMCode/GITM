@@ -143,7 +143,7 @@ subroutine read_sme(iOutputError, StartTime, EndTime, doUseAeForHp)
   logical, intent(in) :: doUseAeForHp
 
   integer :: ierror, iAE, j, npts
-  logical :: IsDone
+  logical :: IsDone, IsGoodTime, IsGoodData
 
   ! One line of input
   character(len=iCharLenIndices_) :: line
@@ -228,10 +228,13 @@ subroutine read_sme(iOutputError, StartTime, EndTime, doUseAeForHp)
 
       ! This makes sure that we only store the values that we
       ! are really interested in
-
-      if (IndexTimes_TV(iAE, ae_) >= StartTime - BufferTime .and. &
-          IndexTimes_TV(iAE, ae_) <= EndTime + BufferTime .and. &
-          iAE < MaxIndicesEntries) then
+      IsGoodTime = (IndexTimes_TV(iAE, ae_) >= StartTime - BufferTime .and. &
+                    IndexTimes_TV(iAE, ae_) <= EndTime + BufferTime .and. &
+                    iAE < MaxIndicesEntries)
+      IsGoodData = (abs(Indices_TV(iAE, ae_)) < 90000 .and. &
+           abs(Indices_TV(iAE, al_)) < 90000 .and. &
+           abs(Indices_TV(iAE, au_)) < 90000)
+      if (IsGoodTime .and. IsGoodData) then
 
         ! Can now use AE to specify the hemispheric power:
         ! Formula taken from Wu et al, 2021.
