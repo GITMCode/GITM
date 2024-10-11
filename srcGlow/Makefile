@@ -50,9 +50,9 @@ LIBADD: DEPEND
 	@echo ${MY_LIB} has been brought up to date.
 	@echo
 
-${MY_LIB}: ${MODULES} ${OBJECTS}
+${MY_LIB}: ${MF} ${MODULES} ${OBJECTS}
 	${MAKE} ${MYLIB}
-	# cp -f ${LIBPREV} ${MY_LIB}
+	cp -f ${LIBPREV} ${MY_LIB}
 	${AR} ${MY_LIB} ${OBJECTS} ${MODULES}
 
 

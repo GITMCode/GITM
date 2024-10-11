@@ -30,7 +30,7 @@ LIB:	DEPEND
 	@echo ${MY_LIB} has been brought up to date.
 	@echo
 
-${MY_LIB}: ${MODULES} ${OBJECTS}
+${MY_LIB}: ${MF} ${MODULES} ${OBJECTS}
 	@echo 'Creating libSphere library'
 	${AR} ${MY_LIB} ${MODULES} ${OBJECTS}
 
