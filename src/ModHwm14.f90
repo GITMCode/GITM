@@ -124,6 +124,9 @@ contains
     real(8)                 :: x, y
     real(8), parameter      :: p00 = 0.70710678118654746d0
 
+    W = 0
+    V = 0
+
     P(0, 0) = p00
     x = dcos(theta)
     y = dsin(theta)
