@@ -54,6 +54,8 @@ Arguments:
                                     from all tests (not implemented yet)
         --save_to [path]          Save outputs? Useful to compare when making
                                     changes that could affect outputs. (not implemented yet)
+        --only_test [file]        To only run a single test, specify its path here.
+                                    Does not support multiple test files.
 
 "
   exit 1
@@ -62,8 +64,8 @@ Arguments:
 
 
 do_tests(){
-    # setup run directory
-    
+
+    # go back to root of repo
     cd ../../ 
     
     if [ $config = true ]; then
@@ -74,17 +76,26 @@ do_tests(){
       make clean
     fi
 
+    # always compile in case any changes were made.
     make
     
     if [ ! -f run/GITM.exe ]; then
-        # only make rundir if it does not already exist
-        make rundir
+      # only make rundir if it does not already exist
+      make rundir
+      cp -fr run srcTests/auto_test/
     fi
-    cp -fr run srcTests/auto_test/
 
-    # Copy the test files into run/
+    # move back into folder w this script.
     cd srcTests/auto_test/
-    cp UAM* run/
+
+    # check if we're only running one test
+    if [ ! $only_test_one -eq false ]; then
+      rm run/UAM.*.test
+      cp $only_test_one run/
+    else
+      # Copy all test files into run/
+      cp UAM* run/
+    fi
 
     # begin running:
     cd run/
@@ -116,13 +127,10 @@ config=true
 
 do_save=false
 do_compare=false
+only_test_one=false
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    -h|--help)
-      get_help
-      exit 1
-      ;;
     -d|--debug)
       echo "Using -debug"
       debug="-debug"
@@ -138,7 +146,14 @@ while [[ $# -gt 0 ]]; do
       config=false
       shift
       ;;
+    --only_test)
+      echo "Only running test file: " $2
+      only_test_one=$2
+      shift 2
+      ;;
     --compare_with)
+      echo "--compare_with not implemented yet!"
+      exit
       if [[ -d "$2" ]]; then
         echo "Comparing with" $2
         compare_dir=$2
@@ -149,17 +164,30 @@ while [[ $# -gt 0 ]]; do
       shift 2
       ;;
     --save_to)
-    if [[ -d "$2" ]]; then
-        echo "--save_to directory $2 already exists! Waiting 5 seconds then overwriting."
-        echo "   cancel with 'Ctrl C'"
-        sleep 5
-        compare_dir=$2
+      echo "--save_to not implemented yet!"
+      exit
+      if [[ -d "$2" ]]; then
+        echo "--save_to directory $2 already exists! Refusing to overwrite."
+        exit 1
       else
-        echo "ERROR: --compare_with directory $2 not found!"
+        echo "Creating --save_to directory $2"
+        mkdir -p $2
         exit 1
       fi
       shift 2
       ;;
+
+    -h|--help)
+      get_help
+      ;;
+
+    *) # all else
+      echo "Error: Invalid option"
+      get_help
+      exit
+      ;;
+
+
   esac
 
 done
