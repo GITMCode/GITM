@@ -14,7 +14,15 @@ SAMIDIR = srcSAMI
 PLANET=earth
 
 help:
-	@echo "GITM    - make GITM.exe"
+	@echo "GITM                - compile GITM.exe"
+	@echo "SAMI                - compile GITMSAMI.exe"
+	@echo "POST                - compile PostProcess.exe"
+	@echo "LIB                 - compile libUA for SWMF"
+	@echo "rundir              - create run directory"
+	@echo "rundir RUNDIR=run2  - create run directory run2"
+	@echo "clean               - remove object and other temporary files"
+	@echo "NOMPI               - compile NOMPI library for serial code"
+	@echo "nompirun            - run GITM.exe serially"
 
 src/ModSize.f90:
 	cp src/ModSize.f90.orig src/ModSize.f90
@@ -60,8 +68,8 @@ POST:
 GITM = ${DIR}/UA/GITM
 
 LIB:
-	cd $(ABDIR)     ; make                                         LIB
-	cd $(GLDIR)     ; make LIBPREV=${LIBDIR}/libSphere.a   LIBADD
+	cd $(ABDIR)     ; make                                        LIB
+	cd $(GLDIR)     ; make LIBPREV=${LIBDIR}/libSphere.a          LIBADD
 	cd $(MAINDIR)   ; make LIBPREV=${GITM}/${GLDIR}/libUPTOGL.a   LIB
 	cd srcInterface ; make LIBPREV=${GITM}/${MAINDIR}/libUA.a     LIB
 	make POST
