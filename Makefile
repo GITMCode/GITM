@@ -13,6 +13,9 @@ SAMIDIR = srcSAMI
 
 PLANET=earth
 
+help:
+	@echo "GITM    - make GITM.exe"
+
 src/ModSize.f90:
 	cp src/ModSize.f90.orig src/ModSize.f90
 
