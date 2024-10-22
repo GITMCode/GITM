@@ -1,0 +1,3 @@
+[submodule "ext/Electrodynamics"]
+	path = ext/Electrodynamics
+	url = git@github.com:GITMCode/Electrodynamics.git
