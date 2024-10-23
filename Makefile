@@ -4,7 +4,7 @@ default : GITM
 include Makefile.def
 
 ABDIR   = srcSphereAB
-EIEDIR  = ${EMPIRICALIEDIR}
+EIEDIR   = ${IEDIR}
 EUADIR  = ${EMPIRICALUADIR}
 IODIR   = ${DATAREADINDICESDIR}
 MAINDIR = src

@@ -3,16 +3,19 @@ IODIR   = ${DATAREADINDICESDIR}
 GLDIR   = ${UADIR}/srcGlow
 SAMIDIR = ${UADIR}/srcSAMI
 
-SEARCH_EXTRA =  -I${ABDIR} \
-	 	-I${IODIR} \
-		-I${EMPIRICALUADIR} \
-		-I${EMPIRICALIEDIR}
 
 include ../Makefile.conf
 include ../Makefile.def
 
 include Makefile.DEPEND
 include Makefile.RULES
+
+
+SEARCH_EXTRA =  -I${ABDIR} \
+	 	-I${IODIR} \
+		-I${EMPIRICALUADIR} \
+		-I${IEDIR}
+
 
 MODULES = \
 	apexsh.o\
@@ -157,7 +160,8 @@ SAMI:	DEPENDSAMI
 ${SAMIEXE}:	${OBJECTS_SAMI}
 		${LINK.f90} -o ${SAMIEXE} ${OBJECTS_SAMI} \
 		-L${ABDIR} -lSphere \
-		-L${LIBDIR} -lEMPIRICALIE -lEMPIRICALUA -lINDICES -lSHARE \
+		-L${IEDIR} -lIE \
+		-L${LIBDIR} -lEMPIRICALUA -lINDICES -lSHARE \
 		-L${GLDIR} -lGLOW ${LBLAS} \
 		-L${SAMIDIR}/src -lSAMI3 \
 		${Lflag1}
@@ -169,14 +173,15 @@ ${EXE}:	${OBJECTS_EXE}
 GITM_general:
 	${LINK.f90} -o ${EXE} ${OBJECTS_EXE} \
 		-L${ABDIR} -lSphere \
-		-L${LIBDIR} -lEMPIRICALIE -lEMPIRICALUA -lINDICES -lSHARE \
+		-L${IEDIR} -lIE \
+		-L${LIBDIR} -lEMPIRICALUA -lINDICES -lSHARE \
 		-L${GLDIR} -lGLOW ${LBLAS} ${Lflag1}
 
 GITM_for_Darwin:
 	rm -rf Tmp_; mkdir Tmp_
 	cd Tmp_; \
 		ar -x ${ABDIR}/libSphere.a; \
-		ar -x ${LIBDIR}/libEMPIRICALIE.a; \
+		ar -x ${IEDIR}/libIE.a; \
 		ar -x ${LIBDIR}/libEMPIRICALUA.a; \
 		ar -x ${LIBDIR}/libINDICES.a; \
 		ar -x ${LIBDIR}/libSHARE.a; \
