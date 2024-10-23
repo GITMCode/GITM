@@ -76,6 +76,7 @@ clean:
 	if [ -d share ]; then cd share; make cleanall; fi;
 	if [ -d util ];  then cd util;  make cleanall; fi;
 	if [ -d srcSAMI ]; then cd srcSAMI; make clean; fi;
+	if [ -d ext/Electrodynamics ]; then cd ext/Electrodynamics; make clean; fi;
 
 
 distclean: 

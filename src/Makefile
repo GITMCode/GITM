@@ -173,7 +173,7 @@ ${EXE}:	${OBJECTS_EXE}
 GITM_general:
 	${LINK.f90} -o ${EXE} ${OBJECTS_EXE} \
 		-L${ABDIR} -lSphere \
-		-L${IEDIR} -lIE \
+		-L${IEDIR}/lib -lIE \
 		-L${LIBDIR} -lEMPIRICALUA -lINDICES -lSHARE \
 		-L${GLDIR} -lGLOW ${LBLAS} ${Lflag1}
 
