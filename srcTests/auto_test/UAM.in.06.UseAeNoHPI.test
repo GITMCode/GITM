@@ -81,21 +81,19 @@ F			UseBelowLow
 #MHD_INDICES
 DataIn/imf20021221.dat
 
-#NOAAHPI_INDICES
-DataIn/power.test.rcmr_quick
 
 New auroral model from Wu and Ridley, which is driven by AU/AL/AE
 #FTAMODEL
-T                 Use FTA model of the aurora
+F                 Use FTA model of the aurora
 
 Can download AU/AL/AE indices from SuperMAG and use them here:
 #SME_INDICES
 DataIn/ae_20021221.txt
 none              onset time delay file
-
+T
 
 #FANGENERGY
-F		Use Fang 2010 and 2013 energy deposition
+T		Use Fang 2010 and 2013 energy deposition
 
 Can add a cusp:
 #USECUSP
@@ -176,7 +174,7 @@ Can set max wall time for the code to run (default = 10 days)
 Solver stuff:
 
 #AUSMSOLVER
-F       	Use AUSM+-up Solvers
+T       	Use AUSM+-up Solvers
 
 #CFL
 0.80		percentage of maximum allowable time-step to take
