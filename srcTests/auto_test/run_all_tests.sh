@@ -123,20 +123,12 @@ do_tests(){
           else
             echo
             echo
+            diff ../ref_soln_logs/log.$test_uam  data/log00000002.dat
+            echo
+            echo
             printf "\n\n>>> $test_uam has differences. UNSUCCESSFUL! <<< \n\n EXITING\n\n"
-            printf "
 
-------------------------------------------------------------------------------------
-
-use:
-      diff ref_soln_logs/log.$test_uam  run/data/log00000002.dat
-
-or
-
-      ../../share/Scripts/DiffNum.pl ref_soln_logs/log.$test_uam  run/data/log00000002.dat
-
-to investigate the differences. Bye.\n\n"
-            exit 4
+            exit 1
           fi
         fi
 
@@ -164,7 +156,7 @@ while [[ $# -gt 0 ]]; do
       debug="-debug"
       shift
       ;;
-      
+
     -c|--clean)
       echo "Forcing a 'make clean' before compiling!"
       clean=true
