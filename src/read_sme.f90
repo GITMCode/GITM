@@ -275,10 +275,10 @@ subroutine read_sme(iOutputError, StartTime, EndTime, doUseAeForHp)
   nIndices_V(al_) = iAE - 2
 
   if (doUseAeForHp) then
-     nIndices_V(hpi_) = iAE - 2
-     nIndices_V(hpi_norm_) = iAE - 2
+    nIndices_V(hpi_) = iAE - 2
+    nIndices_V(hpi_norm_) = iAE - 2
   endif
-  
+
   ! If we have gotten to this point and we have no data,
   ! there is something wrong!
   if (nIndices_V(ae_) < 2) iOutputError = 1
