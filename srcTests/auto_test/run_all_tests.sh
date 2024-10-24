@@ -51,10 +51,10 @@ Arguments:
         -c, --clean               run a 'make clean' before make-ing?
         --skip_config             skip running Config.pl?
         --check_outputs           Check against reference solutions?
-                                    (not implemented yet)
         --save_outputs            Save outputs? Useful to run BEFORE making
                                     changes that could affect outputs.
-                                    (not implemented yet)
+        --only_test [file]        To only run a single test, specify its path here.
+                                    Does not support multiple test files.
 
 "
   return
@@ -62,8 +62,8 @@ Arguments:
 
 
 do_tests(){
-    # setup run directory
-    
+
+    # go back to root of repo
     cd ../../ 
     
     if [ $config = true ]; then
@@ -74,17 +74,26 @@ do_tests(){
       make clean
     fi
 
+    # always compile in case any changes were made.
     make
     
     if [ ! -f run/GITM.exe ]; then
-        # only make rundir if it does not already exist
-        make rundir
+      # only make rundir if it does not already exist
+      make rundir
+      cp -fr run srcTests/auto_test/
     fi
-    cp -fr run srcTests/auto_test/
 
-    # Copy the test files into run/
+    # move back into folder w this script.
     cd srcTests/auto_test/
-    cp UAM* run/
+
+    # check if we're only running one test
+    if [ ! $only_test_one -eq false ]; then
+      rm run/UAM.*.test
+      cp $only_test_one run/
+    else
+      # Copy all test files into run/
+      cp UAM* run/
+    fi
 
     # begin running:
     cd run/
@@ -146,35 +155,46 @@ config=true
 
 do_save=false
 do_compare=false
+only_test_one=false
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    -h|--help)
-      get_help
-      exit 1
-      ;;
     -d|--debug)
       echo "Using -debug"
       debug="-debug"
       shift
       ;;
+      
     -c|--clean)
       echo "Forcing a 'make clean' before compiling!"
       clean=true
       shift
       ;;
+
     --skip_config)
       echo "skipping config!"
       config=false
       shift
       ;;
+
     --check_outputs)
       do_compare=true
       shift
       ;;
+
     --save_outputs)
       do_save=true
       shift
+      ;;
+
+    --only_test)
+      echo "Only running test file: " $2
+      only_test_one=$2
+      shift 2
+      ;;
+
+    -h|--help)
+      get_help
       ;;
 
     *)
@@ -184,7 +204,7 @@ while [[ $# -gt 0 ]]; do
       echo "==> Argument '$1' not recognized."
       echo "See above for help."
       exit 1
-      ;;
+
   esac
 
 done

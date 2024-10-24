@@ -34,11 +34,12 @@ def check_line_lengths(input_args=None):
     for f in files:
 
         all_lens = []
-        tmp_subroutine_lengths = []
+        all_subroutine_lens = []
         subrout_info = []
         
         try:
             with io.open(f, 'r', encoding='utf-8') as file:
+                tmp_subroutine_lengths = []
                 lines = [line.rstrip() for line in file]
 
                 for n, l in enumerate(lines):
@@ -50,20 +51,30 @@ def check_line_lengths(input_args=None):
 
                         # is line commented?
                         comment_idx = l.find('!')
-                        #check if the line uses ! or C for comments:
+                        # check if the line uses ! or C for comments:
                         # if str isn't found, value is -1
                         comment_idx = comment_idx if comment_idx != -1 else  l.find('c')
 
                         is_commented = (comment_idx != -1) and (comment_idx < subrout_idx)
                         is_ended = (end_idx != -1) and (end_idx < subrout_idx)
+
+                        if is_commented: # don't check
+                            continue
+
                         if is_ended:
+                            if len(tmp_subroutine_lengths) == 0:
+                                raise ValueError(
+                                    "subroutine ended but was never started:"
+                                    f"  {f}: Line {n}")
+
                             tmp_subroutine_lengths[-1] = n - tmp_subroutine_lengths[-1]
                         elif not is_commented:
                             tmp_subroutine_lengths.append(n)
                             subrout_info.append([n, l])
-
-        except:
+                        
+            all_subroutine_lens.append(tmp_subroutine_lengths)
             
+        except OSError:            
             print(file, ' could not be opened. Ensure everything is UTF-8 encoded.')
             raise
 
@@ -292,9 +303,10 @@ check all changes made. Use -h/--help flags to see options.
         try:
             check_line_lengths(input_args) 
         except:
-            print(f"==> Original line length test and fprettify appear to have run successfully.\n"
-                  "   Fprettify auto-formatting appears to have made lines too long.\n"
-                  "   Manual inspection of the changed files is required\n"
+            print(
+                f"==> Original line length test and fprettify appear to have run successfully.\n"
+                "   Fprettify auto-formatting appears to have made lines too long.\n"
+                "   Manual inspection of the changed files is required\n"
             )
             raise #this should raise the correct errors... we'll see!
     else:
