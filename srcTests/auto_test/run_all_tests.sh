@@ -50,14 +50,14 @@ Arguments:
         -d, --debug               Configure & compile GITM in -debug
         -c, --clean               run a 'make clean' before make-ing?
         --skip_config             skip running Config.pl?
-        --compare_with [path]     Path to the run directory which has outputs
-                                    from all tests (not implemented yet)
-        --save_to [path]          Save outputs? Useful to compare when making
-                                    changes that could affect outputs. (not implemented yet)
+        --check_outputs           Check against reference solutions?
+                                    (not implemented yet)
+        --save_outputs            Save outputs? Useful to run BEFORE making
+                                    changes that could affect outputs.
+                                    (not implemented yet)
 
 "
-  exit 1
-
+  return
 }
 
 
@@ -102,6 +102,36 @@ do_tests(){
             printf "\n\n>>> $test_uam   UNSUCCESSFUL! <<< \n\n EXITING\n\n"
             exit 1
         fi
+
+        if [ $do_save = true ]; then
+          cp data/log00000002.dat ../ref_soln_logs/log.$test_uam
+        fi
+
+        if [ $do_compare = true ]; then
+          diff_answer=$(diff -y ../ref_soln_logs/log.$test_uam  data/log00000002.dat)
+          if [ $? -eq 0 ]; then
+            printf "\n\n>>> $test_uam diff'ed successfully! <<< \n\n"
+          else
+            echo
+            echo
+            printf "\n\n>>> $test_uam has differences. UNSUCCESSFUL! <<< \n\n EXITING\n\n"
+            printf "
+
+------------------------------------------------------------------------------------
+
+use:
+      diff ref_soln_logs/log.$test_uam  run/data/log00000002.dat
+
+or
+
+      ../../share/Scripts/DiffNum.pl ref_soln_logs/log.$test_uam  run/data/log00000002.dat
+
+to investigate the differences. Bye.\n\n"
+            exit 4
+          fi
+        fi
+
+
     done
     exit 0
 }
@@ -138,27 +168,22 @@ while [[ $# -gt 0 ]]; do
       config=false
       shift
       ;;
-    --compare_with)
-      if [[ -d "$2" ]]; then
-        echo "Comparing with" $2
-        compare_dir=$2
-      else
-        echo "ERROR: --compare_with directory $2 not found!"
-        exit 1
-      fi
-      shift 2
+    --check_outputs)
+      do_compare=true
+      shift
       ;;
-    --save_to)
-    if [[ -d "$2" ]]; then
-        echo "--save_to directory $2 already exists! Waiting 5 seconds then overwriting."
-        echo "   cancel with 'Ctrl C'"
-        sleep 5
-        compare_dir=$2
-      else
-        echo "ERROR: --compare_with directory $2 not found!"
-        exit 1
-      fi
-      shift 2
+    --save_outputs)
+      do_save=true
+      shift
+      ;;
+
+    *)
+      get_help
+      echo "------------------------------------------------------------------------------------"
+      echo
+      echo "==> Argument '$1' not recognized."
+      echo "See above for help."
+      exit 1
       ;;
   esac
 
