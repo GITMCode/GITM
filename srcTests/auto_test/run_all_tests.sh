@@ -187,6 +187,7 @@ while [[ $# -gt 0 ]]; do
 
     -h|--help)
       get_help
+      exit 0
       ;;
 
     *)
