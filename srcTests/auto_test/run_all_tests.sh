@@ -87,7 +87,7 @@ do_tests(){
     cd srcTests/auto_test/
 
     # check if we're only running one test
-    if [ ! $only_test_one -eq false ]; then
+    if [ ! $only_test_one = false ]; then
       rm run/UAM.*.test
       cp $only_test_one run/
     else
@@ -117,13 +117,13 @@ do_tests(){
         fi
 
         if [ $do_compare = true ]; then
-          diff_answer=$(diff -y ../ref_soln_logs/log.$test_uam  data/log00000002.dat)
+          diff_answer=$(../../../share/Scripts/DiffNum.pl ../ref_soln_logs/log.$test_uam  data/log00000002.dat)
           if [ $? -eq 0 ]; then
             printf "\n\n>>> $test_uam diff'ed successfully! <<< \n\n"
           else
             echo
             echo
-            diff ../ref_soln_logs/log.$test_uam  data/log00000002.dat
+            ../../../share/Scripts/DiffNum.pl ../ref_soln_logs/log.$test_uam  data/log00000002.dat
             echo
             echo
             printf "\n\n>>> $test_uam has differences. UNSUCCESSFUL! <<< \n\n EXITING\n\n"
