@@ -56,3 +56,6 @@ util/EMPIRICAL/srcEE/Makefile.DEPEND
 util/EMPIRICAL/srcIE/Makefile.DEPEND
 util/EMPIRICAL/srcUA/Makefile.RULES
 util/NOMPI/src/Makefile.RULES
+
+share/component_share 
+util/component_util
