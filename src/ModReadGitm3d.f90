@@ -59,7 +59,7 @@ contains
 
     implicit none
 
-    character(len=nGitmCharLength), intent(in) :: InDir
+    character(len=*), intent(in) :: InDir
     GitmDir = InDir
 
   end subroutine GitmSetDir
@@ -128,9 +128,9 @@ contains
 
       else
         OutData(iPoint, :) = -1.0e32
-      end if
+      endif
 
-    end do
+    enddo
 
   end subroutine GitmGetData
 
@@ -167,14 +167,14 @@ contains
             i = 2
             do while (GitmLons(i) <= InLons(iPoint))
               i = i + 1
-            end do
-          end if
+            enddo
+          endif
           GitmLonsIndex(iPoint) = i
           GitmLonsFactor(iPoint) = &
             (GitmLons(i) - InLons(iPoint))/ &
             (GitmLons(i) - GitmLons(i - 1))
-        end if
-      end if
+        endif
+      endif
 
       ! Lats
       if (InLats(iPoint) < GitmLats(1)) then
@@ -189,14 +189,14 @@ contains
             i = 2
             do while (GitmLats(i) <= InLats(iPoint))
               i = i + 1
-            end do
-          end if
+            enddo
+          endif
           GitmLatsIndex(iPoint) = i
           GitmLatsFactor(iPoint) = &
             (GitmLats(i) - InLats(iPoint))/ &
             (GitmLats(i) - GitmLats(i - 1))
-        end if
-      end if
+        endif
+      endif
 
       ! Alts
       if (InAlts(iPoint) < GitmAlts(1)) then
@@ -211,15 +211,15 @@ contains
             i = 2
             do while (GitmAlts(i) <= InAlts(iPoint))
               i = i + 1
-            end do
-          end if
+            enddo
+          endif
           GitmAltsIndex(iPoint) = i
           GitmAltsFactor(iPoint) = &
             (GitmAlts(i) - InAlts(iPoint))/ &
             (GitmAlts(i) - GitmAlts(i - 1))
-        end if
-      end if
-    end do
+        endif
+      endif
+    enddo
 
   end subroutine GitmSetGrid
 
@@ -264,17 +264,17 @@ contains
       iError = 1
       write(*, *) "Requested time is before first file!"
       return
-    end if
+    endif
     if (GitmFileTimes(nGitmFiles) < InputTime) then
       iError = 1
       write(*, *) "Requested time is after last file!"
       return
-    end if
+    endif
 
     iGitmIndex = 1
     do while (GitmFileTimes(iGitmIndex) <= InputTime .and. iGitmIndex < nGitmFiles)
       iGitmIndex = iGitmIndex + 1
-    end do
+    enddo
 
     rGitmFactor = (GitmFileTimes(iGitmIndex) - InputTime)/ &
                   (GitmFileTimes(iGitmIndex) - GitmFileTimes(iGitmIndex - 1))
@@ -293,7 +293,7 @@ contains
 
       iGitmIndexOld = iGitmIndex
 
-    end if
+    endif
 
     GitmDataAtTime = &
       rGitmFactor*GitmDataTwoFiles(1, :, :, :, :) + &
@@ -315,7 +315,8 @@ contains
 
     ! First try 3DALL files:
     write(*, *) 'ls -1 '//trim(GitmDir)//'3DALL*.bin > .list_of_gitm_files 2> .gitm_err'
-    call system('ls -1 '//trim(GitmDir)//'3DALL*.bin > .list_of_gitm_files 2> .gitm_err')
+    call execute_command_line('ls -1 '//trim(GitmDir)// &
+                              '3DALL*.bin > .list_of_gitm_files 2> .gitm_err')
     nGitmFiles = 0
     open(iGitmUnit, file='.list_of_gitm_files', status='old')
     iError = 0
@@ -323,22 +324,23 @@ contains
       read(iGitmUnit, '(a)', iostat=iError) Dummy
       write(*, *) 'dummy : ', dummy
       if (iError == 0) nGitmFiles = nGitmFiles + 1
-    end do
+    enddo
     close(iGitmUnit)
 
     if (nGitmFiles == 0) then
       ! Second try LST files:
-      call system('ls -1 '//GitmDir//'3DLST*.bin > .list_of_gitm_files 2> .gitm_err')
+      call execute_command_line('ls -1 '//GitmDir// &
+                                '3DLST*.bin > .list_of_gitm_files 2> .gitm_err')
       nGitmFiles = 0
       open(iGitmUnit, file='.list_of_gitm_files', status='old')
       iError = 0
       do while (iError == 0)
         read(iGitmUnit, '(a)', iostat=iError) Dummy
         if (iError == 0) nGitmFiles = nGitmFiles + 1
-      end do
+      enddo
       close(iGitmUnit)
       iGitmFileType = i3dlst_
-    end if
+    endif
 
     write(*, *) "nGitmFiles : ", nGitmFiles
     write(*, *) "Filetype : ", iGitmFileType
@@ -348,7 +350,7 @@ contains
       read(iGitmUnit, '(a)', iostat=iError) GitmFileList(iFile)
       call GetGitmTime(GitmFileList(iFile), time)
       GitmFileTimes(iFile) = time
-    end do
+    enddo
     close(iGitmUnit)
 
     if (nGitmFiles == 0) iError = 1
@@ -361,7 +363,7 @@ contains
 
   subroutine GetGitmTime(file, time)
 
-    character(len=nGitmCharLength), intent(in) :: file
+    character(len=*), intent(in) :: file
     real(Real8_), intent(out) :: time
     character(len=nGitmVarCharLength) :: Dummy
 
@@ -377,7 +379,7 @@ contains
     read(iInputUnit_) nVars
     do iVar = 1, nVars
       read(iInputUnit_) Dummy
-    end do
+    enddo
 
     read(iInputUnit_) iYear, iMonth, iDay, iHour, iMinute, iSecond, iMilli
     iTime = (/iYear, iMonth, iDay, iHour, iMinute, iSecond, iMilli/)
@@ -410,7 +412,7 @@ contains
       read(iInputUnit_) nVarsGitm
       do iVar = 1, nVarsGitm
         read(iInputUnit_) GitmVariables(iVar)
-      end do
+      enddo
 
       read(iInputUnit_) iYear, iMonth, iDay, iHour, iMinute, iSecond, iMilli
 
@@ -440,7 +442,7 @@ contains
       allocate(GitmDataAtTime(nVarsGitm, nLonsGitm, nLatsGitm, nAltsGitm))
       allocate(GitmDataDummy(nVarsGitm, nLonsGitm, nLatsGitm, nAltsGitm))
 
-    end if
+    endif
 
   end subroutine GetGitmGeneralHeaderInfo
 
@@ -450,7 +452,7 @@ contains
 
   subroutine GitmReadFile(InFile, iError)
 
-    character(len=nGitmCharLength), intent(in) :: InFile
+    character(len=*), intent(in) :: InFile
     integer, intent(out) :: iError
 
     character(len=nGitmVarCharLength) :: Dummy
@@ -473,17 +475,17 @@ contains
       read(iInputUnit_) nVars
       do iVar = 1, nVars
         read(iInputUnit_) Dummy
-      end do
+      enddo
 
       read(iInputUnit_) iYear, iMonth, iDay, iHour, iMinute, iSecond, iMilli
 
       do iVar = 1, nVars
         read(iInputUnit_) GitmDataDummy(iVar, :, :, :)
-      end do
+      enddo
 
       close(iInputUnit_)
 
-    end if
+    endif
 
   end subroutine GitmReadFile
 
@@ -538,8 +540,8 @@ contains
         nyear = itime(1) - 65
       else
         nyear = itime(1) + 100 - 65
-      end if
-    end if
+      endif
+    endif
     nleap = nyear/4
 
     nmonth = itime(2) - 1
@@ -548,7 +550,7 @@ contains
 
     do i = 1, nmonth
       nday = nday + dayofmon(i)
-    end do
+    enddo
 
     nday = nday + itime(3) - 1
     nhour = itime(4)

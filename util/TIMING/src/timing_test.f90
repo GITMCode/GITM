@@ -32,7 +32,7 @@ program timing_test
       timing_version_name(1:len_trim(timing_version_name))//' version ', &
       timing_version_number, ' functional=', timing_version_on
     write(*, '(a)') '========================================================='
-  end if
+  endif
 
   ! Time processor 0 only
   ! Other processors can also call timing routines, but it has no effect
@@ -45,7 +45,7 @@ program timing_test
     call timing_active(.true.)
     call timing_depth(3)
     call timing_step(0)
-  end if
+  endif
 
   call timing_start('timing_test')
 
@@ -64,7 +64,7 @@ program timing_test
     write(*, *) '============================================================'
     write(*, *) '               STARTING ITERATIONS'
     write(*, *) '============================================================'
-  end if
+  endif
   do
     if (n_iter >= 10) EXIT
 
@@ -82,22 +82,22 @@ program timing_test
       call sleep(0.02)
       call timing_stop('calc_facevalues')
       call sleep(0.01) ! other stuff
-    end do
+    enddo
     call timing_stop('advance_expl')
     if (n_iter == 5) then
       call timing_tree(2, 2)
       call timing_reset('#all', 2)
-    end if
+    endif
 
     if (me_world == 0) write(*, *) 'speed:', &
       100/max(1.D-10, timing_func_d('sum', 1, 'advance_expl', 'timing_test')), &
       ' at n_step=', n_step
-  end do
+  enddo
   if (me_world == 0) then
     write(*, *) '============================================================'
     write(*, *) '               STOPPING ITERATIONS'
     write(*, *) '============================================================'
-  end if
+  endif
   call timing_start('calc_gradients')
   call timing_start('apply_limiters')
   call sleep(0.01)
@@ -113,7 +113,7 @@ program timing_test
     write(*, *) '============================================================'
     write(*, *) '               STOPPING CALCULATIONS'
     write(*, *) '============================================================'
-  end if
+  endif
 
   call timing_report_style('tree')
   call timing_report
@@ -145,7 +145,7 @@ contains
     time_before = MPI_WTIME()
     do
       if (MPI_WTIME() > time_before + len) EXIT
-    end do
+    enddo
   end subroutine sleep
 
 end program timing_test

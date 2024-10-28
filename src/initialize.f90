@@ -39,7 +39,7 @@ subroutine initialize_gitm(TimeIn)
 
   if (.not. (index(cPlanet, "Titan") == 0)) then
     call init_radcooling
-  end if
+  endif
 
   if (.not. IsFirstTime) return
 
@@ -56,7 +56,7 @@ subroutine initialize_gitm(TimeIn)
     CurrentTime = TimeIn
     call time_real_to_int(CurrentTime, iTimeArray)
     call fix_vernal_time
-  end if
+  endif
 
   call get_f107(CurrentTime, f107, iError)
   call get_f107a(CurrentTime, f107a, iError)
@@ -69,7 +69,7 @@ subroutine initialize_gitm(TimeIn)
     call read_restart(restartInDir)
     call init_msis
 !     if (UsePerturbation) call user_create_perturbation
-  end if
+  endif
 
   call set_RrTempInd
 
@@ -77,7 +77,7 @@ subroutine initialize_gitm(TimeIn)
   if (IsThere .and. iProc == 0) then
     open(iOutputUnit_, file='GITM.STOP', status='OLD')
     close(iOutputUnit_, status='DELETE')
-  end if
+  endif
 
   !\
   ! Initialize the EUV wave spectrum
@@ -97,7 +97,7 @@ subroutine initialize_gitm(TimeIn)
           write(*, *) 'When using topography, the minimum altitude'
           write(*, *) 'must be zero.  Stopping...'
           call stop_gitm('Incorrect minimum altitude')
-        end if
+        endif
         altzero = 0.0
         call init_topography
 
@@ -116,29 +116,29 @@ subroutine initialize_gitm(TimeIn)
                 dAlt = (AltMinUniform - AltZero(iiLon, iiLat, iBlock))/nAltsmean
                 Altitude_GB(iLon, iLat, iAlt, iBlock) = &
                   AltZero(iiLon, iiLat, iBlock) + ialt*dAlt
-              end do
+              enddo
 
-            end do
-          end do
+            enddo
+          enddo
 
           dAlt = (AltMax - AltMinUniform)/(nAlts - naltsmean)
 
           do iAlt = 1, (nAlts + 2) - naltsmean
             Altitude_GB(:, :, iAlt + naltsmean, 1:nBlocks) = &
               AltMinUniform + iAlt*dAlt
-          end do
-        end do
+          enddo
+        enddo
 
       else
         ! Uniform grid
         do iAlt = -1, nAlts + 2
           Altitude_GB(:, :, iAlt, 1:nBlocks) = &
             AltMin + (iAlt - 0.5)*(AltMax - AltMin)/nAlts
-        end do
-      end if
+        enddo
+      endif
 
-    end if
-  end if
+    endif
+  endif
 
   ! Calculate vertical cell sizes
   do iAlt = 0, nAlts + 1
@@ -148,7 +148,7 @@ subroutine initialize_gitm(TimeIn)
     dAlt_GB(:, :, iAlt, 1:nBlocks) = 0.5* &
                                      (Altitude_GB(:, :, iAlt + 1, 1:nBlocks) &
                                       - Altitude_GB(:, :, iAlt - 1, 1:nBlocks))
-  end do
+  enddo
   dAlt_GB(:, :, -1, 1:nBlocks) = dAlt_GB(:, :, 0, 1:nBlocks)
   dAlt_GB(:, :, nAlts + 2, 1:nBlocks) = dAlt_GB(:, :, nAlts + 1, 1:nBlocks)
 
@@ -162,16 +162,16 @@ subroutine initialize_gitm(TimeIn)
     do iAlt = 1, nAlts
       Gravity_GB(:, :, iAlt, :) = -Gravitational_Constant &
                                   *(rBody/RadialDistance_GB(:, :, iAlt, :))**2
-    end do
-  end if
+    enddo
+  endif
 
   if (iDebugLevel > 2) then
     do iAlt = -1, nAlts + 2
       write(*, *) "===>Altitude : ", &
         iAlt, Altitude_GB(1, 1, iAlt, 1), RadialDistance_GB(1, 1, iAlt, 1), &
         Gravity_GB(1, 1, iAlt, 1)
-    end do
-  end if
+    enddo
+  endif
 
   if (Is1D) then
     Latitude(0, 1) = Latitude(1, 1) - 1.0*pi/180.0
@@ -183,7 +183,7 @@ subroutine initialize_gitm(TimeIn)
     Longitude(-1, 1) = Longitude(0, 1) - 1.0*pi/180.0
     Longitude(2, 1) = Longitude(1, 1) + 1.0*pi/180.0
     Longitude(3, 1) = Longitude(2, 1) + 1.0*pi/180.0
-  end if
+  endif
 
   ! Precalculate the limited tangent and unlimited cosine of the latitude
   TanLatitude(:, 1:nBlocks) = min(abs(tan(Latitude(:, 1:nBlocks))), 100.0)* &
@@ -233,7 +233,7 @@ subroutine initialize_gitm(TimeIn)
             dLatDist_GB(iLon, iLat, iAlt, iBlock)* &
             dAlt_GB(iLon, iLat, iAlt, iBlock)
 
-        end do
+        enddo
 
         ! Fill in longitude ghost cells
         dLonDist_FB(-1, iLat, iAlt, iBlock) = &
@@ -244,7 +244,7 @@ subroutine initialize_gitm(TimeIn)
           dLatDist_FB(0, iLat, iAlt, iBlock)
         dLatDist_FB(nLons + 2, iLat, iAlt, iBlock) = &
           dLatDist_FB(nLons + 1, iLat, iAlt, iBlock)
-      end do
+      enddo
       ! Fill in latitude ghost cells
       dLonDist_FB(:, -1, iAlt, iBlock) = &
         dLonDist_FB(:, 0, iAlt, iBlock)
@@ -254,8 +254,8 @@ subroutine initialize_gitm(TimeIn)
         dLatDist_FB(:, 0, iAlt, iBlock)
       dLatDist_FB(:, nLats + 2, iAlt, iBlock) = &
         dLatDist_FB(:, nLats + 1, iAlt, iBlock)
-    end do
-  end do
+    enddo
+  enddo
 
   InvDLatDist_GB = 1.0/dLatDist_GB
   InvDLatDist_FB = 1.0/dLatDist_FB
@@ -273,7 +273,7 @@ subroutine initialize_gitm(TimeIn)
       GradLonP_CB(iLon, iBlock) = InvDenom*Ratio2
       GradLon0_CB(iLon, iBlock) = InvDenom*(1 - Ratio2)
       GradLonM_CB(iLon, iBlock) = -InvDenom
-    end do
+    enddo
 
     do iLat = 1, nLats
       DistM = Latitude(iLat, iBlock) - Latitude(iLat - 1, iBlock)
@@ -284,8 +284,8 @@ subroutine initialize_gitm(TimeIn)
       GradLatP_CB(iLat, iBlock) = InvDenom*Ratio2
       GradLat0_CB(iLat, iBlock) = InvDenom*(1 - Ratio2)
       GradLatM_CB(iLat, iBlock) = -InvDenom
-    end do
-  end do
+    enddo
+  enddo
 
   if (UseTopography) then
      !!! What about the maxi tricks ??? Why is that there???
@@ -293,11 +293,11 @@ subroutine initialize_gitm(TimeIn)
       call UAM_gradient(Altitude_GB, GradAlt_CD, iBlock)
       dAltDLon_CB(:, :, :, iBlock) = GradAlt_CD(:, :, :, iEast_)
       dAltDLat_CB(:, :, :, iBlock) = GradAlt_CD(:, :, :, iNorth_)
-    end do
+    enddo
   else
     dAltDLon_CB = 0.
     dAltDLat_CB = 0.
-  end if
+  endif
 
   call init_heating_efficiency
 
@@ -307,11 +307,11 @@ subroutine initialize_gitm(TimeIn)
     call init_magheat
     call init_isochem
     call init_aerosol
-  end if
+  endif
 
   if (.not. (index(cPlanet, "Mars") == 0)) then
     call init_isochem
-  end if
+  endif
 
   if (.not. DoRestart) then
 
@@ -335,7 +335,7 @@ subroutine initialize_gitm(TimeIn)
           Temperature(:, :, iAlt, iBlock) = t/TempUnit_const
           eTemperature(:, :, iAlt, iBlock) = t
           iTemperature(:, :, iAlt, iBlock) = t
-        end do
+        enddo
 
         do iAlt = -1, nAlts + 2
 
@@ -370,12 +370,12 @@ subroutine initialize_gitm(TimeIn)
                 - (Temperature(:, :, iAlt, iBlock) &
                    - Temperature(:, :, iAlt - 1, iBlock)) &
                 /(Temperature(:, :, iAlt, iBlock))
-            end if
+            endif
 
             NewSumRho = NewSumRho + &
                         Mass(iSpecies)*exp(LogNS(:, :, iAlt, iSpecies, iBlock))
 
-          end do
+          enddo
 
           do iSpecies = 1, nSpecies
 
@@ -388,13 +388,13 @@ subroutine initialize_gitm(TimeIn)
             Rho(:, :, iAlt, iBlock) = Rho(:, :, iAlt, iBlock) + &
                                       Mass(iSpecies)*NDensityS(:, :, iAlt, iSpecies, iBlock)
 
-          end do
+          enddo
 
-        end do
+        enddo
 
-      end do
+      enddo
 
-    end if
+    endif
 
     if (UseIRI .and. IsEarth) then
       call init_iri
@@ -405,27 +405,27 @@ subroutine initialize_gitm(TimeIn)
           IDensityS(:, :, :, ie_, iBlock) = 1.00e8*(nIons - 1)
           eTemperature(:, :, :, iBlock) = 500.0
           iTemperature(:, :, :, iBlock) = 500.0
-        end do
-      end if
-    end if
+        enddo
+      endif
+    endif
 
-  end if
+  endif
 
   if (UseWACCMTides) then
     call read_waccm_tides
     call update_waccm_tides
-  end if
+  endif
 
   if (UseGSWMTides) then
     call read_tides
     call update_tides
-  end if
+  endif
 
   if (UseHmeTides) then
     call init_hme
     call update_hme_tides
     call modify_initial_after_tides
-  end if
+  endif
 
   call init_b0
   if (IsEarth) call init_energy_deposition
@@ -435,19 +435,20 @@ subroutine initialize_gitm(TimeIn)
     call SUBSOLR(iTimeArray(1), iJulianDay, iTimeArray(4), &
                  iTimeArray(5), iTimeArray(6), SubsolarLatitude, &
                  SubsolarLongitude)
-  end if
+  endif
 
   if (.not. Is1D) call exchange_messages_sphere
 
   call calc_pressure
 
   ! The iLon and iLat are dummy variables...
-  call UA_calc_electrodynamics(iLon, iLat)
+  ! Do not initialize GITM's electrodynamics yet within SWMF
+  if (.not. IsFramework) call UA_calc_electrodynamics(iLon, iLat)
 
   do iBlock = 1, nBlocks
     call calc_eddy_diffusion_coefficient(iBlock)
     call calc_rates(iBlock)
-  end do
+  enddo
 
   call end_timing("initialize")
 

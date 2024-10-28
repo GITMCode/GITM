@@ -24,14 +24,14 @@ contains
         Limiter_mc = min(BetaLimiter*dUp, BetaLimiter*dDown, (dUp + dDown)*0.5)
       else
         Limiter_mc = 0.0
-      end if
+      endif
     else
       if (dDown < 0.0) then
         Limiter_mc = max(BetaLimiter*dUp, BetaLimiter*dDown, (dUp + dDown)*0.5)
       else
         Limiter_mc = 0.0
-      end if
-    end if
+      endif
+    endif
 
   end function Limiter_mc
 

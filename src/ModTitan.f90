@@ -597,7 +597,7 @@ contains
         pmat(iline, 7), &
         pmat(iline, 8), &
         pmat(iline, 9)
-    end do
+    enddo
     close(Unit=UnitTmp_)
 
     open(UNIT=UnitTmp_, FILE='DataIn/New116HCNLines_Minimal.txt', STATUS='OLD', &
@@ -614,7 +614,7 @@ contains
         Eref(iline), &
         ALPHALExp(iline)
       freqhz(iline) = Speed_Light*100.0*freqw(iline)
-    end do
+    enddo
     close(Unit=UnitTmp_)
 
     Qd(1, 1) = 1.0e0

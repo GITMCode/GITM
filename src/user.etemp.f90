@@ -50,7 +50,7 @@ subroutine user_perturbation
   if (CurrentTime < PerturbTimeStart) then
     tsave = sum(temperature(1:nLons, 1:nLats, 1, 1:nBlocks))/ &
             (nLons*nLats*nBlocks)
-  end if
+  endif
 
   DuringPerturb = .false.
 
@@ -75,7 +75,7 @@ subroutine user_perturbation
               exp(-((longitude(iLon, iBlock) - loncenter)/lonwidth)**2)
           else
             f(iLon, iLat) = 0.0
-          end if
+          endif
 
           iAlt = 1
           UserHeatingRate(iLon, iLat, iAlt, iBlock) = &
@@ -84,8 +84,8 @@ subroutine user_perturbation
             TempUnit(iLon, iLat, iAlt)/ &
             cp(iLon, iLat, iAlt, iBlock)/ &
             rho(iLon, iLat, iAlt, iBlock)
-        end do
-      end do
+        enddo
+      enddo
 
 !        temperature(:,:,-1,iBlock) = tsave + 5.0 * f * tsave
 !        temperature(:,:, 0,iBlock) = tsave + 5.0 * f * tsave
@@ -98,9 +98,9 @@ subroutine user_perturbation
 !        Velocity(:,:,-1, iUp_, iBlock) = 2*f
 !        Velocity(:,:, 0, iUp_, iBlock) = 2*f
 !        Velocity(:,:, 1, iUp_, iBlock) = 2*f
-    end do
+    enddo
 
-  end if
+  endif
 
 !  NDensityS(nLons/2,nLats/2,2,1:3,1) = NDensityS(nLons/2,nLats/2,2,1:3,1)*50.0
 !  temperature(nLons/2,nLats/2,2,1) = temperature(nLons/2,nLats/2,2,1)*100.0
@@ -214,7 +214,7 @@ subroutine output_header_user(cType, iOutputUnit_)
     write(iOutputUnit_, "(I7,A1,a)") 3, " ", "Altitude"
     write(iOutputUnit_, "(I7,A1,a)") 4, " ", "JouleHeating"
     write(iOutputUnit_, "(I7,A1,a)") 5, " ", "JPara"
-  end if
+  endif
 
   ! ------------------------------------------
   ! 2D Output Header
@@ -245,8 +245,8 @@ subroutine output_header_user(cType, iOutputUnit_)
     write(iOutputUnit_, "(I7,A1,a)") 10, " ", "Wave Total Energy (ergs)"
     do n = 1, ED_N_Energies
       write(iOutputUnit_, "(I7,A6,1P,E9.3,A11)") 10 + n, " Flux@", ED_energies(n), "eV (/cm2/s)"
-    end do
-  end if
+    enddo
+  endif
 
   write(iOutputUnit_, *) ""
 
@@ -274,9 +274,9 @@ subroutine output_3dUser(iBlock, iOutputUnit_)
           Latitude(iLat, iBlock), &
           Altitude_GB(iLon, iLat, iAlt, iBlock), &
           UserData3D(iLon, iLat, iAlt, 1:nVarsUser3d - 3, iBlock)
-      end do
-    end do
-  end do
+      enddo
+    enddo
+  enddo
 
 end subroutine output_3dUser
 
@@ -302,8 +302,8 @@ subroutine output_2dUser(iBlock, iOutputUnit_)
         Latitude(iLat, iBlock), &
         Altitude_GB(iLon, iLat, iAlt, iBlock), &
         UserData2D(iLon, iLat, iAlt, 1:nVarsUser2d - 3, iBlock)
-    end do
-  end do
+    enddo
+  enddo
 
 end subroutine output_2dUser
 
@@ -329,8 +329,8 @@ subroutine output_1dUser(iBlock, iOutputUnit_)
         Latitude(iLat, iBlock), &
         Altitude_GB(iLon, iLat, iAlt, iBlock), &
         UserData2D(iLon, iLat, iAlt, 1:nVarsUser2d - 3, iBlock)
-    end do
-  end do
+    enddo
+  enddo
 
 end subroutine output_1dUser
 

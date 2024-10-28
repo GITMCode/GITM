@@ -6,7 +6,7 @@ subroutine readAMIEvariables(AmieFile, nVars, varNames, iDebugLevel)
   use ModCharSize
   implicit none
   integer, parameter :: nFieldsMax = 100
-  character(len=iCharLenIE_), intent(in) :: AmieFile
+  character(len=*), intent(in) :: AmieFile
   integer, intent(out) :: nVars
   character(len=30), dimension(nFieldsMax), intent(out) :: varNames
   integer, intent(in) :: iDebugLevel
@@ -27,15 +27,15 @@ subroutine readAMIEvariables(AmieFile, nVars, varNames, iDebugLevel)
   read(iUnitTmp_) nVars
   do iVar = 1, nVars
     read(iUnitTmp_) varNames(iVar)
-  end do
+  enddo
   close(iUnitTmp_)
 
   if (iDebugLevel > 1) then
     write(*, *) "AMIE Variables : "
     do iVar = 1, nVars
       write(*, *) iVar, '. ', trim(varNames(iVar))
-    end do
-  end if
+    enddo
+  endif
   return
 end subroutine readAMIEvariables
 
@@ -92,7 +92,7 @@ subroutine readAMIEoutput(iBLK, IsMirror, iDebugGitm, iError)
   if (iError .ne. 0) then
     write(*, *) "Error opening file:", trim(AMIE_FileName)
     stop
-  end if
+  endif
   AMIE_nLats = 0
   IsBinary = .true.
 
@@ -100,7 +100,7 @@ subroutine readAMIEoutput(iBLK, IsMirror, iDebugGitm, iError)
   if ((iError .ne. 0) .or. (AMIE_nlats .gt. 500)) then
     write(*, *) "Error reading variables AMIE_nlats, AMIE_nmlts, AMIE_ntimes"
     IsBinary = .false.
-  end if
+  endif
   close(UnitTmp_)
 
   if (IsBinary) then
@@ -113,7 +113,7 @@ subroutine readAMIEoutput(iBLK, IsMirror, iDebugGitm, iError)
   else
     open(UnitTmp_, file=AMIE_FileName, status='old')
     read(UnitTmp_, *) AMIE_nlats, AMIE_nmlts, AMIE_ntimes
-  end if
+  endif
 
   !\
   ! We have run into a problem with AMIE during storms.
@@ -142,7 +142,7 @@ subroutine readAMIEoutput(iBLK, IsMirror, iDebugGitm, iError)
   if (iError /= 0) then
     write(*, *) "Error in allocating array AllData in "
     stop
-  end if
+  endif
 
   ! ---------------------------------------------------------------
   ! Read and extrapolate AMIE grid
@@ -157,12 +157,12 @@ subroutine readAMIEoutput(iBLK, IsMirror, iDebugGitm, iError)
     read(UnitTmp_, *) (AMIE_Lats(i), i=1, AMIE_nLats)
     read(UnitTmp_, *) (AMIE_Mlts(i), i=1, AMIE_nMlts)
     read(UnitTmp_, *) nFields
-  end if
+  endif
 
   if (nFields > nFieldsMax) then
     write(*, *) "Maximum number of fields in AMIE is ", nFieldsMax
     stop
-  end if
+  endif
 
   AMIE_Lats = 90.0 - AMIE_Lats
 
@@ -178,19 +178,19 @@ subroutine readAMIEoutput(iBLK, IsMirror, iDebugGitm, iError)
     if (iError /= 0) then
       write(*, *) "Error in allocating array TempLats in "
       stop
-    end if
+    endif
     TempLats = AMIE_Lats
     do i = 1, AMIE_nLats
       AMIE_Lats(i) = TempLats(AMIE_nLats + 1 - i)
-    end do
+    enddo
     ReverseLats = .true.
     deallocate(TempLats)
-  end if
+  endif
 
   do i = AMIE_nLats + 1, AMIE_nLats + nCellsPad
     AMIE_Lats(i) = AMIE_Lats(i - 1) + &
                    (AMIE_Lats(AMIE_nLats) - AMIE_Lats(AMIE_nLats - 1))
-  end do
+  enddo
 
   energyfluxconvert = .false.
 
@@ -199,8 +199,8 @@ subroutine readAMIEoutput(iBLK, IsMirror, iDebugGitm, iError)
       read(UnitTmp_) Fields(iField)
     else
       read(UnitTmp_, '(a)') Fields(iField)
-    end if
-  end do
+    endif
+  enddo
 
   ! Need to convert from W/m^2 to erg/cm2/s
   factor = 1.0
@@ -210,7 +210,7 @@ subroutine readAMIEoutput(iBLK, IsMirror, iDebugGitm, iError)
     unitConvert(iIon_diff_eflux_) = factor
     unitConvert(iEle_mono_eflux_) = factor
     unitConvert(iEle_wave_eflux_) = factor
-  end if
+  endif
 
   if (AMIE_iDebugLevel > 1) write(*, *) 'Reading AMIE data now...'
 
@@ -230,8 +230,8 @@ subroutine readAMIEoutput(iBLK, IsMirror, iDebugGitm, iError)
         else
           read(UnitTmp_) &
             ((AllData(j, i, iField), j=1, AMIE_nMlts), i=1, AMIE_nLats)
-        end if
-      end do
+        endif
+      enddo
 
     else
 
@@ -245,10 +245,10 @@ subroutine readAMIEoutput(iBLK, IsMirror, iDebugGitm, iError)
         else
           read(UnitTmp_, *) &
             ((AllData(j, i, iField), j=1, AMIE_nMlts), i=1, AMIE_nLats)
-        end if
-      end do
+        endif
+      enddo
 
-    end if
+    endif
 
     itime_i(1) = iyr
     itime_i(2) = imo
@@ -274,15 +274,15 @@ subroutine readAMIEoutput(iBLK, IsMirror, iDebugGitm, iError)
           do i = 1, AMIE_nMlts
             AMIE_Storage(iVal, i, 1:AMIE_nLats, iTime, iBLK) = &
               -AllData(AMIE_nMlts + 1 - i, 1:AMIE_nLats, iMap_(iVal))
-          end do
+          enddo
         else
           ! This is the default :
           !    (need loop for optimization issues in gfortran...)
           do i = 1, AMIE_nMlts
             AMIE_Storage(iVal, i, 1:AMIE_nLats, iTime, iBLK) = &
               AllData(i, 1:AMIE_nLats, iMap_(iVal))
-          end do
-        end if
+          enddo
+        endif
 
         ! If the variable is the potential, linearly interpolate it to lower
         ! latitudes, and then smooth it in mlt:
@@ -293,8 +293,8 @@ subroutine readAMIEoutput(iBLK, IsMirror, iDebugGitm, iError)
             do j = AMIE_nLats + 1, AMIE_nLats + nCellsPad
               AMIE_Storage(iVal, i, j, iTime, iBLK) = &
                 AMIE_Storage(iVal, i, j - 1, iTime, iBLK) - dPotential
-            end do
-          end do
+            enddo
+          enddo
           ! Then smooth the extension in MLT:
           do j = AMIE_nLats + 1, AMIE_nLats + nCellsPad
             ! We are going to smooth more and more as we go down in latitude
@@ -310,7 +310,7 @@ subroutine readAMIEoutput(iBLK, IsMirror, iDebugGitm, iError)
                   (AMIE_Storage(iVal, i - 1, j, iTime, iBLK) + &
                    2*AMIE_Storage(iVal, i, j, iTime, iBLK) + &
                    AMIE_Storage(iVal, i + 1, j, iTime, iBLK))/4.0
-              end do
+              enddo
 
               i = AMIE_nMlts
               AMIE_Storage(iVal, i, j, iTime, iBLK) = &
@@ -318,13 +318,13 @@ subroutine readAMIEoutput(iBLK, IsMirror, iDebugGitm, iError)
                  2*AMIE_Storage(iVal, i, j, iTime, iBLK) + &
                  AMIE_Storage(iVal, 2, j, iTime, iBLK))/4.0
 
-            end do
-          end do
-        end if
-      end if
-    end do
+            enddo
+          enddo
+        endif
+      endif
+    enddo
     if (AMIE_iDebugLevel > 1) write(*, *) '  --> Done with time '
-  end do
+  enddo
 
   if (AMIE_iDebugLevel > 1) write(*, *) 'Done Reading AMIE file '
   close(UnitTmp_)

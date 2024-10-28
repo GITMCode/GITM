@@ -12,6 +12,7 @@ subroutine calc_chemistry(iBlock)
   use ModInputs, only: &
     iDebugLevel, UseIonChemistry, UseNeutralChemistry, f107, DoCheckForNans
   use ModConstants
+  use ieee_arithmetic
 
   implicit none
 
@@ -63,8 +64,8 @@ subroutine calc_chemistry(iBlock)
     do iIon = 1, nIons
       write(*, *) "====> start calc_chemistry: Max Ion Density: ", iIon, &
         maxval(IDensityS(1:nLons, 1:nLats, (nAlts*4)/5, iIon, iBlock))
-    end do
-  end if
+    enddo
+  endif
 
   ChemicalHeatingRate = 0.0
   ChemicalHeatingRateIon = 0.0
@@ -110,7 +111,7 @@ subroutine calc_chemistry(iBlock)
     call check_for_nans_ions('before chemistry')
     call check_for_nans_neutrals('before chemistry')
     call check_for_nans_temps('before chemistry')
-  end if
+  endif
 
   u2 = IVelocityPerp(1:nLons, 1:nLats, 1:nAlts, iEast_, iBlock)**2 + &
        IVelocityPerp(1:nLons, 1:nLats, 1:nAlts, iNorth_, iBlock)**2 + &
@@ -128,7 +129,7 @@ subroutine calc_chemistry(iBlock)
     mb = mb + &
          (mass(iNeutral)*Collisions(1:nLons, 1:nLats, 1:nAlts, iVIN_))/ &
          (mass(iNeutral) + MassI(iO_4SP_))
-  end do
+  enddo
 
   mb = mb/mbb
 
@@ -428,7 +429,7 @@ subroutine calc_chemistry(iBlock)
             rr = 5.1e-17*ti3m116
           else
             rr = 1.26e-17*ti10m067
-          end if
+          endif
 
           Reaction = &
             rr* &
@@ -458,7 +459,7 @@ subroutine calc_chemistry(iBlock)
             rr = 1.33e-16*ti3m044
           else
             rr = 6.55e-17*ti15m023
-          end if
+          endif
 
           Reaction = &
             rr* &
@@ -607,7 +608,7 @@ subroutine calc_chemistry(iBlock)
             rr = 1.6e-17*ti3m052
           else
             rr = 9e-18*ti9m092
-          end if
+          endif
 
           Reaction = &
             rr* &
@@ -711,7 +712,7 @@ subroutine calc_chemistry(iBlock)
             rr = 1.925e-16*ti3m045
           else
             rr = 3.325e-16
-          end if
+          endif
 
           Reaction = &
             rr* &
@@ -743,7 +744,7 @@ subroutine calc_chemistry(iBlock)
             rr = 0.825e-16*ti3m045
           else
             rr = 1.425e-16
-          end if
+          endif
 
           Reaction = &
             rr* &
@@ -777,7 +778,7 @@ subroutine calc_chemistry(iBlock)
             rr = 1.95e-13*te3m07
           else
             rr = 7.39e-14*te12m056
-          end if
+          endif
 
           Reaction = &
             rr* &
@@ -818,7 +819,7 @@ subroutine calc_chemistry(iBlock)
               ChemicalHeatingS(io2p_e) + &
               Reaction*5.0
 
-          end if
+          endif
 
           IonLosses(iO2P_) = IonLosses(iO2P_) + Reaction
 
@@ -1030,7 +1031,7 @@ subroutine calc_chemistry(iBlock)
             ChemicalHeatingSubI = &
               ChemicalHeatingSubI + Reaction*1.655
 
-          end if
+          endif
 
           IonSources(iO_4SP_) = IonSources(iO_4SP_) + Reaction
           IonLosses(iO_2DP_) = IonLosses(iO_2DP_) + Reaction
@@ -1155,7 +1156,7 @@ subroutine calc_chemistry(iBlock)
             rr = 0.275e-16*ti3m045
           else
             rr = 0.475e-16
-          end if
+          endif
 
           Reaction = &
             rr* &
@@ -1186,7 +1187,7 @@ subroutine calc_chemistry(iBlock)
             rr = 1.2e-18*ti3m045
           else
             rr = 7.0e-19*ti10m212
-          end if
+          endif
 
           Reaction = &
             rr* &
@@ -1616,7 +1617,7 @@ subroutine calc_chemistry(iBlock)
             rr = 0.495e-16*ti3m045
           else
             rr = 0.855e-16
-          end if
+          endif
 
           Reaction = &
             rr* &
@@ -1666,7 +1667,7 @@ subroutine calc_chemistry(iBlock)
             rr = 1.98e-16*ti3m045
           else
             rr = 3.42e-16
-          end if
+          endif
 
           Reaction = &
             rr* &
@@ -1677,7 +1678,7 @@ subroutine calc_chemistry(iBlock)
             NeutralSources(iO_1D_) = NeutralSources(iO_1D_) + Reaction
           else
             NeutralSources(iO_3P_) = NeutralSources(iO_3P_) + Reaction
-          end if
+          endif
 
           IonSources(iNOP_) = IonSources(iNOP_) + Reaction
           IonLosses(iNP_) = IonLosses(iNP_) + Reaction
@@ -1847,7 +1848,7 @@ subroutine calc_chemistry(iBlock)
               ChemicalHeatingSub + &
               Reaction*2.38
 
-          end if
+          endif
 
           NeutralSources(iN_4S_) = NeutralSources(iN_4S_) + Reaction
           NeutralLosses(iN_2D_) = NeutralLosses(iN_2D_) + Reaction
@@ -1981,7 +1982,7 @@ subroutine calc_chemistry(iBlock)
               ChemicalHeatingSub + &
               Reaction*3.76
 
-          end if
+          endif
           NeutralSources(iNO_) = NeutralSources(iNO_) + Reaction
           NeutralLosses(iN_2D_) = NeutralLosses(iN_2D_) + Reaction
           NeutralLosses(iO2_) = NeutralLosses(iO2_) + Reaction
@@ -2228,7 +2229,7 @@ subroutine calc_chemistry(iBlock)
               ChemicalHeatingS(io1d_o) + &
               Reaction*1.96
 
-          end if
+          endif
 
           ! ----------------------------------------------------------
           ! NO
@@ -2258,9 +2259,9 @@ subroutine calc_chemistry(iBlock)
               if (.not. UseIonConstituent(iIon)) then
                 IonSources(iIon) = 0.0
                 IonLosses(iIon) = 0.0
-              end if
-            end do
-          end if
+              endif
+            enddo
+          endif
 
           if (.not. UseNeutralChemistry) then
             NeutralSources = 0.0
@@ -2270,9 +2271,9 @@ subroutine calc_chemistry(iBlock)
               if (.not. UseNeutralConstituent(iNeutral)) then
                 NeutralSources(iNeutral) = 0.0
                 NeutralLosses(iNeutral) = 0.0
-              end if
-            end do
-          end if
+              endif
+            enddo
+          endif
 
           ! Take Implicit time step
           Ions(ie_) = 0.0
@@ -2283,7 +2284,7 @@ subroutine calc_chemistry(iBlock)
                          (1 + DtSub*ionlo)
             ! sum for e-
             Ions(ie_) = Ions(ie_) + Ions(iIon)
-          end do
+          enddo
 
           do iNeutral = 1, nSpeciesTotal
 
@@ -2305,7 +2306,7 @@ subroutine calc_chemistry(iBlock)
               NeutralLossesTotal(ialt, iNeutral) + &
               NeutralLosses(iNeutral)*DtSub
 
-          end do
+          enddo
 
           ChemicalHeatingRate(iLon, iLat, iAlt) = &
             ChemicalHeatingRate(iLon, iLat, iAlt) + &
@@ -2338,19 +2339,19 @@ subroutine calc_chemistry(iBlock)
             do iIon = 1, nIons
               write(*, *) "Ion Source/Loss : ", &
                 iIon, IonSources(iIon), IonLosses(iIon)
-            end do
+            enddo
             do iNeutral = 1, nSpeciesTotal
               write(*, *) "Neutral Source/Loss : ", iAlt, &
                 iNeutral, NeutralSources(iNeutral), &
                 NeutralLosses(iNeutral), Neutrals(iNeutral)
-            end do
+            enddo
 
             call stop_gitm("Chemistry is too fast!!")
-          end if
+          endif
 
           nIters = nIters + 1
 
-        end do
+        enddo
 
         IDensityS(iLon, iLat, iAlt, :, iBlock) = Ions
         NDensityS(iLon, iLat, iAlt, :, iBlock) = Neutrals
@@ -2360,12 +2361,12 @@ subroutine calc_chemistry(iBlock)
 
         if (DoCheckForNans) then
           do iNeutral = 1, nSpeciesTotal
-            if (isnan(Neutrals(iNeutral))) then
+            if (ieee_is_nan(Neutrals(iNeutral))) then
               write(*, *) "chemistry : Neutral is nan", iLon, iLat, iAlt, iNeutral
               call stop_gitm("Must stop now.")
-            end if
-          end do
-        end if
+            endif
+          enddo
+        endif
 
         ChemicalHeating2d(iLon, iLat) = &
           ChemicalHeating2d(iLon, iLat) + &
@@ -2373,9 +2374,9 @@ subroutine calc_chemistry(iBlock)
           Element_Charge* &
           dAlt_GB(iLon, iLat, iAlt, iBlock)
 
-      end do ! Alt
-    end do ! Lat
-  end do ! Lon
+      enddo ! Alt
+    enddo ! Lat
+  enddo ! Lon
 
   ChemicalHeatingRate(:, :, :) = &
     ChemicalHeatingRate(:, :, :)*Element_Charge/ &
@@ -2391,8 +2392,8 @@ subroutine calc_chemistry(iBlock)
     do iIon = 1, nIons
       write(*, *) "====> calc_chemistry: Max Ion Density: ", iIon, &
         maxval(IDensityS(1:nLons, 1:nLats, (nAlts*4)/5, iIon, iBlock))
-    end do
-  end if
+    enddo
+  endif
 
   if (iDebugLevel > 2) &
     write(*, *) "===> calc_chemistry: Average Dt for this timestep : ", &

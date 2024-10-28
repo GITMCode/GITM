@@ -17,7 +17,7 @@ subroutine exchange_messages_sphere
   if (.not. isOK) then
     call UAM_write_error()
     call stop_gitm("error in xfer_start")
-  end if
+  endif
 
   !
   ! End the message passing
@@ -27,7 +27,7 @@ subroutine exchange_messages_sphere
   if (.not. isOK) then
     call UAM_write_error()
     call stop_gitm("error in xfer_finish")
-  end if
+  endif
 
   do iBlock = 1, nBlocks
 
@@ -50,9 +50,9 @@ subroutine exchange_messages_sphere
           -IVelocityPar(:, -1:0, :, iNorth_, iBlock)
         IVelocityPar(:, -1:0, :, iEast_, iBlock) = &
           -IVelocityPar(:, -1:0, :, iEast_, iBlock)
-      end if
+      endif
 
-    end if
+    endif
 
     if (Latitude(nLats + 1, iBlock) > pi/2.0) then
 
@@ -71,23 +71,23 @@ subroutine exchange_messages_sphere
           -IVelocityPar(:, nLats + 1:nLats + 2, :, iNorth_, iBlock)
         IVelocityPar(:, nLats + 1:nLats + 2, :, iEast_, iBlock) = &
           -IVelocityPar(:, nLats + 1:nLats + 2, :, iEast_, iBlock)
-      end if
+      endif
 
-    end if
+    endif
 
     if (minval(temperature(1:nLons, 1:nLats, 1:nAlts, iBlock)) < 100.0) then
       write(*, *) "Low Temperature : ", iBlock, &
         minval(temperature(1:nLons, 1:nLats, 1:nAlts, iBlock))
       call stop_gitm("Temperature < 100.0")
-    end if
+    endif
 
     if (minval(rho(1:nLons, 1:nLats, 1:nAlts, iBlock)) < 0.0) then
       write(*, *) "Low mass density : ", iBlock, &
         minval(rho(1:nLons, 1:nLats, 1:nAlts, iBlock))
       call stop_gitm("mass density < 0.0")
-    end if
+    endif
 
-  end do
+  enddo
 
   call end_timing("Message Pass")
 

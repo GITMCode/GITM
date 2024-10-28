@@ -65,7 +65,7 @@ subroutine calc_thermal_conduction(iBlock)
       Cp(1:nLons, 1:nLats, 0:nAlts + 1, iBlock)
   else
     Prandtl = 0.0
-  end if
+  endif
 
   DtCSLocal = Dt/2.0
   TmpTemp = Temperature(1:nLons, 1:nLats, -1:nAlts + 2, iBlock)* &
@@ -216,26 +216,26 @@ subroutine calc_conduction_1d(iBlock, DtIn, NeuBCS, Quantity, Diff, MulFac, dTdt
         b(nAlts + 1) = -1.0
         c(nAlts + 1) = 0.0
         d(nAlts + 1) = -tempold(nAlts + 1)
-      end if
+      endif
 
       cp(0) = c(0)/b(0)
       do iAlt = 1, nAlts + 1
         cp(iAlt) = c(iAlt)/(b(iAlt) - cp(iAlt - 1)*a(iAlt))
-      end do
+      enddo
       dp(0) = d(0)/b(0)
       do iAlt = 1, nAlts + 1
         dp(iAlt) = (d(iAlt) - dp(iAlt - 1)*a(iAlt))/(b(iAlt) - cp(iAlt - 1)*a(iAlt))
-      end do
+      enddo
       temp(nAlts + 1) = dp(nAlts + 1)
       do iAlt = nAlts, 0, -1
         temp(iAlt) = dp(iAlt) - cp(iAlt)*temp(iAlt + 1)
-      end do
+      enddo
 
       dTdt_cond(iLon, iLat, 0:nAlts + 1) = &
         temp(0:nAlts + 1) - Quantity(iLon, iLat, 0:nAlts + 1)
 
-    end do
-  end do
+    enddo
+  enddo
 
   call end_timing("conduction_1d")
 

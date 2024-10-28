@@ -29,7 +29,7 @@ program process_var_name_test
   do iVar = 1, nVar
     NameVarFixed_V(iVar) = NameVar_V(iVar)
     call lower_case(NameVarFixed_V(iVar))
-  end do
+  enddo
 
   call process_var_name(nVar, NameVarFixed_V, &
                         nDensity, nSpeed, nP, nPpar, nWaveName, nMaterialName)
@@ -38,7 +38,7 @@ program process_var_name_test
   write(*, *) '--------  ------------'
   do iVar = 1, nVar
     write(*, *) NameVar_V(iVar), '         ', trim(NameVarFixed_V(iVar))
-  end do
+  enddo
 
   deallocate(NameVarFixed_V)
 
@@ -60,16 +60,16 @@ contains
         write(NameWave, '(a,i2.2)') 'i', iWave
         NameVar_V(iVar) = NameWave
         iWave = iWave + 1
-      end if
+      endif
 
       ! Fix the NameVar_V string for material levels
       if (index(NameVar_V(iVar), 'M?') >= 1) then
         write(NameMaterial, '(a,i1.1)') 'm', iMaterial
         NameVar_V(iVar) = NameMaterial
         iMaterial = iMaterial + 1
-      end if
+      endif
 
-    end do
+    enddo
 
   end subroutine set_namevar
 

@@ -83,11 +83,11 @@ subroutine aurora(iBlock)
         allocate(Fang_Ion_Ci(ED_N_Energies, 12), stat=iErr)
         allocate(Fang_Ion_y(ED_N_Energies, nAlts), stat=iErr)
         allocate(Fang_Ion_f(ED_N_Energies, nAlts), stat=iErr)
-      end if
+      endif
 
       if (iErr /= 0) then
         call stop_gitm("Error allocating Fang arrays in aurora")
-      end if
+      endif
 
       ! Electrons
       do iEnergy = 1, ED_N_Energies
@@ -96,9 +96,9 @@ subroutine aurora(iBlock)
           do j = 0, 3
             Fang_Ci(iEnergy, i) = Fang_Ci(iEnergy, i) + &
                                   Fang_Pij(i, j + 1)*log(ED_Energies(iEnergy)/1000.0)**j
-          end do
-        end do
-      end do
+          enddo
+        enddo
+      enddo
       Fang_Ci = exp(Fang_Ci)
 
       ! Ions
@@ -109,18 +109,18 @@ subroutine aurora(iBlock)
             do j = 0, 3
               Fang_Ion_Ci(iEnergy, i) = Fang_Ion_Ci(iEnergy, i) + &
                                         Fang_Ion_Pij(i, j + 1)*log(ED_Energies(iEnergy)/1000.0)**j
-            end do
-          end do
-        end do
+            enddo
+          enddo
+        enddo
         Fang_Ion_Ci = exp(Fang_Ion_Ci)
-      end if
+      endif
 
-    end if
+    endif
 
   else
     if (floor((tSimulation - dT)/dTAurora) == &
         floor(tSimulation/dTAurora)) return
-  end if
+  endif
 
   AuroralBulkIonRate = 0.0
   AuroralHeatingRate(:, :, :, iBlock) = 0.0
@@ -132,7 +132,7 @@ subroutine aurora(iBlock)
   if (iBlock == 1) then
     HemisphericPowerNorth = 0.0
     HemisphericPowerSouth = 0.0
-  end if
+  endif
 
   ! Let's scale our hemispheric power so it is roughly the same as what
   ! is measured.
@@ -156,12 +156,12 @@ subroutine aurora(iBlock)
             HemisphericPowerSouth = HemisphericPowerSouth + power
           else
             HemisphericPowerNorth = HemisphericPowerNorth + power
-          end if
+          endif
 
-        end if
+        endif
 
-      end do
-    end do
+      enddo
+    enddo
 
     ! Collect all of the powers by summing them together
 
@@ -184,6 +184,8 @@ subroutine aurora(iBlock)
     call MPI_Bcast(avepower, 1, MPI_Real, 0, iCommGITM, ierror)
 
     call get_hpi(CurrentTime, Hpi, iError)
+
+    if (avepower == 0) avepower = 1
     ratio = Hpi/avepower
 
     if (iDebugLevel >= 0) then
@@ -195,33 +197,33 @@ subroutine aurora(iBlock)
       else
         if (iDebugLevel >= 1) &
           write(*, *) 'auroral normalizing ratio: ', Hpi, avepower, ratio
-      end if
-    end if
+      endif
+    endif
     do i = 1, nLats
       do j = 1, nLons
         if (ElectronEnergyFlux(j, i) > 0.1) then
           ElectronEnergyFlux(j, i) = ElectronEnergyFlux(j, i)*ratio
-        end if
-      end do
-    end do
+        endif
+      enddo
+    enddo
 
-  end if
+  endif
 
   ! Reset the hemispheric power
 
   if (iBlock == 1) then
     HemisphericPowerNorth = 0.0
     HemisphericPowerSouth = 0.0
-  end if
+  endif
 
   if (iProc == 0 .and. AveEFactor /= 1.0) then
     write(*, *) "Auroral Experiments!!!!"
     write(*, *) "AveEFactor : ", AveEFactor
-  end if
+  endif
   if (iProc == 0 .and. IsKappaAurora) then
     write(*, *) "Auroral Experiments!!!!"
     write(*, *) "kappa : ", AuroraKappa
-  end if
+  endif
 
   do i = 1, nLats
     do j = 1, nLons
@@ -237,7 +239,7 @@ subroutine aurora(iBlock)
       else
         ion_eflx_ergs = 0.001
         ion_av_kev = 10.0
-      end if
+      endif
 
       ! For diffuse auroral models
 
@@ -265,7 +267,7 @@ subroutine aurora(iBlock)
           HemisphericPowerSouth = HemisphericPowerSouth + power
         else
           HemisphericPowerNorth = HemisphericPowerNorth + power
-        end if
+        endif
 
         ! Looking at other papers (Fang et al., [2010]), a
         ! Maxwellian is defined as:
@@ -297,7 +299,7 @@ subroutine aurora(iBlock)
             ! This is a Maxwellian from Fang et al. [2010]:
             ED_flux(n) = a*ed_energies(n)*exp(-ed_energies(n)/E0)
             ED_ion_flux(n) = ai*ed_energies(n)*exp(-ed_energies(n)/E0i)
-          end if
+          endif
 
           ED_EnergyFlux(n) = &
             ED_flux(n)* &
@@ -308,9 +310,9 @@ subroutine aurora(iBlock)
             ED_Energies(n)* &
             ED_delta_energy(n)
 
-        end do
+        enddo
 
-      end if
+      endif
 
       UseMono = .false.
       if (UseNewellAurora .and. UseNewellMono) UseMono = .true.
@@ -332,7 +334,7 @@ subroutine aurora(iBlock)
           HemisphericPowerSouth = HemisphericPowerSouth + power
         else
           HemisphericPowerNorth = HemisphericPowerNorth + power
-        end if
+        endif
 
         UserData2d(j, i, 1, 4, iBlock) = av_kev/1000.0
         UserData2d(j, i, 1, 5, iBlock) = ElectronEnergyFluxMono(j, i)
@@ -348,10 +350,10 @@ subroutine aurora(iBlock)
               ED_Energies(n)* &
               ED_delta_energy(n)
             HasSomeAurora = .true.
-          end if
-        end do
+          endif
+        enddo
 
-      end if
+      endif
 
       UseWave = .false.
       if (UseNewellAurora .and. UseNewellWave) UseWave = .true.
@@ -372,7 +374,7 @@ subroutine aurora(iBlock)
           HemisphericPowerSouth = HemisphericPowerSouth + power
         else
           HemisphericPowerNorth = HemisphericPowerNorth + power
-        end if
+        endif
 
         UserData2d(j, i, 1, 6, iBlock) = av_kev/1000.0
         UserData2d(j, i, 1, 7, iBlock) = ElectronEnergyFluxWave(j, i)
@@ -382,8 +384,8 @@ subroutine aurora(iBlock)
         do n = 3, ED_N_Energies - 3
           if (av_kev < ED_energies(n - 1) .and. av_kev >= ED_energies(n)) then
             k = n
-          end if
-        end do
+          endif
+        enddo
         if (k > 3) then
           f1 = 1.0
           f2 = 1.2
@@ -409,11 +411,11 @@ subroutine aurora(iBlock)
 !              ED_flux(k+2) = ED_Flux(k+2) + f5*ElectronNumberFluxWave(j, i) / detotal
           do n = k - 2, n + 2
             ED_EnergyFlux(n) = ED_flux(n)*ED_Energies(n)*ED_delta_energy(n)
-          end do
+          enddo
           HasSomeAurora = .true.
-        end if
+        endif
 
-      end if
+      endif
 
       if (HasSomeAurora) then
 
@@ -474,9 +476,9 @@ subroutine aurora(iBlock)
               AuroralBulkIonRate(j, i, 1:nAlts) = &
                 AuroralBulkIonRate(j, i, 1:nAlts) + 1e6*Fang_Ion_f(iEnergy, :)*fac
 
-            end if
+            endif
 
-          end do
+          enddo
 
           AuroralHeatingRate(j, i, 1:nAlts, iBlock) = 0.0
 
@@ -507,9 +509,9 @@ subroutine aurora(iBlock)
                   IsTop = .true.
                 else
                   iED = iED + 1
-                end if
-              end if
-            end do
+                endif
+              endif
+            enddo
 
             if (.not. IsTop) then
               n = ED_Interpolation_Index(k)
@@ -525,16 +527,16 @@ subroutine aurora(iBlock)
               AuroralHeatingRate(j, i, k, iBlock) = ED_Heating(ED_N_Alts)* &
                                                     factor*Pressure(j, i, k, iBlock)/exp(ED_grid(ED_N_Alts))
 
-            end if
+            endif
 
-          end do
+          enddo
 
-        end if
+        endif
 
-      end if
+      endif
 
-    end do
-  end do
+    enddo
+  enddo
 
   ! From Rees's book:
 
@@ -558,7 +560,7 @@ subroutine aurora(iBlock)
                      rho(1:nLons, 1:nLats, 1:nAlts, iBlock)
   else
     AuroralHeating = 0.0
-  end if
+  endif
 
   IsFirstTime(iBlock) = .false.
 

@@ -25,7 +25,7 @@ subroutine update_time
   do while (DTime > DaysPerYearInput*RotationPeriodInput)
     VernalTime = VernalTime + int(DaysPerYearInput)*RotationPeriodInput
     DTime = CurrentTime - VernalTime
-  end do
+  enddo
   iDay = DTime/RotationPeriodInput
   uTime = (DTime/RotationPeriodInput - iDay)*RotationPeriodInput
 
@@ -58,11 +58,11 @@ integer function jday(year, mon, day) result(Julian_Day)
   dayofmon(11) = 30
   dayofmon(12) = 31
 
-  if (mod(year, 4) .eq. 0) dayofmon(2) = dayofmon(1) + 1
+  if (mod(year, 4) .eq. 0) dayofmon(2) = dayofmon(2) + 1
   Julian_Day = 0
   do i = 1, mon - 1
     Julian_Day = Julian_Day + dayofmon(i)
-  end do
+  enddo
   Julian_Day = Julian_Day + day
 
 end
@@ -101,8 +101,8 @@ subroutine time_int_to_real(itime, timereal)
       nyear = itime(1) - 65
     else
       nyear = itime(1) + 100 - 65
-    end if
-  end if
+    endif
+  endif
   nleap = nyear/4
 
   nmonth = itime(2) - 1
@@ -111,7 +111,7 @@ subroutine time_int_to_real(itime, timereal)
 
   do i = 1, nmonth
     nday = nday + dayofmon(i)
-  end do
+  enddo
 
   nday = nday + itime(3) - 1
   nhour = itime(4)
@@ -167,8 +167,8 @@ subroutine time_real_to_int(timereal, itime)
       nyear = int((timereal - (dble(nleap)*sperday))/speryear)
       nleap = nyear/4
       nday = int((timereal - (dble(nyear)*speryear))/sperday)
-    end if
-  end if
+    endif
+  endif
 
   if (mod((nyear + 65), 4) .eq. 0) dayofmon(2) = dayofmon(2) + 1
 
@@ -189,7 +189,7 @@ subroutine time_real_to_int(timereal, itime)
   do while (nday .ge. dayofmon(nmonth))
     nday = nday - dayofmon(nmonth)
     nmonth = nmonth + 1
-  end do
+  enddo
 
   itime(1) = nyear + 1965
   itime(2) = nmonth

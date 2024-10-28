@@ -135,7 +135,7 @@ contains
     if (.not. is_valid_int_time(Time)) then
       write(*, *) NameSub, ': invalid Time = ', Time
       call CON_stop(NameSub//' ERROR invalid time')
-    end if
+    endif
 
     write(Time%String, '(i4.4,5(i2.2))') &
       Time%iYear, Time%iMonth, Time%iDay, &
@@ -195,7 +195,7 @@ contains
     if (.not. is_valid_int_time(Time)) then
       write(*, *) NameSub, ': invalid Time = ', Time
       call CON_stop(NameSub//' ERROR invalid time')
-    end if
+    endif
 
     Time%Time = &
       ((Time%iYear - iYearBase)*365 + n_leap_day(Time%iYear) + &
@@ -236,7 +236,7 @@ contains
       !write(*,*)'iDay=', iDay
       if (iDay >= 0) EXIT
       iYear = iYear - 1
-    end do
+    enddo
     !write(*,*) 'iYear, nLeapYear, is_leap_year, iDay=',&
     !     iYear,nLeapYear, is_leap_year(iYear),iDay
 
@@ -259,7 +259,7 @@ contains
     do while (iDay >= nDayInMonth_I(iMonth))
       iDay = iDay - nDayInMonth_I(iMonth)
       iMonth = iMonth + 1
-    end do
+    enddo
 
     Time%iYear = iYear
     Time%iMonth = iMonth
@@ -311,7 +311,7 @@ contains
       nDayInMonth_I(2) = 29
     else
       nDayInMonth_I(2) = 28
-    end if
+    endif
     !EOC
   end subroutine fix_february
 
@@ -446,10 +446,10 @@ contains
               write(*, *) 'TimeStart  =', TimeStart%String
               write(*, *) 'TimeConvert=', TimeConvert%String
               stop
-            end if
-          end do
-        end do
-      end do
+            endif
+          enddo
+        enddo
+      enddo
     end subroutine check_all_days
 
   end subroutine test_time

@@ -65,7 +65,7 @@ program GetEIE
   lats = 75.0
   do i = 1, 25
     mlts(i, 1) = float(i)
-  end do
+  enddo
 
   write(*, *) "Setting grid"
 
@@ -77,7 +77,7 @@ program GetEIE
     write(*, *) "Error : ", cErrorCodes(iError)
   else
     write(*, *) TempPotential
-  end if
+  endif
 
   call EIE_End(iError)
 

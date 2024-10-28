@@ -148,7 +148,7 @@ contains
       Param_I = ParamIn_I
     else
       nParam = 0
-    end if
+    endif
     ! Figure out grid dimensions and number of variables. Default is 1.
     n_D = 1
     if (present(VarIn_I)) then
@@ -185,7 +185,7 @@ contains
     else
       call CON_stop(NameSub// &
                     ': none of the VarIn_* variables are present')
-    end if
+    endif
     ! Extract information
     nVar = n_D(0)
     n1 = n_D(1)
@@ -201,8 +201,8 @@ contains
         n_D(1:3) = (/n2, n3, 1/)
       elseif (n2 == 1) then
         n_D(1:3) = (/n1, n3, 1/)
-      end if
-    end if
+      endif
+    endif
     IsCartesian = .true.
     if (present(IsCartesianIn)) IsCartesian = IsCartesianIn
 
@@ -220,14 +220,14 @@ contains
       NameVar = 'x1'
       do i = 2, nDim
         write(NameVar, "(a, i1)") trim(NameVar)//' x', i
-      end do
+      enddo
       do i = 1, nVar
         write(NameVar, "(a, i2.2)") trim(NameVar)//' v', i
-      end do
+      enddo
       do i = 1, nParam
         write(NameVar, "(a, i2.2)") trim(NameVar)//' p', i
-      end do
-    end if
+      enddo
+    endif
 
     ! Create a variable name array
     allocate(NameVar_I(nDim + nVar + nParam))
@@ -240,7 +240,7 @@ contains
         nDim, nVar, nParam, nDim + nVar + nParam
       call CON_stop(NameSub// &
                     ': number of names in NameVar does not match nDim+nVar+nParam !')
-    end if
+    endif
 
     ! Allocate arrays with a shape that is convenient for saving data
     if (TypeFile == 'hdf5') then
@@ -259,9 +259,9 @@ contains
               IsSplitSuccessfull = .true.
             else
               IsSplitSuccessfull = .false.
-            end if
+            endif
             if (IsSplitSuccessfull) exit
-          end do
+          enddo
           if (.not. IsSplitSuccessfull) then
             do j = 3, 2, -1
               ResultMod = mod(n_D(i), j)
@@ -269,25 +269,25 @@ contains
                 IsSplitSuccessfull = .true.
               else
                 IsSplitSuccessfull = .false.
-              end if
+              endif
               if (IsSplitSuccessfull) exit
-            end do
-          end if
+            enddo
+          endif
 
           if (IsSplitSuccessfull) then
             nCellsPerBlock(i) = j
           else
             nCellsPerBlock(i) = n_D(i)
-          end if
+          endif
         else
           nCellsPerBlock(i) = 1
-        end if
-      end do
+        endif
+      enddo
 
       do i = 1, nDim
         nBlocksXYZ(i) = n_D(i)/nCellsPerBlock(i)
         iBlockDxDyDz(i) = (CoordMaxIn_D(i) - CoordMinIn_D(i))/nBlocksXYZ(i)
-      end do
+      enddo
       nBlocks = product(nBlocksXYZ(1:nDim))
 
       allocate(VarHdf5Output(nCellsPerBlock(1), nCellsPerBlock(2), &
@@ -321,8 +321,8 @@ contains
                 VarHdf5Output(i, j, 1, iBlk, 1:nVar) = VarIn_IIV(iG, jG, 1:nVar)
               elseif (present(VarIn_IIIV)) then
                 VarHdf5Output(i, j, k, iBlk, 1:nVar) = VarIn_IIIV(iG, jG, kG, 1:nVar)
-              end if
-            end do; end do; end do; 
+              endif
+            enddo; enddo; enddo; 
           do n = 1, nDim
             if (n == 1) then
               MinimumBlockIjk(n, iBlk) = (ii - 1)*nCellsPerBlock(n)
@@ -336,10 +336,10 @@ contains
               MinimumBlockIjk(n, iBlk) = (kk - 1)*nCellsPerBlock(n)
               XYZMinMax(1, n, iBlk) = iBlockDxDyDz(n)*(kk - 1) + CoordMinIn_D(n)
               XYZMinMax(2, n, iBlk) = iBlockDxDyDz(n)*kk + CoordMinIn_D(n)
-            end if
-          end do
+            endif
+          enddo
 
-        end do; end do; end do; 
+        enddo; enddo; enddo; 
     else
       allocate(Coord_ID(n1*n2*n3, nDim), Var_IV(n1*n2*n3, nVar))
       ! Fill in the Coord_ID coordinate array using the available information
@@ -352,7 +352,7 @@ contains
               i_D = (/i, j, k/)
               Coord = CoordMinIn_D(iDim) + (i_D(iDim) - 1)* &
                       ((CoordMaxIn_D(iDim) - CoordMinIn_D(iDim))/max(1, n_D(iDim) - 1))
-            end if
+            endif
             if (present(CoordIn_I)) Coord = CoordIn_I(i)
             if (present(CoordIn_DII)) Coord = CoordIn_DII(iDim, i, j)
             if (present(CoordIn_DIII)) Coord = CoordIn_DIII(iDim, i, j, k)
@@ -360,8 +360,8 @@ contains
             if (present(Coord2In_I) .and. iDim == 2) Coord = Coord2In_I(j)
             if (present(Coord3In_I) .and. iDim == 3) Coord = Coord3In_I(k)
             Coord_ID(n, iDim) = Coord
-          end do; end do; end do; 
-      end do
+          enddo; enddo; enddo; 
+      enddo
 
       ! Check if all coordinates were set
       if (any(Coord_ID == huge(1.0))) call CON_stop(NameSub// &
@@ -382,13 +382,13 @@ contains
             if (present(VarIn_IV)) Var_IV(n, iVar) = VarIn_IV(i, iVar)
             if (present(VarIn_IIV)) Var_IV(n, iVar) = VarIn_IIV(i, j, iVar)
             if (present(VarIn_IIIV)) Var_IV(n, iVar) = VarIn_IIIV(i, j, k, iVar)
-          end do; end do; end do; 
-      end do
+          enddo; enddo; enddo; 
+      enddo
 
       ! Check if all variables were set
       if (any(Var_IV == huge(1.0))) call CON_stop(NameSub// &
                                                   ' variables were not defined')
-    end if
+    endif
 
     select case (TypeFile)
     case ('hdf5')
@@ -398,8 +398,8 @@ contains
         NameUnits = ''
         do iVar = 1, nVar
           NameUnits = NameUnits//'normalized '
-        end do
-      end if
+        enddo
+      endif
       call save_hdf5_file(NameFile, TypePosition, TypeStatus, StringHeader, &
                           nStep, nBlocks, Time, nDim, nParam, nVar, &
                           nCellsPerBlock(1:nDim), NameVar_I(nDim + 1:nDim + nVar), NameUnits, &
@@ -419,7 +419,7 @@ contains
       else
         call join_string(NameVar_I(1:nDim + nVar), NameVar, '", "')
         write(UnitTmp_, "(a)") '"'//trim(NameVar)//'"'
-      end if
+      endif
       write(UnitTmp_, '(a,i6,a,i6,a,i6,a)') &
         'ZONE T="STRUCTURED GRID", I=', &
         n1, ', J=', n2, ', K=', n3, ', F=POINT'
@@ -428,7 +428,7 @@ contains
       do i = 1, nParam
         write(UnitTmp_, '(a,es18.10,a)') &
           'AUXDATA '//trim(NameVar_I(nDim + nVar + i))//'="', Param_I(i), '"'
-      end do
+      enddo
 
       ! write out coordinates and variables line by line
       n = 0
@@ -438,7 +438,7 @@ contains
           if (n1 > 1) write(UnitTmp_, "(i8)", ADVANCE="NO") i
           n = n + 1
           write(UnitTmp_, "(100es18.10)") Coord_ID(n, :), Var_IV(n, :)
-        end do; end do; end do
+        enddo; enddo; enddo
 
       call close_file
     case ('formatted', 'ascii')
@@ -457,7 +457,7 @@ contains
       do k = 1, n3; do j = 1, n2; do i = 1, n1
           n = n + 1
           write(UnitTmp_, "(100es18.10)") Coord_ID(n, :), Var_IV(n, :)
-        end do; end do; end do
+        enddo; enddo; enddo
       call close_file
     case ('real8')
       call open_file(FILE=NameFile, FORM='unformatted', &
@@ -472,7 +472,7 @@ contains
       ! for very large Var_IV array
       do iVar = 1, nVar
         write(UnitTmp_) Var_IV(:, iVar)
-      end do
+      enddo
       call close_file
     case ('real4')
       call open_file(FILE=NameFile, FORM='unformatted', &
@@ -486,7 +486,7 @@ contains
         Param4_I = Param_I
         write(UnitTmp_) Param4_I
         deallocate(Param4_I)
-      end if
+      endif
       write(UnitTmp_) NameVar
       ! Copy into single precision arrays to avoid compiler issues.
       allocate(Coord4_ID(n1*n2*n3, nDim))
@@ -497,7 +497,7 @@ contains
       do iVar = 1, nVar
         Var4_I = Var_IV(:, iVar)
         write(UnitTmp_) Var4_I
-      end do
+      enddo
       deallocate(Var4_I)
       call close_file
     case default
@@ -606,7 +606,7 @@ contains
       write(*, *) NameSub, ': the number of variables is ', nVar, &
         ' (larger than 1) in file ', NameFile
       call CON_stop(NameSub//' called with scalar variable argument')
-    end if
+    endif
 
     ! If data is read, next header needs to be read
     DoReadHeader = .true.
@@ -619,13 +619,13 @@ contains
       do k = 1, n3; do j = 1, n2; do i = 1, n1
           n = n + 1
           read(iUnit, *, ERR=77, END=77) Coord_ID(n, :), Var_IV(n, :)
-        end do; end do; end do
+        enddo; enddo; enddo
 
     case ('real8')
       read(iUnit, ERR=77, END=77) Coord_ID
       do iVar = 1, nVar
         read(iUnit, ERR=77, END=77) Var_IV(:, iVar)
-      end do
+      enddo
 
     case ('real4')
       allocate(Coord4_ID(n1*n2*n3, nDim), Var4_IV(n1*n2*n3, nVar))
@@ -633,7 +633,7 @@ contains
       Coord_ID = Coord4_ID
       do iVar = 1, nVar
         read(iUnit, ERR=77, END=77) Var4_IV(:, iVar)
-      end do
+      enddo
       Var_IV = Var4_IV
       deallocate(Coord4_ID, Var4_IV)
     end select
@@ -660,8 +660,8 @@ contains
             Coord2Out_I(j) = Coord
           if (present(Coord3Out_I) .and. iDim == 3 .and. i == 1 .and. j == 1) &
             Coord3Out_I(k) = Coord
-        end do; end do; end do
-    end do
+        enddo; enddo; enddo
+    enddo
 
     ! Fill in output variable arrays
     do iVar = 1, nVar
@@ -678,8 +678,8 @@ contains
           if (present(VarOut_IIV)) VarOut_IIV(i, j, iVar) = Var_IV(n, iVar)
           if (present(VarOut_IIIV)) VarOut_IIIV(i, j, k, iVar) = Var_IV(n, iVar)
 
-        end do; end do; end do
-    end do
+        enddo; enddo; enddo
+    enddo
 
     deallocate(Coord_ID, Var_IV)
 
@@ -708,7 +708,7 @@ contains
         if (nParam > 0) then
           allocate(Param_I(nParam))
           read(iUnit, *, ERR=77, END=77) Param_I
-        end if
+        endif
         read(iUnit, '(a)', ERR=77, END=77) NameVar
       case ('real8')
         open(iUnit, file=NameFile, status='old', form='unformatted', ERR=66)
@@ -719,7 +719,7 @@ contains
         if (nParam > 0) then
           allocate(Param_I(nParam))
           read(iUnit, ERR=77, END=77) Param_I
-        end if
+        endif
         read(iUnit, ERR=77, END=77) NameVar
       case ('real4')
         open(iUnit, file=NameFile, status='old', form='unformatted', ERR=66)
@@ -734,7 +734,7 @@ contains
           read(iUnit, ERR=77, END=77) Param4_I
           Param_I = Param4_I
           deallocate(Param4_I)
-        end if
+        endif
         read(iUnit, ERR=77, END=77) NameVar
       case default
         call CON_stop(NameSub//' unknown TypeFile ='//trim(TypeFile))
@@ -757,7 +757,7 @@ contains
       if (present(nOut_D)) then
         nOut_D = 1
         nOut_D(1:nDim) = n_D(1:nDim)
-      end if
+      endif
       if (present(IsCartesianOut)) IsCartesianOut = IsCartesian
       if (present(ParamOut_I) .and. nParam > 0) &
         ParamOut_I(1:nParam) = Param_I
@@ -861,8 +861,8 @@ contains
           VarIn_VII(:, i, j) = (/0.1, 0.0, 0.0, 0.125/)
           VarIn_IIV(i, j, :) = (/0.1, 0.0, 0.0, 0.125/)
           VarIn_VIII(:, i, 1, j) = (/0.1, 0.0, 0.0, 0.125/)
-        end if
-      end do; end do
+        endif
+      enddo; enddo
 
     ! Test ascii, real8 and real4 files
     do iTest = 1, nTest
@@ -876,7 +876,7 @@ contains
         Eps = 1e-5
       else
         Eps = 1e-12
-      end if
+      endif
 
       ! Test saving it
       select case (iTest)
@@ -975,108 +975,108 @@ contains
                             CoordMaxOut_D=CoordMaxOut_D, &
                             VarOut_VII=VarOut_VII)
 
-      end if
+      endif
 
       if (nStepOut /= nStepIn) then
         write(*, *) 'nStepIn=', nStepIn, ' nStepOut=', nStepOut
         call CON_stop(NameSub)
-      end if
+      endif
 
       if (abs(TimeOut - TimeIn) > Eps) then
         write(*, *) 'TimeIn=', TimeIn, ' TimeOut=', TimeOut
         call CON_stop(NameSub)
-      end if
+      endif
 
       if (nDimOut /= nDimIn) then
         write(*, *) 'nDimIn=', nDimIn, ' nDimOut=', nDimOut
         call CON_stop(NameSub)
-      end if
+      endif
 
       if (nParamOut /= nParamIn) then
         write(*, *) 'nParamIn=', nParamIn, ' nParamOut=', nParamOut
         call CON_stop(NameSub)
-      end if
+      endif
 
       if (nVarOut /= nVarIn) then
         write(*, *) 'nVarIn=', nVarIn, ' nVarOut=', nVarOut
         call CON_stop(NameSub)
-      end if
+      endif
 
       if (any(abs(ParamOut_I(1:nParamIn) - ParamIn_I) > Eps)) then
         write(*, *) 'ParamIn=', ParamIn_I, ' ParamOut=', ParamOut_I(1:nParamIn)
         call CON_stop(NameSub)
-      end if
+      endif
 
       if (IsCartesianOut .neqv. IsCartesianIn) then
         write(*, *) 'IsCartesianIn, Out=', IsCartesianIn, IsCartesianOut
         call CON_stop(NameSub)
-      end if
+      endif
 
       if (NameVarOut /= NameVarIn) then
         write(*, *) 'NameVarIn=', NameVarIn, ' NameVarOut=', NameVarOut
         call CON_stop(NameSub)
-      end if
+      endif
 
       !To simplify, replace the 3D input array with 2D
       if (iTest > 6) then
         CoordIn_DII = CoordIn_DIII(:, :, 1, :)
         VarIn_VII = VarIn_VIII(:, :, 1, :)
-      end if
+      endif
       do j = 1, n2In; do i = 1, n1In
           if (any(abs(CoordIn_DII(:, i, j) - CoordOut_DII(:, i, j)) > Eps)) then
             write(*, *) 'i,j=', i, j
             write(*, *) 'CoordIn =', CoordIn_DII(:, i, j)
             write(*, *) 'CoordOut=', CoordOut_DII(:, i, j)
             call CON_stop(NameSub)
-          end if
+          endif
           if (abs(CoordIn_DII(1, i, j) - Coord1Out_I(i)) > Eps) then
             write(*, *) 'i,j=', i, j
             write(*, *) 'CoordIn(1)=', CoordIn_DII(1, i, j)
             write(*, *) 'Coord1Out =', Coord1Out_I(i)
             call CON_stop(NameSub)
-          end if
+          endif
           if (abs(CoordIn_DII(2, i, j) - Coord2Out_I(j)) > Eps) then
             write(*, *) 'i,j=', i, j
             write(*, *) 'CoordIn(2)=', CoordIn_DII(2, i, j)
             write(*, *) 'Coord2Out =', Coord2Out_I(j)
             call CON_stop(NameSub)
-          end if
+          endif
           if (any(abs(VarIn_VII(:, i, j) - VarOut_VII(:, i, j)) > Eps)) then
             write(*, *) 'i,j=', i, j
             write(*, *) 'VarIn =', VarIn_VII(:, i, j)
             write(*, *) 'VarOut=', VarOut_VII(:, i, j)
             call CON_stop(NameSub)
-          end if
+          endif
           if (any(abs(VarIn_IIV(i, j, :) - VarOut_VII(:, i, j)) > Eps)) then
             write(*, *) 'i,j=', i, j
             write(*, *) 'VarIn =', VarIn_IIV(i, j, :)
             write(*, *) 'VarOut=', VarOut_VII(:, i, j)
             call CON_stop(NameSub)
-          end if
-        end do; end do
+          endif
+        enddo; enddo
 
       if (abs(CoordMinOut_D(1) - minval(CoordIn_DII(1, :, :))) > Eps) then
         write(*, *) 'CoordMinOut_D(1)     =', CoordMinOut_D(1)
         write(*, *) 'minval(CoordIn_DII(1)=', minval(CoordIn_DII(1, :, :))
         call CON_stop(NameSub)
-      end if
+      endif
       if (abs(CoordMinOut_D(2) - minval(CoordIn_DII(2, :, :))) > Eps) then
         write(*, *) 'CoordMinOut_D(2)     =', CoordMinOut_D(2)
         write(*, *) 'minval(CoordIn_DII(2)=', minval(CoordIn_DII(2, :, :))
         call CON_stop(NameSub)
-      end if
+      endif
       if (abs(CoordMaxOut_D(1) - maxval(CoordIn_DII(1, :, :))) > Eps) then
         write(*, *) 'CoordMaxOut_D(1)     =', CoordMaxOut_D(1)
         write(*, *) 'maxval(CoordIn_DII(1)=', maxval(CoordIn_DII(1, :, :))
         call CON_stop(NameSub)
-      end if
+      endif
       if (abs(CoordMaxOut_D(2) - maxval(CoordIn_DII(2, :, :))) > Eps) then
         write(*, *) 'CoordMaxOut_D(2)     =', CoordMaxOut_D(2)
         write(*, *) 'maxval(CoordIn_DII(2)=', maxval(CoordIn_DII(2, :, :))
         call CON_stop(NameSub)
-      end if
+      endif
 
-    end do
+    enddo
 
     ! Test using defaults for 2D input array
     NameFile = 'test_plot_file16.out'
@@ -1099,7 +1099,7 @@ contains
       write(*, *) 'n1In, n2In=', n1In, n2In
       write(*, *) 'nOut_D    =', nOut_D
       call CON_stop(NameSub)
-    end if
+    endif
 
     ! Test using defaults for 3D input array
     NameFile = 'test_plot_file17.out'
@@ -1124,7 +1124,7 @@ contains
       write(*, *) 'n1In, n2In=', n1In, n2In
       write(*, *) 'nOut_D    =', nOut_D
       call CON_stop(NameSub)
-    end if
+    endif
 
     ! Now that we have the dimensions, we could allocate coordinate and
     ! variable arrays and read them

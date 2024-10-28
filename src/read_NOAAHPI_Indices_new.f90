@@ -58,7 +58,7 @@ subroutine read_NOAAHPI_Indices_new(iOutputError, StartTime, EndTime)
     ! If we still have a lot of data in memory, then don't bother
     ! reading more.
     if (StartTime + BufferTime < IndexTimes_TV(nIndices_V(hpi_), hpi_)) return
-  end if
+  endif
 
   ! Assume that we can read the entire file
   ReReadIMFFile = .false.
@@ -70,7 +70,7 @@ subroutine read_NOAAHPI_Indices_new(iOutputError, StartTime, EndTime)
   if (ierror .ne. 0) then
     iOutputError = 1
     return
-  end if
+  endif
 
   done = .false.
 
@@ -87,9 +87,9 @@ subroutine read_NOAAHPI_Indices_new(iOutputError, StartTime, EndTime)
 
       call read_values
       call merge_hpi_data
-    end if
+    endif
 
-  end do
+  enddo
 
   close(LunIndices_)
 
@@ -101,7 +101,7 @@ subroutine read_NOAAHPI_Indices_new(iOutputError, StartTime, EndTime)
       call time_real_to_int(ut_keep(i), itime)
       tmp(1:5, i) = itime(1:5)
       tmp(6, i) = data_keep(i)
-    end do
+    enddo
 
     call Insert_into_Indices_Array(tmp, hpi_)
 
@@ -114,11 +114,11 @@ subroutine read_NOAAHPI_Indices_new(iOutputError, StartTime, EndTime)
       if (Indices_TV(i, hpi_) > 0) then
         Indices_TV(i, hpi_norm_) = &
           2.09*ALOG(Indices_TV(i, hpi_))*1.0475
-      end if
+      endif
 
-    end do
+    enddo
 
-  end if
+  endif
 
 contains
 
@@ -150,13 +150,13 @@ contains
           if (IsFirstTime) then
             read(LunIndices_, '(i4)', iostat=ierror) iYear
             IsFirstTime = .false.
-          end if
+          endif
           tmp(1, i) = iYear
           tmp(2, i) = 1
           read(LunIndices_, '(a10,f3.0,f2.0,f2.0,f8.1)', iostat=ierror) &
             line, tmp(3:6, i)
           if (tmp(3, i) < 1) iError = 1
-        end if
+        endif
 
         if (datatype .eq. 2) then
           ! NEW NOAA HPI FILES
@@ -165,7 +165,7 @@ contains
             tmp(1, i), line, tmp(2, i), line, tmp(3, i), line, tmp(4, i), line, tmp(5, i), line, tmp(6, i), &
             line, tmp(6, i)
 
-        end if
+        endif
 
         if (ierror /= 0) then
           done_inner = .true.
@@ -184,16 +184,16 @@ contains
             ! This means that the GITM time is all BEFORE the first
             ! line in the file!
             if (EndTime < time_now .and. i == 1) i = i + 1
-          end if
+          endif
 
-        end if
+        endif
 
-      end do
+      enddo
 
       npts = i - 1
       if (npts + 1 >= MaxIndicesEntries) ReReadHPIFile = .true.
 
-    end if
+    endif
 
   end subroutine read_values
 
@@ -205,7 +205,7 @@ contains
       itime(1:5) = tmp(1:5, i)
       call time_int_to_real(itime, ut_new(i))
       data_new(i) = tmp(6, i)
-    end do
+    enddo
 
     if (npts_hpi == 0) then
       npts_hpi = npts
@@ -247,15 +247,15 @@ contains
               data_keep(k) = data_new(i)
               k = k + 1
               i = i + 1
-            end if
-          end if
-        end if
+            endif
+          endif
+        endif
 
-      end do
+      enddo
 
       npts_hpi = npts_hpi + npts
 
-    end if
+    endif
 
   end subroutine merge_hpi_data
 

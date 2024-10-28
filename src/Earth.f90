@@ -34,13 +34,13 @@ subroutine fill_photo
   if (nSpecies > 3) then
     iSpecies = iN_4S_
     photoabs(:, min(iSpecies, nSpecies)) = PhotoIon_N
-  end if
+  endif
 
   ! JMB:  06/25/2016
   if (nSpecies > 5) then
     iSpecies = iHe_
     photoabs(:, min(iSpecies, nSpecies)) = PhotoAbs_He
-  end if
+  endif
 
   ! This may need to be as defined below....
   photoion(:, iN2P_) = PhotoIon_N2
@@ -98,12 +98,12 @@ subroutine fill_photo
     if (waves(iWave) >= 1250.0 .and. wavel(iWave) <= 1750.0) then
       PhotoDis(iWave, iO2_) = &
         photoabs(iWave, iO2_) - PhotoIon(iWave, iO2P_)
-    end if
+    endif
     if (waves(iWave) >= 800.0 .and. wavel(iWave) <= 1250.0) then
       PhotoDis(iWave, iN2_) = &
         photoabs(iWave, iN2_) - PhotoIon(iWave, iN2P_)
-    end if
-  end do
+    endif
+  enddo
 
   ! Night time ionization:
 
@@ -180,14 +180,14 @@ subroutine calc_planet_sources(iBlock)
       CO2Cooling2d = CO2Cooling2d + &
                      CO2Cooling(1:nLons, 1:nLats, iAlt)* &
                      dAlt_GB(1:nLons, 1:nLats, iAlt, iBlock)
-    end do
+    enddo
 
     CO2Cooling = CO2Cooling/TempUnit(1:nLons, 1:nLats, 1:nAlts)/ &
                  (Rho(1:nLons, 1:nLats, 1:nAlts, iBlock)*cp(:, :, 1:nAlts, iBlock))
 
   else
     CO2Cooling = 0.0
-  end if
+  endif
 
   if (UseNOCooling) then
 
@@ -217,7 +217,7 @@ subroutine calc_planet_sources(iBlock)
       NOCooling2d = NOCooling2d + &
                     NOCooling(1:nLons, 1:nLats, iAlt)* &
                     dAlt_GB(1:nLons, 1:nLats, iAlt, iBlock)
-    end do
+    enddo
 
     NOCooling = NOCooling/TempUnit(1:nLons, 1:nLats, 1:nAlts)/ &
                 (Rho(1:nLons, 1:nLats, 1:nAlts, iBlock)*cp(:, :, 1:nAlts, iBlock))
@@ -226,7 +226,7 @@ subroutine calc_planet_sources(iBlock)
 
     NOCooling = 0.0
 
-  end if
+  endif
 
   if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
   if (iDebugLevel > 4) write(*, *) "=====> UseOCooling", iproc, UseOCooling
@@ -259,7 +259,7 @@ subroutine calc_planet_sources(iBlock)
       OCooling2d = OCooling2d + &
                    OCooling(1:nLons, 1:nLats, iAlt)* &
                    dAlt_GB(1:nLons, 1:nLats, iAlt, iBlock)
-    end do
+    enddo
 
     ! In our special units:
     OCooling = OCooling/TempUnit(1:nLons, 1:nLats, 1:nAlts)/ &
@@ -269,7 +269,7 @@ subroutine calc_planet_sources(iBlock)
 
     OCooling = 0.0
 
-  end if
+  endif
 
 !  do iAlt = 1,15
 !     write(*,*) 'no, co2 : ',iAlt, Altitude_GB(1,1,iAlt,iBlock)/1e3, &
@@ -296,7 +296,7 @@ subroutine calc_planet_sources(iBlock)
       PhotoElectronHeating2d(1:nLons, 1:nLats) + &
       PhotoElectronHeating(:, :, iAlt, iBlock)* &
       dAlt_GB(1:nLons, 1:nLats, iAlt, iBlock)
-  end do
+  enddo
 
   PhotoElectronHeating(:, :, :, iBlock) = &
     PhotoElectronHeating(:, :, :, iBlock)/ &
@@ -323,15 +323,15 @@ subroutine calc_planet_sources(iBlock)
 
             call get_glow(iLon, iLat, iBlock)
 
-          end do
-        end do
+          enddo
+        enddo
 
         call end_timing("glow")
 
-      end if
-    end if
+      endif
+    endif
     PhotoElectronDensity(:, :, :, :, iBlock) = PhotoElectronRate(:, :, :, :, iBlock)*dt
-  end if
+  endif
 
 end subroutine calc_planet_sources
 
@@ -402,10 +402,10 @@ subroutine calc_eddy_diffusion_coefficient(iBlock)
                                                           EddyDiffusionPressure1)/ &
                                                          (EddyDiffusionPressure0 - EddyDiffusionPressure1)
 
-        end if
-      end do
-    end do
-  end do
+        endif
+      enddo
+    enddo
+  enddo
 
 end subroutine calc_eddy_diffusion_coefficient
 

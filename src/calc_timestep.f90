@@ -60,12 +60,12 @@ subroutine calc_timestep_horizontal
                            cSound_H(iLon, iLat))/ &
                           dLatDist_GB(iLon, iLat, iAlt, iBlock))/2.0)
 
-        end do
-      end do
+        enddo
+      enddo
 
-    end do
+    enddo
 
-  end do
+  enddo
 
   DtEnd = EndTime - CurrentTime
   DtLocal = min(DtLocal, DtEnd)
@@ -115,7 +115,7 @@ subroutine calc_timestep_vertical
           cMax_GDB(iLon, iLat, iAlt, iUp_, iBlock) = &
             maxval(abs(VerticalVelocity(iLon, iLat, iAlt, :, iBlock))) + &
             sqrt(Gamma(iLon, iLat, iAlt, iBlock)*Temperature(iLon, iLat, iAlt, iBlock))
-        end do
+        enddo
 
         DtLocal = min(DtLocal, &
                       Cfl/ &
@@ -131,12 +131,12 @@ subroutine calc_timestep_vertical
                         Cfl/ &
                         maxval(cm/dAlt_GB(iLon, iLat, 1:nAlts, iBlock)))
 
-        end if
+        endif
 
-      end do
-    end do
+      enddo
+    enddo
 
-  end do
+  enddo
 
   DtEnd = EndTime - CurrentTime
   dTLocal = min(DtLocal, DtEnd)
@@ -152,7 +152,7 @@ subroutine calc_timestep_vertical
   if (dt < cfl/100.0 .and. dt < 0.99*DtEnd) then
     write(*, *) "Dt too slow!!!", dt
     call stop_gitm("Stopping in calc_timestep_vertical")
-  end if
+  endif
 
 end subroutine calc_timestep_vertical
 

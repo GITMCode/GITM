@@ -31,8 +31,6 @@ subroutine set_inputs
   integer, external :: bad_outputtype
   integer, external :: jday
 
-  integer, dimension(7) :: iEndTime
-
   logical :: IsDone, IsStartFound, doUseAeForHp
   integer :: iDebugProc = 0
   character(len=iCharLen_) :: cLine
@@ -86,14 +84,14 @@ subroutine set_inputs
             write(*, *) "-   UAM trying to set STARTTIME  -"
             write(*, *) "-          Ignoring              -"
             write(*, *) "----------------------------------"
-          end if
+          endif
 
         else
 
           iStartTime = 0
           do i = 1, 6
             call read_in_int(iStartTime(i), iError)
-          end do
+          enddo
 
           if (iError /= 0) then
             write(*, *) 'Incorrect format for #STARTTIME:'
@@ -116,13 +114,13 @@ subroutine set_inputs
             if (tSimulation > 0) then
               CurrentTime = CurrentTime + tSimulation
               call time_real_to_int(CurrentTime, iTimeArray)
-            end if
+            endif
 
             call fix_vernal_time
 
-          end if
+          endif
 
-        end if
+        endif
 
       case ("#TIMEEND", "#ENDTIME")
 
@@ -132,13 +130,13 @@ subroutine set_inputs
             write(*, *) "-   UAM trying to set ENDTIME  -"
             write(*, *) "-          Ignoring            -"
             write(*, *) "--------------------------------"
-          end if
+          endif
         else
 
           iTimeEnd = 0
           do i = 1, 6
             call read_in_int(iTimeEnd(i), iError)
-          end do
+          enddo
 
           if (iError /= 0) then
             write(*, *) 'Incorrect format for #ENDTIME:'
@@ -154,9 +152,9 @@ subroutine set_inputs
           else
             call time_int_to_real(iTimeEnd, EndTime)
             PauseTime = EndTime + 1.0
-          end if
+          endif
 
-        end if
+        endif
 
       case ("#PAUSETIME")
         call read_in_time(PauseTime, iError)
@@ -167,7 +165,7 @@ subroutine set_inputs
           write(*, *) '#PAUSETIME'
           write(*, *) 'iYear iMonth iDay iHour iMinute iSecond'
           IsDone = .true.
-        end if
+        endif
 
       case ("#ISTEP")
         call read_in_int(iStep, iError)
@@ -179,7 +177,7 @@ subroutine set_inputs
           write(*, *) '#ISTEP'
           write(*, *) 'iStep     (integer)'
           IsDone = .true.
-        end if
+        endif
 
       case ("#CPUTIMEMAX")
         call read_in_real(CPUTIMEMAX, iError)
@@ -194,7 +192,7 @@ subroutine set_inputs
           write(*, *) 'the restart files.'
           write(*, *) '#CPUTIMEMAX'
           write(*, *) 'CPUTimeMax    (real)'
-        end if
+        endif
 
       case ("#STATISTICALMODELSONLY")
         call read_in_logical(UseStatisticalModelsOnly, iError)
@@ -214,7 +212,7 @@ subroutine set_inputs
           write(*, *) '#STATISTICALMODELSONLY'
           write(*, *) 'UseStatisticalModelsOnly    (logical)'
           write(*, *) 'DtStatisticalModels         (real)'
-        end if
+        endif
 
       case ("#TSIMULATION")
 
@@ -224,7 +222,7 @@ subroutine set_inputs
             write(*, *) "-   UAM trying to set tsimulation  -"
             write(*, *) "-          Ignoring                -"
             write(*, *) "------------------------------------"
-          end if
+          endif
         else
           call read_in_real(tSim_temp, iError)
           tSimulation = tSim_temp
@@ -240,8 +238,8 @@ subroutine set_inputs
           else
             CurrentTime = CurrentTime + tsimulation
             call time_real_to_int(CurrentTime, iTimeArray)
-          end if
-        end if
+          endif
+        endif
 
       case ("#F107")
         if (RCMROutType == "F107") then
@@ -250,7 +248,7 @@ subroutine set_inputs
         else
           call read_in_real(f107, iError)
           call read_in_real(f107a, iError)
-        end if
+        endif
 
         if (iError /= 0) then
           write(*, *) 'Incorrect format for #F107:'
@@ -266,9 +264,9 @@ subroutine set_inputs
           else
             f107 = 150.0
             f107a = 150.0
-          end if
+          endif
           IsDone = .true.
-        end if
+        endif
 
         ! AGB: Added switch for initializing the GITM f107 depending on
         !      the data assimilation (RCMR) flags
@@ -276,7 +274,7 @@ subroutine set_inputs
         if (RCMROutType /= "F107") then
           call IO_set_f107_single(f107)
           call IO_set_f107a_single(f107a)
-        end if
+        endif
 
       case ("#INITIAL")
 
@@ -290,14 +288,14 @@ subroutine set_inputs
           do i = 1, nSpecies
             call read_in_real(LogNS0(i), iError)
             if (iError == 0) LogNS0(i) = alog(LogNS0(i))
-          end do
+          enddo
           LogRho0 = 0.0
           do iSpecies = 1, nSpecies
             LogRho0 = LogRho0 + &
                       exp(LogNS0(iSpecies))*Mass(iSpecies)
-          end do
+          enddo
           LogRho0 = alog(LogRho0)
-        end if
+        endif
         if (iError /= 0) then
           write(*, *) 'Incorrect format for #INITIAL:'
           write(*, *) 'This specifies the initial conditions and the'
@@ -314,8 +312,8 @@ subroutine set_inputs
           write(*, *) 'TempWidth      (real, Width of the temperature gradient)'
           do i = 1, nSpecies
             write(*, *) 'Bottom N Density (real), species', i
-          end do
-        end if
+          enddo
+        endif
 
       case ("#TIDES")
         call read_in_logical(UseMSISOnly, iError)
@@ -345,8 +343,8 @@ subroutine set_inputs
             UseMSISDiurnal = .false.
             UseMSISSemidiurnal = .false.
             UseMSISTerdiurnal = .false.
-          end if
-        end if
+          endif
+        endif
 
       case ("#MSISTIDES")
         call read_in_logical(UseMSISDiurnal, iError)
@@ -362,7 +360,7 @@ subroutine set_inputs
           write(*, *) 'UseMSISDiurnal        (logical)'
           write(*, *) 'UseMSISSemidiurnal    (logical)'
           write(*, *) 'UseMSISTerdiurnal     (logical)'
-        end if
+        endif
 
       case ("#MSISOBC")
         call read_in_logical(UseOBCExperiment, iError)
@@ -374,7 +372,7 @@ subroutine set_inputs
           write(*, *) '#MSISOBC'
           write(*, *) 'UseOBCExperiment        (logical)'
           write(*, *) 'MsisOblateFactor           (real)'
-        end if
+        endif
 
         !xianjing
       case ("#USESECONDSINFILENAME")
@@ -385,7 +383,7 @@ subroutine set_inputs
           write(*, *) 'name. F means no seconds in output file name.'
         else
           if (UseSecondsInFilename) UseSecondsInFilename = .false.
-        end if
+        endif
 
       case ("#DUSTDATA")
         call read_in_logical(UseDustDistribution, iError)
@@ -396,7 +394,7 @@ subroutine set_inputs
           write(*, *) '#DUST'
           write(*, *) 'cDustFile'
           write(*, *) 'cConrathFile'
-        end if
+        endif
 
       case ("#OVERWRITEIONOSPHERE")
         call read_in_logical(DoOverwriteIonosphere, iError)
@@ -411,7 +409,7 @@ subroutine set_inputs
           write(*, *) 'DoOverwriteWithIRI'
           write(*, *) 'DoOverwriteWithSami'
           write(*, *) 'SamiInFile'
-        end if
+        endif
 
       case ("#DIRECTORIES")
         call read_in_string(outputDir, iError)
@@ -427,7 +425,7 @@ subroutine set_inputs
           write(*, *) '#GITMBCS'
           write(*, *) 'UseGitmBCs'
           write(*, *) 'GitmBCsDir'
-        end if
+        endif
 
       case ("#DUST")
         call read_in_real(tautot_temp, iError)
@@ -437,12 +435,12 @@ subroutine set_inputs
           write(*, *) '#DUST'
           write(*, *) 'TauTot'
           write(*, *) 'Conrnu'
-        end if
+        endif
 
       CASE ("#GSWMCOMP")
         DO i = 1, 4
           CALL read_in_logical(UseGswmComp(i), iError)
-        end do
+        enddo
         IF (iError /= 0) then
           write(*, *) 'Incorrect format for #GSWMCOMP:'
           write(*, *) 'If you selected to use GSWM tides above, you'
@@ -452,7 +450,7 @@ subroutine set_inputs
           write(*, *) 'GSWMdiurnal(2)        (logical)'
           write(*, *) 'GSWMsemidiurnal(1)    (logical)'
           write(*, *) 'GSWMsemidiurnal(2)    (logical)'
-        END IF
+        ENDIF
 
       case ("#USEPERTURBATION")
         call read_in_logical(UsePerturbation, iError)
@@ -463,7 +461,7 @@ subroutine set_inputs
           write(*, *) '#USEPERTURBATION'
           write(*, *) 'UsePerturbation        (logical)'
           IsDone = .true.
-        end if
+        endif
 
         ! For WP-GITM
       case ("#USEBCPERTURBATION")
@@ -493,8 +491,8 @@ subroutine set_inputs
             call read_in_real(SeisWaveTimeDelay, iError)
             call read_in_real(EpiDistance, iError)
             call read_in_string(cSurfacePerturbFileName, iError)
-          end if
-        end if
+          endif
+        endif
         if (iError /= 0) then
           write(*, *) 'Incorrect format for #USEBCPERTURBATION":'
           write(*, *) ''
@@ -518,16 +516,16 @@ subroutine set_inputs
             read(iUnitFile, *, iostat=iErrorFile) cLine
             if (iErrorFile /= 0) IsStartFound = .true.
             if (index(cline, "#START") > 0) IsStartFound = .true.
-          end do
+          enddo
           if (iErrorFile /= 0) then
             write(*, *) "Error finding #START in surface perturbation file: ", &
               cSurfacePerturbFileName
             call stop_gitm("Must Stop!")
-          end if
+          endif
           iFreq = 0
           do while (iErrorFile == 0)
             iFreq = iFreq + 1
-            read(iUnitFile, *, iostat=iErrorFile), &
+            read(iUnitFile, *, iostat=iErrorFile) &
               PerturbWaveFreq(iFreq), FFTReal(iFreq), FFTImag(iFreq)
             ! the frequencies are ordered from low to high in the file
             ! include frequencies up to 0.1Hz
@@ -537,8 +535,8 @@ subroutine set_inputs
                 nMaxPerturbFreq
               write(*, *) "Increase nMaxPerturbFreq in ModInputs.f90 !!!"
               call stop_gitm("Must Stop!")
-            end if
-          end do
+            endif
+          enddo
           close(iUnitFile)
           ! the number of frequecies to use
           nPerturbFreq = iFreq - 1
@@ -548,7 +546,7 @@ subroutine set_inputs
             write(*, *) 'For WP: nPerturbFreq = ', &
             nPerturbFreq, 'PerturbWaveFreq(1:nPerturbFreq) = ', &
             PerturbWaveFreq(1:nPerturbFreq)
-        end if
+        endif
 
       case ("#DAMPING")
         call read_in_logical(UseDamping, iError)
@@ -559,7 +557,7 @@ subroutine set_inputs
           write(*, *) '#DAMPING'
           write(*, *) 'UseDamping        (logical)'
           IsDone = .true.
-        end if
+        endif
 
       case ("#GRAVITYWAVE")
         call read_in_logical(UseGravityWave, iError)
@@ -570,7 +568,7 @@ subroutine set_inputs
           write(*, *) '#GRAVITYWAVE'
           write(*, *) 'UseGravityWave        (logical)'
           IsDone = .true.
-        end if
+        endif
 
       case ("#HPI")
         call read_in_real(HemisphericPower, iError)
@@ -584,7 +582,7 @@ subroutine set_inputs
           IsDone = .true.
         else
           call IO_set_hpi_single(HemisphericPower)
-        end if
+        endif
 
       case ("#KP")
         call read_in_real(kp, iError)
@@ -597,7 +595,7 @@ subroutine set_inputs
           IsDone = .true.
         else
           call IO_set_kp_single(kp)
-        end if
+        endif
 
       case ("#CFL")
         call read_in_real(cfl, iError)
@@ -610,7 +608,7 @@ subroutine set_inputs
           write(*, *) '#CFL'
           write(*, *) 'cfl  (real)'
           IsDone = .true.
-        end if
+        endif
 
       case ("#FIXEDDT")
         call read_in_real(fixeddt, iError)
@@ -622,7 +620,7 @@ subroutine set_inputs
           write(*, *) '#FIXEDDT'
           write(*, *) 'FixedDt  (real)'
           IsDone = .true.
-        end if
+        endif
 
       case ("#SOLARWIND")
         call read_in_real(bx, iError)
@@ -645,7 +643,7 @@ subroutine set_inputs
           call IO_set_imf_by_single(by)
           call IO_set_imf_bz_single(bz)
           call IO_set_sw_v_single(abs(vx))
-        end if
+        endif
 
       case ("#MHD_INDICES")
 
@@ -669,15 +667,19 @@ subroutine set_inputs
           iError = 0
           call IO_set_inputs(cTempLines)
 
-          call read_MHDIMF_Indices_new(iError, CurrentTime, EndTime)
+          if (IsFramework) then ! SWMF_TIME_NOT_AVAILABLE
+            call read_MHDIMF_Indices(iError)
+          else
+            call read_MHDIMF_Indices_new(iError, CurrentTime, EndTime)
+          endif
           if (iError /= 0) then
             write(*, *) "read indices was NOT successful (imf file)"
             IsDone = .true.
           else
             UseVariableInputs = .true.
-          end if
+          endif
 
-        end if
+        endif
 
       case ("#AURORA")
         call read_in_string(cAuroralModel, iError)
@@ -703,7 +705,7 @@ subroutine set_inputs
           write(*, *) 'AveEFactor    (real)'
           write(*, *) 'IsKappaAurora     (logical)'
           write(*, *) 'AuroraKappa    (real)'
-        end if
+        endif
 
       case ("#NEWELLAURORA")
         call read_in_logical(UseNewellAurora, iError)
@@ -713,7 +715,7 @@ subroutine set_inputs
           call read_in_logical(UseNewellWave, iError)
           call read_in_logical(DoNewellRemoveSpikes, iError)
           call read_in_logical(DoNewellAverage, iError)
-        end if
+        endif
         if (iError /= 0) then
           write(*, *) 'Incorrect format for #NEWELLAURORA'
           write(*, *) 'This is for using Pat Newells aurora (Ovation).'
@@ -729,7 +731,7 @@ subroutine set_inputs
         else
           if (UseNewellAurora .and. .not. HasSetAuroraMods) &
             NormalizeAuroraToHP = .false.
-        end if
+        endif
 
       case ("#OVATIONSME")
         call read_in_logical(UseOvationSME, iError)
@@ -749,7 +751,7 @@ subroutine set_inputs
         else
           if (UseOvationSME .and. .not. HasSetAuroraMods) &
             NormalizeAuroraToHP = .false.
-        end if
+        endif
 
       case ("#AEMODEL")
         call read_in_logical(UseAeModel, iError)
@@ -763,7 +765,7 @@ subroutine set_inputs
         else
           if (UseAeModel .and. .not. HasSetAuroraMods) &
             NormalizeAuroraToHP = .false.
-        end if
+        endif
 
       case ("#FTAMODEL")
         call read_in_logical(UseFtaModel, iError)
@@ -777,7 +779,7 @@ subroutine set_inputs
         else
           if (UseFtaModel .and. .not. HasSetAuroraMods) &
             NormalizeAuroraToHP = .false.
-        end if
+        endif
 
       case ("#FANGENERGY")
         call read_in_logical(UseFangEnergyDeposition, iError)
@@ -788,7 +790,7 @@ subroutine set_inputs
           write(*, *) '#FANGENERGY'
           write(*, *) 'UseFangEnergyDeposition        (logical)'
           IsDone = .true.
-        end if
+        endif
 
       case ("#USECUSP")
         call read_in_logical(UseCusp, iError)
@@ -803,7 +805,7 @@ subroutine set_inputs
           write(*, *) 'CuspAveE       (real)'
           write(*, *) 'CuspEFlux      (real)'
           IsDone = .true.
-        end if
+        endif
 
       case ("#AMIEFILES")
         call read_in_string(cAMIEFileNorth, iError)
@@ -819,7 +821,7 @@ subroutine set_inputs
           if (index(cAMIEFileNorth, "none") == 0 .and. &
               .not. HasSetAuroraMods) &
             NormalizeAuroraToHP = .false.
-        end if
+        endif
 
       case ("#USEREGIONALAMIE")
         call read_in_logical(UseRegionalAMIE, iError)
@@ -849,7 +851,7 @@ subroutine set_inputs
           write(*, *) 'AMIELatEnd           (real)'
           write(*, *) 'AMIEBoundaryWidth    (real)'
           IsDone = .true.
-        end if
+        endif
 
       case ("#LIMITER")
         call read_in_string(TypeLimiter, iError)
@@ -862,7 +864,7 @@ subroutine set_inputs
           write(*, *) 'TypeLimiter  (string)'
           write(*, *) 'BetaLimiter  (real between 1.0-minmod and 2.0-mc)'
           IsDone = .true.
-        end if
+        endif
 
         call read_in_real(BetaLimiter, iError)
         if (iError /= 0) then
@@ -873,14 +875,14 @@ subroutine set_inputs
             write(*, *) '#LIMITER'
             write(*, *) 'TypeLimiter  (string)'
             write(*, *) 'BetaLimiter  (real between 1.0-minmod and 2.0-mc)'
-          end if
+          endif
           iError = 0
         else
           if (BetaLimiter < 1.0) BetaLimiter = 1.0
           if (BetaLimiter > 2.0) BetaLimiter = 2.0
           if (iDebugLevel > 2) &
             write(*, *) "===>Beta Limiter set to ", BetaLimiter
-        end if
+        endif
 
       case ("#NANCHECK")
         call read_in_logical(DoCheckForNans, iError)
@@ -890,7 +892,7 @@ subroutine set_inputs
           write(*, *) '#NANCHECK'
           write(*, *) 'DoCheckForNans (logical)'
           IsDone = .true.
-        end if
+        endif
 
       case ("#DEBUG")
         call read_in_int(iDebugLevel, iError)
@@ -914,7 +916,7 @@ subroutine set_inputs
           write(*, *) 'DtReport    (real)'
           write(*, *) 'UseBarriers (logical)'
           IsDone = .true.
-        end if
+        endif
 
       case ("#IONLIMITS")
         call read_in_real(MaxVParallel, iError)
@@ -928,7 +930,7 @@ subroutine set_inputs
           MaxVParallel = 100.0
           MaxEField = 0.1
           IsDone = .true.
-        end if
+        endif
 
       case ("#PHOTOELECTRON")
         if (RCMROutType /= 'PHOTOELECTRON') then
@@ -939,8 +941,8 @@ subroutine set_inputs
             write(*, *) '#PHOTOELECTRON'
             write(*, *) "PhotoElectronHeatingEfficiency   (real)"
             IsDone = .true.
-          end if
-        end if
+          endif
+        endif
 
       case ("#NEUTRALHEATING")
         call read_in_real(NeutralHeatingEfficiency, iError)
@@ -950,7 +952,7 @@ subroutine set_inputs
           write(*, *) '#NEUTRALHEATING'
           write(*, *) "NeutralHeatingEfficiency   (real)"
           IsDone = .true.
-        end if
+        endif
 
       case ("#THERMO")
         call read_in_logical(UseSolarHeating, iError)
@@ -974,7 +976,7 @@ subroutine set_inputs
           write(*, *) "UseTurbulentCond  (logical)"
           write(*, *) "UseIRHeating      (logical)"
           IsDone = .true.
-        end if
+        endif
 
       case ("#THERMALDIFFUSION")
         call read_in_real(KappaTemp0, iError)
@@ -983,7 +985,7 @@ subroutine set_inputs
           write(*, *) ''
           write(*, *) '#THERMALDIFFUSION'
           write(*, *) "KappaTemp0    (thermal conductivity, real)"
-        end if
+        endif
 
       case ("#THERMALCONDUCTION")
         call read_in_real(ThermalConduction_AO2, iError)
@@ -996,7 +998,7 @@ subroutine set_inputs
           write(*, *) "ThermalConduction_AO2 (Conduction A(O2): 3.6e-4, real)"
           write(*, *) "ThermalConduction_AO  (Conduction A(O): 5.6e-4, real)"
           write(*, *) "ThermalConduction_s   (Conduction s: 0.75, real)"
-        end if
+        endif
 
       case ("#VERTICALSOURCES")
         call read_in_real(MaximumVerticalVelocity, iError)
@@ -1005,7 +1007,7 @@ subroutine set_inputs
           write(*, *) ''
           write(*, *) '#VERTICALSOURCES'
           write(*, *) "MaximumVerticalVelocity      (real)"
-        end if
+        endif
 
       case ("#AUSMSOLVER")
         call read_in_logical(UseAUSMSolver, iError)
@@ -1014,7 +1016,7 @@ subroutine set_inputs
           write(*, *) ''
           write(*, *) '#AUSMSOLVER'
           write(*, *) "Use AUSM Solver      (logical)"
-        end if
+        endif
 
       case ("#DIFFUSION")
         call read_in_logical(UseDiffusion, iError)
@@ -1022,11 +1024,11 @@ subroutine set_inputs
           call read_in_real(EddyDiffusionCoef, iError)
           call read_in_real(EddyDiffusionPressure0, iError)
           call read_in_real(EddyDiffusionPressure1, iError)
-        end if
+        endif
 
         if (EddyDiffusionPressure0 < EddyDiffusionPressure1) then
           iError = 1
-        end if
+        endif
 
         if (iError /= 0) then
           write(*, *) 'Incorrect format for #DIFFUSION:'
@@ -1040,7 +1042,7 @@ subroutine set_inputs
           write(*, *) "EddyDiffusionCoef (real)"
           write(*, *) "EddyDiffusionPressure0 (real)"
           write(*, *) "EddyDiffusionPressure1 (real)"
-        end if
+        endif
 
       case ("#FORCING")
         call read_in_logical(UsePressureGradient, iError)
@@ -1060,7 +1062,7 @@ subroutine set_inputs
           write(*, *) "UseCoriolis         (logical)"
           write(*, *) "UseGravity          (logical)"
           IsDone = .true.
-        end if
+        endif
 
       case ("#MODIFIYPLANET")
         call read_in_real(RotationPeriodInput, iError)
@@ -1075,7 +1077,7 @@ subroutine set_inputs
           write(*, *) "RotationPeriodInput        (real)"
           write(*, *) "DaysPerYearInput           (real)"
           write(*, *) "DaysPerYearInput           (real)"
-        end if
+        endif
 
       case ("#USEIMPLICITIONMOMENTUM")
         call read_in_logical(UseImplicitFieldAlignedMomentum, iError)
@@ -1084,7 +1086,7 @@ subroutine set_inputs
           write(*, *) ''
           write(*, *) '#USEIMPLICITIONMOMENTUM'
           write(*, *) "UseImplicitFieldAlignedMomentum      (logical)"
-        end if
+        endif
 
       case ("#USEIMPROVEDIONADVECTION")
         call read_in_logical(UseImprovedIonAdvection, iError)
@@ -1096,7 +1098,7 @@ subroutine set_inputs
           write(*, *) '#USEIMPROVEDIONADVECTION'
           write(*, *) "UseImprovedIonAdvection      (logical)"
           write(*, *) "UseNighttimeIonBCs           (logical)"
-        end if
+        endif
 
       case ("#USETESTVISCOSITY")
         call read_in_real(TestViscosityFactor, iError)
@@ -1105,7 +1107,7 @@ subroutine set_inputs
           write(*, *) ''
           write(*, *) '#USETESTVISCOSITY'
           write(*, *) "TestViscosityFactor      (real)"
-        end if
+        endif
 
       case ("#DYNAMO")
         call read_in_logical(UseDynamo, iError)
@@ -1115,7 +1117,7 @@ subroutine set_inputs
           call read_in_real(MaxResidual, iError)
           call read_in_logical(IncludeCowling, iError)
           call read_in_real(DynamoLonAverage, iError)
-        end if
+        endif
         if (iError /= 0) then
           write(*, *) 'Incorrect format for #DYNAMO:'
           write(*, *) ''
@@ -1126,7 +1128,7 @@ subroutine set_inputs
           write(*, *) "MaxResidual            (V,real)"
           write(*, *) "IncludeCowling         (logical)"
           write(*, *) "DynamoLonAverage       (real)"
-        end if
+        endif
 
       case ("#IONFORCING")
         call read_in_logical(UseExB, iError)
@@ -1142,7 +1144,7 @@ subroutine set_inputs
           write(*, *) "UseIonGravity          (logical)"
           write(*, *) "UseNeutralDrag         (logical)"
           IsDone = .true.
-        end if
+        endif
 
       case ("#CHEMISTRY")
 
@@ -1160,7 +1162,7 @@ subroutine set_inputs
           write(*, *) '#FIXTILT'
           write(*, *) 'IsFixedTilt   (logical)'
           IsDone = .true.
-        end if
+        endif
 
       case ("#DIPOLE")
 
@@ -1189,7 +1191,7 @@ subroutine set_inputs
           yDipoleCenter = yDipoleCenter*1000.0
           zDipoleCenter = zDipoleCenter*1000.0
 
-        end if
+        endif
 
       case ("#APEX")
 
@@ -1200,7 +1202,7 @@ subroutine set_inputs
             write(*, *) "-   use APEX coordinates, sorry.      -"
             write(*, *) "-          Ignoring                   -"
             write(*, *) "---------------------------------------"
-          end if
+          endif
           UseApex = .false.
         else
 
@@ -1214,9 +1216,9 @@ subroutine set_inputs
             write(*, *) '        Sets whether to use a realistic magnetic'
             write(*, *) '        field (T) or a dipole (F)'
             IsDone = .true.
-          end if
+          endif
 
-        end if
+        endif
 
       case ("#ALTITUDE")
         call read_in_real(AltMin, iError)
@@ -1235,7 +1237,7 @@ subroutine set_inputs
         else
           AltMin = AltMin*1000.0
           AltMax = AltMax*1000.0
-        end if
+        endif
 
       case ("#GRID")
         if (nLats == 1 .and. nLons == 1) Is1D = .true.
@@ -1252,8 +1254,8 @@ subroutine set_inputs
             write(*, *) "variable in #GRID."
             LonEnd = LonStart
             iError = 0
-          end if
-        end if
+          endif
+        endif
 
         if (LonStart < 0) LonStart = LonStart + 360.0
         if (LonEnd < 0) LonEnd = LonEnd + 360.0
@@ -1288,12 +1290,12 @@ subroutine set_inputs
             IsFullSphere = .false.
             LatStart = LatStart*pi/180.0
             LatEnd = LatEnd*pi/180.0
-          end if
+          endif
 
           LonStart = LonStart*pi/180.0
           LonEnd = LonEnd*pi/180.0
 
-        end if
+        endif
 
       case ("#NEWSTRETCH")
         NewStretchedGrid = .true.
@@ -1313,7 +1315,7 @@ subroutine set_inputs
           write(*, *) '5.0         ! Width of stretched region'
           write(*, *) '0.6         ! Amount of stretch 0 (none) to 1 (lots)'
           IsDone = .true.
-        end if
+        endif
 
       case ("#STRETCH")
         call read_in_real(ConcentrationLatitude, iError)
@@ -1335,7 +1337,7 @@ subroutine set_inputs
             '! More control of stretch ( > 1 stretch less '// &
             '< 1 stretch more)'
           IsDone = .true.
-        end if
+        endif
 
       case ("#TOPOGRAPHY")
         call read_in_logical(UseTopography, iError)
@@ -1346,7 +1348,7 @@ subroutine set_inputs
           write(*, *) 'UseTopography (logical)'
           write(*, *) 'AltMinUniform (real)'
           IsDone = .true.
-        end if
+        endif
         AltMinUniform = AltMinUniform*1000.0
 
       case ("#RESTART")
@@ -1357,14 +1359,14 @@ subroutine set_inputs
           write(*, *) '#RESTART'
           write(*, *) 'DoRestart (logical)'
           IsDone = .true.
-        end if
+        endif
 
       case ("#PLOTTIMECHANGE")
         call read_in_time(PlotTimeChangeStart, iError)
         call read_in_time(PlotTimeChangeEnd, iError)
         do iOutputTypes = 1, nOutputTypes
           call read_in_real(PlotTimeChangeDt(iOutputTypes), iError)
-        end do
+        enddo
         if (iError /= 0) then
           write(*, *) 'Incorrect format for #PLOTTIMECHANGE:'
           write(*, *) 'This allows you to change the output cadence of the '
@@ -1375,9 +1377,9 @@ subroutine set_inputs
           write(*, *) 'yyyy mm dd hh mm ss ms (end)'
           do iOutputTypes = 1, nOutputTypes
             write(*, *) 'dt (real)'
-          end do
+          enddo
           IsDone = .true.
-        end if
+        endif
 
       case ("#APPENDFILES")
         call read_in_logical(DoAppendFiles, iError)
@@ -1389,7 +1391,7 @@ subroutine set_inputs
           write(*, *) 'It only works for satellite files now.'
           write(*, *) '#APPENDFILES'
           write(*, *) 'DoAppendFiles    (logical)'
-        end if
+        endif
 
       case ("#CCMCFILENAME")
         call read_in_logical(UseCCMCFileName, iError)
@@ -1400,7 +1402,7 @@ subroutine set_inputs
           write(*, *) '1DALL_GITM_yyyy-mm-ddThh-mm-ss.bin'
           write(*, *) '#CCMCFILENAME'
           write(*, *) 'UseCCMCFileName    (logical)'
-        end if
+        endif
 
       case ("#SAVEPLOTS", "#SAVEPLOT")
         call read_in_real(DtRestart, iError)
@@ -1412,14 +1414,14 @@ subroutine set_inputs
           do iOutputTypes = 1, nOutputTypes
             call read_in_string(OutputType(iOutputTypes), iError)
             call read_in_real(DtPlot(iOutputTypes), iError)
-          end do
+          enddo
           iError = bad_outputtype()
           if (iError /= 0) then
             write(*, *) "Error in #SAVEPLOTS"
             write(*, *) "Bad output type : ", OutputType(iError)
-          end if
+          endif
           DtPlotSave = DtPlot
-        end if
+        endif
         if (iError /= 0) then
           write(*, *) 'Incorrect format for #SAVEPLOT'
           write(*, *) 'The DtRestart variable sets the time in between '
@@ -1437,7 +1439,7 @@ subroutine set_inputs
           write(*, *) 'Outputtype (string, 3D, 2D, ION, NEUTRAL, ...)'
           write(*, *) 'DtPlot    (real, seconds)'
           IsDone = .true.
-        end if
+        endif
 
       case ("#SAVEHIMEPLOT")
         call read_in_real(HIMEPlotLonStart, iError)
@@ -1453,7 +1455,7 @@ subroutine set_inputs
           write(*, *) 'HIMEPlotLatStart (real)'
           write(*, *) 'HIMEPlotLatEnd (real)'
           IsDone = .true.
-        end if
+        endif
 
       case ("#SATELLITES")
         call read_in_int(nSats, iError)
@@ -1472,8 +1474,8 @@ subroutine set_inputs
             call read_in_string(SatOutputType(iSat), iError)
             call read_in_real(SatDtPlot(iSat), iError)
             iSatCurrentIndex(iSat) = 0
-          end do
-        end if
+          enddo
+        endif
         if (iError /= 0) then
           write(*, *) 'Incorrect format for #SATELLITES'
           write(*, *) ''
@@ -1487,7 +1489,7 @@ subroutine set_inputs
         else
           call read_satellites(iError)
           if (iError /= 0) IsDone = .true.
-        end if
+        endif
 
       case ("#RCMR")
         ! Read in the data assimilation type
@@ -1506,7 +1508,7 @@ subroutine set_inputs
               write(*, *) 'if the actual F10.7 is not close to 100'
               f107_est = 100
               iError = 0
-            end if
+            endif
 
             f107a_est = f107_est
             call IO_set_f107_single(f107_est)
@@ -1523,11 +1525,11 @@ subroutine set_inputs
               write(*, *) 'close to 0.1'
               PhotoElectronHeatingEfficiency_est = 0.1
               iError = 0
-            end if
+            endif
 
             if (RCMROutType == 'PHOTOELECTRON') then
               PhotoElectronHeatingEfficiency = PhotoElectronHeatingEfficiency_est
-            end if
+            endif
 
                  !!ANKIT: TEC read
           else if (RCMROutType == 'EDC') then
@@ -1543,18 +1545,18 @@ subroutine set_inputs
               write(*, *) 'close to 1750'
               EDC_est = 1750
               iError = 0
-            end if
+            endif
 
             if (RCMROutType == 'EDC') then
               EddyDiffusionCoef = EDC_est(1, 1)
-            end if
-          end if
+            endif
+          endif
           ! Quality check of the satellite indexes will occur when
           ! reading the satellite block.
           call read_in_int(nRCMRSat, iError)
           do iSat = 1, nRCMRSat
             call read_in_int(RCMRSat(iSat), iError)
-          end do
+          enddo
           call read_in_string(RCMRrun, iError)    !Ankit23May16: Truth or ID
           call read_in_int(Nc, iError)            !Ankit23May16: Controller Order.
           call read_in_int(RegZ, iError)          !Ankit23May16: Regressor Variable. 1=z, 0=y.
@@ -1564,7 +1566,7 @@ subroutine set_inputs
           call read_in_real(Measure_Dts, iError)  !Ankit23May16: Executes every Measure_Dts*Dts*steps steps.
           call read_in_int(C_on, iError)          !Ankit23May16: RCMR switches on after C_on steps.
           call read_in_int(uFiltLength, iError)   !Ankit23May16: Length of averaging filter.
-        end if
+        endif
 
         if (iError /= 0) then
           write(*, *) 'Incorrect format for #RCMR'
@@ -1584,11 +1586,11 @@ subroutine set_inputs
         else
           if (RCMROutType == 'EDC') then
             call read_tec_locations
-          end if
+          endif
           call alloc_rcmr
           call init_markov_matrix
           call init_rcmr
-        end if
+        endif
 
       case ("#DART") !alexey
         call read_in_int(useDART, iError)
@@ -1597,7 +1599,7 @@ subroutine set_inputs
           write(*, *) ''
           write(*, *) '#DART'
           write(*, *) "useDART (integer, {default 0=no}, 1=master ensemble member, 2=slave ens.)"
-        end if
+        endif
 
       case ("#ELECTRODYNAMICS")
         call read_in_real(dTPotential, iError)
@@ -1611,7 +1613,7 @@ subroutine set_inputs
           write(*, *) 'DtPotential (real, seconds)'
           write(*, *) 'DtAurora    (real, seconds)'
           IsDone = .true.
-        end if
+        endif
 
       case ("#INPUTTIMEDELAY")
         call read_in_real(TimeDelayHighLat, iError)
@@ -1624,7 +1626,7 @@ subroutine set_inputs
           write(*, *) 'TimeDelayHighLat (real, seconds)'
           write(*, *) 'TimeDelayEUV     (real, seconds)'
           IsDone = .true.
-        end if
+        endif
 
       case ("#LTERadiation")
         call read_in_real(DtLTERadiation, iError)
@@ -1634,7 +1636,7 @@ subroutine set_inputs
           write(*, *) '#LTERadiation'
           write(*, *) 'DtLTERadiation (real)'
           IsDone = .true.
-        end if
+        endif
 
       case ("#IONPRECIPITATION")
         call read_in_logical(UseIonPrecipitation, iError)
@@ -1645,7 +1647,7 @@ subroutine set_inputs
           write(*, *) '#IONPRECIPITATION'
           write(*, *) 'UseIonPrecipitation     (logical)'
           IsDone = .true.
-        end if
+        endif
 
       case ("#LOGFILE")
         call read_in_real(dTLogFile, iError)
@@ -1660,7 +1662,7 @@ subroutine set_inputs
           write(*, *) '#LOGFILE'
           write(*, *) 'DtLogFile   (real, seconds)'
           IsDone = .true.
-        end if
+        endif
 
       case ("#EUVMODEL")
         call read_in_logical(UseEUVAC, iError)
@@ -1683,20 +1685,24 @@ subroutine set_inputs
           write(*, *) '#EUV_DATA'
           write(*, *) 'UseEUVData            (logical)'
           write(*, *) 'cEUVFile              (string)'
-        end if
+        endif
 
       case ("#EUV_DATA")
         call read_in_logical(UseEUVData, iError)
         call read_in_string(cEUVFile, iError)
 
-        if (UseEUVData) call Set_Euv(iError, CurrentTime, EndTime)
         if (iError /= 0) then
           write(*, *) 'Incorrect format for #EUV_DATA'
           write(*, *) 'This is for a FISM or some other solar spectrum file.'
           write(*, *) '#EUV_DATA'
           write(*, *) 'UseEUVData            (logical)'
           write(*, *) 'cEUVFile              (string)'
-        end if
+        else
+          if (UseEUVData) call Set_Euv(iError, CurrentTime, EndTime)
+          if (iError /= 0) then
+            call stop_gitm("Stopping after set_euv in set_inputs. Error in EUV data. Check times!")
+          endif
+        endif
 
       case ("#ECLIPSE")
         IncludeEclipse = .true.
@@ -1731,7 +1737,7 @@ subroutine set_inputs
           write(*, *) 'Max Distance                 (real)'
           write(*, *) 'ExpAmp                       (real)'
           write(*, *) 'ExpWidth                     (real)'
-        end if
+        endif
 
       case ("#GLOW")
         call read_in_logical(UseGlow, iError)
@@ -1745,14 +1751,18 @@ subroutine set_inputs
         cTempLines(4) = "#END"
 
         call IO_set_inputs(cTempLines)
-        call read_NGDC_Indices_new(iError, CurrentTime, EndTime)
+        if (IsFramework) then !SWMF_TIME_NOT_AVAILABLE
+          call read_NGDC_Indices(iError)
+        else
+          call read_NGDC_Indices_new(iError, CurrentTime, EndTime)
+        endif
 
         if (iError /= 0) then
-          write(*, *) "read indices was NOT successful (NOAA file)"
+          write(*, *) "read indices was NOT successful (NGDC file)"
           IsDone = .true.
         else
           UseVariableInputs = .true.
-        end if
+        endif
 
       case ("#F107_FILE")
         cTempLines(1) = cLine
@@ -1769,7 +1779,7 @@ subroutine set_inputs
           IsDone = .true.
         else
           UseVariableInputs = .true.
-        end if
+        endif
 
       case ("#OMNIWEB_AP_INDICES")
         cTempLines(1) = cLine
@@ -1780,14 +1790,18 @@ subroutine set_inputs
         cTempLines(4) = "#END"
 
         call IO_set_inputs(cTempLines)
-        call read_OMNIWEB_Ap_Indices_new(iError, CurrentTime, EndTime)
+        if (IsFramework) then !SWMF_TIME_NOT_AVAILABLE
+          call stop_gitm("OMNIWEB AP cannot be read by GITM in component mode")
+        else
+          call read_OMNIWEB_Ap_Indices_new(iError, CurrentTime, EndTime)
+        endif
 
         if (iError /= 0) then
           write(*, *) "read indices was NOT successful (OMNIWEB Ap file)"
           IsDone = .true.
         else
           UseVariableInputs = .true.
-        end if
+        endif
 
       case ("#SME_INDICES")
         cTempLines(1) = cLine
@@ -1806,33 +1820,38 @@ subroutine set_inputs
           write(*, *) "or put a F if you don't."
           write(*, *) "----------------------------------------------"
           iError = 0
-        end if
+        endif
         cTempLines(4) = " "
         cTempLines(5) = "#END"
 
         call IO_set_inputs(cTempLines)
-        call read_sme(iError, &
-                      CurrentTime + TimeDelayHighLat, &
-                      EndTime + TimeDelayHighLat, doUseAeForHp)
+        if (IsFramework) then !SWMF_TIME_NOT_AVAILABLE
+          call stop_gitm("SME cannot be read by GITM in component mode")
+        else
+          call read_sme(iError, &
+                        CurrentTime + TimeDelayHighLat, &
+                        EndTime + TimeDelayHighLat, doUseAeForHp)
+        endif
 
         if (iError /= 0) then
-          write(*, *) "read indices was NOT successful (SME file)"
-          IsDone = .true.
-        end if
-
-        ! If the onset file is called "none", then it will
-        ! automatically ignore this:
-
-        call read_al_onset_list(iError, &
-                                CurrentTime + TimeDelayHighLat, &
-                                EndTime + TimeDelayHighLat)
-
-        if (iError /= 0) then
-          write(*, *) "read indices was NOT successful (onset file)"
+          write(*, *) "read_sme was NOT successful (Check SME file!)"
           IsDone = .true.
         else
-          UseVariableInputs = .true.
-        end if
+
+          ! If the onset file is called "none", then it will
+          ! automatically ignore this:
+
+          call read_al_onset_list(iError, &
+                                  CurrentTime + TimeDelayHighLat, &
+                                  EndTime + TimeDelayHighLat)
+
+          if (iError /= 0) then
+            write(*, *) "read indices was NOT successful (onset file)"
+            IsDone = .true.
+          else
+            UseVariableInputs = .true.
+          endif
+        endif
 
       case ("#ACE_DATA")
         cTempLines(1) = cLine
@@ -1850,7 +1869,7 @@ subroutine set_inputs
           IsDone = .true.
         else
           UseVariableInputs = .true.
-        end if
+        endif
 
       case ("#SWPC_INDICES")
         cTempLines(1) = cLine
@@ -1869,7 +1888,7 @@ subroutine set_inputs
           IsDone = .true.
         else
           UseVariableInputs = .true.
-        end if
+        endif
 
       case ("#NOAAHPI_INDICES")
         cTempLines(1) = cLine
@@ -1879,14 +1898,18 @@ subroutine set_inputs
         cTempLines(4) = "#END"
 
         call IO_set_inputs(cTempLines)
-        call read_NOAAHPI_Indices_new(iError, StartTime, EndTime)
+        if (IsFramework) then
+          call read_NOAAHPI_Indices(iError)
+        else
+          call read_NOAAHPI_Indices_new(iError, StartTime, EndTime)
+        endif
 
         if (iError /= 0) then
           write(*, *) "read indices was NOT successful (NOAA HPI file)"
           IsDone = .true.
         else
           UseVariableInputs = .true.
-        end if
+        endif
 
       case ("#END")
         IsDone = .true.
@@ -1895,22 +1918,37 @@ subroutine set_inputs
 
       if (iError /= 0) IsDone = .true.
 
-    end if
+    endif
 
     iLine = iLine + 1
 
     if (iLine >= nInputLines) IsDone = .true.
 
-  end do
+  enddo
 
   if (iDebugProc >= 0 .and. iProc /= iDebugProc) then
     iDebugLevel = -1
-  end if
+  endif
 
   if (iError /= 0) then
     call stop_gitm("Must Stop!!")
-  end if
+  endif
 
+  ! We need to check to see if the current time and end time are
+  ! larger than the last F107 time.  If that is the case, the code
+  ! should stop
+  ! NOTE: In component mode, start/end times are not passed in yet.
+  ! -> So we cannot check these. A fix is in the works...
+  if (.not. IsFramework) then !SWMF_TIME_NOT_AVAILABLE
+    if (iDebugLevel > 0) write(*, *) 'testing indices.... ', currenttime
+    call check_all_indices(CurrentTime, iError)
+    if (iError == 0) then
+      call check_all_indices(EndTime, iError)
+    endif
+    if (iError /= 0) then
+      call stop_gitm("Issue with Indices! Check the file(s) times!")
+    endif
+  endif
   RestartTime = CurrentTime
 
 !  KappaTemp0 = 3.6e-4
@@ -1923,7 +1961,7 @@ contains
     if (iError == 0) then
       iline = iline + 1
       read(cInputText(iline), *, iostat=iError) variable
-    end if
+    endif
   end subroutine read_in_int
 
   subroutine read_in_time(variable, iError)
@@ -1935,7 +1973,7 @@ contains
       read(cInputText(iline), *, iostat=iError) iTimeReadIn(1:6)
       iTimeReadIn(7) = 0
       call time_int_to_real(iTimeReadIn, variable)
-    end if
+    endif
   end subroutine read_in_time
 
   subroutine read_in_logical(variable, iError)
@@ -1944,7 +1982,7 @@ contains
     if (iError == 0) then
       iline = iline + 1
       read(cInputText(iline), *, iostat=iError) variable
-    end if
+    endif
   end subroutine read_in_logical
 
   subroutine read_in_string(variable, iError)
@@ -1956,7 +1994,7 @@ contains
       ! Remove anything after a space or TAB
       i = index(variable, ' '); if (i > 0) variable(i:len(cLine)) = ' '
       i = index(variable, char(9)); if (i > 0) variable(i:len(cLine)) = ' '
-    end if
+    endif
   end subroutine read_in_string
 
   subroutine read_in_real(variable, iError)
@@ -1965,7 +2003,7 @@ contains
     if (iError == 0) then
       iline = iline + 1
       read(cInputText(iline), *, iostat=iError) variable
-    end if
+    endif
   end subroutine read_in_real
 
 end subroutine set_inputs
@@ -1994,8 +2032,8 @@ subroutine fix_vernal_time
                      floor(n*(DaysPerYearInput - int(DaysPerYearInput)))* &
                      RotationPeriodInput
         n = 0
-      end if
-    end do
+      endif
+    enddo
     DTime = CurrentTime - VernalTime
   else
     n = 0
@@ -2007,10 +2045,10 @@ subroutine fix_vernal_time
                      floor(n*(DaysPerYearInput - int(DaysPerYearInput)))* &
                      RotationPeriodInput
         n = 0
-      end if
+      endif
       DTime = CurrentTime - VernalTime
-    end do
-  end if
+    enddo
+  endif
   iDay = DTime/RotationPeriodInput
   uTime = (DTime/RotationPeriodInput - iDay)*RotationPeriodInput
   iJulianDay = jday( &

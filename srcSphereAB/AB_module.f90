@@ -209,15 +209,15 @@ contains
       do j = 1, ab_rnbr_num
         new_abp%nbrs_p(j, i) = -1
         new_abp%nbrs_b(j, i) = -1
-      end do
+      enddo
       new_abp%nbrs_l(i) = ab_level_same
-    end do
+    enddo
 
     ! initialize corners
     do i = 1, ab_num_cnr_nbrs
       new_abp%cnrs_p(i) = -1
       new_abp%cnrs_b(i) = -1
-    end do
+    enddo
 
     ! initialize other entries
     new_abp%x = x
@@ -262,7 +262,7 @@ contains
     else
       grp%blks(index)%nbrs_p(ab_rnbr_none, dir) = nbr_p
       grp%blks(index)%nbrs_b(ab_rnbr_none, dir) = nbr_b
-    end if
+    endif
 
     ! update pole type
     !!!!!!! WARNING NEED TO FILL THIS IN BEFORE USING
@@ -309,22 +309,22 @@ contains
     do i = 1, ab_num_edge_nbrs
       blk%nbrs_p(ab_rnbr_none, i) = nbrs_p(i)
       blk%nbrs_b(ab_rnbr_none, i) = nbrs_b(i)
-    end do
+    enddo
 
     ! set corners
     do i = 1, ab_num_cnr_nbrs
       blk%cnrs_p(i) = nbrs_p(i + ab_cnr_ind_2_dir)
       blk%cnrs_b(i) = nbrs_b(i + ab_cnr_ind_2_dir)
-    end do
+    enddo
 
     ! update pole type
     blk%pole_type = 0
     if (north_pole) then
       blk%pole_type = blk%pole_type + 1
-    end if
+    endif
     if (south_pole) then
       blk%pole_type = blk%pole_type + 2
-    end if
+    endif
 
   end subroutine AB_set_all_nbrs
 
@@ -382,7 +382,7 @@ contains
       ok = .false.
       call AB_ERROR_set("AB_module_setup", "allocate error ", ierror)
       return
-    end if
+    endif
 
   end subroutine AB_module_setup
 
@@ -420,7 +420,7 @@ contains
       ok = .false.
       call AB_ERROR_set("AB_GRP_create", "allocate error ", ierror)
       return
-    end if
+    endif
 
     ! Allocate space for adpt values
     allocate(grp%adpt(num_blks), stat=ierror)
@@ -428,7 +428,7 @@ contains
       ok = .false.
       call AB_ERROR_set("AB_GRP_create_sphere", "allocate error ", ierror)
       return
-    end if
+    endif
 
     ! Initialize adaptation values
     grp%adpt = 0
@@ -541,7 +541,7 @@ contains
     else
       done = .false.
       index = 1
-    end if
+    endif
   end subroutine AB_ITER_reset
 
  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -573,7 +573,7 @@ contains
     else
       done = .false.
       index = iter%index
-    end if
+    endif
 
   end subroutine AB_ITER_next
 
@@ -660,7 +660,7 @@ contains
       pole_type = iter%grp%blks(index)%pole_type
       pole = g_pole(dir, pole_type)
       nbr_dir = g_trans_dir(dir, pole_type)
-    end if
+    endif
 
   end subroutine AB_NBR_ITER_reset_pipd
 
@@ -699,7 +699,7 @@ contains
     if (iter%dir > ab_num_nbrs) then
       iter%dir = 1
       iter%index = iter%index + 1
-    end if
+    endif
 
     ! check if we're still in range and if so then do output
     if (iter%index > iter%grp%max_used_blks) then
@@ -720,11 +720,11 @@ contains
       else
         nbr_proc = iter%grp%blks(index)%nbrs_p(ab_rnbr_none, dir)
         nbr_index = iter%grp%blks(index)%nbrs_b(ab_rnbr_none, dir)
-      end if
+      endif
       pole_type = iter%grp%blks(index)%pole_type
       pole = g_pole(dir, pole_type)
       nbr_dir = g_trans_dir(dir, pole_type)
-    end if
+    endif
   end subroutine AB_NBR_ITER_next_pipd
 
  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -769,7 +769,7 @@ contains
       dir = 1
       nbr_proc = iter%grp%blks(index)%nbrs_p(ab_rnbr_none, dir)
       nbr_index = iter%grp%blks(index)%nbrs_b(ab_rnbr_none, dir)
-    end if
+    endif
 
   end subroutine AB_NBR_ITER_reset_pi
 
@@ -805,7 +805,7 @@ contains
     if (iter%dir > ab_num_nbrs) then
       iter%dir = 1
       iter%index = iter%index + 1
-    end if
+    endif
 
     ! check if we're still in range and if so then do output
     if (iter%index > iter%grp%max_used_blks) then
@@ -824,8 +824,8 @@ contains
       else
         nbr_proc = iter%grp%blks(index)%nbrs_p(ab_rnbr_none, dir)
         nbr_index = iter%grp%blks(index)%nbrs_b(ab_rnbr_none, dir)
-      end if
-    end if
+      endif
+    endif
   end subroutine AB_NBR_ITER_next_pi
 
   subroutine test_NBR_ITER(grp)
@@ -843,7 +843,7 @@ contains
       write(*, *) i, "[", b, ",", d, "]={", n_p, ",", n_b, "}"
       i = i + 1
       call AB_NBR_ITER_next(iter, b, d, n_p, n_b, done)
-    end do
+    enddo
 
     i = 1
     write(*, *)
@@ -856,7 +856,7 @@ contains
         n_b = grp%blks(b)%nbrs_b(ab_rnbr_none, d)
         write(*, *) i, "[", b, ",", d, "]={", n_p, ",", n_b, "}"
         i = i + 1
-      end do
+      enddo
 
        !! do corner neighbors
       do d = 1, ab_num_cnr_nbrs
@@ -864,8 +864,8 @@ contains
         n_b = grp%blks(b)%cnrs_b(d)
         write(*, *) i, "[", b, ",", d + 4, "]={", n_p, ",", n_b, "}"
         i = i + 1
-      end do
-    end do
+      enddo
+    enddo
 
   end subroutine test_NBR_ITER
 
@@ -956,12 +956,12 @@ contains
     do i = 1, ab_num_edge_nbrs
       nbrs(1, i) = grp%blks(index)%nbrs_b(ab_rnbr_none, i)
       nbrs(2, i) = grp%blks(index)%nbrs_p(ab_rnbr_none, i)
-    end do
+    enddo
 
     do i = 1, ab_num_cnr_nbrs
       nbrs(1, i + ab_cnr_ind_2_dir) = grp%blks(index)%cnrs_b(i)
       nbrs(2, i + ab_cnr_ind_2_dir) = grp%blks(index)%cnrs_p(i)
-    end do
+    enddo
 
   end subroutine AB_get_nbrs
 

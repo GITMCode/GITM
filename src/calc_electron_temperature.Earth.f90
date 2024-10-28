@@ -25,6 +25,7 @@ subroutine calc_electron_ion_temperature(iBlock)
   use ModTime
   use ModInputs
   use ModUserGITM
+  use ieee_arithmetic
 
   implicit none
 
@@ -113,7 +114,7 @@ subroutine calc_electron_ion_temperature(iBlock)
 
       if (MLT(iLon, iLat, nAlts) < 0.0) then
         MLT(iLon, iLat, nAlts) = MLT(iLon, iLat, nAlts) + 24.0
-      end if
+      endif
 
       if (abs(MLT(iLon, iLat, nAlts) - x1) < 12) then
         temp = 1 - (MLT(iLon, iLat, nAlts) - x1)**2/aa**2 - &
@@ -121,20 +122,20 @@ subroutine calc_electron_ion_temperature(iBlock)
       else
         temp = 1 - (24 - abs(MLT(iLon, iLat, nAlts) - x1))**2/aa**2 - &
                (abs(MLatitude(iLon, iLat, nAlts, iBlock)) - y1)**2/bb**2
-      end if
+      endif
 
       if (temp > 0.0) then
         eflux(iLon, iLat) = z1 + cc*sqrt(temp)
       else
         eflux(iLon, iLat) = z1
-      end if
+      endif
 
       eflux(iLon, iLat) = exp(log(10.)*eflux(iLon, iLat))
 
       eflux(iLon, iLat) = eflux(iLon, iLat)*1.602e-19*1e4*0.2
 
-    end do
-  end do
+    enddo
+  enddo
 
   sinI2 = (B0(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1, iUp_, iBlock)/ &
            B0(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1, iMag_, iBlock))**2
@@ -189,39 +190,39 @@ subroutine calc_electron_ion_temperature(iBlock)
 
         if (DoCheckForNans) then
 
-          if (isnan(a(iAlt))) then
+          if (ieee_is_nan(a(iAlt))) then
             write(*, *) "a : ", iLon, iLat, iAlt
             NanFound = .true.
-          end if
+          endif
 
-          if (isnan(b(iAlt))) then
+          if (ieee_is_nan(b(iAlt))) then
             write(*, *) "b : ", iLon, iLat, iAlt
             NanFound = .true.
-          end if
+          endif
 
-          if (isnan(c(iAlt))) then
+          if (ieee_is_nan(c(iAlt))) then
             write(*, *) "c : ", iLon, iLat, iAlt
             NanFound = .true.
-          end if
+          endif
 
-          if (isnan(d(iAlt))) then
+          if (ieee_is_nan(d(iAlt))) then
             write(*, *) "d : ", iLon, iLat, iAlt
             write(*, *) xcoef, tte, eHeatingm(iLon, iLat, iAlt)
             NanFound = .true.
-          end if
+          endif
 
-        end if
+        endif
 
         eConduction(iLon, iLat, iAlt) = c(iAlt)*te(iLon, iLat, iAlt + 1) + &
                                         a(iAlt)*te(iLon, iLat, iAlt + 1) + &
                                         (-2*ilam/hcoef*(zu + zl) + fcoef*(zu**2 - zl**2))*tte
 
         if (DoCheckForNans) then
-          if (isnan(eConduction(iLon, iLat, iAlt))) then
+          if (ieee_is_nan(eConduction(iLon, iLat, iAlt))) then
             write(*, *) "eCondu : ", iLon, iLat, iAlt
             NanFound = .true.
-          end if
-        end if
+          endif
+        endif
 
         if (abs(MLatitude(iLon, iLat, nAlts, iBlock)) .GE. 45.) then
 
@@ -240,11 +241,11 @@ subroutine calc_electron_ion_temperature(iBlock)
             (zl**2*neu + zu**2*nel)/hcoef
 
           if (DoCheckForNans) then
-            if (isnan(JParaAlt(iLon, iLat))) then
+            if (ieee_is_nan(JParaAlt(iLon, iLat))) then
               write(*, *) "jpar : ", iLon, iLat, iAlt
               NanFound = .true.
-            end if
-          end if
+            endif
+          endif
 
           ! use thermoelectric heating
 
@@ -281,9 +282,9 @@ subroutine calc_electron_ion_temperature(iBlock)
           !     uiup(iLon,iLat,iAlt) &
           !     *zl**2/hcoef
 
-        end if
+        endif
 
-      end do
+      enddo
 
       ! Bottom Bounday Te = Tn
       a(1) = 0
@@ -305,8 +306,8 @@ subroutine calc_electron_ion_temperature(iBlock)
 
       if (NanFound) call stop_gitm('must stop')
 
-    end do
-  end do
+    enddo
+  enddo
 
   lam_i = lami*sinI2
   ! Use tri-diagnal solver to solve the equation
@@ -338,12 +339,12 @@ subroutine calc_electron_ion_temperature(iBlock)
           b(iAlt) = -xcoef - iHeatingp(iLon, iLat, iAlt)
           c(iAlt) = 0.
           d(iAlt) = -xcoef*tti - iHeatingm(iLon, iLat, iAlt)
-        end if
+        endif
 
         iConduction(iLon, iLat, iAlt) = c(iAlt)*ti(iLon, iLat, iAlt + 1) + &
                                         a(iAlt)*ti(iLon, iLat, iAlt + 1) + &
                                         (-2*ilam/hcoef*(zu + zl) + fcoef*(zu**2 - zl**2))*tti
-      end do
+      enddo
 
       ! Bottom Bounday Ti = Tn
       a(1) = 0
@@ -356,8 +357,8 @@ subroutine calc_electron_ion_temperature(iBlock)
       itemp(iLon, iLat, 1:nAlts) = u(1:nAlts)
       itemp(iLon, iLat, nAlts + 1) = itemp(iLon, iLat, nAlts)
       itemp(iLon, iLat, 0) = itemp(iLon, iLat, 1)
-    end do
-  end do
+    enddo
+  enddo
 
   ! Check if reasonable temperatures
   where (etemp .LT. tn) etemp = tn
@@ -396,14 +397,14 @@ contains
       m = b(iAlt) - cpp(iAlt - 1)*a(iAlt)
       cpp(iAlt) = c(iAlt)/m
       dpp(iAlt) = (d(iAlt) - dpp(iAlt - 1)*a(iAlt))/m
-    end do
+    enddo
 
     ! initialize u
     u(nAlts) = dpp(nAlts)
     ! solve for u from the vectors c-prime and d-prime
     do iAlt = nAlts - 1, 1, -1
       u(iAlt) = dpp(iAlt) - cpp(iAlt)*u(iAlt + 1)
-    end do
+    enddo
 
   end subroutine tridag
 
@@ -429,7 +430,7 @@ contains
                                (iVelo(:, :, :, iDir) - eVelo(:, :, :, iDir))
 
       OverB0(:, :, :, iDir) = B0(:, :, :, iDir, iBlock)/B0(:, :, :, iMag_, iBlock)**2
-    end do
+    enddo
 
     do iAlt = -1, nAlts + 2
       do iLat = -1, nLats + 2
@@ -437,9 +438,9 @@ contains
           JuTotalDotB(iLon, iLat, iAlt) = sum( &
                                           JuTotal(iLon, iLat, iAlt, 1:3)* &
                                           B0(iLon, iLat, iAlt, 1:3, iBlock))
-        end do
-      end do
-    end do
+        enddo
+      enddo
+    enddo
 
     DivJPerp = 0.0
     do iDir = 1, 3
@@ -453,14 +454,14 @@ contains
       call UAM_Gradient_GC(OverB0(:, :, :, iDir), Gradient_GC, iBlock)
       DivJPerp(:, :, :) = DivJPerp(:, :, :) - Gradient_GC(:, :, :, iDir) &
                           *JuTotalDotB(:, :, :)
-    end do
+    enddo
 
     PartialJPara = -DivJPerp
 
     JParaAlt = 0.0
     do iAlt = 1, nAlts
       JParaAlt(:, :) = JParaAlt(:, :) - DivJPerp(:, :, iAlt)*dAlt_GB(:, :, iAlt, iBlock)
-    end do
+    enddo
 
   end Subroutine calc_thermoelectric_current
 
@@ -479,6 +480,7 @@ subroutine calc_electron_ion_sources(iBlock) !,eHeatingp,iHeatingp,eHeatingm,iHe
   use ModUserGITM
   use ModTime
   use ModInputs
+  use ieee_arithmetic
 
   implicit none
   integer, intent(in) :: iBlock
@@ -624,7 +626,7 @@ subroutine calc_electron_ion_sources(iBlock) !,eHeatingp,iHeatingp,eHeatingm,iHe
     do iLon = 1, nLons
       do iLat = 1, nLats
         do iAlt = 1, nAlts
-          if (isnan(Qphe(iLon, iLat, iAlt))) then
+          if (ieee_is_nan(Qphe(iLon, iLat, iAlt))) then
             write(*, *) iLon, iLat, iAlt
             write(*, *) 'x : ', x(iLon, iLat, iAlt)
             write(*, *) 'ne : ', ne(iLon, iLat, iAlt)
@@ -634,11 +636,11 @@ subroutine calc_electron_ion_sources(iBlock) !,eHeatingp,iHeatingp,eHeatingm,iHe
             write(*, *) 'ep : ', epsilon(iLon, iLat, iAlt)
             write(*, *) 'qphe : ', qphe(iLon, iLat, iAlt)
             call stop_gitm('epsilon')
-          end if
-        end do
-      end do
-    end do
-  end if
+          endif
+        enddo
+      enddo
+    enddo
+  endif
 
 ! Auroral heating
   Qaurora = 0.0
@@ -709,7 +711,7 @@ subroutine calc_electron_ion_sources(iBlock) !,eHeatingp,iHeatingp,eHeatingm,iHe
   do iDir = 1, 3
     dv2_en = dv2_en + (Velocity(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1, iDir, iBlock) &
                        - ExB(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1, iDir))**2
-  end do
+  enddo
 
   Qenc_v = ne*Mass_Electron*dv2_en* &
            (2.33e-11*nn2*1.e-6*(1 - 1.21e-4*te)*te*Mass(iN2_)/(Mass_Electron + Mass(iN2_)) &
@@ -723,7 +725,7 @@ subroutine calc_electron_ion_sources(iBlock) !,eHeatingp,iHeatingp,eHeatingm,iHe
   do iDir = 1, 3
     dv2_ei = dv2_ei + (IVelocity(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1, iDir, iBlock) &
                        - ExB(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1, iDir))**2
-  end do
+  enddo
 
   Qeic_v = ne*Mass_Electron*dv2_ei*5.45*1.e-5/(te**1.5)*(nop + no2p + nn2p + nnop + nnp)
 !        (nop/(Mass_Electron+MassI(iO_4SP_))  &
@@ -854,19 +856,19 @@ subroutine calc_electron_ion_sources(iBlock) !,eHeatingp,iHeatingp,eHeatingm,iHe
             Qvib_n2(iLon, iLat, iAlt) = Qvib_n2(iLon, iLat, iAlt) + &
                                         (1.-exp(-3353./ttn))*10**logQv0(iLon, iLat, iAlt, iLevel) &
                                         *(1.-exp(iLevel*3353.*(1./tte - 1./ttn)))
-          end do
+          enddo
 
           do iLevel = 2, 9
             Qvib_n2(iLon, iLat, iAlt) = Qvib_n2(iLon, iLat, iAlt) + &
                                         (1.-exp(-3353./ttn))*exp(-3353./ttn) &
                                         *10**logQv1(iLon, iLat, iAlt, iLevel)* &
                                         (1.-exp((iLevel - 1)*3353.*(1./tte - 1./ttn)))
-          end do
+          enddo
 
-        end if
-      end do
-    end do
-  end do
+        endif
+      enddo
+    enddo
+  enddo
 
   Qvib_n2 = -ne*nn2*1.e-12*Qvib_n2*1.6e-13
 
@@ -917,7 +919,7 @@ subroutine calc_electron_ion_sources(iBlock) !,eHeatingp,iHeatingp,eHeatingm,iHe
   do iDir = 1, 3
     dv2 = dv2 + (IVelocity(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1, iDir, iBlock) &
                  - Velocity(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1, iDir, iBlock))**2
-  end do
+  enddo
 
   ! Changed this to use the ion-neutral collision frequencies defined in
   ! calc_rates.  These should be used for consistency throughout the code
@@ -963,8 +965,8 @@ subroutine calc_electron_ion_sources(iBlock) !,eHeatingp,iHeatingp,eHeatingm,iHe
                dv2/ &
                (MassI(iIon) + Mass(iSpecies))
 
-    end do
-  end do
+    enddo
+  enddo
 
 !  Qinc_t = &
 !       nop  * MassI(iO_4SP_) * nu_oop   * (3.*Boltzmanns_Constant*(tn-ti))/(MassI(iO_4SP_) + Mass(iO_3P_)) + &
@@ -1093,7 +1095,7 @@ subroutine calc_electron_ion_sources(iBlock) !,eHeatingp,iHeatingp,eHeatingm,iHe
   do iLat = 1, nLats
     sintheta(:, iLat) = sin(PI/2.-Latitude(iLat, iBlock))
     costheta(:, iLat) = cos(PI/2.-Latitude(iLat, iBlock))
-  end do
+  enddo
   where (sintheta .LT. 0.1 .AND. sintheta .GE. 0.0) sintheta = 0.1
   where (sintheta .GT. -0.1 .AND. sintheta .LE. 0.0) sintheta = -0.1
   sin2theta = sintheta**2
@@ -1152,10 +1154,10 @@ subroutine calc_electron_ion_sources(iBlock) !,eHeatingp,iHeatingp,eHeatingm,iHe
         *costheta*dtedphe(1:nLons, 1:nLats)) &
           !!!!! Gradient in lambda !!!!!!
       + cos2dip(1:nLons, 1:nLats, iAlt)/(6.37e6 + alts(1:nLons, 1:nLats, iAlt))**2 &
-      *(cos2dec(1:nLons, 1:nLats, iAlt)*dtedtheta(1:nLons, 1:nLats)*dledtheta(1:nLons, 1:nLats) + &
-        +sin2dec(1:nLons, 1:nLats, iAlt)/sin2theta* &
-        dtedphe(1:nLons, 1:nLats)*dledphe(1:nLons, 1:nLats) + &
-        +sindec(1:nLons, 1:nLats, iAlt)*cosdec(1:nLons, 1:nLats, iAlt)/sintheta &
+      *(cos2dec(1:nLons, 1:nLats, iAlt)*dtedtheta(1:nLons, 1:nLats)*dledtheta(1:nLons, 1:nLats) &
+        + sin2dec(1:nLons, 1:nLats, iAlt)/sin2theta &
+        *dtedphe(1:nLons, 1:nLats)*dledphe(1:nLons, 1:nLats) &
+        + sindec(1:nLons, 1:nLats, iAlt)*cosdec(1:nLons, 1:nLats, iAlt)/sintheta &
         *(dtedtheta(1:nLons, 1:nLats)*dledphe(1:nLons, 1:nLats) &
           + dtedtheta(1:nLons, 1:nLats)*dledphe(1:nLons, 1:nLats)))
 
@@ -1177,12 +1179,12 @@ subroutine calc_electron_ion_sources(iBlock) !,eHeatingp,iHeatingp,eHeatingm,iHe
         /sintheta**2*costheta*dtidphe(1:nLons, 1:nLats)) &
           !!!!! Gradient in lambda !!!!!!
       + cos2dip(1:nLons, 1:nLats, iAlt)/(6.37e6 + alts(1:nLons, 1:nLats, iAlt))**2 &
-      *(cos2dec(1:nLons, 1:nLats, iAlt)*dtidtheta(1:nLons, 1:nLats)*dlidtheta(1:nLons, 1:nLats) + &
-        +sin2dec(1:nLons, 1:nLats, iAlt)/sin2theta* &
-        dtidphe(1:nLons, 1:nLats)*dlidphe(1:nLons, 1:nLats) + &
-        +sindec(1:nLons, 1:nLats, iAlt)*cosdec(1:nLons, 1:nLats, iAlt)/sintheta*( &
-        dtidtheta(1:nLons, 1:nLats)*dlidphe(1:nLons, 1:nLats) &
-        + dtidtheta(1:nLons, 1:nLats)*dlidphe(1:nLons, 1:nLats)))
+      *(cos2dec(1:nLons, 1:nLats, iAlt)*dtidtheta(1:nLons, 1:nLats)*dlidtheta(1:nLons, 1:nLats) &
+        + sin2dec(1:nLons, 1:nLats, iAlt)/sin2theta &
+        *dtidphe(1:nLons, 1:nLats)*dlidphe(1:nLons, 1:nLats) &
+        + sindec(1:nLons, 1:nLats, iAlt)*cosdec(1:nLons, 1:nLats, iAlt)/sintheta &
+        *(dtidtheta(1:nLons, 1:nLats)*dlidphe(1:nLons, 1:nLats) &
+          + dtidtheta(1:nLons, 1:nLats)*dlidphe(1:nLons, 1:nLats)))
 
     Qiconhp(1:nLons, 1:nLats, iAlt) = &
       2.*lami(1:nLons, 1:nLats, iAlt)*cos2dip(1:nLons, 1:nLats, iAlt) &
@@ -1197,7 +1199,7 @@ subroutine calc_electron_ion_sources(iBlock) !,eHeatingp,iHeatingp,eHeatingm,iHe
     !      + sin2dec(1:nLons,1:nLats,iAlt) / sin2theta  &
     !      * (ti_con(2:nLons+1,1:nLats,iAlt) + ti_con(0:nLons-1,1:nLats,iAlt) &
 ! - 2*ti_con(1:nLons,1:nLats,iAlt)) / dLon**2 )
-  end do
+  enddo
 
   JouleHeating2d = 0.0
   HeatTransfer2d = 0.0
@@ -1220,13 +1222,13 @@ subroutine calc_electron_ion_sources(iBlock) !,eHeatingp,iHeatingp,eHeatingm,iHe
       HeatTransfer2d(1:nLons, 1:nLats) = &
         HeatTransfer2d(1:nLons, 1:nLats) + &
         Qnic_t(1:nLons, 1:nLats, iAlt)*dAlt_GB(1:nLons, 1:nLats, iAlt, iBlock)
-    end do
+    enddo
 
   else
 
     JouleHeating = 0.0
 
-  end if
+  endif
 
   ElectronHeating = -Qenc(1:nLons, 1:nLats, 1:nAlts)/ &
                     TempUnit(1:nLons, 1:nLats, 1:nAlts)/ &
@@ -1252,22 +1254,22 @@ subroutine calc_electron_ion_sources(iBlock) !,eHeatingp,iHeatingp,eHeatingm,iHe
     do iLon = 1, nLons
       do iLat = 1, nLats
         do iAlt = 1, nAlts
-          if (isnan(qphe(iLon, iLat, iAlt))) call stop_gitm('qphe')
-          if (isnan(Qencm(iLon, iLat, iAlt))) call stop_gitm('Qencm')
-          if (isnan(Qeicm(iLon, iLat, iAlt))) call stop_gitm('Qeicm')
-          if (isnan(Qrotm(iLon, iLat, iAlt))) call stop_gitm('Qrotm')
-          if (isnan(Qf(iLon, iLat, iAlt))) call stop_gitm('Qf')
-          if (isnan(Qexc(iLon, iLat, iAlt))) call stop_gitm('Qexc')
-          if (isnan(Qvib_o2(iLon, iLat, iAlt))) call stop_gitm('Qvib_o2')
-          if (isnan(Qvib_n2(iLon, iLat, iAlt))) call stop_gitm('Qvib_n2')
-          if (isnan(Qaurora(iLon, iLat, iAlt))) call stop_gitm('Qaurora')
-          if (isnan(QprecipIon(iLon, iLat, iAlt))) call stop_gitm('QprecipIon')
-          if (isnan(Qenc_v(iLon, iLat, iAlt))) call stop_gitm('Qenc_v')
-          if (isnan(Qeic_v(iLon, iLat, iAlt))) call stop_gitm('Qeic_v')
-          if (isnan(Qeconhm(iLon, iLat, iAlt))) call stop_gitm('Qeconhm')
-        end do
-      end do
-    end do
-  end if
+          if (ieee_is_nan(qphe(iLon, iLat, iAlt))) call stop_gitm('qphe')
+          if (ieee_is_nan(Qencm(iLon, iLat, iAlt))) call stop_gitm('Qencm')
+          if (ieee_is_nan(Qeicm(iLon, iLat, iAlt))) call stop_gitm('Qeicm')
+          if (ieee_is_nan(Qrotm(iLon, iLat, iAlt))) call stop_gitm('Qrotm')
+          if (ieee_is_nan(Qf(iLon, iLat, iAlt))) call stop_gitm('Qf')
+          if (ieee_is_nan(Qexc(iLon, iLat, iAlt))) call stop_gitm('Qexc')
+          if (ieee_is_nan(Qvib_o2(iLon, iLat, iAlt))) call stop_gitm('Qvib_o2')
+          if (ieee_is_nan(Qvib_n2(iLon, iLat, iAlt))) call stop_gitm('Qvib_n2')
+          if (ieee_is_nan(Qaurora(iLon, iLat, iAlt))) call stop_gitm('Qaurora')
+          if (ieee_is_nan(QprecipIon(iLon, iLat, iAlt))) call stop_gitm('QprecipIon')
+          if (ieee_is_nan(Qenc_v(iLon, iLat, iAlt))) call stop_gitm('Qenc_v')
+          if (ieee_is_nan(Qeic_v(iLon, iLat, iAlt))) call stop_gitm('Qeic_v')
+          if (ieee_is_nan(Qeconhm(iLon, iLat, iAlt))) call stop_gitm('Qeconhm')
+        enddo
+      enddo
+    enddo
+  endif
 
 end subroutine calc_electron_ion_sources

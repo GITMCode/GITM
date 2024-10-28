@@ -743,11 +743,11 @@ C          defining the Apex radius then use it to define the Apex latitude whos
 C          hemisphere (sign) is inferred from the sign of the dip angle at the
 C          starting point
       A = (REQ + AMAX1(ALT,HTA)) / REQ
-      IF (A .LT. 1.) THEN
-	WRITE (0,'(''APEX: A can not be less than 1; A, REQ, HTA: '',1P3
-     +E15.7)') A,REQ,HTA
-	CALL EXIT (1)
-      ENDIF
+C      IF (A .LT. 1.) THEN
+C	WRITE (0,'(''APEX: A can not be less than 1; A, REQ, HTA: '',1P3
+C     +E15.7)') A,REQ,HTA
+C	CALL EXIT (1)
+C      ENDIF
       RASQ = ACOS (SQRT(1./A))*RTOD
       ALAT = SIGN (RASQ,ZMAG)
 

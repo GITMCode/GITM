@@ -62,14 +62,14 @@ contains
       GammaL = GammaLIn
     else
       GammaL = GammaHere
-    end if
+    endif
     CL = sqrt(GammaL*PL/RhoL)
 
     if (present(GammaRIn)) then
       GammaR = GammaRIn
     else
       GammaR = GammaHere
-    end if
+    endif
     CR = sqrt(GammaR*PR/RhoR)
 
     UVac = 2.0*(CL/(GammaL - 1.0) + CR/(GammaR - 1.0))
@@ -93,7 +93,7 @@ contains
       PStar = POld - (FL + FR + UDiff)/(FLD + FRD)
       Change = 2.0*abs((PStar - POld)/(PStar + POld))
       POLD = PStar; iIter = iIter + 1
-    end do
+    enddo
 
     !     Compute velocity in Star Region
 
@@ -119,7 +119,7 @@ contains
         Gamma = GammaIn
       else
         Gamma = GammaHere
-      end if
+      endif
       IF (P .LE. PK) THEN
         !
         !        Rarefaction wave
@@ -138,7 +138,7 @@ contains
         F = (P - PK)*QRT
         FD = (1.0 - 0.5*(P - PK)/BK)*QRT
         WK = 0.50*(GAMMA + 1.0)*BK*QRT
-      END IF
+      ENDIF
     end subroutine pressure_function
     !===============================================!
     subroutine guess_p(PGuess)
@@ -201,7 +201,7 @@ contains
       !
       call simple_wave(S - UnStar, RhoR, UnR - UnStar, PR, CR, GammaRIn)
       Un = Un + UnStar
-    end IF
+    endIF
   contains
     subroutine simple_wave(SRel, RhoK, UnK, PK, CK, GammaIn)
       real, intent(in)::SRel, RhoK, UnK, PK, CK
@@ -213,7 +213,7 @@ contains
         Gamma = GammaIn
       else
         Gamma = GammaHere
-      end if
+      endif
       IF (PStar .LE. PK) THEN
         !
         !           rarefaction
@@ -240,7 +240,7 @@ contains
           C = (CK - G7*(UnK - SRel))/(1.0 + G7)
           Un = SRel - C
           P = PK*(C/CK)**(2.0*Gamma/(Gamma - 1.0))
-        END IF
+        ENDIF
         Rho = RhoK*(P/PK)**(1.0/Gamma)
       ELSE
         !
@@ -253,7 +253,7 @@ contains
               ((Gamma - 1.0)*PStar + PK*(Gamma + 1.0))
         Un = 0.0
         P = PStar
-      END IF
+      ENDIF
     end subroutine simple_wave
   end subroutine exact_rs_sample
 end module ModExactRS

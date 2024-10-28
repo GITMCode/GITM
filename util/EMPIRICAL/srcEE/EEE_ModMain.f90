@@ -139,7 +139,7 @@ contains
         case default
           call CON_stop(NameSub//': invalid value for TypeCme='//TypeCme)
         end select
-      end if
+      endif
 
       ! The remaining commands are preserved for backwards compatibility
       ! and possibly for expert use (more options than #CME command)
@@ -195,19 +195,19 @@ contains
       if (.not. DoBqField) U1_D = 0.0
 
       Rho = Rho + Rho1; U_D = U_D + U1_D; B_D = B_D + B1_D
-    end if
+    endif
 
     if (UseGL) then
       ! Add Gibson & Low (GL98) flux rope
       call get_GL98_fluxrope(x_D, Rho1, p1, B1_D)
       B_D = B_D + B1_D
-    end if
+    endif
 
     if (UseShearFlow) then
       call get_shearflow(x_D, Time, U1_D, iteration_number)
 
       U_D = U_D + U1_D
-    end if
+    endif
 
     if (UseCms) call get_cms(x_D, B_D)
 
@@ -241,14 +241,14 @@ contains
       call get_transformed_TD99fluxrope(x_D, B1_D, &
                                         U1_D, n_step, iteration_number, Rho1)
       Rho = Rho + Rho1; U_D = U_D + U1_D; B_D = B_D + B1_D
-    end if
+    endif
 
     if (UseGL) then
       ! Add Gibson & Low (GL98) flux rope
       call get_GL98_fluxrope(x_D, Rho1, p1, B1_D)
       call adjust_GL98_fluxrope(Rho1, p1)
       Rho = Rho + Rho1; B_D = B_D + B1_D; p = p + p1
-    end if
+    endif
 
     if (UseCms) call get_cms(x_D, B_D)
 

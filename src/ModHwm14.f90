@@ -72,7 +72,7 @@ subroutine hwm14(iyd, sec, alt, glat, glon, stl, f107a, f107, ap, path, w)
   real(4), intent(in)        :: ap(2)
   real(4), intent(out)       :: w(2)
   real(4)                   :: dw(2)
-  character(250), intent(in) :: path
+  character(*), intent(in) :: path
 
   pathdefault = path
   if (hwminit) call inithwm()
@@ -82,7 +82,7 @@ subroutine hwm14(iyd, sec, alt, glat, glon, stl, f107a, f107, ap, path, w)
   if (ap(2) .ge. 0.0) then
     call dwm07(iyd, sec, alt, glat, glon, ap, dw)
     w = w + dw
-  end if
+  endif
 
   return
 
@@ -135,17 +135,17 @@ contains
         P(n, m) = y*en(n)*W(n, m)
         V(n, m) = narr(n)*x*W(n, m) - dnm(n, m)*W(n - 1, m)
         W(n - 2, m) = marr(m)*W(n - 2, m)
-      end do
+      enddo
       W(nmax - 1, m) = marr(m)*W(nmax - 1, m)
       W(nmax, m) = marr(m)*W(nmax, m)
       V(m, m) = x*W(m, m)
-    end do
+    enddo
     P(1, 0) = anm(1, 0)*x*P(0, 0)
     V(1, 0) = -P(1, 1)
     do n = 2, nmax
       P(n, 0) = anm(n, 0)*x*P(n - 1, 0) - bnm(n, 0)*P(n - 2, 0)
       V(n, 0) = -P(n, 1)
-    end do
+    enddo
 
     return
 
@@ -179,7 +179,7 @@ contains
       en(n) = dsqrt(dble(n*(n + 1)))
       anm(n, 0) = dsqrt(dble((2*n - 1)*(2*n + 1)))/narr(n)
       bnm(n, 0) = dsqrt(dble((2*n + 1)*(n - 1)*(n - 1))/dble(2*n - 3))/narr(n)
-    end do
+    enddo
     do m = 1, mmax0
       marr(m) = dble(m)
       cm(m) = dsqrt(dble(2*m + 1)/dble(2*m*m*(m + 1)))
@@ -188,8 +188,8 @@ contains
         bnm(n, m) = dsqrt(dble((2*n + 1)*(n + m - 1)*(n - m - 1)*(n - 2)*(n - 1)) &
                           /dble((n - m)*(n + m)*(2*n - 3)*n*(n + 1)))
         dnm(n, m) = dsqrt(dble((n - m)*(n + m)*(2*n + 1)*(n - 1))/dble((2*n - 1)*(n + 1)))
-      end do
-    end do
+      enddo
+    enddo
 
     return
 
@@ -338,14 +338,14 @@ subroutine initqwm(filename)
   use hwm, only: omaxhwm, nmaxhwm
   implicit none
 
-  character(128), intent(in)      :: filename
+  character(*), intent(in)      :: filename
   integer(4)                     :: i, j
   integer(4)                     :: ncomp
 
   if (allocated(vnode)) then
     deallocate(order, nb, vnode, mparm, tparm)
     deallocate(fs, fm, fl, zwght, bz, bm)
-  end if
+  endif
 
   call findandopen(filename, 23)
   read(23) nbf, maxs, maxm, maxl, maxn, ncomp
@@ -360,7 +360,7 @@ subroutine initqwm(filename)
     read(23) order(1:ncomp, i)
     read(23) nb(i)
     read(23) mparm(1:nbf, i)
-  end do
+  enddo
   read(23) e1, e2
   close(23)
 
@@ -369,7 +369,7 @@ subroutine initqwm(filename)
   allocate(tparm(nbf, 0:nlev))
   do i = 0, nlev - p + 1 - 2
     call parity(order(:, i), nb(i), mparm(:, i), tparm(:, i))
-  end do
+  enddo
 
   ! Set transition levels
 
@@ -431,7 +431,7 @@ contains
       tparm(c + 1) = -mparm(c + 1)
       mparm(c + 1) = 0.0
       c = c + 2
-    end do
+    enddo
     do s = 1, amaxs
       do n = 1, amaxn
         tparm(c) = 0.0
@@ -441,8 +441,8 @@ contains
         mparm(c + 2) = 0.0
         mparm(c + 3) = 0.0
         c = c + 4
-      end do
-    end do
+      enddo
+    enddo
 
     do m = 1, pmaxm
       do n = m, pmaxn
@@ -451,7 +451,7 @@ contains
         tparm(c + 2) = -mparm(c)
         tparm(c + 3) = -mparm(c + 1)
         c = c + 4
-      end do
+      enddo
       do s = 1, pmaxs
         do n = m, pmaxn
           tparm(c) = mparm(c + 2)
@@ -463,10 +463,10 @@ contains
           tparm(c + 6) = -mparm(c + 4)
           tparm(c + 7) = -mparm(c + 5)
           c = c + 8
-        end do
-      end do
+        enddo
+      enddo
 
-    end do
+    enddo
 
     do l = 1, tmaxl
       do n = l, tmaxn
@@ -475,7 +475,7 @@ contains
         tparm(c + 2) = -mparm(c)
         tparm(c + 3) = -mparm(c + 1)
         c = c + 4
-      end do
+      enddo
       do s = 1, tmaxs
         do n = l, tmaxn
           tparm(c) = mparm(c + 2)
@@ -487,9 +487,9 @@ contains
           tparm(c + 6) = -mparm(c + 4)
           tparm(c + 7) = -mparm(c + 5)
           c = c + 8
-        end do
-      end do
-    end do
+        enddo
+      enddo
+    enddo
 
     return
 
@@ -557,10 +557,10 @@ subroutine hwmqt(IYD, SEC, ALT, GLAT, GLON, STL, F107A, F107, AP, W)
       BB = dble(s)*AA
       fs(s, 1) = dcos(BB)
       fs(s, 2) = dsin(BB)
-    end do
+    enddo
     refresh(1:5) = .true.
     previous(1) = input(1)
-  end if
+  endif
 
   ! Hourly time changes, tidal variations
 
@@ -571,10 +571,10 @@ subroutine hwmqt(IYD, SEC, ALT, GLAT, GLON, STL, F107A, F107, AP, W)
       CC = dble(l)*BB
       fl(l, 1) = dcos(CC)
       fl(l, 2) = dsin(CC)
-    end do
+    enddo
     refresh(3) = .true.   ! tides
     previous(2) = input(2)
-  end if
+  endif
 
   ! Longitudinal variations, stationary planetary waves
 
@@ -584,10 +584,10 @@ subroutine hwmqt(IYD, SEC, ALT, GLAT, GLON, STL, F107A, F107, AP, W)
       BB = dble(m)*AA
       fm(m, 1) = dcos(BB)
       fm(m, 2) = dsin(BB)
-    end do
+    enddo
     refresh(2) = .true.   ! stationary planetary waves
     previous(3) = input(3)
-  end if
+  endif
 
   ! Latitude
 
@@ -598,14 +598,14 @@ subroutine hwmqt(IYD, SEC, ALT, GLAT, GLON, STL, F107A, F107, AP, W)
     refresh(1:4) = .true.
     glatalf = input(4)
     previous(4) = input(4)
-  end if
+  endif
 
   ! Altitude
 
   if (input(5) .ne. previous(5)) then
     call vertwght(input(5), zwght, lev)
     previous(5) = input(5)
-  end if
+  endif
 
   ! ====================================================================
   ! Calculate the VSH functions
@@ -628,7 +628,7 @@ subroutine hwmqt(IYD, SEC, ALT, GLAT, GLON, STL, F107A, F107, AP, W)
       if (component(0)) u = u + zwght(b)*dot_product(bz(1:c), mparm(1:c, d))
       if (component(1)) v = v + zwght(b)*dot_product(bz(1:c), tparm(1:c, d))
       cycle
-    end if
+    endif
 
     amaxs = order(1, d)
     amaxn = order(2, d)
@@ -648,7 +648,7 @@ subroutine hwmqt(IYD, SEC, ALT, GLAT, GLON, STL, F107A, F107, AP, W)
         bz(c) = -dsin(n*theta)   !
         bz(c + 1) = dsin(n*theta)
         c = c + 2
-      end do
+      enddo
       do s = 1, amaxs                   ! Seasonal variations
         cs = fs(s, 1)
         ss = fs(s, 2)
@@ -659,12 +659,12 @@ subroutine hwmqt(IYD, SEC, ALT, GLAT, GLON, STL, F107A, F107, AP, W)
           bz(c + 2) = sc*cs
           bz(c + 3) = -sc*ss
           c = c + 4
-        end do
-      end do
+        enddo
+      enddo
       cseason = c
     else
       c = cseason
-    end if
+    endif
 
     ! ---------------- Stationary planetary waves --------------------
 
@@ -680,7 +680,7 @@ subroutine hwmqt(IYD, SEC, ALT, GLAT, GLON, STL, F107A, F107, AP, W)
           bz(c + 2) = -wb*sm        ! Br * (sm) * -wb   C
           bz(c + 3) = -wb*cm        ! Bi * (cm) * -wb   D
           c = c + 4
-        end do
+        enddo
         do s = 1, pmaxs
           cs = fs(s, 1)
           ss = fs(s, 2)
@@ -696,13 +696,13 @@ subroutine hwmqt(IYD, SEC, ALT, GLAT, GLON, STL, F107A, F107, AP, W)
             bz(c + 6) = -wb*sm*ss        ! Brs * (smss) * -wb   G
             bz(c + 7) = -wb*cm*ss        ! Bis * (cmss) * -wb   H
             c = c + 8
-          end do
-        end do
+          enddo
+        enddo
         cwave = c
-      end do
+      enddo
     else
       c = cwave
-    end if
+    endif
 
     ! ---------------- Migrating Solar Tides ---------------------
 
@@ -718,7 +718,7 @@ subroutine hwmqt(IYD, SEC, ALT, GLAT, GLON, STL, F107A, F107, AP, W)
           bz(c + 2) = -wb*sl        ! Br * (sl) * -wb
           bz(c + 3) = -wb*cl        ! Bi * (cl) * -wb
           c = c + 4
-        end do
+        enddo
         do s = 1, tmaxs
           cs = fs(s, 1)
           ss = fs(s, 2)
@@ -734,13 +734,13 @@ subroutine hwmqt(IYD, SEC, ALT, GLAT, GLON, STL, F107A, F107, AP, W)
             bz(c + 6) = -wb*sl*ss        ! Brs * (slss) * -wb
             bz(c + 7) = -wb*cl*ss        ! Bis * (clss) * -wb
             c = c + 8
-          end do
-        end do
+          enddo
+        enddo
         ctide = c
-      end do
+      enddo
     else
       c = ctide
-    end if
+    endif
 
     ! ---------------- Non-Migrating Solar Tides ------------------
 
@@ -755,7 +755,7 @@ subroutine hwmqt(IYD, SEC, ALT, GLAT, GLON, STL, F107A, F107, AP, W)
     if (component(0)) u = u + zwght(b)*dot_product(bz(1:c), mparm(1:c, d))
     if (component(1)) v = v + zwght(b)*dot_product(bz(1:c), tparm(1:c, d))
 
-  end do
+  enddo
 
   w(1) = sngl(v)
   w(2) = sngl(u)
@@ -785,7 +785,7 @@ subroutine vertwght(alt, wght, iz)
     wght(3) = bspline(p, nnode, vnode, iz + 2_4, alt)
     wght(4) = bspline(p, nnode, vnode, iz + 3_4, alt)
     return
-  end if
+  endif
   if (alt .gt. alttns) then
     we(0) = 0.0d0
     we(1) = 0.0d0
@@ -798,7 +798,7 @@ subroutine vertwght(alt, wght, iz)
     we(2) = bspline(p, nnode, vnode, iz + 4_4, alt)
     we(3) = 0.0d0
     we(4) = 0.0d0
-  end if
+  endif
   wght(3) = dot_product(we, e1)
   wght(4) = dot_product(we, e2)
 
@@ -824,17 +824,17 @@ contains
     if ((i .eq. 0) .and. (u .eq. V(0))) then
       bspline = 1.d0
       return
-    end if
+    endif
 
     if ((i .eq. (m - p - 1)) .and. (u .eq. V(m))) then
       bspline = 1.d0
       return
-    end if
+    endif
 
     if (u .lt. V(i) .or. u .ge. V(i + p + 1)) then
       bspline = 0.d0
       return
-    end if
+    endif
 
     N = 0.0d0
     do j = 0, p
@@ -842,15 +842,15 @@ contains
         N(j) = 1.0d0
       else
         N(j) = 0.0d0
-      end if
-    end do
+      endif
+    enddo
 
     do k = 1, p
       if (N(0) .eq. 0.d0) then
         saved = 0.d0
       else
         saved = ((u - V(i))*N(0))/(V(i + k) - V(i))
-      end if
+      endif
       do j = 0, p - k
         Vleft = V(i + j + 1)
         Vright = V(i + j + k + 1)
@@ -861,9 +861,9 @@ contains
           temp = N(j + 1)/(Vright - Vleft)
           N(j) = saved + (Vright - u)*temp
           saved = (u - Vleft)*temp
-        end if
-      end do
-    end do
+        endif
+      enddo
+    enddo
 
     bspline = N(0)
 
@@ -887,7 +887,7 @@ contains
     if (u .ge. V(n + 1)) then
       findspan = n
       return
-    end if
+    endif
 
     low = p
     high = n + 1
@@ -898,9 +898,9 @@ contains
         high = mid
       else
         low = mid
-      end if
+      endif
       mid = (low + high)/2
-    end do
+    enddo
 
     findspan = mid
     return
@@ -973,12 +973,12 @@ subroutine dwm07(IYD, SEC, ALT, GLAT, GLON, AP, DW)
   !CONVERT AP TO KP
   if (ap(2) .ne. aplast) then
     kp = ap2kp(ap(2))
-  end if
+  endif
 
   !CONVERT GEO LAT/LON TO QD LAT/LON
   if ((glat .ne. glatlast) .or. (glon .ne. glonlast)) then
     call gd2qd(glat, glon, mlat, mlon, f1e, f1n, f2e, f2n)
-  end if
+  endif
 
   !COMPUTE QD MAGNETIC LOCAL TIME (LOW-PRECISION)
   day = real(mod(iyd, 1000))
@@ -986,7 +986,7 @@ subroutine dwm07(IYD, SEC, ALT, GLAT, GLON, AP, DW)
   if ((day .ne. daylast) .or. (ut .ne. utlast) .or. &
       (glat .ne. glatlast) .or. (glon .ne. glonlast)) then
     mlt = mltcalc(mlat, mlon, day, ut)
-  end if
+  endif
 
   !RETRIEVE DWM WINDS
   call dwm07b(mlt, mlat, kp, mmpwind, mzpwind)
@@ -1039,7 +1039,7 @@ subroutine dwm07b(mlt, mlat, kp, mmpwind, mzpwind)
   if (mlat .ne. mlatlast) then
     theta = (90.d0 - dble(mlat))*dtor
     call alfbasis(nmax, mmax, theta, dpbar, dvbar, dwbar)
-  end if
+  endif
 
   !COMPUTE MLT PART OF VSH TERMS
   if (mlt .ne. mltlast) then
@@ -1048,8 +1048,8 @@ subroutine dwm07b(mlt, mlat, kp, mmpwind, mzpwind)
       mphi = dble(m)*phi
       mltterms(m, 0) = dcos(mphi)
       mltterms(m, 1) = dsin(mphi)
-    end do
-  end if
+    enddo
+  endif
 
   !COMPUTE VSH TERMS
   if ((mlat .ne. mlatlast) .or. (mlt .ne. mltlast)) then
@@ -1071,14 +1071,14 @@ subroutine dwm07b(mlt, mlat, kp, mmpwind, mzpwind)
         vshterms(1, ivshterm + 2) = vshterms(0, ivshterm)
         vshterms(1, ivshterm + 3) = vshterms(0, ivshterm + 1)
         ivshterm = ivshterm + 4
-      end do
-    end do
-  end if
+      enddo
+    enddo
+  endif
 
   !COMPUTE KP TERMS
   if (kp .ne. kplast) then
     call kpspl3(kp, kpterms)
-  end if
+  endif
 
   !COMPUTE LATITUDINAL WEIGHTING TERM
   latwgtterm = latwgt2(mlat, mlt, kp, twidth)
@@ -1090,7 +1090,7 @@ subroutine dwm07b(mlt, mlat, kp, mmpwind, mzpwind)
     if (termarr(1, iterm) .ne. 999) termvaltemp = termvaltemp*kpterms(termarr(1, iterm))
     if (termarr(2, iterm) .ne. 999) termvaltemp = termvaltemp*latwgtterm
     termval(0:1, iterm) = termvaltemp(0:1)
-  end do
+  enddo
 
   !APPLY COEFFICIENTS
   mmpwind = dot_product(coeff, termval(0, 0:nterm - 1))
@@ -1126,12 +1126,12 @@ function ap2kp(ap0)
   i = 1
   do while (ap .gt. apgrid(i))
     i = i + 1
-  end do
+  enddo
   if (ap .eq. apgrid(i)) then
     ap2kp = kpgrid(i)
   else
     ap2kp = kpgrid(i - 1) + (ap - apgrid(i - 1))/(3.0*(apgrid(i) - apgrid(i - 1)))
-  end if
+  endif
 
   return
 
@@ -1184,7 +1184,7 @@ contains
     read(23) nmax, mmax, nterm, epoch, alt
     if (allocated(coeff)) then
       deallocate(coeff, xcoeff, ycoeff, zcoeff, sh, shgradtheta, shgradphi, normadj)
-    end if
+    endif
     allocate(coeff(0:nterm - 1, 0:2))
     read(23) coeff
     close(23)
@@ -1201,11 +1201,11 @@ contains
       xcoeff(iterm) = coeff(iterm, 0)
       ycoeff(iterm) = coeff(iterm, 1)
       zcoeff(iterm) = coeff(iterm, 2)
-    end do
+    enddo
 
     do n = 0, nmax
       normadj(n) = dsqrt(dble(n*(n + 1)))
-    end do
+    enddo
 
     nmaxqdc = nmax
     mmaxqdc = mmax
@@ -1246,7 +1246,7 @@ subroutine gd2qd(glatin, glon, qlat, qlon, f1e, f1n, f2e, f2n)
     theta = (90.d0 - glat)*dtor
     call alfbasis(nmax, mmax, theta, gpbar, gvbar, gwbar)
     glatalf = glat
-  end if
+  endif
   phi = dble(glon)*dtor
 
   i = 0
@@ -1255,7 +1255,7 @@ subroutine gd2qd(glatin, glon, qlat, qlon, f1e, f1n, f2e, f2n)
     shgradtheta(i) = gvbar(n, 0)*normadj(n)
     shgradphi(i) = 0
     i = i + 1
-  end do
+  enddo
   do m = 1, mmax
     mphi = dble(m)*phi
     cosmphi = dcos(mphi)
@@ -1268,8 +1268,8 @@ subroutine gd2qd(glatin, glon, qlat, qlon, f1e, f1n, f2e, f2n)
       shgradphi(i) = -gwbar(n, m)*normadj(n)*sinmphi
       shgradphi(i + 1) = gwbar(n, m)*normadj(n)*cosmphi
       i = i + 2
-    end do
-  end do
+    enddo
+  enddo
 
   x = dot_product(sh, xcoeff)
   y = dot_product(sh, ycoeff)
@@ -1337,7 +1337,7 @@ function mltcalc(qlat, qlon, day, ut)
   do n = 0, nmax
     sh(i) = spbar(n, 0)
     i = i + 1
-  end do
+  enddo
   do m = 1, mmax
     mphi = dble(m)*phi
     cosmphi = dcos(mphi)
@@ -1346,8 +1346,8 @@ function mltcalc(qlat, qlon, day, ut)
       sh(i) = spbar(n, m)*cosmphi
       sh(i + 1) = spbar(n, m)*sinmphi
       i = i + 2
-    end do
-  end do
+    enddo
+  enddo
   x = dot_product(sh, xcoeff)
   y = dot_product(sh, ycoeff)
   asunqlon = sngl(datan2(y, x)/dtor)
@@ -1381,13 +1381,13 @@ subroutine kpspl3(kp, kpterms)
   do i = 0, 6
     kpspl(i) = 0.0
     if ((x .ge. node(i)) .and. (x .lt. node(i + 1))) kpspl(i) = 1.0
-  end do
+  enddo
   do j = 2, 3
     do i = 0, 8 - j - 1
       kpspl(i) = kpspl(i)*(x - node(i))/(node(i + j - 1) - node(i)) &
                  + kpspl(i + 1)*(node(i + j) - x)/(node(i + j) - node(i + 1))
-    end do
-  end do
+    enddo
+  enddo
   kpterms(0) = kpspl(0) + kpspl(1)
   kpterms(1) = kpspl(2)
   kpterms(2) = kpspl(3) + kpspl(4)
@@ -1450,12 +1450,12 @@ subroutine findandopen(datafile, unitid)
       inquire(file=trim(hwmpath)//'/'//trim(datafile), exist=havefile)
       if (havefile) open(unit=unitid, &
                          file=trim(hwmpath)//'/'//trim(datafile), status='old', form='unformatted')
-    end if
+    endif
     if (.not. havefile) then
       inquire(file='../Meta/'//trim(datafile), exist=havefile)
       if (havefile) open(unit=unitid, &
                          file='../Meta/'//trim(datafile), status='old', form='unformatted')
-    end if
+    endif
   else
     inquire(file=trim(datafile), exist=havefile)
     if (havefile) open(unit=unitid, file=trim(datafile), status='old', access='stream')
@@ -1464,19 +1464,19 @@ subroutine findandopen(datafile, unitid)
       inquire(file=trim(hwmpath)//'/'//trim(datafile), exist=havefile)
       if (havefile) open(unit=unitid, &
                          file=trim(hwmpath)//'/'//trim(datafile), status='old', access='stream')
-    end if
+    endif
     if (.not. havefile) then
       inquire(file='../Meta/'//trim(datafile), exist=havefile)
       if (havefile) open(unit=unitid, &
                          file='../Meta/'//trim(datafile), status='old', access='stream')
-    end if
-  end if
+    endif
+  endif
 
   if (havefile) then
     return
   else
     print *, "Can not find file ", trim(datafile)
     stop
-  end if
+  endif
 
 end subroutine findandopen

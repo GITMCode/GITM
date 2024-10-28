@@ -36,14 +36,14 @@ subroutine write_output
         ", Time: ", iTimeArray(1:3), ' ', iTimeArray(4:6), &
         ", WallTime: ", RealTime/60.0, " min, Proj : ", &
         ProjectedTime/60.0
-    end if
-  end if
+    endif
+  endif
 
   DtPlot = DtPlotSave
   if (CurrentTime >= PlotTimeChangeStart .and. &
       CurrentTime <= PlotTimeChangeEnd) then
     DtPlot = PlotTimeChangeDt
-  end if
+  endif
 
   IsDone = .false.
   do i = 1, nOutputTypes
@@ -51,21 +51,21 @@ subroutine write_output
         floor((tsimulation)/DtPlot(i)) .or. tSimulation == 0.0) then
       do iBlock = 1, nBlocks
         call output(outputDir, iBlock, i)
-      end do
-    end if
-  end do
+      enddo
+    endif
+  enddo
 
   call move_satellites
 
   if (floor((tSimulation - dt)/DtRestart) /= &
       floor((tsimulation)/DtRestart)) then
     call write_restart(restartOutDir)
-  end if
+  endif
 
   if (floor((tSimulation - dt)/DtLogfile) /= &
       floor((tsimulation)/DtLogfile)) then
     call logfile(logDir)
-  end if
+  endif
 
 end subroutine write_output
 

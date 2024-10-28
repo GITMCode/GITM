@@ -96,7 +96,7 @@ contains
       else
         interpolate_scalar = linear_scalar(a_C, &
                                            Min_D(1), Max_D(1), x_D(1), x_I, DoExtrapolate)
-      end if
+      endif
     case (2)
       interpolate_scalar = bilinear_scalar(a_C, &
                                            Min_D(1), Max_D(1), Min_D(2), Max_D(2), &
@@ -141,7 +141,7 @@ contains
       else
         interpolate_vector = linear_vector(a_VC, nVar, &
                                            Min_D(1), Max_D(1), x_D(1), x_I, DoExtrapolate)
-      end if
+      endif
     case (2)
       interpolate_vector = bilinear_vector(a_VC, nVar, &
                                            Min_D(1), Max_D(1), Min_D(2), Max_D(2), &
@@ -196,7 +196,7 @@ contains
       ! Calculate the remaining cell indices and interpolation weights
       i2 = i1 + 1; Dx2 = 1.0 - Dx1
 
-    end if
+    endif
 
     ! Perform interpolation (or extrapolation)
     linear_scalar = (Dx2)*a_I(i1) + Dx1*a_I(i2)
@@ -247,7 +247,7 @@ contains
       ! Calculate the remaining cell indices and interpolation weights
       i2 = i1 + 1; Dx2 = 1.0 - Dx1
 
-    end if
+    endif
 
     ! Perform interpolation (or extrapolation) for multiple variables
     linear_vector = (Dx2)*a_VI(:, i1) + Dx1*a_VI(:, i2)
@@ -305,7 +305,7 @@ contains
       i2 = i1 + 1; Dx2 = 1.0 - Dx1
       j2 = j1 + 1; Dy2 = 1.0 - Dy1
 
-    end if
+    endif
 
     ! Perform interpolation (or extrapolation)
     bilinear_scalar = Dy2*(Dx2*a_II(i1, j1) &
@@ -369,7 +369,7 @@ contains
       i2 = i1 + 1; Dx2 = 1.0 - Dx1
       j2 = j1 + 1; Dy2 = 1.0 - Dy1
 
-    end if
+    endif
 
     ! Perform interpolation (or extrapolation) for multiple variables
     bilinear_vector = Dy2*(Dx2*a_VII(:, i1, j1) &
@@ -439,7 +439,7 @@ contains
       j2 = j1 + 1; Dy2 = 1.0 - Dy1
       k2 = k1 + 1; Dz2 = 1.0 - Dz1
 
-    end if
+    endif
 
     !Perform interpolation (or extrapolation)
     trilinear_scalar = Dz2*(Dy2*(Dx2*a_III(i1, j1, k1) &
@@ -517,7 +517,7 @@ contains
       j2 = j1 + 1; Dy2 = 1.0 - Dy1
       k2 = k1 + 1; Dz2 = 1.0 - Dz1
 
-    end if
+    endif
 
     trilinear_vector = Dz2*(Dy2*(Dx2*a_VIII(:, i1, j1, k1) &
                                  + Dx1*a_VIII(:, i2, j1, k1)) &
@@ -608,7 +608,7 @@ contains
         elseif (.not. DoExtrapolate) then
           ! Use lefttmost cell (first order accurate)
           dCoord = 0.0
-        end if
+        endif
         if (present(IsInside)) IsInside = .false.
       elseif (Coord > MaxCoord) then
         if (.not. (present(DoExtrapolate))) then
@@ -619,11 +619,11 @@ contains
         elseif (.not. DoExtrapolate) then
           ! Use rightmost cell (first order accurate)
           dCoord = 1.0
-        end if
+        endif
         if (present(IsInside)) IsInside = .false.
       else
         if (present(IsInside)) IsInside = .true.
-      end if
+      endif
 
     elseif (Coord_I(MinCoord) < Coord_I(MaxCoord)) then
 
@@ -643,10 +643,10 @@ contains
         else
           iCoord = MinCoord
           dCoord = 0.0
-        end if
+        endif
         if (present(IsInside)) IsInside = .false.
         RETURN
-      end if
+      endif
 
       if (Coord > Coord_I(MaxCoord)) then
         if (.not. (present(DoExtrapolate))) then
@@ -662,10 +662,10 @@ contains
         else
           iCoord = MaxCoord - 1
           dCoord = 1.0
-        end if
+        endif
         if (present(IsInside)) IsInside = .false.
         RETURN
-      end if
+      endif
 
       if (present(IsInside)) IsInside = .true.
 
@@ -680,15 +680,15 @@ contains
           i = min(MaxCoord - 1, i + Di)
         else
           EXIT
-        end if
-      end do
+        endif
+      enddo
       iCoord = i
       if (Coord_I(iCoord + 1) == Coord_I(iCoord)) then
         dCoord = 0.0
       else
         dCoord = (Coord - Coord_I(iCoord)) &
                  /(Coord_I(iCoord + 1) - Coord_I(iCoord))
-      end if
+      endif
     else
 
       ! Monotone decreasing coordinates
@@ -707,10 +707,10 @@ contains
         else
           iCoord = MaxCoord - 1
           dCoord = 1.0
-        end if
+        endif
         if (present(IsInside)) IsInside = .false.
         RETURN
-      end if
+      endif
 
       if (Coord > Coord_I(MinCoord)) then
         if (.not. (present(DoExtrapolate))) then
@@ -726,10 +726,10 @@ contains
         else
           iCoord = MinCoord
           dCoord = 0.0
-        end if
+        endif
         if (present(IsInside)) IsInside = .false.
         RETURN
-      end if
+      endif
 
       if (present(IsInside)) IsInside = .true.
 
@@ -744,16 +744,16 @@ contains
           i = min(MaxCoord - 1, i + Di)
         else
           EXIT
-        end if
-      end do
+        endif
+      enddo
       iCoord = i
       if (Coord_I(iCoord + 1) == Coord_I(iCoord)) then
         dCoord = 0.0
       else
         dCoord = (Coord_I(iCoord) - Coord) &
                  /(Coord_I(iCoord) - Coord_I(iCoord + 1))
-      end if
-    end if
+      endif
+    endif
 
   end subroutine find_cell
   !===========================================================================
@@ -792,7 +792,7 @@ contains
     if (x1 == 0.0 .or. x3 == 0.0) then
       write(*, *) NameSub, ': x_I=', x_I, ' y_I=', y_I
       call CON_stop(NameSub//' error in coordinates')
-    end if
+    endif
 
     ! Calculate slopes
     s1 = y1/x1
@@ -801,7 +801,7 @@ contains
     if (s1*s3 > 0.0) then
       write(*, *) NameSub, ': x_I=', x_I, ' y_I=', y_I
       call CON_stop(NameSub//' error: midpoint is not an extremum')
-    end if
+    endif
 
     ! Find the position where the line connecting
     ! the (x1/2, s1) and (x3/2, s3) points intersects the X axis.
@@ -821,8 +821,8 @@ contains
         Weight2Out_I(3) = 0.0
         Weight2Out_I(1) = xE/x1
         Weight2Out_I(2) = 1.0 - Weight2Out_I(1)
-      end if
-    end if
+      endif
+    endif
 
     if (present(yExtremumOut) .or. present(Weight3Out_I)) then
       ! Find the value of the parabola y = a*(x-xE)**2 + yE at the extremum
@@ -833,7 +833,7 @@ contains
       else
         Ratio = xE**2/(x3 - xE)**2
         yE = Ratio*y3/(Ratio - 1.0)
-      end if
+      endif
       if (present(yExtremumOut)) yExtremumOut = yE + y_I(2)
 
       if (present(Weight3Out_I)) then
@@ -852,8 +852,8 @@ contains
 
         ! For point 2 we use that the sum of weights must be 1
         Weight3Out_I(2) = 1.0 - Weight3Out_I(1) - Weight3Out_I(3)
-      end if
-    end if
+      endif
+    endif
 
   end subroutine fit_parabola
   !===========================================================================
@@ -903,7 +903,7 @@ contains
         write(*, '(a)') 'Testing find_cell for increasing coordinates'
       else
         write(*, '(a)') 'Testing find_cell for decreasing coordinates'
-      end if
+      endif
 
       ! Change number of coordinates to test binary search
       do nCoord = MaxCoord/2, MaxCoord
@@ -931,7 +931,7 @@ contains
               'Test failed for nCoord, Coord=', nCoord, Coord, &
               ', dCoord=', dCoord, ' should be 0.0'
             CYCLE
-          end if
+          endif
           if (iSign*Coord > iSign*Coord_I(nCoord)) then
             if (IsInside) write(*, *) &
               'Test failed for nCoord, Coord=', nCoord, Coord, &
@@ -943,7 +943,7 @@ contains
               'Test failed for nCoord, Coord=', nCoord, Coord, &
               ', dCoord=', dCoord, ' should be 1.0'
             CYCLE
-          end if
+          endif
           if (.not. IsInside) write(*, *) &
             'Test failed for nCoord, Coord=', nCoord, Coord, &
             ', IsInside=F, should be true'
@@ -954,7 +954,7 @@ contains
               ', iCoord=', iCoord, ' should be < ', MinCoord, &
               ' and > ', nCoord - 1
             CYCLE
-          end if
+          endif
 
           if (iSign*Coord_I(iCoord) > iSign*Coord) write(*, *) &
             'Test failed for nCoord, Coord=', nCoord, Coord, &
@@ -971,11 +971,11 @@ contains
             'Test failed for nCoord, Coord=', nCoord, Coord, &
             ', Coord_I(iCoord:iCoord+1)=', Coord_I(iCoord:iCoord + 1), &
             ', but incorrect dCoord = ', dCoord
-        end do
-      end do
+        enddo
+      enddo
       ! Change signs of coordinates to test decreasing order
       Coord_I = -Coord_I
-    end do
+    enddo
 
     !Test for normal conditions.
     write(*, '(a)') 'Testing function linear for uniform grid'

@@ -22,7 +22,7 @@ subroutine get_msis_temperature(lon, lat, alt, t, h)
   i = 1
   do while ((alt >= newalt(i)) .and. (i <= nAlts + 2))
     i = i + 1
-  end do
+  enddo
   i = i - 1
 
   TempBase = 175.0
@@ -144,10 +144,10 @@ subroutine init_msis
     MinorMixing(iN2_) = 1.0
     do iSpecies = 2, nSpecies
       MinorMixing(iN2_) = MinorMixing(iN2_) - MinorMixing(iSpecies)
-    end do
+    enddo
   else
     MinorMixing(1) = 1.0
-  end if
+  endif
   MinorMixing(i15N2_) = (2.0/167.7)*MinorMixing(iN2_)
 
   ! Just do this once, since nBlocks = 1 most of the time
@@ -156,7 +156,7 @@ subroutine init_msis
   do iSpecies = 1, nSpecies
     MeanMass0 = MeanMass0 + &
                 Mass(iSpecies)*MinorMixing(iSpecies)
-  end do
+  enddo
 
   TempBase = 175.0
 
@@ -186,7 +186,7 @@ subroutine init_msis
           !            iAlt, Altitude_GB(iLon,iLat,iAlt,iBlock), &
           !            RadialDistance_GB(iLon,iLat,iAlt,iBlock), &
           !                  Temperature(iLon,iLat,iAlt,iBlock)
-        end do
+        enddo
 
         ! do iAlt = -1, nAlts + 2
         !   write(*,*) 'iAlt, Gravity = ',iAlt, Gravity_GB(iLon,iLat,iAlt,iBlock)
@@ -204,9 +204,9 @@ subroutine init_msis
         ITemperature(iLon, iLat, -1:nAlts + 2, iBlock) = &
           Temperature(iLon, iLat, -1:nAlts + 2, iBlock)
 
-      end do !iLon = -1, nLons + 2
-    end do !iLat = -1, nLats + 2
-  end do !iBlock = 1, nBlocks
+      enddo !iLon = -1, nLons + 2
+    enddo !iLat = -1, nLats + 2
+  enddo !iBlock = 1, nBlocks
 
 !!! Next, Integrate upward from the -1 Cell
   do iBlock = 1, nBlocks
@@ -221,7 +221,7 @@ subroutine init_msis
           MeanMajorMass(iLon, iLat, iAlt) = &
             MeanMajorMass(iLon, iLat, iAlt) + &
             Mass(iSpecies)*MinorMixing(iSpecies)
-        end do
+        enddo
         !write(*,*) 'iAlt, MeanMass = ', MeanMajorMass(iLat,iLon,iAlt)/AMU
 
         NDensity(iLon, iLat, iAlt, iBlock) = DensityScaleFactor(iLon, iLat)*CIRSDensityValue
@@ -244,16 +244,16 @@ subroutine init_msis
             InvDij = InvDij + &
                      NDensityS(iLon, iLat, iAlt, jSpecies, iBlock)/ &
                      (NDensity(iLon, iLat, iAlt, iBlock)*TempDij)
-          end do !jSpecies = 1, nSpecies
+          enddo !jSpecies = 1, nSpecies
           MeanDs(iSpecies) = 1.0/InvDij
           MeanLambda(iSpecies) = MeanKE/MeanDs(iSpecies)
-        end do !iSpecies = 1, nSpecies
+        enddo !iSpecies = 1, nSpecies
 
 !!! Add the Centrifugal Forces to the Gravity
 
         do iAlt = -1, nAlts + 2
           EffectiveGravity(iAlt) = Gravity_GB(iLon, iLat, iAlt, iBlock)
-        end do
+        enddo
 
         ! write(*,*) 'INIT_MSIS:  NDENSITY LOOP:'
         do iAlt = 0, nAlts + 2
@@ -266,7 +266,7 @@ subroutine init_msis
             MeanMass = MeanMass + &
                        NDensityS(iLon, iLat, iAlt - 1, iSpecies, iBlock)*Mass(iSpecies)/ &
                        NDensity(iLon, iLat, iAlt - 1, iBlock)
-          end do
+          enddo
 
           InvHa = MeanMass*MeanGravity/(MeanTemp*Boltzmanns_Constant)
 
@@ -282,7 +282,7 @@ subroutine init_msis
 
             NDensity(iLon, iLat, iAlt, iBlock) = &
               NDensity(iLon, iLat, iAlt, iBlock) + NDensityS(iLon, iLat, iAlt, iSpecies, iBlock)
-          end do    !iSpecies
+          enddo    !iSpecies
 
           MeanKE = EddyDiffusionCoef* &
                    (NDensity(iLon, iLat, -1, iBlock)/NDensity(iLon, iLat, iAlt, iBlock))**0.50
@@ -302,13 +302,13 @@ subroutine init_msis
                        NDensityS(iLon, iLat, iAlt, jSpecies, iBlock)/ &
                        (NDensity(iLon, iLat, iAlt, iBlock)*TempDij)
 
-            end do !jSpecies = 1, nSpecies
+            enddo !jSpecies = 1, nSpecies
 
             MeanDs(iSpecies) = 1.0/InvDij
 
             MeanLambda(iSpecies) = MeanKE/MeanDs(iSpecies)
 
-          end do !iSpecies = 1, nSpecies
+          enddo !iSpecies = 1, nSpecies
 
           MeanMajorMass(iLon, iLat, iAlt) = 0.0
           do iSpecies = 1, nSpecies
@@ -316,13 +316,13 @@ subroutine init_msis
               MeanMajorMass(iLon, iLat, iAlt) + &
               NDensityS(iLon, iLat, iAlt, iSpecies, iBlock)*Mass(iSpecies)/ &
               NDensity(iLon, iLat, iAlt, iBlock)
-          end do
+          enddo
 
           !write(*,*) 'iAlt, Altitude_GB',iAlt, Altitude_GB(iLon,iLat,iAlt,iBlock)
-        end do  !iAlt
-      end do   ! Lats
-    end do    ! Lons
-  end do    ! Blocks
+        enddo  !iAlt
+      enddo   ! Lats
+    enddo    ! Lons
+  enddo    ! Blocks
 
 !!! Set all of the very minor species to fixed mixing ratios (initially)
   do iBlock = 1, nBlocks
@@ -332,18 +332,18 @@ subroutine init_msis
           do iSpecies = nSpecies + 1, nSpeciesTotal
             NDensityS(iLon, iLat, iAlt, iSpecies, iBlock) = &
               max(1.0e+01, NDensity(iLon, iLat, iAlt, iBlock)*MinorMixing(iSpecies))
-          end do !iSpecies
-        end do  !iAlt
-      end do   ! Lats
-    end do    ! Lons
-  end do    ! Blocks
+          enddo !iSpecies
+        enddo  !iAlt
+      enddo   ! Lats
+    enddo    ! Lons
+  enddo    ! Blocks
 
   do iBlock = 1, nBlocks
     Rho(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, iBlock) = &
       MeanMajorMass(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2)* &
       NDensity(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, iBlock)
 
-  end do
+  enddo
 
 !!!!!! Input a Frozen HCN as our initial Settings
 !
@@ -363,14 +363,14 @@ subroutine init_msis
           do iIon = 1, nIons - 1
             IDensityS(iLon, iLat, iAlt, iIon, iBlock) = &
               1.0
-          end do
+          enddo
           IDensityS(iLon, iLat, iAlt, ie_, iBlock) = &
             nIons - 1
 
-        end do
-      end do
-    end do
-  end do
+        enddo
+      enddo
+    enddo
+  enddo
 
 !iBlock = 1
 !        do iAlt = -1, nAlts + 2
@@ -426,8 +426,8 @@ subroutine calc_densityscaling(iBlock, T0, MeanMass, DenScaling)
             (cos(Longitude(iLon, iBlock))**2.0)* &
             (sin(Latitude(iLat, iBlock))**2.0)))
 
-    end do !iLon = -1, nLons+2
-  end do !iLat = -1, nLats+2
+    enddo !iLon = -1, nLons+2
+  enddo !iLat = -1, nLats+2
 
 end subroutine calc_densityscaling
 

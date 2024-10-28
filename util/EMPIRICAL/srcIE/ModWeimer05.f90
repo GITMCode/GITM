@@ -51,27 +51,27 @@ contains
       write(6, "('>>> read_potential: file ',a,': incompatable csize: ',&
         &'csize_rd=',i4,' csize=',i4)") fname, csize_rd, csize
       stop 'csize'
-    end if
+    endif
     if (d1_rd /= d1_pot) then
       write(6, "('>>> read_potential: file ',a,': incompatable d1: ',&
         &'d1_rd=',i4,' d1_pot=',i4)") fname, d1_rd, d1_pot
       stop 'd1'
-    end if
+    endif
     if (d2_rd /= d2_pot) then
       write(6, "('>>> read_potential: file ',a,': incompatable d2: ',&
         &'d2_rd=',i4,' d2_pot=',i4)") fname, d2_rd, d2_pot
       stop 'd2'
-    end if
+    endif
     do i = 1, csize
       read(lu, "(6e20.9)") alschfits(:, i)
-    end do
+    enddo
     read(lu, "(2f10.3)") ex_pot
     read(lu, "(28i3)") ls
     read(lu, "(2i3)") maxl_pot, maxm_pot
     read(lu, "(28i3)") ms
     do i = 1, csize
       read(lu, "(6e20.9)") schfits(:, i)
-    end do
+    enddo
 
 !  write(6,"(/,'read_potential: Opened file ',a)") infile
 !  write(6,"('ab=',28i3)") ab
@@ -113,8 +113,8 @@ contains
     do i = 1, d3_scha
       do j = 1, d2_scha
         read(lu, "(6e20.9)") allnkm(:, j, i)
-      end do
-    end do
+      enddo
+    enddo
     read(lu, "(8f10.4)") th0s
 !
 ! write(6,"(/,'read_schatable: Opened file ',a)") infile
@@ -152,12 +152,12 @@ contains
       write(6, "('>>> read_potential: file ',a,': incompatable na: ',&
         &'rd_na=',i4,' na=',i4)") fname, rd_na, na
       stop 'na'
-    end if
+    endif
     if (rd_nb /= nb) then
       write(6, "('>>> read_potential: file ',a,': incompatable nb: ',&
         &'rd_nb=',i4,' nb=',i4)") fname, rd_nb, nb
       stop 'nb'
-    end if
+    endif
     read(lu, "(8e20.9)") bndya
     read(lu, "(8e20.9)") bndyb
     read(lu, "(8e20.9)") ex_bndy
@@ -211,7 +211,7 @@ contains
       write(6, "('>>> model=',a)") trim(model)
       write(6, "('>>> setmodel: model must be either epot or bpot')")
       stop 'setmodel'
-    end if
+    endif
 
 !   write(6,"('setmodel: by=',f8.2,' bz=',f8.2,' tilt=',f8.2,' swvel=',&
 !     &f8.2,' swden=',f8.2)") by,bz,tilt,swvel,swden
@@ -241,7 +241,7 @@ contains
       cos2a = 1.+bt*(cos2a - 1.)
       sina = bt*sina
       sin2a = bt*sin2a
-    end if
+    endif
     cfits = schfits ! schfits(d1_pot,csize) is in module read_data
     a = (/c0, swe, stilt, stilt2, swp, &
           swe*cosa, stilt*cosa, stilt2*cosa, swp*cosa, &
@@ -252,18 +252,18 @@ contains
       do j = 1, csize
         do i = 1, int(d1_pot)
           esphc(j) = esphc(j) + cfits(i, j)*a(i)
-        end do
-      end do
+        enddo
+      enddo
 !      write(6,"('setmodel: esphc=',/,(6e12.4))") esphc
     else
       bsphc(:) = 0.
       do j = 1, csize
         do i = 1, int(d1_pot)
           bsphc(j) = bsphc(j) + cfits(i, j)*a(i)
-        end do
-      end do
+        enddo
+      enddo
 !      write(6,"('setmodel: bsphc=',/,(6e12.4))") bsphc
-    end if
+    endif
   end subroutine setmodel
 !-----------------------------------------------------------------------
   subroutine setboundary(angle, bt, tilt, swvel, swden)
@@ -307,13 +307,13 @@ contains
       btx = btx*bt**ex_bndy(2)
     else
       cosa = 1.+bt*(cosa - 1.) ! remove angle dependency for IMF under 1 nT
-    end if
+    endif
     x = (/1., cosa, btx, btx*cosa, swvel, swp/)
     c = bndya
     bndyfitr = 0.
     do i = 1, na
       bndyfitr = bndyfitr + x(i)*c(i)
-    end do
+    enddo
 
 !   write(6,"('setboundary: cosa=',f8.3,' btx=',f8.3)") cosa,btx
 !   write(6,"('setboundary: x=',/,(6e12.4))") x
@@ -342,7 +342,7 @@ contains
     if (inside == 0) then
       epot = fill
       return
-    end if
+    endif
 !
 ! IDL code:
 ! phim=phir # replicate(1,maxm) * ((indgen(maxm)+1) ## replicate(1,n_elements(phir)))
@@ -364,7 +364,7 @@ contains
       if (skip == 1) then
         skip = 0
         cycle
-      end if
+      endif
       m = ms(j)
       if (ab(j) == 1) then
         plm = scplm(j, colat, nlm) ! scplm function is in this module
@@ -378,10 +378,10 @@ contains
         else
           z = z + plm*(esphc(j)*cospm(m) + esphc(j + 1)*sinpm(m))
           skip = 1
-        end if
+        endif
 
-      end if ! ab(j)
-    end do
+      endif ! ab(j)
+    enddo
     epot = z
   end subroutine epotval
 !-----------------------------------------------------------------------
@@ -409,7 +409,7 @@ contains
     if (inside == 0) then
       fac = fill
       return
-    end if
+    endif
 !
     phim(1) = phir
     phim(2) = phir*2.
@@ -421,7 +421,7 @@ contains
       if (skip == 1) then
         skip = 0
         cycle
-      end if
+      endif
       if (ls(j) >= 11) exit jloop
       m = ms(j)
       if (ab(j) == 1) then
@@ -434,9 +434,9 @@ contains
         else
           z = z - (plm*(bsphc(j)*cospm(m) + bsphc(j + 1)*sinpm(m)))
           skip = 1
-        end if
-      end if
-    end do jloop ! j=1,csize
+        endif
+      endif
+    enddo jloop ! j=1,csize
     pi = 4.*atan(1.)
     cfactor = -1.e5/(4.*pi*re**2) ! convert to uA/m2
     z = z*cfactor
@@ -468,14 +468,14 @@ contains
         write(6, "('>>> tablesize > mxtablesize: tablesize=',i5,&
           &' mxtablesize=',i5,' tn0=',e12.4)") tablesize, mxtablesize, th0
         stop 'tablesize'
-      end if
+      endif
 !     write(6,"('scplm: index=',i3,' colat=',f8.3,' th0=',e12.4,&
 !       &' tablesize=',i3)") index,colat,th0,tablesize
 !
       do i = 1, tablesize
         colattable(i) = float(i - 1)*(th0/float(tablesize - 1))
         cth(i) = cos(colattable(i)*deg2rad)
-      end do
+      enddo
 
 !     write(6,"('scplm: tablesize=',i4,' colattable=',/,(6f8.3))") &
 !       tablesize,colattable(1:tablesize)
@@ -488,7 +488,7 @@ contains
         if (skip == 1) then
           skip = 0
           cycle
-        end if
+        endif
         l = ls(j)
         m = ms(j)
 
@@ -507,11 +507,11 @@ contains
           plmtable(1, j + 1) = plmtable(1, j)
           nlms(j + 1) = nlms(j)
           skip = 1
-        end if
+        endif
 
-      end do ! j=1,csize
+      enddo ! j=1,csize
 
-    end if ! prevth0
+    endif ! prevth0
     nlm = nlms(index)
     colata(1) = colat
 
@@ -544,8 +544,8 @@ contains
     else
       do i = 1, tablesize
         a(i) = sqrt(1.-cth(i)**2)**m
-      end do
-    end if
+      enddo
+    endif
     xn = r*(r + 1.)
     x(:) = (1.-cth(:))/2.
 
@@ -563,7 +563,7 @@ contains
         rk = float(k)
         a(i) = a(i)*(x(i)*((rk + rm - 1.)*(rk + rm) - xn)/(rk*(rk + rm)))
         table(i) = table(i) + a(i) ! "result" in idl code
-      end do
+      enddo
 
 !     write(6,"('pm_n: k=',i3,' a=',/,(6(1pe12.4)))") k,a
 !     write(6,"('pm_n: k=',i3,' table=',/,(6(1pe12.4)))") k,table
@@ -573,7 +573,7 @@ contains
         div = abs(table(i))
         if (div <= 1.e-6) div = 1.e-6
         tmp(i) = abs(a(i))/div
-      end do
+      enddo
 
 !     write(6,"('pm_n: k=',i3,' abs(a)=',/,(6(1pe12.4)))") k,abs(a)
 !     write(6,"('pm_n: k=',i3,' abs(table)=',/,(6(1pe12.4)))") k,abs(table)
@@ -584,7 +584,7 @@ contains
 !       k,minval(table),maxval(table),minval(tmp),maxval(tmp)
 
       if (maxval(tmp) < 1.e-6) exit pmn_loop
-    end do pmn_loop
+    enddo pmn_loop
     ans = km_n(m, r)
 
 !   write(6,"('pm_n: ans=',1pe12.4,' table=',/,(6(1pe12.4)))") ans,table(1:tablesize)
@@ -610,7 +610,7 @@ contains
     if (m == 0) then
       km_n = 1.
       return
-    end if
+    endif
 
     rm = float(m)
     km_n = sqrt(2.*exp(lngamma(rn + rm + 1.) - lngamma(rn - rm + 1.)))/(2.**m*factorial(m))
@@ -635,22 +635,22 @@ contains
     if (th0 == 90.) then
       nkmlookup = float(k)
       return
-    end if
+    endif
     th0a(1) = th0
     kk = k + 1
     mm = m + 1
     if (kk > maxk_scha) then
       write(6, "('>>> nkmlookup: kk > maxk: kk=',i4,' maxk=',i4)") kk, maxk_scha
       call interpol_quad(allnkm(maxk_scha, mm, :), th0s, th0a, out)
-    end if
+    endif
     if (mm > maxm_scha) then
       write(6, "('>>> nkmlookup: mm > maxm: kk=',i4,' maxm=',i4)") kk, maxm_scha
       call interpol_quad(allnkm(kk, maxm_scha, :), th0s, th0a, out)
-    end if
+    endif
     if (th0 < th0s(1)) then
       write(6, "('>>> nkmlookup: th0 < th0s(1): th0=',e12.4,' th0s(1)=',e12.4)") &
         th0, th0s(1)
-    end if
+    endif
 
 !   write(6,"('nkmlookup call interpol: kk=',i3,' mm=',i3,' th0=',e12.4,&
 !     &' allnkm=',/,(6(1pe12.4)))") kk,mm,th0a,allnkm(kk,mm,:)
@@ -710,7 +710,7 @@ contains
 !
     do i = 1, 3
       pos(i) = tmat(1, i)*a + tmat(2, i)*b + tmat(3, i)*stc
-    end do
+    enddo
 
     latout = asin(pos(3))*rad2deg
     lonout = atan2(pos(2), pos(1))*rad2deg
@@ -741,13 +741,13 @@ contains
       write(6, "('>>> interpol_quad: nx /= nv: nx=',i4,' nv=',i4)") nx, nv
       p(:) = 0.
       return
-    end if
+    endif
     do i = 1, nu
       ix = value_locate(x, u(i))
       if (ix <= 1 .or. ix >= nx) then ! bug fix by btf 12/23/09
         p(i) = 0.
         cycle                       ! bug fix by btf 12/23/09
-      end if
+      endif
       x1 = x(ix)
       x0 = x(ix - 1)
       x2 = x(ix + 1)
@@ -755,7 +755,7 @@ contains
              v(ix)*(u(i) - x0)*(u(i) - x2)/((x1 - x0)*(x1 - x2)) + &
              v(ix + 1)*(u(i) - x0)*(u(i) - x1)/((x2 - x0)*(x2 - x1))
 
-    end do
+    enddo
 !   write(6,"('interpol_quad: nu=',i4,' p=',/,(1pe12.4)") nu,p
 
   end subroutine interpol_quad
@@ -780,13 +780,13 @@ contains
     if (val > vec(n)) then
       value_locate = n
       return
-    end if
+    endif
     do i = 1, n - 1
       if (val >= vec(i) .and. val <= vec(i + 1)) then
         value_locate = i
         return
-      end if
-    end do
+      endif
+    enddo
 
   end function value_locate
 !-----------------------------------------------------------------------
@@ -810,7 +810,7 @@ contains
     do j = 1, 5
       y = y + 1
       ser = ser + cof(j)/y
-    end do
+    enddo
     lngamma = -tmp + log(2.5066282746310005*ser/x)
   end function lngamma
 !-----------------------------------------------------------------------
@@ -822,15 +822,15 @@ contains
       write(6, "('>>> factorial: n must be positive: n=',i4)") n
       factorial = 0.
       return
-    end if
+    endif
     if (n == 1) then
       factorial = 1.
       return
-    end if
+    endif
     factorial = float(n)
     do m = n - 1, 1, -1
       factorial = factorial*float(m)
-    end do
+    enddo
   end function factorial
 !-----------------------------------------------------------------------
 end module w05sc

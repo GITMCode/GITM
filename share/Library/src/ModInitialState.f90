@@ -81,7 +81,7 @@ contains
 
     do iVar = 1, nVar
       call lower_case(NameVar_V(iVar))
-    end do
+    enddo
 
     iVarMaterial0 = -1
     if (present(iVarMaterial1In)) iVarMaterial0 = iVarMaterial1In - 1
@@ -163,11 +163,11 @@ contains
           if (NameStateVar_I(i) == NameVar_V(iVar)) then
             iVar_I(i) = iVar
             CYCLE LOOPSTATE
-          end if
-        end do
+          endif
+        enddo
         call CON_stop(NameSub//': could not match variable name='// &
                       trim(NameStateVar_I(i)))
-      end do LOOPSTATE
+      enddo LOOPSTATE
 
       ! Number of different states in the initial condition
       call read_var('nMaterialState', nMaterialState)
@@ -183,7 +183,7 @@ contains
           NameMaterialState_I(i), MaterialState_VI(iVar_I, i)
         if (iError /= 0) call CON_stop(NameSub// &
                                        ' could not read Name, State from '//trim(String))
-      end do
+      enddo
       deallocate(NameStateVar_I, iVar_I)
 
     case ("#STATEINTERFACE")
@@ -211,12 +211,12 @@ contains
         if (nMaterial > 0) then
           iLevelSegment_SI(1, i) = i_level(NameMaterial1(1:2))
           iLevelSegment_SI(2, i) = i_level(NameMaterial2(1:2))
-        end if
+        endif
 
         StartSegment_DI(:, i) = Start_D
         VectorSegment_DI(:, i) = End_D - Start_D
         LengthSegment_I(i) = sqrt(sum((End_D - Start_D)**2))
-      end do
+      enddo
     case default
       call CON_stop(NameSub//': unknown command='//NameCommand)
     end select
@@ -233,8 +233,8 @@ contains
         if (NameMaterial == NameVar_V(iVar)) then
           i_level = iMaterial
           RETURN
-        end if
-      end do
+        endif
+      enddo
 
       call CON_stop(NameSub// &
                     ' could not match material name='//NameMaterial)
@@ -254,8 +254,8 @@ contains
         if (NameMaterial == NameMaterialState_I(i)) then
           i_state = i
           RETURN
-        end if
-      end do
+        endif
+      enddo
 
       write(*, *) NameSub, ': nMaterialState      = ', nMaterialState
       write(*, *) NameSub, ': NameMaterialState_I = ', NameMaterialState_I
@@ -301,7 +301,7 @@ contains
     if (nMaterial > 0) then
       allocate(dMin_I(nMaterial))
       dMin_I = -huge(1.0)
-    end if
+    endif
 
     ! Check distance from all the material interface segments
     do iSegment = 1, nSegment
@@ -341,7 +341,7 @@ contains
       if (d < dMin) then
         dMin = d
         iState = iStateSegment_SI(iSide, iSegment)
-      end if
+      endif
 
       if (nMaterial > 0) then
         ! Get the levels on the two sides of the segment.
@@ -353,8 +353,8 @@ contains
           ! Set level set function if distance is smaller than earlier
           if (d < abs(dMin_I(iLevel))) dMin_I(iLevel) = d
           if (d < abs(dMin_I(jLevel))) dMin_I(jLevel) = -d
-        end if
-      end if
+        endif
+      endif
 
       if (.not. present(DoTest)) CYCLE
       if (.not. DoTest) CYCLE
@@ -366,13 +366,13 @@ contains
       write(*, *) NameSub, ' Projection, Point_D=', Projection, Point_D
       write(*, *) NameSub, ' d, iLevel, jLevel  =', d, iLevel, jLevel
 
-    end do
+    enddo
 
     State_V = MaterialState_VI(:, iState)
     if (nMaterial > 0) then
       State_V(iVarMaterial0 + 1:iVarMaterial0 + nMaterial) = dMin_I
       deallocate(dMin_I)
-    end if
+    endif
 
   end subroutine get_initial_state
 
@@ -421,7 +421,7 @@ contains
       case default
         call CON_stop(NameSub//': unknown command='//NameCommand)
       end select
-    end do
+    enddo
 
     ! Set the levelset values for all cell centers
     do j = 1, nJ; do i = 1, nI
@@ -440,7 +440,7 @@ contains
         State_VC(nVar, i, j) = maxloc( &
                                State_VC(iMaterial1:iMaterialLast, i, j), DIM=1)
 
-      end do; end do
+      enddo; enddo
 
     if (iProc == 0) call save_plot_file('test_initial_state.out', &
                                         NameVarIn="x y "//NameVar//" level nSegment", &

@@ -7,10 +7,12 @@ subroutine read_MHDIMF_Indices_new(iOutputError, StartTime, EndTime)
 
   use ModKind
   use ModIndices
+  use ModTime, only: CurrentTime
   implicit none
 
   integer, intent(out)     :: iOutputError
   real(Real8_), intent(in) :: EndTime, StartTime
+  real(Real8_) :: EndTimeFake
 
   integer :: ierror, iIMF, iSW, j, npts
   logical :: done, done_inner, IsFirstLine = .true.
@@ -21,6 +23,8 @@ subroutine read_MHDIMF_Indices_new(iOutputError, StartTime, EndTime)
   real(Real8_) :: TimeDelay, BufferTime = 1800.0, FirstTime, DeltaT = -1.0e32
 
   integer, dimension(7) :: itime
+
+  logical :: isIgnoreEndTime = .false.
   !------------------------------------------------------------------------
   iOutputError = 0
 
@@ -28,6 +32,14 @@ subroutine read_MHDIMF_Indices_new(iOutputError, StartTime, EndTime)
 
   npts = 0
   TimeDelay = 0.0
+
+!   print*,"START<END<DETLA", StartTime, EndTime, EndTime-StartTime
+  if (EndTime < StartTime) then
+    isIgnoreEndTime = .true.
+    EndTimeFake = 1e32
+  else
+    EndTimeFake = EndTime
+  endif
 
   ! Problem - we have to figure out whether we are being called with no IMF
   ! file at all or whether we actually have an index file to read (or reread)
@@ -68,6 +80,7 @@ subroutine read_MHDIMF_Indices_new(iOutputError, StartTime, EndTime)
   do while (.not. done)
 
     read(LunIndices_, '(a)', iostat=ierror) line
+    !  print*, line, "READ WITH ERROR _____ ", ierror
     if (ierror /= 0) done = .true.
 
     if (index(line, '#DELAY') > 0) then
@@ -146,7 +159,7 @@ subroutine read_MHDIMF_Indices_new(iOutputError, StartTime, EndTime)
           ! are really interested in
 
           if (IndexTimes_TV(iIMF, imf_bx_) >= StartTime - BufferTime .and. &
-              IndexTimes_TV(iIMF, imf_bx_) <= EndTime + BufferTime .and. &
+              IndexTimes_TV(iIMF, imf_bx_) <= EndTimeFake + BufferTime .and. &
               iIMF < MaxIndicesEntries) then
 
             if (abs(Indices_TV(iSW, imf_bz_)) < 200.0) iIMF = iIMF + 1
@@ -157,11 +170,11 @@ subroutine read_MHDIMF_Indices_new(iOutputError, StartTime, EndTime)
 
             ! This means that the GITM time is all BEFORE the first
             ! line in the file!
-            if (EndTime < IndexTimes_TV(iIMF, imf_bx_) .and. iIMF == 1) then
+            if (EndTimeFake < IndexTimes_TV(iIMF, imf_bx_) .and. iIMF == 1) then
               iIMF = iIMF + 1
               iSW = iSW + 1
+              print *, "COUNTERS ADDED TO"
             endif
-
           endif
 
         endif
@@ -188,10 +201,25 @@ subroutine read_MHDIMF_Indices_new(iOutputError, StartTime, EndTime)
   nIndices_V(sw_n_) = iSW - 2
   nIndices_V(sw_t_) = iSW - 2
 
+  if (isIgnoreEndTime) then
+    EndTimeFake = IndexTimes_TV(iIMF - 2, imf_bx_)
+  endif
   ! If we have gotten to this point and we have no data,
   ! there is something wrong!
   if (nIndices_V(imf_bz_) < 2) iOutputError = 1
   if (nIndices_V(sw_v_) < 2) iOutputError = 1
+  print *, CurrentTime, EndTimeFake, EndTime, iError
+
+  call check_all_indices(CurrentTime, iError)
+  print *, CurrentTime, EndTimeFake, EndTime, iError
+  if (iError == 0) then
+    call check_all_indices(EndTimeFake, iError)
+    print *, CurrentTime, EndTimeFake, EndTime, iError
+  endif
+  if (iError /= 0) then
+    print *, CurrentTime, EndTimeFake, EndTime, iError
+    call stop_gitm("Issue with Indices! Check the file(s) times!")
+  endif
 
 end subroutine read_MHDIMF_Indices_new
 

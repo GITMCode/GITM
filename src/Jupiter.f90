@@ -212,7 +212,7 @@ subroutine calc_radcooling(iBlock)
   !
   do i = 1, np
     pnb(i) = 1.0e-4*exp(pnbr(i)) ! p into Pa
-  end do
+  enddo
 
   ! ****  Initialize to zero
   cooltot(1:nLons, 1:nLats, 1:nAlts) = 0.0
@@ -231,7 +231,7 @@ subroutine calc_radcooling(iBlock)
         co2(iAlt) = vmrco2(iLon, iLat, iAlt)
         o3p(iAlt) = vmro(iLon, iLat, iAlt)
         n2co(iAlt) = vmrn2co(iLon, iLat, iAlt)
-      end do
+      enddo
 
       !        interpolate escape functions (only) to nlayer grid
       call interp1(escf2, player, nlayer, ef2, pnb, np)
@@ -263,7 +263,7 @@ subroutine calc_radcooling(iBlock)
           if (tlayer(i) .le. 175.0) then
             k19xca = 3.3e-15
             k19xcb = 7.6e-16
-          end if
+          endif
           k19xca = k19xca*rfvt
           k19xcb = k19xcb*rfvt
           k19cap1 = k19xca*2.0*exp(-ee*nu1/tlayer(i))
@@ -311,11 +311,11 @@ subroutine calc_radcooling(iBlock)
           !        Cooling Rate (K/sec units)
           cooltot(iLon, iLat, i) = 0.1*hr(i)*tlayer(i)/(4.4*player(i))
 
-        end if
-      end do  !-------- END OF MAIN ALTITUDE LOOP
+        endif
+      enddo  !-------- END OF MAIN ALTITUDE LOOP
 
-    end do  !-------- END OF MAIN LONGITUDE LOOP
-  end do  !-------- END OF MAIN LATITUDE LOOP
+    enddo  !-------- END OF MAIN LONGITUDE LOOP
+  enddo  !-------- END OF MAIN LATITUDE LOOP
 
   !-------------------------------------------------------------
 
@@ -358,12 +358,12 @@ subroutine interp1(escout, p, nlayer, escin, pin, nl)
           np = n + 1
           wm = abs(pin(np) - p(n1))/(pin(nm) - pin(np))
           wp = 1.0 - wm
-        end if
-      end do
+        endif
+      enddo
       !write(*,*) 'nm =',nm
       escout(n1) = escin(nm)*wm + escin(np)*wp
-    end if
-  end do
+    endif
+  enddo
 
 end subroutine interp1
 

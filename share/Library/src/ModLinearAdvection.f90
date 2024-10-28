@@ -47,7 +47,7 @@ contains
       BetaLim = BetaIn
     else
       BetaLim = 2.0
-    end if
+    endif
 
     if (present(IsNegativeEnergy)) IsNegativeEnergy = .false.
 
@@ -64,8 +64,8 @@ contains
       else
         write(*, *) 'F_I:', F_I
         call CON_stop('Error in '//NameSub)
-      end if
-    end if
+      endif
+    endif
 
     !One stage second order upwind scheme
 
@@ -81,7 +81,7 @@ contains
         ! f_(i+1/2):
         FSemiintUp_I(iX) = F_I(iX) + &
                            0.50*(1.0 - CFL_I(iX))*df_lim(F_I(iX - 1:iX + 1))
-      end do
+      enddo
       ! f_(i-1/2):
       FSemiintDown_I(1:nX) = FSemiintUp_I(0:nX - 1)
 
@@ -89,14 +89,14 @@ contains
       if (present(UseConservativeBC)) then
         FSemiintDown_I(1) = 0.0
         FSemiintUp_I(nX) = 0.0
-      end if
+      endif
 
       !\
       ! Update the solution from f^(n) to f^(n+1):
       !/
       F_I(1:nX) = F_I(1:nX) + CFL_I(1:nX)* &
                   (FSemiintDown_I(1:nX) - FSemiintUp_I(1:nX))
-    end do
+    enddo
 
     FInOut_I(1 - nGCLeft:nX + nGCRight) = F_I(1 - nGCLeft:nX + nGCRight)
     if (any(FInOut_I(1:nX) < 0.0)) then
@@ -107,8 +107,8 @@ contains
         return
       else
         call CON_stop('Error in '//NameSub)
-      end if
-    end if
+      endif
+    endif
   end subroutine advance_lin_advection_plus
 
   !===========advance_lin_advection==========================================!
@@ -154,7 +154,7 @@ contains
       BetaLim = BetaIn
     else
       BetaLim = 2.0
-    end if
+    endif
     if (present(IsNegativeEnergy)) IsNegativeEnergy = .false.
 
     nStep = 1 + int(maxval(CFLIn_I)); CFL_I(1:nX) = CFLIn_I/real(nStep)
@@ -172,8 +172,8 @@ contains
       else
         write(*, *) 'F_I:', F_I
         call CON_stop('Error in '//NameSub)
-      end if
-    end if
+      endif
+    endif
 
     !One stage second order upwind scheme
 
@@ -186,7 +186,7 @@ contains
         ! f_(i-1/2):
         FSemiintDown_I(iX) = F_I(iX) &
                              - 0.50*(1.0 - CFL_I(iX))*df_lim(F_I(iX - 1:iX + 1))
-      end do
+      enddo
       ! f_(i+1/2):
       FSemiintUp_I(1:nX) = FSemiintDown_I(2:nX + 1)
 
@@ -194,12 +194,12 @@ contains
       if (present(UseConservativeBC)) then
         FSemiintDown_I(1) = 0.0
         FSemiintUp_I(nX) = 0.0
-      end if
+      endif
       !\
       ! Update the solution from f^(n) to f^(n+1):
       !/
       F_I(1:nX) = F_I(1:nX) - CFL_I(1:nX)*(FSemiintDown_I(1:nX) - FSemiintUp_I(1:nX))
-    end do
+    enddo
 
     FInOut_I(1:nX) = F_I(1:nX)
 
@@ -211,8 +211,8 @@ contains
         return
       else
         call CON_stop('Error in '//NameSub)
-      end if
-    end if
+      endif
+    endif
     !------------------------------------ DONE --------------------------------!
   end subroutine advance_lin_advection_minus
   !============================================================================!
@@ -242,7 +242,7 @@ contains
       call advance_lin_advection_minus(CFL, nCell, nGCLeft, nGCRight, Fminus_I, &
                                        2.0, .true., IsNegativeEnergy)
 
-    end do
+    enddo
 
     ! write sln to file
     ! Deafault output file name
@@ -259,7 +259,7 @@ contains
     write(UNITTMP_, '(a,i3.3,a,i5.5,a)') 'Zone I= ', nCell, ' F=point'
     do iCell = 1, nCell
       write(UNITTMP_, '(i3.3,e14.6,e14.6)') iCell, Fplus_I(iCell), Fminus_I(iCell)
-    end do
+    enddo
     close(UNITTMP_)
 
   end subroutine test_linear_advection

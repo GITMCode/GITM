@@ -85,7 +85,7 @@ contains
       ok = .false.
       call AB_ERROR_set("AB_COMM_XCHNG_create", "allocate error ", ierror)
       return
-    end if
+    endif
 
     ! allocate global receive request array used in transfer procedures
     allocate(xchng%rcv_req(0:max_pn), stat=ierror)
@@ -93,7 +93,7 @@ contains
       ok = .false.
       call AB_ERROR_set("AB_COMM_XCHNG_create", "allocate error ", ierror)
       return
-    end if
+    endif
     xchng%rcv_req = MPI_REQUEST_NULL
 
     ! allocate global send request array used in transfer procedures
@@ -102,7 +102,7 @@ contains
       ok = .false.
       call AB_ERROR_set("AB_COMM_XCHNG_create", "allocate error ", ierror)
       return
-    end if
+    endif
     xchng%snd_req = MPI_REQUEST_NULL
 
   end subroutine AB_COMM_XCHNG_create
@@ -134,7 +134,7 @@ contains
       ok = .false.
       call AB_ERROR_set("AB_COMM_XCHNG_REAL_start", "MPI error ", ierror)
       return
-    end if
+    endif
 
     ! initialize receive requests to null
     xchng%rcv_req = MPI_REQUEST_NULL
@@ -151,10 +151,10 @@ contains
             ok = .false.
             call AB_ERROR_set("AB_COMM_XCHNG_REAL_start", "MPI error ", ierror)
             return
-          end if
-        end if
-      end if
-    end do
+          endif
+        endif
+      endif
+    enddo
 
     ! make sure there are no outstanding send requests
     call MPI_waitall(np, xchng%snd_req, xchng%status, ierror)
@@ -162,7 +162,7 @@ contains
       ok = .false.
       call AB_ERROR_set("AB_COMM_XCHNG_REAL_start", "MPI error ", ierror)
       return
-    end if
+    endif
 
     ! initialize send requests to null
     xchng%snd_req = MPI_REQUEST_NULL
@@ -179,10 +179,10 @@ contains
             ok = .false.
             call AB_ERROR_set("AB_COMM_XCHNG_REAL_start", "MPI error ", ierror)
             return
-          end if
-        end if
-      end if
-    end do
+          endif
+        endif
+      endif
+    enddo
 
   end subroutine AB_COMM_XCHNG_REAL_start
 
@@ -214,7 +214,7 @@ contains
       ok = .false.
       call AB_ERROR_set("AB_COMM_XCHNG_INT_2D_start", "MPI error ", ierror)
       return
-    end if
+    endif
 
     ! initialize receive requests to null
     xchng%rcv_req = MPI_REQUEST_NULL
@@ -231,10 +231,10 @@ contains
             ok = .false.
             call AB_ERROR_set("AB_COMM_XCHNG_INT_2D_start", "MPI error ", ierror)
             return
-          end if
-        end if
-      end if
-    end do
+          endif
+        endif
+      endif
+    enddo
 
     ! make sure there are no outstanding send requests
     call MPI_waitall(np, xchng%snd_req, xchng%status, ierror)
@@ -242,7 +242,7 @@ contains
       ok = .false.
       call AB_ERROR_set("AB_COMM_XCHNG_INT_2D_start", "MPI error ", ierror)
       return
-    end if
+    endif
 
     ! initialize send requests to null
     xchng%snd_req = MPI_REQUEST_NULL
@@ -259,10 +259,10 @@ contains
             ok = .false.
             call AB_ERROR_set("AB_COMM_XCHNG_INT_2D_start", "MPI error ", ierror)
             return
-          end if
-        end if
-      end if
-    end do
+          endif
+        endif
+      endif
+    enddo
 
   end subroutine AB_COMM_XCHNG_INT_2D_start
 
@@ -281,7 +281,7 @@ contains
       ok = .false.
       call AB_ERROR_set("AB_COMM_XCHNG_finish_rcv", "MPI error ", ierror)
       return
-    end if
+    endif
 
   end subroutine AB_COMM_XCHNG_finish_rcv
 
@@ -300,7 +300,7 @@ contains
       ok = .false.
       call AB_ERROR_set("AB_COMM_XCHNG_finish_snd", "MPI error ", ierror)
       return
-    end if
+    endif
 
   end subroutine AB_COMM_XCHNG_finish_snd
 
@@ -322,7 +322,7 @@ contains
       ok = .false.
       call AB_ERROR_set("AB_COMM_XCHNG_destroy", "MPI error ", ierror)
       return
-    end if
+    endif
 
     ! deallocate send request array
     deallocate(xchng%snd_req)
@@ -333,7 +333,7 @@ contains
       ok = .false.
       call AB_ERROR_set("AB_COMM_XCHNG_destroy", "MPI error ", ierror)
       return
-    end if
+    endif
 
     ! deallocate receive request array
     deallocate(xchng%rcv_req)

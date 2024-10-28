@@ -151,8 +151,8 @@ contains
         write(*, *) prefix, 'LatitudeCme = ', LatitudeCme, '[degrees]'
         write(*, *) prefix, 'OrientationCme = ', OrientationCme, '[degrees]'
         write(*, *) prefix
-      end if
-    end if
+      endif
+    endif
 
     a1scl = cme_a1*Io2No_V(UnitB_)
     rho1scl = cme_rho1*Si2No_V(UnitRho_)
@@ -183,7 +183,7 @@ contains
       x = delta*sin_theta*cos_phi
       y = delta*sin_theta*sin_phi
       z = delta*cos_theta
-    end if
+    endif
     !\
     ! CALCULATE CELL CENTER FOR TRANSFORMED SPHERICAL COORDINATES
     ! stretching transformation of variables r --> r - a
@@ -220,7 +220,7 @@ contains
       y_2 = delta*sin_theta2*cos_phi2
       z_2 = delta*sin_theta2*sin_phi2
       x_2 = delta*cos_theta2
-    end if
+    endif
     alpha0 = 5.763854/cme_r0
     ga0r0 = sin(alpha0*cme_r0)/(alpha0*cme_r0) - cos(alpha0*cme_r0)
     A2 = (4.0*cPi*a1scl/alpha0**2)*((cme_r0**2/ga0r0) &
@@ -372,7 +372,7 @@ contains
 
     else
       B_GL98_D = 0.0; rho_GL98 = 0.0; p_GL98 = 0.0
-    end if
+    endif
 
   end subroutine get_GL98_fluxrope
 
@@ -391,7 +391,7 @@ contains
       Rho = Rho
     else
       Rho = ModulationRho*Rho
-    end if
+    endif
 
     !\
     ! Add just `ModulationP' times of the CME pressure
@@ -401,7 +401,7 @@ contains
       p = p
     else
       p = ModulationP*p
-    end if
+    endif
 
   end subroutine adjust_GL98_fluxrope
 

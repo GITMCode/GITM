@@ -42,7 +42,7 @@ subroutine init_mpi_coup
 
   inquire(file=cInputFile, EXIST=IsThere)
   if (.not. IsThere) &
-    call stop_gitm(cInputFile//" cannot be found by read_inputs")
+    call stop_gitm(trim(cInputFile)//" cannot be found by read_inputs")
 
   open(iInputUnit_, file=cInputFile, status="old")
 
@@ -59,28 +59,28 @@ subroutine init_mpi_coup
         read(iInputUnit_, *) nBlksLats
         numgitm = nBlksLons*nBlksLats
         HaveGrid = .true.
-      end if
+      endif
 
       if (cLine(1:5) == "#SAMI") then
         read(iInputUnit_, *) numsami
         read(iInputUnit_, *) DtCouple
         HaveSami = .true.
-      end if
+      endif
 
       if (HaveGrid .and. HaveSami) IsDone = .true.
 
-    end if
+    endif
 
-  end do
+  enddo
 
   close(iInputUnit_)
 
   if (.not. HaveGrid) then
     if (iProcGlobal == 0) then
       write(*, *) "Can't seem to find #GRID in UAM.in file...??? How???"
-    end if
+    endif
     stop
-  end if
+  endif
 
   if (.not. HaveSami) then
     if (iProcGlobal == 0) then
@@ -88,9 +88,9 @@ subroutine init_mpi_coup
       write(*, *) "#SAMI"
       write(*, *) "13        numworker + 1 from SAMI - We need to fix this.."
       write(*, *) "300.0     dtcouple"
-    end if
+    endif
     stop
-  end if
+  endif
 
   ! ---------------------------------------------------------------------------
 

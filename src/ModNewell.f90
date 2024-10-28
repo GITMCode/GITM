@@ -2,10 +2,10 @@
 ! Full license can be found in LICENSE
 
 module ModNewell
-
+  use ModInputs
   implicit none
 
-  integer, parameter        :: iCharLenNewell_ = 400
+  integer, parameter        :: iCharLenNewell_ = iCharLen_
 
   character(len=iCharLenNewell_) :: dir = "UA/DataIn/Aurora/"
 
@@ -64,7 +64,7 @@ contains
     do iLat = 1, nMLats/2 - 1
       area(:, iLat) = area(:, iLat)*cos((50.0 + 0.5*(iLat - 1))*pi/180.0)
       area(:, iLat + nMLats/2) = area(:, iLat)*cos((50.0 + 0.5*(iLat - 1))*pi/180.0)
-    end do
+    enddo
 
     call report("Newell Aurora Initialized", 2)
 
@@ -159,9 +159,9 @@ contains
         !call smooth(EnergyFluxIons)
         !call smooth(NumberFluxIons)
 
-      end if
+      endif
 
-    end if
+    endif
 
     do iLon = -1, nLons + 2
       do iLat = -1, nLats + 2
@@ -178,7 +178,7 @@ contains
             iMlat2 = iMlat - nMlats/2
           else
             iMlat2 = iMlat + nMlats/2
-          end if
+          endif
 
           iMlat2 = min(max(iMlat2, 1), nMlats)
 
@@ -198,7 +198,7 @@ contains
           else
             ElectronEnergyFlux(iLon, iLat) = &
               EnergyFluxDiff(iMlt, iMlat)
-          end if
+          endif
 
           ! Diffuse Number Flux
 
@@ -215,13 +215,13 @@ contains
 
           else
             numflux = NumberFluxDiff(iMlt, iMlat)
-          end if
+          endif
 
           if (numflux /= 0) then
             ElectronAverageEnergy(iLon, iLat) = &
               ElectronEnergyFlux(iLon, iLat)/numflux* &
               6.242e11/1000.0 ! ergs -> keV
-          end if
+          endif
 
           ! Mono Energy Flux
 
@@ -240,7 +240,7 @@ contains
           else
             ElectronEnergyFluxMono(iLon, iLat) = &
               EnergyFluxMono(iMlt, iMlat)
-          end if
+          endif
 
           ! Mono Number Flux
 
@@ -259,7 +259,7 @@ contains
           else
             ElectronNumberFluxMono(iLon, iLat) = &
               NumberFluxMono(iMlt, iMlat)
-          end if
+          endif
 
           ! Wave Energy Flux
 
@@ -278,7 +278,7 @@ contains
           else
             ElectronEnergyFluxWave(iLon, iLat) = &
               EnergyFluxWave(iMlt, iMlat)
-          end if
+          endif
 
           ! Wave Number Flux
 
@@ -297,11 +297,11 @@ contains
           else
             ElectronNumberFluxWave(iLon, iLat) = &
               NumberFluxWave(iMlt, iMlat)
-          end if
+          endif
 
-        end if
-      end do
-    end do
+        endif
+      enddo
+    enddo
 
     call end_timing("run_newell")
 
@@ -347,10 +347,10 @@ contains
             if (idfp > ndF) idfp = dfBin - 2
             ProbTotal(iMlt, iMlat) = &
               (Prob(idfm, iMlt, iMlat) + Prob(idfp, iMlt, iMlat))/2
-          end if
-        end if
-      end do
-    end do
+          endif
+        endif
+      enddo
+    enddo
 
   end subroutine calc_probability
 
@@ -430,11 +430,11 @@ contains
         if (iHem == 1) then
           iLatStart = nPl + 1
           iLatEnd = nMlats/2 - nPl - 1
-        end if
+        endif
         if (iHem == 2) then
           iLatStart = nMlats/2 + nPl + 1
           iLatEnd = nMlats - nPl - 1
-        end if
+        endif
 
         do iLat = iLatStart, iLatEnd
           if (value(iMlt, iLat) > 0.0) then
@@ -448,9 +448,9 @@ contains
                 if (value(iMa, iLa) > 0.0) then
                   ave = ave + value(iMa, iLa)
                   n = n + 1
-                end if
-              end do
-            end do
+                endif
+              enddo
+            enddo
             if (n > (2*nPL + 1)*(2*nPM + 1)/2) then
               ave = ave/n
               std = 0.0
@@ -461,9 +461,9 @@ contains
                 do iLa = iLat - nPL, iLat + nPL
                   if (value(iMa, iLa) > 0.0) then
                     std = std + (ave - value(iMa, iLa))**2
-                  end if
-                end do
-              end do
+                  endif
+                enddo
+              enddo
               std = sqrt(std/n)
               ! We only want to kill points that are 2 stdev ABOVE the average
               ! value.
@@ -474,12 +474,12 @@ contains
                 valueout(iMlt, iLat) = ave
               else
                 valueout(iMlt, iLat) = value(iMlt, iLat)
-              end if
-            end if
-          end if
-        end do
-      end do
-    end do
+              endif
+            endif
+          endif
+        enddo
+      enddo
+    enddo
 
     value = valueout
 
@@ -502,15 +502,15 @@ contains
 
     if (iError /= 0) then
       write(*, *) "Error in read_single_regression_file"
-      call stop_gitm(cFile//" cannot be opened")
-    end if
+      call stop_gitm(trim(cFile)//" cannot be opened")
+    endif
 
     read(iInputUnit_, *, iostat=iError) year0, day0, year1, day1, nFiles, sf0
 
     if (iError /= 0) then
       write(*, *) "Error in read_single_regression_file"
-      call stop_gitm(cFile//" cannot read first line")
-    end if
+      call stop_gitm(trim(cFile)//" cannot read first line")
+    endif
 
     do iMlt = 1, nMlts
       do iMlat = 1, nMlats
@@ -518,10 +518,10 @@ contains
           i, j, b1a(iMlt, iMlat), b2a(iMlt, iMlat), rfa(iMlt, iMlat)
         if (iError /= 0) then
           write(*, *) "Error in read_single_regression_file:", iMlt, iMlat
-          call stop_gitm(cFile//" error reading file")
-        end if
-      end do
-    end do
+          call stop_gitm(trim(cFile)//" error reading file")
+        endif
+      enddo
+    enddo
 
     close(iInputUnit_)
 
@@ -545,15 +545,15 @@ contains
 
     if (iError /= 0) then
       write(*, *) "Error in read_single_probability_file"
-      call stop_gitm(cFile//" cannot be opened")
-    end if
+      call stop_gitm(trim(cFile)//" cannot be opened")
+    endif
 
     read(iInputUnit_, *, iostat=iError) year0, day0, year1, day1, nFiles, sf0
 
     if (iError /= 0) then
       write(*, *) "Error in read_single_probability_file"
-      call stop_gitm(cFile//" cannot read first line")
-    end if
+      call stop_gitm(trim(cFile)//" cannot read first line")
+    endif
 
     do iMlt = 1, nMlts
       do iMlat = 1, nMlats
@@ -561,10 +561,10 @@ contains
           b1p(iMlt, iMlat), b2p(iMlt, iMlat)
         if (iError /= 0) then
           write(*, *) "Error in read_single_probability_file:", iMlt, iMlat
-          call stop_gitm(cFile//" error reading file")
-        end if
-      end do
-    end do
+          call stop_gitm(trim(cFile)//" error reading file")
+        endif
+      enddo
+    enddo
 
     do iMlt = 1, nMlts
       do iMlat = 1, nMlats
@@ -572,11 +572,11 @@ contains
           read(iInputUnit_, *, iostat=iError) Prob(idF, iMlt, iMlat)
           if (iError /= 0) then
             write(*, *) "Error in read_single_probability_file:", idF, iMlt, iMlat
-            call stop_gitm(cFile//" error reading file")
-          end if
-        end do
-      end do
-    end do
+            call stop_gitm(trim(cFile)//" error reading file")
+          endif
+        enddo
+      enddo
+    enddo
 
     close(iInputUnit_)
 

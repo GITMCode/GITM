@@ -97,7 +97,7 @@ DataIn/ae_20021221.txt
 none              onset time delay file
 
 This is for OVATION-PRIME:
---#NEWELLAURORA
+#NEWELLAURORA
 F                 Use Newell Ovation model of the aurora
 T                 UseNewellAveraged (logical)
 T                 UseNewellMono (logical)
@@ -125,12 +125,6 @@ T		iskappa
 F		If ions are included in the AMIE file, use them. FangEnergy=T!
 
 ------------ E-Field Drivers ------------
-
-#SOLARWIND
-0.0		IMF Bx
-0.0		IMF By
--2.0		IMF Bz
-400.0		Solar wind Vx
 
 This is for amie-like inputs:
 #AMIEFILES
@@ -207,7 +201,7 @@ This stuff is standard for Earth
 #ALTITUDE
 100.0		minimum altitude to use
 600.0		maximum altitude to use (ignored unless the following is F)
-T		use stretched grid
+F		use stretched grid
 
 #INITIAL
 T		initialize thermosphere using MSIS

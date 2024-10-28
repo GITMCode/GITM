@@ -55,14 +55,14 @@ subroutine get_msis_temperature(lon, lat, alt, t, h)
     write(*, *) "Error in getting F107 value.  Is this set?"
     write(*, *) "Code : ", iError
     call stop_gitm("Stopping in euv_ionization_heat")
-  end if
+  endif
 
   call get_f107a(CurrentTime, f107a, iError)
   if (iError /= 0) then
     write(*, *) "Error in getting F107a value.  Is this set?"
     write(*, *) "Code : ", iError
     call stop_gitm("Stopping in euv_ionization_heat")
-  end if
+  endif
 
   if (RCMRFlag .and. RCMROutType == "F107") then
     CALL GTD7(iJulianDay, utime, AltKm, LatDeg, LonDeg, LST, &
@@ -70,7 +70,7 @@ subroutine get_msis_temperature(lon, lat, alt, t, h)
   else
     call GTD7(iJulianDay, utime, AltKm, LatDeg, LonDeg, LST, &
               F107A, F107, AP, 48, msis_dens, msis_temp)
-  end if
+  endif
 
   t = msis_temp(2)
   nO = msis_dens(2)
@@ -128,14 +128,14 @@ subroutine init_msis
     write(*, *) "Error in getting F107 value (init_msis).  Is this set?"
     write(*, *) "Code : ", iError
     call stop_gitm("Stopping in advance")
-  end if
+  endif
 
   call get_f107a(CurrentTime, f107a, iError)
   if (iError /= 0) then
     write(*, *) "Error in getting F107a value (init_msis).  Is this set?"
     write(*, *) "Code : ", iError
     call stop_gitm("Stopping in advance")
-  end if
+  endif
 
   !--------------------------------------------------------------------------
   !
@@ -178,7 +178,7 @@ subroutine init_msis
     sw_msis = 0
     sw_msis(1) = 1
     sw_msis(9) = 1
-  end if
+  endif
 
   sw_msis(9) = 0
   sw_msis(2) = 0
@@ -220,11 +220,11 @@ subroutine init_msis
           if (geo_lat < -90.0) then
             geo_lat = -180.0 - geo_lat
             geo_lon = mod(geo_lon + 180.0, 360.0)
-          end if
+          endif
           if (geo_lat > 90.0) then
             geo_lat = 180.0 - geo_lat
             geo_lon = mod(geo_lon + 180.0, 360.0)
-          end if
+          endif
 
           geo_alt = Altitude_GB(iLon, iLat, iAlt, iBlock)/1000.0
           geo_lst = mod(utime/3600.0 + geo_lon/15.0, 24.0)
@@ -266,7 +266,7 @@ subroutine init_msis
             MeanMajorMass(iLon, iLat, iAlt) = MeanMajorMass(iLon, iLat, iAlt) + &
                                               Mass(iSpecies)*NDensityS(iLon, iLat, iAlt, iSpecies, iBlock)/ &
                                               sum(NDensityS(iLon, iLat, iAlt, 1:nSpecies, iBlock))
-          end do
+          enddo
 
           TempUnit(iLon, iLat, iAlt) = &
             MeanMajorMass(iLon, iLat, iAlt)/Boltzmanns_Constant
@@ -335,11 +335,11 @@ subroutine init_msis
             Velocity(iLon, iLat, iAlt, iEast_, iBlock) = 0.0
             Velocity(iLon, iLat, iAlt, iNorth_, iBlock) = 0.0
 
-          end if
+          endif
 
-        end do
-      end do
-    end do
+        enddo
+      enddo
+    enddo
 
     Rho(:, :, :, iBlock) = 0.0
     NDensity(:, :, :, iBlock) = 0.0
@@ -352,11 +352,11 @@ subroutine init_msis
       Rho(:, :, :, iBlock) = Rho(:, :, :, iBlock) + &
                              Mass(iSpecies)*NDensityS(:, :, :, iSpecies, iBlock)
 
-    end do
+    enddo
 
     call calc_co2(iBlock)
 
-  end do
+  enddo
 
 end subroutine init_msis
 
@@ -399,11 +399,11 @@ subroutine msis_bcs(iJulianDay, UTime, Alt, LatIn, LonIn, Lst, &
   if (lat > 90) then
     lat = 180 - lat
     lon = mod(lon + 180.0, 360.0)
-  end if
+  endif
   if (lat < -90) then
     lat = -180 - lat
     lon = mod(lon + 180.0, 360.0)
-  end if
+  endif
 
   !----------------------------------------------------------------------------
   AP_I = AP
@@ -424,7 +424,7 @@ subroutine msis_bcs(iJulianDay, UTime, Alt, LatIn, LonIn, Lst, &
     ffactor = 6.36*log(f107) - 13.8
     no = (ffactor*1.0e13 + 8.0e13)
     LogNS(min(nSpecies, iNO_)) = alog(no)
-  end if
+  endif
 
   Temp = msis_temp(2)
   LogRho = alog(msis_dens(6))
@@ -452,7 +452,7 @@ subroutine msis_bcs(iJulianDay, UTime, Alt, LatIn, LonIn, Lst, &
   else
     V(1) = 0.0
     V(2) = 0.0
-  end if
+  endif
 
   ! Do some O experimentation:
 
@@ -489,7 +489,7 @@ subroutine msis_bcs(iJulianDay, UTime, Alt, LatIn, LonIn, Lst, &
 
     LogNS(iO_3P_) = alog(max(oMSIS - oCurrentSeason + oOffsetSeason, 1.0))
 
-  end if
+  endif
 
 end subroutine msis_bcs
 
@@ -536,7 +536,7 @@ subroutine calc_co2(iBlock)
   do iAlt = -1, 0
     NDensityS(:, :, iAlt, iCO2_, iBlock) = &
       CO2ppm*1e-6/(1.0 - CO2ppm*1e-6)*NDensity(:, :, iAlt, iBlock)
-  end do
+  enddo
 
   ! Then do hydrostatic to the top using the inferred scale height.
 
@@ -545,6 +545,6 @@ subroutine calc_co2(iBlock)
       NDensityS(:, :, iAlt - 1, iCO2_, iBlock)* &
       Temperature(:, :, iAlt - 1, iBlock)/Temperature(:, :, iAlt, iBlock)* &
       exp(-dAlt_GB(:, :, iAlt, iBlock)/Hco2(:, :, iAlt))
-  end do
+  enddo
 
 end subroutine calc_co2

@@ -281,7 +281,7 @@ contains
           MagAxisThetaGeo*cRadToDeg, MagAxisPhiGeo*cRadToDeg
         write(*, *) 'DipoleStrengthDefault, DipoleStrengthGeopack=', &
           DipoleStrengthPlanet_I(Earth_), DipoleStrength
-      end if
+      endif
     elseif (.not. UseSetRotAxis) then
       if (UseRealRotAxis .or. UseRealMagAxis) then
         RotAxisTheta = TiltRotation
@@ -292,7 +292,7 @@ contains
           ! This assumes circular orbit that is a crude approximation
           RotAxisPhi = modulo( &
                        cHalfPi - OmegaOrbit*(tStart - TimeEquinox%Time), cTwoPi8)
-        end if
+        endif
         if (DoTestMe) write(*, *) NameSub, &
           ': UseRealRotAxis, UseRealMagAxis, TiltRotation, OmegaOrbit, tStart, tEquinox=', &
           UseRealRotAxis, UseRealMagAxis, TiltRotation*cRadToDeg, OmegaOrbit, tStart, &
@@ -308,15 +308,15 @@ contains
           call CON_stop(NameSub// &
                         ' SWMF_ERROR both rotation and magnetic axes'// &
                         ' are aligned with the other one?!')
-        end if
-      end if
-    end if
+        endif
+      endif
+    endif
 
     if (DoTestMe) then
       write(*, *) 'tStart,TimeEquinox=', tStart, TimeEquinox
       write(*, *) 'RotAxisTheta,RotAxisPhi=', &
         RotAxisTheta*cRadToDeg, RotAxisPhi*cRadToDeg
-    end if
+    endif
 
     ! Using the RotAxisTheta and RotAxisPhi
     ! set the GseGei matrix to convert between GSE and  GEI systems
@@ -331,7 +331,7 @@ contains
         write(*, *) 'MagAxisThetaGeo,MagAxisPhiGeo=', &
           MagAxisThetaGeo*cRadToDeg, MagAxisPhiGeo*cRadToDeg
         write(*, *) 'MagAxisGeo_D=', MagAxis_D
-      end if
+      endif
 
       ! GEO --> GEI
       call set_gei_geo_matrix(0.0)
@@ -351,14 +351,14 @@ contains
         write(*, *) 'MagAxisGse_D=', MagAxis_D
         write(*, *) 'MagAxisTheta,MagAxisPhi=', &
           MagAxisTheta*cRadToDeg, MagAxisPhi*cRadToDeg
-      end if
+      endif
 
     else
       if (.not. UseSetMagAxis) then
         ! Must be aligned with rotational axis
         MagAxisTheta = RotAxisTheta
         MagAxisPhi = RotAxisPhi
-      end if
+      endif
       ! Convert direction to Cartesian coordinates in GSE
       call dir_to_xyz(MagAxisTheta, MagAxisPhi, MagAxis_D)
 
@@ -373,9 +373,9 @@ contains
         write(*, *) 'MagAxisGse_D=', MagAxis_D
         write(*, *) 'MagAxisTheta,MagAxisPhi=', &
           MagAxisTheta*cRadToDeg, MagAxisPhi*cRadToDeg
-      end if
+      endif
 
-    end if
+    endif
 
     if (.not. (UseRealRotAxis .or. UseSetRotAxis) .and. UseRealMagAxis) then
       ! Rotation axis is aligned.
@@ -386,7 +386,7 @@ contains
       ! The "permanent" matrices are also recalculated
       call set_gse_gei_matrix
       call set_gei_geo_matrix(0.0)
-    end if
+    endif
 
     ! Obtain the cartesian components of the rotational axis (in GSE)
     call dir_to_xyz(RotAxisTheta, RotAxisPhi, RotAxis_D)
@@ -403,7 +403,7 @@ contains
     else
       ! Set the magnetic direction in Cartesian GEO coordinates
       call dir_to_xyz(MagAxisThetaGeo, MagAxisPhiGeo, MagAxisGeo_D)
-    end if
+    endif
 
     ! From MagAxisThetaGeo and MagAxisPhiGeo obtain the MAG-GEO matrix
     ! This matrix does not change with simulation time.
@@ -442,7 +442,7 @@ contains
       write(*, *) 'XyzPlanetHgi_D/rSun = ', XyzPlanetHgi_D/rSun
       write(*, *) 'XyzPlanetHgr_D/rSun = ', XyzPlanetHgr_D/rSun
       write(*, *) 'vPlanetHgi_D/(km/s) = ', vPlanetHgi_D/1000.0
-    end if
+    endif
 
     DoInitializeAxes = .false.
 
@@ -518,7 +518,7 @@ contains
         ! Reset dLongitudeHgiDeg to be a valid but negative value
         dLongitudeHgiDeg = dLongitudeHgi*cRadToDeg - 360.0
 
-      end if
+      endif
 
       ! A negative dLongitudeHgr means that the planet should be in
       ! in the -X,Z plane of the rotated HGR system.
@@ -534,7 +534,7 @@ contains
         ! Reset dLongitudeHgrDeg to be a valid but negative value
         dLongitudeHgrDeg = dLongitudeHgr*cRadToDeg - 360.0
 
-      end if
+      endif
 
     end subroutine set_hgi_gse_d_planet
 
@@ -582,7 +582,7 @@ contains
       ! If the planet does not rotate we may take GEI=GEO
       GeiGeo_DD = cUnit_DD
       RETURN
-    end if
+    endif
 
     AlphaEquinox = (TimeSim + tStart - TimeEquinox%Time) &
                    *OmegaPlanet + AngleEquinox
@@ -662,7 +662,7 @@ contains
 
       ! Remember the time
       TimeSimHgr = TimeSim
-    end if
+    endif
 
     ! Check if there is a need to update the magnetic axis
     ! and related transformations
@@ -673,12 +673,12 @@ contains
       ! If DtUpdateB0 is more than 0.001 update if int(time/DtUpdateB0) differ
       if (DtUpdateB0 > 0.001) then
         if (int(TimeSim/DtUpdateB0) == int(TimeSimLast/DtUpdateB0)) RETURN
-      end if
+      endif
 
       ! If DtUpdateB0 is less than 1 msec update unless time is the same
       if (abs(TimeSim - TimeSimLast) < cTiny) RETURN
 
-    end if
+    endif
 
     call CON_set_do_test(NameSub, DoTest, DoTestMe)
 
@@ -687,7 +687,7 @@ contains
         UseAlignedAxes, UseRotation, DoUpdateB0
       write(*, *) NameSub, 'DtUpdateB0,TimeSim,TimeSimLast=', &
         DtUpdateB0, TimeSim, TimeSimLast
-    end if
+    endif
 
     ! Remember the simulation time
     TimeSimLast = TimeSim
@@ -743,7 +743,7 @@ contains
       write(*, *) NameSub, ' new MagAxis_D     =', MagAxis_D
       write(*, *) NameSub, ' new MagAxisTiltGsm=', MagAxisTiltGsm*cRadToDeg
       write(*, *) NameSub, ' new RotAxisGsm_D  =', RotAxisGsm_D
-    end if
+    endif
 
   end subroutine set_axes
 
@@ -811,7 +811,7 @@ contains
     if (TypeCoordIn == TypeCoordOut) then
       Rot_DD = cUnit_DD
       RETURN
-    end if
+    endif
 
     ! Set time dependent information
     call set_axes(TimeSim)
@@ -915,12 +915,12 @@ contains
         if (iFrame /= 1 .and. iFrame /= 2) then
           write(*, *) NameSub, ' ERROR iFrame = ', iFrame
           call CON_stop(NameSub//': invalid value for iFrame = 1 or 2')
-        end if
+        endif
         iFrameOut = iFrame
       else
         ! Default is to provide Omega_D in the output coord. system
         iFrameOut = 1
-      end if
+      endif
     else
       if (NameCoord1(1:1) == 'H') then
         ! For heliocentric coordinate systems set the inertial frame to HGI
@@ -929,22 +929,22 @@ contains
         ! For geocentric systems GSE is assumed to be inertial
         ! Otherwise better use GEI !!!
         NameCoord2 = 'GSE'
-      end if
+      endif
       iFrameOut = 1
-    end if
+    endif
 
     ! Determine the perturbation of time
     if (precision(TimeSim) >= 12) then
       dTimeSim = max(1.0, 1e-10*TimeSim)
     else
       dTimeSim = max(1000.0, 1e-4*TimeSim)
-    end if
+    endif
 
     if (NameCoord1 == NameCoord2) then
       ! Nothing to do
       Omega_D = 0.0
       RETURN
-    end if
+    endif
 
     RotMinus_DD = transform_matrix(TimeSim - dTimeSim, NameCoord1, NameCoord2)
     RotPlus_DD = transform_matrix(TimeSim + dTimeSim, NameCoord1, NameCoord2)
@@ -1014,7 +1014,7 @@ contains
     if (NameCoord1 == NameCoord2) then
       v2_D = v1_D
       RETURN
-    end if
+    endif
 
     if (.not. (TimeSim == TimeSimLast .and. NameCoord1 == NameCoord1Last &
                .and. NameCoord1 == NameCoord2Last)) then
@@ -1050,10 +1050,10 @@ contains
           ! subtract planet speed and flip planet position
           XyzPlanet1_D = -XyzPlanet1_D
           vPlanet1_D = -vPlanet1_D
-        end if
+        endif
 
-      end if
-    end if
+      endif
+    endif
 
     if (IsHelioGeo) then
       ! Velocity with respect to the inertial frame comoving with Frame 1
@@ -1080,7 +1080,7 @@ contains
       ! Transform total velocity to Frame2
       v2_D = matmul(Transform21_DD, v1Total_D)
 
-    end if
+    endif
 
   end function transform_velocity
 
@@ -1107,7 +1107,7 @@ contains
       Epsilon1 = 1e-5
       Epsilon2 = 1e+2
       Epsilon3 = 1e+0
-    end if
+    endif
 
     if (.not. DoInitializeAxes) write(*, *) 'test failed: DoInitializeAxes=', &
       DoInitializeAxes, ' should be true'
@@ -1161,7 +1161,7 @@ contains
       call show_rot_matrix(Rot_DD)
       write(*, *) 'instead of'
       call show_rot_matrix(Result_DD)
-    end if
+    endif
 
     write(*, '(a)') 'Testing show_rot_matrix'
     write(*, '(a)') 'HgiGse_DD(0)='; call show_rot_matrix(HgiGse_DD)

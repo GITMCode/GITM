@@ -133,7 +133,7 @@ contains
               6.242e11/1000.0 ! ergs -> keV
             if (ElectronAverageEnergy(iLon, iLat) > 100.0) &
               ElectronAverageEnergy(iLon, iLat) = 100.0
-          end if
+          endif
 
           ElectronEnergyFluxMono(iLon, iLat) = EnergyFluxMono(iMlt, iMlat)
           ElectronNumberFluxMono(iLon, iLat) = NumberFluxMono(iMlt, iMlat)
@@ -141,11 +141,11 @@ contains
           ElectronEnergyFluxWave(iLon, iLat) = EnergyFluxWave(iMlt, iMlat)
           ElectronNumberFluxWave(iLon, iLat) = NumberFluxWave(iMlt, iMlat)
 
-        end if
+        endif
 
-      end do
+      enddo
 
-    end do
+    enddo
 
     call end_timing("run_ovationsme")
 
@@ -220,9 +220,8 @@ contains
 
     inquire(file=cFile, EXIST=IsThere)
     if (.not. IsThere) then
-      write(*, *) cFile//" cannot be found by read_ovationsm_files"
-!         call stop_gitm(cFile//" cannot be found by read_ovationsm_files")
-    end if
+      write(*, *) trim(cFile)//" cannot be found by read_ovationsm_files"
+    endif
 
     iError = 0
 
@@ -240,7 +239,7 @@ contains
           Bsme = 0.0
           Bt1 = 0.0
           Bt2 = 0.0
-        end if
+        endif
 
         VarToRead(1, i + 1, j + 1) = B0
         VarToRead(2, i + 1, j + 1) = Bsme
@@ -248,9 +247,9 @@ contains
         VarToRead(4, i + 1, j + 1) = Bt2
         VarToRead(5, i + 1, j + 1) = npnts
 
-      end if
+      endif
 
-    end do
+    enddo
 
     close(iInputUnit_)
 

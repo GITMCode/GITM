@@ -567,12 +567,11 @@ def plot_model_results():
     # Get the input arguments
     args = get_args()
 
+    header = get_file_info(args)
     if (args.list):
         list_vars(header)
         exit()
 
-    header = get_file_info(args)
-        
     if (args.var >= len(header["vars"])):
         raise ValueError("requested variable doesn't exist: {:d}>{:d}". \
                          format(args.var, len(header["vars"])))

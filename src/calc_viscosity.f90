@@ -115,7 +115,7 @@ subroutine calc_viscosity(iBlock)
        VelocityF(1:nLons, 1:nLats, 0:nAlts + 1, iDir)) - &
       Velocity(1:nLons, 1:nLats, 0:nAlts + 1, iDir, iBlock)
 
-  end do !iDir = iEast_, iNorth_
+  enddo !iDir = iEast_, iNorth_
 
   if (iDebugLevel > 4) write(*, *) "=====> Vertical Viscosity", iproc
   if (UseBarriers) call MPI_BARRIER(iCommGITM, iErr)
@@ -184,6 +184,6 @@ subroutine calc_viscosity(iBlock)
        VerticalVelocityF(1:nLons, 1:nLats, 0:nAlts + 1, iSpecies)) - &
       VerticalVelocity(1:nLons, 1:nLats, 0:nAlts + 1, iSpecies, iBlock)
 
-  end do ! iSpecies
+  enddo ! iSpecies
 
 end subroutine calc_viscosity

@@ -104,7 +104,7 @@ subroutine output_header_user(cType, iOutputUnit_)
     write(iOutputUnit_, "(I7,A1,a)") 3, " ", "Altitude"
     write(iOutputUnit_, "(I7,A1,a)") 4, " ", "Joule Heating"
 
-  end if
+  endif
 
   ! ------------------------------------------
   ! 1D Output Header
@@ -133,7 +133,7 @@ subroutine output_header_user(cType, iOutputUnit_)
     write(iOutputUnit_, "(I7,A1,a)") 11, " ", "RadCooling"
     write(iOutputUnit_, "(I7,A1,a)") 12, " ", "Conduction"
 
-  end if
+  endif
 
   ! ------------------------------------------
   ! 2D Output Header
@@ -159,7 +159,7 @@ subroutine output_header_user(cType, iOutputUnit_)
     write(iOutputUnit_, "(I7,A1,a)") 5, " ", "Average Energy (keV)"
     write(iOutputUnit_, "(I7,A1,a)") 6, " ", "Total Energy (ergs)"
 
-  end if
+  endif
 
   write(iOutputUnit_, *) ""
 
@@ -187,9 +187,9 @@ subroutine output_3dUser(iBlock, iOutputUnit_)
           Latitude(iLat, iBlock), &
           Altitude_GB(iLon, iLat, iAlt, iBlock), &
           UserData3D(iLon, iLat, iAlt, 1:nVarsUser3d - 3, iBlock)
-      end do
-    end do
-  end do
+      enddo
+    enddo
+  enddo
 
 end subroutine output_3dUser
 
@@ -216,7 +216,7 @@ subroutine output_1dUser(iBlock, iOutputUnit_)
       Latitude(1, iBlock), &
       Altitude_GB(1, 1, iAlt, iBlock), &
       UserData1D(1, 1, iiAlt, 1:nVarsUSer1d - 3)
-  end do
+  enddo
 
 end subroutine output_1dUser
 !----------------------------------------------------------------
@@ -241,8 +241,8 @@ subroutine output_2dUser(iBlock, iOutputUnit_)
         Latitude(iLat, iBlock), &
         Altitude_GB(iLon, iLat, iAlt, iBlock), &
         UserData2D(iLon, iLat, iAlt, 1:nVarsUser2d - 3, iBlock)
-    end do
-  end do
+    enddo
+  enddo
 
 end subroutine output_2dUser
 

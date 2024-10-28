@@ -32,7 +32,7 @@ subroutine get_msis_temperature(lon, lat, alt, t, h)
 ! do while (alt >= newalt(i))
   do while ((alt >= newalt(i)) .and. (i <= nAlts + 2))
     i = i + 1
-  end do
+  enddo
   i = i - 1
 
   t = InTemp(i)
@@ -94,9 +94,9 @@ subroutine init_msis
         klon = nint((longitude(ilon, iblock)*180.0/pi + 5.0)/10.0)
         SurfaceAlbedo(ilon, ilat, iblock) = dummyalbedo(jlat, klon)
         tinertia(ilon, ilat, iblock) = dummyti(jlat, klon)
-      end do
-    end do
-  end do
+      enddo
+    enddo
+  enddo
 
   if (useDustDistribution) call read_dust
 
@@ -121,7 +121,7 @@ subroutine init_msis
     do while (.not. Done)
       read(iInputUnit_, *) cLine
       if (cline .eq. '#START') Done = .True.
-    end do
+    enddo
 
     Done = .False.
     ialt = 1
@@ -134,11 +134,11 @@ subroutine init_msis
         initialAlt(ialt) = inDensities(1)
         !Convert to m^-3
         initialEDensity(ialt) = inDensities(9)*1.0e6
-      end if
+      endif
 
       iAlt = iAlt + 1
 
-    end do
+    enddo
     close(iInputUnit_)
 
     LogInitialDensity = log10(InitialEDensity)
@@ -185,11 +185,11 @@ subroutine init_msis
                                           LogInitialDensity(ialtlow(1)))*invAltDiff
               LogElectronDensity = LogInitialDensity(ialtlow(1) + 1) - ralt
 
-            end if
-          end if
+            endif
+          endif
           IDensityS(iLon, iLat, iialt, iE_, iBlock) = 10**LogElectronDensity
 
-        end do
+        enddo
 
         where (IDensityS(iLon, iLat, :, iE_, iBlock) .lt. 1.0) IDensityS(iLon, iLat, :, iE_, iBlock) = 1.0
 
@@ -234,10 +234,10 @@ subroutine init_msis
               ralt = (althigh - altFind)*(InTemp(ialtlow(1) + 1) - inTemp(ialtlow(1)))* &
                      invAltDiff
               Temperature(iLon, iLat, iAlt, iBlock) = InTemp(ialtlow(1)) - ralt
-            end if
-          end if
+            endif
+          endif
 
-        end do
+        enddo
 
         !           NDensityS(iLon,iLat,-1:nAlts + 2,1:nSpeciesTotal,iBlock) =  1.0
 
@@ -287,8 +287,8 @@ subroutine init_msis
         ! End ion loop
         !/
 
-      end do! end iLon loop
-    end do ! end iLat loop
+      enddo! end iLon loop
+    enddo ! end iLat loop
 
 !  Initialization of Major Ions for Ion Calculation
     IDensityS(:, :, :, iO2P_, iBlock) = 0.9*IDensityS(:, :, :, iE_, iBlock)
@@ -356,25 +356,25 @@ subroutine init_msis
             NDensity(iLon, iLat, iAlt, iBlock) = &
               NDensity(iLon, iLat, iAlt, iBlock) + &
               NDensityS(iLon, iLat, iAlt, iSpecies, iBlock)
-          end do
+          enddo
 
           do iSpecies = 1, nSpeciesTotal
             MeanMajorMass(iLon, iLat, iAlt) = &
               MeanMajorMass(iLon, iLat, iAlt) + &
               Mass(iSpecies)*NDensityS(iLon, iLat, iAlt, iSpecies, iBlock)/ &
               NDensity(iLon, iLat, iAlt, iBlock)
-          end do
+          enddo
 
           do iIon = 1, nIons - 1
             MeanIonMass(iLon, iLat, iAlt) = &
               MeanIonMass(iLon, iLat, iAlt) + &
               MassI(iIon)*IDensityS(iLon, iLat, iAlt, iIon, iBlock)/ &
               IDensityS(iLon, iLat, iAlt, ie_, iBlock)
-          end do
+          enddo
 
-        end do
-      end do
-    end do
+        enddo
+      enddo
+    enddo
 
     TempUnit(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2) = &
       MeanMajorMass(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2)/ &
@@ -410,7 +410,7 @@ subroutine init_msis
     !  write(*,*) IDensityS(:,:,:,ie_,iBlock)
     !endif
 
-  end do
+  enddo
 
 end subroutine init_msis
 
@@ -443,7 +443,7 @@ subroutine read_dust
   call readDustHeader
   do iBlock = 1, nBlocks
     call setTau(iBlock)
-  end do
+  enddo
 
   call cleanDust
 
@@ -465,10 +465,10 @@ subroutine readDustHeader
       write(*, *) "Error reading Dust file"
       write(*, *) "Is the header missing?"
       call stop_GITM("In init_msis_Mars")
-    end if
+    endif
     if (cline(1:7) .eq. '#HEADER') notstarted = .False.
 
-  end do
+  enddo
 
   if (DustFileType .eq. "FullHorizontal") then
     read(iInputUnit_, *, iostat=iError) nDustLats
@@ -488,7 +488,7 @@ subroutine readDustHeader
     nDustLons = 1
 
     allocate(DustLatitude(nDustLats))
-  end if
+  endif
 
   close(iInputUnit_)
 
@@ -520,7 +520,7 @@ subroutine setTau(iBlock)
   do while (notstarted)
     read(iInputUnit_, *, iostat=iError) cLine
     if (cline(1:6) .eq. '#START') notstarted = .False.
-  end do
+  enddo
 
   if (DustFileType .eq. "FullHorizontal") then
 
@@ -529,14 +529,14 @@ subroutine setTau(iBlock)
       read(iInputUnit_, *, iostat=iError) TimeArray(1:6), Temp
       if (iproc .eq. 0) then
         write(*, *) TimeArray(1:6)
-      end if
+      endif
       i = 1
       do iLat = 1, ndustlats
         do iLon = 1, ndustlons
           TempDust(iLat, iLon) = Temp(i)
           i = i + 1
-        end do
-      end do
+        enddo
+      enddo
       TimeArray(7) = 0
       call time_int_to_real(TimeArray, TimeDust(iLine))
 
@@ -571,7 +571,7 @@ subroutine setTau(iBlock)
             write(*, *) 'Dust grid does not cover GITM grid'
             write(*, *) 'Stopping...'
             call stop_gitm('Stopping in init_msis.Mars')
-          end if
+          endif
 
           V11 = TempDust(ilatlow(1), ilonlow(1))
           V12 = TempDust(ilatlow(1) + 1, ilonlow(1))
@@ -593,11 +593,11 @@ subroutine setTau(iBlock)
 !           endif
           HorizontalDustProfile(iline, iLat, iLon, iblock) = Dust
 
-        end do
-      end do
+        enddo
+      enddo
       iline = iline + 1
 
-    end do
+    enddo
     nDustTimes = iline - 1
 
     nConrathTimes = nDustTimes
@@ -613,19 +613,19 @@ subroutine setTau(iBlock)
           if (iError .ne. 0) then
             write(*, *) "Error reading dustfile"
             call stop_gitm('Stopping in init_msis.Mars')
-          end if
+          endif
           DustPressureLevel(iAlt) = MCSTemp(3)
           CumulativeTau(iTime, iLat, iAlt) = MCSTemp(4)
           DustMixingRatio(iTime, iLat, iAlt) = MCSTemp(5)
 
-        end do
+        enddo
         DustLatitude(iLat) = MCSTemp(1)
-      end do
+      enddo
 
       TimeArray(7) = 0
       call time_int_to_real(TimeArray, rTime)
       TimeDust(iTime) = rtime
-    end do
+    enddo
 
     do iLat = 1, nLats
       latFind = Latitude(ilat, iBlock)*180/pi
@@ -670,10 +670,10 @@ subroutine setTau(iBlock)
           (Lathigh - LatFind)*0.999*invLatDiff* &
           (DustMixingRatio(1:nDustTimes, ilatlow(1) + 1, 1:nDustAlts) - &
            DustMixingRatio(1:nDustTimes, ilatlow(1), 1:nDustAlts))
-      end if
+      endif
 
-    end do
-  end if
+    enddo
+  endif
 
   close(iInputUnit_)
 
@@ -733,9 +733,9 @@ subroutine cleanDust
 
   if (allocated(DustLatitude)) then
     deallocate(DustLatitude)
-  end if
+  endif
   if (allocated(DustLongitude)) then
     deallocate(DustLongitude)
-  end if
+  endif
 
 end subroutine cleanDust

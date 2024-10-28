@@ -50,7 +50,7 @@ subroutine calc_ion_v(iBlock)
   if (Is1D) then
     LocalPressureGradient(:, :, :, iEast_) = 0.0
     LocalPressureGradient(:, :, :, iNorth_) = 0.0
-  end if
+  endif
 
   ! If the user doesn't want to use the pressure gradient, set it to zero:
   if (.not. useIonPressureGradient) LocalPressureGradient = 0.0
@@ -60,14 +60,14 @@ subroutine calc_ion_v(iBlock)
     LocalGravity = Gravity_GB(:, :, :, iBlock)
   else
     LocalGravity = 0.0
-  end if
+  endif
 
   ! Store the neutral winds, if we don't use, set to zero:
   if (UseNeutralDrag) then
     LocalNeutralWinds = Velocity(:, :, :, :, iBlock)
   else
     LocalNeutralWinds = 0.0
-  end if
+  endif
 
   Force = 0.0
 
@@ -78,7 +78,7 @@ subroutine calc_ion_v(iBlock)
   do iAlt = -1, nAlts + 2
     Force(:, :, iAlt, iUp_) = Force(:, :, iAlt, iUp_) + &
                               IRho(:, :, iAlt)*LocalGravity(:, :, iAlt)
-  end do
+  enddo
 
   ! calculate charge density:
   Nie = IDensityS(:, :, :, ie_, iBlock)*Element_Charge
@@ -91,8 +91,8 @@ subroutine calc_ion_v(iBlock)
     do iDir = 1, 3
       Force(:, :, :, iDir) = Force(:, :, :, iDir) + &
                              Nie*EField(:, :, :, iDir)
-    end do
-  end if
+    enddo
+  endif
 
   ! Calculate the mass density weighted collision
   ! between ions and neutrals (nu_in):
@@ -102,8 +102,8 @@ subroutine calc_ion_v(iBlock)
       RhoNu = RhoNu + &
               IDensityS(:, :, :, iIon, iBlock)*MassI(iIon)* &
               IonCollisions(:, :, :, iIon, iSpecies)
-    end do
-  end do
+    enddo
+  enddo
   nu_in = RhoNu/iRho
 
   ! Add neutral wind force:
@@ -111,8 +111,8 @@ subroutine calc_ion_v(iBlock)
     do iDir = 1, 3
       Force(:, :, :, iDir) = Force(:, :, :, iDir) + &
                              RhoNu*LocalNeutralWinds(:, :, :, iDir)
-    end do
-  end if
+    enddo
+  endif
 
   ! Break neutral wind force into parallel and
   ! perpendicular components:
@@ -121,7 +121,7 @@ subroutine calc_ion_v(iBlock)
     ForcePerp(:, :, :, iDir) = Force(:, :, :, iDir) - &
                                ForceDotB(:, :, :)*B0(:, :, :, iDir, iBlock)/ &
                                B0(:, :, :, iMag_, iBlock)**2
-  end do
+  enddo
 
   ! The implicit scheme needs to know about the old, ion velocity
   ! along the magnetic field line, so put the (stored) parallel ion
@@ -131,7 +131,7 @@ subroutine calc_ion_v(iBlock)
     VIParallel = VIParallel + &
                  IVelocityPar(:, :, :, iDir, iBlock)*B0(:, :, :, iDir, iBlock)/ &
                  B0(:, :, :, iMag_, iBlock)
-  end do
+  enddo
 
   ! If there is no magnetic field, then solve for the ion
   ! velocity in one way:
@@ -167,8 +167,8 @@ subroutine calc_ion_v(iBlock)
         gDotB(iLon, iLat, :) = LocalGravity(iLon, iLat, :) &
                                *BLocal(iLon, iLat, :, iUp_) &
                                /B0(iLon, iLat, :, iMag_, iBlock)
-      end do
-    end do
+      enddo
+    enddo
 
     ! Update parallel ion velocity, with either implicit
     ! or steady-state equations:
@@ -180,7 +180,7 @@ subroutine calc_ion_v(iBlock)
                    + VIParallel/dt)
     else
       VIParallel = UDotB + (gDotB*iRho - gpDotB)/RhoNu
-    end if
+    endif
 
     ! Limit the Parallel Flow to something reasonable...
     VIParallel = min(UDotB + MaxVParallel, VIParallel)
@@ -225,9 +225,9 @@ subroutine calc_ion_v(iBlock)
         IVelocityPar(:, :, :, iDir, iBlock) + &
         IVelocityPerp(:, :, :, iDir, iBlock)
 
-    end do
+    enddo
 
-  end if
+  endif
 
   ! Limit the ion velocity to something "reasonable":
   IVelocity(:, :, :, :, iBlock) = min(3000.0, IVelocity(:, :, :, :, iBlock))
