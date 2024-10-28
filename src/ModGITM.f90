@@ -250,6 +250,7 @@ contains
     allocate(IonPressureGradient(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, 3, nBlocks))
     allocate(Potential(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, nBlocks))
     allocate(PotentialY(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, nBlocks))
+    PotentialY = 0.0
     allocate(Velocity(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, 3, nBlocks))
     allocate(IVelocity(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, 3, nBlocks))
     allocate(DivIVelocity(1:nLons, 1:nLats, 1:nAlts, nBlocks))
