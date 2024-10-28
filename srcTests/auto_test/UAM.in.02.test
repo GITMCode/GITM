@@ -98,7 +98,7 @@ none              onset time delay file
 
 This is for OVATION-PRIME:
 --#NEWELLAURORA
-T                 Use Newell Ovation model of the aurora
+F                 Use Newell Ovation model of the aurora
 T                 UseNewellAveraged (logical)
 T                 UseNewellMono (logical)
 T                 UseNewellWave (logical)
