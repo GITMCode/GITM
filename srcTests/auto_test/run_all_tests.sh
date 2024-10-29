@@ -50,20 +50,20 @@ Arguments:
         -d, --debug               Configure & compile GITM in -debug
         -c, --clean               run a 'make clean' before make-ing?
         --skip_config             skip running Config.pl?
-        --compare_with [path]     Path to the run directory which has outputs
-                                    from all tests (not implemented yet)
-        --save_to [path]          Save outputs? Useful to compare when making
-                                    changes that could affect outputs. (not implemented yet)
+        --check_outputs           Check against reference solutions?
+        --save_outputs            Save outputs? Useful to run BEFORE making
+                                    changes that could affect outputs.
+        --only_test [file]        To only run a single test, specify its path here.
+                                    Does not support multiple test files.
 
 "
-  exit 1
-
+  return
 }
 
 
 do_tests(){
-    # setup run directory
-    
+
+    # go back to root of repo
     cd ../../ 
     
     if [ $config = true ]; then
@@ -74,17 +74,26 @@ do_tests(){
       make clean
     fi
 
+    # always compile in case any changes were made.
     make
     
     if [ ! -f run/GITM.exe ]; then
-        # only make rundir if it does not already exist
-        make rundir
+      # only make rundir if it does not already exist
+      make rundir
+      cp -fr run srcTests/auto_test/
     fi
-    cp -fr run srcTests/auto_test/
 
-    # Copy the test files into run/
+    # move back into folder w this script.
     cd srcTests/auto_test/
-    cp UAM* run/
+
+    # check if we're only running one test
+    if [ ! $only_test_one = false ]; then
+      rm run/UAM.*.test
+      cp $only_test_one run/
+    else
+      # Copy all test files into run/
+      cp UAM* run/
+    fi
 
     # begin running:
     cd run/
@@ -102,6 +111,28 @@ do_tests(){
             printf "\n\n>>> $test_uam   UNSUCCESSFUL! <<< \n\n EXITING\n\n"
             exit 1
         fi
+
+        if [ $do_save = true ]; then
+          cp data/log00000002.dat ../ref_soln_logs/log.$test_uam
+        fi
+
+        if [ $do_compare = true ]; then
+          diff_answer=$(../../../share/Scripts/DiffNum.pl ../ref_soln_logs/log.$test_uam  data/log00000002.dat)
+          if [ $? -eq 0 ]; then
+            printf "\n\n>>> $test_uam diff'ed successfully! <<< \n\n"
+          else
+            echo
+            echo
+            ../../../share/Scripts/DiffNum.pl ../ref_soln_logs/log.$test_uam  data/log00000002.dat
+            echo
+            echo
+            printf "\n\n>>> $test_uam has differences. UNSUCCESSFUL! <<< \n\n EXITING\n\n"
+
+            exit 1
+          fi
+        fi
+
+
     done
     exit 0
 }
@@ -116,50 +147,57 @@ config=true
 
 do_save=false
 do_compare=false
+only_test_one=false
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    -h|--help)
-      get_help
-      exit 1
-      ;;
     -d|--debug)
       echo "Using -debug"
       debug="-debug"
       shift
       ;;
+
     -c|--clean)
       echo "Forcing a 'make clean' before compiling!"
       clean=true
       shift
       ;;
+
     --skip_config)
       echo "skipping config!"
       config=false
       shift
       ;;
-    --compare_with)
-      if [[ -d "$2" ]]; then
-        echo "Comparing with" $2
-        compare_dir=$2
-      else
-        echo "ERROR: --compare_with directory $2 not found!"
-        exit 1
-      fi
+
+    --check_outputs)
+      do_compare=true
+      shift
+      ;;
+
+    --save_outputs)
+      do_save=true
+      shift
+      ;;
+
+    --only_test)
+      echo "Only running test file: " $2
+      only_test_one=$2
       shift 2
       ;;
-    --save_to)
-    if [[ -d "$2" ]]; then
-        echo "--save_to directory $2 already exists! Waiting 5 seconds then overwriting."
-        echo "   cancel with 'Ctrl C'"
-        sleep 5
-        compare_dir=$2
-      else
-        echo "ERROR: --compare_with directory $2 not found!"
-        exit 1
-      fi
-      shift 2
+
+    -h|--help)
+      get_help
+      exit 0
       ;;
+
+    *)
+      get_help
+      echo "------------------------------------------------------------------------------------"
+      echo
+      echo "==> Argument '$1' not recognized."
+      echo "See above for help."
+      exit 1
+
   esac
 
 done
