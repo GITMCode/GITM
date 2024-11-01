@@ -68,7 +68,7 @@ module ModEUV
 
   real, dimension(Num_WaveLengths_High, nSeeLinesMax) :: SeeFlux
   real, dimension(nSeeLinesMax) :: TimeSee
-  real, dimension(nFlaresMax) :: FlareTimes
+  real, dimension(nFlaresMax) :: FlareTimes = 0
   logical :: ReReadEUVFile = .false.
 
   character(len=iCharLen_) :: cRidleyEUVFile = 'UA/DataIn/waves.dat'
