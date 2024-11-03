@@ -45,7 +45,7 @@ my ($nLon, $nLat, $nAlt, $MaxBlock);
 
 # Planet variables
 my $ModPlanet = "ModPlanet.f90";
-my $Planet;
+my $Planet = "Earth"; #set earth to default
 my $PlanetOrig;
 
 my $NoFlush;
