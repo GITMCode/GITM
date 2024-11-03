@@ -5,13 +5,18 @@
 subroutine check_all_indices(TimeIn, iOutputError)
 
   use ModIndices
+  use ModIE
+  
   implicit none
   real(Real8_), intent(in)  :: TimeIn
   integer, intent(out) :: iOutputError
-
+  type(ieModel), pointer :: iemodel_
   integer :: iIndex
 
   iOutputError = 0
+  iemodel_ = ieModel()
+
+  call run_check_indices(iemodel_)
 
   do iIndex = 1, nIndices
     ! If there are 0 times, then no error, since there are no values

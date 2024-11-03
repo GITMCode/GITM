@@ -46,8 +46,6 @@ module ModInputs
   character(len=iCharLen_) :: cAMIEFileSouth = "none"
   character(len=iCharLen_) :: cAMIEFileNorth = "none"
 
-  character(len=iCharLen_) :: cAuroralModel = "FRE"
-
   character(len=iCharLen_) :: PotentialModel
   character(len=iCharLen_) :: AuroralModel
 
@@ -447,9 +445,6 @@ contains
     sInputNeutralChemType = sChemType(cSubCycleChemType_)
     iInputIonChemType = cSubCycleChemType_
     iInputNeutralChemType = cSubCycleChemType_
-
-    PotentialModel = "Weimer05"
-    AuroralModel = "ihp"
 
     dTAurora = 120.0
 

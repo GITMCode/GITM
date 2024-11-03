@@ -25,6 +25,7 @@ subroutine set_inputs
   use ModSatellites
   use ModRCMR
   use ModIE
+  use ModErrors
   use ModIoUnit, only: UnitTmp_
 
   implicit none
@@ -49,13 +50,15 @@ subroutine set_inputs
   real*8 :: DTime
   logical :: HasSetAuroraMods = .false.
 
-  type(iemodel), pointer :: iemodel_opts
+  type(iemodel), pointer :: iemodel_
 
   call report("set_inputs", 1)
 
   iError = 0
   IsDone = .false.
   iLine = 1
+
+  iemodel_ = ieModel()
 
   call IO_set_ap_single(10.0)
 
@@ -684,8 +687,28 @@ subroutine set_inputs
 
         endif
 
-      case ("#AURORAMODEL")
+      case ("#IEMODELS") !would love to call this #ELECTRODYNAMICS, but...
         call read_in_string(AuroralModel, iError)
+        call read_in_string(PotentialModel, iError)
+        
+        if (iError /= 0) then
+          ! Change to new error soon...
+          write(*, *) 'Incorrect format for #IEMODELS !!'
+          write(*, *) ''
+          write(*, *) '#IEMODELS'
+          write(*, *) 'AuroralModel     fta,fre,pem,hpi/ihp,amie'
+          write(*, *) 'PotentialModel   weimer05,hepmay,amie'
+          write(*, *) ''
+        endif
+
+        call iemodel_ % efield_model(PotentialModel)
+        call iemodel_ % aurora_model(AuroralModel)
+
+        if (.not. isOk) then
+          call report_errors
+          call stop_gitm("")
+        endif
+
 
       case ("#AURORAMODS")
         HasSetAuroraMods = .true.
@@ -756,34 +779,6 @@ subroutine set_inputs
             NormalizeAuroraToHP = .false.
         endif
 
-      case ("#AEMODEL")
-        call read_in_logical(UseAeModel, iError)
-        if (iError /= 0) then
-          write(*, *) 'Incorrect format for #AEMODEL'
-          write(*, *) 'This is for using Dongjies aurora.'
-          write(*, *) ''
-          write(*, *) '#AEMODEL'
-          write(*, *) 'UseAeModel        (logical)'
-          IsDone = .true.
-        else
-          if (UseAeModel .and. .not. HasSetAuroraMods) &
-            NormalizeAuroraToHP = .false.
-        endif
-
-      case ("#FTAMODEL")
-        call read_in_logical(UseFtaModel, iError)
-        if (iError /= 0) then
-          write(*, *) 'Incorrect format for #FTAMODEL'
-          write(*, *) 'This is for using the FTA Model of the aurora.'
-          write(*, *) ''
-          write(*, *) '#FTAMODEL'
-          write(*, *) 'UseFtaModel        (logical)'
-          IsDone = .true.
-        else
-          if (UseFtaModel .and. .not. HasSetAuroraMods) &
-            NormalizeAuroraToHP = .false.
-        endif
-
       case ("#FANGENERGY")
         call read_in_logical(UseFangEnergyDeposition, iError)
         if (iError /= 0) then
@@ -820,6 +815,8 @@ subroutine set_inputs
           write(*, *) 'cAMIEFileNorth  (string)'
           write(*, *) 'cAMIEFileSouth  (string)'
           IsDone = .true.
+          call iemodel_ % filename_north(cAMIEFileNorth)
+          call iemodel_ % filename_south(cAMIEFileSouth)
         else
           if (index(cAMIEFileNorth, "none") == 0 .and. &
               .not. HasSetAuroraMods) &
@@ -853,6 +850,20 @@ subroutine set_inputs
           write(*, *) 'AMIELatStart         (real)'
           write(*, *) 'AMIELatEnd           (real)'
           write(*, *) 'AMIEBoundaryWidth    (real)'
+          IsDone = .true.
+        endif
+
+      case ("#ELECTRODYNAMICS")
+        call read_in_real(dTPotential, iError)
+        call read_in_real(dTAurora, iError)
+        if (iError /= 0) then
+          write(*, *) 'Incorrect format for #ELECTRODYNAMICS'
+          write(*, *) 'Sets the time for updating the high-latitude'
+          write(*, *) '(and low-latitude) electrodynamic drivers, such as'
+          write(*, *) 'the potential and the aurora.'
+          write(*, *) '#ELECTRODYNAMICS'
+          write(*, *) 'DtPotential (real, seconds)'
+          write(*, *) 'DtAurora    (real, seconds)'
           IsDone = .true.
         endif
 
@@ -1602,20 +1613,6 @@ subroutine set_inputs
           write(*, *) ''
           write(*, *) '#DART'
           write(*, *) "useDART (integer, {default 0=no}, 1=master ensemble member, 2=slave ens.)"
-        endif
-
-      case ("#ELECTRODYNAMICS")
-        call read_in_real(dTPotential, iError)
-        call read_in_real(dTAurora, iError)
-        if (iError /= 0) then
-          write(*, *) 'Incorrect format for #ELECTRODYNAMICS'
-          write(*, *) 'Sets the time for updating the high-latitude'
-          write(*, *) '(and low-latitude) electrodynamic drivers, such as'
-          write(*, *) 'the potential and the aurora.'
-          write(*, *) '#ELECTRODYNAMICS'
-          write(*, *) 'DtPotential (real, seconds)'
-          write(*, *) 'DtAurora    (real, seconds)'
-          IsDone = .true.
         endif
 
       case ("#INPUTTIMEDELAY")
