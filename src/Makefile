@@ -2,6 +2,7 @@ ABDIR   = ${UADIR}/srcSphereAB
 IODIR   = ${DATAREADINDICESDIR}
 GLDIR   = ${UADIR}/srcGlow
 SAMIDIR = ${UADIR}/srcSAMI
+IEDIR   = ${IEDIR}/src
 
 
 include ../Makefile.conf
@@ -14,7 +15,7 @@ include Makefile.RULES
 SEARCH_EXTRA =  -I${ABDIR} \
 	 	-I${IODIR} \
 		-I${EMPIRICALUADIR} \
-		-I${IEDIR}/src
+		-I${IEDIR}
 
 
 MODULES = \
@@ -173,8 +174,7 @@ ${EXE}:	${OBJECTS_EXE}
 GITM_general:
 	${LINK.f90} -o ${EXE} ${OBJECTS_EXE} \
 		-L${ABDIR} -lSphere \
-		-L${IEDIR}/lib -lIE \
-		-L${LIBDIR} -lEMPIRICALUA -lINDICES -lSHARE \
+		-L${LIBDIR} -lEMPIRICALUA -lINDICES -lSHARE -lIE \
 		-L${GLDIR} -lGLOW ${LBLAS} ${Lflag1}
 
 GITM_for_Darwin:

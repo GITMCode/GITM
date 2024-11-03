@@ -24,6 +24,7 @@ subroutine set_inputs
   use ModPlanet
   use ModSatellites
   use ModRCMR
+  use ModIE
   use ModIoUnit, only: UnitTmp_
 
   implicit none
@@ -47,6 +48,8 @@ subroutine set_inputs
   real :: EDC_est_tmp
   real*8 :: DTime
   logical :: HasSetAuroraMods = .false.
+
+  type(iemodel), pointer :: iemodel_opts
 
   call report("set_inputs", 1)
 
@@ -681,8 +684,8 @@ subroutine set_inputs
 
         endif
 
-      case ("#AURORA")
-        call read_in_string(cAuroralModel, iError)
+      case ("#AURORAMODEL")
+        call read_in_string(AuroralModel, iError)
 
       case ("#AURORAMODS")
         HasSetAuroraMods = .true.
