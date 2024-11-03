@@ -14,7 +14,7 @@ include Makefile.RULES
 SEARCH_EXTRA =  -I${ABDIR} \
 	 	-I${IODIR} \
 		-I${EMPIRICALUADIR} \
-		-I${IEDIR}
+		-I${IEDIR}/src
 
 
 MODULES = \
