@@ -8,11 +8,9 @@ subroutine init_get_potential
   use ModIndicesInterfaces
   use ModInputs
   use ModUserGITM
-  use ModNewell
-  use ModOvationSME
-  use ModAeAuroralModel
-  use ModFtaModel
-  use ModEIE_Interface, only: EIEr3_HaveLats, EIEr3_HaveMLTs
+  use ModIE
+  use ModErrors
+
 
   implicit none
 
@@ -24,33 +22,46 @@ subroutine init_get_potential
   logical :: IsFirstTime = .true.
   integer :: iError
 
+  type(ieModel), pointer :: model
   integer :: nAmieLats, nAmieMlts, nAmieBlocks
 
   iError = 0
 
-  if (.not. IsFirstTime .or. IsFramework) return
+  ! if (.not. IsFirstTime .or. IsFramework) return
   call report("init_get_potential", 2)
 
   IsFirstTime = .false.
 
-  if (UseNewellAurora) then
-    call init_newell
-    UseIMF = .true.
+  allocate(model)
+  model = ieModel()
+
+  call model%verbose(iDebugLevel)
+
+  call model % model_dir("UA/inputs/ext/")
+
+  ! Initialize the IE library after setting it up:
+  call model % init()
+
+  ! Load in indices for the 0th time-step
+  call set_ie_indices(model, CurrentTime)
+
+  ! Check that correct inidices are present:
+  call check_all_indices()
+
+  ! If there were errors initializing, stop here
+  if (.not. isOk) then
+    call set_error("Failed to initialize! Exiting!")
+    call report_errors
+    stop!
   endif
 
-  if (UseOvationSME) then
-    call read_ovationsm_files
-  endif
+  ! Initialize the grid:
+  ! oh wait. I have no clue what im doing here.
 
-  if (UseAeModel) then
-    call read_ae_model_files(iError)
-  endif
 
-  if (UseFtaModel) then
-    call initialize_fta
-  endif
 
-  call report("AMIE vs Weimer", 4)
+
+
 
   !!! Xing Meng Nov 2018 added UseRegionalAMIE to set up a local region
   !!! with the potential from AMIE files and Weimer potential elsewhere
@@ -575,32 +586,9 @@ subroutine get_potential(iBlock)
 
     iAlt = nAlts + 1
 
-    if (UseNewellAurora) then
-      call run_newell(iBlock)
-    elseif (UseOvationSME) then
-      call run_ovationsme(StartTime, CurrentTime, iBlock)
-    elseif (UseAeModel) then
-      call run_ae_model(CurrentTime, iBlock)
-    elseif (UseFtaModel) then
-      call run_fta_model(CurrentTime, iBlock)
-    else
+    call ieModel_ % get_aurora(ElectronEnergyFlux, ElectronAverageEnergy)
 
-      call UA_SetGrid( &
-        MLT(-1:nLons + 2, -1:nLats + 2, iAlt), &
-        MLatitude(-1:nLons + 2, -1:nLats + 2, iAlt, iBlock), iError)
 
-      if (iError /= 0) then
-        write(*, *) "Error in routine get_potential (UA_SetGrid):"
-        write(*, *) iError
-        call stop_gitm("Stopping in get_potential")
-      endif
-
-      call UA_GetAveE(ElectronAverageEnergy, iError)
-      if (iError /= 0) then
-        write(*, *) "Error in get_potential (UA_GetAveE):"
-        write(*, *) iError
-        ElectronAverageEnergy = 1.0
-      endif
 
       ! Sometimes, in AMIE, things get messed up in the
       ! Average energy, so go through and fix some of these.
@@ -705,7 +693,7 @@ subroutine get_potential(iBlock)
 
     IsFirstAurora(iBlock) = .false.
 
-  endif
+  
 
   if (iDebugLevel > 1) &
     write(*, *) "==> Min, Max, CPC Potential : ", &
