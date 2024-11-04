@@ -1166,7 +1166,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
   where (SigmaPLMC < 0.001) SigmaPLMC = 0.001
   where (SigmaLPMC > -0.001) SigmaLPMC = -0.001
 
-!==========
+  !==========
   ! KDlmMC
 
   iOff = 2.0/MagLatRes
@@ -1720,14 +1720,14 @@ contains
     gmlt = maxval(magloctime_local)
     gmlt2 = minval(magloctime_local)
 
-  !    if (gmlt2 < gmlt .and. mltMC < gmlt2) then
-  !       gmlt  = gmlt - 24.0
-  !    else
-  !       if (gmlt2 < gmlt .and. mltMC > gmlt)  gmlt2 = gmlt2 + 24.0
-  !    endif
-  !
-  !    if (mltMC > gmlt) return
-  !    if (mltMC < gmlt2) return
+    !    if (gmlt2 < gmlt .and. mltMC < gmlt2) then
+    !       gmlt  = gmlt - 24.0
+    !    else
+    !       if (gmlt2 < gmlt .and. mltMC > gmlt)  gmlt2 = gmlt2 + 24.0
+    !    endif
+    !
+    !    if (mltMC > gmlt) return
+    !    if (mltMC < gmlt2) return
 
     if (mlatMC > maxval(MLatitude(0:nLons + 1, 0:nLats + 1, k, iBlock))) return
     if (mlatMC < minval(MLatitude(0:nLons + 1, 0:nLats + 1, k, iBlock))) return
@@ -1777,7 +1777,7 @@ contains
           endif
         endif
 
-  !          if (ii == 0 .or. jj == 0) IsFound = .false.
+    !          if (ii == 0 .or. jj == 0) IsFound = .false.
 
         if (IsFound) then
 
@@ -1865,7 +1865,7 @@ subroutine matvec_gitm(x_I, y_I, n)
   x_G(nMagLons + 1, :) = x_G(1, :)
 
   i = 0; 
-!  write(*,*)'X_G dim:',nMagLons+1, nMagLats
+  !  write(*,*)'X_G dim:',nMagLons+1, nMagLats
 
   do iLat = 2, nMagLats - 1
     do iLon = 1, nMagLons
