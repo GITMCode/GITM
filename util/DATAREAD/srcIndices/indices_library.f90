@@ -1354,3 +1354,70 @@ subroutine get_jh_calc_wotime(value, iOutputError)
 
 end subroutine get_jh_calc_wotime
 
+
+subroutine set_ie_indices(this, TimeIn)
+  use ModKind
+  use ModIndicesInterfaces
+  use ModIE
+  use ModErrors
+  use ModTimeAmie
+
+  implicit none
+
+  class(ieModel), intent(inout) :: this
+  real, intent(in) :: TimeIn
+
+
+  integer :: ierr
+  real    :: val
+  integer :: iTime_I(7)
+
+
+  call time_real_to_int(TimeIn, iTime_I)
+
+  ! Set the time in the IE library:
+  call this % time_ymdhms( &
+       iTime_I(1), iTime_I(2), iTime_I(3), &
+       iTime_I(4), iTime_I(5), iTime_I(6))
+
+
+  if (this % doReadMHD) then
+     call get_IMF_Bz(TimeIn, val, ierr)
+     call this % imfBz(val)
+     call get_IMF_By(TimeIn, val, ierr)
+     call this % imfBy(val)
+     call get_SW_V(TimeIn, val, ierr)
+     call this % swv(val)
+     call get_SW_N(TimeIn, val, ierr)
+     call this % swN(val)
+
+     if (ierr /= 0)  call set_error("IMF values could not be set!")
+
+  endif
+
+  if (this % doReadSME) then
+    call get_au(TimeIn, val, ierr)
+    call this % au(val)
+    call get_al(TimeIn, val, ierr)
+    call this % al(val)
+
+    if (ierr /= 0)  call set_error("SME values could not be set!")
+
+  endif
+
+  if (this % doReadHPI) then
+    call get_hpi(TimeIn, val, ierr)
+    call this % hp(val)
+
+    if (ierr /= 0)  call set_error("HPI values could not be set!")
+
+  endif
+
+  if (this % doReadKP) then
+    call get_AP(TimeIn, val, ierr)
+    call this % kp(val)
+
+    if (ierr /= 0)  call set_error("AP values could not be set!")
+  endif
+  
+end subroutine set_ie_indices
