@@ -50,15 +50,11 @@ subroutine set_inputs
   real*8 :: DTime
   logical :: HasSetAuroraMods = .false.
 
-  type(iemodel), pointer :: iemodel_
-
   call report("set_inputs", 1)
 
   iError = 0
   IsDone = .false.
   iLine = 1
-
-  iemodel_ = ieModel()
 
   call IO_set_ap_single(10.0)
 
@@ -688,8 +684,8 @@ subroutine set_inputs
         endif
 
       case ("#IEMODELS") !would love to call this #ELECTRODYNAMICS, but...
-        call read_in_string(AuroralModel, iError)
-        call read_in_string(PotentialModel, iError)
+        call read_in_string(cAuroralModel, iError)
+        call read_in_string(cPotentialModel, iError)
         
         if (iError /= 0) then
           ! Change to new error soon...
@@ -700,9 +696,6 @@ subroutine set_inputs
           write(*, *) 'PotentialModel   weimer05,hepmay,amie'
           write(*, *) ''
         endif
-
-        call iemodel_ % efield_model(PotentialModel)
-        call iemodel_ % aurora_model(AuroralModel)
 
         if (.not. isOk) then
           call report_errors
@@ -815,8 +808,6 @@ subroutine set_inputs
           write(*, *) 'cAMIEFileNorth  (string)'
           write(*, *) 'cAMIEFileSouth  (string)'
           IsDone = .true.
-          call iemodel_ % filename_north(cAMIEFileNorth)
-          call iemodel_ % filename_south(cAMIEFileSouth)
         else
           if (index(cAMIEFileNorth, "none") == 0 .and. &
               .not. HasSetAuroraMods) &

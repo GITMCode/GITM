@@ -5,60 +5,65 @@ subroutine init_get_potential
 
   use ModGITM
   use ModTime
-  use ModIndicesInterfaces
   use ModInputs
-  use ModUserGITM
   use ModIE
   use ModErrors
 
 
   implicit none
+  type(ieModel), pointer :: IEModel_
+  integer :: iError = 0
 
-  character(len=iCharLen_), dimension(100) :: Lines
-  character(len=iCharLen_) :: TimeLine
-  real    :: bz
-  character(len=2) :: cDebugLevel
-
-  logical :: IsFirstTime = .true.
-  integer :: iError
-
-  type(ieModel), pointer :: model
-  integer :: nAmieLats, nAmieMlts, nAmieBlocks
-
-  iError = 0
-
-  ! if (.not. IsFirstTime .or. IsFramework) return
   call report("init_get_potential", 2)
 
-  IsFirstTime = .false.
+  allocate(IEModel_)
+  IEModel_ = IEModel()
 
-  allocate(model)
-  model = ieModel()
+  call IEModel_%verbose(iDebugLevel)
 
-  call model%verbose(iDebugLevel)
+  
+  call IEModel_ % efield_model(cPotentialModel)
+  call IEModel_ % aurora_model(cAuroralModel)
 
-  call model % model_dir("UA/inputs/ext/")
+  ! Most likely do not need to change, use the default.
+  ! call IEModel_ % model_dir("UA/DataIn/")
+
+  ! If we are using AMIE files, set north and south files:
+  call IEModel_ % filename_north(cAMIEFileNorth)
+  call IEModel_ % filename_south(cAMIEFileSouth)
 
   ! Initialize the IE library after setting it up:
-  call model % init()
+  call IEModel_ % init()
 
   ! Load in indices for the 0th time-step
-  call set_ie_indices(model, CurrentTime)
+  call set_ie_indices(IEModel_, CurrentTime)
 
-  ! Check that correct inidices are present:
+  ! Check that correct indices are present:
   call check_all_indices()
+
+  call report("ieModel indices were checked", 5)
 
   ! If there were errors initializing, stop here
   if (.not. isOk) then
-    call set_error("Failed to initialize! Exiting!")
+    call set_error("Failed to initialize ieModel! Exiting!")
     call report_errors
-    stop!
+    call CON_stop("Failed to initialize ieModel in get_potential. Check indices, probably.")
   endif
 
   ! Initialize the grid:
-  ! oh wait. I have no clue what im doing here.
+  call IEModel_ % nMlts(nLons + 4)
+  call IEModel_ % nLats(nLats + 4)
 
+  ! if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
+  ! Initialize the IE library after setting it up:
+  call IEModel_ % init()
   ! then also regional amie... maybe there's a way to do it cleanly
+
+  call report("done with init_get_potential", 2)
+  
+  if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
+  
+  if (iError /= 0) call set_error("MPI Barrier falied in init_get_potential")
 
 end subroutine init_get_potential
 
@@ -71,7 +76,6 @@ subroutine get_potential(iBlock)
 
   use ModGITM
   use ModTime
-  use ModIndicesInterfaces
   use ModInputs
   use ModUserGITM
   use ModIE
@@ -122,13 +126,7 @@ subroutine get_potential(iBlock)
 
     call init_get_potential
 
-    ! this is probably wrong!
-    call iemodel_ % nMlts(nLons + 4)
-    call iemodel_ % nLats(nLats + 4)
-    call IO_SetTime(CurrentTime)
     call set_ie_indices(iemodel_, CurrentTime)
-
-    call UA_SetNorth !TODO: ????
 
     call report("Getting Potential", 1)
 
