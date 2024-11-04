@@ -65,229 +65,211 @@ subroutine init_get_potential
 
   !!! Xing Meng Nov 2018 added UseRegionalAMIE to set up a local region
   !!! with the potential from AMIE files and Weimer potential elsewhere
-  if (index(cAMIEFileNorth, "none") > 0 .or. UseRegionalAMIE) then
+  ! if (.not. ie%iEfield_ == iAmiePot_) then
 
-    Lines(1) = "#BACKGROUND"
-    Lines(2) = "EIE/"
+  !   Lines(1) = "#BACKGROUND"
+  !   Lines(2) = "EIE/"
 
-    UseHPI = .true.
-    if (UseNewellAurora .or. UseOvationSME .or. UseAeModel) UseHPI = .false.
-    if (UseFTAModel) UseHPI = .false.
+  !   UseHPI = .true.
+  !   if (UseNewellAurora .or. UseOvationSME .or. UseAeModel) UseHPI = .false.
+  !   if (UseFTAModel) UseHPI = .false.
 
-    call get_IMF_Bz(CurrentTime + TimeDelayHighLat, bz, iError)
+  !   call get_IMF_Bz(CurrentTime + TimeDelayHighLat, bz, iError)
 
-    call IO_SetIMFBz(bz)
-    if (iError /= 0) then
-      write(*, *) "Can not find IMF Bz."
-      !write(*,*) "Setting potential to Millstone HPI."
-      !Lines(3) = "millstone_hpi"    ! Change to "zero" if you want
-      call stop_gitm("must stop! Check your IMF file!!!")
-    else
-      Lines(3) = PotentialModel    ! Change to "zero" if you want
-      UseIMF = .true.
-    endif
-    Lines(4) = AuroralModel
-    Lines(5) = "idontknow"
-    Lines(6) = ""
+  !   call IO_SetIMFBz(bz)
+  !   if (iError /= 0) then
+  !     write(*, *) "Can not find IMF Bz."
+  !     !write(*,*) "Setting potential to Millstone HPI."
+  !     !Lines(3) = "millstone_hpi"    ! Change to "zero" if you want
+  !     ! call stop_gitm("must stop! Check your IMF file!!!")
+  !   else
+  !     Lines(3) = PotentialModel    ! Change to "zero" if you want
+  !     UseIMF = .true.
+  !   endif
+  !   Lines(4) = AuroralModel
+  !   Lines(5) = "idontknow"
+  !   Lines(6) = ""
 
-  else
+  ! else
 
-    if (index(cAMIEFileNorth, "mhd") > 0) then
+  !   if (index(cAMIEFileNorth, "mhd") > 0) then
 
-      Lines(1) = "#MHDFILE"
-      Lines(2) = cAMIEFileSouth
-      write(TimeLine, '(i4)') iTimeArray(1)
-      Lines(3) = TimeLine
-      write(TimeLine, '(i2)') iTimeArray(2)
-      Lines(4) = TimeLine
-      write(TimeLine, '(i2)') iTimeArray(3)
-      Lines(5) = TimeLine
-      Lines(6) = ""
+  !     Lines(1) = "#MHDFILE"
+  !     Lines(2) = cAMIEFileSouth
+  !     write(TimeLine, '(i4)') iTimeArray(1)
+  !     Lines(3) = TimeLine
+  !     write(TimeLine, '(i2)') iTimeArray(2)
+  !     Lines(4) = TimeLine
+  !     write(TimeLine, '(i2)') iTimeArray(3)
+  !     Lines(5) = TimeLine
+  !     Lines(6) = ""
 
-      UseIMF = .false.
+  !     UseIMF = .false.
 
-    else
+  !   else
 
-      Lines(1) = "#AMIEFILES"
-      Lines(2) = cAMIEFileNorth
-      Lines(3) = cAMIEFileSouth
-      Lines(4) = ""
-      Lines(5) = ""
-      Lines(6) = ""
+  !     Lines(1) = "#AMIEFILES"
+  !     Lines(2) = cAMIEFileNorth
+  !     Lines(3) = cAMIEFileSouth
+  !     Lines(4) = ""
+  !     Lines(5) = ""
+  !     Lines(6) = ""
 
-      UseIMF = .false.
+  !     UseIMF = .false.
 
-    endif
+  !   endif
 
-  endif
+  ! endif
 
-  Lines(7) = "#DEBUG"
-  call i2s(iDebugLevel, cDebugLevel, 2)
-  Lines(8) = cDebugLevel
-  Lines(9) = "0"
-  Lines(10) = ""
+  ! Lines(7) = "#DEBUG"
+  ! call i2s(iDebugLevel, cDebugLevel, 2)
+  ! Lines(8) = cDebugLevel
+  ! Lines(9) = "0"
+  ! Lines(10) = ""
 
-  if (IsFixedTilt) then
-    Lines(11) = "#FIXTILT"
-    Lines(12) = "T"
-    Lines(13) = ""
-    Lines(14) = "#END"
-  else
-    Lines(11) = "#END"
-  endif
+  ! if (IsFixedTilt) then
+  !   Lines(11) = "#FIXTILT"
+  !   Lines(12) = "T"
+  !   Lines(13) = ""
+  !   Lines(14) = "#END"
+  ! else
+  !   Lines(11) = "#END"
+  ! endif
 
-  call report("EIE_stuff", 4)
+  ! call report("EIE_stuff", 4)
 
-  call EIE_set_inputs(Lines)
+  ! call EIE_set_inputs(Lines)
 
-  if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
-  call EIE_Initialize(iError)
-  if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
-  if (iError /= 0) then
-    write(*, *) &
-      "Code Error in IE_Initialize called from get_potential.f90"
-    write(*, *) "Error : ", iError
-    call stop_gitm("Stopping in get_potential")
-  endif
+  ! if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
+  ! call EIE_Initialize(iError)
+  ! if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
+  ! if (iError /= 0) then
+  !   write(*, *) &
+  !     "Code Error in IE_Initialize called from get_potential.f90"
+  !   write(*, *) "Error : ", iError
+  !   call stop_gitm("Stopping in get_potential")
+  ! endif
 
-  if (UseRegionalAMIE) then
-     !!! read AMIE files
-    call AMIE_SetFileName(cAMIEFileNorth)
-    call readAMIEOutput(2, .false., iDebugLevel, iError)
-    if (iError /= 0) then
-      write(*, *) &
-        "Code Error in readAMIEOutput called from get_potential.f90"
-      write(*, *) "Error : ", iError
-      call stop_gitm("Stopping in get_potential")
-    endif
+  ! if (UseRegionalAMIE) then
+  !    !!! read AMIE files
+  !   call AMIE_SetFileName(cAMIEFileNorth)
+  !   call readAMIEOutput(2, .false., iDebugLevel, iError)
+  !   if (iError /= 0) then
+  !     write(*, *) &
+  !       "Code Error in readAMIEOutput called from get_potential.f90"
+  !     write(*, *) "Error : ", iError
+  !     call stop_gitm("Stopping in get_potential")
+  !   endif
 
-    write(*, *) 'done with reading amie north!'
+  !   write(*, *) 'done with reading amie north!'
 
-    if (index(cAMIEFileSouth, 'mirror') > 0) then
-      call AMIE_SetFileName(cAMIEFileNorth)
-      call readAMIEOutput(1, .true., iDebugLevel, iError)
-    else
-      call AMIE_SetFileName(cAMIEFileSouth)
-      call readAMIEOutput(1, .false., iDebugLevel, iError)
-    endif
+  !   if (index(cAMIEFileSouth, 'mirror') > 0) then
+  !     call AMIE_SetFileName(cAMIEFileNorth)
+  !     call readAMIEOutput(1, .true., iDebugLevel, iError)
+  !   else
+  !     call AMIE_SetFileName(cAMIEFileSouth)
+  !     call readAMIEOutput(1, .false., iDebugLevel, iError)
+  !   endif
 
-    call AMIE_GetnLats(nAmieLats)
-    call AMIE_GetnMLTs(nAmieMlts)
-    nAmieBlocks = 2
+  !   call AMIE_GetnLats(nAmieLats)
+  !   call AMIE_GetnMLTs(nAmieMlts)
+  !   nAmieBlocks = 2
 
-    call EIE_InitGrid(nAmieLats, nAmieMlts, nAmieBlocks, iError)
-    if (iError /= 0) then
-      write(*, *) &
-        "Code Error in EIE_InitGrid called from get_potential.f90"
-      write(*, *) "Error : ", iError
-      call stop_gitm("Stopping in get_potential")
-    endif
+  !   call EIE_InitGrid(nAmieLats, nAmieMlts, nAmieBlocks, iError)
+  !   if (iError /= 0) then
+  !     write(*, *) &
+  !       "Code Error in EIE_InitGrid called from get_potential.f90"
+  !     write(*, *) "Error : ", iError
+  !     call stop_gitm("Stopping in get_potential")
+  !   endif
 
-    call AMIE_GetLats(EIEr3_HaveLats)
-    call AMIE_GetMLTs(EIEr3_HaveMLTs)
+    ! call AMIE_GetLats(EIEr3_HaveLats)
+    ! call AMIE_GetMLTs(EIEr3_HaveMLTs)
 
-  endif
+  ! endif
 
 end subroutine init_get_potential
 
-!--------------------------------------------------------------------
-! set_indices
-!--------------------------------------------------------------------
 
-subroutine set_indices
+  ! if (UseIMF) then
 
-  use ModGITM
-  use ModTime
-  use ModIndicesInterfaces
-  use ModInputs
-  use ModUserGITM
-  use ModNewell
+  !   call read_NOAAHPI_Indices_new( &
+  !     iError, &
+  !     CurrentTime + TimeDelayHighLat, &
+  !     EndTime + TimeDelayHighLat)
+  !   call read_MHDIMF_Indices_new( &
+  !     iError, &
+  !     CurrentTime + TimeDelayHighLat, &
+  !     EndTime + TimeDelayHighLat)
+  !   call get_IMF_Bz(CurrentTime + TimeDelayHighLat, bz, iError)
+  !   if (bz < -50.0) bz = -50.0
+  !   if (bz > 50.0) bz = 50.0
+  !   call IO_SetIMFBz(bz)
 
-  implicit none
+  !   if (iError /= 0) then
+  !     write(*, *) &
+  !       "Code Error in get_IMF_Bz called from get_potential.f90"
+  !     write(*, *) "Code : ", iError
+  !     call stop_gitm("Stopping in get_potential")
+  !   endif
 
-  real :: temp, by, bz, vx, den
-  integer :: iError
-  iError = 0
+  !   if (iDebugLevel > 1) write(*, *) "==> IMF Bz : ", bz
 
-  if (UseIMF) then
+  !   call get_IMF_By(CurrentTime + TimeDelayHighLat, by, iError)
+  !   if (by < -50.0) by = -50.0
+  !   if (by > 50.0) by = 50.0
+  !   call IO_SetIMFBy(by)
 
-    call read_NOAAHPI_Indices_new( &
-      iError, &
-      CurrentTime + TimeDelayHighLat, &
-      EndTime + TimeDelayHighLat)
-    call read_MHDIMF_Indices_new( &
-      iError, &
-      CurrentTime + TimeDelayHighLat, &
-      EndTime + TimeDelayHighLat)
-    call get_IMF_Bz(CurrentTime + TimeDelayHighLat, bz, iError)
-    if (bz < -50.0) bz = -50.0
-    if (bz > 50.0) bz = 50.0
-    call IO_SetIMFBz(bz)
+  !   if (iError /= 0) then
+  !     write(*, *) &
+  !       "Code Error in get_IMF_By called from get_potential.f90"
+  !     call stop_gitm("Stopping in get_potential")
+  !   endif
 
-    if (iError /= 0) then
-      write(*, *) &
-        "Code Error in get_IMF_Bz called from get_potential.f90"
-      write(*, *) "Code : ", iError
-      call stop_gitm("Stopping in get_potential")
-    endif
+  !   if (iDebugLevel > 1) write(*, *) "==> IMF By : ", by
 
-    if (iDebugLevel > 1) write(*, *) "==> IMF Bz : ", bz
+  !   call get_SW_V(CurrentTime + TimeDelayHighLat, vx, iError)
+  !   if (vx < -2000.0) vx = -2000.0
+  !   if (vx > 2000.0) vx = 2000.0
+  !   call IO_SetSWV(vx)
 
-    call get_IMF_By(CurrentTime + TimeDelayHighLat, by, iError)
-    if (by < -50.0) by = -50.0
-    if (by > 50.0) by = 50.0
-    call IO_SetIMFBy(by)
+  !   if (iError /= 0) then
+  !     write(*, *) "Code Error in get_sw_v called from get_potential.f90"
+  !     call stop_gitm("Stopping in get_potential")
+  !   endif
 
-    if (iError /= 0) then
-      write(*, *) &
-        "Code Error in get_IMF_By called from get_potential.f90"
-      call stop_gitm("Stopping in get_potential")
-    endif
+  !   if (iDebugLevel > 1) write(*, *) "==> Solar Wind Velocity : ", vx
 
-    if (iDebugLevel > 1) write(*, *) "==> IMF By : ", by
+  !   call get_SW_N(CurrentTime + TimeDelayHighLat, den, iError)
+  !   if (iError /= 0) den = 5.0
+  !   call IO_SetSWN(den)
 
-    call get_SW_V(CurrentTime + TimeDelayHighLat, vx, iError)
-    if (vx < -2000.0) vx = -2000.0
-    if (vx > 2000.0) vx = 2000.0
-    call IO_SetSWV(vx)
+  !   if (UseNewellAurora) call calc_dfdt(by, bz, vx)
 
-    if (iError /= 0) then
-      write(*, *) "Code Error in get_sw_v called from get_potential.f90"
-      call stop_gitm("Stopping in get_potential")
-    endif
+  ! endif
 
-    if (iDebugLevel > 1) write(*, *) "==> Solar Wind Velocity : ", vx
+  ! if (UseHPI) then
 
-    call get_SW_N(CurrentTime + TimeDelayHighLat, den, iError)
-    if (iError /= 0) den = 5.0
-    call IO_SetSWN(den)
+  !   call get_HPI(CurrentTime + TimeDelayHighLat, temp, iError)
+  !   call IO_SetHPI(temp)
 
-    if (UseNewellAurora) call calc_dfdt(by, bz, vx)
+  !   if (iError /= 0) then
+  !     write(*, *) "Code Error in get_hpi called from get_potential.f90"
+  !     call stop_gitm("Stopping in get_potential")
+  !   endif
 
-  endif
+  ! endif
 
-  if (UseHPI) then
+  ! if (index(cAMIEFileNorth, "none") <= 0 .and. &
+  !     index(cAMIEFileNorth, "SPS") <= 0 .and. (.not. UseRegionalAMIE)) then
+  !   ! when UseRegionalAMIE, only get AMIE values during the specified
+  !   ! time interval.
+  !   if (iDebugLevel > 1) &
+  !     write(*, *) "==> Reading AMIE values for time :", CurrentTime
+  !   call get_AMIE_values(CurrentTime + TimeDelayHighLat)
+  ! endif
 
-    call get_HPI(CurrentTime + TimeDelayHighLat, temp, iError)
-    call IO_SetHPI(temp)
-
-    if (iError /= 0) then
-      write(*, *) "Code Error in get_hpi called from get_potential.f90"
-      call stop_gitm("Stopping in get_potential")
-    endif
-
-  endif
-
-  if (index(cAMIEFileNorth, "none") <= 0 .and. &
-      index(cAMIEFileNorth, "SPS") <= 0 .and. (.not. UseRegionalAMIE)) then
-    ! when UseRegionalAMIE, only get AMIE values during the specified
-    ! time interval.
-    if (iDebugLevel > 1) &
-      write(*, *) "==> Reading AMIE values for time :", CurrentTime
-    call get_AMIE_values(CurrentTime + TimeDelayHighLat)
-  endif
-
-end subroutine set_indices
+! end subroutine set_indices
 
 !--------------------------------------------------------------------
 ! get_potential
@@ -300,11 +282,8 @@ subroutine get_potential(iBlock)
   use ModIndicesInterfaces
   use ModInputs
   use ModUserGITM
-  use ModNewell
-  use ModOvationSME, only: run_ovationsme
-  use ModAeAuroralModel, only: run_ae_model
-  use ModFtaModel, only: run_fta_model
-  use ModEIE_Interface, only: UAl_UseGridBasedEIE
+  use ModIE
+
   use ModMpi
 
   implicit none
@@ -324,9 +303,15 @@ subroutine get_potential(iBlock)
   real, dimension(-1:nLons + 2, -1:nLats + 2) :: lats, mlts, EFlux
   real :: by, bz, CuspLat, CuspMlt
 
+  logical :: UAl_UseGridBasedEIE
+
+  type(ieModel), pointer :: iemodel_
+
+
   call start_timing("get_potential")
   call report("get_potential", 2)
 
+  iemodel_ = ieModel()
   iError = 0
 
   if (index(cPlanet, "Earth") == 0) then
@@ -344,8 +329,10 @@ subroutine get_potential(iBlock)
     call report("Setting up IE Grid", 1)
 
     call init_get_potential
-    call UA_SetnMLTs(nLons + 4)
-    call UA_SetnLats(nLats + 4)
+
+    ! this is probably wrong!
+    call iemodel_ % nMlts(nLons + 4)
+    call iemodel_ % nLats(nLats + 4)
     call IO_SetTime(CurrentTime)
     call set_ie_indices(iemodel_, CurrentTime)
 
@@ -373,14 +360,14 @@ subroutine get_potential(iBlock)
       TempPotential = 0.0
       TempPotential2d = 0.0
 
-      call UA_GetPotential(TempPotential2d, iError)
+      call iemodel_ % get_potential(potential)
       TempPotential(:, :, 1) = TempPotential2d
 
       if (iError /= 0) then
         !write(*,*) "Error in get_potential (UA_GetPotential):"
         !write(*,*) iError
         TempPotential = 0.0
-!           call stop_gitm("Stopping in get_potential")
+        !           call stop_gitm("Stopping in get_potential")
       endif
 
       nDir = 1
@@ -394,7 +381,7 @@ subroutine get_potential(iBlock)
         if (iDebugLevel > 1) write(*, *) "==> Getting AMIE Potential"
 
         AMIEPotential = 0.0
-        UAl_UseGridBasedEIE = .true.
+        ! UAl_UseGridBasedEIE = .true.
 
         call UA_SetGrid( &
           MLT(-1:nLons + 2, -1:nLats + 2, iAlt), &
@@ -411,10 +398,10 @@ subroutine get_potential(iBlock)
           if (iDebugLevel > 1) &
             write(*, *) "==> Reading AMIE PotentialY for time :", CurrentTime
           call get_AMIE_PotentialY(CurrentTime + TimeDelayHighLat)
-!              the following setgrid seems unnecessary
-!              call UA_SetGrid(                    &
-!                   MLT(-1:nLons+2,-1:nLats+2,iAlt), &
-!                   MLatitude(-1:nLons+2,-1:nLats+2,iAlt,iBlock), iError)
+          !              the following setgrid seems unnecessary
+          !              call UA_SetGrid(                    &
+          !                   MLT(-1:nLons+2,-1:nLats+2,iAlt), &
+          !                   MLatitude(-1:nLons+2,-1:nLats+2,iAlt,iBlock), iError)
           call UA_GetPotential(AMIEPotential(:, :, 2), iError)
           if (iError /= 0) then
             write(*, *) "Error in get_potential (UA_GetPotential) for AMIE PotentialY:"
@@ -589,7 +576,7 @@ subroutine get_potential(iBlock)
     call ieModel_ % get_aurora(ElectronEnergyFlux, ElectronAverageEnergy)
 
 
-
+    
       ! Sometimes, in AMIE, things get messed up in the
       ! Average energy, so go through and fix some of these.
 
