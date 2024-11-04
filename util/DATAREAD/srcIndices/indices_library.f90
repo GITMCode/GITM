@@ -16,7 +16,7 @@ subroutine check_all_indices(TimeIn, iOutputError)
   iOutputError = 0
   iemodel_ = ieModel()
 
-  call run_check_indices(iemodel_)
+  call ieModel_ % check_indices()
 
   do iIndex = 1, nIndices
     ! If there are 0 times, then no error, since there are no values
@@ -1382,13 +1382,24 @@ subroutine set_ie_indices(this, TimeIn)
 
 
   if (this % doReadMHD) then
+
      call get_IMF_Bz(TimeIn, val, ierr)
+     if (val < -50.0) val = -50.0
+     if (val > 50.0) val = 50.0
      call this % imfBz(val)
+
      call get_IMF_By(TimeIn, val, ierr)
+     if (val < -50.0) val = -50.0
+     if (val > 50.0) val = 50.0
      call this % imfBy(val)
+
      call get_SW_V(TimeIn, val, ierr)
+     if (val < -2000.0) val = -2000.0
+     if (val > 2000.0) val = 2000.0
      call this % swv(val)
+
      call get_SW_N(TimeIn, val, ierr)
+     if (val > 80) val=80
      call this % swN(val)
 
      if (ierr /= 0)  call set_error("IMF values could not be set!")
