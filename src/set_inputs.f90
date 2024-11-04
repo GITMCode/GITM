@@ -1841,7 +1841,7 @@ subroutine set_inputs
           ! If the onset file is called "none", then it will
           ! automatically ignore this:
 
-          call read_al_onset_list(iError, &
+          call read_al_onset_list(iError, & !TODO: Get this working in ieModel
                                   CurrentTime + TimeDelayHighLat, &
                                   EndTime + TimeDelayHighLat)
 

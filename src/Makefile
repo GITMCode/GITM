@@ -26,14 +26,12 @@ MODULES = \
 	ModConstants.o\
 	ModEUV.o\
 	ModElectrodynamics.o\
-	ModFtaModel.o\
 	ModGITM.o\
 	ModGITMImplicit.o\
 	ModHwm14.o\
 	ModInputs.o\
 	ModLimiter.o\
 	ModMagTrace.o\
-	ModNewell.o\
 	ModOrbital.o\
 	ModOvationSME.o\
 	ModPlanet.o\

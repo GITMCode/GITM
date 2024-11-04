@@ -80,6 +80,7 @@ clean:
 
 
 distclean: 
+	make clean
 	./Config.pl -uninstall
 
 allclean:
