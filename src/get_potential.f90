@@ -47,7 +47,7 @@ subroutine init_get_potential
   if (.not. isOk) then
     call set_error("Failed to initialize ieModel! Exiting!")
     call report_errors
-    call CON_stop("Failed to initialize ieModel in get_potential. Check indices, probably.")
+    call stop_gitm("Failed to initialize ieModel in get_potential. Check indices, probably.")
   endif
 
   ! Initialize the grid:
@@ -79,7 +79,8 @@ subroutine get_potential(iBlock)
   use ModInputs
   use ModUserGITM
   use ModIE
-
+  use ModErrors
+  use ModElectrodynamics, only: didInitGetPotential
   use ModMpi
 
   implicit none
@@ -119,28 +120,34 @@ subroutine get_potential(iBlock)
 
   endif
 
+
+  if (.not. didInitGetPotential) then
+    call init_get_potential
+    if (isOk) then
+      didInitGetPotential = .true.
+    else 
+      return
+    endif
+  endif
+
   if (floor((tSimulation - dt)/DtPotential) /= &
       floor((tsimulation)/DtPotential) .or. IsFirstPotential(iBlock)) then
 
-    call report("Setting up IE Grid", 1)
-
-    call init_get_potential
-
+    
+    call report("Getting Potential", 1)
     call set_ie_indices(iemodel_, CurrentTime)
 
-    call report("Getting Potential", 1)
 
     Potential(:, :, :, iBlock) = 0.0
 
     do iAlt = -1, nAlts + 2
 
-      call UA_SetGrid( &
-        MLT(-1:nLons + 2, -1:nLats + 2, iAlt), &
-        MLatitude(-1:nLons + 2, -1:nLats + 2, iAlt, iBlock), iError)
+      call iemodel_ % grid(MLT(-1:nLons + 2, -1:nLats + 2, iAlt), &
+                           MLatitude(-1:nLons + 2, -1:nLats + 2, iAlt, iBlock))
 
-      if (iError /= 0) then
-        write(*, *) "Error in routine get_potential (UA_SetGrid):"
-        write(*, *) iError
+      if (.not. isOk) then
+        call set_error("Error in routine get_potential (SetGrid):")
+        call report_errors
         call stop_gitm("Stopping in get_potential")
       endif
 
@@ -150,14 +157,13 @@ subroutine get_potential(iBlock)
       TempPotential = 0.0
       TempPotential2d = 0.0
 
-      call iemodel_ % get_potential(potential)
+      call iemodel_ % get_potential(TempPotential2d)
       TempPotential(:, :, 1) = TempPotential2d
 
-      if (iError /= 0) then
-        !write(*,*) "Error in get_potential (UA_GetPotential):"
-        !write(*,*) iError
-        TempPotential = 0.0
-        !           call stop_gitm("Stopping in get_potential")
+      if (.not. isOk) then
+        call set_error("Error in routine get_potential (getting potential):")
+        call report_errors
+        call stop_gitm("Stopping in get_potential")
       endif
 
       nDir = 1
@@ -235,54 +241,51 @@ subroutine get_potential(iBlock)
 
     call ieModel_ % get_aurora(ElectronEnergyFlux, ElectronAverageEnergy)
 
+    if (.not. isOk) then
+      call set_error("Error in routine get_potential (getting aurora):")
+      call report_errors
+      call stop_gitm("Stopping in get_potential")
+    endif
 
-    
-      ! Sometimes, in AMIE, things get messed up in the
-      ! Average energy, so go through and fix some of these.
-
-      do iLat = -1, nLats + 2
-        do iLon = -1, nLons + 2
-          if (ElectronAverageEnergy(iLon, iLat) < 0.0) then
-            ElectronAverageEnergy(iLon, iLat) = 0.1
-            write(*, *) "ave e i,j Negative : ", iLon, iLat, &
-              ElectronAverageEnergy(iLon, iLat)
-          endif
-          if (ElectronAverageEnergy(iLon, iLat) > 100.0) then
-            write(*, *) "ave e i,j Positive : ", iLon, iLat, &
-              ElectronAverageEnergy(iLon, iLat)
-            ElectronAverageEnergy(iLon, iLat) = 0.1
-          endif
-        enddo
+    ! Sometimes, in AMIE, things get messed up in the
+    ! Average energy, so go through and fix some of these.
+    do iLat = -1, nLats + 2
+      do iLon = -1, nLons + 2
+        if (ElectronAverageEnergy(iLon, iLat) < 0.0) then
+          ElectronAverageEnergy(iLon, iLat) = 0.1
+          write(*, *) "ave e i,j Negative : ", iLon, iLat, &
+            ElectronAverageEnergy(iLon, iLat)
+        endif
+        if (ElectronAverageEnergy(iLon, iLat) > 100.0) then
+          write(*, *) "ave e i,j Positive : ", iLon, iLat, &
+            ElectronAverageEnergy(iLon, iLat)
+          ElectronAverageEnergy(iLon, iLat) = 0.1
+        endif
       enddo
+    enddo
 
-      call UA_GetEFlux(ElectronEnergyFlux, iError)
-      if (iError /= 0) then
-        write(*, *) "Error in get_potential (UA_GetEFlux):"
-        write(*, *) iError
-        ElectronEnergyFlux = 0.1
-      endif
 
-      ! -----------------------------------------------------
-      ! Get Ion Precipitation if desired
-      ! -----------------------------------------------------
+    ! -----------------------------------------------------
+    ! Get Ion Precipitation if desired
+    ! -----------------------------------------------------
 
-      if (UseIonPrecipitation) then
+    if (UseIonPrecipitation) then
+      call stop_gitm("I don't know how to do that yet, sorry!")
+    !   call UA_GetIonAveE(IonAverageEnergy, iError)
+    !   if (iError /= 0) then
+    !     write(*, *) "Error in get_potential (UA_GetAveE):"
+    !     write(*, *) iError
+    !     IonAverageEnergy = 1.0
+    !   endif
 
-        call UA_GetIonAveE(IonAverageEnergy, iError)
-        if (iError /= 0) then
-          write(*, *) "Error in get_potential (UA_GetAveE):"
-          write(*, *) iError
-          IonAverageEnergy = 1.0
-        endif
+    !   call UA_GetIonEFlux(IonEnergyFlux, iError)
+    !   if (iError /= 0) then
+    !     write(*, *) "Error in get_potential (UA_GetEFlux):"
+    !     write(*, *) iError
+    !     IonEnergyFlux = 0.1
+    !   endif
 
-        call UA_GetIonEFlux(IonEnergyFlux, iError)
-        if (iError /= 0) then
-          write(*, *) "Error in get_potential (UA_GetEFlux):"
-          write(*, *) iError
-          IonEnergyFlux = 0.1
-        endif
-
-      endif
+    ! endif
 
     endif
 
@@ -294,8 +297,8 @@ subroutine get_potential(iBlock)
 
         mlts = mod(MLT(-1:nLons + 2, -1:nLats + 2, iAlt) + 24.0, 24.0)
 
-        call get_IMF_Bz(CurrentTime + TimeDelayHighLat, bz, iError)
-        call get_IMF_By(CurrentTime + TimeDelayHighLat, by, iError)
+        by = iemodel_%needImfBy
+        bz = iemodel_%needImfBz
 
         ! If we are in the southern hemisphere, reverse by:
         if (lats(nLons/2, nLats/2) < 0.0) by = -by
@@ -340,7 +343,7 @@ subroutine get_potential(iBlock)
 
     IsFirstAurora(iBlock) = .false.
 
-  
+  endif
 
   if (iDebugLevel > 1) &
     write(*, *) "==> Min, Max, CPC Potential : ", &
