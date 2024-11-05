@@ -39,7 +39,7 @@ subroutine init_get_potential
   call set_ie_indices(IEModel_, CurrentTime)
 
   ! Check that correct indices are present:
-  call check_all_indices()
+  call IEModel_ % check_indices
 
   call report("ieModel indices were checked", 5)
 

@@ -3,20 +3,16 @@
 
 ! ---------------------------------------------------
 subroutine check_all_indices(TimeIn, iOutputError)
-
+  ! Just checks time.
   use ModIndices
-  use ModIE
   
   implicit none
   real(Real8_), intent(in)  :: TimeIn
   integer, intent(out) :: iOutputError
-  type(ieModel), pointer :: iemodel_
+
   integer :: iIndex
 
   iOutputError = 0
-  iemodel_ = ieModel()
-
-  call ieModel_ % check_indices()
 
   do iIndex = 1, nIndices
     ! If there are 0 times, then no error, since there are no values
@@ -1356,19 +1352,20 @@ end subroutine get_jh_calc_wotime
 
 
 subroutine set_ie_indices(this, TimeIn)
+
   use ModKind
   use ModIndicesInterfaces
   use ModIE
   use ModErrors
-  use ModTimeAmie
+  ! use ModTime
 
   implicit none
 
-  class(ieModel), intent(inout) :: this
+  class(ieModel), pointer :: this
   real, intent(in) :: TimeIn
 
 
-  integer :: ierr
+  integer :: iError = 0
   real    :: val
   integer :: iTime_I(7)
 
@@ -1383,52 +1380,58 @@ subroutine set_ie_indices(this, TimeIn)
 
   if (this % doReadMHD) then
 
-     call get_IMF_Bz(TimeIn, val, ierr)
+     call get_IMF_Bz(TimeIn, val, iError)
      if (val < -50.0) val = -50.0
      if (val > 50.0) val = 50.0
      call this % imfBz(val)
 
-     call get_IMF_By(TimeIn, val, ierr)
+     call get_IMF_By(TimeIn, val, iError)
      if (val < -50.0) val = -50.0
      if (val > 50.0) val = 50.0
      call this % imfBy(val)
 
-     call get_SW_V(TimeIn, val, ierr)
+     call get_SW_V(TimeIn, val, iError)
      if (val < -2000.0) val = -2000.0
      if (val > 2000.0) val = 2000.0
-     call this % swv(val)
+     call this % swV(val)
 
-     call get_SW_N(TimeIn, val, ierr)
-     if (val > 80) val=80
+     call get_SW_N(TimeIn, val, iError)
+     if (val > 80) val = 80
      call this % swN(val)
 
-     if (ierr /= 0)  call set_error("IMF values could not be set!")
+     if (iError /= 0)  call set_error("IMF values could not be set!")
+     if (.not. isOk)  call set_error("Issue setting IMF in IE library")
 
   endif
 
   if (this % doReadSME) then
-    call get_au(TimeIn, val, ierr)
+
+    call get_AU(TimeIn, val, iError)
     call this % au(val)
-    call get_al(TimeIn, val, ierr)
+    call get_AL(TimeIn, val, iError)
     call this % al(val)
 
-    if (ierr /= 0)  call set_error("SME values could not be set!")
+    if (iError /= 0)  call set_error("SME values could not be set!")
+    if (.not. isOk)  call set_error("Issue setting SME in IE library")
 
   endif
 
   if (this % doReadHPI) then
-    call get_hpi(TimeIn, val, ierr)
+
+    call get_HPI(TimeIn, val, iError)
     call this % hp(val)
 
-    if (ierr /= 0)  call set_error("HPI values could not be set!")
+    if (iError /= 0)  call set_error("HPI values could not be set!")
+    if (.not. isOk)  call set_error("Issue setting HPI in IE library")
 
   endif
 
   if (this % doReadKP) then
-    call get_AP(TimeIn, val, ierr)
+    call get_KP(TimeIn, val, iError)
     call this % kp(val)
 
-    if (ierr /= 0)  call set_error("AP values could not be set!")
+    if (iError /= 0)  call set_error("KP values could not be set!")
+    if (.not. isOk)  call set_error("Issue setting KP in IE library")
   endif
   
 end subroutine set_ie_indices
