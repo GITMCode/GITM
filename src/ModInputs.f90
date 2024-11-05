@@ -190,6 +190,7 @@ module ModInputs
 
   logical :: UseApex = .true.
   logical :: UseMSIS = .true.
+  logical :: UseMsis21 = .false.
   real, dimension(25) :: sw_msis = 1.0
   logical :: UseIRI = .true.
   logical :: UseMSISTides = .true.

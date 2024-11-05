@@ -368,10 +368,21 @@ subroutine set_inputs
         if (iError /= 0) then
           write(*, *) 'Incorrect format for #MSISOBC:'
           write(*, *) 'UseOBCExperiment - use MSIS [O] BC shifted by 6 months'
+          write(*, *) '                   Only applicable for MSIS00!'
           write(*, *) 'MsisOblateFactor - alt = alt * (1.0-f/2 + f*cos(lat))'
+          write(*, *) '                 - seems like -0.1 works well'
           write(*, *) '#MSISOBC'
           write(*, *) 'UseOBCExperiment        (logical)'
           write(*, *) 'MsisOblateFactor           (real)'
+       endif
+       
+      case ("#MSIS21")
+        call read_in_logical(UseMsis21, iError)
+        if (iError /= 0) then
+          write(*, *) 'Incorrect format for #MSIS21:'
+          write(*, *) 'This toggles between using MSIS00 (false) and MSIS-2.1 (true)'
+          write(*, *) '#MSISOBC'
+          write(*, *) 'UseMsis21       (logical)'
         endif
 
         !xianjing
