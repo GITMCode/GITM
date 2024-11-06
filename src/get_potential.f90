@@ -457,3 +457,110 @@ subroutine get_dynamo_potential(lons, lats, pot)
   enddo
 
 end subroutine get_dynamo_potential
+
+! Subroutine to automatically set indices for the given IEModel
+! Will need updateing when HPn/s are introduced (soon)
+subroutine set_ie_indices(IEModel_, TimeIn)
+
+  use ModKind
+  use ModIndicesInterfaces
+  use ModIE, only: ieModel
+  ! use ModElectrodynamics, only: ieModel_
+  use ModErrors
+  use ModTime, only: EndTime !could pull current time too, but better to be explicit
+  use ModInputs, only: TimeDelayHighLat
+
+  implicit none
+
+  type(ieModel), intent(inout) :: IEModel_
+  real, intent(in) :: TimeIn
+
+  integer :: iError = 0
+  real    :: val
+
+  ! stop
+  ! Set the time in the IE library:
+  write(*, *) TimeIn
+  write(*, *) TimeIn
+  write(*, *)
+  write(*, *)
+  call IEModel_%time_real(TimeIn)
+
+  if (IEModel_%doReadMHD) then
+
+    call read_MHDIMF_Indices_new( &
+      iError, &
+      TimeIn + TimeDelayHighLat, &
+      EndTime + TimeDelayHighLat)
+
+    if (iError /= 0) call set_error("Issue reading IMF file in get_potential")
+
+    call get_IMF_Bz(TimeIn + TimeDelayHighLat, val, iError)
+    if (val < -50.0) val = -50.0
+    if (val > 50.0) val = 50.0
+    call IEModel_%imfBz(val)
+
+    call get_IMF_By(TimeIn, val, iError)
+    if (val < -50.0) val = -50.0
+    if (val > 50.0) val = 50.0
+    call IEModel_%imfBy(val)
+
+    call get_SW_V(TimeIn, val, iError)
+    if (val < -2000.0) val = -2000.0
+    if (val > 2000.0) val = 2000.0
+    call IEModel_%swV(val)
+
+    call get_SW_N(TimeIn, val, iError)
+    if (val > 80) val = 80
+    call IEModel_%swN(val)
+
+    if (iError /= 0) call set_error("Issue getting IMF indices in get_potential")
+    if (.not. isOk) call set_error("Could not set the IMF indices with electrodynamics library")
+
+  endif
+
+  if (IEModel_%doReadSME) then
+    ! read_sme works differently, it reads the entire file, always. So does not
+    ! need to be called again.
+
+    call get_AU(TimeIn, val, iError)
+    call IEModel_%au(val)
+    call get_AL(TimeIn, val, iError)
+    call IEModel_%al(val)
+
+    if (iError /= 0) call set_error("SME values could not be set!")
+    if (.not. isOk) call set_error("Issue setting SME in IE library")
+
+  endif
+
+  if (IEModel_%doReadHPI) then
+
+    if (ieModel_%useAeForHp) then
+      call read_NOAAHPI_Indices_new(iError, &
+      TimeIn + TimeDelayHighLat, &
+                                    EndTime + TimeDelayHighLat)
+
+      if (iError /= 0) call set_error("HPI values could not be read.")
+    endif
+
+    call get_HPI(TimeIn, val, iError)
+    call IEModel_%hp(val)
+    call IEModel_%hpN(val)
+    call IEModel_%hpS(val)
+
+    if (iError /= 0) call set_error("HPI values could not be set!")
+    if (.not. isOk) call set_error("Issue setting HPI in IE library")
+
+  endif
+
+  if (IEModel_%doReadKP) then
+    call get_KP(TimeIn, val, iError)
+    call IEModel_%kp(val)
+
+    if (iError /= 0) call set_error("KP values could not be set!")
+    if (.not. isOk) call set_error("Issue setting KP in IE library")
+  endif
+
+  if (isOk) return
+
+end subroutine set_ie_indices
