@@ -8,16 +8,16 @@ subroutine init_get_potential
   use ModInputs
   use ModIE
   use ModErrors
-
+  use ModElectrodynamics, only: IEModel_
 
   implicit none
-  type(ieModel), pointer :: IEModel_
+
   integer :: iError = 0
 
   call report("init_get_potential", 2)
 
   allocate(IEModel_)
-  IEModel_ = IEModel()
+  IEModel_ = ieModel()
 
   call IEModel_%verbose(iDebugLevel)
 
@@ -67,7 +67,6 @@ subroutine init_get_potential
 
 end subroutine init_get_potential
 
-
 !--------------------------------------------------------------------
 ! get_potential
 !--------------------------------------------------------------------
@@ -80,7 +79,7 @@ subroutine get_potential(iBlock)
   use ModUserGITM
   use ModIE
   use ModErrors
-  use ModElectrodynamics, only: didInitGetPotential
+  use ModElectrodynamics, only: didInitGetPotential, IEModel_
   use ModMpi
 
   implicit none
@@ -102,13 +101,18 @@ subroutine get_potential(iBlock)
 
   logical :: UAl_UseGridBasedEIE
 
-  type(ieModel), pointer :: iemodel_
-
-
   call start_timing("get_potential")
   call report("get_potential", 2)
 
-  iemodel_ = ieModel()
+  if (.not. didInitGetPotential) then
+    call init_get_potential
+    if (isOk) then
+      didInitGetPotential = .true.
+    else
+      return
+    endif
+  endif
+
   iError = 0
 
   if (index(cPlanet, "Earth") == 0) then
@@ -120,19 +124,14 @@ subroutine get_potential(iBlock)
 
   endif
 
+  ! Grid might be reset by calc_electrodynamics
+  call IEModel_%nMlts(nLons + 4)
+  call IEModel_%nLats(nLats + 4)
 
-  if (.not. didInitGetPotential) then
-    call init_get_potential
-    if (isOk) then
-      didInitGetPotential = .true.
-    else 
-      return
-    endif
-  endif
+  call IEModel_%time_real(tSimulation)
 
   if (floor((tSimulation - dt)/DtPotential) /= &
       floor((tsimulation)/DtPotential) .or. IsFirstPotential(iBlock)) then
-
     
     call report("Getting Potential", 1)
     call set_ie_indices(iemodel_, CurrentTime)
@@ -167,7 +166,6 @@ subroutine get_potential(iBlock)
       endif
 
       nDir = 1
-
 
       if (UseDynamo .and. .not. Is1D) then
         dynamo = 0.0
@@ -263,7 +261,6 @@ subroutine get_potential(iBlock)
         endif
       enddo
     enddo
-
 
     ! -----------------------------------------------------
     ! Get Ion Precipitation if desired

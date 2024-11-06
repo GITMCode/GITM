@@ -31,13 +31,10 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
   use ModMPI
   use ModTime
   use ModMagTrace
-  Use ModIe
 
   implicit none
 
   integer, intent(out) :: UAi_nMLTs, UAi_nLats
-
-  class(ieModel), pointer :: ieModel_
 
   integer, external :: jday
 
@@ -1493,7 +1490,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
   !!!  ! rhs'=U^{-1}.L^{-1}.rhs
   !!!  write(*,*) "Lhepta"
   call Lhepta(nX, 1, nMagLons, nX, b, d_I, e_I, e1_I)
-  !!!  write(*,*) "Uhepta" 
+  !!!  write(*,*) "Uhepta"
   call Uhepta(.true., nX, 1, nMagLons, nX, b, f_I, f1_I)
 
   MaxIteration = 200      !good enough
@@ -1857,7 +1854,7 @@ subroutine matvec_gitm(x_I, y_I, n)
   !-------------------------------------------------------------------------
 
   ! Put 1D vector into 2D solution
-  i = 0; 
+  i = 0;
   do iLat = 2, nMagLats - 1
     do iLon = 1, nMagLons
       i = i + 1
@@ -1871,7 +1868,7 @@ subroutine matvec_gitm(x_I, y_I, n)
   ! Apply periodic boundary conditions in Psi direction
   x_G(nMagLons + 1, :) = x_G(1, :)
 
-  i = 0; 
+  i = 0;
   !  write(*,*)'X_G dim:',nMagLons+1, nMagLats
 
   do iLat = 2, nMagLats - 1
