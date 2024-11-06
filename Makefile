@@ -109,7 +109,7 @@ rundir:
 	fi
 	cd ${RUNDIR}; \
 		if [ ! -e "EIE/README" ]; then \
-			ln -s ${EMPIRICALIEDIR}/data EIE;\
+			ln -s ${EIEDIR}/data/ext DataIn/extIE;\
 		fi;
 	cd ${RUNDIR}; rm -f ./PostGITM.exe ; ln -s ${UADIR}/src/PostProcess.exe ./PostGITM.exe
 	cd ${RUNDIR}/UA; \

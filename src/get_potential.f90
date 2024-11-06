@@ -26,7 +26,7 @@ subroutine init_get_potential
   call IEModel_ % aurora_model(cAuroralModel)
 
   ! Most likely do not need to change, use the default.
-  ! call IEModel_ % model_dir("UA/DataIn/")
+  call IEModel_%model_dir("extIE/")
 
   ! If we are using AMIE files, set north and south files:
   call IEModel_ % filename_north(cAMIEFileNorth)
