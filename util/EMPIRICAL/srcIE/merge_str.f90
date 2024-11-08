@@ -4,7 +4,10 @@ subroutine merge_str(str1, str2)
 
   use ModCharSize
 
-  character(len=iCharLenIE_) :: str1, str2, temp
+  character(len=iCharLenIE_), intent(in) :: str1,   
+  character(len=iCharLenIE_), intent(inout) :: str2
+  
+  character(len=iCharLenIE_) :: temp
   integer :: i, j, k
 
   i = 1
@@ -38,8 +41,8 @@ subroutine strlen(str1, len)
 
   use ModCharSize
 
-  character(len=iCharLenIE_) :: str1
-  integer :: len
+  character(len=iCharLenIE_), intent(in) :: str1
+  integer, intent(out) :: len
 
   len = 1
   do while (iachar(str1(len:len)) /= 32 .and. &
