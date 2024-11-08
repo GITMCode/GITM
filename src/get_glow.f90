@@ -37,17 +37,17 @@ subroutine get_glow(iLon, iLat, iBlock)
   if (iError .gt. 0) then
     write(*, *) "nAlts too large for glow!.. in get_glow"
     call stop_GITM
-  end if
+  endif
 
   if (isFirstGlow) then
     call GL_init
     isFirstGlow = .False.
-  end if
+  endif
 
   if (isInitialGlow) then
     call GL_interp_flux(WaveS, WaveL, Flux_of_EUV, Num_WaveLengths_High)
     isInitialGlow = .False.
-  end if
+  endif
 
   ZRHO(1:nAlts) = Rho(iLon, iLat, 1:nAlts, iBlock)*0.000001*1000.0
   ZO(1:nAlts) = NDensityS(iLon, iLat, 1:nAlts, iO3P, iBlock)*0.000001
@@ -82,7 +82,7 @@ subroutine get_glow(iLon, iLat, iBlock)
     PhotoEFluxU(iLon, iLat, iAlt, :, iBlock) = peup(:, iAlt)*1000000.0
     PhotoEFluxD(iLon, iLat, iAlt, :, iBlock) = pedown(:, iAlt)*1000000.0
     PhotoElectronRate(iLon, iLat, iAlt, :, iBlock) = pespec(:, iAlt)*1000000.0
-  end do
+  enddo
 
   PhotoEFluxTotal = 0
 
@@ -92,6 +92,6 @@ subroutine get_glow(iLon, iLat, iBlock)
                                           PhotoEFluxU(:, :, :, ibin, iBlock)
     PhotoEFluxTotal(:, :, :, iBlock, 2) = PhotoEFluxTotal(:, :, :, iBlock, 2) + &
                                           PhotoEFluxD(:, :, :, iBin, iBlock)
-  end do
+  enddo
 
 end subroutine get_glow

@@ -117,7 +117,7 @@ contains
       Send_P(jProc)%nRay = 0
       Send_P(jProc)%MaxRay = 0
       nullify (Send_P(jProc)%Ray_VI)
-    end do
+    enddo
 
     ! Initialize receive buffer
     allocate(nRayRecv_P(0:nProc - 1))
@@ -148,8 +148,8 @@ contains
       do jProc = 0, nProc - 1
         if (associated(Send_P(jProc)%Ray_VI)) &
           deallocate(Send_P(jProc)%Ray_VI)
-      end do
-    end if
+      enddo
+    endif
     deallocate(Send_P)
 
     ! Deallocate recv buffer
@@ -190,7 +190,7 @@ contains
       iProcTo = iProcStart  ! Send back result to the PE that started tracing
     else
       iProcTo = iProcEnd    ! Send to PE which can continue the tracing
-    end if
+    endif
 
     if (iProcTo < 0) &
       call CON_stop(NameSub//' SWMF_error: PE lookup to be implemented')
@@ -219,13 +219,13 @@ contains
         Send%Ray_VI(RayDir_, iRay) = 1
       else
         Send%Ray_VI(RayDir_, iRay) = -1
-      end if
+      endif
 
       if (DoneRay) then
         Send%Ray_VI(RayDone_, iRay) = 1
       else
         Send%Ray_VI(RayDone_, iRay) = 0
-      end if
+      endif
 
       Send%nRay = iRay
 
@@ -315,7 +315,7 @@ contains
       nRequest = nRequest + 1
       call MPI_irecv(nRayRecv_P(jProc), 1, MPI_INTEGER, jProc, &
                      iTag, iComm, iRequest_I(nRequest), iError)
-    end do
+    enddo
 
     ! Wait for all receive commands to be posted for all processors
     call MPI_barrier(iComm, iError)
@@ -325,7 +325,7 @@ contains
       if (jProc == iProc) CYCLE
       call MPI_rsend(Send_P(jProc)%nRay, 1, MPI_INTEGER, jProc, &
                      iTag, iComm, iError)
-    end do
+    enddo
 
     ! Wait for all messages to be received
     if (nRequest > 0) call MPI_waitall(nRequest, iRequest_I, iStatus_II, iError)
@@ -343,7 +343,7 @@ contains
       Recv%Ray_VI(:, iRay:iRay + nRayRecv_P(iProc) - 1) = &
         Send_P(iProc)%Ray_VI(:, 1:Send_P(iProc)%nRay)
       iRay = iRay + nRayRecv_P(iProc)
-    end if
+    endif
 
     nRequest = 0
     iRequest_I = MPI_REQUEST_NULL
@@ -355,7 +355,7 @@ contains
       call MPI_irecv(Recv%Ray_VI(1, iRay), nRayRecv_P(jProc)*nRayInfo, &
                      MPI_REAL, jProc, iTag, iComm, iRequest_I(nRequest), iError)
       iRay = iRay + nRayRecv_P(jProc)
-    end do
+    enddo
 
     ! Wait for all receive commands to be posted for all processors
     call MPI_barrier(iComm, iError)
@@ -366,7 +366,7 @@ contains
 
       call MPI_rsend(Send_P(jProc)%Ray_VI(1, 1), &
                      Send_P(jProc)%nRay*nRayInfo, MPI_REAL, jProc, iTag, iComm, iError)
-    end do
+    enddo
 
     ! Wait for all messages to be received
     if (nRequest > 0) call MPI_waitall(nRequest, iRequest_I, iStatus_II, iError)
@@ -377,7 +377,7 @@ contains
     ! Reset send buffers
     do jProc = 0, nProc - 1
       Send_P(jProc)%nRay = 0
-    end do
+    enddo
 
     ! Check if all PE-s are done
     DoneAll = DoneMe .and. (Recv%nRay == 0)
@@ -408,7 +408,7 @@ contains
         OldRay_VI(:, 1:Buffer%nRay)              ! copy old values
       deallocate(OldRay_VI)                          ! free old storage
       Buffer%MaxRay = nRayNew                      ! change buffer size
-    end if
+    endif
 
   end subroutine extend_buffer
 
@@ -463,7 +463,7 @@ contains
         iProc, jProc, Send_P(jProc)%MaxRay, &
         Send_P(jProc)%nRay, &
         Send_P(jProc)%Ray_VI(:, 1:Send_P(jProc)%nRay)
-    end do
+    enddo
 
     if (iProc == 0) write(*, '(a)') 'ray_put done'
 
@@ -479,7 +479,7 @@ contains
         'iProc ', iProc, ' received iStart=', iStart_D, &
         ' iProcStart=', iProcStart, ' XyzEnd=', XyzEnd_D, ' Length=', Length, &
         ' Isparallel,DoneRay=', IsParallel, DoneRay
-    end do
+    enddo
 
     if (iProc == 0) write(*, '(a)') 'ray_get done'
 

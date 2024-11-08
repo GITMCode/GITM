@@ -71,7 +71,7 @@ contains
     else
       call MPI_reduce(Buffer_I, Recv_I, nSize, MPI_REAL, iOp, &
                       iRoot, iComm, iError)
-    end if
+    endif
 
   end subroutine mpi_reduce_real_array
   !============================================================================
@@ -95,7 +95,7 @@ contains
     else
       call MPI_reduce(Value, Recv, 1, MPI_REAL, iOp, &
                       iRoot, iComm, iError)
-    end if
+    endif
 
   end subroutine mpi_reduce_real_scalar
   !============================================================================
@@ -120,7 +120,7 @@ contains
     else
       call MPI_reduce(iBuffer_I, iRecv_I, nSize, MPI_INTEGER, &
                       iOp, iRoot, iComm, iError)
-    end if
+    endif
 
   end subroutine mpi_reduce_integer_array
   !============================================================================
@@ -143,7 +143,7 @@ contains
     else
       call MPI_reduce(iValue, iRecv, 1, MPI_INTEGER, &
                       iOp, iRoot, iComm, iError)
-    end if
+    endif
 
   end subroutine mpi_reduce_integer_scalar
 

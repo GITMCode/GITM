@@ -71,11 +71,11 @@ subroutine get_log_info(SSLon, SSLat, GlobalMinTemp, GlobalMaxTemp, &
       AverageVertVel = AverageVertVel + &
                        sum(VerticalVelocity(1:nLons, 1:nLats, 1:nAlts, iSpecies, iBlock) &
                            *CellVolume(1:nLons, 1:nLats, 1:nAlts, iBlock))
-    end do
+    enddo
 
     TotalVolume = TotalVolume + &
                   sum(CellVolume(1:nLons, 1:nLats, 1:nAlts, iBlock))
-  end do
+  enddo
 
   call calc_single_vtec_interp(SSLon, SSLat, SSVTEC)
 
@@ -139,7 +139,7 @@ subroutine logfile(dir)
         cEUVFile
     else
       write(iLogFileUnit_, '(a,L2)') "# EUV Data: ", useEUVdata
-    end if
+    endif
     write(iLogFileUnit_, '(a,a15)') "# AMIE: ", cAmieFileNorth, cAmieFileSouth
     write(iLogFileUnit_, '(3(a,L2))') "# Solar Heating: ", useSolarHeating, &
       " Joule Heating: ", useJouleHeating, &
@@ -163,7 +163,7 @@ subroutine logfile(dir)
       "   iStep yyyy mm dd hh mm ss  ms      dt "// &
       "min(T) max(T) mean(T) min(VV) max(VV) mean(VV) F107 F107A "// &
       "By Bz Vx HP HPn HPs SubsolarLon SubsolarLat SubsolarVTEC"
-  end if
+  endif
 
   call get_subsolar(CurrentTime, VernalTime, SSLon, SSLat)
   call get_log_info(SSLon, SSLat, MinTemp, MaxTemp, MinVertVel, MaxVertVel, &
@@ -230,7 +230,7 @@ subroutine logfile(dir)
       HPs/1.0e9, SSLon, SSLat, SSVTEC
 
     call flush_unit(iLogFileUnit_)
-  end if
+  endif
 
 end subroutine logfile
 
@@ -268,13 +268,13 @@ subroutine write_code_information(dir)
     write(iCodeInfoFileUnit_, *) "nSpeciesTotal", nSpeciesTotal
     do i = 1, nSpeciesTotal
       write(iCodeInfoFileUnit_, *) "Mass of Species ", cSpecies(i), Mass(i)/AMU
-    end do
+    enddo
     write(iCodeInfoFileUnit_, *) ""
     write(iCodeInfoFileUnit_, *) "nIons", nIons
     write(iCodeInfoFileUnit_, *) "nIonsAdvect", nIonsAdvect
     do i = 1, nIons
       write(iCodeInfoFileUnit_, *) "Ion Species ", cIons(i)
-    end do
+    enddo
 
     write(iCodeInfoFileUnit_, *) ""
     write(iCodeInfoFileUnit_, *) "Inputs from UAM.in:"
@@ -404,7 +404,7 @@ subroutine write_code_information(dir)
     write(iCodeInfoFileUnit_, *) "#GSWMCOMP"
     do i = 1, 4
       write(iCodeInfoFileUnit_, *) UseGswmComp(i)
-    end do
+    enddo
     write(iCodeInfoFileUnit_, *) ""
 
     write(iCodeInfoFileUnit_, *) "#USEPERTURBATION"
@@ -554,6 +554,6 @@ subroutine write_code_information(dir)
 
     close(iCodeInfoFileUnit_)
 
-  end if
+  endif
 
 end subroutine write_code_information

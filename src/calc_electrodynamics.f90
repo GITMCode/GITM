@@ -195,7 +195,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
 
     if (iError /= 0) then
       call stop_gitm("Error allocating array DivJuAltMC")
-    end if
+    endif
 
     date = iStartTime(1) + float(iJulianDay)/float(jday(iStartTime(1), 12, 31))
 
@@ -230,7 +230,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
             sLon = GeoLonMC(i, j - 1)
           else
             sLat = -100.0
-          end if
+          endif
 
           ReferenceAlt = Altitude_GB(1, 1, 0, 1)/1000.0
           AltMinIono = ReferenceAlt
@@ -253,10 +253,10 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
           GeoLatMC(i, j) = gLat*pi/180.0
           GeoLonMC(i, j) = gLon*pi/180.0
 
-        end if
+        endif
 
-      end do
-    end do
+      enddo
+    enddo
 
     if (iDebugLevel > 3) &
       write(*, *) "====> Starting Messagepass for apex_to_geo"
@@ -279,18 +279,18 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
     do i = 1, nMagLons + 1
       do j = 2, nMagLats - 1
         deltalmc(i, j) = MagLatMC(i, j + 1) - MagLatMC(i, j - 1)
-      end do
+      enddo
       deltalmc(i, 1) = 2*(MagLatMC(i, 2) - MagLatMC(i, 1))
       deltalmc(i, nMagLats) = 2*(MagLatMC(i, nMagLats) - MagLatMC(i, nMagLats - 1))
-    end do
+    enddo
 
     do j = 1, nMagLats
       do i = 2, nMagLons
         deltapmc(i, j) = MagLonMC(i + 1, j) - MagLonMC(i - 1, j)
-      end do
+      enddo
       deltapmc(1, j) = 2*(MagLonMC(2, j) - MagLonMC(1, j))
       deltapmc(nMagLons + 1, j) = deltapmc(1, j)
-    end do
+    enddo
 
     deltapmc = deltapmc*Pi/180.0/2.0
     deltalmc = deltalmc*Pi/180.0/2.0
@@ -298,9 +298,9 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
     if (UseNewTrace) then
       LengthFieldLine = 0.0
       call MMT_Init
-    end if
+    endif
 
-  end if
+  endif
 
   if ((UseApex .and. IsEarth) .or. IsFramework) then
 
@@ -314,9 +314,9 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
 
         MagLocTimeMC(i, j) = mod(mltMC + 24.0, 24.0)
 
-      end do
-    end do
-  end if
+      enddo
+    enddo
+  endif
 
   if (.not. UseDynamo) return
 
@@ -383,7 +383,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
                                           Sigma_Pedersen(:, :, k)*dAlt_GB(:, :, k, iBlock)
       HallConductance(:, :, iBlock) = HallConductance(:, :, iBlock) + &
                                       Sigma_Hall(:, :, k)*dAlt_GB(:, :, k, iBlock)
-    end do
+    enddo
 
     call report("Starting Conductances", 2)
     if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
@@ -462,9 +462,9 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
           SigmaR(i, j, k, iUp_, iUp_) = &
             Sigma_Pedersen(i, j, k)*cos(DipAngle(i, j, k, iBlock))**2 + &
             Sigma_0(i, j, k)*sin(DipAngle(i, j, k, iBlock))**2
-        end do
-      end do
-    end do
+        enddo
+      enddo
+    enddo
 
     call report("Ending Conductances", 2)
     if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
@@ -510,9 +510,9 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
                                      Ju(iLon, iLat, iAlt, :)* &
                                      B0(iLon, iLat, iAlt, 1:3, iBlock)/B0(iLon, iLat, iAlt, iMag_, iBlock))
 
-        end do
-      end do
-    end do
+        enddo
+      enddo
+    enddo
 
     DivJu = 0.0
 
@@ -525,12 +525,12 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
       DivJu(:, :, :) = DivJu(:, :, :) - Gradient_GC(:, :, 1:nAlts, iDir)* &
                        B0(:, :, 1:nAlts, iDir, iBlock)/B0(:, :, 1:nAlts, iMag_, iBlock)
 
-    end do
+    enddo
 
     DivJuAlt = 0.0
     do k = 1, nAlts
       DivJuAlt(:, :) = DivJuAlt(:, :) + DivJu(:, :, k)*dAlt_GB(:, :, k, iBlock)
-    end do
+    enddo
 
     call report("Field-line integrals", 2)
     if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
@@ -620,12 +620,12 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
           if (GeoLat > pi/2.) then
             GeoLat = pi - GeoLat
             GeoLon = mod(GeoLon + pi, twopi)
-          end if
+          endif
 
           if (GeoLat < -pi/2.) then
             GeoLat = -pi - GeoLat
             GeoLon = mod(GeoLon + pi, twopi)
-          end if
+          endif
           GeoLon = mod(GeoLon, twopi)
           if (GeoLon < 0.) GeoLon = GeoLon + twopi
 
@@ -738,27 +738,27 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
                 if (GeoLat > pi/2.) then
                   GeoLat = pi - GeoLat
                   GeoLon = mod(GeoLon + pi, twopi)
-                end if
+                endif
 
                 if (GeoLat < -pi/2.) then
                   GeoLat = -pi - GeoLat
                   GeoLon = mod(GeoLon + pi, twopi)
-                end if
+                endif
                 GeoLon = mod(GeoLon, twopi)
                 if (GeoLon < 0.) GeoLon = GeoLon + twopi
 
-              end if
-            end if
+              endif
+            endif
 
-          end do
+          enddo
 
           if (iDebugLevel > 9) write(*, *) "=========> EndWhile "
           if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
 
-        end do
-      end do
+        enddo
+      enddo
 
-    end if
+    endif
 
     call report("Calc MLT", 2)
     if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
@@ -815,7 +815,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
           else
             SigmaPLMC(i, j) = -(shh - scc)
             SigmaLPMC(i, j) = +(shh + scc)
-          end if
+          endif
 
           KDlmMC(i, j) = -sign(1.0, mLatMC)*kdlm_s*be3
           KDpmMC(i, j) = kdpm_s*be3*abs(sinim)
@@ -823,15 +823,15 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
           KlmMC(i, j) = -sign(1.0, mLatMC)*klm_s
           KpmMC(i, j) = kpm_s*abs(sinim)
 
-        end if
+        endif
 
-      end do
-    end do
+      enddo
+    enddo
 
     call report("Done with find_mag_points", 5)
     if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
 
-  end do
+  enddo
 
   if (iDebugLevel > 2) write(*, *) "===> Beginning Sum of Electrodynamics"
   if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
@@ -882,9 +882,9 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
       do k = -iAve, iAve
         ii = mod(i + k + nMagLons, nMagLons) + 1
         AverageMC(i + 1, j) = AverageMC(i + 1, j) + SigmaPPMC(ii, j)
-      end do
-    end do
-  end do
+      enddo
+    enddo
+  enddo
   SigmaPPMC = AverageMC/(iAve*2 + 1)
   SigmaPPMC(nMagLons + 1, :) = SigmaPPMC(1, :)
 
@@ -898,9 +898,9 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
       do k = -iAve, iAve
         ii = mod(i + k + nMagLons, nMagLons) + 1
         AverageMC(i + 1, j) = AverageMC(i + 1, j) + SigmaLLMC(ii, j)
-      end do
-    end do
-  end do
+      enddo
+    enddo
+  enddo
   SigmaLLMC = AverageMC/(iAve*2 + 1)
   SigmaLLMC(nMagLons + 1, :) = SigmaLLMC(1, :)
 
@@ -914,9 +914,9 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
       do k = -iAve, iAve
         ii = mod(i + k + nMagLons, nMagLons) + 1
         AverageMC(i + 1, j) = AverageMC(i + 1, j) + SigmaHHMC(ii, j)
-      end do
-    end do
-  end do
+      enddo
+    enddo
+  enddo
   SigmaHHMC = AverageMC/(iAve*2 + 1)
   SigmaHHMC(nMagLons + 1, :) = SigmaHHMC(1, :)
 
@@ -930,9 +930,9 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
       do k = -iAve, iAve
         ii = mod(i + k + nMagLons, nMagLons) + 1
         AverageMC(i + 1, j) = AverageMC(i + 1, j) + SigmaCCMC(ii, j)
-      end do
-    end do
-  end do
+      enddo
+    enddo
+  enddo
   SigmaCCMC = AverageMC/(iAve*2 + 1)
   SigmaCCMC(nMagLons + 1, :) = SigmaCCMC(1, :)
 
@@ -946,9 +946,9 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
       do k = -iAve, iAve
         ii = mod(i + k + nMagLons, nMagLons) + 1
         AverageMC(i + 1, j) = AverageMC(i + 1, j) + SigmaLPMC(ii, j)
-      end do
-    end do
-  end do
+      enddo
+    enddo
+  enddo
   SigmaLPMC = AverageMC/(iAve*2 + 1)
   SigmaLPMC(nMagLons + 1, :) = SigmaLPMC(1, :)
 
@@ -962,9 +962,9 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
       do k = -iAve, iAve
         ii = mod(i + k + nMagLons, nMagLons) + 1
         AverageMC(i + 1, j) = AverageMC(i + 1, j) + SigmaPLMC(ii, j)
-      end do
-    end do
-  end do
+      enddo
+    enddo
+  enddo
   SigmaPLMC = AverageMC/(iAve*2 + 1)
   SigmaPLMC(nMagLons + 1, :) = SigmaPLMC(1, :)
 
@@ -978,9 +978,9 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
       do k = -iAve, iAve
         ii = mod(i + k + nMagLons, nMagLons) + 1
         AverageMC(i + 1, j) = AverageMC(i + 1, j) + KDlmMC(ii, j)
-      end do
-    end do
-  end do
+      enddo
+    enddo
+  enddo
   KDlmMC = AverageMC/(iAve*2 + 1)
   KDlmMC(nMagLons + 1, :) = KDlmMC(1, :)
 
@@ -994,9 +994,9 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
       do k = -iAve, iAve
         ii = mod(i + k + nMagLons, nMagLons) + 1
         AverageMC(i + 1, j) = AverageMC(i + 1, j) + KDpmMC(ii, j)
-      end do
-    end do
-  end do
+      enddo
+    enddo
+  enddo
   KDpmMC = AverageMC/(iAve*2 + 1)
   KDpmMC(nMagLons + 1, :) = KDpmMC(1, :)
 
@@ -1010,9 +1010,9 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
       do k = -iAve, iAve
         ii = mod(i + k + nMagLons, nMagLons) + 1
         AverageMC(i + 1, j) = AverageMC(i + 1, j) + KlmMC(ii, j)
-      end do
-    end do
-  end do
+      enddo
+    enddo
+  enddo
   KlmMC = AverageMC/(iAve*2 + 1)
   KlmMC(nMagLons + 1, :) = KlmMC(1, :)
 
@@ -1026,9 +1026,9 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
       do k = -iAve, iAve
         ii = mod(i + k + nMagLons, nMagLons) + 1
         AverageMC(i + 1, j) = AverageMC(i + 1, j) + KpmMC(ii, j)
-      end do
-    end do
-  end do
+      enddo
+    enddo
+  enddo
   KpmMC = AverageMC/(iAve*2 + 1)
   KpmMC(nMagLons + 1, :) = KpmMC(1, :)
 
@@ -1038,7 +1038,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
   do iLon = 1, nMagLons
     if (MagLocTimeMC(iLon, iEquator) <= 12.0 .and. &
         MagLocTimeMC(iLon + 1, iEquator) >= 12.0) iLonNoon = iLon
-  end do
+  enddo
 
   ! Now we want to find out how far away we have to go away from the equator,
   ! before we need to start filling in values.
@@ -1063,12 +1063,12 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
   do i = 1, nMagLons + 1
     do j = iStart + 1, iEquator - 1
       SigmaHHMC(i, j) = 0.83*SigmaHHMC(i, j - 1)
-    end do
+    enddo
     do j = iEnd - 1, iEquator + 1, -1
       SigmaHHMC(i, j) = 0.83*SigmaHHMC(i, j + 1)
-    end do
+    enddo
     SigmaHHMC(i, iEquator) = 0.83*(SigmaHHMC(i, iEquator - 1) + SigmaHHMC(i, iEquator + 1))/2.0
-  end do
+  enddo
 
   ! LL Conductance
 
@@ -1090,12 +1090,12 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
   do i = 1, nMagLons + 1
     do j = iStart + 1, iEquator - 1
       SigmaLLMC(i, j) = 0.85*SigmaLLMC(i, j - 1)
-    end do
+    enddo
     do j = iEnd - 1, iEquator + 1, -1
       SigmaLLMC(i, j) = 0.85*SigmaLLMC(i, j + 1)
-    end do
+    enddo
     SigmaLLMC(i, iEquator) = 0.85*(SigmaLLMC(i, iEquator - 1) + SigmaLLMC(i, iEquator + 1))/2.0
-  end do
+  enddo
 
   ! PP Conductance
 
@@ -1115,13 +1115,13 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
       SigmaCCMC(i, j) = 0.9*SigmaCCMC(i, j - 1)
       SigmaPLMC(i, j) = -(sigmahhmc(i, j) - sigmaccmc(i, j))
       SigmaLPMC(i, j) = +(sigmahhmc(i, j) + sigmaccmc(i, j))
-    end do
+    enddo
     do j = iEnd - 1, iEquator + 1, -1
       SigmaPPMC(i, j) = 0.9*SigmaPPMC(i, j + 1)
       SigmaCCMC(i, j) = 0.9*SigmaCCMC(i, j + 1)
       SigmaPLMC(i, j) = +(sigmahhmc(i, j) - sigmaccmc(i, j))
       SigmaLPMC(i, j) = -(sigmahhmc(i, j) + sigmaccmc(i, j))
-    end do
+    enddo
     j = iEquator
     SigmaPPMC(i, j) = 0.9*(SigmaPPMC(i, j - 1) + SigmaPPMC(i, j + 1))/2.0
     SigmaCCMC(i, j) = 0.9*(SigmaCCMC(i, j - 1) + SigmaCCMC(i, j - 1))/2.0
@@ -1135,7 +1135,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
 !        if (isnan(SigmaLPMC(i,j))) write(*,*) 'sigmalp is nan : ',i,j
 !     enddo
 
-  end do
+  enddo
 
   do i = 1, nMagLons + 1
     do j = 1, iEquator - 1    ! Southern hemisphere
@@ -1159,9 +1159,9 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
 
       if (SigmaLLMC(i, j) > 10000.0) &
         write(*, *) 'SigmaLLMC:', iproc, MagLonMC(i, j), MagLatMC(i, j), MagLatMC(i, k), SigmaLLMC(i, j)
-    end do
+    enddo
 
-  end do
+  enddo
 
   where (SigmaPLMC < 0.001) SigmaPLMC = 0.001
   where (SigmaLPMC > -0.001) SigmaLPMC = -0.001
@@ -1186,13 +1186,13 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
 
     do j = iStart + 1, iEquator - 1
       KDlmMC(i, j) = 0.92*KDlmMC(i, j - 1)
-    end do
+    enddo
     do j = iEnd - 1, iEquator + 1, -1
       KDlmMC(i, j) = 0.92*KDlmMC(i, j + 1)
-    end do
+    enddo
     KDlmMC(i, iEquator) = 0.92*(KDlmMC(i, iEquator - 1) + KDlmMC(i, iEquator + 1))/2
 
-  end do
+  enddo
 
   ! KDpmMC
 
@@ -1214,12 +1214,12 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
   do i = 1, nMagLons + 1
     do j = iStart + 1, iEquator - 1
       KDpmMC(i, j) = 0.92*KDpmMC(i, j - 1)
-    end do
+    enddo
     do j = iEnd - 1, iEquator + 1, -1
       KDpmMC(i, j) = 0.92*KDpmMC(i, j + 1)
-    end do
+    enddo
     KDpmMC(i, iEquator) = 0.92*(KDpmMC(i, iEquator - 1) + KDpmMC(i, iEquator + 1))/2
-  end do
+  enddo
 
   !============
 
@@ -1235,7 +1235,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
       dklmdlMC(i, j) = cos(MagLatMC(i, j)*pi/180)* &
                        0.5*(KlmMC(i, j + 1) - KlmMC(i, j - 1))/deltalmc(i, j)
       dklmdlMC(i, j) = dklmdlMC(i, j) - sin(MagLatMC(i, j)*pi/180)*KlmMC(i, j)
-    end do
+    enddo
     dSigmaLLdlMC(i, 1) = (SigmaLLMC(i, 2) - SigmaLLMC(i, 1))/deltalmc(i, 1)
     dSigmaLLdlMC(i, nMagLats) = &
       (SigmaLLMC(i, nMagLats) - SigmaLLMC(i, nMagLats - 1))/deltalmc(i, nMagLats)
@@ -1262,7 +1262,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
     j = nMagLats
     dklmdlMC(i, j) = dklmdlMC(i, j) - sin(MagLatMC(i, j)*pi/180)*KlmMC(i, j)
 
-  end do
+  enddo
 
   do j = 1, nMagLats
     do i = 2, nMagLons
@@ -1270,7 +1270,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
       dSigmaPPdpMC(i, j) = 0.5*(SigmaPPMC(i + 1, j) - SigmaPPMC(i - 1, j))/deltapmc(i, j)
       dKDpmdpMC(i, j) = 0.5*(KDpmMC(i + 1, j) - KDpmMC(i - 1, j))/deltapmc(i, j)
       dKpmdpMC(i, j) = 0.5*(KpmMC(i + 1, j) - KpmMC(i - 1, j))/deltapmc(i, j)
-    end do
+    enddo
     dSigmaPLdpMC(1, j) = (SigmaPLMC(2, j) - SigmaPLMC(1, j))/deltapmc(1, j)
     dSigmaPLdpMC(nMagLons + 1, j) = dSigmaPLdpMC(1, j)
     dSigmaPPdpMC(1, j) = (SigmaPPMC(2, j) - SigmaPPMC(1, j))/deltapmc(1, j)
@@ -1279,7 +1279,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
     dKDpmdpMC(nMagLons + 1, j) = dKDpmdpMC(1, j)
     dKpmdpMC(1, j) = (KpmMC(2, j) - KpmMC(1, j))/deltapmc(1, j)
     dKpmdpMC(nMagLons + 1, j) = dKpmdpMC(1, j)
-  end do
+  enddo
 
   solver_a_mc = 4*deltalmc**2*sigmappmc/cos(MagLatMC*pi/180)
   solver_b_mc = 4*deltapmc**2*cos(MagLatMC*pi/180)*sigmallmc
@@ -1337,22 +1337,22 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
       do j = iStart, iEnd
         sll = SigmaLLMC(i, j)
         SigmaCowlingMC(i, j) = SigmaPPMC(i, j) - (SigmaPLMC(i, j)*SigmaLPMC(i, j)/sll)
-      end do
-    end do
+      enddo
+    enddo
     do j = iStart + 1, iEnd - 1
       do i = 2, nMagLons
         dSigmaCowlingdpMC(i, j) = 0.5*(SigmaCowlingMC(i + 1, j) - SigmaCowlingMC(i - 1, j))/deltapmc(i, j)
         dSigmaLLdpMC(i, j) = 0.5*(SigmaLLMC(i + 1, j) - SigmaLLMC(i - 1, j))/deltapmc(i, j)
         dKDlmdpMC(i, j) = 0.5*(KDlmMC(i + 1, j) - KDlmMC(i - 1, j))/deltapmc(i, j)
 
-      end do
+      enddo
       dSigmaCowlingdpMC(1, j) = (SigmaCowlingMC(2, j) - SigmaCowlingMC(1, j))/deltapmc(1, j)
       dSigmaCowlingdpMC(nMagLons + 1, j) = dSigmaCowlingdpMC(1, j)
       dSigmaLLdpMC(1, j) = (SigmaLLMC(2, j) - SigmaLLMC(1, j))/deltapmc(1, j)
       dSigmaLLdpMC(nMagLons + 1, j) = dSigmaLLdpMC(1, j)
       dKDlmdpMC(1, j) = (KDlmMC(2, j) - KDlmMC(1, j))/deltapmc(1, j)
       dKDlmdpMC(nMagLons + 1, j) = dKDlmdpMC(1, j)
-    end do
+    enddo
 
     do i = 1, nMagLons + 1
       do j = iStart, iEnd
@@ -1385,10 +1385,10 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
            (sll*dSigmaPLdpMC(i, j) &
             - SigmaPLMC(i, j)*dSigmaLLdpMC(i, j)))
 
-      end do
-    end do
+      enddo
+    enddo
 
-  end if
+  endif
 
   ! Add this to make sure solver_a never goes below 0
   where (solver_a_mc < 0.001) solver_a_mc = 0.001
@@ -1416,7 +1416,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
     write(*, *) "Error in routine calc_electrodynamics (UA_SetGrid):"
     write(*, *) iError
     call stop_gitm("Stopping in calc_electrodynamics")
-  end if
+  endif
 
   iError = 0
   call UA_GetPotential(SmallPotentialMC, iError)
@@ -1426,7 +1426,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
     write(*, *) iError
 !     call stop_gitm("Stopping in calc_electrodynamics")
     SmallPotentialMC = 0.0
-  end if
+  endif
 
   do iLat = 2, nMagLats - 1
     do iLon = 1, nMagLons
@@ -1458,15 +1458,15 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
         b(iI) = b(iI) - (solver_b_mc(iLon, iLat) - solver_d_mc(iLon, iLat))* &
                 SmallPotentialMC(iLon, 1)
         e1_I(iI) = 0.0
-      end if
+      endif
       if (iLat == nMagLats - 1) then
         b(iI) = b(iI) - (solver_b_mc(iLon, iLat) + solver_d_mc(iLon, iLat))* &
                 SmallPotentialMC(iLon, 2)
         f1_I(iI) = 0.0
-      end if
+      endif
 
-    end do
-  end do
+    enddo
+  enddo
 
   call start_timing("dynamo_solver")
 
@@ -1496,7 +1496,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
     DoTestMe = .true.
   else
     DoTestMe = .false.
-  end if
+  endif
 
   Residual = 1.0    !! Residual = 1.0 iterations required ~ 103
              !! with Residual=0.01,only 20 more iterations are required (~ 122)
@@ -1513,8 +1513,8 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
     do iLon = 1, nMagLons
       iI = iI + 1
       DynamoPotentialMC(iLon, iLat) = x(iI)
-    end do
-  end do
+    enddo
+  enddo
 
   DynamoPotentialMC(:, 1) = 0.0
   DynamoPotentialMC(:, nMagLats) = 0.0
@@ -1528,8 +1528,8 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
     do iLon = 1, nMagLons
       iI = nMagLats - iLat + 1
       DynamoPotentialMC(iLon, iLat) = OldPotMC(iLon, iI)
-    end do
-  end do
+    enddo
+  enddo
   ! --------------------------------------------------------------------------
 
   DynamoPotentialMC(nMagLons + 1, :) = DynamoPotentialMC(1, :)
@@ -1541,11 +1541,11 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
     do i = 2, nMagLons
       Ed1new(i, j) = -(1/(RBody*cos(MagLatMC(i, j)*pi/180)))* &
                      0.5*(DynamoPotentialMC(i + 1, j) - DynamoPotentialMC(i - 1, j))/deltapmc(i, j)
-    end do
+    enddo
     Ed1new(1, j) = -(1/(RBody*cos(MagLatMC(i, j)*pi/180)))* &
                    (DynamoPotentialMC(2, j) - DynamoPotentialMC(1, j))/deltapmc(1, j)
     Ed1new(nMagLons + 1, j) = Ed1new(1, j)
-  end do
+  enddo
 
   do i = 1, nMagLons + 1
     do j = 2, nMagLats - 1
@@ -1553,7 +1553,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
                   sqrt(4.0 - 3.0*cos(MagLatMC(i, j)*pi/180))) + 1e-6
       Ed2new(i, j) = (1/(RBody*sinIm))* &
                      0.5*(DynamoPotentialMC(i, j + 1) - DynamoPotentialMC(i, j - 1))/deltalmc(i, j)
-    end do
+    enddo
     sinim = abs(2.0*sin(MagLatMC(i, 1)*pi/180)/ &
                 sqrt(4.0 - 3.0*cos(MagLatMC(i, 1)*pi/180))) + 1e-6
     Ed2new(i, 1) = (1/(RBody*sinIm))* &
@@ -1564,7 +1564,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
     Ed2new(i, nMagLats) = (1/(RBody*sinIm))* &
                           (DynamoPotentialMC(i, nMagLats) - DynamoPotentialMC(i, nMagLats - 1))/deltalmc(i, nMagLats)
 
-  end do
+  enddo
 ! End Electric field
 
 !  write(*,*) "=========> Done! ", iProc, i, j
@@ -1595,11 +1595,11 @@ contains
             if (iLon == nLons) then
               magloctime_local(iLon + 1, iLat) = &
                 magloctime_local(iLon + 1, iLat) + 24.0
-            end if
-          end if
-        end if
-      end do
-    end do
+            endif
+          endif
+        endif
+      enddo
+    enddo
 
   end subroutine calc_mltlocal
 
@@ -1653,7 +1653,7 @@ contains
       jj = jj + 1
       if (gLatMC >= Latitude(jj, iBlock) .and. &
           gLatMC < Latitude(jj + 1, iBlock)) IsFound = .true.
-    end do
+    enddo
 
     IsFound = .false.
     ii = -1
@@ -1661,7 +1661,7 @@ contains
       ii = ii + 1
       if (gLonMC >= Longitude(ii, iBlock) .and. &
           gLonMC < Longitude(ii + 1, iBlock)) IsFound = .true.
-    end do
+    enddo
 
     mfac = (gLonMC - Longitude(ii, iBlock))/ &
            (Longitude(ii + 1, iBlock) - Longitude(ii, iBlock))
@@ -1744,7 +1744,7 @@ contains
           gmlt = gmlt - 24.0
         else
           if (gmlt2 < gmlt .and. mltMC > gmlt) gmlt2 = gmlt2 + 24.0
-        end if
+        endif
 
         IsFound = .false.
 
@@ -1774,8 +1774,8 @@ contains
                 mlatMC == MLatitude(ii, jj + 1, k, iBlock)) &
               IsFound = .true.
 
-          end if
-        end if
+          endif
+        endif
 
 !          if (ii == 0 .or. jj == 0) IsFound = .false.
 
@@ -1807,12 +1807,12 @@ contains
           ii = nLons
           jj = nLats
 
-        end if
+        endif
 
         jj = jj + 1
-      end do
+      enddo
       ii = ii + 1
-    end do
+    enddo
 
   end subroutine find_mag_point_old
 
@@ -1855,8 +1855,8 @@ subroutine matvec_gitm(x_I, y_I, n)
     do iLon = 1, nMagLons
       i = i + 1
       x_G(iLon, iLat) = x_I(i)
-    end do
-  end do
+    enddo
+  enddo
 
   x_G(:, 1) = 0.0
   x_G(:, nMagLats) = 0.0
@@ -1894,8 +1894,8 @@ subroutine matvec_gitm(x_I, y_I, n)
         x_G(iLm, iLat + 1) + &
         (solver_c_mc(iLon, iLat))* &
         x_G(iLm, iLat - 1)
-    end do
-  end do
+    enddo
+  enddo
 
 !!!  ! Preconditioning: y'= U^{-1}.L^{-1}.y
   call Lhepta(n, 1, nMagLons, n, y_I, d_I, e_I, e1_I)
@@ -1961,9 +1961,9 @@ subroutine UA_calc_electrodynamics_1d
                                           Sigma_Pedersen(:, :, k)*dAlt_GB(:, :, k, iBlock)
       HallConductance(:, :, iBlock) = HallConductance(:, :, iBlock) + &
                                       Sigma_Hall(:, :, k)*dAlt_GB(:, :, k, iBlock)
-    end do
+    enddo
 
-  end do
+  enddo
 
   call end_timing("calc_electrodyn_1d")
 

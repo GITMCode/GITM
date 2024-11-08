@@ -61,7 +61,7 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
     dn = 0.0
     LogINS(0, iSpecies) = LogINS(1, iSpecies) - dn
     LogINS(-1, iSpecies) = LogINS(0, iSpecies) - dn
-  end do
+  enddo
 
   LogINS(0, nIons) = alog(sum(exp(LogINS(0, 1:nIons - 1))))
   LogINS(1, nIons) = alog(sum(exp(LogINS(1, 1:nIons - 1))))
@@ -75,7 +75,7 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
     else
       LogNS(0, iN4S_) = LogNS(1, iN4S_) + dn
       LogNS(-1, iN4S_) = LogNS(0, iN4S_) + dn
-    end if
+    endif
 
     if (VertVel(1, iN4S_) .gt. 0.0) then
       ! Don't allow upwelling of N4S
@@ -84,9 +84,9 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
     else
       VertVel(0, iN4S_) = 1.0*VertVel(1, iN4S_)
       VertVel(-1, iN4S_) = 1.0*VertVel(1, iN4S_)
-    end if
+    endif
 
-  end if
+  endif
 
   ! Lower boundary for O on Mars
   if (nSpecies >= iO_) then
@@ -98,7 +98,7 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
     else
       LogNS(0, iO_) = LogNS(1, iO_) + dn
       LogNS(-1, iO_) = LogNS(0, iO_) + dn
-    end if
+    endif
 
     if (VertVel(1, iO_) .gt. 0.0) then
       ! Don't allow upwelling of O
@@ -107,9 +107,9 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
     else
       VertVel(0, iO_) = 1.0*VertVel(1, iO_)
       VertVel(-1, iO_) = 1.0*VertVel(1, iO_)
-    end if
+    endif
 
-  end if
+  endif
 
   !-----------------------------------------------------------
   ! Top
@@ -140,7 +140,7 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
     Vel_GD(nAlts + 2, iUp_) = -Vel_GD(nAlts - 1, iUp_)
     VertVel(nAlts + 1, :) = -VertVel(nAlts, :)
     VertVel(nAlts + 2, :) = -VertVel(nAlts - 1, :)
-  end if
+  endif
 
   ! Constant temperature (zero gradient)
 
@@ -158,7 +158,7 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
     if (dn > 0) dn = -0.01*exp(LogINS(nAlts, iSpecies))
     LogINS(nAlts + 1, iSpecies) = alog(exp(LogINS(nAlts, iSpecies)) + dn)
     LogINS(nAlts + 2, iSpecies) = alog(exp(LogINS(nAlts + 1, iSpecies)) + dn)
-  end do
+  enddo
 
   LogINS(nAlts + 1, nIons) = alog(sum(exp(LogINS(nAlts + 1, 1:nIons - 1))))
   LogINS(nAlts + 2, nIons) = alog(sum(exp(LogINS(nAlts + 2, 1:nIons - 1))))
@@ -177,9 +177,9 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
           Gravity_G(nAlts), Mass(iSpecies), Temp(nAlts), &
           LogNS(nAlts, iSpecies), LogNS(nAlts + 1, iSpecies), &
           dAlt_F(nAlts), LogNS(nAlts + 2, iSpecies)
-      end if
-    end do
-  end do
+      endif
+    enddo
+  enddo
 
 end subroutine set_vertical_bcs
 

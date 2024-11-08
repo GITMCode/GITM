@@ -223,13 +223,13 @@ subroutine calc_chemistry(iBlock)
                 else
                   IonSources(iIon) = 0.0
                   IonLosses(iIon) = 0.0
-                end if
-              end if
+                endif
+              endif
             else
               IonSources(iIon) = 0.0
               IonLosses(iIon) = 0.0
-            end if
-          end do
+            endif
+          enddo
 
           do iNeutral = 1, nSpeciesTotal
 
@@ -249,13 +249,13 @@ subroutine calc_chemistry(iBlock)
                 else
                   NeutralSources(iNeutral) = 0.0
                   NeutralLosses(iNeutral) = 0.0
-                end if
-              end if
+                endif
+              endif
             else
               NeutralSources(iNeutral) = 0.0
               NeutralLosses(iNeutral) = 0.0
-            end if
-          end do
+            endif
+          enddo
 
           Ions(nIons) = 0.0
           do iIon = 1, nIons - 1
@@ -271,15 +271,15 @@ subroutine calc_chemistry(iBlock)
                 iIon, iLon, iLat, iAlt, &
                 Ions(iIon), &
                 IonSources(iIon), IonLosses(iIon)
-            end if
-          end do
+            endif
+          enddo
 
           do iNeutral = 1, nSpeciesTotal
             Neutrals(iNeutral) = &
               Neutrals(iNeutral) + &
               (NeutralSources(iNeutral) - NeutralLosses(iNeutral))* &
               DtSub
-          end do
+          enddo
 
           ChemicalHeatingRate(iLon, iLat, iAlt) = &
             ChemicalHeatingRate(iLon, iLat, iAlt) + &
@@ -304,14 +304,14 @@ subroutine calc_chemistry(iBlock)
                 iDtReducer, iLon, iLat, iAlt, &
                 Ions(iDtReducer), &
                 IonSources(iDtReducer), IonLosses(iDtReducer)
-            end if
+            endif
 
             call stop_gitm("Ion Chemistry is too fast!!")
-          end if
+          endif
 
           nIters = nIters + 1
 
-        end do
+        enddo
 
         IDensityS(iLon, iLat, iAlt, :, iBlock) = Ions
         NDensityS(iLon, iLat, iAlt, :, iBlock) = Neutrals
@@ -319,16 +319,16 @@ subroutine calc_chemistry(iBlock)
         Emissions(iLon, iLat, iAlt, :, iBlock) = &
           Emissions(iLon, iLat, iAlt, :, iBlock) + EmissionTotal
 
-      end do
-    end do
-  end do
+      enddo
+    enddo
+  enddo
 
   if (iDebugLevel > 3) then
     do iIon = 1, nIons
       write(*, *) "====> Max Ion Density: ", iIon, &
         maxval(IDensityS(1:nLons, 1:nLats, (nAlts*4)/5, iIon, iBlock))
-    end do
-  end if
+    enddo
+  endif
 
   if (iDebugLevel > 2) &
     write(*, *) "===> Average Dt for this timestep : ", &

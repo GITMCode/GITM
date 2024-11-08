@@ -96,7 +96,7 @@ contains
 
       FlowWidthAngle = FlowWidthAngle*cDegToRad
       MaxBr = abs(MaxBrActiveRegion)*Si2No_V(UnitB_)
-    end if
+    endif
 
     if (Time < StartTime .or. Time > StopTime) then
       U_D = 0.0
@@ -106,8 +106,8 @@ contains
         TimeProfile = (StopTime - Time)/RampDownTime
       else
         TimeProfile = min((Time - StartTime)/RampUpTime, 1.0)
-      end if
-    end if
+      endif
+    endif
     !!! TimeProfile = 1.0
 
     R = sqrt(sum(x_D**2))
@@ -142,7 +142,7 @@ contains
       else
         UTheta = 1.0/FullBr &
                  *(ShearProfileR - ShearProfileL)/(R*SinTheta*dPhi)
-      end if
+      endif
 
       ShearProfileL = shear_profile(R, Theta - 0.5*dTheta, Phi, Time, FullBrL)
       ShearProfileR = shear_profile(R, Theta + 0.5*dTheta, Phi, Time, FullBrR)
@@ -152,8 +152,8 @@ contains
       else
         UPhi = -1.0/FullBr &
                *(ShearProfileR - ShearProfileL)/(R*dTheta)
-      end if
-    end if
+      endif
+    endif
 
     U_D(1) = UTheta*CosTheta*CosPhi - UPhi*SinPhi
     U_D(2) = UTheta*CosTheta*SinPhi + UPhi*CosPhi
@@ -163,7 +163,7 @@ contains
       U_D = FlowAmplitude*U_D
     else
       U_D = FlowAmplitude*U_D*TimeProfile
-    end if
+    endif
 
   end subroutine get_shearflow
 

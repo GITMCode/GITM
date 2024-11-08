@@ -31,7 +31,7 @@ contains
       call get_arch(x_D, B_D)
 
       B0_D = B0_D + B_D
-    end if
+    endif
 
   end subroutine EEE_get_B0
 

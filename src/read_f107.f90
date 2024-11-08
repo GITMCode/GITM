@@ -29,11 +29,11 @@ subroutine read_f107(iOutputError)
   if (ierror .ne. 0) then
     iOutputError = 1
     return
-  end if
+  endif
 
   do iPt = 1, 15
     read(LunIndices_, *) line
-  end do
+  enddo
 
   done = .false.
 
@@ -44,9 +44,9 @@ subroutine read_f107(iOutputError)
     tmp_all(6, iPt) = tmp(7)
     if (ierror /= 0) then
       done = .true.
-    end if
+    endif
     iPt = iPt + 1
-  end do
+  enddo
   npts = iPt - 1
 
   call Insert_into_Indices_Array(tmp_all, f107_)

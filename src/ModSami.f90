@@ -151,17 +151,17 @@ contains
           SamiVariables(iVar) = trim(line)
           iVar = iVar + 1
           write(*, *) 'Dir:', trim(SamiDir)
-        end do
+        enddo
         nVarsSami = iVar - 2
 
       case ("#VARFILES")
         do iVar = 1, nVarsSami
           read(iSamiUnit, '(a)', iostat=iError) line
           SamiFileList(iVar) = line
-        end do
+        enddo
       end select
 
-    end do
+    enddo
 
     close(iSamiUnit)
 
@@ -169,20 +169,20 @@ contains
       if (trim(SamiVariables(iVar)) == 'time') then
         write(*, *) 'Reading Time File : ', trim(SamiFileList(iVar))
         call ReadSamiTimeFile(SamiFileList(iVar))
-      end if
+      endif
       if (trim(SamiVariables(iVar)) == 'lon') then
         write(*, *) 'Reading Lon File : ', trim(SamiFileList(iVar))
         call ReadSamiLonFile(SamiFileList(iVar))
-      end if
+      endif
       if (trim(SamiVariables(iVar)) == 'lat') then
         write(*, *) 'Reading Lat File : ', trim(SamiFileList(iVar))
         call ReadSamiLatFile(SamiFileList(iVar))
-      end if
+      endif
       if (trim(SamiVariables(iVar)) == 'alt') then
         write(*, *) 'Reading Alt File : ', trim(SamiFileList(iVar))
         call ReadSamiAltFile(SamiFileList(iVar))
-      end if
-    end do
+      endif
+    enddo
 
     allocate(SamiDataDummy(nLatsSami - 2, nAltsSami, nLonsSami - 2))
     allocate(SamiDataOneTime(nVarsSami - 4, nLonsSami, nLatsSami, nAltsSami))
@@ -216,7 +216,7 @@ contains
       SamiTimes(iT) = tHours*3600.0 + SamiStartTime
       iT = iT + 1
 
-    end do
+    enddo
 
     nTimesSami = iT - 1
 
@@ -245,7 +245,7 @@ contains
     do while (iError == 0)
       read(iSamiUnit, *, iostat=iError) lon
       iLon = iLon + 1
-    end do
+    enddo
     ! Need to add a 0 and 360, so add 2 to nLons
     nLonsSami = iLon - 2 + 2
     close(iSamiUnit)
@@ -258,7 +258,7 @@ contains
     do iLon = 2, nLonsSami - 1
       read(iSamiUnit, *, iostat=iError) lon
       SamiLons(iLon) = lon
-    end do
+    enddo
     close(iSamiUnit)
     SamiLons(nLonsSami) = 360.0
 
@@ -284,7 +284,7 @@ contains
     do while (iError == 0)
       read(iSamiUnit, *, iostat=iError) lat
       iLat = iLat + 1
-    end do
+    enddo
     ! Need to add a -90 and 90, so add 2 to nLats
     nLatsSami = iLat - 2 + 2
     close(iSamiUnit)
@@ -297,7 +297,7 @@ contains
     do iLat = 2, nLatsSami - 1
       read(iSamiUnit, *, iostat=iError) lat
       SamiLats(iLat) = lat
-    end do
+    enddo
     close(iSamiUnit)
     SamiLats(nLatsSami) = 90.0
 
@@ -323,7 +323,7 @@ contains
     do while (iError == 0)
       read(iSamiUnit, *, iostat=iError) alt
       iAlt = iAlt + 1
-    end do
+    enddo
     nAltsSami = iAlt - 2
     close(iSamiUnit)
 
@@ -334,7 +334,7 @@ contains
     do iAlt = 1, nAltsSami
       read(iSamiUnit, *, iostat=iError) alt
       SamiAlts(iAlt) = alt
-    end do
+    enddo
     close(iSamiUnit)
 
   end subroutine ReadSamiAltFile
@@ -357,11 +357,11 @@ contains
     iError = 0
     do iT = 1, iTime
       read(iSamiUnit, iostat=iError) SamiDataDummy
-    end do
+    enddo
     if (iError > 0) then
       write(*, *) 'Error Reading Sami File : ', iError
       write(*, *) 'File : ', trim(SamiDir)//'/'//trim(infile)
-    end if
+    endif
     close(iSamiUnit)
 
   end subroutine ReadSami
@@ -382,9 +382,9 @@ contains
         do iAlt = 1, nAltsSami
           SamiDataOneTime(iVar, iLon, iLat, iAlt) = &
             SamiDataDummy(iLat - 1, iAlt, iLon - 1)
-        end do
-      end do
-    end do
+        enddo
+      enddo
+    enddo
 
     ! South Pole - average all longitudes
     iLat = 1
@@ -392,7 +392,7 @@ contains
       SamiDataOneTime(iVar, :, iLat, iAlt) = &
         sum(SamiDataOneTime(iVar, 2:nLonsSami - 1, iLat + 1, iAlt))/ &
         (nLonsSami - 2)
-    end do
+    enddo
 
     ! North Pole - average all longitudes
     iLat = nLatsSami
@@ -400,7 +400,7 @@ contains
       SamiDataOneTime(iVar, :, iLat, iAlt) = &
         sum(SamiDataOneTime(iVar, 2:nLonsSami - 1, iLat - 1, iAlt))/ &
         (nLonsSami - 2)
-    end do
+    enddo
 
     do iLat = 2, nLatsSami - 1
       do iAlt = 1, nAltsSami
@@ -409,8 +409,8 @@ contains
            SamiDataOneTime(iVar, nLonsSami - 1, iLat, iAlt))/2
         SamiDataOneTime(iVar, nLonsSami, iLat, iAlt) = &
           SamiDataOneTime(iVar, 1, iLat, iAlt)
-      end do
-    end do
+      enddo
+    enddo
 
   end subroutine FileSamiData
 
@@ -428,7 +428,7 @@ contains
     do iVar = 5, nVarsSami
       call ReadSami(SamiFileList(iVar), iTime)
       call FileSamiData(iVar - 4)
-    end do
+    enddo
 
   end subroutine ReadSamiOneTime
 
@@ -449,17 +449,17 @@ contains
       iError = 1
       write(*, *) "Requested time is before first file!"
       return
-    end if
+    endif
     if (SamiTimes(nTimesSami) < InputTime) then
       iError = 1
       write(*, *) "Requested time is after last file!"
       return
-    end if
+    endif
 
     iSamiIndex = 1
     do while (SamiTimes(iSamiIndex) <= InputTime .and. iSamiIndex < nTimesSami)
       iSamiIndex = iSamiIndex + 1
-    end do
+    enddo
 
     rSamiFactor = (SamiTimes(iSamiIndex) - InputTime)/ &
                   (SamiTimes(iSamiIndex) - SamiTimes(iSamiIndex - 1))
@@ -477,7 +477,7 @@ contains
 
       iSamiIndexOld = iSamiIndex
 
-    end if
+    endif
 
     SamiDataAtTime = &
       rSamiFactor*SamiDataTwoTimes(1, :, :, :, :) + &
@@ -522,9 +522,9 @@ contains
 
       else
         OutData(iPoint, :) = -1.0e32
-      end if
+      endif
 
-    end do
+    enddo
 
   end subroutine SamiGetData
 
@@ -551,13 +551,13 @@ contains
       if (SamiInLats(iPoint) < -90.0) then
         SamiInLats(iPoint) = -180.0 - SamiInLats(iPoint)
         SamiInLons(iPoint) = SamiInLons(iPoint) + 180.0
-      end if
+      endif
       if (SamiInLats(iPoint) > 90.0) then
         SamiInLats(iPoint) = 180.0 - SamiInLats(iPoint)
         SamiInLons(iPoint) = SamiInLons(iPoint) + 180.0
-      end if
+      endif
       SamiInLons(iPoint) = mod(SamiInLons(iPoint) + 360, 360.0)
-    end do
+    enddo
 
     do iPoint = 1, nPointsToGetSami
 
@@ -574,14 +574,14 @@ contains
             i = 2
             do while (SamiLons(i) <= SamiInLons(iPoint))
               i = i + 1
-            end do
-          end if
+            enddo
+          endif
           SamiLonsIndex(iPoint) = i
           SamiLonsFactor(iPoint) = &
             (SamiLons(i) - SamiInLons(iPoint))/ &
             (SamiLons(i) - SamiLons(i - 1))
-        end if
-      end if
+        endif
+      endif
 
       ! Lats
       if (SamiInLats(iPoint) < SamiLats(1)) then
@@ -596,14 +596,14 @@ contains
             i = 2
             do while (SamiLats(i) <= SamiInLats(iPoint))
               i = i + 1
-            end do
-          end if
+            enddo
+          endif
           SamiLatsIndex(iPoint) = i
           SamiLatsFactor(iPoint) = &
             (SamiLats(i) - SamiInLats(iPoint))/ &
             (SamiLats(i) - SamiLats(i - 1))
-        end if
-      end if
+        endif
+      endif
 
       ! Alts
       if (InAlts(iPoint) < SamiAlts(1)) then
@@ -623,23 +623,23 @@ contains
             i = 2
             do while (SamiAlts(i) <= InAlts(iPoint))
               i = i + 1
-            end do
-          end if
+            enddo
+          endif
           SamiAltsIndex(iPoint) = i
           SamiAltsFactor(iPoint) = &
             (SamiAlts(i) - InAlts(iPoint))/ &
             (SamiAlts(i) - SamiAlts(i - 1))
-        end if
-      end if
+        endif
+      endif
 
       if (SamiAltsIndex(iPoint) < 1) then
         write(*, *) 'bad alt in SamiSetGrid!', &
           SamiInLons(iPoint), SamiInLats(iPoint), InAlts(iPoint)
         write(*, *) 'Sami Alts : ', SamiAlts(1), SamiAlts(nAltsSami)
         stop
-      end if
+      endif
 
-    end do
+    enddo
 
   end subroutine SamiSetGrid
 
@@ -736,8 +736,8 @@ contains
         nyear = itime(1) - 65
       else
         nyear = itime(1) + 100 - 65
-      end if
-    end if
+      endif
+    endif
     nleap = nyear/4
 
     nmonth = itime(2) - 1
@@ -746,7 +746,7 @@ contains
 
     do i = 1, nmonth
       nday = nday + dayofmon(i)
-    end do
+    enddo
 
     nday = nday + itime(3) - 1
     nhour = itime(4)

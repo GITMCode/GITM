@@ -116,10 +116,10 @@ contains
                                   maxval(CmsData(iLevel)%CoordCms2_I), &
                                   maxval(CmsData(iLevel)%CoordCms3_I)/)
 
-      end do
+      enddo
 
       IsFirst = .false.
-    end if
+    endif
 
     call xyz_to_sph(x_D, xSph_D)
 
@@ -144,7 +144,7 @@ contains
         xCms_D(1) = xCms_D(1) + cTwoPi
       else
         CYCLE
-      end if
+      endif
 
       ! Obtain magnetic at x_D via trilinear interpolation of
       ! CMS domin level
@@ -177,7 +177,7 @@ contains
       B_D = B_D*No2Si_V(UnitB_)*RescaleB
 
       EXIT
-    end do
+    enddo
 
   end subroutine get_cms
 

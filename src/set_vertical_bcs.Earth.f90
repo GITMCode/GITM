@@ -96,7 +96,7 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
   do iAlt = -1, nAlts + 2
     EffectiveGravity(iAlt) = Gravity_G(iAlt) + &
                              Centrifugal/InvRadialDistance_C(iAlt)
-  end do
+  enddo
 
   !------------------------------------------------------------
   ! This is so we can have a fixed lower BC (MSIS specified):
@@ -108,7 +108,7 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
     call meter6(.true.)
     sw = 1
     IsFirstTime = .true.
-  end if
+  endif
 
   if (UseMsisBCs) then
 
@@ -135,29 +135,29 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
       vel_gd(iAlt, iEast_) = v(iEast_)
       vel_gd(iAlt, iNorth_) = v(iNorth_)
 
-    end do
+    enddo
   else
     ! Don't Let the winds blow
     Vel_GD(-1:0, iEast_) = 0.0
     Vel_GD(-1:0, iNorth_) = 0.0
     ! The rest of the BCs will just stay constant.
-  end if
+  endif
 
   if (.not. DuringPerturb) then
     Vel_GD(-1:0, iUp_) = 0.0
     VertVel(-1:0, :) = 0.0
-  end if
+  endif
 
   if (UseGSWMTides) then
     Vel_GD(-1:0, iEast_) = TidesEast(iLon1D, iLat1D, 1:2, iBlock1D)
     Vel_GD(-1:0, iNorth_) = TidesNorth(iLon1D, iLat1D, 1:2, iBlock1D)
     Temp(-1:0) = TidesTemp(iLon1D, iLat1D, 1:2, iBlock1D) + Temp(-1:0)
-  end if
+  endif
   if (UseWACCMTides) then
     Vel_GD(-1:0, iEast_) = TidesEast(iLon1D, iLat1D, 1:2, iBlock1D)
     Vel_GD(-1:0, iNorth_) = TidesNorth(iLon1D, iLat1D, 1:2, iBlock1D)
     Temp(-1:0) = TidesTemp(iLon1D, iLat1D, 1:2, iBlock1D)
-  end if
+  endif
   if (UseHmeTides) then
     Vel_GD(-1:0, iEast_) = TidesEast(iLon1D, iLat1D, 1:2, iBlock1D)
     Vel_GD(-1:0, iNorth_) = TidesNorth(iLon1D, iLat1D, 1:2, iBlock1D)
@@ -175,7 +175,7 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
     ! MSIS density.  I am not 100% sure of this, but let's try it out:
     NS(0, 1:nSpecies) = NS(0, 1:nSpecies)*TidesRhoRat(iLon1D, iLat1D, 2, iBlock1D)
 
-  end if
+  endif
 
   ! In order to get a real hydrostatic solution at the bottom, we will
   ! overwrite the -1 cell with our own calculation of the hydrostatic
@@ -212,7 +212,7 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
   Temp(iAlt) = Temp(iAlt + 1)
   do iDir = 1, 3
     Vel_GD(iAlt, iDir) = Vel_GD(iAlt + 1, iDir)
-  end do
+  enddo
 
   do iSpecies = 1, nSpecies
 
@@ -238,7 +238,7 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
       if (iSpecies == iO_3P_) then
         ! Assume 0 gradient below boundary
         LogNS(iAlt, iSpecies) = LogNS(0, iSpecies)
-      end if
+      endif
 
     else
 
@@ -278,20 +278,20 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
         ! Limit the Gradients through the lower boundary
         if (dLogNS .le. 0.0) then
           LogNS(iAlt, iSpecies) = LogNS(iAlt + 1, iSpecies)
-        end if
+        endif
 
         ! Only allow the NO density to decrease by roughly 1/3 scale
         ! height max
         if (iSpecies == iNO_) then
           if (LogNS(iAlt, iSpecies) < LogNS(iAlt + 1, iSpecies) - 0.333) then
             LogNS(iAlt, iSpecies) = LogNS(iAlt + 1, iSpecies) - 0.333
-          end if
-        end if
+          endif
+        endif
 
-      end do !iAlt = 0,-1,-1
+      enddo !iAlt = 0,-1,-1
 
-    end if ! PhotoChemical Check
-  end do  ! iSpecies loop
+    endif ! PhotoChemical Check
+  enddo  ! iSpecies loop
 
   do iAlt = 0, -1, -1
 
@@ -326,14 +326,14 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
       ! chemitry is dominant.  It shouldn't matter, really:
       LogINS(iAlt, iSpecies) = LogINS(iAlt + 1, iSpecies)
 
-    end do ! Ions
+    enddo ! Ions
 
     ! Electon Density:
     if (UseImprovedIonAdvection) then
       LogINS(iAlt, nIons) = sum(LogINS(iAlt, 1:nIons - 1))
     else
       LogINS(iAlt, nIons) = alog(sum(exp(LogINS(iAlt, 1:nIons - 1))))
-    end if
+    endif
 
     ! Set the Ion Bulk Winds
     do iDir = 1, 3
@@ -344,7 +344,7 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
                  IVel(iAlt + 5, iDir)*MeshCoef4
 
       IVel(iAlt, iDir) = IVel(iAlt + 1, iDir) - dAlt_F(iAlt + 1)*dVertVel
-    end do  ! iDir
+    enddo  ! iDir
 
     ! -------------------------------------------------
     ! Return to the neutrals, to deal with (vertical) winds now...
@@ -360,7 +360,7 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
 
       VertVel(iAlt, iSpecies) = VertVel(iAlt + 1, iSpecies) - &
                                 dAlt_F(iAlt + 1)*dVertVel
-    end do ! nSpecies
+    enddo ! nSpecies
 
     ! Update NS & LogRho to use in the vertical wind calculation:
 
@@ -368,7 +368,7 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
     SumRho = 0.0
     do iSpecies = 1, nSpecies
       SumRho = SumRho + Mass(iSpecies)*NS(iAlt, iSpecies)
-    end do
+    enddo
     LogRho(iAlt) = alog(SumRho)
 
     ! Calculate the bulk vertical winds:
@@ -378,7 +378,7 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
       Vel_GD(iAlt, iUp_) = Vel_GD(iAlt, iUp_) + &
                            NS(iAlt, iSpecies)*Mass(iSpecies)*VertVel(iAlt, iSpecies)/ &
                            exp(LogRho(iAlt))
-    end do
+    enddo
 
     if ((iAlt == -1) .and. (UseMsisBcs)) then
 
@@ -390,11 +390,11 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
                    Vel_GD(iAlt + 5, iDir)*MeshCoef4
 
         Vel_GD(iAlt, iDir) = Vel_GD(iAlt + 1, iDir) - dAlt_F(iAlt + 1)*dVertVel
-      end do
+      enddo
 
-    end if
+    endif
 
-  end do ! End Outer IAlt Loop (0, -1, -1)
+  enddo ! End Outer IAlt Loop (0, -1, -1)
 
   ! Special Case for PhotoChemical Species
   ! Allow O to flow upward
@@ -409,9 +409,9 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
 
       VertVel(0, iSpecies) = -1.0*VertVel(1, iSpecies)
       VertVel(-1, iSpecies) = -1.0*VertVel(1, iSpecies)
-    end if
+    endif
 
-  end do
+  enddo
 
   ! For WP-GITM: add neutral atmospheric perturbations caused by
   ! tsunami or earthquake
@@ -426,7 +426,7 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
                               Temp(-1:0))
     LogNS(-1:0, :) = LogNS_LBC
     Vel_GD(-1:0, iEast_:iUp_) = VelGD_LBC
-  end if
+  endif
 
   !------------------------------------------------------------------------
   !------------------------------------------------------------------------
@@ -454,9 +454,9 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
         (VertVel(nAlts, iSpecies) .lt. 0.0)) then
       VertVel(nAlts + 1, iSpecies) = -VertVel(nAlts, iSpecies)
       VertVel(nAlts + 2, iSpecies) = -VertVel(nAlts - 1, iSpecies)
-    end if
+    endif
 
-  end do
+  enddo
 
   if (Vel_GD(nAlts, iUp_) < 0.0) then
     Vel_GD(nAlts + 1, iUp_) = -Vel_GD(nAlts, iUp_)
@@ -464,7 +464,7 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
   else
     Vel_GD(nAlts + 1, iUp_) = Vel_GD(nAlts, iUp_)
     Vel_GD(nAlts + 2, iUp_) = Vel_GD(nAlts, iUp_)
-  end if
+  endif
 
   ! Vertical Ion Drifts:
   if (IVel(nAlts, iUp_) < 0.0) then
@@ -473,7 +473,7 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
   else
     IVel(nAlts + 1, iUp_) = IVel(nAlts, iUp_)
     IVel(nAlts + 2, iUp_) = IVel(nAlts, iUp_)
-  end if
+  endif
 
   ! Constant temperature (zero gradient)
 
@@ -500,8 +500,8 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
 
       LogNS(iAlt, iSpecies) = alog(NS(iAlt, iSpecies))
 
-    end do
-  end do
+    enddo
+  enddo
 
   UsePlasmasphereBC = .false.
   if (UseNighttimeIonBCs) then
@@ -509,14 +509,14 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
         ((MLatVertical > 30.0 .and. MLatVertical < 70.0) .or. &
          (MLatVertical > -60.0 .and. MLatVertical < -30.0))) then
       UsePlasmasphereBC = .true.
-    end if
-  end if
+    endif
+  endif
 
   if (UseImprovedIonAdvection) then
     tec = sum(dAlt_f(1:nAlts)*LogINS(1:nAlts, 1))/1e16
   else
     tec = sum(dAlt_f(1:nAlts)*exp(LogINS(1:nAlts, 1)))/1e16
-  end if
+  endif
 
   do iAlt = nAlts + 1, nAlts + 2
 
@@ -555,13 +555,13 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
         n4 = alog(LogINS(iAlt - 4, iSpecies))
         n5 = alog(LogINS(iAlt - 5, iSpecies))
         if (DoCheckForNans) then
-          if (isnan(n0)) write(*, *) 'n0 :', iAlt, LogINS(iAlt, iSpecies)
-          if (isnan(n1)) write(*, *) 'n1 :', iAlt - 1, LogINS(iAlt - 1, iSpecies)
-          if (isnan(n2)) write(*, *) 'n2 :', iAlt - 2, LogINS(iAlt - 2, iSpecies)
-          if (isnan(n3)) write(*, *) 'n3 :', iAlt - 3, LogINS(iAlt - 3, iSpecies)
-          if (isnan(n4)) write(*, *) 'n4 :', iAlt - 4, LogINS(iAlt - 4, iSpecies)
-          if (isnan(n5)) write(*, *) 'n5 :', iAlt - 5, LogINS(iAlt - 5, iSpecies)
-        end if
+          if (ieee_is_nan(n0)) write(*, *) 'n0 :', iAlt, LogINS(iAlt, iSpecies)
+          if (ieee_is_nan(n1)) write(*, *) 'n1 :', iAlt - 1, LogINS(iAlt - 1, iSpecies)
+          if (ieee_is_nan(n2)) write(*, *) 'n2 :', iAlt - 2, LogINS(iAlt - 2, iSpecies)
+          if (ieee_is_nan(n3)) write(*, *) 'n3 :', iAlt - 3, LogINS(iAlt - 3, iSpecies)
+          if (ieee_is_nan(n4)) write(*, *) 'n4 :', iAlt - 4, LogINS(iAlt - 4, iSpecies)
+          if (ieee_is_nan(n5)) write(*, *) 'n5 :', iAlt - 5, LogINS(iAlt - 5, iSpecies)
+        endif
       else
         n0 = LogINS(iAlt, iSpecies)
         n1 = LogINS(iAlt - 1, iSpecies)
@@ -569,7 +569,7 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
         n3 = LogINS(iAlt - 3, iSpecies)
         n4 = LogINS(iAlt - 4, iSpecies)
         n5 = LogINS(iAlt - 5, iSpecies)
-      end if
+      endif
 
       dn = MeshCoefm0*n1 + &
            MeshCoefm1*n2 + &
@@ -591,35 +591,35 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
           LogINS(iAlt, iSpecies) = exp(n0)
         else
           LogINS(iAlt, iSpecies) = n0
-        end if
+        endif
 
-      end if
+      endif
 
       if (DoCheckForNans) then
-        if (isnan(LogINS(iAlt, 1))) &
+        if (ieee_is_nan(LogINS(iAlt, 1))) &
           write(*, *) 'svbc ', iAlt, LogINS(iAlt, 1), n0, dn, &
           n1, n2, n3, n4, n5, tec, MinTEC, UsePlasmasphereBC, &
           dAlt_F(iAlt)
-      end if
+      endif
 
-    end do
+    enddo
 
     ! Electon Density:
     if (UseImprovedIonAdvection) then
       LogINS(iAlt, nIons) = sum(LogINS(iAlt, 1:nIons - 1))
     else
       LogINS(iAlt, nIons) = alog(sum(exp(LogINS(iAlt, 1:nIons - 1))))
-    end if
+    endif
 
-  end do
+  enddo
 
   do iAlt = nAlts + 1, nAlts + 2
     SumRho = 0.0
     do iSpecies = 1, nSpecies
       SumRho = SumRho + Mass(iSpecies)*exp(LogNS(iAlt, iSpecies))
-    end do
+    enddo
     LogRho(iAlt) = alog(SumRho)
-  end do
+  enddo
 
 contains
 
@@ -635,7 +635,7 @@ contains
       if (LogINS(iAlt - 6, iSpecies) < 0.0) then
         write(*, *) 'Negative Ion density too close to the upper boundary: ', iSpecies
         call stop_gitm('Stopping in set_vertical_bcs')
-      end if
+      endif
 
       do iAltSub = iAlt - 5, iAlt - 1
 
@@ -649,19 +649,19 @@ contains
           else
             ! Or take previous point and decrease it by 5 percent:
             LogINS(iAltSub, iSpecies) = LogINS(iAltSub - 1, iSpecies)*0.95
-          end if
+          endif
 
-        end if
+        endif
 
-      end do
+      enddo
 
       ! Top point:
       if (LogINS(iAlt, iSpecies) < 0.0) then
         ! Take previous point and decrease it by 5 percent:
         LogINS(iAlt, iSpecies) = LogINS(iAlt - 1, iSpecies)*0.95
-      end if
+      endif
 
-    end if
+    endif
 
   end subroutine check_for_negative_densities
 

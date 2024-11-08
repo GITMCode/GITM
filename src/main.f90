@@ -60,25 +60,25 @@ program GITM
       Dt = 2
     else
       Dt = FixedDt
-    end if
+    endif
 
     call calc_timestep_vertical
     if (.not. Is1D) call calc_timestep_horizontal
 
     if (RCMRFlag) then
       call run_RCMR
-    end if
+    endif
 
     call advance
 
     if (.not. IsFramework) then
       call check_stop
-    end if
+    endif
 
     iStep = iStep + 1
 
     call write_output
-  end do
+  enddo
 
   ! ------------------------------------------------------------------------
   ! Finish run

@@ -40,14 +40,14 @@ contains
     if (.not. DoInitialize) then
       write(*, *) NameSub, ' WARNING: has been initialized'
       RETURN
-    end if
+    endif
 
     tStartSpice = tStart + DtSpiceSwmf
 
     NameDir = 'Param/Spice/'
     if (present(NameDirIn)) then
       if (NameDirIn /= '') NameDir = trim(adjustl(NameDirIn))//'/'
-    end if
+    endif
 
     CALL FURNSH(trim(adjustl(NameDir))//'naif0010.tls')
     CALL FURNSH(trim(adjustl(NameDir))//'pck00010.tpc')

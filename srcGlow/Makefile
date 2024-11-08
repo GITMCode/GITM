@@ -25,40 +25,41 @@ OBJECTS = \
 	vquart.o\
 	GL_library.o
 
-EXE = GLOW.exe
-SEARCH_EXTRA = -I../src 
+DEPEND:
+	@perl ${SCRIPTDIR}/depend.pl ./ ${SEARCH} ${LIBDIR} ${OBJECTS} ${MODULES}
+
+EXE = ${BINDIR}/GLOW.exe
 
 MYLIB = libGLOW.a
 
-LIB:	libGLOW.a
+LIB:	DEPEND
+	${MAKE} ${MYLIB}
+	@echo
 	@echo ${MYLIB} has been brought up to date.
+	@echo
 
-libGLOW.a: ${MF} ${MODULES} ${OBJECTS}
-	@echo 'Creating GLOW library' ; \
+${MYLIB}: ${MODULES} ${OBJECTS}
+	@echo 'Creating GLOW library'
 	${AR} ${MYLIB} ${MODULES} ${OBJECTS}
 
 MY_LIB=libUPTOGL.a
 
-LIBADD:
+LIBADD: DEPEND
 	make ${MY_LIB}
 	@echo
 	@echo ${MY_LIB} has been brought up to date.
 	@echo
 
 ${MY_LIB}: ${MF} ${MODULES} ${OBJECTS}
+	${MAKE} ${MYLIB}
 	cp -f ${LIBPREV} ${MY_LIB}
 	${AR} ${MY_LIB} ${OBJECTS} ${MODULES}
 
-$OBJECTS: $MODULES
 
-
-DEPEND:
-	@perl ${SCRIPTDIR}/depend.pl  ./ ../src/ ../share/Library/src/ ${OBJECTS} ${MODULES}
 
 GLOW: DEPEND
 	 @make ${EXE}
-#
-#
+
 glow: 	${OBJECTS} ${MODULES} 
 	${COMPILE.f77} ${Cflag3} -o ${EXE} main.o ${OBJECTS} ${MODULES}
 

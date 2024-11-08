@@ -35,16 +35,16 @@ subroutine check_stop
     if (IsThere) then
       write(*, *) "GITM.STOP file found. Exiting."
       EndTimeLocal = CurrentTime - 1.0
-    end if
+    endif
 
-  end if
+  endif
 
   if (get_timing("GITM") > CPUTimeMax) then
     if (iProc == 0) write(*, *) "CPUTimeMax Exceeded. Exiting."
     EndTimeLocal = CurrentTime - 1.0
     open(unit=iOutputUnit_, file="GITM.CPU", status="unknown")
     close(iOutputUnit_)
-  end if
+  endif
 
   call MPI_AllREDUCE(EndTimeLocal, EndTime, &
                      1, MPI_DOUBLE_PRECISION, MPI_MIN, iCommGITM, iError)
@@ -75,19 +75,19 @@ subroutine delete_stop
   if (IsThere .and. iProc == 0) then
     open(iOutputUnit_, file='GITM.STOP', status='OLD')
     close(iOutputUnit_, status='DELETE')
-  end if
+  endif
 
   inquire(file='GITM.DONE', EXIST=IsThere)
   if (IsThere .and. iProc == 0) then
     open(iOutputUnit_, file='GITM.DONE', status='OLD')
     close(iOutputUnit_, status='DELETE')
-  end if
+  endif
 
   inquire(file='GITM.CPU', EXIST=IsThere)
   if (IsThere .and. iProc == 0) then
     open(iOutputUnit_, file='GITM.CPU', status='OLD')
     close(iOutputUnit_, status='DELETE')
-  end if
+  endif
 
 end subroutine delete_stop
 
@@ -124,21 +124,21 @@ subroutine check_start
           write(*, *) "GITM.START file found. Continuing."
           open(iOutputUnit_, file='GITM.START', status='OLD')
           close(iOutputUnit_, status='DELETE')
-        end if
-      end if
+        endif
+      endif
 
       if (.not. IsThere) call sleep(2.0)
 
       call MPI_BARRIER(iCommGITM, iError)
 
-    end do
+    enddo
 
     ! Here is where to open and read the file that will set the new pause time
     ! and update the state of GITM.
 
     PauseTime = PauseTime + 300.0  ! delete this when you read the new file....
 
-  end if
+  endif
 
 end subroutine check_start
 

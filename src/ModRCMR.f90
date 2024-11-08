@@ -132,7 +132,7 @@ contains
     allocate(index_lz_tec(lz))  !index_lz_tec picks the correct file for TEC assimilation
     do ii = 1, lz
       index_lz_tec(ii) = 1
-    end do
+    enddo
 
     W_Rz = 1.0
     W_Ru = 0.0
@@ -142,7 +142,7 @@ contains
       lv = lz
     ELSE
       lv = lz + lu
-    END IF
+    ENDIF
 
     nf_Nz = 3
     nf_Dz = 3
@@ -175,12 +175,12 @@ contains
 
     Do ii = 1, lz
       Nz(ii, ii) = 1
-    end do
+    enddo
 
     Do kkkk = 1, nf_u
       read(223, *, IOSTAT=TEC_read_IOStatus) Nu(1, kkkk)
       Nphi(1, kkkk + 1) = Nu(1, kkkk)
-    end Do
+    endDo
     write(*, *) 'Gf used in RCMR is', Nu
     close(223)
 
@@ -191,7 +191,7 @@ contains
     ELSE
       ltheta = Nc*lu*(lu + ly)
       lphi = Nc*(lu + ly)
-    END IF
+    ENDIF
 
   !! Regressor buffer initialization
     ALLOCATE(u_h(lu, NC))
@@ -208,7 +208,7 @@ contains
     ELSE
       ALLOCATE(Vphi(ly, NC))
       ALLOCATE(VphiVec(ly*NC, 1))
-    END IF
+    ENDIF
     u_h = 0
     z_h = 0
     y_h = 0
@@ -334,7 +334,7 @@ contains
     R = 0
     DO ii = 1, L
       R(ii, ii) = weight
-    END DO
+    ENDDO
   end subroutine identity
 
   subroutine init_markov_matrix
@@ -355,18 +355,18 @@ contains
       else
         write(*, *) "No Markov matrix for this output type: ", RCMROutType
         RCMRFlag = .false.
-      end if
+      endif
 
     elseif (RCMRInType == "TEC") then
       if (RCMROutType == "EDC") then
         !!write (*,*) "AGB RCMR WARNING: this is a test matrix"
         T = reshape((/0.15/), shape(T))
-      end if
+      endif
     else
       ! Markov matrix has not been established
       write(*, *) "No Markov matrix for this output type: ", RCMROutType
       RCMRFlag = .false.
-    end if
+    endif
   end subroutine init_markov_matrix
 
   subroutine init_rcmr
@@ -397,8 +397,8 @@ contains
         lat_p = 9
         lon_p = 1
         alt_p = 36
-      end if
-    end do
+      endif
+    enddo
 
     u_out = 0.0
     Sat_Proc = 0.0
@@ -417,12 +417,12 @@ contains
 
     do idty = 1, Nc*(ly + lu)
       P1(idty, idty) = reg_val
-    end do
+    enddo
 
     R2 = 0.0
     do idty = 1, lz
       R2(idty, idty) = 1.0
-    end do
+    enddo
 
     !ANKIT: Variables below this line are for EDC RCMR
     TEC_true = 0
@@ -457,12 +457,12 @@ contains
             TEC_lon(kkk, ii), TEC_lat(kkk, ii), TEC_true(kkk, ii)
           if (TEC_read_IOStatus < 0) exit
           kkk = kkk + 1
-        end do
+        enddo
         close(22)
         write(*, *) "TEC data read from ", TEC_file(ii)
         kkk = 1
-      end do
-    end if
+      enddo
+    endif
 
   end subroutine init_rcmr
 
@@ -484,7 +484,7 @@ contains
       read(111111, *, IOSTAT=read_stat) TEC_location(iii, 1), TEC_location(iii, 2)
       TEC_location(iii, 1) = TEC_location(iii, 1)*3.141592653589793/180
       TEC_location(iii, 2) = TEC_location(iii, 2)*3.141592653589793/180
-    end do
+    enddo
     close(111111)
     write(*, *) "> Read locations for TEC calculations"
 
@@ -529,32 +529,32 @@ contains
           write(filenameRCMR1, "(A14,I1,A4)") "tec_data_RCMR_", iii, '.dat'
         else
           write(filenameRCMR1, "(A14,I2,A4)") "tec_data_RCMR_", iii, '.dat'
-        end if
+        endif
 
         inquire(file=filenameRCMR1, exist=exist)
         if (exist) then
           open(unit=111111 + iii, file=trim(filenameRCMR1), status="old", position="append", action='write')
         else
           open(unit=111111 + iii, file=trim(filenameRCMR1), status="new", action='write')
-        end if
+        endif
 
-      end do
+      enddo
     elseif (RCMRrun == 'TRUTH') then
       do iii = 1, points! while (iii < points+1)
         if (iii < 10) then
           write(filename1, "(A9,I1,A4)") "tec_data_", iii, '.dat'
         else
           write(filename1, "(A9,I2,A4)") "tec_data_", iii, '.dat'
-        end if
+        endif
         inquire(file=filename1, exist=exist)
         if (exist) then
           open(unit=111111 + iii, file=trim(filename1), status="old", position="append", action='write')
         else
           open(unit=111111 + iii, file=trim(filename1), status="new", action='write')
-        end if
+        endif
 
-      end do
-    end if
+      enddo
+    endif
 
    !! Ankit 24Jan2015 - Added TEC writing at preset locations
     if ((iproc == TEC_proc) .AND. .true.) then
@@ -568,14 +568,14 @@ contains
           iTimeArray(4), iTimeArray(5), iTimeArray(6), &
           iTimeArray(7), TEC_location(ii_tec, 1)*180/3.141592653589793, &
           TEC_location(ii_tec, 2)*180/3.141592653589793, VTEC_interp, sza_test
-      end do
-    end if
+      enddo
+    endif
 
     !  close TEC files - ANKIT
     do while (ii_tec < points + 1)
       close(111111 + ii_tec)
       ii_tec = ii_tec + 1
-    end do
+    enddo
 
   end subroutine write_TEC_data
 

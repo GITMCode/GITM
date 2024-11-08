@@ -32,42 +32,42 @@ program Interface
     write(*, *) "EIEi_HavenBLKs : ", EIEi_HavenBLKs
     write(*, *) "EIEi_HavenLats : ", EIEi_HavenLats
     write(*, *) "EIEi_HavenMLTs : ", EIEi_HavenMLTs
-  end if
+  endif
 
   allocate(EIEr3_HaveLats(EIEi_HavenMlts, EIEi_HavenLats, EIEi_HavenBLKs), &
            stat=iError)
   if (iError /= 0) then
     write(*, *) "Error in allocating array EIEr3_HaveLats in Interface"
     stop
-  end if
+  endif
 
   allocate(EIEr3_HaveMlts(EIEi_HavenMlts, EIEi_HavenLats, EIEi_HavenBLKs), &
            stat=iError)
   if (iError /= 0) then
     write(*, *) "Error in allocating array EIEr3_HaveMlts in Interface"
     stop
-  end if
+  endif
 
   allocate(EIEr3_HavePotential(EIEi_HavenMlts, EIEi_HavenLats, EIEi_HavenBLKs), &
            stat=iError)
   if (iError /= 0) then
     write(*, *) "Error in allocating array EIEr3_HavePotential in Interface"
     stop
-  end if
+  endif
 
   allocate(EIEr3_HaveEFlux(EIEi_HavenMlts, EIEi_HavenLats, EIEi_HavenBLKs), &
            stat=iError)
   if (iError /= 0) then
     write(*, *) "Error in allocating array EIEr3_HaveEFlux in Interface"
     stop
-  end if
+  endif
 
   allocate(EIEr3_HaveAveE(EIEi_HavenMlts, EIEi_HavenLats, EIEi_HavenBLKs), &
            stat=iError)
   if (iError /= 0) then
     write(*, *) "Error in allocating array EIEr3_HaveAveE in Interface"
     stop
-  end if
+  endif
 
   call AMIE_GetLats(EIEi_HavenMlts, EIEi_HavenLats, EIEi_HavenBLKs, &
                     EIEr3_HaveLats, iError)

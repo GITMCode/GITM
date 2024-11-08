@@ -55,10 +55,10 @@ contains
           ! Split along jCell--kCell diagonal
           iNodeTriangle_II(:, nTriangle + 1) = (/jCell, kCell, iCell/)
           iNodeTriangle_II(:, nTriangle + 2) = (/jCell, lCell, kCell/)
-        end if
+        endif
         nTriangle = nTriangle + 2
 
-      end do; end do
+      enddo; enddo
 
   end subroutine mesh_triangulation
   !============================================================================
@@ -169,14 +169,14 @@ contains
             do j = jMin, jMax; do i = iMin, iMax
                 n = nTriangle_C(i, j)
                 iTriangle_IC(n, i, j) = iTriangle
-              end do; end do
-          end do
+              enddo; enddo
+          enddo
           if (iLoop == 1) then
             n = maxval(nTriangle_C)
             allocate(iTriangle_IC(n, nX, nY))
-          end if
-        end do
-      end if
+          endif
+        enddo
+      endif
 
       i = max(1, min(nX, floor(DxInv*(CoordIn_D(1) - xMin)) + 1))
       j = max(1, min(nY, floor(DyInv*(CoordIn_D(2) - yMin)) + 1))
@@ -184,20 +184,20 @@ contains
       do n = 1, nTriangle_C(i, j)
         iTriangle = iTriangle_IC(n, i, j)
         if (is_inside_triangle()) RETURN
-      end do
+      enddo
 
     else
       do iTriangle = 1, nTriangle
         if (is_inside_triangle()) RETURN
-      end do
-    end if
+      enddo
+    endif
 
     ! If no triangle contains the CoordIn_D point and IsTriangleFound is
     ! present then return a false value
     if (present(IsTriangleFound)) then
       IsTriangleFound = .false.
       RETURN
-    end if
+    endif
 
     ! If IsTriangleFound is not present then set iNode1 to the closest node
     iNode1 = minloc((XyNode_DI(x_, :) - CoordIn_D(x_))**2 &
@@ -214,7 +214,7 @@ contains
       Weight1 = 1.0
       Weight2 = 0.0
       Weight3 = 0.0
-    end if
+    endif
 
   contains
     !=======================================================================
@@ -256,11 +256,11 @@ contains
           Weight1 = Area1/AreaSum
           Weight2 = Area2/AreaSum
           Weight3 = Area3/AreaSum
-        end if
+        endif
         is_inside_triangle = .true.
       else
         is_inside_triangle = .false.
-      end if
+      endif
 
     end function is_inside_triangle
 
@@ -385,9 +385,9 @@ contains
         diaedg = 1
       else
         diaedg = 0
-      end if
+      endif
 
-    end if
+    endif
 
     return
   end function diaedg
@@ -505,9 +505,9 @@ contains
             < abs(point_xy(j, m) - point_xy(j, m1))) then
           k = j
           exit
-        end if
+        endif
 
-      end do
+      enddo
 
       if (k == 0) then
         write(*, '(a)') ' '
@@ -519,9 +519,9 @@ contains
         write(*, '(a,2g14.6)') '  X,Y(M1) = ', point_xy(1, m1), point_xy(2, m1)
         ierr = 224
         return
-      end if
+      endif
 
-    end do
+    enddo
     !
     !  Starting from points M1 and M2, search for a third point M that
     !  makes a "healthy" triangle (M1,M2,M)
@@ -537,7 +537,7 @@ contains
         write(*, '(a)') 'DTRIS2 - Fatal error!'
         ierr = 225
         return
-      end if
+      endif
 
       m = j
 
@@ -546,11 +546,11 @@ contains
 
       if (lr /= 0) then
         exit
-      end if
+      endif
 
       j = j + 1
 
-    end do
+    enddo
     !
     !  Set up the triangle information for (M1,M2,M), and for any other
     !  triangles you created because points were collinear with M1, M2.
@@ -575,7 +575,7 @@ contains
         tri_nabe(2, i - 1) = i
         tri_nabe(3, i) = i - 1
 
-      end do
+      enddo
 
       tri_nabe(1, tri_num) = -3*tri_num - 1
       tri_nabe(2, tri_num) = -5
@@ -598,14 +598,14 @@ contains
         tri_nabe(3, i - 1) = i
         tri_nabe(1, i) = -3*i - 3
         tri_nabe(2, i) = i - 1
-      end do
+      enddo
 
       tri_nabe(3, tri_num) = -3*tri_num
       tri_nabe(2, 1) = -3*tri_num - 2
       ledg = 2
       ltri = 1
 
-    end if
+    endif
     !
     !  Insert the vertices one at a time from outside the convex hull,
     !  determine visible boundary edges, and apply diagonal edge swaps until
@@ -622,7 +622,7 @@ contains
         m2 = tri_vert(ledg + 1, ltri)
       else
         m2 = tri_vert(1, ltri)
-      end if
+      endif
 
       lr = lrline(point_xy(1, m), point_xy(2, m), point_xy(1, m1), &
                   point_xy(2, m1), point_xy(1, m2), point_xy(2, m2), 0.0)
@@ -635,7 +635,7 @@ contains
         l = -tri_nabe(ledg, ltri)
         rtri = l/3
         redg = mod(l, 3) + 1
-      end if
+      endif
 
       call vbedg(point_xy(1, m), point_xy(2, m), point_num, point_xy, tri_num, &
                  tri_vert, tri_nabe, ltri, ledg, rtri, redg)
@@ -654,7 +654,7 @@ contains
           m1 = tri_vert(e + 1, t)
         else
           m1 = tri_vert(1, t)
-        end if
+        endif
 
         tri_num = tri_num + 1
         tri_nabe(e, t) = tri_num
@@ -672,15 +672,15 @@ contains
           write(*, '(a)') 'DTRIS2 - Fatal error!'
           write(*, '(a)') '  Stack overflow.'
           return
-        end if
+        endif
 
         stack(top) = tri_num
 
         if (t == rtri .and. e == redg) then
           exit
-        end if
+        endif
 
-      end do
+      enddo
 
       tri_nabe(ledg, ltri) = -3*n - 1
       tri_nabe(2, n) = -3*tri_num - 2
@@ -696,17 +696,17 @@ contains
         write(*, '(a)') 'DTRIS2 - Fatal error!'
         write(*, '(a)') '  Error return from SWAPEC.'
         return
-      end if
+      endif
 
-    end do
+    enddo
     !
     !  Now account for the sorting that we did.
     !
     do i = 1, 3
       do j = 1, tri_num
         tri_vert(i, j) = indx(tri_vert(i, j))
-      end do
-    end do
+      enddo
+    enddo
 
     call perm_inv(point_num, indx)
 
@@ -776,13 +776,13 @@ contains
       write(*, '(a)') 'I4_MODP - Fatal error!'
       write(*, '(a,i8)') '  I4_MODP ( I, J ) called with J = ', j
       call CON_stop('share/Library/src/ModTriangulate ERROR')
-    end if
+    endif
 
     i4_modp = mod(i, j)
 
     if (i4_modp < 0) then
       i4_modp = i4_modp + abs(j)
-    end if
+    endif
 
     return
   end function i4_modp
@@ -850,7 +850,7 @@ contains
       i4_wrap = jlo
     else
       i4_wrap = jlo + i4_modp(ival - jlo, wide)
-    end if
+    endif
 
     return
   end function i4_wrap
@@ -884,7 +884,7 @@ contains
 
     do i = 1, n
       a(i) = i
-    end do
+    enddo
 
     return
   end subroutine i4vec_indicator
@@ -944,11 +944,11 @@ contains
 
     if (n <= 1) then
       return
-    end if
+    endif
 
     do i = 1, n
       indx(i) = i
-    end do
+    enddo
 
     l = n/2 + 1
     ir = n
@@ -971,9 +971,9 @@ contains
         if (ir == 1) then
           indx(1) = indxt
           exit
-        end if
+        endif
 
-      end if
+      endif
 
       i = l
       j = l + l
@@ -983,8 +983,8 @@ contains
         if (j < ir) then
           if (a(indx(j)) < a(indx(j + 1))) then
             j = j + 1
-          end if
-        end if
+          endif
+        endif
 
         if (aval < a(indx(j))) then
           indx(i) = indx(j)
@@ -992,13 +992,13 @@ contains
           j = j + j
         else
           j = ir + 1
-        end if
+        endif
 
-      end do
+      enddo
 
       indx(i) = indxt
 
-    end do
+    enddo
 
     return
   end subroutine i4vec_sort_heap_index_a
@@ -1084,7 +1084,7 @@ contains
       lrline = 0
     else
       lrline = -1
-    end if
+    endif
 
     return
   end function lrline
@@ -1121,7 +1121,7 @@ contains
       write(*, '(a)') 'PERM_INV - Fatal error!'
       write(*, '(a,i8)') '  Input value of N = ', n
       call CON_stop('share/Library/src/ModTriangulate ERROR')
-    end if
+    endif
 
     is = 1
 
@@ -1133,12 +1133,12 @@ contains
         i2 = p(i1)
         p(i1) = -i2
         i1 = i2
-      end do
+      enddo
 
       is = -sign(1, p(i))
       p(i) = sign(p(i), is)
 
-    end do
+    enddo
 
     do i = 1, n
 
@@ -1155,16 +1155,16 @@ contains
 
           if (i2 < 0) then
             exit
-          end if
+          endif
 
           i0 = i1
           i1 = i2
 
-        end do
+        enddo
 
-      end if
+      endif
 
-    end do
+    enddo
 
     return
   end subroutine perm_inv
@@ -1259,20 +1259,20 @@ contains
             write(*, '(a)') ' '
             write(*, '(a)') 'R82VEC_PERMUTE - Fatal error!'
             call CON_stop('share/Library/src/ModTriangulate ERROR')
-          end if
+          endif
 
           if (iget == istart) then
             a(1:2, iput) = a_temp(1:2)
             exit
-          end if
+          endif
 
           a(1:2, iput) = a(1:2, iget)
 
-        end do
+        enddo
 
-      end if
+      endif
 
-    end do
+    enddo
     !
     !  Restore the signs of the entries.
     !
@@ -1336,12 +1336,12 @@ contains
 
     if (n < 1) then
       return
-    end if
+    endif
 
     if (n == 1) then
       indx(1) = 1
       return
-    end if
+    endif
 
     call i4vec_indicator(n, indx)
 
@@ -1366,9 +1366,9 @@ contains
         if (ir == 1) then
           indx(1) = indxt
           exit
-        end if
+        endif
 
-      end if
+      endif
 
       i = l
       j = l + l
@@ -1380,8 +1380,8 @@ contains
               (a(1, indx(j)) == a(1, indx(j + 1)) .and. &
                a(2, indx(j)) < a(2, indx(j + 1)))) then
             j = j + 1
-          end if
-        end if
+          endif
+        endif
 
         if (aval(1) < a(1, indx(j)) .or. &
             (aval(1) == a(1, indx(j)) .and. &
@@ -1391,13 +1391,13 @@ contains
           j = j + j
         else
           j = ir + 1
-        end if
+        endif
 
-      end do
+      enddo
 
       indx(i) = indxt
 
-    end do
+    enddo
 
     return
   end subroutine r82vec_sort_heap_index_a
@@ -1512,7 +1512,7 @@ contains
 
       if (top <= 0) then
         exit
-      end if
+      endif
 
       t = stack(top)
       top = top - 1
@@ -1526,7 +1526,7 @@ contains
       else
         e = 1
         b = tri_vert(2, t)
-      end if
+      endif
 
       a = tri_vert(e, t)
       u = tri_nabe(e, t)
@@ -1540,7 +1540,7 @@ contains
       else
         f = 3
         c = tri_vert(2, u)
-      end if
+      endif
 
       swap = diaedg(x, y, point_xy(1, a), point_xy(2, a), point_xy(1, c), &
                     point_xy(2, c), point_xy(1, b), point_xy(2, b))
@@ -1564,7 +1564,7 @@ contains
         if (0 < tri_nabe(fm1, u)) then
           top = top + 1
           stack(top) = u
-        end if
+        endif
 
         if (0 < s) then
 
@@ -1574,14 +1574,14 @@ contains
             tri_nabe(2, s) = t
           else
             tri_nabe(3, s) = t
-          end if
+          endif
 
           top = top + 1
 
           if (point_num < top) then
             ierr = 8
             return
-          end if
+          endif
 
           stack(top) = t
 
@@ -1590,7 +1590,7 @@ contains
           if (u == btri .and. fp1 == bedg) then
             btri = t
             bedg = e
-          end if
+          endif
 
           l = -(3*t + e - 1)
           tt = t
@@ -1606,13 +1606,13 @@ contains
               ee = 1
             else
               ee = 2
-            end if
+            endif
 
-          end do
+          enddo
 
           tri_nabe(ee, tt) = l
 
-        end if
+        endif
 
         if (0 < r) then
 
@@ -1622,14 +1622,14 @@ contains
             tri_nabe(2, r) = u
           else
             tri_nabe(3, r) = u
-          end if
+          endif
 
         else
 
           if (t == btri .and. ep1 == bedg) then
             btri = u
             bedg = f
-          end if
+          endif
 
           l = -(3*u + f - 1)
           tt = u
@@ -1645,17 +1645,17 @@ contains
               ee = 1
             else
               ee = 2
-            end if
+            endif
 
-          end do
+          enddo
 
           tri_nabe(ee, tt) = l
 
-        end if
+        endif
 
-      end if
+      endif
 
-    end do
+    enddo
 
     return
   end subroutine swapec
@@ -1755,7 +1755,7 @@ contains
       ledg = redg
     else
       ldone = .true.
-    end if
+    endif
 
     do
 
@@ -1768,23 +1768,23 @@ contains
         b = tri_vert(e + 1, t)
       else
         b = tri_vert(1, t)
-      end if
+      endif
 
       lr = lrline(x, y, point_xy(1, a), point_xy(2, a), point_xy(1, b), &
                   point_xy(2, b), 0.0)
 
       if (lr <= 0) then
         exit
-      end if
+      endif
 
       rtri = t
       redg = e
 
-    end do
+    enddo
 
     if (ldone) then
       return
-    end if
+    endif
 
     t = ltri
     e = ledg
@@ -1804,9 +1804,9 @@ contains
           e = 1
         else
           e = 2
-        end if
+        endif
 
-      end do
+      enddo
 
       a = tri_vert(e, t)
 
@@ -1815,9 +1815,9 @@ contains
 
       if (lr <= 0) then
         exit
-      end if
+      endif
 
-    end do
+    enddo
 
     ltri = t
     ledg = e
@@ -1847,8 +1847,8 @@ contains
       do i1 = 1, n1
         n = n + 1
         CoordXy_DI(:, n) = (/10.0*i1 + i2, 3.0*i2/)
-      end do
-    end do
+      enddo
+    enddo
 
     write(*, '(a)') 'Testing mesh_triangulation'
     call mesh_triangulation(n1, n2, CoordXy_DI, &

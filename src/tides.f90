@@ -26,9 +26,9 @@ subroutine modify_initial_after_tides
         NDensityS(:, :, iAlt, iSpecies, iBlock) = &
           NDensityS(:, :, iAlt, iSpecies, iBlock)* &
           TidesRhoRat(:, :, iAlt + 2, iBlock)
-      end do
-    end do
-  end do
+      enddo
+    enddo
+  enddo
 
 end subroutine modify_initial_after_tides
 
@@ -60,7 +60,7 @@ subroutine read_waccm_tides
   if (IsFirstTime) then
     WACCM_file_name = "UA/DataIn/waccm_tides_2000_03.bin"
     IsFirstTime = .false.
-  end if
+  endif
 
   iError = 0
 
@@ -77,7 +77,7 @@ subroutine read_waccm_tides
 
   do ivar = 1, nvars
     read(iInputUnit_) varname(ivar)
-  end do
+  enddo
 
   read(iInputUnit_) iTime
 
@@ -156,7 +156,7 @@ subroutine read_waccm_tides
 
     do ivar = 1, nvars
       read(iInputUnit_) param(:, :, :, ivar)
-    end do
+    enddo
 
     lon_waccm = param(:, 1, 1, 1)
     lat_waccm = param(1, :, 1, 2)
@@ -195,7 +195,7 @@ subroutine read_waccm_tides
     call convert_waccm_fields(v24c, v24s, v12c, v12s, &
                               omegaa1_waccm, omegaa2_waccm, omegap1_waccm, omegap2_waccm)
 
-  end if
+  endif
 
   do iBlock = 1, nBlocks
 
@@ -204,12 +204,12 @@ subroutine read_waccm_tides
       iLon_Waccm(iLon, iBlock) = 1
       do iLonW = 2, nLonsWaccm - 1
         if (lon_waccm(iLonW) <= lon) iLon_Waccm(iLon, iBlock) = iLonW
-      end do
+      enddo
       rLon_Waccm(iLon, iBlock) = &
         (lon - lon_waccm(iLon_Waccm(iLon, iBlock)))/ &
         (lon_waccm(iLon_Waccm(iLon, iBlock) + 1) - &
          lon_waccm(iLon_Waccm(iLon, iBlock)))
-    end do
+    enddo
 
     do iLat = -1, nLats + 2
       lat = Latitude(iLat, iBlock)
@@ -218,12 +218,12 @@ subroutine read_waccm_tides
       iLat_Waccm(iLat, iBlock) = 1
       do iLatW = 2, nLatsWaccm - 1
         if (lat_waccm(iLatW) <= lat) iLat_Waccm(iLat, iBlock) = iLatW
-      end do
+      enddo
       rLat_Waccm(iLat, iBlock) = &
         (lat - lat_waccm(iLat_Waccm(iLat, iBlock)))/ &
         (lat_waccm(iLat_Waccm(iLat, iBlock) + 1) - &
          lat_waccm(iLat_Waccm(iLat, iBlock)))
-    end do
+    enddo
 
 ! This is for testing the linear interpolation
 !     do iLon = 1, nLonsWaccm
@@ -247,9 +247,9 @@ subroutine read_waccm_tides
             (1 - rj)*(ri)*Alt_waccm(j, i + 1, iAlt) + &
             (rj)*(1 - ri)*Alt_waccm(j + 1, i, iAlt) + &
             (rj)*(ri)*Alt_waccm(j + 1, i + 1, iAlt)
-        end do
-      end do
-    end do
+        enddo
+      enddo
+    enddo
 
     do iLon = -1, nLons + 2
       do iLat = -1, nLats + 2
@@ -258,17 +258,17 @@ subroutine read_waccm_tides
           do iAltW = 2, nAltsWaccm - 1
             if (Alt_Waccm_GitmGrid(iLon, iLat, iAltW, iBlock) <= a) &
               iAlt_Waccm(iLon, iLat, iAlt + 2, iBlock) = iAltW
-          end do
+          enddo
           i = iAlt_Waccm(iLon, iLat, iAlt + 2, iBlock)
           rAlt_Waccm(iLon, iLat, iAlt + 2, iBlock) = &
             (a - Alt_waccm_GitmGrid(iLon, iLat, i, iBlock))/ &
             (Alt_waccm_GitmGrid(iLon, iLat, i + 1, iBlock) - &
              Alt_waccm_GitmGrid(iLon, iLat, i, iBlock))
-        end do
-      end do
-    end do
+        enddo
+      enddo
+    enddo
 
-  end do
+  enddo
 
   call end_timing("read_waccm_tides")
 
@@ -382,10 +382,10 @@ subroutine update_waccm_tides
             (1 - ri)*(rj)*(rk)*omega_waccm(i, j + 1, k + 1) + &
             (ri)*(rj)*(rk)*omega_waccm(i + 1, j + 1, k + 1)
 
-        end do
-      end do
-    end do
-  end do
+        enddo
+      enddo
+    enddo
+  enddo
 
 end subroutine update_waccm_tides
 
@@ -433,22 +433,22 @@ subroutine init_hme
     if (galt < hmeAlts(1)) then
       write(*, *) "Well, shoot.  One of the GITM Alts is below HME!!!"
       call stop_gitm("I am unsure of what to do now! Stopping!")
-    end if
+    endif
     if (galt > hmeAlts(3)) then
       write(*, *) "Well, shoot.  One of the GITM Alts is above HME!!!"
       call stop_gitm("I am unsure of what to do now! Stopping!")
-    end if
+    endif
 
     if ((galt >= hmeAlts(1)) .and. (galt < hmeAlts(2))) then
       iAlt_Hme(iAlt) = 1
     else
       iAlt_Hme(iAlt) = 2
-    end if
+    endif
     rAlt_Hme(iAlt) = &
       (gAlt - hmeAlts(iAlt_Hme(iAlt)))/ &
       (hmeAlts(iAlt_Hme(iAlt + 1)) - hmeAlts(iAlt_Hme(iAlt)))
 
-  end do
+  enddo
 
   ! We need to get the latitudes, which is in each of the HME files. So,
   ! let's just read in one of the files and store the latitudes:
@@ -475,13 +475,13 @@ subroutine init_hme
     else
       do iLatH = 1, nLatsHme - 1
         if (hmeLats(iLatH) <= glat) iLat_Hme(iLat) = iLatH
-      end do
+      enddo
       rLat_Hme(iLat) = &
         (glat - hmeLats(iLat_Hme(iLat)))/ &
         (hmeLats(iLat_Hme(iLat) + 1) - hmeLats(iLat_Hme(iLat)))
-    end if
+    endif
 
-  end do
+  enddo
 
 end subroutine init_hme
 
@@ -514,7 +514,7 @@ subroutine update_hme_tides
     ReadFiles = .true.
   else
     ReadFiles = .false.
-  end if
+  endif
 
   ut = utime/3600.0
 
@@ -527,7 +527,7 @@ subroutine update_hme_tides
     tmp1 = pack(daysTidi, daysTidi < iday)
     tmp2 = pack(daysTidi, daysTidi > iday)
     call calc_1tide(tmp1(size(tmp1)), tmp2(1))
-  end if
+  endif
 
   iBlock = 1
   do iLon = -1, nLons + 2
@@ -559,9 +559,9 @@ subroutine update_hme_tides
                                                     (rj)*(1 - rk)*dr_rho_3d(iLon, j + 1, k) + &
                                                     (1 - rj)*(rk)*dr_rho_3d(iLon, j, k + 1) + &
                                                     (rj)*(rk)*dr_rho_3d(iLon, j + 1, k + 1)
-      end do
-    end do
-  end do
+      enddo
+    enddo
+  enddo
 
 end subroutine update_hme_tides
 
@@ -598,7 +598,7 @@ subroutine read_tides
     GSWM_file_name(3) = "UA/DataIn/semidiur_mig_99km_"//cMonth//".bin"
     GSWM_file_name(4) = "UA/DataIn/semidiur_nonmig_99km_"//cMonth//".bin"
     IsFirstTime = .false.
-  end if
+  endif
 
   iError = 0
 
@@ -618,7 +618,7 @@ subroutine read_tides
 
       do ivar = 1, nvars
         read(iInputUnit_) varname(ivar)
-      end do
+      enddo
 
       read(iInputUnit_) time
 
@@ -627,17 +627,17 @@ subroutine read_tides
       if (.not. allocated(u_gswm)) then
         allocate(u_gswm(nLonsGswm, nLatsGswm, nAltsGswm, 24))
         u_gswm(:, :, :, :) = 0.
-      end if
+      endif
 
       if (.not. allocated(v_gswm)) then
         allocate(v_gswm(nLonsGswm, nLatsGswm, nAltsGswm, 24))
         v_gswm(:, :, :, :) = 0.
-      end if
+      endif
 
       if (.not. allocated(t_gswm)) then
         allocate(t_gswm(nLonsGswm, nLatsGswm, nAltsGswm, 24))
         t_gswm(:, :, :, :) = 0.
-      end if
+      endif
 
       if (.not. allocated(lon_gswm)) allocate(lon_gswm(nLonsGswm))
       if (.not. allocated(lat_gswm)) allocate(lat_gswm(nLatsGswm))
@@ -645,8 +645,8 @@ subroutine read_tides
       do ihour = 1, 24
         do ivar = 1, nvars
           read(iInputUnit_) param(:, :, :, ivar, ihour)
-        end do
-      end do
+        enddo
+      enddo
 
       lon_gswm(:) = param(:, 1, 1, 1, 1)
       lat_gswm(:) = param(1, :, 1, 2, 1)
@@ -662,9 +662,9 @@ subroutine read_tides
       deallocate(varname)
       deallocate(param)
 
-    end if
+    endif
 
-  end do
+  enddo
 
   call end_timing("read_tides")
 
@@ -708,7 +708,7 @@ subroutine update_tides
               Longitude(iLon, iBlock)*180/pi
             write(*, *) "gswm lat/lon : ", &
               lat_gswm(iLatGSWM)*180/pi, lon_gswm(iLonGSWM)*180/pi
-          end if
+          endif
 
           TidesTemp(iLon, iLat, iAlt, iBlock) = &
             (1 - rfac)*t_gswm(iLonGSWM, iLatGSWM, 1, iFac1) + &
@@ -720,9 +720,9 @@ subroutine update_tides
             (1 - rfac)*v_gswm(iLonGSWM, iLatGSWM, 1, iFac1) + &
             (rfac)*v_gswm(iLonGSWM, iLatGSWM, 1, iFac2)
 
-        end do
-      end do
-    end do
-  end do
+        enddo
+      enddo
+    enddo
+  enddo
 
 end subroutine update_tides

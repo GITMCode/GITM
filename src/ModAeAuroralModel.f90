@@ -48,7 +48,7 @@ contains
     if (IsFirstTime) then
       iError = 0
       IsFirstTime = .false.
-    end if
+    endif
 
     call get_ae(GitmCurrentTime + TimeDelayHighLat, ae, iError)
 
@@ -75,16 +75,16 @@ contains
           iMLat = 1
           do i = 1, nMlats
             if (dist(i) == mindist) iMLat = i
-          end do
+          enddo
 
           ElectronEnergyFlux(iLon, iLat) = eFlux(iAe, iMlt, iMlat)
           ElectronAverageEnergy(iLon, iLat) = AveE(iAe, iMlt, iMlat)
 
-        end if
+        endif
 
-      end do
+      enddo
 
-    end do
+    enddo
 
     call end_timing("run_ae_model")
 
@@ -117,7 +117,7 @@ contains
       if (.not. IsThere) then
         write(*, *) cFile//" cannot be found by read_ovationsm_files"
         call stop_gitm("must stop!!!")
-      end if
+      endif
 
       iError = 0
 
@@ -132,19 +132,19 @@ contains
       ! Read in mlats for all bins:
       do iLat = 1, nMLats
         read(iInputUnit_, *, iostat=iError) mlats(iAe, :, iLat)
-      end do
+      enddo
 
       ! Read in eflux for all bins:
       do iLat = 1, nMLats
         read(iInputUnit_, *, iostat=iError) eFlux(iAe, :, iLat)
-      end do
+      enddo
 
       ! Read in avee for all bins:
       do iLat = 1, nMLats
         read(iInputUnit_, *, iostat=iError) AveE(iAe, :, iLat)
-      end do
+      enddo
 
-    end do
+    enddo
 
     close(iInputUnit_)
 
