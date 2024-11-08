@@ -57,4 +57,3 @@ util/EMPIRICAL/srcIE/Makefile.DEPEND
 util/EMPIRICAL/srcUA/Makefile.RULES
 util/NOMPI/src/Makefile.RULES
 
-ext/
