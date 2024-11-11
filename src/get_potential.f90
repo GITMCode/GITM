@@ -248,6 +248,8 @@ subroutine set_indices
     if (iDebugLevel > 1) write(*, *) "==> Solar Wind Velocity : ", vx
 
     call get_SW_N(CurrentTime + TimeDelayHighLat, den, iError)
+
+    if (den > 80.0) den = 80.0
     if (iError /= 0) den = 5.0
     call IO_SetSWN(den)
 

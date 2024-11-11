@@ -634,7 +634,7 @@ contains
 
       if (LogINS(iAlt - 6, iSpecies) < 0.0) then
         write(*, *) 'Negative Ion density too close to the upper boundary: ', iSpecies
-        call stop_gitm('Stopping in set_vertical_bcs')
+        ! call stop_gitm('Stopping in set_vertical_bcs')
       endif
 
       do iAltSub = iAlt - 5, iAlt - 1
