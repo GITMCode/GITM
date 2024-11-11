@@ -683,7 +683,7 @@ subroutine set_inputs
 
         endif
 
-      case ("#IEMODELS") !would love to call this #ELECTRODYNAMICS, but...
+      case ("#IEMODELS") ! would love to call this #ELECTRODYNAMICS, but...
         call read_in_string(cAuroralModel, iError)
         call read_in_string(cPotentialModel, iError)
         
@@ -695,6 +695,7 @@ subroutine set_inputs
           write(*, *) 'AuroralModel     fta,fre,pem,hpi/ihp,amie'
           write(*, *) 'PotentialModel   weimer05,hepmay,amie'
           write(*, *) ''
+          call set_error("Aurora and efield names not correctly read!")
         endif
 
         if (.not. isOk) then

@@ -428,6 +428,7 @@ subroutine initialize_gitm(TimeIn)
   endif
 
   call init_b0
+  call init_get_potential
   if (IsEarth) call init_energy_deposition
 
   if (UseApex .and. IsEarth) then

@@ -29,17 +29,17 @@ subroutine init_get_potential
   call IEModel_%model_dir("extIE/")
 
   ! If we are using AMIE files, set north and south files:
-  call IEModel_ % filename_north(cAMIEFileNorth)
-  call IEModel_ % filename_south(cAMIEFileSouth)
+  call IEModel_%filename_north(cAMIEFileNorth)
+  call IEModel_%filename_south(cAMIEFileSouth)
 
   ! Initialize the IE library after setting it up:
-  call IEModel_ % init()
+  call IEModel_%init()
 
   ! Load in indices for the 0th time-step
   call set_ie_indices(IEModel_, CurrentTime)
 
   ! Check that correct indices are present:
-  call IEModel_ % check_indices
+  call IEModel_%check_indices
 
   call report("ieModel indices were checked", 5)
 
@@ -51,12 +51,12 @@ subroutine init_get_potential
   endif
 
   ! Initialize the grid:
-  call IEModel_ % nMlts(nLons + 4)
-  call IEModel_ % nLats(nLats + 4)
+  call IEModel_%nMlts(nLons + 4)
+  call IEModel_%nLats(nLats + 4)
 
   ! if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
   ! Initialize the IE library after setting it up:
-  call IEModel_ % init()
+  call IEModel_%init()
   ! then also regional amie... maybe there's a way to do it cleanly
 
   call report("done with init_get_potential", 2)
@@ -64,6 +64,8 @@ subroutine init_get_potential
   if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
   
   if (iError /= 0) call set_error("MPI Barrier falied in init_get_potential")
+
+  call check_errors(iDebugLevel, .true.)
 
 end subroutine init_get_potential
 
@@ -79,7 +81,7 @@ subroutine get_potential(iBlock)
   use ModUserGITM
   use ModIE
   use ModErrors
-  use ModElectrodynamics, only: didInitGetPotential, IEModel_
+  use ModElectrodynamics, only: IEModel_
   use ModMpi
 
   implicit none
@@ -104,15 +106,6 @@ subroutine get_potential(iBlock)
   call start_timing("get_potential")
   call report("get_potential", 2)
 
-  if (.not. didInitGetPotential) then
-    call init_get_potential
-    if (isOk) then
-      didInitGetPotential = .true.
-    else
-      return
-    endif
-  endif
-
   iError = 0
 
   if (index(cPlanet, "Earth") == 0) then
@@ -134,14 +127,13 @@ subroutine get_potential(iBlock)
       floor((tsimulation)/DtPotential) .or. IsFirstPotential(iBlock)) then
     
     call report("Getting Potential", 1)
-    call set_ie_indices(iemodel_, CurrentTime)
-
+    call set_ie_indices(IEModel_, CurrentTime)
 
     Potential(:, :, :, iBlock) = 0.0
 
     do iAlt = -1, nAlts + 2
 
-      call iemodel_ % grid(MLT(-1:nLons + 2, -1:nLats + 2, iAlt), &
+      call iemodel_%grid(MLT(-1:nLons + 2, -1:nLats + 2, iAlt), &
                            MLatitude(-1:nLons + 2, -1:nLats + 2, iAlt, iBlock))
 
       if (.not. isOk) then
@@ -156,7 +148,7 @@ subroutine get_potential(iBlock)
       TempPotential = 0.0
       TempPotential2d = 0.0
 
-      call iemodel_ % get_potential(TempPotential2d)
+      call iemodel_%get_potential(TempPotential2d)
       TempPotential(:, :, 1) = TempPotential2d
 
       if (.not. isOk) then
@@ -237,7 +229,7 @@ subroutine get_potential(iBlock)
 
     iAlt = nAlts + 1
 
-    call ieModel_ % get_aurora(ElectronEnergyFlux, ElectronAverageEnergy)
+    call ieModel_%get_aurora(ElectronEnergyFlux, ElectronAverageEnergy)
 
     if (.not. isOk) then
       call set_error("Error in routine get_potential (getting aurora):")
@@ -554,13 +546,14 @@ subroutine set_ie_indices(IEModel_, TimeIn)
   endif
 
   if (IEModel_%doReadKP) then
-    call get_KP(TimeIn, val, iError)
+    ! I don't think there's a way to set KP unless you use a single value. No time:
+    call get_KP(val, iError)
     call IEModel_%kp(val)
 
-    if (iError /= 0) call set_error("KP values could not be set!")
-    if (.not. isOk) call set_error("Issue setting KP in IE library")
+    if (iError /= 0 .or. .not. isOk) then
+       call set_error("KP values could not be set!")
+       return
+    endif
   endif
-
-  if (isOk) return
 
 end subroutine set_ie_indices
