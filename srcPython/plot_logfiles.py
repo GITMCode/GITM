@@ -27,9 +27,56 @@ def get_args_timeline():
     parser.add_argument('filelist', nargs='+', \
                         help = 'list files to use for generating plots')
     
+    parser.add_argument('-start', default = '0000', \
+                        help = 'start date as YYYYMMDD[.HHMM]')
+    parser.add_argument('-end', default = '0000', \
+                        help = 'end date as YYYYMMDD[.HHMM]')
+    
     args = parser.parse_args()
 
     return args
+
+# ----------------------------------------------------------------------
+# convert a yyyymmdd.hhmm string to date time
+# ----------------------------------------------------------------------
+
+def convert_time(sTime):
+    
+    yTime = sTime[0:4]
+    mo = sTime[4:6]
+    da = sTime[6:8]
+
+    if (len(sTime) >= 11):
+        hr = sTime[9:11]
+        if (len(sTime) >= 13):
+            mi = sTime[11:13]
+        else:
+            mi = '00'
+    else:
+        hr = '00'
+        mi = '00'
+
+    daTime = dt.datetime(int(yTime), int(mo), int(da), int(hr), int(mi), 0)
+    diTime =  {
+        0: [yTime, ' year'],
+        1: [mo, ' month'],
+        2: [da, ' day'],
+        3: [hr, ' hour'],
+        4: [mi, ' minute'],
+        5: ['00', ' second']
+    }
+    return daTime, diTime
+
+# ----------------------------------------------------------------------
+# Find closest time, given an array of datetimes and a datetime to find
+# ----------------------------------------------------------------------
+
+def find_closest_time(timeArray, timeToFind):
+    deltas = []
+    for time in timeArray:
+        deltas.append((timeToFind - time).total_seconds())
+    iTime_ = np.argmin(np.abs(deltas))
+    return iTime_
 
 # ----------------------------------------------------------------------
 # Read file
@@ -229,20 +276,53 @@ if __name__ == '__main__':
 
     nFiles = len(args.filelist)
     nVars = len(args.vars)
-    
+
+    useStartTime = False
+    useEndTime = False
+    if (args.start != '0000'):
+        startTime, dummy = convert_time(args.start)
+        useStartTime = True
+        print('  -> startTime set to : ', startTime)
+    if (args.end != '0000'):
+        endTime, dummy = convert_time(args.end)
+        useEndTime = True
+        print('  -> endTime set to : ', endTime)
+
     fig = plt.figure(figsize = (10,10))
     ax = fig.add_subplot(111)
     
     for file in args.filelist:
-        print("Reading file : ",file)
+        print("Reading file : ", file)
         data = read_timeline_file(file)
-
+        if (not useStartTime):
+            if (file == args.filelist[0]):
+                startTime = data["times"][0]
+            else:
+                if (data["times"][0] < startTime):
+                    startTime = data["times"][0]
+        if (not useEndTime):
+            if (file == args.filelist[0]):
+                endTime = data["times"][-1]
+            else:
+                if (data["times"][-1] > endTime):
+                    endTime = data["times"][-1]
+                        
         for iVar in args.vars:
             if (nFiles > 1):
-                color,line,label = assign_file_to_color(file)
-            if (nVars > 1):
-                color,line,label = assign_var_to_color(data['vars'][iVar])
-                
+                color, line, label = assign_file_to_color(file.lower())
+                if (nVars > 1):
+                    label = data['vars'][iVar] + ' (' + label + ')'
+                    if (iVar == args.vars[0]):
+                        line = 'solid'
+                    else:
+                        line = 'dashed'
+            else:
+                fileColor, fileLine, fileLabel = assign_file_to_color(file.lower())
+                color, line, label = assign_var_to_color(data['vars'][iVar])
+                print(fileLabel, ' -> ', label)
+                if (label == 'GITM'):
+                    label = label + '(' + fileLabel + ')'
+                    print('Label Changed : ', label)
             ax.plot(data["times"], data["values"][iVar], label = label,
                     color = color, linestyle = line, linewidth = 2.0)
 
@@ -253,7 +333,75 @@ if __name__ == '__main__':
     ax.set_ylabel(ytitle)
 
     ax.legend()
+    ax.set_xlim(startTime, endTime)
+    sTime = startTime.strftime('%b %d, %Y %H:%M UT') + ' - ' + \
+        endTime.strftime('%b %d, %Y %H:%M UT (Hours)')
+    ax.set_xlabel(sTime)
+    
+    if (nFiles == 1):
+        iStart_ = find_closest_time(data["times"], startTime)   
+        iEnd_ = find_closest_time(data["times"], endTime)
+
+        print('Calculating Statistics between start and end indices :', iStart_, iEnd_)
+        print('  --> Start Time : ', data["times"][iStart_])
+        print('  --> End Time : ', data["times"][iEnd_])
+        iRef = args.vars[0]
+        var0 = data['vars'][iRef]
+        for iVar in args.vars[1:]:
+            var1 = data['vars'][iVar]
+            print(' -> Comparing variables : ', var0, ' (ref) to ', var1)
+
+            vals0 = data["values"][iRef][iStart_ : iEnd_]
+            vals1 = data["values"][iVar][iStart_ : iEnd_]
+            diff = vals1 - vals0
+            
+            ratio_ave = np.mean(data["values"][iVar][iStart_ : iEnd_]) / \
+                np.mean(data["values"][iRef][iStart_ : iEnd_])
+            min1 = np.min(data["values"][iVar][iStart_ : iEnd_]) 
+            max1 = np.max(data["values"][iVar][iStart_ : iEnd_]) 
+            min0 = np.min(data["values"][iRef][iStart_ : iEnd_]) 
+            max0 = np.max(data["values"][iRef][iStart_ : iEnd_])
+            range1 = (max1 - min1)
+            range0 = (max0 - min0)
+            ratio_max = max1 / max0
+            ratio_range = range1 / range0
+
+            mean_diff = np.mean(vals1 - vals0)
+            nrmse = np.sqrt(np.mean(diff**2)) / (max0 - min0)
+            pe = 1.0 - np.sqrt(np.mean(diff**2)) / np.sqrt(np.mean(vals0**2))
+
+            sRatioMeans = 'Ratio of means : %4.2f' % ratio_ave
+            sRatioMaxs = 'Ratio of maxes : %4.2f' % ratio_max
+            sRatioRanges = 'Ratio of ranges : %4.2f' % ratio_range
+            sMeanDiff =  'Mean Difference : %10.4e' % mean_diff
+            sNrms = 'Normalized RMSE : %4.2f' % nrmse
+            sPE = 'Prediction Eff. : %5.2f' % pe
+            print('  -> Ratio of means : ', ratio_ave)
+            print('  -> Ratio of maxs : ', ratio_max)
+            print('  -> Ratio of ranges : ', ratio_range)
+            print('  -> Mean Difference : ', mean_diff)
+            print('  -> nrmse : ', nrmse)
+            print('  -> pe : ', pe)
+
+            if (len(args.vars) == 2):
+                mini = np.min([min1, min0])
+                maxi = np.max([max1, max0])
+                r = maxi - mini
+                mini = mini - 0.15 * r
+                maxi = maxi + 0.02 * r
+                deltaT = (data["times"][iEnd_] - data["times"][iStart_]).total_seconds()
+                t10 = data["times"][iStart_] + dt.timedelta(seconds = deltaT * 0.1)
+                t40 = data["times"][iStart_] + dt.timedelta(seconds = deltaT * 0.4)
+                ax.set_ylim(mini, maxi)
+                ax.text(t10, mini + 0.01 * r, sRatioMeans)
+                ax.text(t10, mini + 0.05 * r, sRatioMaxs)
+                ax.text(t10, mini + 0.09 * r, sRatioRanges)
+                ax.text(t40, mini + 0.01 * r, sMeanDiff)
+                ax.text(t40, mini + 0.05 * r, sNrms)
+                ax.text(t40, mini + 0.09 * r, sPE)
+                
     plotfile = args.plotfile
     print('writing : ',plotfile)    
     fig.savefig(plotfile)
     plt.close()
+
