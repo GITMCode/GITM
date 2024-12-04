@@ -498,8 +498,8 @@ subroutine set_ie_indices(IEModel_, TimeIn)
     call IEModel_%imfBy(val)
 
     call get_SW_V(TimeIn, val, iError)
-    if (val < -2000.0) val = -2000.0
-    if (val > 2000.0) val = 2000.0
+    if (val < -1800.0) val = -1800.0
+    if (val > 1800.0) val = 1800.0
     call IEModel_%swV(val)
 
     call get_SW_N(TimeIn, val, iError)
