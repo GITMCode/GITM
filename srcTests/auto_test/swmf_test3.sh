@@ -9,21 +9,21 @@ get_help(){
 > This script will automatically run SWMF test3 (UA coupling)
 > Just input a directory where to put the files, and the rest will be automatic.
 > You can either move this script & it will clone GITM, or if it is run from
-  GITM/srcTests/auto_test, it will copy the version of GITM to inside the SWMF.
+  GITM/srcTests/auto_test, it will copy the local version of GITM to inside the SWMF.
 
 ------------------------------------------------------------------------------------
-> Example workflows (All using the -debug flag):
--------------------
+> Example workflow/usage examples (All using the -debug flag):
+--------------------------------------------------------------
 
-- You just made changes on a GITM branch 'couplefix', which have been pushed to
+- You made changes on a GITM branch 'couplefix', which have been pushed to
   GITMCode/GITM, and *have not run this before*.
-  - Assuming standalone GITM and SWMF will go into ~/Documents:
+  # Assuming standalone GITM and SWMF will go into ~/Documents:
   > pwd
      /home/[you]/Documents/GITM
   > ls ../
      [Make sure there is NO SWMF here!]
 
-  - Clone the SWMF, switch to the correct GITM branch, just compile:
+  # Clone the SWMF, switch to the correct GITM branch, just check if it compiles (-O 0):
   >  ./srcTests/auto_test/swmf_test3.sh -d -b couplefix -O 0 -p ../
 
 - The step above did not compile. You made changes to ~/Documents/GITM and want to test 
@@ -31,10 +31,10 @@ get_help(){
   > pwd
      /home/[you]/Documents/GITM
   
-  - Copy your changes to the SWMF:
-   > cp -r * ../SWMF/UA/GITM/
+  # Copy your changes to the SWMF:
+  > cp -r * ../SWMF/UA/GITM/
 
-  - Run compilation test, do not pull SWMF or checkout a different GITM branch:
+  # Run compilation test, do not pull SWMF or checkout a different GITM branch:
   >  ./srcTests/auto_test/swmf_test3.sh -d --skip_config -c -O 0 ../SWMF
 
 - The SWMF did compile! Now run test3 with -O3 (so that it gets done faster):
@@ -43,7 +43,7 @@ get_help(){
 
   > ./srcTests/auto_test/swmf_test3.sh -d -c ../SWMF
 
-  - If the 'diff' files are empty, good job! If not, something in GITM has changed.
+  # If the 'diff' files are empty, good job! If not, something in the outputs has changed.
     If the diff files are not printed, the test did not complete. See the run log with:
 
   > tail -n 50 ../SWMF/run_test/runlog
