@@ -30,7 +30,7 @@ DEPEND:
 
 EXE = ${BINDIR}/GLOW.exe
 
-MYLIB = libGLOW.a
+MYLIB = ${LIBDIR}/libGLOW.a
 
 LIB:	DEPEND
 	${MAKE} ${MYLIB}
