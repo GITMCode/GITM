@@ -170,10 +170,13 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
     ! we really only have to enforce the density at the 0th cell:
     NS(0, 1:nSpecies) = exp(LogNS(0, 1:nSpecies))
 
-    ! Let's assume that MSIS is returning a zonal-average when it
-    ! is run.  So, we can then assume that we can simply perturb the
-    ! MSIS density.  I am not 100% sure of this, but let's try it out:
-    NS(0, 1:nSpecies) = NS(0, 1:nSpecies)*TidesRhoRat(iLon1D, iLat1D, 2, iBlock1D)
+    ! Let's assume that MSIS is returning a zonal-average when it is
+    ! run (i.e. MSIS-flat).  So, we can then assume that we can simply
+    ! perturb the MSIS density.
+    NS(0, 1:nSpecies) = &
+         NS(0, 1:nSpecies) * &
+         TidesRhoRat(iLon1D, iLat1D, 2, iBlock1D)
+    LogNS(0, 1:nSpecies) = alog(NS(0, 1:nSpecies))
 
   endif
 
