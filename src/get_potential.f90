@@ -60,9 +60,8 @@ subroutine init_get_potential
   ! then also regional amie... maybe there's a way to do it cleanly
 
   call report("done with init_get_potential", 2)
-  
+
   if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
-  
   if (iError /= 0) call set_error("MPI Barrier falied in init_get_potential")
 
   call check_errors(iDebugLevel, .true.)
@@ -79,7 +78,6 @@ subroutine get_potential(iBlock)
   use ModTime
   use ModInputs
   use ModUserGITM
-  use ModIE
   use ModErrors
   use ModElectrodynamics, only: IEModel_
   use ModMpi
@@ -260,21 +258,21 @@ subroutine get_potential(iBlock)
 
     if (UseIonPrecipitation) then
       call stop_gitm("I don't know how to do that yet, sorry!")
-    !   call UA_GetIonAveE(IonAverageEnergy, iError)
-    !   if (iError /= 0) then
-    !     write(*, *) "Error in get_potential (UA_GetAveE):"
-    !     write(*, *) iError
-    !     IonAverageEnergy = 1.0
-    !   endif
+      !   call UA_GetIonAveE(IonAverageEnergy, iError)
+      !   if (iError /= 0) then
+      !     write(*, *) "Error in get_potential (UA_GetAveE):"
+      !     write(*, *) iError
+      !     IonAverageEnergy = 1.0
+      !   endif
 
-    !   call UA_GetIonEFlux(IonEnergyFlux, iError)
-    !   if (iError /= 0) then
-    !     write(*, *) "Error in get_potential (UA_GetEFlux):"
-    !     write(*, *) iError
-    !     IonEnergyFlux = 0.1
-    !   endif
+      !   call UA_GetIonEFlux(IonEnergyFlux, iError)
+      !   if (iError /= 0) then
+      !     write(*, *) "Error in get_potential (UA_GetEFlux):"
+      !     write(*, *) iError
+      !     IonEnergyFlux = 0.1
+      !   endif
 
-    ! endif
+      ! endif
 
     endif
 
@@ -451,7 +449,7 @@ subroutine get_dynamo_potential(lons, lats, pot)
 end subroutine get_dynamo_potential
 
 ! Subroutine to automatically set indices for the given IEModel
-! Will need updateing when HPn/s are introduced (soon)
+! Will need updateing when HPn/s are introduced
 subroutine set_ie_indices(IEModel_, TimeIn)
 
   use ModKind
@@ -470,12 +468,7 @@ subroutine set_ie_indices(IEModel_, TimeIn)
   integer :: iError = 0
   real    :: val
 
-  ! stop
-  ! Set the time in the IE library:
-  write(*, *) TimeIn
-  write(*, *) TimeIn
-  write(*, *)
-  write(*, *)
+
   call IEModel_%time_real(TimeIn)
 
   if (IEModel_%doReadMHD) then
@@ -506,9 +499,10 @@ subroutine set_ie_indices(IEModel_, TimeIn)
     if (val > 80) val = 80
     call IEModel_%swN(val)
 
-    if (iError /= 0) call set_error("Issue getting IMF indices in get_potential")
-    if (.not. isOk) call set_error("Could not set the IMF indices with electrodynamics library")
-
+    if (iError /= 0 .or. .not. isOk) then
+      call set_error("IMF values could not be set!")
+      return
+    endif
   endif
 
   if (IEModel_%doReadSME) then
@@ -520,9 +514,10 @@ subroutine set_ie_indices(IEModel_, TimeIn)
     call get_AL(TimeIn, val, iError)
     call IEModel_%al(val)
 
-    if (iError /= 0) call set_error("SME values could not be set!")
-    if (.not. isOk) call set_error("Issue setting SME in IE library")
-
+    if (iError /= 0 .or. .not. isOk) then
+      call set_error("In set_ie_indices SME values could not be set!")
+      return
+    endif
   endif
 
   if (IEModel_%doReadHPI) then
@@ -533,6 +528,7 @@ subroutine set_ie_indices(IEModel_, TimeIn)
                                     EndTime + TimeDelayHighLat)
 
       if (iError /= 0) call set_error("HPI values could not be read.")
+
     endif
 
     call get_HPI(TimeIn, val, iError)
@@ -540,9 +536,10 @@ subroutine set_ie_indices(IEModel_, TimeIn)
     call IEModel_%hpN(val)
     call IEModel_%hpS(val)
 
-    if (iError /= 0) call set_error("HPI values could not be set!")
-    if (.not. isOk) call set_error("Issue setting HPI in IE library")
-
+    if (iError /= 0 .or. .not. isOk) then
+      call set_error("HPI values could not be set!")
+      return
+    endif
   endif
 
   if (IEModel_%doReadKP) then
