@@ -109,13 +109,15 @@ rundir:
 	fi
 	cd ${RUNDIR}; rm -f ./PostGITM.exe ; ln -s ${UADIR}/src/PostProcess.exe ./PostGITM.exe
 	cd ${RUNDIR}/UA; \
-		mkdir -p restartOUT data  DataIn/extIE; \
-		ln -s restartOUT restartIN; \
-		ln -s ${UADIR}/src/pGITM .; \
-		ln -s ${UADIR}/srcPython/pGITM.py .; \
-		ln -s ${UADIR}/srcData/* DataIn; rm -f DataIn/CVS; \
-		ln -s ${UADIR}/data/* DataIn;    rm -f DataIn/CVS; \
-		ln -s ${EIEDIR}/data/ext extIE;
+		if [ ! -f pGITM ]; then \
+			mkdir -p restartOUT data  DataIn; \
+			ln -s restartOUT restartIN; \
+			ln -s ${UADIR}/src/pGITM .; \
+			ln -s ${UADIR}/srcPython/pGITM.py .; \
+			ln -s ${UADIR}/srcData/* DataIn; rm -f DataIn/CVS; \
+			ln -s ${UADIR}/data/* DataIn;    rm -f DataIn/CVS; \
+			ln -s ${EIEDIR}/data/ext extIE; \
+		fi
 	cd ${RUNDIR} ;                                   \
 		if [ -e ${BINDIR}/GITM.exe ]; then       \
 			ln -s ${BINDIR}/GITM.exe . ;     \
