@@ -4,9 +4,9 @@ GLDIR   = ${UADIR}/srcGlow
 SAMIDIR = ${UADIR}/srcSAMI
 
 SEARCH_EXTRA =  -I${ABDIR} \
-	 	-I${IODIR} \
-		-I${EMPIRICALUADIR} \
-		-I${EMPIRICALIEDIR}
+			 	-I${IODIR} \
+				-I${EMPIRICALUADIR} \
+				-I${EMPIRICALIEDIR}
 
 include ../Makefile.conf
 include ../Makefile.def
@@ -147,7 +147,15 @@ SAMIEXE = ${BINDIR}/GITMSAMI.exe
 GITM:	DEPEND
 	@make ${EXE}
 	@make POST
+	@echo
 	@echo "${EXE} has been created"
+	@echo
+
+${EXE}:	${OBJECTS_EXE}
+	${LINK.f90} -o ${EXE} ${OBJECTS_EXE} \
+		-L${ABDIR} -lSphere \
+		-L${LIBDIR} -lEMPIRICALIE -lEMPIRICALUA -lINDICES -lSHARE \
+		-L${GLDIR} -lGLOW ${LBLAS} ${Lflag1}
 
 SAMI:	DEPENDSAMI
 	@make ${SAMIEXE}
@@ -161,15 +169,6 @@ ${SAMIEXE}:	${OBJECTS_SAMI}
 		-L${GLDIR} -lGLOW ${LBLAS} \
 		-L${SAMIDIR}/src -lSAMI3 \
 		${Lflag1}
-
-${EXE}:	${OBJECTS_EXE}
-	make GITM_general
-
-GITM_general:
-	${LINK.f90} -o ${EXE} ${OBJECTS_EXE} \
-		-L${ABDIR} -lSphere \
-		-L${LIBDIR} -lEMPIRICALIE -lEMPIRICALUA -lINDICES -lSHARE \
-		-L${GLDIR} -lGLOW ${LBLAS} ${Lflag1}
 
 POST:	PostProcess.o
 	${LINK.f90} ${Lflag2} -o PostProcess.exe PostProcess.o
