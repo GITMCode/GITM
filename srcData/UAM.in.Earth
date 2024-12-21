@@ -57,6 +57,34 @@ Output file stuff
 300.0		dt for output (1 every 5 min)
 
 
+
+
+------------ Electrodynamics Drivers ------------
+
+New auroral model from Wu and Ridley, which is driven by AU/AL/AE
+#IEMODELS
+FTA
+weimer05
+
+
+----------- Data Files ------------------
+
+This is the most common thing - specify an IMF file:
+#MHD_INDICES
+UA/DataIn/imf20021221.dat
+
+Can download data from OMNIWeb using:
+srcPython/omni_download_write_swmf.py 20021221 20021222 -swmf
+
+You need AU/AL/AE indices.  You can get this from SuperMAG, which can be
+downloaded using:
+srcPython/supermag_download_ae.py 20021221 20021222
+
+#SME_INDICES
+UA/DataIn/ae_20021221.txt		SME Filename
+none              			onset time delay file
+T					convert SME to Hemispheric Power
+
 If this is before 2019, f107 should work fine:
 
 #NGDC_INDICES
@@ -68,29 +96,8 @@ From 1990 - 2018, it is best to use FISM (and need F107 too!)
 T						Use FISM solar flux data
 UA/DataIn/FISM/fismflux_daily_2002.dat		Filename
 
------------- Auroral Drivers ------------
+------------ Some options ------------
 
-New auroral model from Wu and Ridley, which is driven by AU/AL/AE
-#FTAMODEL
-T                 Use FTA model of the aurora
-
-You need AU/AL/AE indices.  You can get this from SuperMAG, which can be
-downloaded using:
-srcPython/supermag_download_ae.py 20021221 20021222
-
-#SME_INDICES
-UA/DataIn/ae_20021221.txt		SME Filename
-none              			onset time delay file
-T					convert SME to Hemispheric Power
-
------------- E-Field Drivers ------------
-
-Can download data from OMNIWeb using:
-srcPython/omni_download_write_swmf.py 20021221 20021222 -swmf
-
-This is the most common thing - specify an IMF file:
-#MHD_INDICES
-UA/DataIn/imf20021221.dat
 
 Low-latitude dynamo (only run with higher res). Turn on for higher res sims:
 #DYNAMO
