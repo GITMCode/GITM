@@ -246,7 +246,7 @@ subroutine aurora(iBlock)
       ED_Flux = 0.0
       HasSomeAurora = .false.
 
-      if (eflx_ergs > 0.1) then
+      if ((eflx_ergs > 0.1) .and. (av_kev > 0.01)) then
 
         UserData2d(j, i, 1, 2, iBlock) = av_kev
         UserData2d(j, i, 1, 3, iBlock) = eflx_ergs

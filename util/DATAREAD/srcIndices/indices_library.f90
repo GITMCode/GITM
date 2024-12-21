@@ -3,8 +3,9 @@
 
 ! ---------------------------------------------------
 subroutine check_all_indices(TimeIn, iOutputError)
-
+  ! Just checks time.
   use ModIndices
+  
   implicit none
   real(Real8_), intent(in)  :: TimeIn
   integer, intent(out) :: iOutputError
@@ -1348,4 +1349,3 @@ subroutine get_jh_calc_wotime(value, iOutputError)
   endif
 
 end subroutine get_jh_calc_wotime
-

@@ -2,17 +2,20 @@ ABDIR   = ${UADIR}/srcSphereAB
 IODIR   = ${DATAREADINDICESDIR}
 GLDIR   = ${UADIR}/srcGlow
 SAMIDIR = ${UADIR}/srcSAMI
-
-SEARCH_EXTRA =  -I${ABDIR} \
-			 	-I${IODIR} \
-				-I${EMPIRICALUADIR} \
-				-I${EMPIRICALIEDIR}
+IEDIR   = ${IEDIR}/src
 
 include ../Makefile.conf
 include ../Makefile.def
 
 include Makefile.DEPEND
 include Makefile.RULES
+
+
+SEARCH_EXTRA =  -I${ABDIR} \
+	 	-I${IODIR} \
+		-I${EMPIRICALUADIR} \
+		-I${IEDIR}
+
 
 MODULES = \
 	apexsh.o\
@@ -22,14 +25,12 @@ MODULES = \
 	ModConstants.o\
 	ModEUV.o\
 	ModElectrodynamics.o\
-	ModFtaModel.o\
 	ModGITM.o\
 	ModGITMImplicit.o\
 	ModHwm14.o\
 	ModInputs.o\
 	ModLimiter.o\
 	ModMagTrace.o\
-	ModNewell.o\
 	ModOrbital.o\
 	ModOvationSME.o\
 	ModPlanet.o\
@@ -165,10 +166,12 @@ SAMI:	DEPENDSAMI
 ${SAMIEXE}:	${OBJECTS_SAMI}
 		${LINK.f90} -o ${SAMIEXE} ${OBJECTS_SAMI} \
 		-L${ABDIR} -lSphere \
-		-L${LIBDIR} -lEMPIRICALIE -lEMPIRICALUA -lINDICES -lSHARE \
+		-L${IEDIR} -lIE \
+		-L${LIBDIR} -lEMPIRICALUA -lINDICES -lSHARE \
 		-L${GLDIR} -lGLOW ${LBLAS} \
 		-L${SAMIDIR}/src -lSAMI3 \
 		${Lflag1}
+
 
 POST:	PostProcess.o
 	${LINK.f90} ${Lflag2} -o PostProcess.exe PostProcess.o

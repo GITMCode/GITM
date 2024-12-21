@@ -4,7 +4,7 @@ default : GITM
 include Makefile.def
 
 ABDIR   = srcSphereAB
-EIEDIR  = ${EMPIRICALIEDIR}
+EIEDIR   = ${IEDIR}
 EUADIR  = ${EMPIRICALUADIR}
 IODIR   = ${DATAREADINDICESDIR}
 MAINDIR = src
@@ -76,9 +76,11 @@ clean:
 	if [ -d share ]; then cd share; make cleanall; fi;
 	if [ -d util ];  then cd util;  make cleanall; fi;
 	if [ -d srcSAMI ]; then cd srcSAMI; make clean; fi;
+	if [ -d ext/Electrodynamics ]; then cd ext/Electrodynamics; make clean; fi;
 
 
 distclean: 
+	make clean
 	./Config.pl -uninstall
 
 allclean:
@@ -107,7 +109,7 @@ rundir:
 	fi
 	cd ${RUNDIR}; \
 		if [ ! -e "EIE/README" ]; then \
-			ln -s ${EMPIRICALIEDIR}/data EIE;\
+			ln -s ${EIEDIR}/data/ext DataIn/extIE;\
 		fi;
 	cd ${RUNDIR}; rm -f ./PostGITM.exe ; ln -s ${UADIR}/src/PostProcess.exe ./PostGITM.exe
 	cd ${RUNDIR}/UA; \

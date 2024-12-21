@@ -24,6 +24,8 @@ subroutine set_inputs
   use ModPlanet
   use ModSatellites
   use ModRCMR
+  use ModIE
+  use ModErrors
   use ModIoUnit, only: UnitTmp_
 
   implicit none
@@ -681,8 +683,26 @@ subroutine set_inputs
 
         endif
 
-      case ("#AURORA")
+      case ("#IEMODELS") ! would love to call this #ELECTRODYNAMICS, but...
         call read_in_string(cAuroralModel, iError)
+        call read_in_string(cPotentialModel, iError)
+        
+        if (iError /= 0) then
+          ! Change to new error soon...
+          write(*, *) 'Incorrect format for #IEMODELS !!'
+          write(*, *) ''
+          write(*, *) '#IEMODELS'
+          write(*, *) 'AuroralModel     fta,fre,pem,hpi/ihp,amie'
+          write(*, *) 'PotentialModel   weimer05,hepmay,amie'
+          write(*, *) ''
+          call set_error("Aurora and efield names not correctly read!")
+        endif
+
+        if (.not. isOk) then
+          call report_errors
+          call stop_gitm("")
+        endif
+
 
       case ("#AURORAMODS")
         HasSetAuroraMods = .true.
@@ -750,34 +770,6 @@ subroutine set_inputs
           IsDone = .true.
         else
           if (UseOvationSME .and. .not. HasSetAuroraMods) &
-            NormalizeAuroraToHP = .false.
-        endif
-
-      case ("#AEMODEL")
-        call read_in_logical(UseAeModel, iError)
-        if (iError /= 0) then
-          write(*, *) 'Incorrect format for #AEMODEL'
-          write(*, *) 'This is for using Dongjies aurora.'
-          write(*, *) ''
-          write(*, *) '#AEMODEL'
-          write(*, *) 'UseAeModel        (logical)'
-          IsDone = .true.
-        else
-          if (UseAeModel .and. .not. HasSetAuroraMods) &
-            NormalizeAuroraToHP = .false.
-        endif
-
-      case ("#FTAMODEL")
-        call read_in_logical(UseFtaModel, iError)
-        if (iError /= 0) then
-          write(*, *) 'Incorrect format for #FTAMODEL'
-          write(*, *) 'This is for using the FTA Model of the aurora.'
-          write(*, *) ''
-          write(*, *) '#FTAMODEL'
-          write(*, *) 'UseFtaModel        (logical)'
-          IsDone = .true.
-        else
-          if (UseFtaModel .and. .not. HasSetAuroraMods) &
             NormalizeAuroraToHP = .false.
         endif
 
@@ -850,6 +842,20 @@ subroutine set_inputs
           write(*, *) 'AMIELatStart         (real)'
           write(*, *) 'AMIELatEnd           (real)'
           write(*, *) 'AMIEBoundaryWidth    (real)'
+          IsDone = .true.
+        endif
+
+      case ("#ELECTRODYNAMICS")
+        call read_in_real(dTPotential, iError)
+        call read_in_real(dTAurora, iError)
+        if (iError /= 0) then
+          write(*, *) 'Incorrect format for #ELECTRODYNAMICS'
+          write(*, *) 'Sets the time for updating the high-latitude'
+          write(*, *) '(and low-latitude) electrodynamic drivers, such as'
+          write(*, *) 'the potential and the aurora.'
+          write(*, *) '#ELECTRODYNAMICS'
+          write(*, *) 'DtPotential (real, seconds)'
+          write(*, *) 'DtAurora    (real, seconds)'
           IsDone = .true.
         endif
 
@@ -1601,20 +1607,6 @@ subroutine set_inputs
           write(*, *) "useDART (integer, {default 0=no}, 1=master ensemble member, 2=slave ens.)"
         endif
 
-      case ("#ELECTRODYNAMICS")
-        call read_in_real(dTPotential, iError)
-        call read_in_real(dTAurora, iError)
-        if (iError /= 0) then
-          write(*, *) 'Incorrect format for #ELECTRODYNAMICS'
-          write(*, *) 'Sets the time for updating the high-latitude'
-          write(*, *) '(and low-latitude) electrodynamic drivers, such as'
-          write(*, *) 'the potential and the aurora.'
-          write(*, *) '#ELECTRODYNAMICS'
-          write(*, *) 'DtPotential (real, seconds)'
-          write(*, *) 'DtAurora    (real, seconds)'
-          IsDone = .true.
-        endif
-
       case ("#INPUTTIMEDELAY")
         call read_in_real(TimeDelayHighLat, iError)
         call read_in_real(TimeDelayEUV, iError)
@@ -1841,7 +1833,7 @@ subroutine set_inputs
           ! If the onset file is called "none", then it will
           ! automatically ignore this:
 
-          call read_al_onset_list(iError, &
+          call read_al_onset_list(iError, & !TODO: Get this working in ieModel
                                   CurrentTime + TimeDelayHighLat, &
                                   EndTime + TimeDelayHighLat)
 
