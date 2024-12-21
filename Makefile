@@ -107,18 +107,15 @@ rundir:
                 ln -s restartOUT restartIN; \
                 ln -s ${UADIR}/srcSAMI/srcInputs ./input; \
 	fi
-	cd ${RUNDIR}; \
-		if [ ! -e "EIE/README" ]; then \
-			ln -s ${EIEDIR}/data/ext DataIn/extIE;\
-		fi;
 	cd ${RUNDIR}; rm -f ./PostGITM.exe ; ln -s ${UADIR}/src/PostProcess.exe ./PostGITM.exe
 	cd ${RUNDIR}/UA; \
-		mkdir restartOUT data DataIn; \
+		mkdir -p restartOUT data  DataIn/extIE; \
 		ln -s restartOUT restartIN; \
 		ln -s ${UADIR}/src/pGITM .; \
 		ln -s ${UADIR}/srcPython/pGITM.py .; \
 		ln -s ${UADIR}/srcData/* DataIn; rm -f DataIn/CVS; \
-		ln -s ${UADIR}/data/* DataIn;    rm -f DataIn/CVS
+		ln -s ${UADIR}/data/* DataIn;    rm -f DataIn/CVS; \
+		ln -s ${EIEDIR}/data/ext DataIn/extIE;
 	cd ${RUNDIR} ;                                   \
 		if [ -e ${BINDIR}/GITM.exe ]; then       \
 			ln -s ${BINDIR}/GITM.exe . ;     \
