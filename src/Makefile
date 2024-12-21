@@ -2,7 +2,7 @@ ABDIR   = ${UADIR}/srcSphereAB
 IODIR   = ${DATAREADINDICESDIR}
 GLDIR   = ${UADIR}/srcGlow
 SAMIDIR = ${UADIR}/srcSAMI
-IEDIR   = ${IEDIR}/src
+EIEDIR   = ${IEDIR}/src
 
 include ../Makefile.conf
 include ../Makefile.def
@@ -14,7 +14,7 @@ include Makefile.RULES
 SEARCH_EXTRA =  -I${ABDIR} \
 	 	-I${IODIR} \
 		-I${EMPIRICALUADIR} \
-		-I${IEDIR}
+		-I${EIEDIR}
 
 
 MODULES = \
@@ -155,7 +155,8 @@ GITM:	DEPEND
 ${EXE}:	${OBJECTS_EXE}
 	${LINK.f90} -o ${EXE} ${OBJECTS_EXE} \
 		-L${ABDIR} -lSphere \
-		-L${LIBDIR} -lEMPIRICALIE -lEMPIRICALUA -lINDICES -lSHARE \
+		-L${LIBDIR} -lEMPIRICALUA -lINDICES -lSHARE \
+		-L${EIEDIR} -lIE \
 		-L${GLDIR} -lGLOW ${LBLAS} ${Lflag1}
 
 SAMI:	DEPENDSAMI
