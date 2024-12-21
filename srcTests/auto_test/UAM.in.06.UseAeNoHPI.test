@@ -39,9 +39,6 @@ Set blocks in lon and lat.
   - total cells in a direction = nBlocks x nCells (set in ModSize)
   - res = (max - min) / num cells
 
-#NANCHECK
-T
-
 #GRID
 2		number of blocks in longitude
 2		number of blocks in latitude
@@ -84,39 +81,29 @@ F			UseBelowLow
 #MHD_INDICES
 DataIn/imf20021221.dat
 
-#NOAAHPI_INDICES
-DataIn/power.test.rcmr_quick
 
 New auroral model from Wu and Ridley, which is driven by AU/AL/AE
 #FTAMODEL
-T                 Use FTA model of the aurora
+F                 Use FTA model of the aurora
 
 Can download AU/AL/AE indices from SuperMAG and use them here:
 #SME_INDICES
 DataIn/ae_20021221.txt
 none              onset time delay file
-
-This is for OVATION-PRIME:
-#NEWELLAURORA
-F                 Use Newell Ovation model of the aurora
-T                 UseNewellAveraged (logical)
-T                 UseNewellMono (logical)
-T                 UseNewellWave (logical)
-T                 UseNewellRemoveSpikes (logical)
-T                 UseNewellAverage      (logical)
+T
 
 #FANGENERGY
-F		Use Fang 2010 and 2013 energy deposition
+T		Use Fang 2010 and 2013 energy deposition
 
 Can add a cusp:
 #USECUSP
-T		Add a cusp to the electron precipitation
+F		Add a cusp to the electron precipitation
 0.2             Average Energy
 2.0             Energy Flux
 
 This will modify the auroral inputs, experimental:
 #AURORAMODS
-T		normalize to hemispheric power
+F		normalize to hemispheric power
 2.0		avee factor (1 is no mod)
 T		iskappa
 4.0		kappa (3 min; higher is maxwellian)
@@ -126,6 +113,12 @@ F		If ions are included in the AMIE file, use them. FangEnergy=T!
 
 ------------ E-Field Drivers ------------
 
+#SOLARWIND
+0.0		IMF Bx
+0.0		IMF By
+-2.0		IMF Bz
+400.0		Solar wind Vx
+
 This is for amie-like inputs:
 #AMIEFILES
 none		northern hemisphere amie file
@@ -133,7 +126,7 @@ none		southern hemisphere amie file
 
 Low-latitude dynamo (only run with higher res). Turn on for higher res sims:
 #DYNAMO
-F		UseDynamo
+T		UseDynamo
 45.0		DynamoHighLatBoundary
 500		nItersMax
 1.0		MaxResidual
@@ -143,6 +136,9 @@ F               UseNewTrace
 
 -----------------------------------------------------------------
 Some new features:
+
+#NANCHECK
+T
 
 #MSISOBC
 T		Shift the [O] density at the lower boundary by 6 months 
@@ -178,7 +174,7 @@ Can set max wall time for the code to run (default = 10 days)
 Solver stuff:
 
 #AUSMSOLVER
-F       	Use AUSM+-up Solvers
+T       	Use AUSM+-up Solvers
 
 #CFL
 0.80		percentage of maximum allowable time-step to take
@@ -201,7 +197,7 @@ This stuff is standard for Earth
 #ALTITUDE
 100.0		minimum altitude to use
 600.0		maximum altitude to use (ignored unless the following is F)
-F		use stretched grid
+T		use stretched grid
 
 #INITIAL
 T		initialize thermosphere using MSIS
@@ -209,7 +205,7 @@ T		initialize ionosphere using IRI
 
 #TIDES
 F		UseMSISFlat
-F		UseMSISTides
+T		UseMSISTides
 F		UseGSWMTides
 F		UseWACCMTides
 F   UseHmeTides
@@ -222,7 +218,7 @@ F		Semidiurnal Migrating
 F		Semidiurnal NonMigrating
 
 #APEX
-F		Use apex magnetic coordinate system
+T		Use apex magnetic coordinate system
 
 --------------------------------------------------------------------------
 Turn on/off various source terms:

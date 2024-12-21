@@ -4,7 +4,6 @@ GLDIR   = ${UADIR}/srcGlow
 SAMIDIR = ${UADIR}/srcSAMI
 IEDIR   = ${IEDIR}/src
 
-
 include ../Makefile.conf
 include ../Makefile.def
 
@@ -149,7 +148,15 @@ SAMIEXE = ${BINDIR}/GITMSAMI.exe
 GITM:	DEPEND
 	@make ${EXE}
 	@make POST
+	@echo
 	@echo "${EXE} has been created"
+	@echo
+
+${EXE}:	${OBJECTS_EXE}
+	${LINK.f90} -o ${EXE} ${OBJECTS_EXE} \
+		-L${ABDIR} -lSphere \
+		-L${LIBDIR} -lEMPIRICALIE -lEMPIRICALUA -lINDICES -lSHARE \
+		-L${GLDIR} -lGLOW ${LBLAS} ${Lflag1}
 
 SAMI:	DEPENDSAMI
 	@make ${SAMIEXE}
@@ -165,27 +172,6 @@ ${SAMIEXE}:	${OBJECTS_SAMI}
 		-L${SAMIDIR}/src -lSAMI3 \
 		${Lflag1}
 
-${EXE}:	${OBJECTS_EXE}
-	@(if [ ${OS} = "Darwin" ]; then make GITM_for_Darwin; \
-	else                            make GITM_general;     fi)
-
-GITM_general:
-	${LINK.f90} -o ${EXE} ${OBJECTS_EXE} \
-		-L${ABDIR} -lSphere \
-		-L${LIBDIR} -lEMPIRICALUA -lINDICES -lSHARE -lIE \
-		-L${GLDIR} -lGLOW ${LBLAS} ${Lflag1}
-
-GITM_for_Darwin:
-	rm -rf Tmp_; mkdir Tmp_
-	cd Tmp_; \
-		ar -x ${ABDIR}/libSphere.a; \
-		ar -x ${IEDIR}/libIE.a; \
-		ar -x ${LIBDIR}/libEMPIRICALUA.a; \
-		ar -x ${LIBDIR}/libINDICES.a; \
-		ar -x ${LIBDIR}/libSHARE.a; \
-		ar -x ${GLDIR}/libGLOW.a
-	${LINK.f90} -o ${EXE} ${OBJECTS_EXE} Tmp_/*.o ${LBLAS} ${Lflag1}
-	rm -rf Tmp_
 
 POST:	PostProcess.o
 	${LINK.f90} ${Lflag2} -o PostProcess.exe PostProcess.o
