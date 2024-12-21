@@ -64,8 +64,6 @@ subroutine init_get_potential
   if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
   if (iError /= 0) call set_error("MPI Barrier falied in init_get_potential")
 
-  call check_errors(iDebugLevel, .true.)
-
 end subroutine init_get_potential
 
 !--------------------------------------------------------------------
