@@ -115,7 +115,7 @@ rundir:
 		ln -s ${UADIR}/srcPython/pGITM.py .; \
 		ln -s ${UADIR}/srcData/* DataIn; rm -f DataIn/CVS; \
 		ln -s ${UADIR}/data/* DataIn;    rm -f DataIn/CVS; \
-		ln -s ${EIEDIR}/data/ext DataIn/extIE;
+		ln -s ${EIEDIR}/data/ext extIE;
 	cd ${RUNDIR} ;                                   \
 		if [ -e ${BINDIR}/GITM.exe ]; then       \
 			ln -s ${BINDIR}/GITM.exe . ;     \
