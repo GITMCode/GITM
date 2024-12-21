@@ -67,6 +67,30 @@ foreach (@Arguments){
     warn "WARNING: Unknown flag $_\n" if $Remaining{$_};
 }
 
+# Git clone electrodynamics first!
+# (this section will be replaced when GITM switches to the SWMF's share/)
+if ($Install and not $IsCompGitm){
+    # Get the new electrodynamics library!
+
+    # Check if the above ran successfully
+    if( not -d "ext/Electrodynamics"){
+
+        my $command = "git clone git\@github.com:GITMCode/Electrodynamics.git ext/Electrodynamics";
+        print "Attempting to clone GITMCode/Electrodynamics with ssh:\n\t> $command\n";
+        my $exit_status = `$command`;
+        # If this fails, the script will *not* crash. Check if it was successful:
+        if ( -d "ext/Electrodynamics" ) {
+            print "Electrodynamics was cloned successfully!\n";
+        } else {
+            warn "git clone with SSH failed. Trying HTTPS...\n";
+            &shell_command("git clone https://github.com/GITMCode/Electrodynamics.git ext/Electrodynamics");
+            # If this fails, the script will exit with an error message
+        }
+    } else {
+        print "ext/Electrodynamics already exists. Not updating it.\n";
+    }
+}
+
 &modify_utilities if $NoFlush;
 
 &install_code if $Install;
