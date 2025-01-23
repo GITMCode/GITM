@@ -1,14 +1,6 @@
 ! Copyright 2021, the GITM Development Team (see srcDoc/dev_team.md for members)
 ! Full license can be found in LICENSE
 
-subroutine calc_electron_temperature(iBlock)
-
-  integer, intent(in) :: iBlock
-
-  call calc_electron_ion_sources(iBlock)
-  call calc_electron_ion_temperature(iBlock)
-
-end subroutine calc_electron_temperature
 
 subroutine calc_electron_ion_temperature(iBlock)
 
@@ -1100,6 +1092,12 @@ subroutine calc_electron_ion_sources(iBlock) !,eHeatingp,iHeatingp,eHeatingm,iHe
   where (sintheta .GT. -0.1 .AND. sintheta .LE. 0.0) sintheta = -0.1
   sin2theta = sintheta**2
 
+  ! perpendicular conduction =0 in ghost cells
+  Qeconhm = 0.0
+  Qiconhm = 0.0
+  Qeconhp = 0.0
+  Qiconhp = 0.0
+
   do iAlt = 0, nAlts + 1
     dtedphe = 0.0
     dtidphe = 0.0
@@ -1248,7 +1246,7 @@ subroutine calc_electron_ion_sources(iBlock) !,eHeatingp,iHeatingp,eHeatingm,iHe
   iHeatingm(1:nLons, 1:nLats, 1:nAlts) = iHeatingm(1:nLons, 1:nLats, 1:nAlts) &
                                          + ChemicalHeatingRateIon
   iHeatingp = Qiecp + Qinc_tp + Qiconhp
-  iHeating = Qiec + Qinc_t + Qinc_v
+  iHeating = Qeic + Qinc_t + Qinc_v
 
   if (DoCheckForNans) then
     do iLon = 1, nLons

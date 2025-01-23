@@ -38,6 +38,8 @@ subroutine add_sources
 
     call calc_GITM_sources(iBlock)
 
+    call calc_electron_ion_sources(iBlock)
+
     !-------------------------------------------------------------------------
     ! Neutral Temperature Source Terms
     !-------------------------------------------------------------------------
@@ -111,7 +113,7 @@ subroutine add_sources
 
     if (DoCheckForNans) call check_for_nans_ions('before e-temp')
 
-    call calc_electron_temperature(iBlock)
+    call calc_electron_ion_temperature(iBlock)
 
     !-------------------------------------------------------------------------
     ! Bulk Quantities (rho, number den, vertical velocity, electron den)
