@@ -98,8 +98,7 @@ subroutine add_sources
       ! Ion drag + neutral friction are defined 1 - nAlts:
       VerticalVelocity(1:nLons, 1:nLats, 1:nAlts, iSpecies, iBlock) = &
         VerticalVelocity(1:nLons, 1:nLats, 1:nAlts, iSpecies, iBlock) + &
-        Dt*(VerticalIonDrag(:, :, :, iSpecies)) + &
-        NeutralFriction(:, :, :, iSpecies)
+        Dt*(VerticalIonDrag(:, :, :, iSpecies))
       ! Viscosity is defined 0 - nAlts + 1
       VerticalVelocity(1:nLons, 1:nLats, 0:nAlts + 1, iSpecies, iBlock) = &
         VerticalVelocity(1:nLons, 1:nLats, 0:nAlts + 1, iSpecies, iBlock) + &
