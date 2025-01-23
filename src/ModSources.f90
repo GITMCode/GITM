@@ -20,7 +20,7 @@ module ModSources
 ! JMB: 07/13/2017.  Conduction must extend 0:nAlts+1
 ! for the 2nd order update and 2nd order boundary conditions
   real, dimension(nLons, nLats, 0:nAlts + 1) :: &
-    Conduction
+    Conduction = 0.0
 
   real, dimension(nLons, nLats) :: &
     JouleHeating2d, EuvHeating2d, HeatTransfer2d, RadiativeCooling2d, &
@@ -157,11 +157,13 @@ contains
     allocate(QnirLTE(nLons, nLats, nAlts, nBlocks))
     allocate(CirLTE(nLons, nLats, nAlts, nBlocks))
     allocate(UserHeatingRate(nLons, nLats, nAlts, nBlocks))
+    UserHeatingRate = 0.0
     allocate(ISourcesTotal(nLons, nLats, nAlts, nIons - 1, nBlocks))
     allocate(ILossesTotal(nLons, nLats, nAlts, nIons - 1, nBlocks))
     allocate(AuroralIonRateS(nLons, nLats, nAlts, nSpecies, nBlocks))
     allocate(AuroralHeatingRate(nLons, nLats, nAlts, nBlocks))
     allocate(IonPrecipIonRateS(nLons, nLats, nAlts, nSpecies, nBlocks))
+    IonPrecipIonRateS = 0.0
     allocate(IonPrecipHeatingRate(nLons, nLats, nAlts, nBlocks))
     allocate(KappaEddyDiffusion(nLons, nLats, -1:nAlts + 2, nBlocks))
 
