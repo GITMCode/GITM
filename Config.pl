@@ -45,7 +45,7 @@ my ($nLon, $nLat, $nAlt, $MaxBlock);
 
 # Planet variables
 my $ModPlanet = "ModPlanet.f90";
-my $Planet;
+my $Planet = "Earth"; #set earth to default
 my $PlanetOrig;
 
 my $NoFlush;
@@ -180,12 +180,6 @@ sub install_code{
 
     # Import the file copy function to avoid calls to system.
     use File::Copy;
-
-    # if($IsCompGitm){
-	# Move Util and Share:
-	# move('share', 'component_share');
-	# move('util',  'component_util');
-    # }
     
     return unless $Compiler =~ /ifort/ and $OS =~ /Linux/;
     # Unfix object list for Linux/ifort compiler (this is not kosher)

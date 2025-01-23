@@ -480,7 +480,7 @@ contains
     endif
 
     ! Debug: print basic coupling info:
-    if (DoTest .and. (iProcGITM == 0)) then
+    if ((DoTest .or. iDebugLevel > 3).and. (iProcGITM == 0)) then
       write(*, *) NameSub//' coupling info:'
       write(*, *) 'UA/GITM: IE grid set to nLats x nLons = ', &
         iSizeIeHemi, jSizeIeHemi

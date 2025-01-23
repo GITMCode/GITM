@@ -13,6 +13,9 @@ SAMIDIR = srcSAMI
 
 PLANET=earth
 
+help:
+	@echo "GITM    - make GITM.exe"
+
 src/ModSize.f90:
 	cp src/ModSize.f90.orig src/ModSize.f90
 
@@ -91,8 +94,6 @@ allclean:
 	rm -f *~ srcData/UAM.in
 	# If util and share were moved because of GITM being
 	# used in SWMF component mode, put them back.
-	if [ -d component_util ]; then mv component_util util; fi
-	if [ -d component_share ]; then mv component_share share; fi
 
 #
 #       Create run directories

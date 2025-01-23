@@ -25,6 +25,12 @@ subroutine check_for_nans_ions(cMarker)
             write(*, *) iLon, iLat, iAlt, iProc, iIon
             IsFound = .true.
           endif
+          if (ieee_is_nan(IVelocity(iLon, iLat, iAlt,1, 1))) then
+            write(*, *) 'Nan found in iVelocity!! : '
+            write(*, *) cMarker
+            write(*, *) iLon, iLat, iAlt, iProc, iIon
+            IsFound = .true.
+          endif
           if (iDensityS(iLon, iLat, iAlt, iIon, 1) < 0.0) then
             write(*, *) 'Negative density found in iDensityS : '
             write(*, *) cMarker

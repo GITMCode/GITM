@@ -10,3 +10,4 @@ $OS eq "Darwin" and $Compiler eq "f95"
 $OS eq "Darwin" and $Compiler eq "nagfor"
 	${COMPILE.f90} ${Cflag0} read_NGDC_Indices_new.f90
 	${COMPILE.f90} ${Cflag0} read_NOAAHPI_Indices_new.f90
+	${COMPILE.f90} ${Cflag0} read_f107.f90
