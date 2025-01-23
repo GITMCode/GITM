@@ -983,7 +983,7 @@ subroutine get_kp_wotime(value, iOutputError)
     iOutputError = 3
     return
   else
-    value = SavedIndices_V(kp_)
+    value = Indices_TV(1, kp_)
     iOutputError = SavedErrors_V(kp_)
   endif
 
