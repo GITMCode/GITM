@@ -20,7 +20,6 @@ subroutine init_get_potential
   IEModel_ = ieModel()
 
   call IEModel_%verbose(iDebugLevel)
-
   
   call IEModel_ % efield_model(cPotentialModel)
   call IEModel_ % aurora_model(cAuroralModel)
@@ -53,11 +52,6 @@ subroutine init_get_potential
   ! Initialize the grid:
   call IEModel_%nMlts(nLons + 4)
   call IEModel_%nLats(nLats + 4)
-
-  ! if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
-  ! Initialize the IE library after setting it up:
-  call IEModel_%init()
-  ! then also regional amie... maybe there's a way to do it cleanly
 
   call report("done with init_get_potential", 2)
 
@@ -117,13 +111,13 @@ subroutine get_potential(iBlock)
   call IEModel_%nMlts(nLons + 4)
   call IEModel_%nLats(nLats + 4)
 
-  call IEModel_%time_real(tSimulation)
-
   if (floor((tSimulation - dt)/DtPotential) /= &
       floor((tsimulation)/DtPotential) .or. IsFirstPotential(iBlock)) then
     
-    call report("Getting Potential", 1)
-    call set_ie_indices(IEModel_, CurrentTime)
+     call IEModel_%time_real(CurrentTime)
+
+     call report("Getting Potential", 1)
+     call set_ie_indices(IEModel_, CurrentTime)
 
     Potential(:, :, :, iBlock) = 0.0
 
@@ -465,9 +459,6 @@ subroutine set_ie_indices(IEModel_, TimeIn)
 
   integer :: iError = 0
   real    :: val
-
-
-  call IEModel_%time_real(TimeIn)
 
   if (IEModel_%doReadMHD) then
 
