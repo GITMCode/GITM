@@ -100,7 +100,6 @@ def main(start_time, end_time,
             # now we need to shift the TEC from lon -> localtime
             tec_array = np.roll(tec_array, 
                                 int((vista_time.hour) * 15/360 * (headers['nLons'])))
-            print('rolled', int((vista_time.hour) * 15/360 * (headers['nLons'])))
 
             #consistent colorbar limits btwn VISTA & GITM
             vmin = np.min(tec_array)
