@@ -161,6 +161,16 @@ def extend_time(var, n, dir):
         new = var[0] + dt.timedelta(seconds = dv * n)
     return new
 
+# -------------------------------------------------------------------
+# Make a label that shows the whole time range
+# -------------------------------------------------------------------
+
+def get_label_time_range(times):
+    startTime = times[0]
+    endTime = times[-1]    
+    label = startTime.strftime('%b %d, %Y %H:%M UT') + ' - ' + \
+        endTime.strftime('%b %d, %Y %H:%M UT (Hours)')
+    return label
 # ----------------------------------------------------------------------
 # 
 # ----------------------------------------------------------------------
@@ -175,8 +185,10 @@ lts = calc_localtimes(data['lons'], data['times'])
 
 gse = calc_gse(data['lats'], lts, decs)
 
-fig = plt.figure(figsize = (10,10))
-ax = fig.add_subplot(111)
+fig = plt.figure(figsize = (10,9))
+plt.rcParams.update({'font.size': 14})
+
+ax = fig.add_axes([0.12, 0.08, 0.85, 0.85])
 
 ax.scatter(gse['y'], gse['z'], color = 'blue')
 nP = 20
@@ -187,6 +199,22 @@ zM = extend(gse['z'], nP, -1.0)
 tP = extend_time(data['times'], nP, 1.0)
 tM = extend_time(data['times'], nP, -1.0)
 ax.scatter([yM, yP], [zM, zP], color = 'red')
+ax.set_ylim(-9000, 9000)
+ax.set_xlim(-9000, 9000)
+
+sTime = get_label_time_range([tM, tP])
+ax.set_title('Eclipse from : ' + sTime)
+ax.set_xlabel('GSE-Y (km)')
+ax.set_ylabel('GSE-Z (km)')
+
+theta = np.arange(0, 361.0, 1.0) * np.pi / 180.0
+r = 6371.0
+ax.plot(r * np.cos(theta), r * np.sin(theta), color = 'k')
+ax.set_aspect(1)
+
+ax.text(yM+100, zM, 'Start', color = 'red')
+ax.text(yP+100, zP, 'End', color = 'red')
+
 
 print('#ECLIPSE')
 print(tM.strftime('%Y %m %d %H %M %S           Start Time'))
