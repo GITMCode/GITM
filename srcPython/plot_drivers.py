@@ -47,8 +47,8 @@ def plot_day_boundaries(ax, times):
         ax.xaxis.set_major_formatter(dates.DateFormatter('%d-%H'))
     return
 
-imfFile = 'imf.dat'
-aeFile = 'ae_20110610.txt'
+imfFile = 'imf.txt'
+aeFile = 'ae.txt'
 
 imf = read_swmf_file(imfFile)
 ae = read_ae(aeFile)
