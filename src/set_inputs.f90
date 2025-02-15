@@ -965,6 +965,16 @@ subroutine set_inputs
           IsDone = .true.
         endif
 
+      case ("#DON4SHACK")
+        call read_in_logical(DoN4SHack, iError)
+        if (iError /= 0) then
+          write(*, *) 'Incorrect format for #DON4SHACK:'
+          write(*, *) ''
+          write(*, *) '#DON4SHACK'
+          write(*, *) "DoN4SHack       (logical)"
+          IsDone = .true.
+        endif
+
       case ("#THERMO")
         call read_in_logical(UseSolarHeating, iError)
         call read_in_logical(UseJouleHeating, iError)

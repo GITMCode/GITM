@@ -128,8 +128,6 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
                     F107A, F107, AP, LogNS_Species, temptemp, &
                     LogRho(iAlt), v)
 
-      LogNS(iAlt, :) = logNS_Species
-
       if (.not. DuringPerturb) temp(iAlt) = temptemp
 
       vel_gd(iAlt, iEast_) = v(iEast_)
@@ -141,8 +139,18 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
     Vel_GD(-1:0, iEast_) = 0.0
     Vel_GD(-1:0, iNorth_) = 0.0
     ! The rest of the BCs will just stay constant.
-  endif
+ endif
 
+ if (DoN4SHack) then
+    !! Hack for iN_4S_ for lower altitudes:
+    do iAlt = nAlts, 0, -1
+       if (NS(iAlt - 1, iN_4S_) < 1000.0) then
+          NS(iAlt - 1, iN_4S_) = NS(iAlt, iN_4S_)
+          logNS(iAlt - 1, iN_4S_) = log(NS(iAlt - 1, iN_4S_))
+       endif
+    enddo
+ endif
+ 
   if (.not. DuringPerturb) then
     Vel_GD(-1:0, iUp_) = 0.0
     VertVel(-1:0, :) = 0.0
