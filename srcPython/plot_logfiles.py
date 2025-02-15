@@ -27,6 +27,10 @@ def get_args_timeline():
     parser.add_argument('filelist', nargs='+', \
                         help = 'list files to use for generating plots')
     
+    parser.add_argument('-gitm',  \
+                        action='store_true', default = False, \
+                        help = 'GITM log file')
+    
     parser.add_argument('-start', default = '0000', \
                         help = 'start date as YYYYMMDD[.HHMM]')
     parser.add_argument('-end', default = '0000', \
@@ -154,6 +158,67 @@ def read_timeline_file(file):
     data['values'] = allValues
             
     return data
+
+# ----------------------------------------------------------------------
+# Read GITM Run log file
+# GITM log files have a specific (old) format with a header that can
+# basically be ignored, and you just have to look for the #START
+# The variables are the line after that and then the data starts.
+# time lines include:
+# iStep yyyy mm dd hh mm ss  ms data1 data2 ....
+# ----------------------------------------------------------------------
+
+def read_gitm_log_file(file):
+
+    data = {"times" : [],
+            "vars": [],
+            "integral" : 'values',
+            "file": file,
+            "alt": 0}
+
+    fpin = open(file, 'r')
+
+    lines = fpin.readlines()
+
+    iStart = 0
+    iEnd = len(lines)
+    iLine = iStart
+
+    while (iLine < iEnd):
+        line = lines[iLine]
+
+        m = re.match(r'#START',line)
+        if m:
+            iLine += 1
+            aline = lines[iLine].split()
+            data["vars"] = aline[8:]
+            iStart = iLine + 1
+            break
+
+        iLine += 1
+
+    nVars = len(data['vars'])
+    nTimes = iEnd - iStart
+    allValues = np.zeros([nVars, nTimes])
+    for i in range(iStart, iEnd):
+        aline = lines[i].split()
+        year = int(aline[1])
+        month = int(aline[2])
+        day = int(aline[3])
+        hour = int(aline[4])
+        minute = int(aline[5])
+        second = int(aline[6])
+        t = dt.datetime(year, month, day, hour, minute, second)
+        
+        data["times"].append(t)
+        for iVar in range(nVars):
+            allValues[iVar, i - iStart] = float(aline[8 + iVar])
+
+    data['values'] = allValues
+            
+    return data
+
+
 
 # ----------------------------------------------------------------------
 # match filename with colors and linestyles
@@ -293,7 +358,10 @@ if __name__ == '__main__':
     
     for file in args.filelist:
         print("Reading file : ", file)
-        data = read_timeline_file(file)
+        if (args.gitm):
+            data = read_gitm_log_file(file)
+        else:
+            data = read_timeline_file(file)
         if (not useStartTime):
             if (file == args.filelist[0]):
                 startTime = data["times"][0]
