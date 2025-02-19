@@ -302,6 +302,12 @@ def assign_file_to_color(file):
         line = 'dashed'
         label = 'FTA Model'
 
+    m = re.match(r'swmf', file)
+    if m:
+        color = 'blue'
+        line = 'dashdot'
+        label = 'SWMF Driven'
+
     m = re.match(r'ae', file)
     if m:
         color = 'plum'
@@ -382,8 +388,8 @@ if __name__ == '__main__':
                     label = data['vars'][iVar] + ' (' + label + ')'
                     if (iVar == args.vars[0]):
                         line = 'solid'
-                    else:
-                        line = 'dashed'
+                    #else:
+                    #    line = 'dashed'
             else:
                 fileColor, fileLine, fileLabel = assign_file_to_color(file.lower())
                 color, line, label = assign_var_to_color(data['vars'][iVar])
@@ -391,6 +397,7 @@ if __name__ == '__main__':
                 if (label == 'GITM'):
                     label = label + '(' + fileLabel + ')'
                     print('Label Changed : ', label)
+            print(label)
             ax.plot(data["times"], data["values"][iVar], label = label,
                     color = color, linestyle = line, linewidth = 2.0)
 
