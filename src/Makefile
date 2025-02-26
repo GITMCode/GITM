@@ -2,7 +2,7 @@ ABDIR   = ${UADIR}/srcSphereAB
 IODIR   = ${DATAREADINDICESDIR}
 GLDIR   = ${UADIR}/srcGlow
 SAMIDIR = ${UADIR}/srcSAMI
-EIEDIR   = ${IEDIR}/src
+EIEDIR   = ${IEDIR}/lib
 
 include ../Makefile.conf
 include ../Makefile.def
@@ -10,12 +10,10 @@ include ../Makefile.def
 include Makefile.DEPEND
 include Makefile.RULES
 
-
 SEARCH_EXTRA =  -I${ABDIR} \
 	 	-I${IODIR} \
 		-I${EMPIRICALUADIR} \
 		-I${EIEDIR}
-
 
 MODULES = \
 	apexsh.o\
@@ -189,9 +187,6 @@ ${MY_LIB}: ${LIBPREV} ${MF} ${MODULES} ${OBJECTS}
 	cp -f ${LIBPREV} ${MY_LIB}
 	${AR} ${MY_LIB} ${OBJECTS} ${MODULES}
 
-
-clean:
-	rm -f *~ core *.o *.mod fort.* a.out *.exe *.a *.so *.protex
 
 distclean: clean
 	rm -f 	ModSize.f90 \
