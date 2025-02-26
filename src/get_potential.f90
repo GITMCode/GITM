@@ -112,97 +112,98 @@ subroutine get_potential(iBlock)
   call IEModel_%nLats(nLats + 4)
 
   if (floor((tSimulation - dt)/DtPotential) /= &
-      floor((tsimulation)/DtPotential) .or. IsFirstPotential(iBlock)) then
+       floor((tsimulation)/DtPotential) .or. IsFirstPotential(iBlock)) then
     
      call IEModel_%time_real(CurrentTime)
 
      call report("Getting Potential", 1)
      call set_ie_indices(IEModel_, CurrentTime)
 
-    Potential(:, :, :, iBlock) = 0.0
+     Potential(:, :, :, iBlock) = 0.0
 
-    do iAlt = -1, nAlts + 2
+     do iAlt = -1, nAlts + 2
 
-      call iemodel_%grid(MLT(-1:nLons + 2, -1:nLats + 2, iAlt), &
-                           MLatitude(-1:nLons + 2, -1:nLats + 2, iAlt, iBlock))
+        call iemodel_%grid( &
+             MLT(-1:nLons + 2, -1:nLats + 2, iAlt), &
+             MLatitude(-1:nLons + 2, -1:nLats + 2, iAlt, iBlock))
 
-      if (.not. isOk) then
-        call set_error("Error in routine get_potential (SetGrid):")
-        call report_errors
-        call stop_gitm("Stopping in get_potential")
-      endif
-
-      if (iDebugLevel > 1 .and. iAlt == 1) &
-        write(*, *) "==> Getting IE potential"
-
-      TempPotential = 0.0
-      TempPotential2d = 0.0
-
-      call iemodel_%get_potential(TempPotential2d)
-      TempPotential(:, :, 1) = TempPotential2d
-
-      if (.not. isOk) then
-        call set_error("Error in routine get_potential (getting potential):")
-        call report_errors
-        call stop_gitm("Stopping in get_potential")
-      endif
-
-      nDir = 1
-
-      if (UseDynamo .and. .not. Is1D) then
-        dynamo = 0.0
-        call get_dynamo_potential( &
-          MLongitude(-1:nLons + 2, -1:nLats + 2, iAlt, iBlock), &
-          MLatitude(-1:nLons + 2, -1:nLats + 2, iAlt, iBlock), dynamo)
-
-        ! Set latitude boundary between region of high lat convection
-        ! and region of neutral wind dyanmo based on if SWMF potential
-        ! is being used:
-        if (IsFramework) then
-          LatBoundNow = 45.
-        else
-          LatBoundNow = DynamoHighLatBoundary
+        if (.not. isOk) then
+           call set_error("Error in routine get_potential (SetGrid):")
+           call report_errors
+           call stop_gitm("Stopping in get_potential")
         endif
 
-        do iDir = 1, nDir
-          do iLon = -1, nLons + 2
-            do iLat = -1, nLats + 2
-              if (abs(MLatitude(iLon, iLat, iAlt, iBlock)) < LatBoundNow) then
-                dis = (LatBoundNow - &
-                       abs(MLatitude(iLon, iLat, iAlt, iBlock)))/20.0
-                if (dis > 1.0) then
-                  TempPotential(iLon, iLat, iDir) = dynamo(iLon, iLat)
-                else
-                  TempPotential(iLon, iLat, iDir) = &
-                    (1.0 - dis)*TempPotential(iLon, iLat, iDir) + &
-                    dis*dynamo(iLon, iLat)
-                endif
-              endif
-            enddo
-          enddo
-        enddo
+        if (iDebugLevel > 1 .and. iAlt == 1) &
+             write(*, *) "==> Getting IE potential"
 
-      endif
+        TempPotential = 0.0
+        TempPotential2d = 0.0
 
-      Potential(:, :, iAlt, iBlock) = TempPotential(:, :, 1)
-      if (UseTwoAMIEPotentials) then
-        PotentialY(:, :, iAlt, iBlock) = TempPotential(:, :, 2)
-      else
-        PotentialY(:, :, iAlt, iBlock) = Potential(:, :, iAlt, iBlock)
-      endif
+        call iemodel_%get_potential(TempPotential2d)
+        TempPotential(:, :, 1) = TempPotential2d
 
-      !----------------------------------------------
-      ! Another example of user output
+        if (.not. isOk) then
+           call set_error("Error in routine get_potential (getting potential):")
+           call report_errors
+           call stop_gitm("Stopping in get_potential")
+        endif
 
-      if (iAlt == 1) then
+        nDir = 1
 
-        UserData2d(1:nLons, 1:nLats, 1, 1, iBlock) = &
-          TempPotential(1:nLons, 1:nLats, 1)/1000.0
-      endif
+        if (UseDynamo .and. .not. Is1D) then
+           dynamo = 0.0
+           call get_dynamo_potential( &
+                MLongitude(-1:nLons + 2, -1:nLats + 2, iAlt, iBlock), &
+                MLatitude(-1:nLons + 2, -1:nLats + 2, iAlt, iBlock), dynamo)
 
-    enddo
+           ! Set latitude boundary between region of high lat convection
+           ! and region of neutral wind dyanmo based on if SWMF potential
+           ! is being used:
+           if (IsFramework) then
+              LatBoundNow = 45.
+           else
+              LatBoundNow = DynamoHighLatBoundary
+           endif
 
-    IsFirstPotential(iBlock) = .false.
+           do iDir = 1, nDir
+              do iLon = -1, nLons + 2
+                 do iLat = -1, nLats + 2
+                    if (abs(MLatitude(iLon, iLat, iAlt, iBlock)) < LatBoundNow) then
+                       dis = (LatBoundNow - &
+                            abs(MLatitude(iLon, iLat, iAlt, iBlock)))/20.0
+                       if (dis > 1.0) then
+                          TempPotential(iLon, iLat, iDir) = dynamo(iLon, iLat)
+                       else
+                          TempPotential(iLon, iLat, iDir) = &
+                               (1.0 - dis)*TempPotential(iLon, iLat, iDir) + &
+                               dis*dynamo(iLon, iLat)
+                       endif
+                    endif
+                 enddo
+              enddo
+           enddo
+
+        endif
+
+        Potential(:, :, iAlt, iBlock) = TempPotential(:, :, 1)
+        if (UseTwoAMIEPotentials) then
+           PotentialY(:, :, iAlt, iBlock) = TempPotential(:, :, 2)
+        else
+           PotentialY(:, :, iAlt, iBlock) = Potential(:, :, iAlt, iBlock)
+        endif
+
+        !----------------------------------------------
+        ! Another example of user output
+
+        if (iAlt == 1) then
+
+           UserData2d(1:nLons, 1:nLats, 1, 1, iBlock) = &
+                TempPotential(1:nLons, 1:nLats, 1)/1000.0
+        endif
+
+     enddo
+
+     IsFirstPotential(iBlock) = .false.
 
   endif
 
