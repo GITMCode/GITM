@@ -40,12 +40,13 @@ LIB:	DEPEND
 
 ${MYLIB}: ${MODULES} ${OBJECTS}
 	@echo 'Creating GLOW library'
+	@rm -f ${MYLIB}
 	${AR} ${MYLIB} ${MODULES} ${OBJECTS}
 
 MY_LIB=libUPTOGL.a
 
 LIBADD: DEPEND
-	make ${MY_LIB}
+	@make ${MY_LIB}
 	@echo
 	@echo ${MY_LIB} has been brought up to date.
 	@echo

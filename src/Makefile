@@ -144,6 +144,7 @@ EXE = ${BINDIR}/GITM.exe
 SAMIEXE = ${BINDIR}/GITMSAMI.exe
 
 GITM:	DEPEND
+	@rm -f GITM.exe
 	@make ${EXE}
 	@make POST
 	@echo
@@ -184,7 +185,7 @@ LIB:	DEPEND
 	@echo
 
 ${MY_LIB}: ${LIBPREV} ${MF} ${MODULES} ${OBJECTS}
-	cp -f ${LIBPREV} ${MY_LIB}
+	mv -f ${LIBPREV} ${MY_LIB}
 	${AR} ${MY_LIB} ${OBJECTS} ${MODULES}
 
 

@@ -32,5 +32,6 @@ LIB:	DEPEND
 
 ${MY_LIB}: ${MF} ${MODULES} ${OBJECTS}
 	@echo 'Creating libSphere library'
+	@rm -f ${MY_LIB}
 	${AR} ${MY_LIB} ${MODULES} ${OBJECTS}
 
