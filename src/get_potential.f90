@@ -31,6 +31,13 @@ subroutine init_get_potential
   call IEModel_%filename_north(cAMIEFileNorth)
   call IEModel_%filename_south(cAMIEFileSouth)
 
+  ! If there were errors picking settings, stop before initializing
+  if (.not. isOk) then
+    call set_error("Failed to initialize ieModel! Exiting!")
+    call report_errors
+    call stop_gitm("Error setting requested IEModel parameters, did not initialize.")
+  endif
+
   ! Initialize the IE library after setting it up:
   call IEModel_%init()
 
