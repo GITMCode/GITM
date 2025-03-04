@@ -153,6 +153,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
     SigmaPedersenMC = 0.0
     SigmaLLMC = 0.0
     SigmaPPMC = 0.0
+    AverageMC = 0.0
     SigmaHHMC = 0.0
     SigmaCCMC = 0.0
     SigmaLPMC = 0.0
