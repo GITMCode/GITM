@@ -1931,12 +1931,6 @@ subroutine UA_calc_electrodynamics_1d
 
   do iBlock = 1, nBlocks
 
-    call calc_physics(iBlock)
-    call calc_rates(iBlock)
-    call calc_collisions(iBlock)
-    call get_potential(iBlock)
-    call calc_efield(iBlock)
-
     e_density = IDensityS(:, :, :, ie_, iBlock)
 
     Vi = Collisions(:, :, :, iVIN_)
