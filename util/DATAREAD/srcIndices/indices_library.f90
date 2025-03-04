@@ -823,7 +823,7 @@ subroutine get_f107a_wotime(value, iOutputError)
 end subroutine get_f107a_wotime
 
 !------------------------------------------------------------------------------
-! Hemispheric Power Index
+! Hemispheric Power Index (both hemispheres)
 !------------------------------------------------------------------------------
 
 subroutine get_hpi_wtime(TimeIn, value, iOutputError)
@@ -863,6 +863,84 @@ subroutine get_hpi_wotime(value, iOutputError)
   endif
 
 end subroutine get_hpi_wotime
+
+! North
+subroutine get_hpi_n_wtime(TimeIn, value, iOutputError)
+
+  use ModKind
+  use ModIndices
+
+  implicit none
+
+  real(Real8_), intent(in) :: TimeIn
+  real, intent(out)               :: value
+  integer, intent(out)            :: iOutputError
+
+  call get_index(hpi_nh_, TimeIn, 0, value, iOutputError)
+
+end subroutine get_hpi_n_wtime
+
+subroutine get_hpi_n_wotime(value, iOutputError)
+
+  use ModKind
+  use ModIndices
+
+  implicit none
+
+  real, intent(out)    :: value
+  integer, intent(out) :: iOutputError
+
+  iOutputError = 0
+
+  if (SavedTime < 0.0) then
+    value = -1.0e32
+    iOutputError = 3
+    return
+  else
+    value = SavedIndices_V(hpi_nh_)
+    iOutputError = SavedErrors_V(hpi_nh_)
+  endif
+
+end subroutine get_hpi_n_wotime
+
+! North
+subroutine get_hpi_s_wtime(TimeIn, value, iOutputError)
+
+  use ModKind
+  use ModIndices
+
+  implicit none
+
+  real(Real8_), intent(in) :: TimeIn
+  real, intent(out)               :: value
+  integer, intent(out)            :: iOutputError
+
+  call get_index(hpi_sh_, TimeIn, 0, value, iOutputError)
+
+end subroutine get_hpi_s_wtime
+
+subroutine get_hpi_s_wotime(value, iOutputError)
+
+  use ModKind
+  use ModIndices
+
+  implicit none
+
+  real, intent(out)    :: value
+  integer, intent(out) :: iOutputError
+
+  iOutputError = 0
+
+  if (SavedTime < 0.0) then
+    value = -1.0e32
+    iOutputError = 3
+    return
+  else
+    value = SavedIndices_V(hpi_sh_)
+    iOutputError = SavedErrors_V(hpi_sh_)
+  endif
+
+end subroutine get_hpi_s_wotime
 
 subroutine get_hpi_calc_wtime(TimeIn, value, iOutputError)
 

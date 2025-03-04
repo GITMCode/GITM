@@ -33,7 +33,7 @@ subroutine set_inputs
   integer, external :: bad_outputtype
   integer, external :: jday
 
-  logical :: IsDone, IsStartFound, doUseAeForHp
+  logical :: IsDone, IsStartFound, doUseAeForHp, didDeclareHP = .false.
   integer :: iDebugProc = 0
   character(len=iCharLen_) :: cLine
   integer :: iLine, iSpecies, iSat
@@ -686,7 +686,7 @@ subroutine set_inputs
       case ("#IEMODELS") ! would love to call this #ELECTRODYNAMICS, but...
         call read_in_string(cAuroralModel, iError)
         call read_in_string(cPotentialModel, iError)
-        
+
         if (iError /= 0) then
           ! Change to new error soon...
           write(*, *) 'Incorrect format for #IEMODELS !!'
@@ -702,7 +702,6 @@ subroutine set_inputs
           call report_errors
           call stop_gitm("")
         endif
-
 
       case ("#AURORAMODS")
         HasSetAuroraMods = .true.
@@ -1813,6 +1812,24 @@ subroutine set_inputs
           write(*, *) "----------------------------------------------"
           iError = 0
         endif
+
+        call read_in_logical(doSeparateHPI, iError)
+        if ((iError /= 0) .and. (iDebugProc == iProc) .and. doUseAeForHp) then
+          write(*, *) "----------------------------------------------"
+          write(*, *) "GITM allows the use of a 10% seasonal "
+          write(*, *) "correction factor in the conversion of AE to HP"
+          write(*, *) "Put another T after the onset file if you want this,"
+          write(*, *) "or put an F to silence this message."
+          write(*, *) "----------------------------------------------"
+          iError = 0
+        endif
+
+        ! Check if HPI was read with SME, print warning if so:
+        if (didDeclareHP .and. doUseAeForHp .and. (iDebugProc == iProc)) then
+          call set_error("HPI defined twice. Using only one is supported.")
+        endif
+        if (doUseAeForHp) didDeclareHP = .true.
+
         cTempLines(4) = " "
         cTempLines(5) = "#END"
 
@@ -1822,7 +1839,8 @@ subroutine set_inputs
         else
           call read_sme(iError, &
                         CurrentTime + TimeDelayHighLat, &
-                        EndTime + TimeDelayHighLat, doUseAeForHp)
+                        EndTime + TimeDelayHighLat, &
+                        doUseAeForHp, DoSeparateHPI)
         endif
 
         if (iError /= 0) then
@@ -1885,7 +1903,19 @@ subroutine set_inputs
       case ("#NOAAHPI_INDICES")
         cTempLines(1) = cLine
         call read_in_string(cTempLine, iError)
+
         cTempLines(2) = cTempLine
+
+        call read_in_logical(doSeparateHPI, iError)
+        if ((iError /= 0) .and. (iDebugProc == iProc)) then
+          write(*, *) "----------------------------------------------"
+          write(*, *) "GITM now allows you to scale the aurora by hemispheric"
+          write(*, *) "power independently in each hemisphere. To enable this,"
+          write(*, *) "put a T after your HPI file, or put a F to silence."
+          write(*, *) "----------------------------------------------"
+          iError = 0
+        endif
+
         cTempLines(3) = " "
         cTempLines(4) = "#END"
 
@@ -1893,7 +1923,7 @@ subroutine set_inputs
         if (IsFramework) then
           call read_NOAAHPI_Indices(iError)
         else
-          call read_NOAAHPI_Indices_new(iError, StartTime, EndTime)
+          call read_NOAAHPI_Indices_new(iError, StartTime, EndTime, DoSeparateHPI)
         endif
 
         if (iError /= 0) then
@@ -1902,6 +1932,10 @@ subroutine set_inputs
         else
           UseVariableInputs = .true.
         endif
+
+        ! Check if HPI was made from SME, print warning if so:
+        if (didDeclareHP) call set_error("HPI defined twice. Using only one is supported.")
+        didDeclareHP = .true.
 
       case ("#END")
         IsDone = .true.

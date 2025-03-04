@@ -88,6 +88,7 @@ module ModInputs
   real :: AveEFactor = 1.0
   ! This is true because FR&E is default.
   logical :: NormalizeAuroraToHP = .true.
+  logical :: DoSeparateHPI = .false.
 
   logical :: UseCusp = .false.
   real :: CuspAveE = 0.1
