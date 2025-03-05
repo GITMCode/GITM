@@ -5,7 +5,7 @@
 subroutine check_all_indices(TimeIn, iOutputError)
   ! Just checks time.
   use ModIndices
-  
+
   implicit none
   real(Real8_), intent(in)  :: TimeIn
   integer, intent(out) :: iOutputError

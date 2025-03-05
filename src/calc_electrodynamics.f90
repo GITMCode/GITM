@@ -1129,12 +1129,12 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
     SigmaPLMC(i, j) = -(sigmahhmc(i, j) - sigmaccmc(i, j))
     SigmaLPMC(i, j) = +(sigmahhmc(i, j) + sigmaccmc(i, j))
 
-  !     do j= 1,nMagLats
-  !        if (isnan(SigmaPPMC(i,j))) write(*,*) 'sigmapp is nan : ',i,j
-  !        if (isnan(SigmaCCMC(i,j))) write(*,*) 'sigmacc is nan : ',i,j
-  !        if (isnan(SigmaPLMC(i,j))) write(*,*) 'sigmapl is nan : ',i,j
-  !        if (isnan(SigmaLPMC(i,j))) write(*,*) 'sigmalp is nan : ',i,j
-  !     enddo
+    !     do j= 1,nMagLats
+    !        if (isnan(SigmaPPMC(i,j))) write(*,*) 'sigmapp is nan : ',i,j
+    !        if (isnan(SigmaCCMC(i,j))) write(*,*) 'sigmacc is nan : ',i,j
+    !        if (isnan(SigmaPLMC(i,j))) write(*,*) 'sigmapl is nan : ',i,j
+    !        if (isnan(SigmaLPMC(i,j))) write(*,*) 'sigmalp is nan : ',i,j
+    !     enddo
 
   enddo
 
@@ -1405,8 +1405,8 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
            d_I(nX), e_I(nX), e1_I(nX), f_I(nX), f1_I(nX))
 
   ! call UA_SetnMLTs(nMagLons + 1)
-  call ieModel_ % nMlts(nMagLons + 1)
-  call ieModel_ % nLats(2)
+  call ieModel_%nMlts(nMagLons + 1)
+  call ieModel_%nLats(2)
   ! call UA_SetnLats(2)
 
   SmallMagLocTimeMC(:, 1) = MagLocTimeMC(:, 1)
@@ -1415,7 +1415,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
   SmallMagLatMC(:, 2) = MagLatMC(:, nMagLats)
   iError = 0
   ! call UA_SetGrid(SmallMagLocTimeMC, SmallMagLatMC, iError)
-  call ieModel_ % grid(SmallMagLocTimeMC, SmallMagLatMC)
+  call ieModel_%grid(SmallMagLocTimeMC, SmallMagLatMC)
   if (iError /= 0) then
     write(*, *) "Error in routine calc_electrodynamics (UA_SetGrid):"
     write(*, *) iError
@@ -1424,12 +1424,12 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
 
   iError = 0
   ! call UA_GetPotential(SmallPotentialMC, iError)
-  call ieModel_ % get_potential(SmallPotentialMC)
+  call ieModel_%get_potential(SmallPotentialMC)
 
   if (iError /= 0) then
     write(*, *) "Error in routine calc_electrodynamics (UA_GetPotential):"
     write(*, *) iError
-  !     call stop_gitm("Stopping in calc_electrodynamics")
+    !     call stop_gitm("Stopping in calc_electrodynamics")
     SmallPotentialMC = 0.0
   endif
 
@@ -1484,7 +1484,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
   !!!       sum(b),sum(abs(b)),sum(x),sum(d_I),sum(e_I),sum(f_I),&
   !!!       sum(e1_I),sum(f1_I)
   !!!
-    call prehepta(nX, 1, nMagLons, nX, -0.5, d_I, e_I, f_I, e1_I, f1_I)
+  call prehepta(nX, 1, nMagLons, nX, -0.5, d_I, e_I, f_I, e1_I, f1_I)
   !!!
   !!!  ! Left side preconditioning: U^{-1}.L^{-1}.A.x = U^{-1}.L^{-1}.rhs
   !!!
@@ -1782,7 +1782,7 @@ contains
           endif
         endif
 
-    !          if (ii == 0 .or. jj == 0) IsFound = .false.
+        !          if (ii == 0 .or. jj == 0) IsFound = .false.
 
         if (IsFound) then
 
@@ -1855,7 +1855,7 @@ subroutine matvec_gitm(x_I, y_I, n)
   !-------------------------------------------------------------------------
 
   ! Put 1D vector into 2D solution
-  i = 0;
+  i = 0; 
   do iLat = 2, nMagLats - 1
     do iLon = 1, nMagLons
       i = i + 1
@@ -1869,7 +1869,7 @@ subroutine matvec_gitm(x_I, y_I, n)
   ! Apply periodic boundary conditions in Psi direction
   x_G(nMagLons + 1, :) = x_G(1, :)
 
-  i = 0;
+  i = 0; 
   !  write(*,*)'X_G dim:',nMagLons+1, nMagLats
 
   do iLat = 2, nMagLats - 1

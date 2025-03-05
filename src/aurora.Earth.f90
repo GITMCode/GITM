@@ -433,7 +433,7 @@ contains
         ED_flux(n) = ED_Flux(n) + &
                      ENumberFluxMono/ &
                      (ED_Energies(n - 1) - ED_Energies(n))
-                     ED_MonoEnergyFlux(n) = &
+        ED_MonoEnergyFlux(n) = &
           ED_flux(n)* &
           ED_Energies(n)* &
           ED_delta_energy(n)

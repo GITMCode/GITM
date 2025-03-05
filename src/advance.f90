@@ -39,7 +39,7 @@ subroutine advance
     ! (1) vertical solver; (2) horizontal solver;
     ! (3) source terms
     ! ALB CHANGED THIS:
-    ! Needs verification. But solvers need ion velocities, which are only set 
+    ! Needs verification. But solvers need ion velocities, which are only set
     !   in add_sources. So I switched this order. Or we could add sources in initialize
     call add_sources
 

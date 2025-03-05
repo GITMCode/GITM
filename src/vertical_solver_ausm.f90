@@ -433,7 +433,7 @@ end subroutine advance_vertical_1d_ausm
 
 !=============================================================================
 subroutine advance_vertical_1stage_ausm(DtIn, LogRho, LogNS, Vel_GD, Temp, NewLogRho, &
-                                        NewLogNS, NewVel_GD, NewTemp,  LogINS, &
+                                        NewLogNS, NewVel_GD, NewTemp, LogINS, &
                                         NewLogINS, IVel, VertVel, NewVertVel)
 
   ! With fluxes and sources based on LogRho..Temp, update NewLogRho..NewTemp

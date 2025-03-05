@@ -98,5 +98,4 @@ module ModElectrodynamics
   logical :: didInitGetPotential = .false.
   type(ieModel), allocatable :: IEModel_
 
-
 end module ModElectrodynamics

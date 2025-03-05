@@ -25,7 +25,7 @@ subroutine check_for_nans_ions(cMarker)
             write(*, *) iLon, iLat, iAlt, iProc, iIon
             IsFound = .true.
           endif
-          if (ieee_is_nan(IVelocity(iLon, iLat, iAlt,1, 1))) then
+          if (ieee_is_nan(IVelocity(iLon, iLat, iAlt, 1, 1))) then
             write(*, *) 'Nan found in iVelocity!! : '
             write(*, *) cMarker
             write(*, *) iLon, iLat, iAlt, iProc, iIon
