@@ -20,9 +20,9 @@ subroutine init_get_potential
   IEModel_ = ieModel()
 
   call IEModel_%verbose(iDebugLevel)
-  
-  call IEModel_ % efield_model(cPotentialModel)
-  call IEModel_ % aurora_model(cAuroralModel)
+
+  call IEModel_%efield_model(cPotentialModel)
+  call IEModel_%aurora_model(cAuroralModel)
 
   ! Most likely do not need to change, use the default.
   call IEModel_%model_dir("extIE/")
@@ -40,6 +40,9 @@ subroutine init_get_potential
 
   ! Initialize the IE library after setting it up:
   call IEModel_%init()
+
+  ! Set the time!
+  call IEModel_%time_real(CurrentTime)
 
   ! Load in indices for the 0th time-step
   call set_ie_indices(IEModel_, CurrentTime)
@@ -79,6 +82,7 @@ subroutine get_potential(iBlock)
   use ModUserGITM
   use ModErrors
   use ModElectrodynamics, only: IEModel_
+  use ModIndicesInterfaces
   use ModMpi
 
   implicit none
@@ -119,98 +123,98 @@ subroutine get_potential(iBlock)
   call IEModel_%nLats(nLats + 4)
 
   if (floor((tSimulation - dt)/DtPotential) /= &
-       floor((tsimulation)/DtPotential) .or. IsFirstPotential(iBlock)) then
-    
-     call IEModel_%time_real(CurrentTime)
+      floor((tsimulation)/DtPotential) .or. IsFirstPotential(iBlock)) then
 
-     call report("Getting Potential", 1)
-     call set_ie_indices(IEModel_, CurrentTime)
+    call IEModel_%time_real(CurrentTime)
 
-     Potential(:, :, :, iBlock) = 0.0
+    call report("Getting Potential", 1)
+    call set_ie_indices(IEModel_, CurrentTime)
 
-     do iAlt = -1, nAlts + 2
+    Potential(:, :, :, iBlock) = 0.0
 
-        call iemodel_%grid( &
-             MLT(-1:nLons + 2, -1:nLats + 2, iAlt), &
-             MLatitude(-1:nLons + 2, -1:nLats + 2, iAlt, iBlock))
+    do iAlt = -1, nAlts + 2
 
-        if (.not. isOk) then
-           call set_error("Error in routine get_potential (SetGrid):")
-           call report_errors
-           call stop_gitm("Stopping in get_potential")
-        endif
+      call iemodel_%grid( &
+        MLT(-1:nLons + 2, -1:nLats + 2, iAlt), &
+        MLatitude(-1:nLons + 2, -1:nLats + 2, iAlt, iBlock))
 
-        if (iDebugLevel > 1 .and. iAlt == 1) &
-             write(*, *) "==> Getting IE potential"
+      if (.not. isOk) then
+        call set_error("Error in routine get_potential (SetGrid):")
+        call report_errors
+        call stop_gitm("Stopping in get_potential")
+      endif
 
-        TempPotential = 0.0
-        TempPotential2d = 0.0
+      if (iDebugLevel > 1 .and. iAlt == 1) &
+        write(*, *) "==> Getting IE potential"
 
-        call iemodel_%get_potential(TempPotential2d)
-        TempPotential(:, :, 1) = TempPotential2d
+      TempPotential = 0.0
+      TempPotential2d = 0.0
 
-        if (.not. isOk) then
-           call set_error("Error in routine get_potential (getting potential):")
-           call report_errors
-           call stop_gitm("Stopping in get_potential")
-        endif
+      call iemodel_%get_potential(TempPotential2d)
+      TempPotential(:, :, 1) = TempPotential2d
 
-        nDir = 1
+      if (.not. isOk) then
+        call set_error("Error in routine get_potential (getting potential):")
+        call report_errors
+        call stop_gitm("Stopping in get_potential")
+      endif
 
-        if (UseDynamo .and. .not. Is1D) then
-           dynamo = 0.0
-           call get_dynamo_potential( &
-                MLongitude(-1:nLons + 2, -1:nLats + 2, iAlt, iBlock), &
-                MLatitude(-1:nLons + 2, -1:nLats + 2, iAlt, iBlock), dynamo)
+      nDir = 1
 
-           ! Set latitude boundary between region of high lat convection
-           ! and region of neutral wind dyanmo based on if SWMF potential
-           ! is being used:
-           if (IsFramework) then
-              LatBoundNow = 45.
-           else
-              LatBoundNow = DynamoHighLatBoundary
-           endif
+      if (UseDynamo .and. .not. Is1D) then
+        dynamo = 0.0
+        call get_dynamo_potential( &
+          MLongitude(-1:nLons + 2, -1:nLats + 2, iAlt, iBlock), &
+          MLatitude(-1:nLons + 2, -1:nLats + 2, iAlt, iBlock), dynamo)
 
-           do iDir = 1, nDir
-              do iLon = -1, nLons + 2
-                 do iLat = -1, nLats + 2
-                    if (abs(MLatitude(iLon, iLat, iAlt, iBlock)) < LatBoundNow) then
-                       dis = (LatBoundNow - &
-                            abs(MLatitude(iLon, iLat, iAlt, iBlock)))/20.0
-                       if (dis > 1.0) then
-                          TempPotential(iLon, iLat, iDir) = dynamo(iLon, iLat)
-                       else
-                          TempPotential(iLon, iLat, iDir) = &
-                               (1.0 - dis)*TempPotential(iLon, iLat, iDir) + &
-                               dis*dynamo(iLon, iLat)
-                       endif
-                    endif
-                 enddo
-              enddo
-           enddo
-
-        endif
-
-        Potential(:, :, iAlt, iBlock) = TempPotential(:, :, 1)
-        if (UseTwoAMIEPotentials) then
-           PotentialY(:, :, iAlt, iBlock) = TempPotential(:, :, 2)
+        ! Set latitude boundary between region of high lat convection
+        ! and region of neutral wind dyanmo based on if SWMF potential
+        ! is being used:
+        if (IsFramework) then
+          LatBoundNow = 45.
         else
-           PotentialY(:, :, iAlt, iBlock) = Potential(:, :, iAlt, iBlock)
+          LatBoundNow = DynamoHighLatBoundary
         endif
 
-        !----------------------------------------------
-        ! Another example of user output
+        do iDir = 1, nDir
+          do iLon = -1, nLons + 2
+            do iLat = -1, nLats + 2
+              if (abs(MLatitude(iLon, iLat, iAlt, iBlock)) < LatBoundNow) then
+                dis = (LatBoundNow - &
+                       abs(MLatitude(iLon, iLat, iAlt, iBlock)))/20.0
+                if (dis > 1.0) then
+                  TempPotential(iLon, iLat, iDir) = dynamo(iLon, iLat)
+                else
+                  TempPotential(iLon, iLat, iDir) = &
+                    (1.0 - dis)*TempPotential(iLon, iLat, iDir) + &
+                    dis*dynamo(iLon, iLat)
+                endif
+              endif
+            enddo
+          enddo
+        enddo
 
-        if (iAlt == 1) then
+      endif
 
-           UserData2d(1:nLons, 1:nLats, 1, 1, iBlock) = &
-                TempPotential(1:nLons, 1:nLats, 1)/1000.0
-        endif
+      Potential(:, :, iAlt, iBlock) = TempPotential(:, :, 1)
+      if (UseTwoAMIEPotentials) then
+        PotentialY(:, :, iAlt, iBlock) = TempPotential(:, :, 2)
+      else
+        PotentialY(:, :, iAlt, iBlock) = Potential(:, :, iAlt, iBlock)
+      endif
 
-     enddo
+      !----------------------------------------------
+      ! Another example of user output
 
-     IsFirstPotential(iBlock) = .false.
+      if (iAlt == 1) then
+
+        UserData2d(1:nLons, 1:nLats, 1, 1, iBlock) = &
+          TempPotential(1:nLons, 1:nLats, 1)/1000.0
+      endif
+
+    enddo
+
+    IsFirstPotential(iBlock) = .false.
 
   endif
 
@@ -458,7 +462,7 @@ subroutine set_ie_indices(IEModel_, TimeIn)
   ! use ModElectrodynamics, only: ieModel_
   use ModErrors
   use ModTime, only: EndTime !could pull current time too, but better to be explicit
-  use ModInputs, only: TimeDelayHighLat
+  use ModInputs, only: TimeDelayHighLat, DoSeparateHPI
 
   implicit none
 
@@ -519,19 +523,25 @@ subroutine set_ie_indices(IEModel_, TimeIn)
 
   if (IEModel_%doReadHPI) then
 
-    if (ieModel_%useAeForHp) then
+    if (.not. ieModel_%useAeForHp) then
       call read_NOAAHPI_Indices_new(iError, &
-      TimeIn + TimeDelayHighLat, &
-                                    EndTime + TimeDelayHighLat)
+                                    TimeIn + TimeDelayHighLat, &
+                                    EndTime + TimeDelayHighLat, &
+                                    DoSeparateHPI)
 
       if (iError /= 0) call set_error("HPI values could not be read.")
 
     endif
 
+    if (DoSeparateHPI) then
+      call get_HPI_N(TimeIn, val, iError)
+      call IEModel_%hpN(val)
+      call get_hpi_S(TimeIn, val, iError)
+      call IEModel_%hpS(val)
+    endif
+
     call get_HPI(TimeIn, val, iError)
     call IEModel_%hp(val)
-    call IEModel_%hpN(val)
-    call IEModel_%hpS(val)
 
     if (iError /= 0 .or. .not. isOk) then
       call set_error("HPI values could not be set!")
@@ -545,8 +555,8 @@ subroutine set_ie_indices(IEModel_, TimeIn)
     call IEModel_%kp(val)
 
     if (iError /= 0 .or. .not. isOk) then
-       call set_error("KP values could not be set!")
-       return
+      call set_error("KP values could not be set!")
+      return
     endif
   endif
 
