@@ -10,6 +10,7 @@ subroutine aurora(iBlock)
   use ModConstants
   use ModUserGITM
   use ModErrors
+  use ModIE
   use ModMpi
   use ModIndicesInterfaces
   use ModElectrodynamics, only: IEModel_
@@ -190,8 +191,7 @@ subroutine aurora(iBlock)
       endif
 
       UseMono = .false.
-      if (UseNewellAurora .and. UseNewellMono) UseMono = .true.
-      if (UseOvationSME .and. UseOvationSMEMono) UseMono = .true.
+      if (IEModel_%iAurora_ == iOvationPrime_ .and. (UseOvationSMEMono .or. UseNewellMono)) UseMono = .true.
 
       if (UseMono .and. &
           ElectronNumberFluxMono(j, i) > 1.0e4 .and. &
@@ -202,8 +202,7 @@ subroutine aurora(iBlock)
       endif
 
       UseWave = .false.
-      if (UseNewellAurora .and. UseNewellWave) UseWave = .true.
-      if (UseOvationSME .and. UseOvationSMEWave) UseWave = .true.
+      if (IEModel_%iAurora_ == iOvationPrime_ .and. (UseOvationSMEWave .OR. UseNewellWave)) UseWave = .true.
 
       if (UseWave .and. &
           ElectronNumberFluxWave(j, i) > 1.0e4 .and. &

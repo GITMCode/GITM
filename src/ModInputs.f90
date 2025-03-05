@@ -53,10 +53,8 @@ module ModInputs
 
   logical :: UseSecondsInFilename = .true.    !xianjing
 
-  logical :: UseIMF = .true.
-  logical :: UseHpi = .true.
-
   !!! Xing Meng Nov 2018 to use ISR E field in a local region + Weimer elsewhere
+  ! This is currently not working with the new Electrodynamics setup.
   logical :: UseRegionalAMIE = .false.
   logical :: UseTwoAMIEPotentials = .false.
   real(Real8_) :: AMIETimeStart, AMIETimeEnd
@@ -66,20 +64,15 @@ module ModInputs
   real    :: AMIELatEnd = 70.0
   real    :: AMIEBoundaryWidth = 4.0  ! lat and lon width to transit to Weimer solution
 
-  logical :: UseNewellAurora = .false.
   logical :: UseNewellAveraged = .true.
   logical :: UseNewellMono = .false.
   logical :: UseNewellWave = .false.
   logical :: DoNewellRemoveSpikes = .true.
   logical :: DoNewellAverage = .true.
 
-  logical :: UseOvationSME = .false.
   logical :: UseOvationSMEMono = .false.
   logical :: UseOvationSMEWave = .false.
   logical :: UseOvationSMEIon = .false.
-
-  logical :: UseAeModel = .false.
-  logical :: UseFtaModel = .false.
 
   logical :: UseFangEnergyDeposition = .true.
 

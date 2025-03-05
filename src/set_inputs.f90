@@ -688,19 +688,35 @@ subroutine set_inputs
         call read_in_string(cPotentialModel, iError)
 
         if (iError /= 0) then
-          ! Change to new error soon...
-          write(*, *) 'Incorrect format for #IEMODELS !!'
+          write(*, *) 'Incorrect format for #IEMODELS!!'
           write(*, *) ''
           write(*, *) '#IEMODELS'
-          write(*, *) 'AuroralModel     fta,fre,pem,hpi/ihp,amie'
-          write(*, *) 'PotentialModel   weimer05,hepmay,amie'
+          write(*, *) 'AuroralModel     [fta], fre, pem, hpi/ihp, amie, etc.'
+          write(*, *) 'PotentialModel   [weimer05], hepmay, amie, etc.'
           write(*, *) ''
-          call set_error("Aurora and efield names not correctly read!")
+          write(*, *) ' => See Electrodynamics/src/interpret_names.f90 for available options <='
+          call set_error("Aurora and efield names not correctly specified!")
         endif
 
         if (.not. isOk) then
           call report_errors
           call stop_gitm("")
+        endif
+
+      case ("#AMIEFILES")
+        call read_in_string(cAMIEFileNorth, iError)
+        call read_in_string(cAMIEFileSouth, iError)
+        if (iError /= 0) then
+          write(*, *) 'Incorrect format for #AMIEFILES:'
+          write(*, *) ''
+          write(*, *) '#AMIEFILES'
+          write(*, *) 'cAMIEFileNorth  (string)'
+          write(*, *) 'cAMIEFileSouth  (string)'
+          IsDone = .true.
+        else
+          if (index(cAMIEFileNorth, "none") == 0 .and. &
+              .not. HasSetAuroraMods) &
+            NormalizeAuroraToHP = .false.
         endif
 
       case ("#AURORAMODS")
@@ -727,49 +743,39 @@ subroutine set_inputs
         endif
 
       case ("#NEWELLAURORA")
-        call read_in_logical(UseNewellAurora, iError)
-        if (UseNewellAurora) then
-          call read_in_logical(UseNewellAveraged, iError)
-          call read_in_logical(UseNewellMono, iError)
-          call read_in_logical(UseNewellWave, iError)
-          call read_in_logical(DoNewellRemoveSpikes, iError)
-          call read_in_logical(DoNewellAverage, iError)
-        endif
+        call read_in_logical(UseNewellAveraged, iError)
+        call read_in_logical(UseNewellMono, iError)
+        call read_in_logical(UseNewellWave, iError)
+        call read_in_logical(DoNewellRemoveSpikes, iError)
+        call read_in_logical(DoNewellAverage, iError)
+
         if (iError /= 0) then
           write(*, *) 'Incorrect format for #NEWELLAURORA'
           write(*, *) 'This is for using Pat Newells aurora (Ovation).'
+          write(*, *) 'These are all False by default:'
           write(*, *) ''
           write(*, *) '#NEWELLAURORA'
-          write(*, *) 'UseNewellAurora   (logical)'
           write(*, *) 'UseNewellAveraged (logical)'
           write(*, *) 'UseNewellMono (logical)'
           write(*, *) 'UseNewellWave (logical)'
           write(*, *) 'UseNewellRemoveSpikes (logical)'
           write(*, *) 'UseNewellAverage      (logical)'
           IsDone = .true.
-        else
-          if (UseNewellAurora .and. .not. HasSetAuroraMods) &
-            NormalizeAuroraToHP = .false.
         endif
 
       case ("#OVATIONSME")
-        call read_in_logical(UseOvationSME, iError)
-        call read_in_logical(UseOvationSMEMono, iError)
         call read_in_logical(UseOvationSMEWave, iError)
         call read_in_logical(UseOvationSMEIon, iError)
         if (iError /= 0) then
           write(*, *) 'Incorrect format for #OVATIONSME'
           write(*, *) 'This is for using Betsy Michells aurora (OvationSME).'
+          write(*, *) 'These are all False by default:'
           write(*, *) ''
           write(*, *) '#OVATIONSME'
-          write(*, *) 'UseOvationSME     (logical)'
           write(*, *) 'UseOvationSMEMono (logical)'
           write(*, *) 'UseOvationSMEWave (logical)'
           write(*, *) 'UseOvationSMEIon  (logical)'
           IsDone = .true.
-        else
-          if (UseOvationSME .and. .not. HasSetAuroraMods) &
-            NormalizeAuroraToHP = .false.
         endif
 
       case ("#FANGENERGY")
@@ -796,22 +802,6 @@ subroutine set_inputs
           write(*, *) 'CuspAveE       (real)'
           write(*, *) 'CuspEFlux      (real)'
           IsDone = .true.
-        endif
-
-      case ("#AMIEFILES")
-        call read_in_string(cAMIEFileNorth, iError)
-        call read_in_string(cAMIEFileSouth, iError)
-        if (iError /= 0) then
-          write(*, *) 'Incorrect format for #AMIEFILES:'
-          write(*, *) ''
-          write(*, *) '#AMIEFILES'
-          write(*, *) 'cAMIEFileNorth  (string)'
-          write(*, *) 'cAMIEFileSouth  (string)'
-          IsDone = .true.
-        else
-          if (index(cAMIEFileNorth, "none") == 0 .and. &
-              .not. HasSetAuroraMods) &
-            NormalizeAuroraToHP = .false.
         endif
 
       case ("#USEREGIONALAMIE")
