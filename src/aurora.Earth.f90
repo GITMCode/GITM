@@ -32,91 +32,8 @@ subroutine aurora(iBlock)
   real :: f1, f2, f3, f4, f5, power
   real :: de1, de2, de3, de4, de5, detotal, h
 
-  real :: LocalVar, HPn, HPs, avepower, ratio
-
-  real :: Fang_Pij(8, 4), Ci(8), Fang_de = 0.035
-  data Fang_Pij(1, :)/1.25E+00, 1.45903, -2.42E-01, 5.95E-02/
-  data Fang_Pij(2, :)/2.24E+00, -4.23E-07, 1.36E-02, 2.53E-03/
-  data Fang_Pij(3, :)/1.42E+00, 1.45E-01, 1.70E-02, 6.40E-04/
-  data Fang_Pij(4, :)/0.248775, -1.51E-01, 6.31E-09, 1.24E-03/
-  data Fang_Pij(5, :)/-0.465119, -1.05E-01, -8.96E-02, 1.22E-02/
-  data Fang_Pij(6, :)/3.86E-01, 1.75E-03, -7.43E-04, 4.61E-04/
-  data Fang_Pij(7, :)/-6.45E-01, 8.50E-04, -4.29E-02, -2.99E-03/
-  data Fang_Pij(8, :)/9.49E-01, 1.97E-01, -2.51E-03, -2.07E-03/
-
-  ! This is from:
-  ! Fang, X., D. Lummerzheim, and C. H. Jackman (2013),
-  !           Proton impact ionization and a fast calculation method,
-  !           J. Geophys. Res. Space Physics, 118, 5369–5378,
-  !           doi:10.1002/jgra.50484:
-
-  real :: Fang_Ion_Pij(12, 4), Ion_Ci(12)
-  data Fang_Ion_Pij(1, :)/2.55050E+00, 2.69476e-01, -2.58425E-01, 4.43190E-02/
-  data Fang_Ion_Pij(2, :)/6.39287E-01, -1.85817e-01, -3.15636E-02, 1.01370E-02/
-  data Fang_Ion_Pij(3, :)/1.63996E+00, 2.43580e-01, 4.29873E-02, 3.77803E-02/
-  data Fang_Ion_Pij(4, :)/-2.13479E-01, 1.42464e-01, 1.55840E-02, 1.97407E-03/
-  data Fang_Ion_Pij(5, :)/-1.65764E-01, 3.39654e-01, -9.87971E-03, 4.02411E-03/
-  data Fang_Ion_Pij(6, :)/-3.59358E-02, 2.50330e-02, -3.29365E-02, 5.08057E-03/
-  data Fang_Ion_Pij(7, :)/-6.26528E-01, 1.46865e+00, 2.51853E-01, -4.57132E-02/
-  data Fang_Ion_Pij(8, :)/1.01384E+00, 5.94301e-02, -3.27839E-02, 3.42688E-03/
-  data Fang_Ion_Pij(9, :)/-1.29454E-06, -1.43623e-01, 2.82583E-01, 8.29809E-02/
-  data Fang_Ion_Pij(10, :)/-1.18622E-01, 1.79191e-01, 6.49171E-02, -3.99715E-03/
-  data Fang_Ion_Pij(11, :)/2.94890E+00, -5.75821e-01, 2.48563E-02, 8.31078E-02/
-  data Fang_Ion_Pij(12, :)/-1.89515E-01, 3.53452e-02, 7.77964E-02, -4.06034E-03/
-
-  real BulkScaleHeight1d(nAlts)
-
-  HPn = 0.0
-  HPs = 0.0
-
-  if (IsFirstTime(iBlock)) then
-
-    if (UseFangEnergyDeposition) then
-
-      ! Electrons
-      allocate(Fang_Ci(ED_N_Energies, 8), stat=iErr)
-      allocate(Fang_y(ED_N_Energies, nAlts), stat=iErr)
-      allocate(Fang_f(ED_N_Energies, nAlts), stat=iErr)
-
-      ! Ions
-      if (UseIonPrecipitation) then
-        allocate(Fang_Ion_Ci(ED_N_Energies, 12), stat=iErr)
-        allocate(Fang_Ion_y(ED_N_Energies, nAlts), stat=iErr)
-        allocate(Fang_Ion_f(ED_N_Energies, nAlts), stat=iErr)
-      endif
-
-      if (iErr /= 0) then
-        call stop_gitm("Error allocating Fang arrays in aurora")
-      endif
-
-      ! Electrons
-      do iEnergy = 1, ED_N_Energies
-        do i = 1, 8
-          Fang_Ci(iEnergy, i) = 0.0
-          do j = 0, 3
-            Fang_Ci(iEnergy, i) = Fang_Ci(iEnergy, i) + &
-                                  Fang_Pij(i, j + 1)*log(ED_Energies(iEnergy)/1000.0)**j
-          enddo
-        enddo
-      enddo
-      Fang_Ci = exp(Fang_Ci)
-
-      ! Ions
-      if (UseIonPrecipitation) then
-        do iEnergy = 1, ED_N_Energies
-          do i = 1, 12
-            Fang_Ion_Ci(iEnergy, i) = 0.0
-            do j = 0, 3
-              Fang_Ion_Ci(iEnergy, i) = Fang_Ion_Ci(iEnergy, i) + &
-                                        Fang_Ion_Pij(i, j + 1)*log(ED_Energies(iEnergy)/1000.0)**j
-            enddo
-          enddo
-        enddo
-        Fang_Ion_Ci = exp(Fang_Ion_Ci)
-      endif
-
-    endif
-
+  if (UseFangEnergyDeposition .and. IsFirstTime(iBlock)) then
+    call initialize_fang_arrays
   else
     if (floor((tSimulation - dT)/dTAurora) == &
         floor(tSimulation/dTAurora)) return
@@ -567,4 +484,90 @@ subroutine aurora(iBlock)
   call end_timing("Aurora")
 
 end subroutine aurora
+! --------------------------------
+! Initialize the variables necessary to run Fang ED code
+! --------------------------------
+
+subroutine initialize_fang_arrays
+! Allocate variables necessary for Fang Energy Deposition
+
+  use ModInputs
+  use ModSources
+
+  allocate(Fang_Ci(ED_N_Energies, 8), stat=iErr)
+  allocate(Fang_y(ED_N_Energies, nAlts), stat=iErr)
+  allocate(Fang_f(ED_N_Energies, nAlts), stat=iErr)
+  allocate(Fang_Pij(8, 4), stat=iErr)
+
+  ! Ions
+  if (UseIonPrecipitation) then
+    allocate(Fang_Ion_Ci(ED_N_Energies, 12), stat=iErr)
+    allocate(Fang_Ion_y(ED_N_Energies, nAlts), stat=iErr)
+    allocate(Fang_Ion_f(ED_N_Energies, nAlts), stat=iErr)
+    allocate(Fang_Ion_Pij(12, 4), stat=iErr)
+  endif
+
+  if (iErr /= 0) then
+    call stop_gitm("Error allocating Fang arrays in aurora")
+  endif
+
+  !electrons
+  Fang_Pij(1, :) = (/1.25E+00, 1.45903, -2.42E-01, 5.95E-02/)
+  Fang_Pij(2, :) = (/2.24E+00, -4.23E-07, 1.36E-02, 2.53E-03/)
+  Fang_Pij(3, :) = (/1.42E+00, 1.45E-01, 1.70E-02, 6.40E-04/)
+  Fang_Pij(4, :) = (/0.248775, -1.51E-01, 6.31E-09, 1.24E-03/)
+  Fang_Pij(5, :) = (/-0.465119, -1.05E-01, -8.96E-02, 1.22E-02/)
+  Fang_Pij(6, :) = (/3.86E-01, 1.75E-03, -7.43E-04, 4.61E-04/)
+  Fang_Pij(7, :) = (/-6.45E-01, 8.50E-04, -4.29E-02, -2.99E-03/)
+  Fang_Pij(8, :) = (/9.49E-01, 1.97E-01, -2.51E-03, -2.07E-03/)
+
+  ! This is from:
+  ! Fang, X., D. Lummerzheim, and C. H. Jackman (2013),
+  !           Proton impact ionization and a fast calculation method,
+  !           J. Geophys. Res. Space Physics, 118, 5369–5378,
+  !           doi:10.1002/jgra.50484:
+
+  !ions
+  if (UseIonPrecipitation) then
+    Fang_Ion_Pij(1, :) = (/2.55050E+00, 2.69476e-01, -2.58425E-01, 4.43190E-02/)
+    Fang_Ion_Pij(2, :) = (/6.39287E-01, -1.85817e-01, -3.15636E-02, 1.01370E-02/)
+    Fang_Ion_Pij(3, :) = (/1.63996E+00, 2.43580e-01, 4.29873E-02, 3.77803E-02/)
+    Fang_Ion_Pij(4, :) = (/-2.13479E-01, 1.42464e-01, 1.55840E-02, 1.97407E-03/)
+    Fang_Ion_Pij(5, :) = (/-1.65764E-01, 3.39654e-01, -9.87971E-03, 4.02411E-03/)
+    Fang_Ion_Pij(6, :) = (/-3.59358E-02, 2.50330e-02, -3.29365E-02, 5.08057E-03/)
+    Fang_Ion_Pij(7, :) = (/-6.26528E-01, 1.46865e+00, 2.51853E-01, -4.57132E-02/)
+    Fang_Ion_Pij(8, :) = (/1.01384E+00, 5.94301e-02, -3.27839E-02, 3.42688E-03/)
+    Fang_Ion_Pij(9, :) = (/-1.29454E-06, -1.43623e-01, 2.82583E-01, 8.29809E-02/)
+    Fang_Ion_Pij(10, :) = (/-1.18622E-01, 1.79191e-01, 6.49171E-02, -3.99715E-03/)
+    Fang_Ion_Pij(11, :) = (/2.94890E+00, -5.75821e-01, 2.48563E-02, 8.31078E-02/)
+    Fang_Ion_Pij(12, :) = (/-1.89515E-01, 3.53452e-02, 7.77964E-02, -4.06034E-03/)
+  endif
+
+  ! Electrons
+  do iEnergy = 1, ED_N_Energies
+    do i = 1, 8
+      Fang_Ci(iEnergy, i) = 0.0
+      do j = 0, 3
+        Fang_Ci(iEnergy, i) = Fang_Ci(iEnergy, i) + &
+                              Fang_Pij(i, j + 1)*log(ED_Energies(iEnergy)/1000.0)**j
+      enddo
+    enddo
+  enddo
+  Fang_Ci = exp(Fang_Ci)
+
+  ! Ions
+  if (UseIonPrecipitation) then
+    do iEnergy = 1, ED_N_Energies
+      do i = 1, 12
+        Fang_Ion_Ci(iEnergy, i) = 0.0
+        do j = 0, 3
+          Fang_Ion_Ci(iEnergy, i) = Fang_Ion_Ci(iEnergy, i) + &
+                                    Fang_Ion_Pij(i, j + 1)*log(ED_Energies(iEnergy)/1000.0)**j
+        enddo
+      enddo
+    enddo
+    Fang_Ion_Ci = exp(Fang_Ion_Ci)
+  endif
+
+end subroutine initialize_fang_arrays
 

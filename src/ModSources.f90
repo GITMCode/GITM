@@ -121,6 +121,7 @@ module ModSources
   real, allocatable :: Fang_Ci(:, :)  ! nEnergies, 8
   real, allocatable :: Fang_y(:, :)   ! nEnergies, nAlts
   real, allocatable :: Fang_f(:, :)   ! nEnergies, nAlts
+  real, allocatable :: Fang_Pij(:, :)
 
   !\
   ! Needed for Fang et al, 2013:
@@ -128,6 +129,7 @@ module ModSources
   real, allocatable :: Fang_Ion_Ci(:, :)  ! nEnergies, 8
   real, allocatable :: Fang_Ion_y(:, :)   ! nEnergies, nAlts
   real, allocatable :: Fang_Ion_f(:, :)   ! nEnergies, nAlts
+  real, allocatable :: Fang_Ion_Pij(:, :)
 
   !BP
   real, dimension(40, 11) :: qIR_NLTE_table
