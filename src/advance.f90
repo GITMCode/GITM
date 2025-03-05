@@ -17,6 +17,7 @@ subroutine advance
 
   use ModRCMR, only: RCMRFlag
   use ModGITM, only: dt
+  use ModErrors
   use ModInputs
 
   implicit none
@@ -60,6 +61,11 @@ subroutine advance
     call init_msis
     call init_iri
     call init_b0
+  endif
+
+  if (.not. isOk) then
+    call report_errors
+    call stop_gitm("Stopping in Advance")
   endif
 
   call end_timing("advance")

@@ -140,6 +140,8 @@ subroutine logfile(dir)
     else
       write(iLogFileUnit_, '(a,L2)') "# EUV Data: ", useEUVdata
     endif
+    write(iLogFileUnit_, '(2(a,L2))') "# E-Field Model: ", cPotentialModel, &
+      " Auroral Model: ", cAuroralModel
     write(iLogFileUnit_, '(a,a15)') "# AMIE: ", cAmieFileNorth, cAmieFileSouth
     write(iLogFileUnit_, '(3(a,L2))') "# Solar Heating: ", useSolarHeating, &
       " Joule Heating: ", useJouleHeating, &
@@ -374,6 +376,11 @@ subroutine write_code_information(dir)
     write(iCodeInfoFileUnit_, *) UseApex
     write(iCodeInfoFileUnit_, *) ""
 
+    write(iCodeInfoFileUnit_, *) "#IEModels"
+    write(iCodeInfoFileUnit_, *) trim(cAuroralModel)
+    write(iCodeInfoFileUnit_, *) trim(cPotentialModel)
+    write(iCodeInfoFileUnit_, *) ""
+
     write(iCodeInfoFileUnit_, *) "#AMIEFILES"
     write(iCodeInfoFileUnit_, *) trim(cAMIEFileNorth)
     write(iCodeInfoFileUnit_, *) trim(cAMIEFileSouth)
@@ -427,7 +434,6 @@ subroutine write_code_information(dir)
     write(iCodeInfoFileUnit_, *) ""
 
     write(iCodeInfoFileUnit_, *) "#NEWELLAURORA"
-    write(iCodeInfoFileUnit_, *) UseNewellAurora
     write(iCodeInfoFileUnit_, *) UseNewellAveraged
     write(iCodeInfoFileUnit_, *) UseNewellMono
     write(iCodeInfoFileUnit_, *) UseNewellWave
@@ -436,7 +442,6 @@ subroutine write_code_information(dir)
     write(iCodeInfoFileUnit_, *) ""
 
     write(iCodeInfoFileUnit_, *) "#OVATIONSME"
-    write(iCodeInfoFileUnit_, *) UseOvationSME
     write(iCodeInfoFileUnit_, *) UseOvationSMEMono
     write(iCodeInfoFileUnit_, *) UseOvationSMEWave
     write(iCodeInfoFileUnit_, *) UseOvationSMEIon

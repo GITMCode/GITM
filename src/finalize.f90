@@ -5,10 +5,11 @@ subroutine finalize_gitm
 
   use ModInputs
   use ModSphereInterface
+  use ModErrors
 
   implicit none
 
-  logical :: IsOk
+  logical :: didOk
   integer :: iError, iBlock, iOutputType
   integer :: nMLTsTmp, nLatsTmp
 
@@ -37,8 +38,8 @@ subroutine finalize_gitm
   if (.not. Is1D) then
     ! cleanup UAM
      !! get rid of data xfer structure
-    call UAM_XFER_destroy(ok=IsOk)
-    if (.not. IsOk) then
+    call UAM_XFER_destroy(ok=didOk)
+    if (.not. didOk) then
       call UAM_write_error()
       if (.not. IsFrameWork) call stop_gitm("problem with finalize")
     endif
@@ -47,5 +48,10 @@ subroutine finalize_gitm
 
   ! cleanup mpi
   if (.not. IsFrameWork) call MPI_FINALIZE(iError)
+
+  if (iProc == 0) then
+    call report_errors
+    call report_warnings
+  endif
 
 end subroutine finalize_gitm

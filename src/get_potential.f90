@@ -59,6 +59,13 @@ subroutine init_get_potential
     call stop_gitm("Failed to initialize ieModel in get_potential. Check indices, probably.")
   endif
 
+  ! Now run some checks on user's settings:
+  if (IEModel_%iAurora_ == iOvationPrime_) then
+    if (NormalizeAuroraToHP) &
+      call raise_warning("You probably should not use NormalizeAuroraToHP and Ovation")
+
+  endif
+
   ! Initialize the grid:
   call IEModel_%nMlts(nLons + 4)
   call IEModel_%nLats(nLats + 4)
