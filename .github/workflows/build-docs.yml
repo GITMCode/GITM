@@ -15,7 +15,7 @@ jobs:
       - name: Clone GITM repository
         uses: actions/checkout@v4
       - name: Compile LaTeX document
-        uses: xu-cheng/latex-action@v3
+        uses: xu-cheng/latex-action@v4
         with:
           root_file: manual.tex
           working_directory: srcDoc
