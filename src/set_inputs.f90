@@ -1930,6 +1930,12 @@ subroutine set_inputs
       case ("#END")
         IsDone = .true.
 
+      case default
+        if (iDebugProc == iProc) then
+          call raise_warning("Option found in UAM.in file without a matching key:")
+          call raise_warning(cLine)
+        endif
+
       end select
 
       if (iError /= 0) IsDone = .true.
