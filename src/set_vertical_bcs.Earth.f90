@@ -513,6 +513,7 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
   endif
 
   if (UseImprovedIonAdvection) then
+    call check_for_negative_densities
     tec = sum(dAlt_f(1:nAlts)*LogINS(1:nAlts, 1))/1e16
   else
     tec = sum(dAlt_f(1:nAlts)*exp(LogINS(1:nAlts, 1)))/1e16
@@ -545,8 +546,6 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
     do iSpecies = 1, nIons - 1
 
       if (UseImprovedIonAdvection) then
-
-        call check_for_negative_densities
 
         n0 = alog(LogINS(iAlt, iSpecies))
         n1 = alog(LogINS(iAlt - 1, iSpecies))
@@ -625,41 +624,14 @@ contains
 
   subroutine check_for_negative_densities
 
-    integer :: iAltSub
-    logical :: IsFound
+    if (minval(LogINS) < 0.0) then
 
-    if (minval(LogINS(iAlt - 5:iAlt, iSpecies)) < 0.0) then
+      if (DoCheckForNaNs .and. iDebugLevel > 7) &
+       write(*, *) "Correcting negative ion density in set_vertical_bcs"
 
-      if (DoCheckForNaNs) write(*, *) "Correcting negative ion density in set_vertical_bcs : ", iAlt, iSpecies
-
-      if (LogINS(iAlt - 6, iSpecies) < 0.0) then
-        write(*, *) 'Negative Ion density too close to the upper boundary: ', iSpecies
-        ! call stop_gitm('Stopping in set_vertical_bcs')
-      endif
-
-      do iAltSub = iAlt - 5, iAlt - 1
-
-        if (LogINS(iAltSub, iSpecies) < 0.0) then
-
-          if (LogINS(iAltSub - 1, iSpecies) > 0.0 .and. &
-              LogINS(iAltSub + 1, iSpecies) > 0.0) then
-            ! Average two points around it:
-            LogINS(iAltSub, iSpecies) = &
-              (LogINS(iAltSub - 1, iSpecies) + LogINS(iAltSub + 1, iSpecies))/2.0
-          else
-            ! Or take previous point and decrease it by 5 percent:
-            LogINS(iAltSub, iSpecies) = LogINS(iAltSub - 1, iSpecies)*0.95
-          endif
-
-        endif
-
-      enddo
-
-      ! Top point:
-      if (LogINS(iAlt, iSpecies) < 0.0) then
-        ! Take previous point and decrease it by 5 percent:
-        LogINS(iAlt, iSpecies) = LogINS(iAlt - 1, iSpecies)*0.95
-      endif
+      ! This vectorizes the drop-in replacement, similar to np.where(). Syntax is:
+      ! out  = merge(value_if_true, value_if_false, condition)
+      LogINS = merge(LogINS, 0.0, LogINS < 0.0)
 
     endif
 
