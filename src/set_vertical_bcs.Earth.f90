@@ -627,7 +627,7 @@ contains
     if (minval(LogINS) < 0.0) then
 
       if (DoCheckForNaNs .and. iDebugLevel > 7) &
-       write(*, *) "Correcting negative ion density in set_vertical_bcs"
+        write(*, *) "Correcting negative ion density in set_vertical_bcs"
 
       ! This vectorizes the drop-in replacement, similar to np.where(). Syntax is:
       ! out  = merge(value_if_true, value_if_false, condition)
