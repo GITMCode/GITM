@@ -190,8 +190,8 @@ subroutine advance_vertical(iLon, iLat, iBlock)
         IDensityS(iLon, iLat, :, iIon, iBlock) = LogINS(:, iIon)
         ! Put in a floor on ion densities....
         do iAlt = 1, nAlts
-          if (IDensityS(iLon, iLat, iAlt, iIon, iBlock) < 1) then
-            IDensityS(iLon, iLat, iAlt, iIon, iBlock) = 1.0
+          if (IDensityS(iLon, iLat, iAlt, iIon, iBlock) < MinIonDensity) then
+            IDensityS(iLon, iLat, iAlt, iIon, iBlock) = MinIonDensity
           endif
         enddo
       else
