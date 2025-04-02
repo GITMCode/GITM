@@ -3,8 +3,8 @@
 
 include ../../../Makefile.def
 include ../../../Makefile.conf
-include Makefile.DEPEND
-include Makefile.RULES
+-include Makefile.DEPEND
+-include Makefile.RULES
 
 # These modules provide the "infrastructure" for SWMF and components.
 # A component does not have to use the whole library.
