@@ -140,3 +140,18 @@ subroutine check_for_nans_temps(cMarker)
   if (IsFound) call stop_gitm("Stopping...")
 
 end subroutine check_for_nans_temps
+
+subroutine correct_min_ion_density
+  ! Corrects for ion densities below MinIonDensity
+
+  use ModGitm
+  use ModInputs, only: minIonDensity
+
+  implicit none
+
+  if (minval(IDensityS) < MinIonDensity) &
+    ! This vectorizes the drop-in replacement, similar to np.where(). Syntax is:
+    ! out  = merge(value_if_true, value_if_false, condition)
+    IDensityS = merge(IDensityS, MinIonDensity, IDensityS < minIonDensity)
+
+end subroutine correct_min_ion_density

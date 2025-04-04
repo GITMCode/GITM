@@ -157,4 +157,6 @@ subroutine add_sources
     call check_for_nans_temps("After Sources")
   endif
 
+  call correct_min_ion_density
+
 end subroutine add_sources

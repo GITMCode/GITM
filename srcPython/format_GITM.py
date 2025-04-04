@@ -56,7 +56,7 @@ def check_line_lengths(input_args=None):
 
                         is_commented = (comment_idx != -1) and (comment_idx < subrout_idx)
                         is_ended = (end_idx != -1) and (end_idx < subrout_idx)
-                        if is_ended:
+                        if is_ended and not is_commented:
                             tmp_subroutine_lengths[-1] = n - tmp_subroutine_lengths[-1]
                         elif not is_commented:
                             tmp_subroutine_lengths.append(n)

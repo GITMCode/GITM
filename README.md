@@ -7,7 +7,7 @@ on Linux and MacOS as well as ifort on NASA's Pleiades computer.
 
 The latest version of the documentation can be accessed at:
 
-[![Build Documentation](https://github.com/abukowski21/GITM/actions/workflows/build-docs.yml/badge.svg)](https://github.com/abukowski21/GITM/actions/workflows/build-docs.yml)
+[![Build Documentation](https://github.com/GITMCode/GITM/actions/workflows/build-docs.yml/badge.svg)](https://github.com/GITMCode/GITM/actions/workflows/build-docs.yml)
 
 <details>
 <summary><b>GITM's default branch recently changed names. To access the latest features, please update your local refs.</b></summary>

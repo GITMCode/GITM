@@ -44,6 +44,8 @@ subroutine advance_horizontal_all
     call check_for_nans_temps("After Horizontal")
   endif
 
+  call correct_min_ion_density
+
   call end_timing("horizontal_all")
 
 end subroutine advance_horizontal_all

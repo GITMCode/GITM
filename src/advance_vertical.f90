@@ -34,6 +34,8 @@ subroutine advance_vertical_all
     call check_for_nans_temps("After Vertical")
   endif
 
+  call correct_min_ion_density
+
   call end_timing("vertical_all")
 
 end subroutine advance_vertical_all
@@ -188,12 +190,6 @@ subroutine advance_vertical(iLon, iLat, iBlock)
     do iIon = 1, nIons - 1 !Advect
       if (UseImprovedIonAdvection) then
         IDensityS(iLon, iLat, :, iIon, iBlock) = LogINS(:, iIon)
-        ! Put in a floor on ion densities....
-        do iAlt = 1, nAlts
-          if (IDensityS(iLon, iLat, iAlt, iIon, iBlock) < 1) then
-            IDensityS(iLon, iLat, iAlt, iIon, iBlock) = 1.0
-          endif
-        enddo
       else
         IDensityS(iLon, iLat, :, iIon, iBlock) = exp(LogINS(:, iIon))
       endif

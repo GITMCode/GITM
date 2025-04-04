@@ -120,7 +120,6 @@ OBJECTS = \
 	time_routines.o\
 	timing.o\
 	user.o \
-	vertical_solver.o\
 	vertical_solver_ausm.o\
 	vertical_solver_rusanov.o\
 	write_output.o
