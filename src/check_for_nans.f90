@@ -140,3 +140,16 @@ subroutine check_for_nans_temps(cMarker)
   if (IsFound) call stop_gitm("Stopping...")
 
 end subroutine check_for_nans_temps
+
+subroutine correct_min_ion_density
+  ! Corrects for ion densities below MinIonDensity
+
+  use ModGitm
+  use ModInputs, only: minIonDensity
+
+  implicit none
+
+  if (minval(iDensityS) < MinIonDensity) &
+    iDensityS = merge(IdensityS, MinIonDensity, IdensityS < minIonDensity)
+
+end subroutine correct_min_ion_density

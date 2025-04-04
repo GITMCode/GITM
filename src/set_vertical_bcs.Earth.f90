@@ -513,7 +513,6 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
   endif
 
   if (UseImprovedIonAdvection) then
-    call check_for_negative_densities
     tec = sum(dAlt_f(1:nAlts)*LogINS(1:nAlts, 1))/1e16
   else
     tec = sum(dAlt_f(1:nAlts)*exp(LogINS(1:nAlts, 1)))/1e16
@@ -619,23 +618,6 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
     enddo
     LogRho(iAlt) = alog(SumRho)
   enddo
-
-contains
-
-  subroutine check_for_negative_densities
-
-    if (minval(LogINS) < 0.0) then
-
-      if (DoCheckForNaNs .and. iDebugLevel > 7) &
-        write(*, *) "Correcting negative ion density in set_vertical_bcs"
-
-      ! This vectorizes the drop-in replacement, similar to np.where(). Syntax is:
-      ! out  = merge(value_if_true, value_if_false, condition)
-      LogINS = merge(LogINS, 0.0, LogINS < 0.0)
-
-    endif
-
-  end subroutine check_for_negative_densities
 
 end subroutine set_vertical_bcs
 
