@@ -149,7 +149,9 @@ subroutine correct_min_ion_density
 
   implicit none
 
-  if (minval(iDensityS) < MinIonDensity) &
-    iDensityS = merge(IdensityS, MinIonDensity, IdensityS < minIonDensity)
+  if (minval(IDensityS) < MinIonDensity) &
+    ! This vectorizes the drop-in replacement, similar to np.where(). Syntax is:
+    ! out  = merge(value_if_true, value_if_false, condition)
+    IDensityS = merge(IDensityS, MinIonDensity, IDensityS < minIonDensity)
 
 end subroutine correct_min_ion_density
