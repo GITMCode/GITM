@@ -156,33 +156,20 @@ SAMI:	DEPENDSAMI
 
 ${SAMIEXE}:	${OBJECTS_SAMI}
 		${LINK.f90} -o ${SAMIEXE} ${OBJECTS_SAMI} \
-		-L${ABDIR} -lSphere \
+		-L${LIBDIR} -lSphere \
 		-L${LIBDIR} -lEMPIRICALIE -lEMPIRICALUA -lINDICES -lSHARE \
 		-L${GLDIR} -lGLOW ${LBLAS} \
 		-L${SAMIDIR}/src -lSAMI3 \
 		${Lflag1}
 
 ${EXE}:	${OBJECTS_EXE}
-	@(if [ ${OS} = "Darwin" ]; then make GITM_for_Darwin; \
-	else                            make GITM_general;     fi)
+	make GITM_general
 
 GITM_general:
 	${LINK.f90} -o ${EXE} ${OBJECTS_EXE} \
 		-L${LIBDIR} -lSphere \
 		-L${LIBDIR} -lEMPIRICALIE -lEMPIRICALUA -lINDICES -lSHARE \
 		-L${GLDIR} -lGLOW ${LBLAS} ${Lflag1}
-
-GITM_for_Darwin:
-	rm -rf Tmp_; mkdir Tmp_
-	cd Tmp_; \
-		ar -x ${ABDIR}/libSphere.a; \
-		ar -x ${LIBDIR}/libEMPIRICALIE.a; \
-		ar -x ${LIBDIR}/libEMPIRICALUA.a; \
-		ar -x ${LIBDIR}/libINDICES.a; \
-		ar -x ${LIBDIR}/libSHARE.a; \
-		ar -x ${GLDIR}/libGLOW.a
-	${LINK.f90} -o ${EXE} ${OBJECTS_EXE} Tmp_/*.o ${LBLAS} ${Lflag1}
-	rm -rf Tmp_
 
 POST:	PostProcess.o
 	${LINK.f90} ${Lflag2} -o PostProcess.exe PostProcess.o
