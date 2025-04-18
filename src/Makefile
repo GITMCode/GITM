@@ -168,7 +168,7 @@ ${EXE}:	${OBJECTS_EXE}
 
 GITM_general:
 	${LINK.f90} -o ${EXE} ${OBJECTS_EXE} \
-		-L${ABDIR} -lSphere \
+		-L${LIBDIR} -lSphere \
 		-L${LIBDIR} -lEMPIRICALIE -lEMPIRICALUA -lINDICES -lSHARE \
 		-L${GLDIR} -lGLOW ${LBLAS} ${Lflag1}
 
