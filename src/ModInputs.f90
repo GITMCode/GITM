@@ -190,6 +190,7 @@ module ModInputs
 
   logical :: UseApex = .true.
   logical :: UseMSIS = .true.
+  logical :: UseMsis21 = .false.
   real, dimension(25) :: sw_msis = 1.0
   logical :: UseIRI = .true.
   logical :: UseMSISTides = .true.
@@ -283,6 +284,8 @@ module ModInputs
   logical :: UseCO2Cooling = .true.
   real    :: CO2ppm = 225.0
 
+  logical :: DoN4SHack = .false.
+  
   ! Allow the user to change the planet's characteristics:
   real :: RotationPeriodInput = Rotation_Period
   real :: OmegaBodyInput = 2.0*pi/Rotation_Period
