@@ -1620,8 +1620,8 @@ subroutine output_2dgel(iBlock)
         Potential(iLon, iLat, iAlt, iBlock), &
         PedersenConductance(iLon, iLat, iBlock), &
         HallConductance(iLon, iLat, iBlock), &
-        ElectronAverageEnergy(iLon, iLat), &
-        ElectronEnergyFlux(iLon, iLat), &
+        ElectronAverageEnergyDiffuse(iLon, iLat), &
+        ElectronEnergyFluxDiffuse(iLon, iLat), &
         DivJuAlt(iLon, iLat), &
         PedersenFieldLine(iLon, iLat), &
         HallFieldLine(iLon, iLat), &

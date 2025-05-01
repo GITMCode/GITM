@@ -19,7 +19,7 @@ subroutine aurora(iBlock)
 
   integer, intent(in) :: iBlock
 
-  real :: av_kev, eflx_ergs
+  real :: av_kev, eflx_ergs ! e- diffuse aurora
   real :: ion_av_kev, ion_eflx_ergs, ion_eflux, ion_avee
   real :: factor, avee, eflux, p, Q0
   integer :: i, j, k, n, iError, iED, iErr, iEnergy
@@ -135,11 +135,11 @@ subroutine aurora(iBlock)
     endif
     do i = 1, nLats
       do j = 1, nLons
-        if (ElectronEnergyFlux(j, i) > 0.1) then
+        if (ElectronEnergyFluxDiffuse(j, i) > 0.1) then
           if (latitude(i, iBlock) < 0.0) then
-            ElectronEnergyFlux(j, i) = ElectronEnergyFlux(j, i)*ratio_sh
+            ElectronEnergyFluxDiffuse(j, i) = ElectronEnergyFluxDiffuse(j, i)*ratio_sh
           else
-            ElectronEnergyFlux(j, i) = ElectronEnergyFlux(j, i)*ratio_NH
+            ElectronEnergyFluxDiffuse(j, i) = ElectronEnergyFluxDiffuse(j, i)*ratio_NH
           endif
         endif
       enddo
@@ -168,8 +168,8 @@ subroutine aurora(iBlock)
 
       UserData2d(j, i, 1, 2:nUserOutputs, iBlock) = 0.0
 
-      eflx_ergs = ElectronEnergyFlux(j, i)
-      av_kev = ElectronAverageEnergy(j, i)*AveEFactor
+      eflx_ergs = ElectronEnergyFluxDiffuse(j, i)
+      av_kev = ElectronEnergyFluxDiffuse(j, i)*AveEFactor
 
       if (UseIonPrecipitation) then
         ion_eflx_ergs = IonEnergyFlux(j, i)
@@ -179,15 +179,18 @@ subroutine aurora(iBlock)
         ion_av_kev = 10.0
       endif
 
-      ! For diffuse auroral models
+      diffuse_ED_flux = 0.0
+      wave_ED_flux = 0.0
+      mono_ED_flux = 0.0
+      ion_ED_flux = 0.0
 
-      ED_Flux = 0.0
       HasSomeAurora = .false.
 
+      ! For diffuse auroral models
       if (eflx_ergs > 0.1) then
 
         ! This has the maxwellian & kappa in it:
-        call do_diffuse_aurora(av_kev, eflx_ergs, ED_EnergyFlux)
+        call do_diffuse_aurora(av_kev, eflx_ergs, diffuse_ED_flux, ED_Energies)
 
       endif
 

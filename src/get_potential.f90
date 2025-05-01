@@ -119,8 +119,8 @@ subroutine get_potential(iBlock)
   if (index(cPlanet, "Earth") == 0) then
 
     potential = 0.0
-    ElectronAverageEnergy = 0.1
-    ElectronEnergyFlux = 0.0001
+    ElectronEnergyFluxDiffuse = 0.1
+    ElectronEnergyFluxDiffuse = 0.0001
     return
 
   endif
@@ -238,7 +238,8 @@ subroutine get_potential(iBlock)
 
     iAlt = nAlts + 1
 
-    call ieModel_%get_aurora(ElectronEnergyFlux, ElectronAverageEnergy)
+    call ieModel_%get_aurora(ElectronEnergyFluxDiffuse, ElectronEnergyFluxDiffuse)
+    ! Get_aurora should set a flag for isUpdated, update when time is done.
 
     if (.not. isOk) then
       call set_error("Error in routine get_potential (getting aurora):")
@@ -250,15 +251,15 @@ subroutine get_potential(iBlock)
     ! Average energy, so go through and fix some of these.
     do iLat = -1, nLats + 2
       do iLon = -1, nLons + 2
-        if (ElectronAverageEnergy(iLon, iLat) < 0.0) then
-          ElectronAverageEnergy(iLon, iLat) = 0.1
+        if (ElectronAverageEnergyDiffuse(iLon, iLat) < 0.0) then
+          ElectronAverageEnergyDiffuse(iLon, iLat) = 0.1
           write(*, *) "ave e i,j Negative : ", iLon, iLat, &
-            ElectronAverageEnergy(iLon, iLat)
+          ElectronAverageEnergyDiffuse(iLon, iLat)
         endif
-        if (ElectronAverageEnergy(iLon, iLat) > 100.0) then
+        if (ElectronAverageEnergyDiffuse(iLon, iLat) > 100.0) then
           write(*, *) "ave e i,j Positive : ", iLon, iLat, &
-            ElectronAverageEnergy(iLon, iLat)
-          ElectronAverageEnergy(iLon, iLat) = 0.1
+          ElectronAverageEnergyDiffuse(iLon, iLat)
+          ElectronAverageEnergyDiffuse(iLon, iLat) = 0.1
         endif
       enddo
     enddo
@@ -324,8 +325,8 @@ subroutine get_potential(iBlock)
         do iLat = -1, nLats + 2
           do iLon = -1, nLons + 2
             if (EFlux(iLon, iLat) > 0.1) then
-              ElectronEnergyFlux(iLon, iLat) = EFlux(iLon, iLat)
-              ElectronAverageEnergy(iLon, iLat) = CuspAveE
+              ElectronEnergyFluxDiffuse(iLon, iLat) = EFlux(iLon, iLat)
+              ElectronAverageEnergyDiffuse(iLon, iLat) = CuspAveE
             endif
           enddo
         enddo
@@ -336,8 +337,8 @@ subroutine get_potential(iBlock)
 
     if (iDebugLevel > 2) &
       write(*, *) "==> Max, electron_ave_ene : ", &
-      maxval(ElectronAverageEnergy), &
-      maxval(ElectronEnergyFlux)
+      maxval(ElectronAverageEnergyDiffuse), &
+      maxval(ElectronEnergyFluxDiffuse)
 
     IsFirstAurora(iBlock) = .false.
 
