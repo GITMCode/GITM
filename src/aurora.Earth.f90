@@ -24,6 +24,7 @@ subroutine aurora(iBlock)
   real :: factor, avee, eflux, p, Q0
   integer :: i, j, k, n, iError, iED, iErr, iEnergy
   logical :: IsDone, IsTop, HasSomeAurora, UseMono, UseWave
+  real, dimension(ED_N_Energies) :: diffuse_ED_flux, mono_ED_flux, wave_ED_flux, ion_ED_flux
   real :: hpi, hpi_NH, hpi_SH
 
   real, dimension(nLons, nLats, nAlts) :: temp, AuroralBulkIonRate, &
@@ -214,60 +215,10 @@ subroutine aurora(iBlock)
 
       if (HasSomeAurora) then
 
-        if (UseFangEnergyDeposition) then
           call calc_fang_rates(j, i, iBlock, AuroralBulkIonRate)
-        else
-
-          call R_ELEC_EDEP(ED_Flux, 15, ED_Energies, 3, ED_Ion, 7)
-          call R_ELEC_EDEP(ED_Flux, 15, ED_Energies, 3, ED_Heating, 11)
-
-          iED = 1
-
-          factor = 1.0
-
-          do k = 1, nAlts
-
-            p = alog(Pressure(j, i, k, iBlock)*factor)
-
-            IsDone = .false.
-            IsTop = .false.
-            do while (.not. IsDone)
-              if (ED_grid(iED) >= p .and. ED_grid(iED + 1) <= p) then
-                IsDone = .true.
-                ED_Interpolation_Index(k) = iED
-                ED_Interpolation_Weight(k) = (ED_grid(iED) - p)/ &
-                                             (ED_grid(iED) - ED_grid(iED + 1))
-              else
-                if (iED == ED_N_Alts - 1) then
-                  IsDone = .true.
-                  IsTop = .true.
-                else
-                  iED = iED + 1
-                endif
-              endif
-            enddo
-
-            if (.not. IsTop) then
-              n = ED_Interpolation_Index(k)
-              AuroralBulkIonRate(j, i, k) = ED_Ion(n) - &
-                                            (ED_Ion(n) - ED_Ion(n + 1))*ED_Interpolation_Weight(k)
-              AuroralHeatingRate(j, i, k, iBlock) = ED_Heating(n) - &
-                                                    (ED_Heating(n) - ED_Heating(n + 1))*ED_Interpolation_Weight(k)
-            else
-
-              ! Decrease after top of model
-              AuroralBulkIonRate(j, i, k) = ED_Ion(ED_N_Alts)* &
-                                            factor*Pressure(j, i, k, iBlock)/exp(ED_grid(ED_N_Alts))
-              AuroralHeatingRate(j, i, k, iBlock) = ED_Heating(ED_N_Alts)* &
-                                                    factor*Pressure(j, i, k, iBlock)/exp(ED_grid(ED_N_Alts))
-
-            endif
-
-          enddo
 
         endif
 
-      endif
 
     enddo
   enddo
@@ -304,17 +255,19 @@ contains
 
   ! --------------------------
   ! Diffuse Aurora can be represented by kappa or maxwellian
+  ! - This is for Newell diffuse, or all other auroral models!
   ! --------------------------
-  subroutine do_diffuse_aurora(av_kev, eflx_ergs, ED_Energy_Flux)
-    real, intent(in) :: av_kev, eflx_ergs
-    real, intent(inout), dimension(:) :: ED_Energy_Flux
+  subroutine do_diffuse_aurora(diff_av_kev, diff_eflx_ergs, diff_ED_Energy_Flux, energyBins)
+    real, intent(in) :: diff_av_kev, diff_eflx_ergs
+    real, intent(inout), dimension(:) :: diff_ED_Energy_Flux
+    real, intent(in), dimension(:) :: energyBins
 
-    UserData2d(j, i, 1, 2, iBlock) = av_kev
-    UserData2d(j, i, 1, 3, iBlock) = eflx_ergs
+    UserData2d(j, i, 1, 2, iBlock) = diff_av_kev
+    UserData2d(j, i, 1, 3, iBlock) = diff_eflx_ergs
 
     HasSomeAurora = .true.
-    avee = av_kev*1000.0        ! keV -> eV
-    eflux = eflx_ergs*6.242e11  ! ergs/cm2/s -> eV/cm2/s
+    avee = diff_av_kev*1000.0        ! keV -> eV
+    eflux = diff_eflx_ergs*6.242e11  ! ergs/cm2/s -> eV/cm2/s
 
     ion_avee = ion_av_kev*1000.0        ! keV -> eV
     ion_eflux = ion_eflx_ergs*6.242e11  ! ergs/cm2/s -> eV/cm2/s
@@ -331,11 +284,11 @@ contains
     endif
 
     if (IsKappaAurora) then
-      call calc_kappa(AuroraKappa, eflux, avee, ED_EnergyFlux)
+      call calc_kappa(AuroraKappa, eflux, avee, diff_ED_Energy_Flux)
 
     else
       ! This calls the Maxwellian from Fang et al. [2010] for e- & ions
-      call calc_maxwellian(eflux, avee, ED_EnergyFlux)
+      call calc_maxwellian(eflux, avee, diff_ED_Energy_Flux)
       call calc_maxwellian(ion_eflux, ion_avee, ED_Ion_EnergyFlux)
     endif
 
@@ -701,7 +654,7 @@ subroutine calculate_HP(iBlock, HPn, HPs)
   do i = 1, nLats
     do j = 1, nLons
 
-      eflx_ergs = ElectronEnergyFlux(j, i) !/ (1.0e-7 * 100.0 * 100.0)
+      eflx_ergs = ElectronEnergyFluxDiffuse(j, i) !/ (1.0e-7 * 100.0 * 100.0)
 
       if (eflx_ergs > 0.1) then
         eflux = eflx_ergs*6.242e11  ! ergs/cm2/s -> eV/cm2/s
