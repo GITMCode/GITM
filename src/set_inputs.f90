@@ -837,6 +837,18 @@ subroutine set_inputs
           IsDone = .true.
         endif
 
+        
+      case ("#IONPRECIPITATION") !#TODO- maybe rename these options...
+        call read_in_logical(UseIonPrecipitation, iError)
+        if (iError /= 0) then
+          write(*, *) 'Incorrect format for #IONPRECIPITATION'
+          write(*, *) 'You can only have an AMIE input file for this now.'
+          write(*, *) 'Make sure you put the ions in the AMIE file!!!'
+          write(*, *) '#IONPRECIPITATION'
+          write(*, *) 'UseIonPrecipitation     (logical)'
+          IsDone = .true.
+        endif
+
       case ("#LIMITER")
         call read_in_string(TypeLimiter, iError)
         if (iError /= 0) then
@@ -1605,17 +1617,6 @@ subroutine set_inputs
           write(*, *) ''
           write(*, *) '#LTERadiation'
           write(*, *) 'DtLTERadiation (real)'
-          IsDone = .true.
-        endif
-
-      case ("#IONPRECIPITATION")
-        call read_in_logical(UseIonPrecipitation, iError)
-        if (iError /= 0) then
-          write(*, *) 'Incorrect format for #IONPRECIPITATION'
-          write(*, *) 'You can only have an AMIE input file for this now.'
-          write(*, *) 'Make sure you put the ions in the AMIE file!!!'
-          write(*, *) '#IONPRECIPITATION'
-          write(*, *) 'UseIonPrecipitation     (logical)'
           IsDone = .true.
         endif
 
