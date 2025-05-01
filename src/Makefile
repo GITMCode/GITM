@@ -17,7 +17,6 @@ SEARCH_EXTRA =  -I${ABDIR} \
 
 MODULES = \
 	apexsh.o\
-	ModAeAuroralModel.o\
 	ModApex.o\
 	ModChemistry.o\
 	ModConstants.o\
@@ -30,7 +29,6 @@ MODULES = \
 	ModLimiter.o\
 	ModMagTrace.o\
 	ModOrbital.o\
-	ModOvationSME.o\
 	ModPlanet.o\
 	ModRates.o\
 	ModRCMR.o \
