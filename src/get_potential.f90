@@ -61,9 +61,11 @@ subroutine init_get_potential
 
   ! Now run some checks on user's settings:
   if (IEModel_%iAurora_ == iOvationPrime_) then
-    if (NormalizeAuroraToHP) &
+    if (NormalizeAuroraToHP .and. (iProc == 0)) &
       call raise_warning("You probably should not use NormalizeAuroraToHP and Ovation")
 
+    if (UseIonPrecipitation .and. IsKappaAurora) &
+      call raise_warning("Kappa aurora & ion precipitation cannot be used simultaneously, yet.")
   endif
 
   ! Initialize the grid:
@@ -238,7 +240,7 @@ subroutine get_potential(iBlock)
 
     iAlt = nAlts + 1
 
-    call ieModel_%get_aurora(ElectronEnergyFluxDiffuse, ElectronEnergyFluxDiffuse)
+    call ieModel_%get_aurora(ElectronEnergyFluxDiffuse, ElectronAverageEnergyDiffuse)
     ! Get_aurora should set a flag for isUpdated, update when time is done.
 
     if (.not. isOk) then
@@ -254,11 +256,11 @@ subroutine get_potential(iBlock)
         if (ElectronAverageEnergyDiffuse(iLon, iLat) < 0.0) then
           ElectronAverageEnergyDiffuse(iLon, iLat) = 0.1
           write(*, *) "ave e i,j Negative : ", iLon, iLat, &
-          ElectronAverageEnergyDiffuse(iLon, iLat)
+            ElectronAverageEnergyDiffuse(iLon, iLat)
         endif
         if (ElectronAverageEnergyDiffuse(iLon, iLat) > 100.0) then
           write(*, *) "ave e i,j Positive : ", iLon, iLat, &
-          ElectronAverageEnergyDiffuse(iLon, iLat)
+            ElectronAverageEnergyDiffuse(iLon, iLat)
           ElectronAverageEnergyDiffuse(iLon, iLat) = 0.1
         endif
       enddo
@@ -335,7 +337,7 @@ subroutine get_potential(iBlock)
 
     endif
 
-    if (iDebugLevel > 2) &
+    if (iDebugLevel > 0) &
       write(*, *) "==> Max, electron_ave_ene : ", &
       maxval(ElectronAverageEnergyDiffuse), &
       maxval(ElectronEnergyFluxDiffuse)
@@ -344,7 +346,7 @@ subroutine get_potential(iBlock)
 
   endif
 
-  if (iDebugLevel > 1) &
+  if (iDebugLevel >= 1) &
     write(*, *) "==> Min, Max, CPC Potential : ", &
     minval(Potential(:, :, :, iBlock))/1000.0, &
     maxval(Potential(:, :, :, iBlock))/1000.0, &
