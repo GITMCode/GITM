@@ -1440,7 +1440,7 @@ subroutine output_1dthm
       EddyCond(1, 1, iiAlt), &
       EddyCondAdia(1, 1, iiAlt), &
       ChemicalHeatingRate(1, 1, iiAlt)*TempUnit(1, 1, iiAlt), &
-      AuroralHeating(1, 1, iiAlt)*dt*TempUnit(1, 1, iiAlt), &
+      ! AuroralHeating(1, 1, iiAlt)*dt*TempUnit(1, 1, iiAlt), &
       JouleHeating(1, 1, iiAlt)*dt*TempUnit(1, 1, iiAlt), &
       -RadCooling(1, 1, iiAlt, 1)*dt*TempUnit(1, 1, iiAlt), &
       -OCooling(1, 1, iiAlt)*dt*TempUnit(1, 1, iiAlt), &

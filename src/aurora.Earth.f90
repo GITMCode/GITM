@@ -48,7 +48,7 @@ subroutine aurora(iBlock)
   endif
 
   AuroralBulkIonRate = 0.0
-  AuroralHeatingRate(:, :, :, iBlock) = 0.0
+  ! AuroralHeatingRate(:, :, :, iBlock) = 0.0
   AuroralIonRateS = 0.0
   HPn = 0
   HPs = 0
@@ -641,7 +641,7 @@ subroutine calc_fang_rates(j, i, iBlock, AuroralBulkIonRate)
 
   enddo
 
-  AuroralHeatingRate(j, i, 1:nAlts, iBlock) = 0.0 ! ?? what is this for? move back to aurora?
+  ! AuroralHeatingRate(j, i, 1:nAlts, iBlock) = 0.0 ! ?? what is this for? move back to aurora?
 
 end subroutine calc_fang_rates
 

@@ -59,7 +59,7 @@ subroutine add_sources
           - RadCooling(1:nLons, 1:nLats, 1:nAlts, iBlock) &
           + EuvHeating(1:nLons, 1:nLats, 1:nAlts, iBlock) &
           + PhotoElectronHeating(1:nLons, 1:nLats, 1:nAlts, iBlock) &
-          + AuroralHeating &
+          ! + AuroralHeating &
           + JouleHeating &
           + ElectronHeating &
           + QnirTOT(1:nLons, 1:nLats, 1:nAlts, iBlock)) &
