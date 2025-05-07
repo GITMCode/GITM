@@ -440,12 +440,6 @@ subroutine write_code_information(dir)
     write(iCodeInfoFileUnit_, *) UseIonAurora
     write(iCodeInfoFileUnit_, *) ""
 
-    write(iCodeInfoFileUnit_, *) "#OVATIONSME"
-    write(iCodeInfoFileUnit_, *) UseOvationSMEMono
-    write(iCodeInfoFileUnit_, *) UseOvationSMEWave
-    write(iCodeInfoFileUnit_, *) UseOvationSMEIon
-    write(iCodeInfoFileUnit_, *) ""
-
     write(iCodeInfoFileUnit_, *) "#IONLIMITS"
     write(iCodeInfoFileUnit_, *) MaxVParallel
     write(iCodeInfoFileUnit_, *) MaxEField
