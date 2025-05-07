@@ -285,7 +285,7 @@ subroutine get_potential(iBlock)
     ! -----------------------------------------------------
 
     if (UseIonAurora) then
-      call stop_gitm("I don't know how to do that yet, sorry!")
+      call stop_gitm("I don't know how to do ion aurora yet, sorry!")
       !   call UA_GetIonAveE(IonAverageEnergy, iError)
       !   if (iError /= 0) then
       !     write(*, *) "Error in get_potential (UA_GetAveE):"
