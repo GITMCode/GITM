@@ -19,9 +19,8 @@ subroutine aurora(iBlock)
 
   integer, intent(in) :: iBlock
 
-  real :: av_kev, eflx_ergs ! e- diffuse aurora
   real :: ion_av_kev, ion_eflx_ergs, ion_eflux, ion_avee
-  real :: factor, avee, eflux, p, Q0
+  real :: factor, p, Q0
   integer :: i, j, k, n, iError, iED, iErr, iEnergy
   logical :: IsDone, IsTop, HasSomeAurora!, UseMono, UseWave
   real, dimension(ED_N_Energies) :: &
@@ -186,9 +185,11 @@ subroutine aurora(iBlock)
       HasSomeAurora = .false.
 
       ! For diffuse auroral models (default)
-      if (ElectronEnergyFluxDiffuse(j, i) > 0.1 .and. UseDiffuseAurora) then
-        call do_diffuse_aurora(ElectronEnergyFluxDiffuse(j, i)*AveEFactor, &
-                               ElectronEnergyFluxDiffuse(j, i), &
+      if (ElectronEnergyFluxDiffuse(j, i) > 0.1 &
+          .and. ElectronAverageEnergyDiffuse(j, i) > 0.1 &
+          .and. UseDiffuseAurora) then
+        call do_diffuse_aurora(ElectronEnergyFluxDiffuse(j, i), &
+                               ElectronAverageEnergyDiffuse(j, i)*AveEFactor, &
                                e_diffuse_ED_flux)
         HasSomeAurora = .true.
       endif
@@ -264,9 +265,10 @@ contains
   ! Diffuse Aurora can be represented by kappa or maxwellian
   ! - This is for Newell diffuse, or all other auroral models!
   ! --------------------------
-  subroutine do_diffuse_aurora(av_kev, eflux_ergs, diff_ED_Energy_Flux)
+  subroutine do_diffuse_aurora(eflux_ergs, av_kev, diff_ED_Energy_Flux)
     real, intent(in) :: av_kev, eflux_ergs
     real, intent(inout), dimension(:) :: diff_ED_Energy_Flux
+    real :: avee, eflux
 
     avee = av_kev*1000.0        ! keV -> eV
     eflux = eflux_ergs*6.242e11  ! ergs/cm2/s -> eV/cm2/s
@@ -348,16 +350,16 @@ contains
   ! --------------------------
   ! Monoenergetic aurora
   ! --------------------------
-  subroutine do_mono_aurora(electronMonoNumberFlux, electronMonoEnergyFlux, ED_MonoEnergyFlux)
+  subroutine do_mono_aurora(eflux_ergs, av_kev, ED_MonoEnergyFlux)
 
-    real, intent(in) :: electronMonoNumberFlux, electronMonoEnergyFlux
+    real, intent(in) :: eflux_ergs, av_kev
     real, intent(inout), dimension(:) :: ED_MonoEnergyFlux
+    real :: avee, eflux
 
-    av_kev = electronMonoEnergyFlux/ &
-             electronMonoNumberFlux*6.242e11 ! eV
+    avee = av_kev*1000.0        ! keV -> eV
+    eflux = eflux_ergs*6.242e11  ! ergs/cm2/s -> eV/cm2/s
 
-    power = electronMonoNumberFlux* &
-            Element_Charge*100.0*100.0* &    ! (eV/cm2/s -> J/m2/s)
+    power = eflux*Element_Charge*100.0*100.0* &    ! (eV/cm2/s -> J/m2/s)
             dLatDist_FB(j, i, nAlts, iBlock)* &
             dLonDist_FB(j, i, nAlts, iBlock)
 
@@ -367,10 +369,7 @@ contains
       HemisphericPowerNorth = HemisphericPowerNorth + power
     endif
 
-    UserData2d(j, i, 1, 4, iBlock) = av_kev/1000.0
-    UserData2d(j, i, 1, 5, iBlock) = electronMonoEnergyFlux
-
-    call calc_mono(electronMonoEnergyFlux, av_kev, ED_MonoEnergyFlux)
+    call calc_mono(eflux, av_kev, ED_MonoEnergyFlux)
 
   end subroutine do_mono_aurora
 
@@ -394,13 +393,13 @@ contains
   ! --------------------------
   ! Wave aurora
   ! --------------------------
-  subroutine do_wave_aurora(electronWaveEnergyFlux, electronWaveAverageEnergy, wave_EDEnergyFlux)
-    real, intent(in) :: electronWaveEnergyFlux, electronWaveAverageEnergy
+  subroutine do_wave_aurora(eflux_ergs, av_kev, wave_EDEnergyFlux)
+    real, intent(in) :: eflux_ergs, av_kev
     real, intent(inout), dimension(:) :: wave_EDEnergyFlux
+    real :: avee, eflux
 
-    power = electronWaveEnergyFlux* &
-            Element_Charge*100.0*100.0* &    ! (eV/cm2/s -> J/m2/s)
-            dLatDist_FB(j, i, nAlts, iBlock)*dLonDist_FB(j, i, nAlts, iBlock)
+    avee = av_kev*1000.0        ! keV -> eV
+    eflux = eflux_ergs*6.242e11  ! ergs/cm2/s -> eV/cm2/s
 
     if (latitude(i, iBlock) < 0.0) then
       HemisphericPowerSouth = HemisphericPowerSouth + power
@@ -408,22 +407,12 @@ contains
       HemisphericPowerNorth = HemisphericPowerNorth + power
     endif
 
-    UserData2d(j, i, 1, 6, iBlock) = av_kev/1000.0
-    UserData2d(j, i, 1, 7, iBlock) = electronWaveEnergyFlux
-
-    call calc_wave(electronWaveEnergyFlux, av_kev, wave_ED_flux)
-
-  end subroutine do_wave_aurora
-
-  subroutine calc_wave(eflux_wave, wave_av_kev, wave_EDEnergyFlux)
-
-    real, intent(in) :: eflux_wave, wave_av_kev
-    real, intent(inout), dimension(:) :: wave_EDEnergyFlux
     ! #TODO: eventually use a gaussian.
 
     ! Leaving old code in just in case...
     ! Using the same maxwellian as the diffuse aurora.
-    call calc_maxwellian(eflux_wave, wave_av_kev, wave_EDEnergyFlux)
+    if (eflux > 0.1 .and. avee > 0.1) &
+    call calc_maxwellian(eflux, avee, wave_EDEnergyFlux)
 
     ! k = 0
     ! do n = 3, ED_N_Energies - 3
@@ -454,7 +443,7 @@ contains
     !     wave_EDEnergyFlux(n) = ED_flux(n)*ED_Energies(n)*ED_delta_energy(n)
     !   enddo
     ! endif
-  end subroutine calc_wave
+  end subroutine do_wave_aurora
 
 end subroutine aurora
 
