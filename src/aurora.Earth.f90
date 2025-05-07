@@ -170,10 +170,7 @@ subroutine aurora(iBlock)
 
       UserData2d(j, i, 1, 2:nUserOutputs, iBlock) = 0.0
 
-      eflx_ergs = ElectronEnergyFluxDiffuse(j, i)
-      av_kev = ElectronEnergyFluxDiffuse(j, i)*AveEFactor
-
-      if (UseIonPrecipitation) then
+      if (UseIonAurora) then
         ion_eflx_ergs = IonEnergyFlux(j, i)
         ion_av_kev = IonAverageEnergy(j, i)
       else
@@ -181,10 +178,10 @@ subroutine aurora(iBlock)
         ion_av_kev = 10.0
       endif
 
-      diffuse_ED_flux = 0.0
+      e_diffuse_ED_flux = 0.0
+      i_diffuse_ED_flux = 0.0
       wave_ED_flux = 0.0
       mono_ED_flux = 0.0
-      ion_ED_flux = 0.0
 
       HasSomeAurora = .false.
 
@@ -200,34 +197,34 @@ subroutine aurora(iBlock)
         HasSomeAurora = .true.
       endif
 
-      UseMono = .false.
-      if (IEModel_%iAurora_ == iOvationPrime_ .and. (UseOvationSMEMono .or. UseNewellMono)) UseMono = .true.
-
-      if (UseMono .and. &
-          ElectronNumberFluxMono(j, i) > 1.0e4 .and. &
+      ! Monoenergetic aurora
+      if (UseMonoAurora .and. &
+          ElectronAverageEnergyMono(j, i) > 1.0e4 .and. &
           ElectronEnergyFluxMono(j, i) > 0.1) then
 
-        call do_mono_aurora(ElectronNumberFluxMono(j, i), ElectronEnergyFluxMono(j, i), ED_EnergyFlux)
+        call do_mono_aurora(ElectronEnergyFluxMono(j, i), &
+                            ElectronAverageEnergyMono(j, i), &
+                            mono_ED_flux)
+        HasSomeAurora = .true.
 
       endif
 
-      UseWave = .false.
-      if (IEModel_%iAurora_ == iOvationPrime_ .and. (UseOvationSMEWave .OR. UseNewellWave)) UseWave = .true.
-
-      if (UseWave .and. &
-          ElectronNumberFluxWave(j, i) > 1.0e4 .and. &
+      ! Wave (broadband) aurora
+      if (UseWaveAurora .and. &
           ElectronEnergyFluxWave(j, i) > 0.1) then
-
-        call do_wave_aurora(ElectronNumberFluxWave(j, i), ElectronEnergyFluxWave(j, i), ED_EnergyFlux)
-
+        call do_wave_aurora(ElectronEnergyFluxWave(j, i), &
+                            ElectronAverageEnergyWave(j, i), &
+                            wave_ED_flux)
+        HasSomeAurora = .true.
       endif
+
+      ED_EnergyFlux = e_diffuse_ED_flux + i_diffuse_ED_flux + wave_ED_flux + mono_ED_flux
 
       if (HasSomeAurora) then
 
-          call calc_fang_rates(j, i, iBlock, AuroralBulkIonRate)
+        call calc_fang_rates(j, i, iBlock, AuroralBulkIonRate)
 
-        endif
-
+      endif
 
     enddo
   enddo
@@ -248,13 +245,14 @@ subroutine aurora(iBlock)
     0.92*AuroralBulkIonRate* &
     NDensityS(1:nLons, 1:nLats, 1:nAlts, iN2_, iBlock)/temp
 
-  if (UseAuroralHeating) then
-    AuroralHeating = AuroralHeatingRate(:, :, :, iBlock)/ &
-                     TempUnit(1:nLons, 1:nLats, 1:nAlts)/cp(:, :, 1:nAlts, iBlock)/ &
-                     rho(1:nLons, 1:nLats, 1:nAlts, iBlock)
-  else
-    AuroralHeating = 0.0
-  endif
+  ! if (UseAuroralHeating) then
+  !   AuroralHeating = AuroralHeatingRate(:, :, :, iBlock)/ &
+  !                    TempUnit(1:nLons, 1:nLats, 1:nAlts)/cp(:, :, 1:nAlts, iBlock)/ &
+  !                    rho(1:nLons, 1:nLats, 1:nAlts, iBlock)
+  ! else
+  ! AuroralHeating = 0.0
+  ! endif
+  ! write(*,*) AuroralHeating
 
   IsFirstTime(iBlock) = .false.
 
@@ -266,23 +264,15 @@ contains
   ! Diffuse Aurora can be represented by kappa or maxwellian
   ! - This is for Newell diffuse, or all other auroral models!
   ! --------------------------
-  subroutine do_diffuse_aurora(diff_av_kev, diff_eflx_ergs, diff_ED_Energy_Flux, energyBins)
-    real, intent(in) :: diff_av_kev, diff_eflx_ergs
+  subroutine do_diffuse_aurora(av_kev, eflux_ergs, diff_ED_Energy_Flux)
+    real, intent(in) :: av_kev, eflux_ergs
     real, intent(inout), dimension(:) :: diff_ED_Energy_Flux
-    real, intent(in), dimension(:) :: energyBins
 
-    UserData2d(j, i, 1, 2, iBlock) = diff_av_kev
-    UserData2d(j, i, 1, 3, iBlock) = diff_eflx_ergs
-
-    HasSomeAurora = .true.
-    avee = diff_av_kev*1000.0        ! keV -> eV
-    eflux = diff_eflx_ergs*6.242e11  ! ergs/cm2/s -> eV/cm2/s
-
-    ion_avee = ion_av_kev*1000.0        ! keV -> eV
-    ion_eflux = ion_eflx_ergs*6.242e11  ! ergs/cm2/s -> eV/cm2/s
+    avee = av_kev*1000.0        ! keV -> eV
+    eflux = eflux_ergs*6.242e11  ! ergs/cm2/s -> eV/cm2/s
 
     ! 100 * 100 is for (eV/cm2/s -> J/m2/s)
-    power = (eflux + ion_eflux)*Element_Charge*100.0*100.0* &
+    power = (eflux)*Element_Charge*100.0*100.0* &
             dLatDist_FB(j, i, nAlts, iBlock)* &
             dLonDist_FB(j, i, nAlts, iBlock)
 
@@ -296,9 +286,8 @@ contains
       call calc_kappa(AuroraKappa, eflux, avee, diff_ED_Energy_Flux)
 
     else
-      ! This calls the Maxwellian from Fang et al. [2010] for e- & ions
+      ! This calls the Maxwellian from Fang et al. [2010]
       call calc_maxwellian(eflux, avee, diff_ED_Energy_Flux)
-      call calc_maxwellian(ion_eflux, ion_avee, ED_Ion_EnergyFlux)
     endif
 
   end subroutine do_diffuse_aurora
@@ -311,11 +300,11 @@ contains
     real, intent(inout), dimension(:) :: kap_ED_EnergyFlux
 
     do n = 1, ED_N_Energies
-      ED_Flux(n) = eflux/2/(avee/2)**3* & ! a=Q0/2/E0**3
+      ED_Flux(n) = ieflux/2/(iavee/2)**3* & ! a=Q0/2/E0**3
                    (AuroraKappa - 1)*(AuroraKappa - 2)/ &
                    (AuroraKappa**2)* &
                    ed_energies(n)* &
-                   (1 + ed_energies(n)/(AuroraKappa*(avee/2)))** &
+                   (1 + ed_energies(n)/(AuroraKappa*(iavee/2)))** &
                    (-AuroraKappa - 1)
 
       kap_ED_EnergyFlux(n) = &
@@ -398,7 +387,6 @@ contains
           ED_flux(n)* &
           ED_Energies(n)* &
           ED_delta_energy(n)
-        HasSomeAurora = .true.
       endif
     enddo
   end subroutine calc_mono
@@ -406,16 +394,11 @@ contains
   ! --------------------------
   ! Wave aurora
   ! --------------------------
-  subroutine do_wave_aurora(electronWaveNumberFlux, electronWaveEnergyFlux, wave_EDEnergyFlux)
-    real, intent(in) :: electronWaveNumberFlux, electronWaveEnergyFlux
+  subroutine do_wave_aurora(electronWaveEnergyFlux, electronWaveAverageEnergy, wave_EDEnergyFlux)
+    real, intent(in) :: electronWaveEnergyFlux, electronWaveAverageEnergy
     real, intent(inout), dimension(:) :: wave_EDEnergyFlux
-    ! ElectronNumberFluxWave(j, i), ElectronEnergyFluxWave(j, i), ED_EnergyFlux)
-    !
 
-    av_kev = electronWaveNumberFlux/ &
-             electronWaveEnergyFlux*6.242e11 ! eV
-
-    power = electronWaveNumberFlux* &
+    power = electronWaveEnergyFlux* &
             Element_Charge*100.0*100.0* &    ! (eV/cm2/s -> J/m2/s)
             dLatDist_FB(j, i, nAlts, iBlock)*dLonDist_FB(j, i, nAlts, iBlock)
 
@@ -428,7 +411,7 @@ contains
     UserData2d(j, i, 1, 6, iBlock) = av_kev/1000.0
     UserData2d(j, i, 1, 7, iBlock) = electronWaveEnergyFlux
 
-    call calc_wave(electronWaveEnergyFlux, av_kev, ED_EnergyFlux)
+    call calc_wave(electronWaveEnergyFlux, av_kev, wave_ED_flux)
 
   end subroutine do_wave_aurora
 
@@ -436,41 +419,41 @@ contains
 
     real, intent(in) :: eflux_wave, wave_av_kev
     real, intent(inout), dimension(:) :: wave_EDEnergyFlux
-    ! Waves goes into five bins only!
-    k = 0
-    do n = 3, ED_N_Energies - 3
-      if (av_kev < ED_energies(n - 1) .and. av_kev >= ED_energies(n)) then
-        k = n
-      endif
-    enddo
-    if (k > 3) then
-      f1 = 1.0
-      f2 = 1.2
-      f3 = 1.3
-      f4 = f2
-      f5 = f1
-      de1 = ED_energies(k - 3) - ED_energies(k - 2)
-      de2 = ED_energies(k - 2) - ED_energies(k - 1)
-      de3 = ED_energies(k - 1) - ED_energies(k)
-      de4 = ED_energies(k) - ED_energies(k + 1)
-      de5 = ED_energies(k + 1) - ED_energies(k + 2)
-!              detotal = (de1+de2+de3+de4+de5) * (f1+f2+f3+f4+f5) / 5
-      detotal = (f1 + f2 + f3 + f4 + f5)
-      ED_flux(k - 2) = ED_Flux(k - 2) + f1*ElectronNumberFluxWave(j, i)/detotal/de1
-      ED_flux(k - 1) = ED_Flux(k - 1) + f2*ElectronNumberFluxWave(j, i)/detotal/de2
-      ED_flux(k) = ED_Flux(k) + f3*ElectronNumberFluxWave(j, i)/detotal/de3
-      ED_flux(k + 1) = ED_Flux(k + 1) + f4*ElectronNumberFluxWave(j, i)/detotal/de4
-      ED_flux(k + 2) = ED_Flux(k + 2) + f5*ElectronNumberFluxWave(j, i)/detotal/de5
-!              ED_flux(k-2) = ED_Flux(k-2) + f1*ElectronNumberFluxWave(j, i) / detotal
-!              ED_flux(k-1) = ED_Flux(k-1) + f2*ElectronNumberFluxWave(j, i) / detotal
-!              ED_flux(k  ) = ED_Flux(k  ) + f3*ElectronNumberFluxWave(j, i) / detotal
-!              ED_flux(k+1) = ED_Flux(k+1) + f4*ElectronNumberFluxWave(j, i) / detotal
-!              ED_flux(k+2) = ED_Flux(k+2) + f5*ElectronNumberFluxWave(j, i) / detotal
-      do n = k - 2, n + 2
-        wave_EDEnergyFlux(n) = ED_flux(n)*ED_Energies(n)*ED_delta_energy(n)
-      enddo
-      HasSomeAurora = .true.
-    endif
+    ! #TODO: eventually use a gaussian.
+
+    ! Leaving old code in just in case...
+    ! Using the same maxwellian as the diffuse aurora.
+    call calc_maxwellian(eflux_wave, wave_av_kev, wave_EDEnergyFlux)
+
+    ! k = 0
+    ! do n = 3, ED_N_Energies - 3
+    !   if (wave_av_kev < ED_energies(n - 1) .and. wave_av_kev >= ED_energies(n)) then
+    !     k = n
+    !   endif
+    ! enddo
+    ! if (k > 3) then
+    !   f1 = 1.0
+    !   f2 = 1.2
+    !   f3 = 1.3
+    !   f4 = f2
+    !   f5 = f1
+    !   de1 = ED_energies(k - 3) - ED_energies(k - 2)
+    !   de2 = ED_energies(k - 2) - ED_energies(k - 1)
+    !   de3 = ED_energies(k - 1) - ED_energies(k)
+    !   de4 = ED_energies(k) - ED_energies(k + 1)
+    !   de5 = ED_energies(k + 1) - ED_energies(k + 2)
+    !   detotal = (f1 + f2 + f3 + f4 + f5)
+
+    !   ED_flux(k - 2) = f1*ElectronNumberFluxWave(j, i)/detotal/de1
+    !   ED_flux(k - 1) = f2*ElectronNumberFluxWave(j, i)/detotal/de2
+    !   ED_flux(k) = f3*ElectronNumberFluxWave(j, i)/detotal/de3
+    !   ED_flux(k + 1) = f4*ElectronNumberFluxWave(j, i)/detotal/de4
+    !   ED_flux(k + 2) = f5*ElectronNumberFluxWave(j, i)/detotal/de5
+
+    !   do n = k - 2, n + 2
+    !     wave_EDEnergyFlux(n) = ED_flux(n)*ED_Energies(n)*ED_delta_energy(n)
+    !   enddo
+    ! endif
   end subroutine calc_wave
 
 end subroutine aurora
@@ -491,7 +474,7 @@ subroutine initialize_fang_arrays
   allocate(Fang_Pij(8, 4), stat=iErr)
 
   ! Ions
-  if (UseIonPrecipitation) then
+  if (UseIonAurora) then
     allocate(Fang_Ion_Ci(ED_N_Energies, 12), stat=iErr)
     allocate(Fang_Ion_y(ED_N_Energies, nAlts), stat=iErr)
     allocate(Fang_Ion_f(ED_N_Energies, nAlts), stat=iErr)
@@ -519,7 +502,7 @@ subroutine initialize_fang_arrays
   !           doi:10.1002/jgra.50484:
 
   !ions
-  if (UseIonPrecipitation) then
+  if (UseIonAurora) then
     Fang_Ion_Pij(1, :) = (/2.55050E+00, 2.69476e-01, -2.58425E-01, 4.43190E-02/)
     Fang_Ion_Pij(2, :) = (/6.39287E-01, -1.85817e-01, -3.15636E-02, 1.01370E-02/)
     Fang_Ion_Pij(3, :) = (/1.63996E+00, 2.43580e-01, 4.29873E-02, 3.77803E-02/)
@@ -547,7 +530,7 @@ subroutine initialize_fang_arrays
   Fang_Ci = exp(Fang_Ci)
 
   ! Ions
-  if (UseIonPrecipitation) then
+  if (UseIonAurora) then
     do iEnergy = 1, ED_N_Energies
       do i = 1, 12
         Fang_Ion_Ci(iEnergy, i) = 0.0
@@ -613,7 +596,7 @@ subroutine calc_fang_rates(j, i, iBlock, AuroralBulkIonRate)
     AuroralBulkIonRate(j, i, 1:nAlts) = &
       AuroralBulkIonRate(j, i, 1:nAlts) + 1e6*Fang_f(iEnergy, :)*fac
 
-    if (UseIonPrecipitation) then
+    if (UseIonAurora) then
 
       ! /10.0 in this statement is for kg/m2 to g/cm2
       ! /1000.0 is conversion from eV to keV
