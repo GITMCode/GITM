@@ -64,15 +64,14 @@ module ModInputs
   real    :: AMIELatEnd = 70.0
   real    :: AMIEBoundaryWidth = 4.0  ! lat and lon width to transit to Weimer solution
 
-  logical :: UseNewellAveraged = .true.
-  logical :: UseNewellMono = .false.
-  logical :: UseNewellWave = .false.
-  logical :: DoNewellRemoveSpikes = .true.
-  logical :: DoNewellAverage = .true.
+  logical :: UseDiffuseAurora = .true.
+  logical :: UseMonoAurora = .false.
+  logical :: UseWaveAurora = .false.
+  logical :: UseIonAurora = .false.
 
-  logical :: UseOvationSMEMono = .false.
-  logical :: UseOvationSMEWave = .false.
-  logical :: UseOvationSMEIon = .false.
+  ! logical :: UseOvationSMEMono = .false.
+  ! logical :: UseOvationSMEWave = .false.
+  ! logical :: UseOvationSMEIon = .false.
 
   logical :: UseFangEnergyDeposition = .true.
 

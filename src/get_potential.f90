@@ -241,7 +241,6 @@ subroutine get_potential(iBlock)
     iAlt = nAlts + 1
 
     call ieModel_%get_aurora(ElectronEnergyFluxDiffuse, ElectronAverageEnergyDiffuse)
-    ! Get_aurora should set a flag for isUpdated, update when time is done.
 
     if (.not. isOk) then
       call set_error("Error in routine get_potential (getting aurora):")

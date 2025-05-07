@@ -42,7 +42,6 @@ subroutine aurora(iBlock)
   else
     if (floor((tSimulation - dT)/dTAurora) == &
         floor(tSimulation/dTAurora)) return
-    ! end if
   endif
 
   AuroralBulkIonRate = 0.0
@@ -186,12 +185,16 @@ subroutine aurora(iBlock)
 
       HasSomeAurora = .false.
 
-      ! For diffuse auroral models
-      if (eflx_ergs > 0.1) then
-
-        ! This has the maxwellian & kappa in it:
-        call do_diffuse_aurora(av_kev, eflx_ergs, diffuse_ED_flux, ED_Energies)
-
+      ! For diffuse auroral models (default)
+      if (ElectronEnergyFluxDiffuse(j, i) > 0.1 .and. UseDiffuseAurora) then
+        call do_diffuse_aurora(ElectronEnergyFluxDiffuse(j, i)*AveEFactor, &
+                               ElectronEnergyFluxDiffuse(j, i), &
+                               e_diffuse_ED_flux)
+        HasSomeAurora = .true.
+      endif
+      if (ion_eflx_ergs > 0.1) then
+        call do_diffuse_aurora(ion_av_kev, ion_eflx_ergs, i_diffuse_ED_flux)
+        HasSomeAurora = .true.
       endif
 
       UseMono = .false.

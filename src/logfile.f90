@@ -433,12 +433,11 @@ subroutine write_code_information(dir)
     write(iCodeInfoFileUnit_, *) AuroraKappa
     write(iCodeInfoFileUnit_, *) ""
 
-    write(iCodeInfoFileUnit_, *) "#NEWELLAURORA"
-    write(iCodeInfoFileUnit_, *) UseNewellAveraged
-    write(iCodeInfoFileUnit_, *) UseNewellMono
-    write(iCodeInfoFileUnit_, *) UseNewellWave
-    write(iCodeInfoFileUnit_, *) DoNewellRemoveSpikes
-    write(iCodeInfoFileUnit_, *) DoNewellAverage
+    write(iCodeInfoFileUnit_, *) "#AURORATYPES"
+    write(iCodeInfoFileUnit_, *) UseDiffuseAurora
+    write(iCodeInfoFileUnit_, *) UseMonoAurora
+    write(iCodeInfoFileUnit_, *) UseWaveAurora
+    write(iCodeInfoFileUnit_, *) UseIonAurora
     write(iCodeInfoFileUnit_, *) ""
 
     write(iCodeInfoFileUnit_, *) "#OVATIONSME"

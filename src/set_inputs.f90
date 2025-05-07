@@ -742,41 +742,40 @@ subroutine set_inputs
           write(*, *) 'AuroraKappa    (real)'
         endif
 
-      case ("#NEWELLAURORA")
-        call read_in_logical(UseNewellAveraged, iError)
-        call read_in_logical(UseNewellMono, iError)
-        call read_in_logical(UseNewellWave, iError)
-        call read_in_logical(DoNewellRemoveSpikes, iError)
-        call read_in_logical(DoNewellAverage, iError)
+      case ("#AURORATYPES") !"auroratypes? diffuse=true, rest=false
+        call read_in_logical(UseDiffuseAurora, iError)
+        call read_in_logical(UseMonoAurora, iError)
+        call read_in_logical(UseWaveAurora, iError)
+        call read_in_logical(UseIonAurora, iError) ! unused 
 
         if (iError /= 0) then
-          write(*, *) 'Incorrect format for #NEWELLAURORA'
-          write(*, *) 'This is for using Pat Newells aurora (Ovation).'
-          write(*, *) 'These are all False by default:'
+          write(*, *) 'Incorrect format for #AURORATYPES'
+          write(*, *) 'This is for setting aurora types from Electrodynamics.'
+          write(*, *) 'At time of writing, this only works for Newell/OvationPrime.'
+          write(*, *) 'These are all False by default, using only diffuse:'
           write(*, *) ''
-          write(*, *) '#NEWELLAURORA'
-          write(*, *) 'UseNewellAveraged (logical)'
-          write(*, *) 'UseNewellMono (logical)'
-          write(*, *) 'UseNewellWave (logical)'
-          write(*, *) 'UseNewellRemoveSpikes (logical)'
-          write(*, *) 'UseNewellAverage      (logical)'
+          write(*, *) '#AURORATYPES'
+          write(*, *) 'UseDiffuseAurora (logical) - True by default' 
+          write(*, *) 'UseMonoAurora (logical)'
+          write(*, *) 'UseWaveAurora (logical)'
+          write(*, *) 'UseIonAurora (logical)'
           IsDone = .true.
         endif
 
-      case ("#OVATIONSME")
-        call read_in_logical(UseOvationSMEWave, iError)
-        call read_in_logical(UseOvationSMEIon, iError)
-        if (iError /= 0) then
-          write(*, *) 'Incorrect format for #OVATIONSME'
-          write(*, *) 'This is for using Betsy Michells aurora (OvationSME).'
-          write(*, *) 'These are all False by default:'
-          write(*, *) ''
-          write(*, *) '#OVATIONSME'
-          write(*, *) 'UseOvationSMEMono (logical)'
-          write(*, *) 'UseOvationSMEWave (logical)'
-          write(*, *) 'UseOvationSMEIon  (logical)'
-          IsDone = .true.
-        endif
+      ! case ("#OVATIONSME")
+      !   call read_in_logical(UseOvationSMEWave, iError)
+      !   call read_in_logical(UseOvationSMEIon, iError)
+      !   if (iError /= 0) then
+      !     write(*, *) 'Incorrect format for #OVATIONSME'
+      !     write(*, *) 'This is for using Betsy Michells aurora (OvationSME).'
+      !     write(*, *) 'These are all False by default:'
+      !     write(*, *) ''
+      !     write(*, *) '#OVATIONSME'
+      !     write(*, *) 'UseOvationSMEMono (logical)'
+      !     write(*, *) 'UseOvationSMEWave (logical)'
+      !     write(*, *) 'UseOvationSMEIon  (logical)'
+      !     IsDone = .true.
+      !   endif
 
       case ("#USECUSP")
         call read_in_logical(UseCusp, iError)
