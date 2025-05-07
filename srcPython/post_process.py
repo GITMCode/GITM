@@ -7,7 +7,7 @@ import time
 from pGITM import *
 from datetime import datetime
 
-IsVerbose = True
+IsVerbose = False
 DoRm = True
 
 # ----------------------------------------------------------------------
@@ -40,10 +40,14 @@ def parse_args_post():
 
     parser.add_argument('-totaltime',
                         help = 'specify how long to run in total (in hours)',
-                        default = 24, type = int)
+                        default = 0, type = int)
 
     parser.add_argument('-q',
                         help = 'Run with verbose turned off',
+                        action = 'store_true')
+    
+    parser.add_argument('-v',
+                        help = 'Run with verbose',
                         action = 'store_true')
     
     parser.add_argument('-norm',
@@ -477,7 +481,7 @@ if __name__ == '__main__':  # main code block
 
     # make local variables for arguments:
     doTarZip = args.tgz
-    IsVerbose = not args.q
+    IsVerbose = args.v
     if (args.norm):
         DoRm = False
 
