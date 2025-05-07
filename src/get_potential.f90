@@ -64,7 +64,7 @@ subroutine init_get_potential
     if (NormalizeAuroraToHP .and. (iProc == 0)) &
       call raise_warning("You probably should not use NormalizeAuroraToHP and Ovation")
 
-    if (UseIonPrecipitation .and. IsKappaAurora) &
+    if (UseIonAurora .and. IsKappaAurora) &
       call raise_warning("Kappa aurora & ion precipitation cannot be used simultaneously, yet.")
   endif
 
@@ -282,7 +282,7 @@ subroutine get_potential(iBlock)
     ! Get Ion Precipitation if desired
     ! -----------------------------------------------------
 
-    if (UseIonPrecipitation) then
+    if (UseIonAurora) then
       call stop_gitm("I don't know how to do that yet, sorry!")
       !   call UA_GetIonAveE(IonAverageEnergy, iError)
       !   if (iError /= 0) then

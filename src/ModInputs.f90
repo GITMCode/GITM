@@ -210,7 +210,7 @@ module ModInputs
   ! These are things for the ion precipitation
   !/
 
-  logical :: UseIonPrecipitation = .false.
+  ! logical :: UseIonAurora = .false.
 
   logical :: UseDamping = .false.
 

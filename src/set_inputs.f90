@@ -837,14 +837,15 @@ subroutine set_inputs
         endif
 
         
-      case ("#IONPRECIPITATION") !#TODO- maybe rename these options...
-        call read_in_logical(UseIonPrecipitation, iError)
+      case ("#IONPRECIPITATION") !#TODO: Fix this! None works with new electrodynamics
+        ! Leaving it in for backwards compatibility. Also can be set in #auroratypes
+        call read_in_logical(UseIonAurora, iError)
         if (iError /= 0) then
           write(*, *) 'Incorrect format for #IONPRECIPITATION'
           write(*, *) 'You can only have an AMIE input file for this now.'
           write(*, *) 'Make sure you put the ions in the AMIE file!!!'
           write(*, *) '#IONPRECIPITATION'
-          write(*, *) 'UseIonPrecipitation     (logical)'
+          write(*, *) 'UseIonAurora     (logical)'
           IsDone = .true.
         endif
 
