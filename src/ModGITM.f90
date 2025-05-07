@@ -143,8 +143,8 @@ module ModGITM
 
   real, dimension(-1:nLons + 2, -1:nLats + 2) :: &
     ElectronEnergyFluxDiffuse, ElectronAverageEnergyDiffuse, &
-    ElectronEnergyFluxMono, ElectronNumberFluxMono, &
-    ElectronEnergyFluxWave, ElectronNumberFluxWave, &
+    ElectronEnergyFluxMono, ElectronAverageEnergyMono, &
+    ElectronEnergyFluxWave, ElectronAverageEnergyWave, &
     IonEnergyFlux, IonAverageEnergy
 
   real, allocatable :: Velocity(:, :, :, :, :)

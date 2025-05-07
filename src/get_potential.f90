@@ -265,6 +265,19 @@ subroutine get_potential(iBlock)
       enddo
     enddo
 
+    ! -----------------------------
+    ! Ion, Wave- & Mono- aurora
+    ! -----------------------------
+
+    if (UseWaveAurora) &
+      call IEModel_%get_electron_wave_aurora(ElectronEnergyFluxWave, ElectronAverageEnergyWave)
+
+    if (UseMonoAurora) &
+      call IEModel_%get_electron_mono_aurora(ElectronEnergyFluxMono, ElectronAverageEnergyMono)
+
+    ! if (UseIonAurora) &
+    !   call IEModel_%get_ion(ElectronEnergyFluxWave, ElectronAverageEnergyWave)
+
     ! -----------------------------------------------------
     ! Get Ion Precipitation if desired
     ! -----------------------------------------------------

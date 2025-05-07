@@ -23,8 +23,11 @@ subroutine aurora(iBlock)
   real :: ion_av_kev, ion_eflx_ergs, ion_eflux, ion_avee
   real :: factor, avee, eflux, p, Q0
   integer :: i, j, k, n, iError, iED, iErr, iEnergy
-  logical :: IsDone, IsTop, HasSomeAurora, UseMono, UseWave
-  real, dimension(ED_N_Energies) :: diffuse_ED_flux, mono_ED_flux, wave_ED_flux, ion_ED_flux
+  logical :: IsDone, IsTop, HasSomeAurora!, UseMono, UseWave
+  real, dimension(ED_N_Energies) :: &
+    e_diffuse_ED_flux, i_diffuse_ED_flux, mono_ED_flux, wave_ED_flux, &
+    ED_Flux ! for temp values
+
   real :: hpi, hpi_NH, hpi_SH
 
   real, dimension(nLons, nLats, nAlts) :: temp, AuroralBulkIonRate, &
