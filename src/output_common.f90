@@ -348,7 +348,7 @@ subroutine output(dir, iBlock, iOutputType)
 
   case ('2DGEL')
 
-    nvars_to_write = 13
+    nvars_to_write = 17
     call output_2dgel(iBlock)
 
   case ('2DMEL')
@@ -603,14 +603,19 @@ contains
       write(iOutputUnit_, "(I7,A1,a)") 4, " ", "Potential"
       write(iOutputUnit_, "(I7,A1,a)") 5, " ", "Pedersen Conductance"
       write(iOutputUnit_, "(I7,A1,a)") 6, " ", "Hall Conductance"
-      write(iOutputUnit_, "(I7,A1,a)") 7, " ", "Electron_Average_Energy"
-      write(iOutputUnit_, "(I7,A1,a)") 8, " ", "Electron_Energy_Flux"
+      write(iOutputUnit_, "(I7,A1,a)") 7, " ", "Electron_Average_Energy_Diffuse"
+      write(iOutputUnit_, "(I7,A1,a)") 8, " ", "Electron_Energy_Flux_Diffuse"
       write(iOutputUnit_, "(I7,A1,a)") 9, " ", "DivJuAlt"
       write(iOutputUnit_, "(I7,A1,a)") 10, " ", "Pedersen FL Conductance"
       write(iOutputUnit_, "(I7,A1,a)") 11, " ", "Hall FL Conductance"
       write(iOutputUnit_, "(I7,A1,a)") 12, " ", "DivJu FL"
       write(iOutputUnit_, "(I7,A1,a)") 13, " ", "FL Length"
 
+      write(iOutputUnit_, "(I7,A1,a)") 14, " ", "Electron_Average_Energy_Wave"
+      write(iOutputUnit_, "(I7,A1,a)") 15, " ", "Electron_Energy_Flux_Wave"
+      
+      write(iOutputUnit_, "(I7,A1,a)") 16, " ", "Electron_Average_Energy_Mono"
+      write(iOutputUnit_, "(I7,A1,a)") 17, " ", "Electron_Energy_Flux_Mono"
     endif
 
     if (cType(1:5) == "2DANC") then
@@ -1626,8 +1631,12 @@ subroutine output_2dgel(iBlock)
         PedersenFieldLine(iLon, iLat), &
         HallFieldLine(iLon, iLat), &
         DivJuFieldLine(iLon, iLat), &
-        LengthFieldLine(iLon, iLat)
-    enddo
+        LengthFieldLine(iLon, iLat), &
+        ElectronAverageEnergyWave(iLon, iLat), &
+        ElectronEnergyFluxWave(iLon, iLat), &
+        ElectronAverageEnergyMono(iLon, iLat), &
+        ElectronEnergyFluxMono(iLon, iLat)
+      enddo
   enddo
 
 end subroutine output_2dgel
