@@ -100,7 +100,7 @@ module ModSources
   !/
 
   real, dimension(:), allocatable :: &
-    ED_grid, ED_Energies, ED_Flux, ED_Ion, ED_Heating, &
+    ED_grid, ED_Energies, ED_Ion, ED_Heating, &
     ED_energy_edges, ED_delta_energy, ED_EnergyFlux, &
     ED_Ion_EnergyFlux, ED_Ion_Flux
   integer :: ED_N_Energies, ED_N_Alts

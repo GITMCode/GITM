@@ -240,6 +240,8 @@ subroutine get_potential(iBlock)
 
     iAlt = nAlts + 1
 
+    ! We get the diffuse aurora always, since it *should* always be done.
+    ! Inside the aurora subroutine we check if the user wants to use it or not.
     call ieModel_%get_aurora(ElectronEnergyFluxDiffuse, ElectronAverageEnergyDiffuse)
 
     if (.not. isOk) then
