@@ -205,7 +205,7 @@ contains
         if (InAlts(iPoint) > GitmAlts(nAltsGitm)) then
           i = -1
         else
-          if (InAlts(iPoint) == GitmAlts(nAltsGitm)) then
+          if (InAlts(iPoint) >= GitmAlts(nAltsGitm)) then
             i = nAltsGitm
           else
             i = 2
@@ -213,12 +213,31 @@ contains
               i = i + 1
             enddo
           endif
-          GitmAltsIndex(iPoint) = i
-          GitmAltsFactor(iPoint) = &
-            (GitmAlts(i) - InAlts(iPoint))/ &
-            (GitmAlts(i) - GitmAlts(i - 1))
         endif
-      endif
+     endif
+
+     if (i > -1) then
+        GitmAltsIndex(iPoint) = i
+        GitmAltsFactor(iPoint) = &
+             (GitmAlts(i) - InAlts(iPoint))/ &
+             (GitmAlts(i) - GitmAlts(i - 1))
+     else
+        ! Extrapolate the values:
+        if (InAlts(iPoint) <  GitmAlts(1)) then
+           GitmAltsIndex(iPoint) = 2
+           GitmAltsFactor(iPoint) = &
+                (GitmAlts(2) - InAlts(iPoint))/ &
+                (GitmAlts(2) - GitmAlts(1))
+        endif
+        if (InAlts(iPoint) >  GitmAlts(nAltsGitm)) then
+           GitmAltsIndex(iPoint) = nAltsGitm
+           GitmAltsFactor(iPoint) = &
+                (GitmAlts(nAltsGitm) - InAlts(iPoint))/ &
+                (GitmAlts(nAltsGitm) - GitmAlts(nAltsGitm - 1))
+        endif
+     endif
+
+     
     enddo
 
   end subroutine GitmSetGrid
@@ -281,8 +300,6 @@ contains
 
     if (iGitmIndex /= iGitmIndexOld) then
 
-      write(*, *) 'Updating GITM files!'
-
       write(*, *) 'Reading First File : ', GitmFileList(iGitmIndex - 1)
       call GitmReadFile(GitmFileList(iGitmIndex - 1), iError)
       GitmDataTwoFiles(1, :, :, :, :) = GitmDataDummy
@@ -314,7 +331,7 @@ contains
     iError = 0
 
     ! First try 3DALL files:
-    write(*, *) 'ls -1 '//trim(GitmDir)//'3DALL*.bin > .list_of_gitm_files 2> .gitm_err'
+    ! write(*, *) 'ls -1 '//trim(GitmDir)//'3DALL*.bin > .list_of_gitm_files 2> .gitm_err'
     call execute_command_line('ls -1 '//trim(GitmDir)// &
                               '3DALL*.bin > .list_of_gitm_files 2> .gitm_err')
     nGitmFiles = 0
@@ -322,7 +339,6 @@ contains
     iError = 0
     do while (iError == 0)
       read(iGitmUnit, '(a)', iostat=iError) Dummy
-      write(*, *) 'dummy : ', dummy
       if (iError == 0) nGitmFiles = nGitmFiles + 1
     enddo
     close(iGitmUnit)
@@ -341,9 +357,6 @@ contains
       close(iGitmUnit)
       iGitmFileType = i3dlst_
     endif
-
-    write(*, *) "nGitmFiles : ", nGitmFiles
-    write(*, *) "Filetype : ", iGitmFileType
 
     open(iGitmUnit, file='.list_of_gitm_files', status='old')
     do iFile = 1, nGitmFiles
