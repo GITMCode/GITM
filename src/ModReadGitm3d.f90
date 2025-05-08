@@ -147,99 +147,122 @@ contains
     real, dimension(nPointsToGetGitm), intent(in) :: InAlts
 
     integer :: iPoint, i
-
+    logical :: IsAllGood
+    
     GitmInLons = InLons
     GitmInLats = InLats
     GitmInAlts = inAlts
+    IsAllGood = .true.
 
     do iPoint = 1, nPointsToGetGitm
 
-      ! Lons First
-      if (InLons(iPoint) < GitmLons(1)) then
-        GitmLonsIndex(iPoint) = -1
-      else
-        if (InLons(iPoint) > GitmLons(nLonsGitm)) then
+       ! Lons First
+       if (InLons(iPoint) < GitmLons(1)) then
           GitmLonsIndex(iPoint) = -1
-        else
-          if (InLons(iPoint) == GitmLons(nLonsGitm)) then
-            i = nLonsGitm
+          IsAllGood = .false.
+          if (iDebugLevel > -1) &
+               write(*,*) 'GitmLonsIndex < 0!', InLons(iPoint), GitmLons(1)
+       else
+          if (InLons(iPoint) > GitmLons(nLonsGitm)) then
+             GitmLonsIndex(iPoint) = -1
+             IsAllGood = .false.
+             if (iDebugLevel > -1) &
+                  write(*,*) 'GitmLonsIndex > max!', InLons(iPoint), GitmLons(nLonsGitm)
           else
-            i = 2
-            do while (GitmLons(i) <= InLons(iPoint))
-              i = i + 1
-            enddo
+             if (InLons(iPoint) == GitmLons(nLonsGitm)) then
+                i = nLonsGitm
+             else
+                i = 2
+                do while (GitmLons(i) <= InLons(iPoint))
+                   i = i + 1
+                enddo
+             endif
+             GitmLonsIndex(iPoint) = i
+             GitmLonsFactor(iPoint) = &
+                  (GitmLons(i) - InLons(iPoint))/ &
+                  (GitmLons(i) - GitmLons(i - 1))
           endif
-          GitmLonsIndex(iPoint) = i
-          GitmLonsFactor(iPoint) = &
-            (GitmLons(i) - InLons(iPoint))/ &
-            (GitmLons(i) - GitmLons(i - 1))
-        endif
-      endif
-
-      ! Lats
-      if (InLats(iPoint) < GitmLats(1)) then
-        i = -1
-      else
-        if (InLats(iPoint) > GitmLats(nLatsGitm)) then
+       endif
+       
+       ! Lats
+       if (InLats(iPoint) < GitmLats(1)) then
           i = -1
-        else
-          if (InLats(iPoint) == GitmLats(nLatsGitm)) then
-            i = nLatsGitm
+          IsAllGood = .false.
+          if (iDebugLevel > -1) &
+               write(*,*) 'GitmLatsIndex < 0!', InLats(iPoint), GitmLats(1)
+       else
+          if (InLats(iPoint) > GitmLats(nLatsGitm)) then
+             i = -1
+             IsAllGood = .false.
+             if (iDebugLevel > -1) &
+                  write(*,*) 'GitmLatsIndex > max!', InLats(iPoint), GitmLats(nLonsGitm)
           else
-            i = 2
-            do while (GitmLats(i) <= InLats(iPoint))
-              i = i + 1
-            enddo
+             if (InLats(iPoint) == GitmLats(nLatsGitm)) then
+                i = nLatsGitm
+             else
+                i = 2
+                do while (GitmLats(i) <= InLats(iPoint))
+                   i = i + 1
+                enddo
+             endif
+             GitmLatsIndex(iPoint) = i
+             GitmLatsFactor(iPoint) = &
+                  (GitmLats(i) - InLats(iPoint))/ &
+                  (GitmLats(i) - GitmLats(i - 1))
           endif
-          GitmLatsIndex(iPoint) = i
-          GitmLatsFactor(iPoint) = &
-            (GitmLats(i) - InLats(iPoint))/ &
-            (GitmLats(i) - GitmLats(i - 1))
-        endif
-      endif
+       endif
 
-      ! Alts
-      if (InAlts(iPoint) < GitmAlts(1)) then
-        i = -1
-      else
-        if (InAlts(iPoint) > GitmAlts(nAltsGitm)) then
+       ! Alts
+       if (InAlts(iPoint) < GitmAlts(1)) then
           i = -1
-        else
-          if (InAlts(iPoint) >= GitmAlts(nAltsGitm)) then
-            i = nAltsGitm
+       else
+          if (InAlts(iPoint) > GitmAlts(nAltsGitm)) then
+             i = -1
           else
-            i = 2
-            do while (GitmAlts(i) <= InAlts(iPoint))
-              i = i + 1
-            enddo
+             if (InAlts(iPoint) >= GitmAlts(nAltsGitm)) then
+                i = nAltsGitm
+             else
+                i = 2
+                do while (GitmAlts(i) <= InAlts(iPoint))
+                   i = i + 1
+                enddo
+             endif
           endif
-        endif
-     endif
+       endif
 
-     if (i > -1) then
-        GitmAltsIndex(iPoint) = i
-        GitmAltsFactor(iPoint) = &
-             (GitmAlts(i) - InAlts(iPoint))/ &
-             (GitmAlts(i) - GitmAlts(i - 1))
-     else
-        ! Extrapolate the values:
-        if (InAlts(iPoint) <  GitmAlts(1)) then
-           GitmAltsIndex(iPoint) = 2
-           GitmAltsFactor(iPoint) = &
-                (GitmAlts(2) - InAlts(iPoint))/ &
-                (GitmAlts(2) - GitmAlts(1))
-        endif
-        if (InAlts(iPoint) >  GitmAlts(nAltsGitm)) then
-           GitmAltsIndex(iPoint) = nAltsGitm
-           GitmAltsFactor(iPoint) = &
-                (GitmAlts(nAltsGitm) - InAlts(iPoint))/ &
-                (GitmAlts(nAltsGitm) - GitmAlts(nAltsGitm - 1))
-        endif
-     endif
-
-     
+       if (i > -1) then
+          GitmAltsIndex(iPoint) = i
+          GitmAltsFactor(iPoint) = &
+               (GitmAlts(i) - InAlts(iPoint))/ &
+               (GitmAlts(i) - GitmAlts(i - 1))
+       else
+          ! Extrapolate the values:
+          if (InAlts(iPoint) <  GitmAlts(1)) then
+             GitmAltsIndex(iPoint) = 2
+             GitmAltsFactor(iPoint) = &
+                  (GitmAlts(2) - InAlts(iPoint))/ &
+                  (GitmAlts(2) - GitmAlts(1))
+          endif
+          if (InAlts(iPoint) >  GitmAlts(nAltsGitm)) then
+             GitmAltsIndex(iPoint) = nAltsGitm
+             GitmAltsFactor(iPoint) = &
+                  (GitmAlts(nAltsGitm) - InAlts(iPoint))/ &
+                  (GitmAlts(nAltsGitm) - GitmAlts(nAltsGitm - 1))
+          endif
+       endif
     enddo
 
+    if (.not. IsAllGood) then
+       if (iDebugLevel > -1) then
+          write(*, *) 'Errors can happen if the requested grid extends'
+          write(*, *) 'beyond the grid of the original GITM run.'
+          write(*, *) 'This can happen because of ghostcells and resolution.'
+          write(*, *) 'Move edges away from boundaries and improve'
+          write(*, *) 'resolution, maybe?'
+       endif
+       call stop_gitm("Stopping in ModReadGitm3d.")
+    endif
+    
   end subroutine GitmSetGrid
 
   !---------------------------------------------------------------------------
@@ -300,15 +323,17 @@ contains
 
     if (iGitmIndex /= iGitmIndexOld) then
 
-      write(*, *) 'Reading First File : ', GitmFileList(iGitmIndex - 1)
-      call GitmReadFile(GitmFileList(iGitmIndex - 1), iError)
-      GitmDataTwoFiles(1, :, :, :, :) = GitmDataDummy
+       if (iDebugLevel > 0) &
+            write(*, *) 'Reading First File : ', trim(GitmFileList(iGitmIndex - 1))
+       call GitmReadFile(GitmFileList(iGitmIndex - 1), iError)
+       GitmDataTwoFiles(1, :, :, :, :) = GitmDataDummy
 
-      write(*, *) 'Reading Second File : ', GitmFileList(iGitmIndex)
-      call GitmReadFile(GitmFileList(iGitmIndex), iError)
-      GitmDataTwoFiles(2, :, :, :, :) = GitmDataDummy
+       if (iDebugLevel > 0) &
+            write(*, *) 'Reading Second File : ', trim(GitmFileList(iGitmIndex))
+       call GitmReadFile(GitmFileList(iGitmIndex), iError)
+       GitmDataTwoFiles(2, :, :, :, :) = GitmDataDummy
 
-      iGitmIndexOld = iGitmIndex
+       iGitmIndexOld = iGitmIndex
 
     endif
 
