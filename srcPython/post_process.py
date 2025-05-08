@@ -426,7 +426,14 @@ def do_loop(doTarZip, user, server, dir, IsRemote):
     if (doTarZip):
         DidWork = tar_and_zip_gitm()
     else:
+        # Default should be UA/data
         processDir = 'UA/data' 
+        if (not os.path.exists(processDir)):
+            # Maybe we are in the UA directory?
+            processDir = 'data'
+            if (not os.path.exists(processDir)):
+                # Maybe we are already in the data directory???
+                processDir = '.'
         DidWork = post_process_gitm(processDir, DoRm, isVerbose = IsVerbose)
         #DidWork = post_process_gitm()
         
