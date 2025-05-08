@@ -175,8 +175,8 @@ subroutine set_horizontal_bcs(iBlock)
       do iLon = 0, -1, -1
         do iLat = -1, nLats + 2
           do iAlt = -1, nAlts + 2
-            call set_horizontal_bcs_1point(iLon, iLat, iAlt, iBlock, iPoint)
-            iPoint = iPoint + 1
+             call set_horizontal_bcs_1point(iLon, iLat, iAlt, iBlock, iPoint)
+             iPoint = iPoint + 1
           enddo
         enddo
       enddo
