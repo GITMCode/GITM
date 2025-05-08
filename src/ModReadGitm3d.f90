@@ -3,7 +3,8 @@
 
 module ModReadGitm3d
 
-  use ModInputs, only: iCharLen_
+  use ModGITM, only: iCommGITM
+  use ModInputs, only: iCharLen_, iDebugLevel
 
   integer, parameter :: Real8_ = selected_real_kind(12, 100)
   integer, parameter :: i3dall_ = 1
@@ -349,6 +350,8 @@ contains
 
   subroutine GetGitmFileList(iError)
 
+    
+    
     integer, intent(out) :: iError
     character(len=nGitmCharLength) :: Dummy
     real(Real8_) :: time
@@ -357,8 +360,12 @@ contains
 
     ! First try 3DALL files:
     ! write(*, *) 'ls -1 '//trim(GitmDir)//'3DALL*.bin > .list_of_gitm_files 2> .gitm_err'
-    call execute_command_line('ls -1 '//trim(GitmDir)// &
-                              '3DALL*.bin > .list_of_gitm_files 2> .gitm_err')
+    if (iProc == 0) then
+       call execute_command_line('ls -1 '//trim(GitmDir)// &
+            '3DALL*.bin > .list_of_gitm_files 2> .gitm_err')
+    endif
+    call MPI_BARRIER(iCommGITM, iError)
+    
     nGitmFiles = 0
     open(iGitmUnit, file='.list_of_gitm_files', status='old')
     iError = 0
@@ -370,8 +377,11 @@ contains
 
     if (nGitmFiles == 0) then
       ! Second try LST files:
-      call execute_command_line('ls -1 '//GitmDir// &
-                                '3DLST*.bin > .list_of_gitm_files 2> .gitm_err')
+       if (iProc == 0) then
+          call execute_command_line('ls -1 '//GitmDir// &
+               '3DLST*.bin > .list_of_gitm_files 2> .gitm_err')
+       endif
+       call MPI_BARRIER(iCommGITM, iError)
       nGitmFiles = 0
       open(iGitmUnit, file='.list_of_gitm_files', status='old')
       iError = 0
