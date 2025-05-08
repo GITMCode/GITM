@@ -381,7 +381,7 @@ def post_process_gitm(dir, doRemove, isVerbose = False):
     os.chdir(processDir)
 
     # Get list of header files to process:
-    headers = glob('*.header')
+    headers = sorted(glob('*.header'))
     if (isVerbose):
         print('Found %i files to process' % len(headers))
     
