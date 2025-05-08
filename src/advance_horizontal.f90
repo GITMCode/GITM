@@ -360,7 +360,7 @@ subroutine advance_horizontal(iBlock)
           IsFound = .false.
           do iSpecies = 1, nSpecies
             if (NewNum_CV(iLon, iLat, iSpecies) < 0.0) then
-              write(*, *) "Species : ", iSpecies, iLon, iLat, iBlock
+              write(*, *) "Species : ", iSpecies, iLon, iLat, iAlt, iBlock
               stop
               NewNum_CV(iLon, iLat, iSpecies) = 1.0
               IsFound = .true.
