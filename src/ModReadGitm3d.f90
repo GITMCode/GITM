@@ -5,8 +5,8 @@ module ModReadGitm3d
 
   use ModGITM, only: iCommGITM
   use ModInputs, only: iCharLen_, iDebugLevel
-
-  integer, parameter :: Real8_ = selected_real_kind(12, 100)
+  use ModKind, ONLY: Real8_
+  
   integer, parameter :: i3dall_ = 1
   integer, parameter :: i3dlst_ = 2
   integer, parameter :: nGitmCharLength = iCharLen_
@@ -324,13 +324,13 @@ contains
 
     if (iGitmIndex /= iGitmIndexOld) then
 
-       if (iDebugLevel > 0) &
-            write(*, *) 'Reading First File : ', trim(GitmFileList(iGitmIndex - 1))
+       if (iDebugLevel > -1) &
+            write(*, *) '> GITM BCs -> Reading First File : ', trim(GitmFileList(iGitmIndex - 1))
        call GitmReadFile(GitmFileList(iGitmIndex - 1), iError)
        GitmDataTwoFiles(1, :, :, :, :) = GitmDataDummy
 
        if (iDebugLevel > 0) &
-            write(*, *) 'Reading Second File : ', trim(GitmFileList(iGitmIndex))
+            write(*, *) '   -> Reading Second File : ', trim(GitmFileList(iGitmIndex))
        call GitmReadFile(GitmFileList(iGitmIndex), iError)
        GitmDataTwoFiles(2, :, :, :, :) = GitmDataDummy
 
@@ -350,8 +350,6 @@ contains
 
   subroutine GetGitmFileList(iError)
 
-    
-    
     integer, intent(out) :: iError
     character(len=nGitmCharLength) :: Dummy
     real(Real8_) :: time
@@ -549,6 +547,20 @@ contains
     deallocate(GitmInAlts)
     deallocate(GitmOutData)
 
+    deallocate(GitmLonsIndex)
+    deallocate(GitmLatsIndex)
+    deallocate(GitmAltsIndex)
+
+    deallocate(GitmLonsFactor)
+    deallocate(GitmLatsFactor)
+    deallocate(GitmAltsFactor)
+
+    deallocate(GitmLons)
+    deallocate(GitmLats)
+    deallocate(GitmAlts)
+
+    iGitmIndexOld = -1
+    
   end subroutine GitmShutDown
 
   !---------------------------------------------------------------------------
