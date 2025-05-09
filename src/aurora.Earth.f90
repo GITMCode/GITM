@@ -20,9 +20,9 @@ subroutine aurora(iBlock)
   integer, intent(in) :: iBlock
 
   real :: ion_av_kev, ion_eflx_ergs, ion_eflux, ion_avee
-  real :: factor, p, Q0
+  real :: factor, p, Q0, cPi
   integer :: i, j, k, n, iError, iED, iErr, iEnergy
-  logical :: IsDone, IsTop, HasSomeAurora!, UseMono, UseWave
+  logical :: IsDone, IsTop, HasSomeAurora
   real, dimension(ED_N_Energies) :: &
     e_diffuse_ED_flux, i_diffuse_ED_flux, mono_ED_flux, wave_ED_flux, &
     ED_Flux ! for temp values
@@ -193,6 +193,7 @@ subroutine aurora(iBlock)
                                e_diffuse_ED_flux)
         HasSomeAurora = .true.
       endif
+
       if (ion_eflx_ergs > 0.1) then
         call do_diffuse_aurora(ion_av_kev, ion_eflx_ergs, i_diffuse_ED_flux)
         HasSomeAurora = .true.
@@ -347,13 +348,62 @@ contains
 
   end subroutine calc_maxwellian
 
+! Gaussian distribution
+! sig controls the width (std dev)
+  subroutine calc_gaussian(eflux, avee, gaus_ed_flux, sig)
+    real, intent(in) :: eflux, avee, sig
+    real, intent(out), dimension(:) :: gaus_ed_flux
+
+    real :: emax
+
+    emax = eflux/(sqrt(cPi)/2)
+
+    do n = 1, ED_N_Energies
+      ed_flux(n) = emax*exp(-(avee - ED_Energies(n))**2 &
+                            /(sig*ED_delta_energy(n))**2)
+      ! Maxwellian_Energy-Deposition_flux
+      gaus_ed_flux(n) = &
+        ed_flux(n)* &
+        ED_Energies(n)* &
+        ED_delta_energy(n)
+    enddo
+
+  end subroutine calc_gaussian
+
   ! --------------------------
   ! Monoenergetic aurora
   ! --------------------------
-  subroutine do_mono_aurora(eflux_ergs, av_kev, ED_MonoEnergyFlux)
+  subroutine do_mono_aurora(eflux_ergs, av_kev, Mono_ED_EnergyFlux)
 
     real, intent(in) :: eflux_ergs, av_kev
-    real, intent(inout), dimension(:) :: ED_MonoEnergyFlux
+    real, intent(inout), dimension(:) :: Mono_ED_EnergyFlux
+    real :: avee, eflux
+
+    avee = av_kev*1000.0        ! keV -> eV
+    eflux = eflux_ergs*6.242e11  ! ergs/cm2/s -> eV/cm2/s
+
+    power = eflux*Element_Charge*100.0*100.0* &    ! (eV/cm2/s -> J/m2/s)
+            dLatDist_FB(j, i, nAlts, iBlock)* &
+            dLonDist_FB(j, i, nAlts, iBlock)
+
+    ! Mono is treated as a (skinny) gaussian:
+    if (eflux > 0.1 .and. avee > 0.1) &
+      call calc_gaussian(eflux, avee, Mono_ED_EnergyFlux, 1.)
+
+    if (latitude(i, iBlock) < 0.0) then
+      HemisphericPowerSouth = HemisphericPowerSouth + power
+    else
+      HemisphericPowerNorth = HemisphericPowerNorth + power
+    endif
+
+  end subroutine do_mono_aurora
+
+  ! --------------------------
+  ! Wave aurora
+  ! --------------------------
+  subroutine do_wave_aurora(eflux_ergs, av_kev, wave_EDEnergyFlux)
+    real, intent(in) :: eflux_ergs, av_kev
+    real, intent(inout), dimension(:) :: wave_EDEnergyFlux
     real :: avee, eflux
 
     avee = av_kev*1000.0        ! keV -> eV
@@ -369,80 +419,10 @@ contains
       HemisphericPowerNorth = HemisphericPowerNorth + power
     endif
 
-    call calc_mono(eflux, av_kev, ED_MonoEnergyFlux)
-
-  end subroutine do_mono_aurora
-
-  subroutine calc_mono(ENumberFluxMono, mono_av_kev, ED_MonoEnergyFlux)
-    real, intent(in) :: ENumberFluxMono, mono_av_kev
-    real, intent(inout), dimension(:) :: ED_MonoEnergyFlux
-    ! Mono-Energetic goes into one bin only!
-    do n = 2, ED_N_Energies - 1
-      if (mono_av_kev < ED_energies(n - 1) .and. mono_av_kev >= ED_energies(n)) then
-        ED_flux(n) = ED_Flux(n) + &
-                     ENumberFluxMono/ &
-                     (ED_Energies(n - 1) - ED_Energies(n))
-        ED_MonoEnergyFlux(n) = &
-          ED_flux(n)* &
-          ED_Energies(n)* &
-          ED_delta_energy(n)
-      endif
-    enddo
-  end subroutine calc_mono
-
-  ! --------------------------
-  ! Wave aurora
-  ! --------------------------
-  subroutine do_wave_aurora(eflux_ergs, av_kev, wave_EDEnergyFlux)
-    real, intent(in) :: eflux_ergs, av_kev
-    real, intent(inout), dimension(:) :: wave_EDEnergyFlux
-    real :: avee, eflux
-
-    avee = av_kev*1000.0        ! keV -> eV
-    eflux = eflux_ergs*6.242e11  ! ergs/cm2/s -> eV/cm2/s
-
-    if (latitude(i, iBlock) < 0.0) then
-      HemisphericPowerSouth = HemisphericPowerSouth + power
-    else
-      HemisphericPowerNorth = HemisphericPowerNorth + power
-    endif
-
-    ! #TODO: eventually use a gaussian.
-
-    ! Leaving old code in just in case...
-    ! Using the same maxwellian as the diffuse aurora.
+    ! Wave is a gaussian, centered at aveE w/std dev of 3*bin width
     if (eflux > 0.1 .and. avee > 0.1) &
-    call calc_maxwellian(eflux, avee, wave_EDEnergyFlux)
+      call calc_gaussian(eflux, avee, wave_EDEnergyFlux, 3.)
 
-    ! k = 0
-    ! do n = 3, ED_N_Energies - 3
-    !   if (wave_av_kev < ED_energies(n - 1) .and. wave_av_kev >= ED_energies(n)) then
-    !     k = n
-    !   endif
-    ! enddo
-    ! if (k > 3) then
-    !   f1 = 1.0
-    !   f2 = 1.2
-    !   f3 = 1.3
-    !   f4 = f2
-    !   f5 = f1
-    !   de1 = ED_energies(k - 3) - ED_energies(k - 2)
-    !   de2 = ED_energies(k - 2) - ED_energies(k - 1)
-    !   de3 = ED_energies(k - 1) - ED_energies(k)
-    !   de4 = ED_energies(k) - ED_energies(k + 1)
-    !   de5 = ED_energies(k + 1) - ED_energies(k + 2)
-    !   detotal = (f1 + f2 + f3 + f4 + f5)
-
-    !   ED_flux(k - 2) = f1*ElectronNumberFluxWave(j, i)/detotal/de1
-    !   ED_flux(k - 1) = f2*ElectronNumberFluxWave(j, i)/detotal/de2
-    !   ED_flux(k) = f3*ElectronNumberFluxWave(j, i)/detotal/de3
-    !   ED_flux(k + 1) = f4*ElectronNumberFluxWave(j, i)/detotal/de4
-    !   ED_flux(k + 2) = f5*ElectronNumberFluxWave(j, i)/detotal/de5
-
-    !   do n = k - 2, n + 2
-    !     wave_EDEnergyFlux(n) = ED_flux(n)*ED_Energies(n)*ED_delta_energy(n)
-    !   enddo
-    ! endif
   end subroutine do_wave_aurora
 
 end subroutine aurora
