@@ -18,7 +18,6 @@ subroutine aurora(iBlock)
       floor(tSimulation/dTAurora)) return
 
   AuroralIonRateS = 0.0
-  AuroralHeatingRate(:, :, :, iBlock) = 0.0
 
   return
 

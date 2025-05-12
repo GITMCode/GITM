@@ -29,8 +29,8 @@ subroutine aurora(iBlock)
 
   real :: hpi, hpi_NH, hpi_SH
 
-  real, dimension(nLons, nLats, nAlts) :: temp, AuroralBulkIonRate, &
-                                          IonPrecipitationBulkIonRate, IonPrecipitationHeatingRate
+  real, dimension(nLons, nLats, nAlts) :: temp, AuroralBulkIonRate,&
+                                          IonPrecipitationBulkIonRate
 
   logical :: IsFirstTime(nBlocksMax) = .true.
 
@@ -47,7 +47,6 @@ subroutine aurora(iBlock)
   endif
 
   AuroralBulkIonRate = 0.0
-  ! AuroralHeatingRate(:, :, :, iBlock) = 0.0
   AuroralIonRateS = 0.0
   HPn = 0
   HPs = 0
@@ -246,15 +245,6 @@ subroutine aurora(iBlock)
   AuroralIonRateS(:, :, :, iN2_, iBlock) = &
     0.92*AuroralBulkIonRate* &
     NDensityS(1:nLons, 1:nLats, 1:nAlts, iN2_, iBlock)/temp
-
-  ! if (UseAuroralHeating) then
-  !   AuroralHeating = AuroralHeatingRate(:, :, :, iBlock)/ &
-  !                    TempUnit(1:nLons, 1:nLats, 1:nAlts)/cp(:, :, 1:nAlts, iBlock)/ &
-  !                    rho(1:nLons, 1:nLats, 1:nAlts, iBlock)
-  ! else
-  ! AuroralHeating = 0.0
-  ! endif
-  ! write(*,*) AuroralHeating
 
   IsFirstTime(iBlock) = .false.
 

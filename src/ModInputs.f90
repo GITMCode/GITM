@@ -261,7 +261,6 @@ module ModInputs
 
   logical :: UseSolarHeating = .true.
   logical :: UseJouleHeating = .true.
-  logical :: UseAuroralHeating = .true.
   logical :: UseNOCooling = .true.
   logical :: UseOCooling = .true.
   logical :: UseConduction = .true.

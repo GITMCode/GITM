@@ -12,7 +12,7 @@ module ModSources
 
   real, dimension(nLons, nLats, nAlts) :: &
     NOCooling, OCooling, ElectronHeating, &
-    AuroralHeating, JouleHeating, IonPrecipHeating, &
+    JouleHeating, IonPrecipHeating, &
     EddyCond, EddyCondAdia
 
   real, dimension(nLons, nLats, 0:nAlts + 1) :: MoleConduction
@@ -108,9 +108,7 @@ module ModSources
   integer, dimension(nAlts) :: ED_Interpolation_Index
 
   real, allocatable :: AuroralIonRateS(:, :, :, :, :)
-  real, allocatable :: AuroralHeatingRate(:, :, :, :)
   real, allocatable :: IonPrecipIonRateS(:, :, :, :, :)
-  real, allocatable :: IonPrecipHeatingRate(:, :, :, :)
   real :: ChemicalHeatingRate(nLons, nLats, nAlts)
   real :: ChemicalHeatingRateIon(nLons, nLats, nAlts)
   real :: ChemicalHeatingRateEle(nLons, nLats, nAlts)
@@ -163,10 +161,8 @@ contains
     allocate(ISourcesTotal(nLons, nLats, nAlts, nIons - 1, nBlocks))
     allocate(ILossesTotal(nLons, nLats, nAlts, nIons - 1, nBlocks))
     allocate(AuroralIonRateS(nLons, nLats, nAlts, nSpecies, nBlocks))
-    allocate(AuroralHeatingRate(nLons, nLats, nAlts, nBlocks))
     allocate(IonPrecipIonRateS(nLons, nLats, nAlts, nSpecies, nBlocks))
     IonPrecipIonRateS = 0.0
-    allocate(IonPrecipHeatingRate(nLons, nLats, nAlts, nBlocks))
     allocate(KappaEddyDiffusion(nLons, nLats, -1:nAlts + 2, nBlocks))
 
     allocate(eHeatingp(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1))
@@ -197,9 +193,7 @@ contains
     deallocate(ISourcesTotal)
     deallocate(ILossesTotal)
     deallocate(AuroralIonRateS)
-    deallocate(AuroralHeatingRate)
     deallocate(IonPrecipIonRateS)
-    deallocate(IonPrecipHeatingRate)
     deallocate(KappaEddyDiffusion)
   end subroutine clean_mod_sources
   !=========================================================================

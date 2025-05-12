@@ -144,8 +144,7 @@ subroutine logfile(dir)
       " Auroral Model: ", cAuroralModel
     write(iLogFileUnit_, '(a,a15)') "# AMIE: ", cAmieFileNorth, cAmieFileSouth
     write(iLogFileUnit_, '(3(a,L2))') "# Solar Heating: ", useSolarHeating, &
-      " Joule Heating: ", useJouleHeating, &
-      " Auroral Heating: ", useAuroralHeating
+      " Joule Heating: ", useJouleHeating
     write(iLogFileUnit_, '(2(a,L2))') "# NO Cooling: ", useNOCooling, &
       " O Cooling: ", useOCooling
     write(iLogFileUnit_, '(3(a,L2))') "# Conduction: ", useConduction, &
@@ -356,7 +355,6 @@ subroutine write_code_information(dir)
     write(iCodeInfoFileUnit_, *) "#THERMO"
     write(iCodeInfoFileUnit_, *) UseSolarHeating
     write(iCodeInfoFileUnit_, *) UseJouleHeating
-    write(iCodeInfoFileUnit_, *) UseAuroralHeating
     write(iCodeInfoFileUnit_, *) UseNOCooling
     write(iCodeInfoFileUnit_, *) UseOCooling
     write(iCodeInfoFileUnit_, *) UseConduction

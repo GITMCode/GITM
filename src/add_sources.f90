@@ -46,7 +46,6 @@ subroutine add_sources
 
      !! To turn off EuvHeating, turn UseSolarHeating=.false. in UAM.in
      !! To turn off JouleHeating, turn UseJouleHeating=.false. in UAM.in
-     !! To turn off AuroralHeating, turn Use=AuroralHeating.false. in UAM.in
      !! To turn off Conduction, turn UseConduction=.false. in UAM.in
 
     ! JMB:  07/13/2017.
@@ -59,7 +58,6 @@ subroutine add_sources
           - RadCooling(1:nLons, 1:nLats, 1:nAlts, iBlock) &
           + EuvHeating(1:nLons, 1:nLats, 1:nAlts, iBlock) &
           + PhotoElectronHeating(1:nLons, 1:nLats, 1:nAlts, iBlock) &
-          ! + AuroralHeating &
           + JouleHeating &
           + ElectronHeating &
           + QnirTOT(1:nLons, 1:nLats, 1:nAlts, iBlock)) &
