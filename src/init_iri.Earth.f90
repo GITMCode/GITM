@@ -174,8 +174,8 @@ subroutine init_iri
 
           IDensityS(iLon, iLat, iAlt, nIons, iBlock) = 0.0
           do iIon = 1, nIons - 1
-             if (IDensityS(iLon, iLat, iAlt, iIon, iBlock) < minIonDensity) &
-                  IDensityS(iLon, iLat, iAlt, iIon, iBlock) = minIonDensity
+            if (IDensityS(iLon, iLat, iAlt, iIon, iBlock) < minIonDensity) &
+              IDensityS(iLon, iLat, iAlt, iIon, iBlock) = minIonDensity
             IDensityS(iLon, iLat, iAlt, nIons, iBlock) = &
               IDensityS(iLon, iLat, iAlt, nIons, iBlock) + &
               IDensityS(iLon, iLat, iAlt, iIon, iBlock)
