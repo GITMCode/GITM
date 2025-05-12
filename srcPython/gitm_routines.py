@@ -220,7 +220,7 @@ def read_gitm_header(file):
 
 #-----------------------------------------------------------------------------
 
-def read_gitm_headers(pre='./3DALL'):
+def read_gitm_headers(pre='./3DALL', files = ['']):
     r""" Grab ancillary information from the GITM files
 
     Parameters
@@ -234,7 +234,10 @@ def read_gitm_headers(pre='./3DALL'):
 
     """
 
-    filelist = sorted(glob(pre+'*.bin'))
+    if (len(files[0]) < 5):
+        filelist = sorted(glob(pre+'*.bin'))
+    else:
+        filelist = files
     print("Found ", len(filelist), "files")
     
     header = {"nFiles": len(filelist), \

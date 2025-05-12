@@ -28,7 +28,7 @@ subroutine read_SWPC_Indices(iOutputError)
   if (ierror .ne. 0) then
     iOutputError = 1
     return
-  end if
+  endif
 
   done = .false.
 
@@ -78,15 +78,15 @@ subroutine read_SWPC_Indices(iOutputError)
 
           iIMF = iIMF + 1
 
-        end if
+        endif
 
-      end do
+      enddo
 
       done = done_inner
 
-    end if
+    endif
 
-  end do
+  enddo
 
   close(LunIndices_)
 
@@ -95,7 +95,7 @@ subroutine read_SWPC_Indices(iOutputError)
   if (ierror .ne. 0) then
     iOutputError = 1
     return
-  end if
+  endif
 
   done = .false.
 
@@ -152,15 +152,15 @@ subroutine read_SWPC_Indices(iOutputError)
           iSW = iSW + 1
           if (abs(Indices_TV(iSW, sw_n_)) < 900.0) iSW = iSW + 1
 
-        end if
+        endif
 
-      end do
+      enddo
 
       done = done_inner
 
-    end if
+    endif
 
-  end do
+  enddo
 
   close(LunIndices_)
 

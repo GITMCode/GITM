@@ -135,7 +135,7 @@ contains
     if (DoFirstCallTD99) then
       call init_TD99_parameters
       DoFirstCallTD99 = .false.
-    end if
+    endif
     if (present(Time) .and. UseVariedCurrent) &
       Itube_TD99 = varied_current(Time)
 
@@ -148,7 +148,7 @@ contains
                        (Time .lt. CurrentRiseTime))
     else
       DoMaintainEpot = .false.
-    end if
+    endif
 
     ! Compute the flux rope, and transform coordinates and vectors to
     ! position the flux rope in the desired way::
@@ -163,11 +163,11 @@ contains
         B1FRope_D = B1FRope_D + B1FRopeTemp_D
         Itube_TD99 = Itemp
         atube_TD99 = atemp
-      end if
+      endif
     else
       B1FRope_D = 0.0
       RhoFRope = 0.0
-    end if
+    endif
     U1VorC_D = 0.0
     if (DoBqField) then
       if (present(Time)) then
@@ -176,9 +176,9 @@ contains
       else
         call compute_TD99_BqField(R1Face_D, B1qField_D, &
                                   U1VorC_D, DoMaintainEpot, n_step, Iteration_Number)
-      end if
+      endif
       B1FRope_D = B1FRope_D + B1qField_D
-    end if
+    endif
     BFRope_D = matmul(B1FRope_D, RotateTD99_DD)
     UVorC_D = matmul(U1VorC_D, RotateTD99_DD)
 
@@ -281,8 +281,8 @@ contains
         write(*, *) prefix, 'CurrentStartTime = ', CurrentStartTime, '[s]'
         write(*, *) prefix, 'CurrentRiseTime  = ', CurrentRiseTime, '[s]'
         write(*, *) prefix
-      end if
-    end if
+      endif
+    endif
     if (DoEquilItube) then
 
       ! Compute the equilibrium toroidal current, Itube_TD99, based
@@ -294,7 +294,7 @@ contains
                    /(alog(8.0*Rtube_TD99/atube_TD99) &
                      - 1.5 + Li_TD99/2.0)                           ! in [-]
       WFRope = 0.5*LInduct*(ItubeDim)**2*1.0e7      ! in [ergs]
-    end if
+    endif
     if (DoEquilItube .and. iProc == 0) then
       write(*, *) prefix, 'The strapping field, Bq, is added and the EQUILIBRIUM value'
       write(*, *) prefix, 'of Itube_TD99 is computed!!!'
@@ -302,7 +302,7 @@ contains
       write(*, *) prefix, 'The value of Itube_TD99 is reset to :: ', Itube_TD99
       write(*, *) prefix, 'The free energy of the flux rope is :: ', WFRope, 'Ergs.'
       write(*, *) prefix
-    end if
+    endif
 
   end subroutine init_TD99_parameters
 
@@ -344,7 +344,7 @@ contains
       RMins_D(x_) = RFace_D(x_) + L_TD99
       RPlus_D(y_) = RFace_D(y_)
       RMins_D(y_) = RPlus_D(y_)
-    end if
+    endif
     RPlus_D(z_) = RFace_D(z_) + d_TD99 - 1.0
     RMins_D(z_) = RPlus_D(z_)
     R2Plus = sqrt(dot_product(RPlus_D, RPlus_D))
@@ -360,7 +360,7 @@ contains
       nStepSaved = n_step
       BqZMaxSaved = BqZMax
       BqZMax = 0.0
-    end if
+    endif
     if (iteration_number == 1) &
       BqZMaxSaved = BqZMax0/No2Io_V(UnitB_)
     BqZMax = max(abs(BqField_D(z_)), BqZMax)
@@ -388,7 +388,7 @@ contains
                      *AlphaRamp*BqZFunction*BqZOverBqZ0*exp(-BqZFunction)
       else
         GradPsiC_D = 0.0
-      end if
+      endif
 
       ! Compute the potential electric field on the solar surface to
       ! be applied at one of the spots -- EpotC_D(x_:z_).
@@ -421,13 +421,13 @@ contains
         UTranC_D(z_) = 0.0
       else
         UTranC_D = 0.0
-      end if
+      endif
       ! Add the translational velocity, UTranC_D, to UVorC_D::
       UVorC_D = UVorC_D + UTranC_D
     else
       EpotC_D = 0.0
       UVorC_D = 0.0
-    end if
+    endif
 
   end subroutine compute_TD99_BqField
 
@@ -494,7 +494,7 @@ contains
     else
       CHIin_TD99 = 0.0
       CHIex_TD99 = 1.0
-    end if
+    endif
 
     ! Add the prominence material inside the flux rope, assuming that the
     ! total amount mass is 10^13kg, and that the desnity scale-height is
@@ -658,7 +658,7 @@ contains
         DESIRED_CEI_ACCURACY = 1.0E-15
       else
         DESIRED_CEI_ACCURACY = 1.0E-7
-      end if
+      endif
 
       ! Initialize some variables::
 
@@ -678,7 +678,7 @@ contains
           K_ell_sum_old = K_ell_sum
           K_ell_sum = K_ell_sum + (TwoN_1FactOverNFact/2.0**iN)**2 &
                       *pK**(2*iN)*cPi/2.0
-        end do
+        enddo
       else
         if (abs(pK) .lt. pK_LIMIT2) then
           K_ell_sum_old = 0.0
@@ -690,7 +690,7 @@ contains
             K_ell_sum_old = K_ell_sum
             K_ell_sum = K_ell_sum + (TwoN_1FactOverNFact/2.0**iN)**2 &
                         *((1.0 - pK1)/(1.0 + pK1))**(2*iN)*cPi/(1.0 + pK1)
-          end do
+          enddo
         else
           K_ell_sum = alog(4.0/pK1) + (alog(4.0/pK1) - 1.0)*pK1**2/4.0 &
                       + (alog(4.0/pK1) - 1.0 - 1.0/3.0/2.0)*pK1**4*(3.0/2.0/4.0)**2 &
@@ -698,8 +698,8 @@ contains
                       *pK1**6*(3.0*5.0/2.0/4.0/6.0)**2 &
                       + (alog(4.0/pK1) - 1.0 - 1.0/3.0/2.0 - 1.0/5.0/3.0 &
                          - 1.0/7.0/4.0)*pK1**8*(3.0*5.0*7.0/2.0/4.0/6.0/8.0)**2
-        end if
-      end if
+        endif
+      endif
       K_elliptic = K_ell_sum
 
     end subroutine calc_elliptic_int_1kind
@@ -731,7 +731,7 @@ contains
         DESIRED_CEI_ACCURACY = 1.0E-15
       else
         DESIRED_CEI_ACCURACY = 1.0E-7
-      end if
+      endif
 
       ! Initialize some variables::
 
@@ -752,7 +752,7 @@ contains
           E_ell_sum_old = E_ell_sum
           E_ell_sum = E_ell_sum - (TwoN_1FactOverNFact/2.0**iN)**2 &
                       /(2.0*iN - 1.0)*pK**(2*iN)*cPi/2.0
-        end do
+        enddo
       else
         if (abs(pK) .lt. pK_LIMIT2) then
           E_ell_sum_old = 0.0
@@ -764,7 +764,7 @@ contains
             E_ell_sum_old = E_ell_sum
             E_ell_sum = E_ell_sum + (TwoN_3FactOverNFact/2.0**iN)**2 &
                         *((1.0 - pK1)/(1.0 + pK1))**(2*iN)*cPi*(1.0 + pK1)/4.0
-          end do
+          enddo
         else
           E_ell_sum = 1.0 + (alog(4.0/pK1) - 1.0/2.0)*pK1**2/2.0 &
                       + (alog(4.0/pK1) - 1.0 - 1.0/3.0/4.0)*pK1**4*(3.0/4.0/4.0) &
@@ -772,8 +772,8 @@ contains
                       *pK1**6*(3.0/2.0/4.0)**2*5.0/6.0 &
                       + (alog(4.0/pK1) - 1.0 - 1.0/3.0/2.0 - 1.0/5.0/3.0 &
                          - 1.0/7.0/8.0)*pK1**8*(3.0*5.0/2.0/4.0/6.0)**2*7.0/8.0
-        end if
-      end if
+        endif
+      endif
       E_elliptic = E_ell_sum
 
     end subroutine calc_elliptic_int_2kind

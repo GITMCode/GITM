@@ -108,7 +108,7 @@ contains
         OldState_VI(:, 1:nPoint)           ! copy old values
       deallocate(OldState_VI)                ! free old storage
       MaxPoint = MaxPointIn                  ! change buffer size
-    end if
+    endif
 
   end subroutine line_extend
 
@@ -132,7 +132,7 @@ contains
     if (nVarIn /= nVar) then
       write(*, *) NameSub, ' ERROR: nVarIn, nVar=', nVarIn, nVar
       call CON_stop(NameSub//' ERROR: incorrect number of variables!')
-    end if
+    endif
 
     if (nPoint >= MaxPoint) call line_extend(nPoint + 100)
     nPoint = nPoint + 1
@@ -176,14 +176,14 @@ contains
       if (iProc == iProcFrom .and. iProc == iProcTo) then
         nPoint_P(iProcFrom) = nPoint
         CYCLE
-      end if
+      endif
 
       if (iProc == iProcFrom) call MPI_SEND(nPoint, &
                                             1, MPI_INTEGER, iProcTo, iTag, iComm, iError)
 
       if (iProc == iProcTo) call MPI_RECV(nPoint_P(iProcFrom), &
                                           1, MPI_INTEGER, iProcFrom, iTag, iComm, Status_I, iError)
-    end do
+    enddo
 
     ! Extend buffer on receiving processor
     if (iProc == iProcTo) call line_extend(sum(nPoint_P) + 100)
@@ -199,7 +199,7 @@ contains
                       iProcTo, iTag, iComm, iError)
         deallocate(State_VI)
         nPoint = 0
-      end if
+      endif
 
       ! Receive ray line data
       if (iProc == iProcTo .and. nPoint_P(iProcFrom) > 0) then
@@ -207,9 +207,9 @@ contains
                       nPoint_P(iProcFrom)*(nVar + 1), MPI_REAL, &
                       iProcFrom, iTag, iComm, Status_I, iError)
         nPoint = nPoint + nPoint_P(iProcFrom)
-      end if
+      endif
 
-    end do
+    enddo
 
     deallocate(nPoint_P)
 
@@ -258,7 +258,7 @@ contains
       nVarOut = nVar
       nPointOUt = nPoint
       RETURN
-    end if
+    endif
 
     ! Check size
     if (nVar /= nVarOut .or. nPoint /= nPointOut) then
@@ -267,7 +267,7 @@ contains
       write(*, *) NameSub, ' ERROR: nPoint, nPointOut=', &
         nPoint, nPointOut
       call CON_stop(NameSub//' ERROR: incorrect array size')
-    end if
+    endif
     if (present(DoSort)) then
       if (DoSort) then
         allocate(iSorted_I(nPoint))
@@ -282,10 +282,10 @@ contains
         deallocate(iSorted_I)
       else
         Line_VI(:, 1:nPoint) = State_VI(:, 1:nPoint)
-      end if
+      endif
     else
       Line_VI(:, 1:nPoint) = State_VI(:, 1:nPoint)
-    end if
+    endif
 
     nPoint = 0
 
@@ -339,7 +339,7 @@ contains
               30.0*iPoint + iProc/))) &
         write(*, *) NameSub, ' line_put failed, iProc=', iProc, &
         ' iPoint=', iPoint, ' State_VI=', State_VI(:, iPoint)
-    end do
+    enddo
 
     if (iProc == 0) write(*, '(a)') 'Testing line_collect'
     call line_collect(MPI_COMM_WORLD, 0)
@@ -359,7 +359,7 @@ contains
         write(*, *) NameSub, ' line_collect failed, iProc=', iProc, &
         ' MaxPoint =', MaxPoint, ' should be 100'
 
-    end if
+    endif
 
     if (iProc == 0) then
       write(*, '(a)') 'Testing line_get on PE 0'
@@ -380,7 +380,7 @@ contains
           Index = 1.0
         else
           Index = 2.0
-        end if
+        endif
         if (Result_VI(0, iPoint) /= Index) &
           write(*, *) NameSub, ' line_get failed at iPoint=', iPoint, &
           ' Index=', Result_VI(0, iPoint), ' should be ', Index
@@ -390,7 +390,7 @@ contains
           Length = iPoint - 1.0
         else
           Length = 2.0*(iPoint - 2*nProc - 1)
-        end if
+        endif
         if (Result_VI(1, iPoint) /= real(Length)) &
           write(*, *) NameSub, ' line_get failed at iPoint=', iPoint, &
           ' Length=', Result_VI(1, iPoint), ' should be ', Length
@@ -402,17 +402,17 @@ contains
             State_V = (/10.0 + iProcFrom, 20.0 + iProcFrom, 30.0 + iProcFrom/)
           else
             State_V = (/40.0 + iProcFrom, 50.0 + iProcFrom, 60.0 + iProcFrom/)
-          end if
+          endif
         else
           iProcFrom = nint(Length/2.0)
           State_V = (/70.0 + iProcFrom, 80.0 + iProcFrom, 90.0 + iProcFrom/)
-        end if
+        endif
         if (any(Result_VI(2:nVar, iPoint) /= State_V)) &
           write(*, *) NameSub, ' line_get failed at iPoint=', iPoint, &
           ' State = ', Result_VI(2:nVar, iPoint), ' should be ', State_V
 
-      end do
-    end if
+      enddo
+    endif
 
     if (iProc == 0) write(*, '(a)') 'Testing line_clean'
     call line_clean

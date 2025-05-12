@@ -133,7 +133,7 @@ subroutine init_iri
           elseif (geo_lat > 90.0) then
             geo_lat = 180.0 - geo_lat
             geo_lon = mod(geo_lon + 180.0, 360.0)
-          end if
+          endif
 
           !  write(*,*) "iri : ", geo_lat, geo_lon, -f107, -iJulianDay, &
           !             utime/3600.+25.,geo_alt,nzkm
@@ -167,7 +167,7 @@ subroutine init_iri
           else
             eTemperature(iLon, iLat, iAlt, iBlock) = outf(4, 1)
             ITemperature(iLon, iLat, iAlt, iBlock) = outf(3, 1)
-          end if
+          endif
 
           IDensityS(iLon, iLat, iAlt, :, iBlock) = &
             IRIDensity(iLon, iLat, iAlt, :, iBlock)
@@ -177,12 +177,12 @@ subroutine init_iri
             IDensityS(iLon, iLat, iAlt, nIons, iBlock) = &
               IDensityS(iLon, iLat, iAlt, nIons, iBlock) + &
               IDensityS(iLon, iLat, iAlt, iIon, iBlock)
-          end do
+          enddo
 
-        end do
-      end do
-    end do
+        enddo
+      enddo
+    enddo
 
-  end do
+  enddo
 
 end subroutine init_iri

@@ -30,7 +30,7 @@ subroutine calc_rates(iBlock)
     MeanMajorMass = MeanMajorMass + &
                     Mass(iSpecies)* &
                     NDensityS(:, :, :, iSpecies, iBlock)/(NDensity(:, :, :, iBlock) + 1.0)
-  end do
+  enddo
 
   ! Once again, in the corners, the meanmajormass is 0.
   where (MeanMajorMass == 0) MeanMajorMass = Mass(1)
@@ -39,7 +39,7 @@ subroutine calc_rates(iBlock)
     MeanIonMass = MeanIonMass + &
                   MassI(iIon)*IDensityS(:, :, :, iIon, iBlock)/ &
                   IDensityS(:, :, :, ie_, iBlock)
-  end do
+  enddo
 
   TempUnit = MeanMajorMass/Boltzmanns_Constant
 
@@ -60,7 +60,7 @@ subroutine calc_rates(iBlock)
                                        (Temperature(1:nLons, 1:nLats, iAlt, iBlock)* &
                                         TempUnit(1:nLons, 1:nLats, iAlt)/1000.)**(-0.71)
 
-  end do
+  enddo
 
   call end_timing("calc_rates")
 

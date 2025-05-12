@@ -43,16 +43,16 @@ subroutine EIE_FindPoint(LocIn, LocOut, iError)
   if (LatIn > 90.0) then
     LatIn = 180.0 - LatIn
     MLTIn = mod(MLTIn + 12.0, 24.0)
-  end if
+  endif
   if (LatIn < -90.0) then
     LatIn = -180.0 - LatIn
     MLTIn = mod(MLTIn + 12.0, 24.0)
-  end if
+  endif
 
   if (MLTIn > 24.0 .or. MLTIn < 0 .or. LatIn > 90.0 .or. LatIn < -90.0) then
     iError = ecPointOutofRange_
     return
-  end if
+  endif
 
   iBLK = 1
   do while (iBLK <= EIEi_HavenBLKs)
@@ -92,18 +92,18 @@ subroutine EIE_FindPoint(LocIn, LocOut, iError)
           j = EIEi_HavenMLTs
           i = EIEi_HavenLats
 
-        end if
+        endif
 
         i = i + 1
 
-      end do
+      enddo
 
       j = j + 1
 
-    end do
+    enddo
 
     iBLK = iBLK + 1
 
-  end do
+  enddo
 
 end subroutine EIE_FindPoint

@@ -38,7 +38,7 @@ contains
     !-------------------------------------------------------------------
     do j = 1, n
       indx(j) = j
-    end do
+    enddo
     jstack = 0
     l = 1
     ir = n
@@ -49,10 +49,10 @@ contains
         do i = j - 1, 1, -1
           if (arr(indx(i)) .le. a) goto 2
           indx(i + 1) = indx(i)
-        end do
+        enddo
         i = 0
 2       indx(i + 1) = indxt
-      end do
+      enddo
       if (jstack .eq. 0) return
       ir = istack(jstack)
       l = istack(jstack - 1)
@@ -66,17 +66,17 @@ contains
         itemp = indx(l + 1)
         indx(l + 1) = indx(ir)
         indx(ir) = itemp
-      end if
+      endif
       if (arr(indx(l)) > arr(indx(ir))) then
         itemp = indx(l)
         indx(l) = indx(ir)
         indx(ir) = itemp
-      end if
+      endif
       if (arr(indx(l + 1)) > arr(indx(l))) then
         itemp = indx(l + 1)
         indx(l + 1) = indx(l)
         indx(l) = itemp
-      end if
+      endif
       i = l + 1
       j = ir
       indxt = indx(l)
@@ -103,8 +103,8 @@ contains
         istack(jstack) = j - 1
         istack(jstack - 1) = l
         l = i
-      end if
-    end if
+      endif
+    endif
     goto 1
 
   end subroutine sort_quick
@@ -133,7 +133,7 @@ contains
     !-------------------------------------------------------------------
     do j = 1, n
       iSort_I(j) = j
-    end do
+    enddo
     jstack = 0
     l = 1
     ir = n
@@ -143,10 +143,10 @@ contains
         do i = j - 1, 1, -1
           if (.not. is_larger(iSort_I(i), indxt)) goto 2
           iSort_I(i + 1) = iSort_I(i)
-        end do
+        enddo
         i = 0
 2       iSort_I(i + 1) = indxt
-      end do
+      enddo
       if (jstack .eq. 0) return
       ir = istack(jstack)
       l = istack(jstack - 1)
@@ -160,17 +160,17 @@ contains
         itemp = iSort_I(l + 1)
         iSort_I(l + 1) = iSort_I(ir)
         iSort_I(ir) = itemp
-      end if
+      endif
       if (is_larger(iSort_I(l), iSort_I(ir))) then
         itemp = iSort_I(l)
         iSort_I(l) = iSort_I(ir)
         iSort_I(ir) = itemp
-      end if
+      endif
       if (is_larger(iSort_I(l + 1), iSort_I(l))) then
         itemp = iSort_I(l + 1)
         iSort_I(l + 1) = iSort_I(l)
         iSort_I(l) = itemp
-      end if
+      endif
       i = l + 1
       j = ir
       indxt = iSort_I(l)
@@ -196,8 +196,8 @@ contains
         istack(jstack) = j - 1
         istack(jstack - 1) = l
         l = i
-      end if
-    end if
+      endif
+    endif
     goto 1
 
   end subroutine sort_quick_func
@@ -221,7 +221,7 @@ contains
     do i = n, 1, -1
       if (i_I(i) < 0) write(*, *) 'This avoids ifort 12 optimization error!'
       SortSum = SortSum + a_I(i_I(i))
-    end do
+    enddo
     sort_sum = SortSum
     deallocate(i_I)
 
@@ -250,7 +250,7 @@ contains
       else
         write(*, '(a)') 'Testing sort_quick_func'
         call sort_quick_func(n, is_larger_test, i_I)
-      end if
+      endif
       b_I = a_I(i_I)
 
       IsError = .false.
@@ -259,15 +259,15 @@ contains
           write(*, *) 'Error at index i=', i, ': sorted b_I(i-1)=', b_I(i - 1), &
             ' should not exceed b_I(i)=', b_I(i)
           IsError = .true.
-        end if
-      end do
+        endif
+      enddo
 
       if (IsError) then
         write(*, '(a,5f5.0)') 'original array =', a_I
         write(*, '(a,5i5)') 'sorted index   =', i_I
         write(*, '(a,5f5.0)') 'sorted array   =', b_I
-      end if
-    end do
+      endif
+    enddo
 
     write(*, '(a)') 'Testing sort_sum'
     a_I = (/1.e-6, 1.e-7, 1.e10, -3.e9, -7.e9/)

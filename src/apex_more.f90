@@ -32,13 +32,13 @@ subroutine cofrm(date)
   if (date < 1900. .or. date > 2030.) then
     write(6, "('>>> cofrm: date=',f8.2,' Date must be >= 1900 and <= 2030')") date
     stop 'cofrm'
-  end if
+  endif
   if (date > 2025.) then
     write(6, "('>>> WARNING cofrm:')")
     write(6, "(/,'   This version of IGRF is intended for use up to ')")
     write(6, "('     2025. Values for ',f9.3,' will be computed but')") date
     write(6, "('     may be of reduced accuracy.',/)")
-  end if
+  endif
 
   g1(:, 1) = (/ & ! 1900
              -31543., -2298., 5922., -677., 2905., -1061., 924., 1121., &
@@ -577,12 +577,12 @@ subroutine cofrm(date)
     i = (n - 1)*n1
     gh(i + 1:i + n1) = g1(:, n)
 !   write(6,"('cofrm: n=',i3,' i+1:i+n1=',i4,':',i4)") n,i+1,i+n1
-  end do
+  enddo
   do n = 1, ncn2
     i = n1*ncn1 + (n - 1)*n2
     gh(i + 1:i + n2) = g2(:, n)
 !   write(6,"('cofrm: n=',i3,' i+1:i+n2=',i4,':',i4)") n,i+1,i+n2
-  end do
+  enddo
   gh(ngh) = 0. ! not sure why gh is dimensioned with the extra element, so set it to 0.
 
   if (date < 2020.) then
@@ -601,24 +601,24 @@ subroutine cofrm(date)
       ll = 0.2*(date - 1995.0)
       ll = 120*19 + nc*ll
       kmx = (nmx + 1)*(nmx + 2)/2
-    end if
+    endif
     tc = 1.0 - t
     if (isv .eq. 1) then
       tc = -0.2
       t = 0.2
-    end if
+    endif
   else ! date >= 2020
     t = date - 2020.0
     tc = 1.0
     if (isv .eq. 1) then
       t = 1.0
       tc = 0.0
-    end if
+    endif
     ll = 3255
     nmx = 13
     nc = nmx*(nmx + 2)
     kmx = (nmx + 1)*(nmx + 2)/2
-  end if ! date < 2020
+  endif ! date < 2020
   r = alt
   l = 1
   m = 1
@@ -634,7 +634,7 @@ subroutine cofrm(date)
     if (n < m) then
       m = 0
       n = n + 1
-    end if ! n < m
+    endif ! n < m
     lm = ll + l
     if (m == 0) f0 = f0*float(n)/2.
     if (m == 0) f = f0/sqrt(2.0)
@@ -646,7 +646,7 @@ subroutine cofrm(date)
       gb(l + 1) = (tc*gh(lm) + t*gh(lm + nc))*f
     else
       gb(l + 1) = (tc*gh(lm) + t*gh(lm + nc))*f0
-    end if
+    endif
     gv(l + 1) = gb(l + 1)/float(nn)
     if (m /= 0) then
       gb(l + 2) = (tc*gh(lm + 1) + t*gh(lm + nc + 1))*f
@@ -654,9 +654,9 @@ subroutine cofrm(date)
       l = l + 2
     else
       l = l + 1
-    end if
+    endif
     m = m + 1
-  end do
+  enddo
 
 ! write(6,"('cofrm: ncoef=',i4,' gb=',/,(6f12.3))") ncoef,gb
 ! write(6,"('cofrm: ncoef=',i4,' gv=',/,(6f12.3))") ncoef,gv
@@ -751,7 +751,7 @@ subroutine feldg(iflag, glat, glon, alt, bnrth, beast, bdown, babs)
     xxx = glat
     yyy = glon
     zzz = alt
-  end if
+  endif
   rq = 1./(xxx**2 + yyy**2 + zzz**2)
   xi(1) = xxx*rq
   xi(2) = yyy*rq
@@ -763,16 +763,16 @@ subroutine feldg(iflag, glat, glon, alt, bnrth, beast, bdown, babs)
   if (iflag /= 3) then
     do i = 1, last
       g(i) = gb(i) ! gb is module data from cofrm
-    end do
+    enddo
   else
     do i = 1, last
       g(i) = gv(i) ! gv is module data from cofrm
-    end do
-  end if
+    enddo
+  endif
 
   do i = ihmax, last
     h(i) = g(i)
-  end do
+  enddo
 
   mk = 3
   if (imax == 1) mk = 1
@@ -803,15 +803,15 @@ subroutine feldg(iflag, glat, glon, alt, bnrth, beast, bdown, babs)
                      y*(h(ihm + 2) + h(ihm - 2))
         h(ilm) = g(ilm) + z*h(ihm) + x*(h(ihm + 2) - h(ihm - 2)) + &
                  y*(h(ihm + 3) + h(ihm - 1))
-      end do
+      enddo
       h(il + 2) = g(il + 2) + z*h(ih + 2) + x*h(ih + 4) - y*(h(ih + 3) + h(ih))
       h(il + 1) = g(il + 1) + z*h(ih + 1) + y*h(ih + 4) + x*(h(ih + 3) - h(ih))
       h(il) = g(il) + z*h(ih) + 2.*(x*h(ih + 1) + y*h(ih + 2))
-    end if
+    endif
 
     ih = il
     if (i >= k) goto 100
-  end do ! k=1,mk,2
+  enddo ! k=1,mk,2
 
   s = .5*h(1) + 2.*(h(2)*xi(3) + h(3)*xi(1) + h(4)*xi(2))
   t = (rq + rq)*sqrt(rq)
@@ -828,7 +828,7 @@ subroutine feldg(iflag, glat, glon, alt, bnrth, beast, bdown, babs)
     bnrth = bxxx
     beast = byyy
     bdown = bzzz
-  end if
+  endif
 !
 ! Magnetic potential computation (V) makes use of the fact that the
 ! calculation of V is identical to that for r*Br, if coefficients

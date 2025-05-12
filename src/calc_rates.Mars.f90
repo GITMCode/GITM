@@ -137,7 +137,7 @@ subroutine calc_rates(iBlock)
     write(*, *) 'trouble found!!'
     write(*, *) 'Stop GITM'
     stop
-  end if
+  endif
 
 ! -------------------------------------------------------------------------------
 
@@ -173,7 +173,7 @@ subroutine calc_rates(iBlock)
     MeanMajorMass = MeanMajorMass + &
                     Mass(iSpecies)* &
                     NDensityS(:, :, :, iSpecies, iBlock)
-  end do
+  enddo
   MeanMajorMass = MeanMajorMass*invmnd
 !  MMM_3D(1:nLons,1:nLats,1:nAlts,iBlock) = MeanMajorMass(1:nLons,1:nLats,1:nAlts)/AMU
 
@@ -187,7 +187,7 @@ subroutine calc_rates(iBlock)
   do iIon = 1, nIons - 1
     MeanIonMass = MeanIonMass + &
                   MassI(iIon)*IDensityS(:, :, :, iIon, iBlock)
-  end do
+  enddo
   MeanIonMass = MeanIonMass*invNe
 
 ! -------------------------------------------------------------------------------
@@ -291,9 +291,9 @@ subroutine calc_rates(iBlock)
                                    pco2(iLon, iLat, iAlt)*co2kt(iLon, iLat, iAlt))* &
                                   1.0E-05
 
-      end do
-    end do
-  end do
+      enddo
+    enddo
+  enddo
 ! -------------------------------------------------------------------------------
 
   if (iDebugLevel > 4) write(*, *) "=====> Before cp and kappatemp", iblock
@@ -327,8 +327,8 @@ subroutine calc_rates(iBlock)
           KappaTemp(iLon, iLat, iAlt, iBlock) + &
           KappaEddyDiffusion(iLon, iLat, iAlt, iBlock)*cp(iLon, iLat, iAlt, iBlock)* &
           Rho(iLon, iLat, iAlt, iBlock)/10.
-      end do
-    end do
+      enddo
+    enddo
 ! -------------------------------------------------------------------------------
 
 !   Earth GITM formulation for Molecular Viscosity (mks)
@@ -352,7 +352,7 @@ subroutine calc_rates(iBlock)
 !     Visc_3D(:,:,iAlt,iBlock) =  kmmix(1:nLons,1:nLats,iAlt)
 
 ! -------------------------------------------------------------------------------
-  end do
+  enddo
 
   call end_timing("calc_rates")
 

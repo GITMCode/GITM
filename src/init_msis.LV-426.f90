@@ -78,9 +78,9 @@ subroutine init_msis
 
           Velocity(iLon, iLat, iAlt, :, iBlock) = 0.0
 
-        end do
-      end do
-    end do
+        enddo
+      enddo
+    enddo
 
     Rho(:, :, :, iBlock) = 0.0
     NDensity(:, :, :, iBlock) = 0.0
@@ -93,9 +93,9 @@ subroutine init_msis
       Rho(:, :, :, iBlock) = Rho(:, :, :, iBlock) + &
                              Mass(iSpecies)*NDensityS(:, :, :, iSpecies, iBlock)
 
-    end do
+    enddo
 
-  end do
+  enddo
 
 end subroutine init_msis
 

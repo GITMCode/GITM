@@ -32,7 +32,7 @@ subroutine set_RCMR_estimations
     PhotoElectronHeatingEfficiency = PhotoElectronHeatingEfficiency_est
   else if (RCMROutType == "EDC") then
     EddyDiffusionCoef = EDC_est(1, 1)  !Ankit23May16: Added EDC_est out
-  end if
+  endif
 
 end subroutine set_RCMR_estimations
 
@@ -91,8 +91,8 @@ subroutine run_RCMR
         !TEC_calculated(ii_loop) = dummy_TEC_calculated
         ! call calc_single_vtec_interp(TEC_location(index_lz_tec(ii_loop),1), &
         !                              TEC_location(index_lz_tec(ii_loop) ,2), 0.1)
-      end do
-    end if
+      enddo
+    endif
 
   else
     call MPI_BARRIER(iCommGITM, iError)
@@ -103,10 +103,10 @@ subroutine run_RCMR
       do mm = 0, (nProcs - 1)
         if (Sat_Proc(mm + 1) .ne. 0) then
           SatAltDat(RCMRSat(1)) = Sat_Proc(mm + 1)   !Ankit: what is this doing??
-        end if
-      end do
-    end if
-  end if
+        endif
+      enddo
+    endif
+  endif
 
   !ANKIT: Added MPI_Bcast to update on all processors
   !ANKIT:5Feb15 - Added TEC bcasting from 12 locations
@@ -135,7 +135,7 @@ subroutine run_RCMR
     ulimit = 3000
   else
     write(*, *) "ERROR: unknown RCMR output type", RCMROutType
-  end if
+  endif
 
   ! Begin the first RCMR loop
   if (mod((istep - 1)*Dts, Measure_Dts) == 0.0 .AND. TRUTH_or_ID == 1 .AND. iProc == 0) then
@@ -148,12 +148,12 @@ subroutine run_RCMR
         !zp(ii_loop,ustep) = alpha*(TEC_calculated(ii_loop) - TEC_true(iStep,ii_loop))
         zp(ii_loop, ustep) = alpha*(TEC_calculated(ii_loop) - TEC_true(iStep, index_lz_tec(ii_loop)))
         !Ankit25Feb2015: added choice of tec station
-      end do
+      enddo
       !write(*,*) ustep, iStep, TEC_calculated, TEC_true(istep,1), zp(1,ustep)
       !write(*,*) ustep, iStep, TEC_calculated_P1, TEC_true(istep,2), zp(2,ustep)
     else
       zp(:, uStep) = SatAltDat(RCMRSat(1)) - SatCurrentDat(RCMRSat(1))
-    end if
+    endif
 
     ! Set the averaged error
     if (RCMROutType == "EDC") then          !ANKIT 4 Nov 2014
@@ -165,7 +165,7 @@ subroutine run_RCMR
         zav(:, ustep) = sum(zp(:, 1:uStep))/uStep
       else
         zav(:, ustep) = sum(zp(:, uStep - 120 + 1:uStep))/120
-      end if
+      endif
       z(:, uStep) = zav(:, uStep)           !Ankit 25Jan15 - Adds moving average filter to Z
       z(:, uStep) = zp(:, uStep)            !Ankit 25Jan15 - Removes the averaging from Z
     else
@@ -173,36 +173,36 @@ subroutine run_RCMR
         zav(:, ustep) = sum(zp(:, 1:uStep))/uStep
       else
         zav(:, ustep) = sum(zp(:, uStep - 120 + 1:uStep))/120
-      end if
+      endif
       y(1, uStep) = 1.0e12*zav(1, uStep)
       z(:, uStep) = 1.0e12*zav(1, uStep)
-    end if
+    endif
 
     if (ustep <= l_dim) then
       y_mat(:, l_dim - ustep + 1:l_dim) = y(:, 1:ustep)
       z_mat(:, l_dim - ustep + 1:l_dim) = z(:, 1:ustep)
       if (ustep > 1) then
         u_mat(:, l_dim - ustep + 2:l_dim) = u(:, 1:ustep - 1)
-      end if
+      endif
     else if (ustep > l_dim) then
       y_mat = y(:, ustep - (l_dim) + 1:ustep)
       u_mat = u(:, ustep - (l_dim):ustep - 1)
       z_mat = z(:, ustep - (l_dim) + 1:ustep)
-    end if
+    endif
 
     if (ustep <= Pc) then
       Pcc = ustep - 1
       if (Pcc < 0) then
         Pcc = 0
-      end if
+      endif
     else
       Pcc = Pc
-    end if
+    endif
     lu2 = lu*lu
 
     if (ustep > C_on) then
       control_on = 1
-    end if
+    endif
 
     if (RCMROutType == "EDC") then          ! ANKIT 6 Nov 2014
       !CALL RCMR_onestep(u_out, ustep, EDC_est, zp(:,ustep), y(:,ustep))
@@ -215,17 +215,17 @@ subroutine run_RCMR
       CALL RCMR_Function(llimit, ulimit, Nc, ustep, s_dhat, lz, lu, lu2, ly, &
                          l_dim, Pc, Pcc, control_on, dbuffer, C_on, dhat, eta, lambda, usum, &
                          T, R2, y_mat, z_mat, u_mat, P1, u_out, theta1, UB)
-    end if
+    endif
 
     ! write(*,*) istep, ustep, u_out(1,1)
 
     ! Enforce the realistic physical limitations
     if (u_out(1, 1) < llimit) then
       u_out(1, 1) = llimit
-    end if
+    endif
     if (u_out(1, 1) >= ulimit) then
       u_out(1, 1) = ulimit
-    end if
+    endif
 
     up(1, ustep) = u_out(1, 1)
 
@@ -240,16 +240,16 @@ subroutine run_RCMR
           up(1, uStep) = up(1, uStep - 1) + u_sat_level
         else
           up(1, uStep) = up(1, uStep - 1) - u_sat_level
-        end if
-      end if
+        endif
+      endif
       u(:, ustep) = up(:, uStep)             ! Remove filter
     else
       if (uStep <= uFiltLength) then
         u(:, ustep) = sum(up(:, 1:uStep))/uStep
       else
         u(:, ustep) = sum(up(:, uStep - uFiltLength + 1:uStep))/uFiltLength
-      end if
-    end if
+      endif
+    endif
 
     ! write(*,*) istep, ustep, up(1,ustep), u(1,ustep), output_est
 
@@ -261,7 +261,7 @@ subroutine run_RCMR
       output_est = u(1, ustep)
     else if (ustep <= C_on) then
       u(1, ustep) = output_est(1, 1)
-    end if
+    endif
 
     if (RCMROutType == 'F107') then
       f107_est = output_est(1, 1)
@@ -271,10 +271,10 @@ subroutine run_RCMR
     elseif (RCMROutType == "EDC") then !ANKIT 6 Oct 2014
       EDC_est = output_est
       !write (*,*) "EDC estimate is ", EDC_est, ustep
-    end if
+    endif
 
     ustep = ustep + 1
-  end if
+  endif
 
   ! END of the first RCMR loop
 
@@ -282,7 +282,7 @@ subroutine run_RCMR
   ! AGB Question: why use MPI_SCATTER and not MPI_Bcast?
   if (iProc == 0) then
     scattered(1) = output_est(1, 1)
-  end if
+  endif
 
   call MPI_SCATTER(scattered, 1, mpi_double_precision, scatter, 1, &
                    mpi_double_precision, 0, iCommGITM, iError)
@@ -295,7 +295,7 @@ subroutine run_RCMR
   else if (RCMROutType == 'EDC') then !ANKIT 6 Oct 2014
     EDC_est = scatter
     if (iProc == TEC_proc) call write_TEC_data
-  end if
+  endif
 
 end subroutine run_RCMR
 
@@ -372,7 +372,7 @@ subroutine RCMR_Function(llimit, ulimit, Nc, ustep, s_dhat, lz, lu, lu2, ly, &
   do iii = 1, lu
     Idty(iii, iii) = 1.0
     Inverted(iii, iii) = 1.0
-  end do
+  enddo
 
   ! Initialization
   zmod = 0.0
@@ -390,8 +390,8 @@ subroutine RCMR_Function(llimit, ulimit, Nc, ustep, s_dhat, lz, lu, lu2, ly, &
         lb_z = dhat(1, s_dhat)
         zmod(1 + (iii*lz):1 + (iii*lz) + lz - 1, 1) = z_mat(:, &
                                                             l_dim - (dhat(1, s_dhat) - dhatfl(1, iii + 1)))
-      end do make_zmod
-    end if
+      enddo make_zmod
+    endif
 
     umod(:, 1) = u_mat(:, l_dim - dhat(1, s_dhat) + 1); 
     zr(:, 1) = z_mat(:, size(z_mat, 2)); 
@@ -411,7 +411,7 @@ subroutine RCMR_Function(llimit, ulimit, Nc, ustep, s_dhat, lz, lu, lu2, ly, &
       Us(1, 1) = ulimit
     else if (Us(1, 1) <= llimit) then
       Us(1, 1) = llimit
-    end if
+    endif
 
     if (ustep > dbuffer) then
       !Strictly proper
@@ -424,7 +424,7 @@ subroutine RCMR_Function(llimit, ulimit, Nc, ustep, s_dhat, lz, lu, lu2, ly, &
 
       if (minval(pu) == 0.0) then
         pu = 0.0
-      end if
+      endif
 
       pum = reshape(pu, shape(pum))
 
@@ -453,15 +453,15 @@ subroutine RCMR_Function(llimit, ulimit, Nc, ustep, s_dhat, lz, lu, lu2, ly, &
         u_out = matmul(theta1, H1)
       else
         u_out = 0.0
-      end if
+      endif
     else
       u_out = 0.0
       theta1 = theta1
-    end if
+    endif
   else
     u_out = 0.0
     theta1 = theta1
-  end if
+  endif
 
   return
 end subroutine RCMR_Function
@@ -498,13 +498,13 @@ subroutine RCMR_onestep(u_out1, kk, u_in, z_in, y_in, ESTIMATE)
   y_h(:, 2:NC + 1) = y_h(:, 1:NC)
   DO iii = 1, lu
     u_h(iii, 1) = u_in(iii, 1)
-  END DO
+  ENDDO
   DO iii = 1, lz
     z_h(iii, 1) = z_in(iii, 1)
-  END DO
+  ENDDO
   DO iii = 1, ly
     y_h(iii, 1) = y_in(iii, 1)
-  END DO
+  ENDDO
 
   ! Stack up u's and performance here
   !IF (kk > Nc) THEN
@@ -516,7 +516,7 @@ subroutine RCMR_onestep(u_out1, kk, u_in, z_in, y_in, ESTIMATE)
       Vphi = z_h(:, 2:NC + 1)
     ELSE
       Vphi = y_h(:, 2:NC + 1)
-    END IF
+    ENDIF
     UphiVec = reshape(Uphi, shape(UphiVec))
     VphiVec = reshape(Vphi, shape(VphiVec))
 
@@ -525,14 +525,14 @@ subroutine RCMR_onestep(u_out1, kk, u_in, z_in, y_in, ESTIMATE)
       phi_reg(lu*NC + 1:(lz + lu)*NC, :) = VphiVec
     ELSE
       phi_reg(lu*NC + 1:(ly + lu)*NC, :) = VphiVec
-    END IF
+    ENDIF
      !! call kronecker(PHI, phi_reg)
     DO iii = 1, lu
       DO jjj = 1, lphi
         PHI(iii, jjj + (lu - 1)*lphi) = phi_reg(jjj, 1)
-      END DO
-    END DO
-  END IF
+      ENDDO
+    ENDDO
+  ENDIF
 
 !  write(*,*) "Phi regressor is ", phi_reg
 !  write(*,*) "PHI ", PHI
@@ -545,15 +545,15 @@ subroutine RCMR_onestep(u_out1, kk, u_in, z_in, y_in, ESTIMATE)
   PHIbar(lu + 1:lu*(nf_u + 1), :) = PHIbar(1:lu*nf_Nu, :)   !! Fixed lu
   DO iii = 1, lu
     Ubar(iii, 1) = u_in(iii, 1)
-  END DO
+  ENDDO
   DO iii = 1, lz
     Zbar(iii, 1) = z_in(iii, 1)
-  END DO
+  ENDDO
   DO jjj = 1, lu
     DO iii = 1, ltheta
       PHIbar(jjj, iii) = PHI(jjj, iii)
-    END DO
-  END DO
+    ENDDO
+  ENDDO
 
 !  z_filtered      = reshape(matmul(Nz, reshape(Zbar, (/lz*(nf_z+1)/))) &
 !                             - matmul(Dz, reshape(Zfbar, (/lz*nf_Dz/))), (/lz,1/))
@@ -575,15 +575,15 @@ subroutine RCMR_onestep(u_out1, kk, u_in, z_in, y_in, ESTIMATE)
 
   DO iii = 1, lz
     Ufbar(iii, 1) = u_filtered(iii, 1)
-  END DO
+  ENDDO
   DO iii = 1, lz
     Zfbar(iii, 1) = z_filtered(iii, 1)
-  END DO
+  ENDDO
   DO jjj = 1, lz
     DO iii = 1, ltheta
       PHIfbar(jjj, iii) = PHI_filtered(jjj, iii)
-    END DO
-  END DO
+    ENDDO
+  ENDDO
 
   z_hat = z_filtered + matmul(PHI_filtered, reshape(theta_h(:, 1), (/ltheta, 1/))) - u_filtered
 
@@ -606,17 +606,17 @@ subroutine RCMR_onestep(u_out1, kk, u_in, z_in, y_in, ESTIMATE)
       Rp(lz + 1:lz + lu, lz + 1:lz + lu) = Ru
       DO iii = 1, lz
         Rbarinv(iii, iii) = 1/(W_Rz + W_Ruf)
-      END DO
+      ENDDO
       DO iii = lz + 1, lz + lu
         Rbarinv(iii, iii) = 1/W_Ru
-      END DO
-    END IF
+      ENDDO
+    ENDIF
 
     Ginv = (lambda1*Rbarinv + matmul(matmul(XX, PP), transpose(XX)))
     tau = 0.0
     Do iii = 1, lv
       tau(iii, iii) = 1.0
-    end do
+    enddo
 
     call LAPACK_getrf(lv, lv, Ginv, lv, IPIV, INFO)
     CALL LAPACK_getrs('n', lv, lv, Ginv, lv, IPIV, Tau, lv, INFO)
@@ -656,12 +656,12 @@ subroutine RCMR_onestep(u_out1, kk, u_in, z_in, y_in, ESTIMATE)
       write(*, *) "Rzp \n", Rzp
       write(*, *) "thetaout \n", thetaout
       write(*, *) "PP \n", PP
-    end if
+    endif
 
     theta_h(:, 2) = theta_h(:, 1)
     DO iii = 1, ltheta
       theta_h(iii, 1) = thetaout(iii, 1)
-    END DO
+    ENDDO
     u_out1 = matmul(PHI, thetaout)
 
     !     write(121) kk, transpose(u_in), transpose(z_in), transpose(y_in), transpose(u_out1), transpose(thetaout)
@@ -678,7 +678,7 @@ subroutine RCMR_onestep(u_out1, kk, u_in, z_in, y_in, ESTIMATE)
 
   else
     u_out1 = ESTIMATE
-  END IF
+  ENDIF
 
   !Ankit 5May2015: The following code writes theta to theta.dat
   IF (kk > C_on) THEN
@@ -687,14 +687,14 @@ subroutine RCMR_onestep(u_out1, kk, u_in, z_in, y_in, ESTIMATE)
       open(12345, file="theta.dat", status="old", position="append", action="write")
     else
       open(12345, file="theta.dat", status="new", action="write")
-    end if
+    endif
 
     do iii = 1, ltheta
       write(12345, *) thetaout(iii, 1)
-    end do
+    enddo
 
     close(12345)
-  end if
+  endif
 
 end subroutine RCMR_onestep
 

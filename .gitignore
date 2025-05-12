@@ -45,8 +45,10 @@ src/planet.f90
 src/set_vertical_bcs.f90
 srcData/UAM.in
 srcGlow/libGLOW.a
+srcGlow/Makefile.DEPEND
 srcInterface/Makefile.DEPEND
 srcSphereAB/libSphere.a
+srcSphereAB/Makefile.DEPEND
 util/CRASH/src/Makefile.DEPEND
 util/CRASH/src/Makefile.RULES
 util/DATAREAD/srcIndices/Makefile.DEPEND

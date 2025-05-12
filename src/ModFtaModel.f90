@@ -60,7 +60,7 @@ contains
     if (IsFirstTime) then
       iError = 0
       IsFirstTime = .false.
-    end if
+    endif
 
     call get_ae(GitmCurrentTime + TimeDelayHighLat, ae, iError)
     call get_au(GitmCurrentTime + TimeDelayHighLat, au, iError)
@@ -104,10 +104,10 @@ contains
           if (iMlat == 0) iMlat = nLatsFta
           ElectronEnergyFlux(iLon, iLat) = eFlux(iMlt, iMlat)
           ElectronAverageEnergy(iLon, iLat) = AveE(iMlt, iMlat)
-        end if
+        endif
 
-      end do
-    end do
+      enddo
+    enddo
 
     call end_timing("run_fta_model")
 
@@ -138,7 +138,7 @@ contains
     if (ierror .ne. 0) then
       write(*, *) "Could not find file : ", NameOfIndexFile
       return
-    end if
+    endif
 
     done = .false.
 
@@ -151,11 +151,11 @@ contains
       else
 
         done = .true.
-      end if
+      endif
 
       ipt = ipt + 1
 
-    end do
+    enddo
 
     read(LunIndices_, *) tmp
 
@@ -267,8 +267,8 @@ contains
         deallocate(tmp)
       else
         efs(i) = 0
-      end if
-    end do
+      endif
+    enddo
 
     idx = (/(i, i=1, nLatsFta, 1)/)
     lp1 = efs > 0
@@ -284,8 +284,8 @@ contains
         idxt2 = pack(idxt, idxt > i)
         ii = idxt2(1)
         efs(i) = (efs(i - 1) - efs(ii))*(i - ii)/(i - 1 - ii) + efs(ii)
-      end if
-    end do
+      endif
+    enddo
 
     deallocate(idxt)
     deallocate(idxt2)
@@ -328,7 +328,7 @@ contains
 
       kk_ef2(:, :, i) = k_k2(:, idx2)
       kb_ef2(:, :, i) = k_b2(:, idx2)
-    end do
+    enddo
 
     lats_fixed_grid = (/(i, i=0, nLatsFta - 1, 1)/)*dLat + minLat + dLat/2.0
 
@@ -355,13 +355,13 @@ contains
 
     do i = 1, 2
       if (trim(emis_type) == trim(emissions(i))) iEmission = i
-    end do
+    enddo
 
     if (iEmission == 0) then
       write(*, *) "Cant find emission : ", emis_type, " in emissions"
       write(*, *) "must stop"
       stop
-    end if
+    endif
 
     ALs = -ALs_n
 
@@ -400,7 +400,7 @@ contains
       mlat_p = mlat_b0 + cf_k_lat2*(ALs - AL_split)
       ef_p = ef_b0 + cf_k_ef2*(ALs - AL_split)
 
-    end if
+    endif
 
   end subroutine calc_emission_pattern
 
@@ -433,9 +433,9 @@ contains
           if ((ratio - c) > 0) &
             avee(iMlt, iLat) = 10.0**(log((ratio - c)/a)/lb)
 
-        end if
-      end do
-    end do
+        endif
+      enddo
+    enddo
 
   end subroutine calc_avee
 
@@ -469,7 +469,7 @@ contains
       call interp_to_lat_grid(lats_en, emission_en, emission_lat)
       lbhs(i, :) = emission_lat
 
-    end do
+    enddo
 
     eflux = lbhl/110.0
     call calc_avee(lbhl, lbhs, avee)

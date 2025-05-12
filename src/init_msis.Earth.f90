@@ -13,6 +13,99 @@
 ! Comments: Routines to initialize the GITM thermosphere with MSIS
 !------------------------------------------------------------------------------
 
+!------------------------------------------------------------------------------
+! This is the driver code for MSIS, since there are now two version
+! that can be called. Since NRL has hard coded the reals to be real(4)
+! for MSIS2.1, we have to translate variables.  This does not have to
+! be done for MSIS00.
+! ------------------------------------------------------------------------------
+
+subroutine call_msis(lonDeg, latDeg, altKm, f107, f107a, densities10, temp)
+
+  use ModTime
+  use EUA_ModMsis00, only: meters, gtd7
+  use ModMsis21, only: gtd8d
+  use ModInputs, only: useMsis21
+  use ModConstants, only: Boltzmanns_Constant, AMU
+
+  implicit none
+  
+  real, intent(in) :: lonDeg, latDeg, altKm, f107, f107a
+  real, intent(out) :: densities10(10)
+  real, intent(out) :: temp
+
+  ! MSIS-2.1 hard-codes the size of reals, and needs the following:
+  integer :: iyd
+  real(4) :: sec
+  real(4) :: alt
+  real(4) :: glat
+  real(4) :: glong
+  real(4) :: stl
+  real(4) :: f107a_4
+  real(4) :: f107_4
+  real(4) :: ap_4(7)
+  integer :: mass
+  real(4) :: d(10), t(2)
+
+  real, dimension(1:2) :: msis_temp
+  real, dimension(1:9) :: msis_dens9
+  real, dimension(7) :: AP
+
+  real :: Lst
+  real :: ffactor, no, h
+
+  LST = mod(utime/3600.0 + LonDeg/15.0, 24.0)
+  AP = 10
+
+  if (useMsis21) then
+     iyd = iJulianDay
+     sec = utime
+     alt = altKm
+     glat = latDeg
+     glong = lonDeg
+     stl = LST
+     f107a_4 = f107a
+     f107_4 = f107
+     ap_4 = AP
+     ! mass is not used, but passed anyways
+     mass = -1     
+     call gtd8d(iyd,sec,alt,glat,glong,stl,f107a_4,f107_4,ap_4,mass,d,t)
+     temp = t(2)
+     ! Convert to /m3
+     ! 10th density is NO now!
+     densities10 = d * 1e6
+  else
+     CALL GTD7(iJulianDay, utime, AltKm, LatDeg, LonDeg, LST, &
+          f107a, f107, AP, 48, msis_dens9, msis_temp)
+     temp = msis_temp(2)
+     densities10(1:9) = msis_dens9
+
+     ! Very old code:
+     !  ! The initial profile of [NO] is refered to:
+     !  !  [Charles A. Barth, AGU, 1995]
+     !
+     !  if (geo_alt < 120.) then
+     !     NDensityS(iLon,iLat,iAlt,iNO_,iBlock)=  &
+     !          max(1e14-1e10*abs((geo_alt-110.0))**3.5, 100.0)
+     !          !10**(-0.003*(geo_alt-105.)**2 +14+LOG10(3.))
+     !  else
+     !     m = (1e10-3.9e13)/(200)
+     !     k = 1e10+(-m*300.)
+     !     NDensityS(iLon,iLat,iAlt,iNO_,iBlock)=  &
+     !          MAX(k+(m*geo_alt)-(geo_alt - 120.0)**2,100.0)
+     !       !   MAX(10**(13.-LOG10(3.)*(geo_alt-165.)/35.),1.0)
+     !  endif
+     !
+     ffactor = 6.36*log(f107) - 13.8
+     no = (ffactor*1.0e13 + 8.0e13)*1.24 ! 12.4 ! 12.4 is roughly exp
+     ! This is obviously an approximation:
+     h = Boltzmanns_Constant * msis_temp(2)/ &
+          (9.5 * 28.0 * AMU)/1000.0
+     densities10(10) = no * exp(-(altKm - 100.0)/h)
+  endif
+  
+end subroutine call_msis
+
 subroutine get_msis_temperature(lon, lat, alt, t, h)
 
   use ModTime
@@ -23,6 +116,7 @@ subroutine get_msis_temperature(lon, lat, alt, t, h)
   use ModIndicesInterfaces
 
   use EUA_ModMsis00, only: meters, gtd7
+  use ModMsis21, only: gtd8d
 
   implicit none
 
@@ -31,12 +125,15 @@ subroutine get_msis_temperature(lon, lat, alt, t, h)
 
   real, dimension(1:2) :: msis_temp
   real, dimension(1:9) :: msis_dens
+  real :: msis_dens10(10)
+  real :: msis_temp1
 
   real :: LonDeg, LatDeg, AltKm, LST
   real, dimension(7)    :: AP
   real :: nO, nO2, nN2, m, r, g
 
   integer :: iError
+
   !-------------------------------------------------------
 
   ap = 10.0
@@ -55,22 +152,29 @@ subroutine get_msis_temperature(lon, lat, alt, t, h)
     write(*, *) "Error in getting F107 value.  Is this set?"
     write(*, *) "Code : ", iError
     call stop_gitm("Stopping in euv_ionization_heat")
-  end if
+  endif
 
   call get_f107a(CurrentTime, f107a, iError)
   if (iError /= 0) then
     write(*, *) "Error in getting F107a value.  Is this set?"
     write(*, *) "Code : ", iError
     call stop_gitm("Stopping in euv_ionization_heat")
-  end if
+  endif
 
   if (RCMRFlag .and. RCMROutType == "F107") then
-    CALL GTD7(iJulianDay, utime, AltKm, LatDeg, LonDeg, LST, &
-              f107a_msis, f107_msis, AP, 48, msis_dens, msis_temp)
+
+     call call_msis(lonDeg, latDeg, altKm, f107_msis, f107a_msis, msis_dens10, msis_temp1)
+     msis_dens = msis_dens10(1:9)
+     msis_temp = msis_temp1
+     !CALL GTD7(iJulianDay, utime, AltKm, LatDeg, LonDeg, LST, &
+     !         f107a_msis, f107_msis, AP, 48, msis_dens, msis_temp)
   else
-    call GTD7(iJulianDay, utime, AltKm, LatDeg, LonDeg, LST, &
-              F107A, F107, AP, 48, msis_dens, msis_temp)
-  end if
+     call call_msis(lonDeg, latDeg, altKm, f107, f107a, msis_dens10, msis_temp1)
+     msis_dens = msis_dens10(1:9)
+     msis_temp = msis_temp1
+     !call GTD7(iJulianDay, utime, AltKm, LatDeg, LonDeg, LST, &
+     !     F107A, F107, AP, 48, msis_dens, msis_temp)
+  endif
 
   t = msis_temp(2)
   nO = msis_dens(2)
@@ -89,6 +193,60 @@ subroutine get_msis_temperature(lon, lat, alt, t, h)
 end subroutine get_msis_temperature
 
 !--------------------------------------------------------------
+! Initialize MSIS itself:
+!--------------------------------------------------------------
+
+subroutine initialize_msis_routines
+
+  use ModInputs, only: UseMsisTides, useMsis21, UseMsisOnly, sw_msis
+  use EUA_ModMsis00, ONLY: meters, tselec
+  use msis_init, only: msisinit
+  
+  implicit none
+
+  real*4 :: sw_msis4x25(25)
+  logical, save :: isFirstTIme = .true.
+
+  ! We only need to initialize MSIS once!
+  if (.not. isFirstTime) then
+     return
+  else
+     isFirstTime = .false.
+  endif
+  
+  ! We want units of /m3 and not /cm3
+
+  call meters(.true.)
+
+  if (UseMsisTides) then
+    sw_msis = 1
+  ELSE IF (UseMSISOnly) THEN
+    ! Diurnal, semidiurnal, and terdiurnal variations are excluded,
+    ! EYigit:16June09
+    CALL report("...Using MSIS without tidal variations...", 0)
+    sw_msis = 1
+    sw_msis(7) = 0
+    sw_msis(8) = 0
+    sw_msis(14) = 0
+  ELSE
+    sw_msis = 0
+    sw_msis(1) = 1
+    sw_msis(9) = 1
+  endif
+
+  sw_msis(9) = 0
+  sw_msis(2) = 0
+
+  if (useMsis21) then
+     sw_msis4x25 = sw_msis
+     call msisinit(parmpath = 'UA/DataIn/LowerBCs/', switch_legacy=sw_msis4x25)
+  else
+     call tselec(sw_msis)
+  endif
+  
+end subroutine initialize_msis_routines
+
+!--------------------------------------------------------------
 !
 !--------------------------------------------------------------
 
@@ -102,6 +260,7 @@ subroutine init_msis
   use ModIndicesInterfaces
 
   use EUA_ModMsis00, ONLY: meters, gtd7, tselec
+  use msis_init, only: msisinit
 
   implicit none
 
@@ -109,6 +268,8 @@ subroutine init_msis
 
   real, dimension(1:2) :: msis_temp
   real, dimension(1:9) :: msis_dens
+  real :: msis_dens10(10)
+  real :: msis_temp1
 
   integer :: iBlock, iAlt, iLat, iLon, iSpecies, iyd, iError
   real :: geo_lat, geo_lon, geo_alt, geo_lst, m, k, ut
@@ -128,15 +289,17 @@ subroutine init_msis
     write(*, *) "Error in getting F107 value (init_msis).  Is this set?"
     write(*, *) "Code : ", iError
     call stop_gitm("Stopping in advance")
-  end if
+  endif
 
   call get_f107a(CurrentTime, f107a, iError)
   if (iError /= 0) then
     write(*, *) "Error in getting F107a value (init_msis).  Is this set?"
     write(*, *) "Code : ", iError
     call stop_gitm("Stopping in advance")
-  end if
+  endif
 
+  call initialize_msis_routines
+  
   !--------------------------------------------------------------------------
   !
   !  From the msis90 library:
@@ -159,31 +322,6 @@ subroutine init_msis
   !      Exospheric temperature set to average for altitudes below 120 km.
   !
   !--------------------------------------------------------------------------
-
-  ! We want units of /m3 and not /cm3
-
-  call meters(.true.)
-
-  if (UseMsisTides) then
-    sw_msis = 1
-  ELSE IF (UseMSISOnly) THEN
-    ! Diurnal, semidiurnal, and terdiurnal variations are excluded,
-    ! EYigit:16June09
-    CALL report("...Using MSIS without tidal variations...", 0)
-    sw_msis = 1
-    sw_msis(7) = 0
-    sw_msis(8) = 0
-    sw_msis(14) = 0
-  ELSE
-    sw_msis = 0
-    sw_msis(1) = 1
-    sw_msis(9) = 1
-  end if
-
-  sw_msis(9) = 0
-  sw_msis(2) = 0
-
-  call tselec(sw_msis)
 
   if (DoRestart) return
 
@@ -220,11 +358,11 @@ subroutine init_msis
           if (geo_lat < -90.0) then
             geo_lat = -180.0 - geo_lat
             geo_lon = mod(geo_lon + 180.0, 360.0)
-          end if
+          endif
           if (geo_lat > 90.0) then
             geo_lat = 180.0 - geo_lat
             geo_lon = mod(geo_lon + 180.0, 360.0)
-          end if
+          endif
 
           geo_alt = Altitude_GB(iLon, iLat, iAlt, iBlock)/1000.0
           geo_lst = mod(utime/3600.0 + geo_lon/15.0, 24.0)
@@ -233,8 +371,11 @@ subroutine init_msis
           ! Call MSIS (results will be im mks units)
           !
 
-          CALL GTD7(iJulianDay, utime, geo_alt, geo_lat, geo_lon, geo_lst, &
-                    F107A, F107, AP, 48, msis_dens, msis_temp)
+          !CALL GTD7(iJulianDay, utime, geo_alt, geo_lat, geo_lon, geo_lst, &
+          !          F107A, F107, AP, 48, msis_dens, msis_temp)
+          call call_msis(geo_lon, geo_lat, geo_alt, f107, f107a, msis_dens10, msis_temp1)
+          msis_dens = msis_dens10(1:9)
+          msis_temp = msis_temp1
 
           ! Initialize densities to zero in case msis does not set it
           NDensityS(iLon, iLat, iAlt, :, iBlock) = 1.0
@@ -252,7 +393,10 @@ subroutine init_msis
           NDensityS(iLon, iLat, iAlt, iH_, iBlock) = &
             max(msis_dens(7), 100.0)
           NDensityS(iLon, iLat, iAlt, iN_4S_, iBlock) = &
-            max(msis_dens(8), 100.0)
+               max(msis_dens(8), 100.0)
+          NDensityS(iLon, iLat, iAlt, iNO_, iBlock) =  &
+               max(msis_dens10(10), 100.0)
+          
           NDensityS(iLon, iLat, iAlt, iN_2P_, iBlock) = &
             NDensityS(iLon, iLat, iAlt, iN_4S_, iBlock)/10000.0
           NDensityS(iLon, iLat, iAlt, iN_2D_, iBlock) = &
@@ -266,7 +410,7 @@ subroutine init_msis
             MeanMajorMass(iLon, iLat, iAlt) = MeanMajorMass(iLon, iLat, iAlt) + &
                                               Mass(iSpecies)*NDensityS(iLon, iLat, iAlt, iSpecies, iBlock)/ &
                                               sum(NDensityS(iLon, iLat, iAlt, 1:nSpecies, iBlock))
-          end do
+          enddo
 
           TempUnit(iLon, iLat, iAlt) = &
             MeanMajorMass(iLon, iLat, iAlt)/Boltzmanns_Constant
@@ -294,14 +438,14 @@ subroutine init_msis
 !              LogNS(iLon,iLat,iAlt,:,iBlock) = &
 !                   log(NDensityS(iLon,iLat,iAlt,iNO_,iBlock))
 
-          ffactor = 6.36*log(f107) - 13.8
-          no = (ffactor*1.0e13 + 8.0e13)*1.24 ! 12.4 ! 12.4 is roughly exp
-
-          h = -Boltzmanns_Constant*msis_temp(2)/ &
-              (Gravity_GB(iLon, iLat, iAlt, iBlock)*Mass(iNO_))/1000.0
-
-          NDensityS(iLon, iLat, iAlt, iNO_, iBlock) = &
-            no*exp(-(geo_alt - 100.0)/h)
+          !ffactor = 6.36*log(f107) - 13.8
+          !no = (ffactor*1.0e13 + 8.0e13)*1.24 ! 12.4 ! 12.4 is roughly exp
+          !
+          !h = -Boltzmanns_Constant*msis_temp(2)/ &
+          !    (Gravity_GB(iLon, iLat, iAlt, iBlock)*Mass(iNO_))/1000.0
+          !
+          !NDensityS(iLon, iLat, iAlt, iNO_, iBlock) = &
+          !     no*exp(-(geo_alt - 100.0)/h)
 
           NDensity(iLon, iLat, iAlt, iBlock) = &
             sum(NDensityS(iLon, iLat, iAlt, 1:nSpecies, iBlock))
@@ -335,11 +479,11 @@ subroutine init_msis
             Velocity(iLon, iLat, iAlt, iEast_, iBlock) = 0.0
             Velocity(iLon, iLat, iAlt, iNorth_, iBlock) = 0.0
 
-          end if
+          endif
 
-        end do
-      end do
-    end do
+        enddo
+      enddo
+    enddo
 
     Rho(:, :, :, iBlock) = 0.0
     NDensity(:, :, :, iBlock) = 0.0
@@ -352,11 +496,11 @@ subroutine init_msis
       Rho(:, :, :, iBlock) = Rho(:, :, :, iBlock) + &
                              Mass(iSpecies)*NDensityS(:, :, :, iSpecies, iBlock)
 
-    end do
+    enddo
 
     call calc_co2(iBlock)
 
-  end do
+  enddo
 
 end subroutine init_msis
 
@@ -385,6 +529,8 @@ subroutine msis_bcs(iJulianDay, UTime, Alt, LatIn, LonIn, Lst, &
 
   real :: msis_temp(2)
   real :: msis_dens(9), oMSIS, oCurrentSeason, oOffsetSeason
+  real :: msis_dens10(10)
+  real :: msis_temp1
   real :: AP_I(7), ffactor, no
   integer :: iyd, iJulianDayOffset
 
@@ -399,16 +545,21 @@ subroutine msis_bcs(iJulianDay, UTime, Alt, LatIn, LonIn, Lst, &
   if (lat > 90) then
     lat = 180 - lat
     lon = mod(lon + 180.0, 360.0)
-  end if
+  endif
   if (lat < -90) then
     lat = -180 - lat
     lon = mod(lon + 180.0, 360.0)
-  end if
+  endif
 
   !----------------------------------------------------------------------------
   AP_I = AP
-  CALL GTD7(iJulianDay, uTime, Alt, Lat, Lon, LST, &
-            F107A, F107, AP_I, 48, msis_dens, msis_temp)
+
+  
+  !CALL GTD7(iJulianDay, uTime, Alt, Lat, Lon, LST, &
+  !     F107A, F107, AP_I, 48, msis_dens, msis_temp)
+  call call_msis(lon, lat, alt, f107, f107a, msis_dens10, msis_temp1)
+  msis_dens = msis_dens10(1:9)
+  msis_temp = msis_temp1
 
   !  write(*,*) msis_dens(2), msis_dens(3), msis_dens(4), msis_dens(8), msis_dens(6), msis_temp(2)
 
@@ -424,7 +575,7 @@ subroutine msis_bcs(iJulianDay, UTime, Alt, LatIn, LonIn, Lst, &
     ffactor = 6.36*log(f107) - 13.8
     no = (ffactor*1.0e13 + 8.0e13)
     LogNS(min(nSpecies, iNO_)) = alog(no)
-  end if
+  endif
 
   Temp = msis_temp(2)
   LogRho = alog(msis_dens(6))
@@ -452,9 +603,9 @@ subroutine msis_bcs(iJulianDay, UTime, Alt, LatIn, LonIn, Lst, &
   else
     V(1) = 0.0
     V(2) = 0.0
-  end if
+  endif
 
-  ! Do some O experimentation:
+  ! Do some O experimentation (ONLY for MSIS00!):
 
   if (UseOBCExperiment) then
 
@@ -489,7 +640,7 @@ subroutine msis_bcs(iJulianDay, UTime, Alt, LatIn, LonIn, Lst, &
 
     LogNS(iO_3P_) = alog(max(oMSIS - oCurrentSeason + oOffsetSeason, 1.0))
 
-  end if
+  endif
 
 end subroutine msis_bcs
 
@@ -536,7 +687,7 @@ subroutine calc_co2(iBlock)
   do iAlt = -1, 0
     NDensityS(:, :, iAlt, iCO2_, iBlock) = &
       CO2ppm*1e-6/(1.0 - CO2ppm*1e-6)*NDensity(:, :, iAlt, iBlock)
-  end do
+  enddo
 
   ! Then do hydrostatic to the top using the inferred scale height.
 
@@ -545,6 +696,6 @@ subroutine calc_co2(iBlock)
       NDensityS(:, :, iAlt - 1, iCO2_, iBlock)* &
       Temperature(:, :, iAlt - 1, iBlock)/Temperature(:, :, iAlt, iBlock)* &
       exp(-dAlt_GB(:, :, iAlt, iBlock)/Hco2(:, :, iAlt))
-  end do
+  enddo
 
 end subroutine calc_co2

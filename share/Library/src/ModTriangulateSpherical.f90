@@ -131,7 +131,7 @@ contains
     if (kk < 4) then
       ier = -1
       return
-    end if
+    endif
 !
 !  Initialization:
 !
@@ -139,7 +139,7 @@ contains
     ist = nst
     if (ist < 1) then
       ist = km1
-    end if
+    endif
 
     p(1) = x(kk)
     p(2) = y(kk)
@@ -157,7 +157,7 @@ contains
     if (i1 == 0) then
       ier = -2
       return
-    end if
+    endif
 
     if (i3 /= 0) then
 
@@ -166,20 +166,20 @@ contains
       if (p(1) == x(l) .and. p(2) == y(l) .and. p(3) == z(l)) then
         ier = l
         return
-      end if
+      endif
 
       l = i2
 
       if (p(1) == x(l) .and. p(2) == y(l) .and. p(3) == z(l)) then
         ier = l
         return
-      end if
+      endif
 
       l = i3
       if (p(1) == x(l) .and. p(2) == y(l) .and. p(3) == z(l)) then
         ier = l
         return
-      end if
+      endif
 
       call intadd(kk, i1, i2, i3, list, lptr, lend, lnew)
 
@@ -189,9 +189,9 @@ contains
         call bdyadd(kk, i1, i2, list, lptr, lend, lnew)
       else
         call covsph(kk, i1, list, lptr, lend, lnew)
-      end if
+      endif
 
-    end if
+    endif
 
     ier = 0
 !
@@ -211,7 +211,7 @@ contains
 
       if (list(lp) < 0) then
         go to 2
-      end if
+      endif
 
       lp = lptr(lp)
       in1 = abs(list(lp))
@@ -223,7 +223,7 @@ contains
 
       if (.not. swptst(in1, kk, io1, io2, x, y, z)) then
         go to 2
-      end if
+      endif
 
       call swap(in1, kk, io1, io2, list, lptr, lend, lpo1)
 !
@@ -234,7 +234,7 @@ contains
       if (lpo1 == 0) then
         lpo1 = lpo1s
         go to 2
-      end if
+      endif
 
       io1 = in1
       cycle
@@ -245,13 +245,13 @@ contains
 
       if (lpo1 == lpf .or. list(lpo1) < 0) then
         exit
-      end if
+      endif
 
       io2 = io1
       lpo1 = lptr(lpo1)
       io1 = abs(list(lpo1))
 
-    end do
+    enddo
 
     return
   end subroutine addnod
@@ -402,7 +402,7 @@ contains
     if (abs(s12) <= tol .or. abs(s23) <= tol .or. abs(s31) <= tol) then
       areas = 0.0E+00
       return
-    end if
+    endif
 
     s12 = sqrt(s12)
     s23 = sqrt(s23)
@@ -438,7 +438,7 @@ contains
 
     if (areas < 0.0E+00) then
       areas = 0.0E+00
-    end if
+    endif
 
     return
   end function areas
@@ -539,12 +539,12 @@ contains
 
       if (next == n2) then
         exit
-      end if
+      endif
 
       next = -list(lp)
       list(lp) = next
 
-    end do
+    enddo
 !
 !  Add the boundary nodes between N1 and N2 as neighbors of node K.
 !
@@ -558,7 +558,7 @@ contains
 
       if (next == n2) then
         exit
-      end if
+      endif
 
       list(lnew) = next
       lptr(lnew) = lnew + 1
@@ -566,7 +566,7 @@ contains
       lp = lend(next)
       next = list(lp)
 
-    end do
+    enddo
 
     list(lnew) = -n2
     lptr(lnew) = lsav
@@ -655,9 +655,9 @@ contains
       if (list(lp) < 0) then
         nst = i
         exit
-      end if
+      endif
 
-    end do
+    enddo
 !
 !  The triangulation contains no boundary nodes.
 !
@@ -666,7 +666,7 @@ contains
       na = 3*(nn - 2)
       nt = 2*(nn - 2)
       return
-    end if
+    endif
 !
 !  NST is the first boundary node encountered.
 !
@@ -686,12 +686,12 @@ contains
 
       if (n0 == nst) then
         exit
-      end if
+      endif
 
       k = k + 1
       nodes(k) = n0
 
-    end do
+    enddo
 !
 !  Store the counts.
 !
@@ -774,7 +774,7 @@ contains
     if (cnorm == 0.0E+00) then
       ier = 1
       return
-    end if
+    endif
 
     c(1:3) = cu(1:3)/cnorm
 
@@ -857,9 +857,9 @@ contains
 
       if (next == nst) then
         exit
-      end if
+      endif
 
-    end do
+    enddo
 !
 !  Traverse the boundary again, adding each node to K's adjacency list.
 !
@@ -875,9 +875,9 @@ contains
 
       if (next == nst) then
         exit
-      end if
+      endif
 
-    end do
+    enddo
 
     lptr(lnew - 1) = lsav
     lend(k) = lnew - 1
@@ -1082,7 +1082,7 @@ contains
     if (nn < 3) then
       ier = 1
       return
-    end if
+    endif
 !
 !  Search for a boundary node N1.
 !
@@ -1093,15 +1093,15 @@ contains
       if (list(lend(n1)) < 0) then
         lp = lend(n1)
         exit
-      end if
+      endif
 
-    end do
+    enddo
 !
 !  The triangulation already covers the sphere.
 !
     if (lp == 0) then
       go to 9
-    end if
+    endif
 !
 !  There are NB >= 3 boundary nodes.  Add NB-2 pseudo-
 !  triangles (N1,N2,N3) by connecting N3 to the NB-3
@@ -1130,7 +1130,7 @@ contains
         ltri(4, nt) = nt + 1
         ltri(5, nt) = nt - 1
         ltri(6, nt) = 0
-      end if
+      endif
 
       n1 = n2
       lp = lend(n1)
@@ -1138,16 +1138,16 @@ contains
 
       if (n2 == n3) then
         exit
-      end if
+      endif
 
-    end do
+    enddo
 
     nb = nt + 2
 
     if (ncol < nt) then
       ier = 2
       return
-    end if
+    endif
 
     ltri(4, nt) = 0
 !
@@ -1171,7 +1171,7 @@ contains
 
             if (kt2 <= kt1) then
               cycle
-            end if
+            endif
 !
 !  The LTRI row indexes (I1,I2,I3) of triangle KT1 =
 !  (N1,N2,N3) are a cyclical permutation of (1,2,3).
@@ -1185,7 +1185,7 @@ contains
             else
               i1 = 1
               i2 = 2
-            end if
+            endif
 
             n1 = ltri(i1, kt1)
             n2 = ltri(i2, kt1)
@@ -1199,7 +1199,7 @@ contains
               i4 = 2
             else
               i4 = 3
-            end if
+            endif
 
             n4 = ltri(i4, kt2)
 !
@@ -1209,7 +1209,7 @@ contains
 !
             if (.not. swptst(n1, n2, n3, n4, x, y, z)) then
               cycle
-            end if
+            endif
 !
 !  Swap arc N1-N2 for N3-N4.  KTij is the triangle opposite
 !  Nj as a vertex of KTi.
@@ -1227,7 +1227,7 @@ contains
             else
               i2 = 1
               i1 = 2
-            end if
+            endif
 
             kt21 = ltri(i1 + 3, kt2)
             kt22 = ltri(i2 + 3, kt2)
@@ -1251,9 +1251,9 @@ contains
               if (ltri(4, kt11) /= kt1) then
                 i4 = 5
                 if (ltri(5, kt11) /= kt1) i4 = 6
-              end if
+              endif
               ltri(i4, kt11) = kt2
-            end if
+            endif
 
             if (kt22 /= 0) then
               i4 = 4
@@ -1261,22 +1261,22 @@ contains
                 i4 = 5
                 if (ltri(5, kt22) /= kt2) then
                   i4 = 6
-                end if
-              end if
+                endif
+              endif
               ltri(i4, kt22) = kt1
-            end if
+            endif
 
-          end do
+          enddo
 
-        end do
+        enddo
 
         if (.not. swp) then
           exit
-        end if
+        endif
 
-      end do
+      enddo
 
-    end if
+    endif
 !
 !  Compute and store the negative circumcenters and radii of
 !  the pseudo-triangles in the first NT positions.
@@ -1301,7 +1301,7 @@ contains
       if (ierr /= 0) then
         ier = 3
         return
-      end if
+      endif
 !
 !  Store the negative circumcenter and radius (computed from <V1,C>).
 !
@@ -1315,7 +1315,7 @@ contains
 
       rc(kt) = acos(t)
 
-    end do
+    enddo
 !
 !  Compute and store the circumcenters and radii of the
 !  actual triangles in positions KT = NT+1, NT+2, ...
@@ -1365,7 +1365,7 @@ contains
           if (ierr /= 0) then
             ier = 3
             return
-          end if
+          endif
 !
 !  Store the circumcenter, radius and triangle index.
 !
@@ -1390,20 +1390,20 @@ contains
           lpn = lstptr(lend(n3), n1, list, lptr)
           listc(lpn) = kt
 
-        end if
+        endif
 
         if (lp == lpl) then
           exit
-        end if
+        endif
 
-      end do
+      enddo
 
-    end do
+    enddo
 
     if (nt == 0) then
       ier = 0
       return
-    end if
+    endif
 !
 !  Store the first NT triangle indexes in LISTC.
 !
@@ -1430,9 +1430,9 @@ contains
         i2 = 2
         i3 = 3
         exit
-      end if
+      endif
 
-    end do
+    enddo
 
     n1 = ltri(i1, kt1)
     n0 = n1
@@ -1459,7 +1459,7 @@ contains
 
         if (kt2 == 0) then
           exit
-        end if
+        endif
 !
 !  Append KT2 to N1's triangle list.
 !
@@ -1484,9 +1484,9 @@ contains
           i1 = 3
           i2 = 1
           i3 = 2
-        end if
+        endif
 
-      end do
+      enddo
 !
 !  Store the saved first-triangle pointer in LPTR(LP), set
 !  N1 to the next boundary node, test for termination,
@@ -1499,14 +1499,14 @@ contains
 
       if (n1 == n0) then
         exit
-      end if
+      endif
 
       i4 = i3
       i3 = i2
       i2 = i1
       i1 = i4
 
-    end do
+    enddo
 
     ier = 0
 
@@ -1596,7 +1596,7 @@ contains
         n2 < 1 .or. n2 > n .or. n1 == n2) then
       ier = 1
       return
-    end if
+    endif
 
     lpl = lend(n2)
 
@@ -1607,8 +1607,8 @@ contains
       if (-list(lpl) /= n1) then
         ier = 2
         return
-      end if
-    end if
+      endif
+    endif
 !
 !  Set N3 to the node opposite N1->N2 (the second neighbor
 !  of N1), and test for error 3 (N3 already a boundary node).
@@ -1622,7 +1622,7 @@ contains
     if (list(lpl) <= 0) then
       ier = 3
       return
-    end if
+    endif
 !
 !  Delete N2 as a neighbor of N1, making N3 the first
 !  neighbor, and test for error 4 (N2 not a neighbor
@@ -1634,7 +1634,7 @@ contains
     if (lph < 0) then
       ier = 4
       return
-    end if
+    endif
 !
 !  Delete N1 as a neighbor of N2, making N3 the new last neighbor.
 !
@@ -1740,7 +1740,7 @@ contains
              nb > nn .or. nn < 3) then
       lph = -1
       return
-    end if
+    endif
 !
 !  Find pointers to neighbors of N0:
 !
@@ -1756,23 +1756,23 @@ contains
 
       if (list(lpb) == nb) then
         go to 2
-      end if
+      endif
 
       lpp = lpb
       lpb = lptr(lpp)
 
       if (lpb == lpl) then
         exit
-      end if
+      endif
 
-    end do
+    enddo
 !
 !  Test for error 2 (NB not found).
 !
     if (abs(list(lpb)) /= nb) then
       lph = -2
       return
-    end if
+    endif
 !
 !  NB is the last neighbor of N0.  Make NP the new last
 !  neighbor and, if NB is a boundary node, then make N0
@@ -1783,7 +1783,7 @@ contains
 
     if (list(lp) < 0) then
       list(lpp) = -list(lpp)
-    end if
+    endif
 
     go to 3
 !
@@ -1798,7 +1798,7 @@ contains
     if (list(lp) < 0 .and. list(lpl) > 0) then
       lend(n0) = lpp
       list(lpp) = -list(lpp)
-    end if
+    endif
 !
 !  Update LPTR so that the neighbor following NB now follows
 !  NP, and fill in the hole at location LPB.
@@ -1814,14 +1814,14 @@ contains
       if (lend(i) == lnw) then
         lend(i) = lpb
         exit
-      end if
-    end do
+      endif
+    enddo
 
     do i = 1, lnw - 1
       if (lptr(i) == lnw) then
         lptr(i) = lpb
-      end if
-    end do
+      endif
+    enddo
 !
 !  No errors encountered.
 !
@@ -1991,7 +1991,7 @@ contains
     if (n1 < 1 .or. n1 > nn .or. nn < 4 .or. lwk < 0) then
       ier = 1
       return
-    end if
+    endif
 
     lpl = lend(n1)
     lpf = lptr(lpl)
@@ -2000,12 +2000,12 @@ contains
 
     if (bdry) then
       nnb = nnb + 1
-    end if
+    endif
 
     if (nnb < 3) then
       ier = 3
       return
-    end if
+    endif
 
     lwkl = lwk
     lwk = nnb - 3
@@ -2013,13 +2013,13 @@ contains
     if (lwkl < lwk) then
       ier = 2
       return
-    end if
+    endif
 
     iwl = 0
 
     if (nnb == 3) then
       go to 3
-    end if
+    endif
 !
 !  Initialize for loop on arcs N1-N2 for neighbors N2 of N1,
 !  beginning with the second neighbor.  NR and NL are the
@@ -2050,7 +2050,7 @@ contains
 
       if (nl == nfrst .and. bdry) then
         exit
-      end if
+      endif
 
       xl = x(nl)
       yl = y(nl)
@@ -2073,7 +2073,7 @@ contains
         yr = y2
         zr = z2
         go to 2
-      end if
+      endif
 !
 !  The quadrilateral defined by adjacent triangles
 !  (N1,N2,NL) and (N2,N1,NR) is convex.  Swap in
@@ -2090,7 +2090,7 @@ contains
         yr = y2
         zr = z2
         go to 2
-      end if
+      endif
 
       iwl = iwl + 1
 
@@ -2098,13 +2098,13 @@ contains
         iwk(1, iwl) = nl
       else
         iwk(1, iwl) = nl - 1
-      end if
+      endif
 
       if (nr <= n1) then
         iwk(2, iwl) = nr
       else
         iwk(2, iwl) = nr - 1
-      end if
+      endif
 !
 !  Recompute the LIST indexes and NFRST, and decrement NNB.
 !
@@ -2113,7 +2113,7 @@ contains
 
       if (nnb == 3) then
         exit
-      end if
+      endif
 
       lpf = lptr(lpl)
       nfrst = list(lpf)
@@ -2139,7 +2139,7 @@ contains
         zr = z(nr)
         cycle
 
-      end if
+      endif
 !
 !  Bottom of loop -- test for termination of loop.
 !
@@ -2147,7 +2147,7 @@ contains
 
       if (n2 == nfrst) then
         exit
-      end if
+      endif
 
       n2 = nl
       x2 = xl
@@ -2155,7 +2155,7 @@ contains
       z2 = zl
       lp = lptr(lp)
 
-    end do
+    enddo
 !
 !  Delete N1 and all its incident arcs.  If N1 is an interior
 !  node and either NNB > 3 or NNB = 3 and N2 LEFT NR->NL,
@@ -2179,7 +2179,7 @@ contains
         n2 = list(lp)
         nl = list(lpl)
         bdry = left(x(nr), y(nr), z(nr), x(nl), y(nl), z(nl), x(n2), y(n2), z(n2))
-      end if
+      endif
 !
 !  If a boundary node already exists, then N1 and its
 !  neighbors cannot be converted to boundary nodes.
@@ -2191,22 +2191,22 @@ contains
           if (list(lend(i)) < 0) then
             bdry = .false.
             go to 5
-          end if
-        end do
+          endif
+        enddo
 
         list(lpl) = -list(lpl)
         nnb = nnb + 1
 
-      end if
+      endif
 
-    end if
+    endif
 
 5   continue
 
     if (.not. bdry .and. nnb > 3) then
       ier = 4
       return
-    end if
+    endif
 !
 !  Initialize for loop on neighbors.  LPL points to the last
 !  neighbor of N1.  LNEW is stored in local variable LNW.
@@ -2226,21 +2226,21 @@ contains
     if (lph < 0) then
       ier = 3
       return
-    end if
+    endif
 !
 !  LP and LPL may require alteration.
 !
     if (lpl == lnw) then
       lpl = lph
-    end if
+    endif
 
     if (lp == lnw) then
       lp = lph
-    end if
+    endif
 
     if (lp /= lpl) then
       go to 6
-    end if
+    endif
 !
 !  Delete N1 from X, Y, Z, and LEND, and remove its adjacency
 !  list from LIST and LPTR.  LIST entries (nodal indexes)
@@ -2250,26 +2250,26 @@ contains
 
     if (n1 > nn) then
       go to 9
-    end if
+    endif
 
     do i = n1, nn
       x(i) = x(i + 1)
       y(i) = y(i + 1)
       z(i) = z(i + 1)
       lend(i) = lend(i + 1)
-    end do
+    enddo
 
     do i = 1, lnw - 1
 
       if (list(i) > n1) then
         list(i) = list(i) - 1
-      end if
+      endif
 
       if (list(i) < -n1) then
         list(i) = list(i) + 1
-      end if
+      endif
 
-    end do
+    enddo
 !
 !  For LPN = first to last neighbors of N1, delete the
 !  preceding neighbor (indexed by LP).
@@ -2285,7 +2285,7 @@ contains
 
     if (bdry) then
       nnb = nnb - 1
-    end if
+    endif
 
     lpn = lpl
 
@@ -2303,14 +2303,14 @@ contains
         if (lend(i) == lnw) then
           lend(i) = lp
           exit
-        end if
-      end do
+        endif
+      enddo
 
       do i = lnw - 1, 1, -1
         if (lptr(i) == lnw) lptr(i) = lp
-      end do
+      enddo
 
-    end do
+    enddo
 !
 !  Update N and LNEW, and optimize the patch of triangles
 !  containing K (on input) by applying swaps to the arcs in IWK.
@@ -2332,14 +2332,14 @@ contains
         write(*, '(a,i6)') '  NIT = ', nit
         write(*, '(a,i6)') '  IERR = ', ierr
         return
-      end if
+      endif
 
       if (ierr == 1) then
         ier = 6
         return
-      end if
+      endif
 
-    end if
+    endif
 
     ier = 0
 
@@ -2508,7 +2508,7 @@ contains
     if (n1 < 1 .or. n2 < 1 .or. n1 == n2 .or. iwend < 0) then
       ier = 1
       return
-    end if
+    endif
 !
 !  Test for N2 as a neighbor of N1.  LPL points to the last neighbor of N1.
 !
@@ -2521,16 +2521,16 @@ contains
       if (n0 == n2) then
         ier = 0
         return
-      end if
+      endif
 
       lp = lptr(lp)
       n0 = list(lp)
 
       if (lp == lpl) then
         exit
-      end if
+      endif
 
-    end do
+    enddo
 !
 !  Initialize parameters.
 !
@@ -2566,7 +2566,7 @@ contains
 
       if (n1lst < 0) then
         go to 4
-      end if
+      endif
 !
 !  N1 is an interior node.  Set NL to the first candidate
 !  for NR (NL LEFT N2->N1).
@@ -2575,16 +2575,16 @@ contains
 
         if (left(x2, y2, z2, x1, y1, z1, x(nl), y(nl), z(nl))) then
           go to 4
-        end if
+        endif
 
         lp = lptr(lp)
         nl = list(lp)
 
         if (nl == n1frst) then
           exit
-        end if
+        endif
 
-      end do
+      enddo
 !
 !  All neighbors of N1 are strictly left of N1->N2.
 !
@@ -2616,7 +2616,7 @@ contains
           if ((dp2l - dp12*dp1l >= 0.0E+00 .or. dp2r - dp12*dp1r >= 0.0E+00) .and. &
               (dp1l - dp12*dp2l >= 0.0E+00 .or. dp1r - dp12*dp2r >= 0.0E+00)) then
             go to 6
-          end if
+          endif
 !
 !  NL-NR does not intersect N1-N2.  However, there is
 !  another candidate for the first arc if NL lies on
@@ -2624,17 +2624,17 @@ contains
 !
           if (.not. left(x2, y2, z2, x1, y1, z1, x(nl), y(nl), z(nl))) then
             exit
-          end if
+          endif
 
-        end if
+        endif
 !
 !  Bottom of loop.
 !
         if (nl == n1frst) then
           exit
-        end if
+        endif
 
-      end do
+      enddo
 !
 !  Either the triangulation is invalid or N1-N2 lies on the
 !  convex hull boundary and an edge NR->NL (opposite N1 and
@@ -2653,12 +2653,12 @@ contains
         write(*, '(a,i6)') '  IN1 = ', in1
         write(*, '(a,i6)') '  IN2 = ', in2
         return
-      end if
+      endif
 
       nit = 1
       call i_swap(n1, n2)
 
-    end do
+    enddo
 !
 !  Store the ordered sequence of intersecting edges NL->NR in
 !  IWK(1,IWL)->IWK(2,IWL).
@@ -2670,7 +2670,7 @@ contains
     if (iwl > iwend) then
       ier = 2
       return
-    end if
+    endif
 
     iwk(1, iwl) = nl
     iwk(2, iwl) = nr
@@ -2686,15 +2686,15 @@ contains
 
       if (list(lp) == nr) then
         go to 8
-      end if
+      endif
 
       lp = lptr(lp)
 
       if (lp == lpl) then
         exit
-      end if
+      endif
 
-    end do
+    enddo
 !
 !  NR must be the last neighbor, and NL->NR cannot be a boundary edge.
 !
@@ -2706,7 +2706,7 @@ contains
       write(*, '(a,i6)') '  IN1 = ', in1
       write(*, '(a,i6)') '  IN2 = ', in2
       return
-    end if
+    endif
 !
 !  Set NEXT to the neighbor following NR, and test for
 !  termination of the store loop.
@@ -2724,11 +2724,11 @@ contains
         nl = next
       else
         nr = next
-      end if
+      endif
 
       go to 6
 
-    end if
+    endif
 !
 !  IWL is the number of arcs which intersect N1-N2.
 !  Store LWK.
@@ -2768,14 +2768,14 @@ contains
 
     if (iwc == iwl) then
       go to 21
-    end if
+    endif
 
     iwcp1 = iwc + 1
     next = iwk(1, iwcp1)
 
     if (next /= nl) then
       go to 16
-    end if
+    endif
 
     next = iwk(2, iwcp1)
 !
@@ -2784,16 +2784,16 @@ contains
     if (.not. left(x0, y0, z0, x(nr), y(nr), z(nr), x(next), &
                    y(next), z(next))) then
       go to 14
-    end if
+    endif
 
     if (lft >= 0) then
       go to 12
-    end if
+    endif
 
     if (.not. left(x(nl), y(nl), z(nl), x0, y0, z0, x(next), &
                    y(next), z(next))) then
       go to 14
-    end if
+    endif
 !
 !  Replace NL->NR with N0->NEXT.
 !
@@ -2812,7 +2812,7 @@ contains
     do i = iwcp1, iwl
       iwk(1, i - 1) = iwk(1, i)
       iwk(2, i - 1) = iwk(2, i)
-    end do
+    enddo
 
     iwk(1, iwl) = n0
     iwk(2, iwl) = next
@@ -2846,16 +2846,16 @@ contains
     if (.not. &
         left(x(nl), y(nl), z(nl), x0, y0, z0, x(next), y(next), z(next))) then
       go to 19
-    end if
+    endif
 
     if (lft <= 0) then
       go to 17
-    end if
+    endif
 
     if (.not. &
         left(x0, y0, z0, x(nr), y(nr), z(nr), x(next), y(next), z(next))) then
       go to 19
-    end if
+    endif
 !
 !  Replace NL->NR with NEXT->N0.
 !
@@ -2874,7 +2874,7 @@ contains
     do i = iwc - 1, iwf, -1
       iwk(1, i + 1) = iwk(1, i)
       iwk(2, i + 1) = iwk(2, i)
-    end do
+    enddo
 
     iwk(1, iwf) = n0
     iwk(2, iwf) = next
@@ -2910,7 +2910,7 @@ contains
 !
     if (.not. left(x0, y0, z0, x(nr), y(nr), z(nr), x2, y2, z2)) then
       go to 10
-    end if
+    endif
 !
 !  Swap NL-NR for N0-N2 and store N0-N2 in the right portion of IWK.
 !
@@ -2926,7 +2926,7 @@ contains
 
     if (.not. left(x(nl), y(nl), z(nl), x0, y0, z0, x2, y2, z2)) then
       go to 10
-    end if
+    endif
 !
 !  Swap NL-NR for N0-N2, shift columns IWF,...,IWL-1 to the
 !  right, and store N0-N2 in the left portion of IWK.
@@ -2942,9 +2942,9 @@ contains
 
       if (i <= iwf) then
         exit
-      end if
+      endif
 
-    end do
+    enddo
 
     iwk(1, iwf) = n0
     iwk(2, iwf) = n2
@@ -2979,13 +2979,13 @@ contains
         write(*, '(a,i6)') '  NIT = ', nit
         write(*, '(a,i6)') '  IER = ', ier
         return
-      end if
+      endif
 
       if (ierr == 1) then
         ier = 5
-      end if
+      endif
 
-    end if
+    endif
 !
 !  Optimize the set of new arcs to the right of IN1->IN2.
 !
@@ -3003,19 +3003,19 @@ contains
         write(*, '(a,i6)') '  NIT = ', nit
         write(*, '(a,i6)') '  IER = ', ier
         return
-      end if
+      endif
 
       if (ierr == 1) then
         ier = 5
         return
-      end if
+      endif
 
-    end if
+    endif
 
     if (ier == 5) then
       ier = 5
       return
-    end if
+    endif
 
     return
   end subroutine edge
@@ -3114,7 +3114,7 @@ contains
     if (l < 2) then
       ier = 1
       return
-    end if
+    endif
 
     ier = 0
 !
@@ -3128,7 +3128,7 @@ contains
     do i = 1, l - 1
       ni = npts(i)
       lend(ni) = -lend(ni)
-    end do
+    enddo
 !
 !  Candidates for NP = NPTS(L) are the unmarked neighbors
 !  of nodes in NPTS.  DNP is initially greater than -cos(PI)
@@ -3157,18 +3157,18 @@ contains
           if (dnb < dnp) then
             np = nb
             dnp = dnb
-          end if
-        end if
+          endif
+        endif
 
         lp = lptr(lp)
 
         if (lp == lpl) then
           exit
-        end if
+        endif
 
-      end do
+      enddo
 
-    end do
+    enddo
 
     npts(l) = np
     df = dnp
@@ -3178,7 +3178,7 @@ contains
     do i = 1, l - 1
       ni = npts(i)
       lend(ni) = -lend(ni)
-    end do
+    enddo
 
     return
   end subroutine getnp
@@ -3444,7 +3444,7 @@ contains
     if (n < 3 .or. n > imx) then
       ier = 1
       return
-    end if
+    endif
 !
 !  Initialize K0.
 !
@@ -3454,7 +3454,7 @@ contains
     if (i1 < 1 .or. i1 > imx) then
       ier = 2
       return
-    end if
+    endif
 !
 !  Increment K0 and set Q to a point immediately to the left
 !  of the midpoint of edge V1->V2 = LISTV(K0)->LISTV(K0+1):
@@ -3467,7 +3467,7 @@ contains
     if (k0 > n) then
       ier = 4
       return
-    end if
+    endif
 
     i1 = listv(k0)
 
@@ -3475,12 +3475,12 @@ contains
       i2 = listv(k0 + 1)
     else
       i2 = listv(1)
-    end if
+    endif
 
     if (i2 < 1 .or. i2 > imx) then
       ier = 2
       return
-    end if
+    endif
 
     vn(1) = yv(i1)*zv(i2) - zv(i1)*yv(i2)
     vn(2) = zv(i1)*xv(i2) - xv(i1)*zv(i2)
@@ -3489,7 +3489,7 @@ contains
 
     if (vnrm == 0.0E+00) then
       go to 1
-    end if
+    endif
 
     q(1) = xv(i1) + xv(i2) + eps*vn(1)/vnrm
     q(2) = yv(i1) + yv(i2) + eps*vn(2)/vnrm
@@ -3509,7 +3509,7 @@ contains
 
     if (cn(1) == 0.0E+00 .and. cn(2) == 0.0E+00 .and. cn(3) == 0.0E+00) then
       go to 1
-    end if
+    endif
 
     pn(1) = p(2)*cn(3) - p(3)*cn(2)
     pn(2) = p(3)*cn(1) - p(1)*cn(3)
@@ -3531,7 +3531,7 @@ contains
     if (i2 < 1 .or. i2 > imx) then
       ier = 2
       return
-    end if
+    endif
 
     lft2 = cn(1)*xv(i2) + cn(2)*yv(i2) + cn(3)*zv(i2) > 0.0E+00
 !
@@ -3546,13 +3546,13 @@ contains
       if (i2 < 1 .or. i2 > imx) then
         ier = 2
         return
-      end if
+      endif
 
       lft2 = cn(1)*xv(i2) + cn(2)*yv(i2) + cn(3)*zv(i2) > 0.0E+00
 
       if (lft1 .eqv. lft2) then
         cycle
-      end if
+      endif
 !
 !  I1 and I2 are on opposite sides of Q->P.  Compute the
 !  point of intersection B.
@@ -3582,31 +3582,31 @@ contains
         if (d > bq) then
           bq = d
           qinr = lft2
-        end if
+        endif
 
         d = dot_product(b(1:3), p(1:3))
 
         if (d > bp) then
           bp = d
           pinr = lft1
-        end if
+        endif
 
-      end if
+      endif
 
-    end do
+    enddo
 !
 !  Test for consistency:  NI must be even and QINR must be TRUE.
 !
     if (ni /= 2*(ni/2) .or. .not. qinr) then
       go to 1
-    end if
+    endif
 !
 !  Test for error 3:  different values of PINR and EVEN.
 !
     if (pinr .neqv. even) then
       ier = 3
       return
-    end if
+    endif
 
     ier = 0
     inside = even
@@ -3780,7 +3780,7 @@ contains
     if (d1 == d2) then
       ier = 1
       return
-    end if
+    endif
 !
 !  Solve for T such that <PP,CN> = 0 and compute PP and PPN.
 !
@@ -3790,14 +3790,14 @@ contains
     do i = 1, 3
       pp(i) = p1(i) + t*(p2(i) - p1(i))
       ppn = ppn + pp(i)*pp(i)
-    end do
+    enddo
 !
 !  PPN = 0 iff PP = 0 iff P2 = -P1 (and T = .5).
 !
     if (ppn == 0.0E+00) then
       ier = 2
       return
-    end if
+    endif
 
     ppn = sqrt(ppn)
 !
@@ -3984,15 +3984,15 @@ contains
 
       if (nd == nb) then
         exit
-      end if
+      endif
 
       lp = lptr(lp)
 
       if (lp == lpl) then
         exit
-      end if
+      endif
 
-    end do
+    enddo
 
     lstptr = lp
 
@@ -4056,11 +4056,11 @@ contains
 
       if (lp == lpl) then
         exit
-      end if
+      endif
 
       k = k + 1
 
-    end do
+    enddo
 
     nbcnt = k
 
@@ -4207,13 +4207,13 @@ contains
 
     if (nn < 3) then
       return
-    end if
+    endif
 
     nst = ist
 
     if (nst < 1 .or. nst > nn) then
       nst = 1
-    end if
+    endif
 !
 !  Find a triangle (I1,I2,I3) containing P, or the rightmost
 !  (I1) and leftmost (I2) visible boundary nodes as viewed from P.
@@ -4224,7 +4224,7 @@ contains
 !
     if (i1 == 0) then
       return
-    end if
+    endif
 !
 !  Store the linked list of 'neighbors' of P in LISTP and
 !  LPTRP.  I1 is the first neighbor, and 0 is stored as
@@ -4264,15 +4264,15 @@ contains
 
         if (n1 == i2 .or. lp1 >= lmax) then
           exit
-        end if
+        endif
 
-      end do
+      enddo
 
       l = lp1
       listp(l) = 0
       lptrp(l) = 1
 
-    end if
+    endif
 !
 !  Initialize variables for a loop on arcs N1-N2 opposite P
 !  in which new 'neighbors' are 'swapped' in.  N1 follows
@@ -4299,7 +4299,7 @@ contains
 !
         if (l == lmax) then
           exit
-        end if
+        endif
 
         dx1 = x(n1) - p(1)
         dy1 = y(n1) - p(2)
@@ -4328,16 +4328,16 @@ contains
           n1 = n3
           cycle
 
-        end if
+        endif
 
-      end if
+      endif
 !
 !  No swap:  Advance to the next arc and test for termination
 !  on N1 = I1 (LP1 = 1) or N1 followed by 0.
 !
       if (lp1 == 1) then
         exit
-      end if
+      endif
 
       lp2 = lp1
       n2 = n1
@@ -4346,9 +4346,9 @@ contains
 
       if (n1 == 0) then
         exit
-      end if
+      endif
 
-    end do
+    enddo
 !
 !  Set NR and DSR to the index of the nearest node to P and
 !  an increasing function (negative cosine) of its distance
@@ -4363,16 +4363,16 @@ contains
 
       if (n1 == 0) then
         cycle
-      end if
+      endif
 
       ds1 = -(x(n1)*p(1) + y(n1)*p(2) + z(n1)*p(3))
 
       if (ds1 < dsr) then
         nr = n1
         dsr = ds1
-      end if
+      endif
 
-    end do
+    enddo
 
     dsr = -dsr
     dsr = min(dsr, 1.0E+00)
@@ -4490,7 +4490,7 @@ contains
       nit = 0
       ier = 2
       return
-    end if
+    endif
 !
 !  Initialize iteration count ITER and test for NA = 0.
 !
@@ -4500,7 +4500,7 @@ contains
       nit = 0
       ier = 0
       return
-    end if
+    endif
 !
 !  Top of loop.
 !  SWP = TRUE iff a swap occurred in the current iteration.
@@ -4511,7 +4511,7 @@ contains
         nit = iter
         ier = 1
         return
-      end if
+      endif
 
       iter = iter + 1
       swp = .false.
@@ -4538,16 +4538,16 @@ contains
 
           if (list(lp) == io2) then
             go to 3
-          end if
+          endif
 
           lpp = lp
           lp = lptr(lpp)
 
           if (lp == lpl) then
             exit
-          end if
+          endif
 
-        end do
+        enddo
 !
 !  IO2 should be the last neighbor of IO1.  Test for no
 !  arc and bypass the swap test if IO1 is a boundary node.
@@ -4556,7 +4556,7 @@ contains
           nit = iter
           ier = 3
           return
-        end if
+        endif
 
         if (list(lp) < 0) go to 4
 !
@@ -4582,25 +4582,25 @@ contains
               nit = iter
               ier = 4
               return
-            end if
+            endif
 
             swp = .true.
             iwk(1, i) = n1
             iwk(2, i) = n2
 
-          end if
+          endif
 
-        end if
+        endif
 
 4       continue
 
-      end do
+      enddo
 
       if (.not. swp) then
         exit
-      end if
+      endif
 
-    end do
+    enddo
 
     nit = iter
     ier = 0
@@ -4674,9 +4674,9 @@ contains
         x(i) = x(i)/norm
         y(i) = y(i)/norm
         z(i) = z(i)/norm
-      end if
+      endif
 
-    end do
+    enddo
 
     return
   end subroutine r3vec_normalize
@@ -4726,13 +4726,13 @@ contains
       plon = atan2(py, px)
     else
       plon = 0.0E+00
-    end if
+    endif
 
     if (pnrm /= 0.0E+00) then
       plat = asin(pz/pnrm)
     else
       plat = 0.0E+00
-    end if
+    endif
 
     return
   end subroutine scoord
@@ -4842,7 +4842,7 @@ contains
     if (abs(list(lp)) == in2) then
       lp21 = 0
       return
-    end if
+    endif
 !
 !  Delete IO2 as a neighbor of IO1.
 !
@@ -4854,7 +4854,7 @@ contains
 !
     if (lend(io1) == lph) then
       lend(io1) = lp
-    end if
+    endif
 !
 !  Insert IN2 as a neighbor of IN1 following IO1 using the hole created above.
 !
@@ -4874,7 +4874,7 @@ contains
 !
     if (lend(io2) == lph) then
       lend(io2) = lp
-    end if
+    endif
 !
 !  Insert IN1 as a neighbor of IN2 following IO2.
 !
@@ -5036,7 +5036,7 @@ contains
         ampm = 'Noon'
       else
         ampm = 'PM'
-      end if
+      endif
     else
       h = h - 12
       if (h < 12) then
@@ -5046,9 +5046,9 @@ contains
           ampm = 'Midnight'
         else
           ampm = 'AM'
-        end if
-      end if
-    end if
+        endif
+      endif
+    endif
 
     write(*, '(a,1x,i2,1x,i4,2x,i2,a1,i2.2,a1,i2.2,a1,i3.3,1x,a)') &
       trim(month(m)), d, y, h, ':', n, ':', s, '.', mm, trim(ampm)
@@ -5120,7 +5120,7 @@ contains
       x(i) = cosphi*cos(theta)
       y(i) = cosphi*sin(theta)
       z(i) = sin(phi)
-    end do
+    enddo
 
     return
   end subroutine trans
@@ -5290,7 +5290,7 @@ contains
 
     if (n0 < 1 .or. n < n0) then
       n0 = jrand(n, ix, iy, iz)
-    end if
+    endif
 !
 !  Compute the relative machine precision EPS and TOL.
 !
@@ -5325,9 +5325,9 @@ contains
         n1 = list(lp)
         if (n1 == nl) then
           go to 6
-        end if
+        endif
         go to 3
-      end if
+      endif
 
     else
 !
@@ -5341,7 +5341,7 @@ contains
         n1 = n0
         n2 = nf
         go to 9
-      end if
+      endif
 !
 !  Is P to the right of the boundary edge NL->N0?
 !
@@ -5349,9 +5349,9 @@ contains
         n1 = nl
         n2 = n0
         go to 9
-      end if
+      endif
 
-    end if
+    endif
 !
 !  P is to the left of arcs N0->N1 and NL->N0.  Set N2 to the
 !  next neighbor of N0 (following N1).
@@ -5363,17 +5363,17 @@ contains
 
     if (det(x(n0), y(n0), z(n0), x(n2), y(n2), z(n2), xp, yp, zp) < 0.0E+00) then
       go to 7
-    end if
+    endif
 
     n1 = n2
 
     if (n1 /= nl) then
       go to 4
-    end if
+    endif
 
     if (det(x(n0), y(n0), z(n0), x(nf), y(nf), z(nf), xp, yp, zp) < 0.0E+00) then
       go to 6
-    end if
+    endif
 !
 !  P is left of or on arcs N0->NB for all neighbors NB
 !  of N0.  Test for P = +/-N0.
@@ -5389,7 +5389,7 @@ contains
 
         if (det(x(n1), y(n1), z(n1), x(n0), y(n0), z(n0), xp, yp, zp) < 0.0E+00) then
           exit
-        end if
+        endif
 
         lp = lptr(lp)
         n1 = abs(list(lp))
@@ -5399,11 +5399,11 @@ contains
           i2 = 0
           i3 = 0
           return
-        end if
+        endif
 
-      end do
+      enddo
 
-    end if
+    endif
 !
 !  P is to the right of N1->N0, or P = +/-N0.  Set N0 to N1 and start over.
 !
@@ -5441,7 +5441,7 @@ contains
 
       if (list(lp) < 0) then
         go to 9
-      end if
+      endif
 
       lp = lptr(lp)
       n4 = abs(list(lp))
@@ -5454,15 +5454,15 @@ contains
         n1s = n1
         if (n2 /= n2s .and. n2 /= n0) then
           go to 8
-        end if
+        endif
       else
         n3 = n1
         n1 = n4
         n2s = n2
         if (n1 /= n1s .and. n1 /= n0) then
           go to 8
-        end if
-      end if
+        endif
+      endif
 !
 !  The starting node N0 or edge N1-N2 was encountered
 !  again, implying a cycle (infinite loop).  Restart
@@ -5471,7 +5471,7 @@ contains
       n0 = jrand(n, ix, iy, iz)
       go to 2
 
-    end if
+    endif
 !
 !  P is in (N1,N2,N3) unless N0, N1, N2, and P are collinear
 !  or P is close to -N0.
@@ -5488,7 +5488,7 @@ contains
       if (b1 < -tol .or. b2 < -tol) then
         n0 = jrand(n, ix, iy, iz)
         go to 2
-      end if
+      endif
 
     else
 !
@@ -5507,9 +5507,9 @@ contains
       if (b1 < -tol .or. b2 < -tol) then
         n0 = jrand(n, ix, iy, iz)
         go to 2
-      end if
+      endif
 
-    end if
+    endif
 !
 !  P is in (N1,N2,N3).
 !
@@ -5555,7 +5555,7 @@ contains
 !  the leftmost visible node.
 !
       nl = n2
-    end if
+    endif
 !
 !  Bottom of counterclockwise loop:
 !
@@ -5564,7 +5564,7 @@ contains
 
     if (n2 /= n1s) then
       go to 10
-    end if
+    endif
 !
 !  All boundary nodes are visible from P.
 !
@@ -5606,17 +5606,17 @@ contains
 
         if (xp*q(1) + yp*q(2) + zp*q(3) >= 0.0E+00) then
           go to 13
-        end if
+        endif
 
         if (x(next)*q(1) + y(next)*q(2) + z(next)*q(3) >= 0.0E+00) then
           go to 13
-        end if
+        endif
 !
 !  P, NEXT, N1, and N2 are nearly collinear and N1 is the rightmost
 !  visible node.
 !
         nf = n1
-      end if
+      endif
 !
 !  Bottom of clockwise loop:
 !
@@ -5625,7 +5625,7 @@ contains
 
       if (n1 /= n1s) then
         go to 12
-      end if
+      endif
 !
 !  All boundary nodes are visible from P.
 !
@@ -5640,7 +5640,7 @@ contains
 
       nl = n1
 
-    end if
+    endif
 !
 !  NF and NL have been found.
 !
@@ -5760,7 +5760,7 @@ contains
       nt = 0
       ier = 1
       return
-    end if
+    endif
 !
 !  Initialize parameters for loop on triangles KT = (N1,N2,
 !  N3), where N1 < N2 and N1 < N3.
@@ -5814,7 +5814,7 @@ contains
         else
           i1 = n2
           i2 = n1
-        end if
+        endif
 !
 !  Set I3 to the neighbor of I1 that follows I2 unless
 !  I2->I1 is a boundary arc.
@@ -5826,15 +5826,15 @@ contains
 
           if (list(lp) == i2) then
             go to 3
-          end if
+          endif
 
           lp = lptr(lp)
 
           if (lp == lpl) then
             exit
-          end if
+          endif
 
-        end do
+        enddo
 !
 !  Invalid triangulation data structure:  I1 is a neighbor of
 !  I2, but I2 is not a neighbor of I1.
@@ -5843,7 +5843,7 @@ contains
           nt = 0
           ier = 2
           return
-        end if
+        endif
 !
 !  I2 is the last neighbor of I1.  Bypass the search for a neighboring
 !  triangle if I2->I1 is a boundary arc.
@@ -5852,7 +5852,7 @@ contains
 
         if (list(lp) < 0) then
           go to 6
-        end if
+        endif
 !
 !  I2->I1 is not a boundary arc, and LP points to I2 as
 !  a neighbor of I1.
@@ -5879,13 +5879,13 @@ contains
           i1 = i3
           i3 = i2
           i2 = isv
-        end if
+        endif
 !
 !  Test for KN > KT (triangle index not yet assigned).
 !
         if (i1 > n1) then
           cycle
-        end if
+        endif
 !
 !  Find KN, if it exists, by searching the triangle list in
 !  reverse order.
@@ -5893,7 +5893,7 @@ contains
         do kn = kt - 1, 1, -1
           if (ltri(1, kn) == i1 .and. ltri(2, kn) == &
               i2 .and. ltri(3, kn) == i3) go to 5
-        end do
+        enddo
 
         cycle
 !
@@ -5913,9 +5913,9 @@ contains
           ka = ka + 1
           ltri(i + 6, kt) = ka
           if (kn /= 0) ltri(j + 6, kn) = ka
-        end if
+        endif
 
-      end do
+      enddo
 !
 !  Bottom of loop on triangles.
 !
@@ -5923,11 +5923,11 @@ contains
 
       if (lp2 /= lpln1) then
         go to 1
-      end if
+      endif
 
 9     continue
 
-    end do
+    enddo
 
     nt = kt
     ier = 0
@@ -6028,7 +6028,7 @@ contains
         nt < 1 .or. nt > nmax) then
       write(*, 110) n, nrow, nt
       return
-    end if
+    endif
 !
 !  Print X, Y, and Z.
 !
@@ -6043,10 +6043,10 @@ contains
           write(*, '(a)') ' '
           write(*, '(a)') ' '
           nl = 0
-        end if
+        endif
         write(*, 103) i, x(i), y(i), z(i)
         nl = nl + 1
-      end do
+      enddo
 !
 !  Print X (longitude) and Y (latitude).
 !
@@ -6062,12 +6062,12 @@ contains
           write(*, '(a)') ' '
           write(*, '(a)') ' '
           nl = 0
-        end if
+        endif
         write(*, 104) i, x(i), y(i)
         nl = nl + 1
-      end do
+      enddo
 
-    end if
+    endif
 !
 !  Print the triangulation LTRI.
 !
@@ -6076,13 +6076,13 @@ contains
       write(*, '(a)') ' '
       write(*, '(a)') ' '
       nl = 0
-    end if
+    endif
 
     if (nrow == 6) then
       write(*, 105)
     else
       write(*, 106)
-    end if
+    endif
 
     nl = nl + 5
 
@@ -6092,10 +6092,10 @@ contains
         write(*, '(a)') ' '
         write(*, '(a)') ' '
         nl = 0
-      end if
+      endif
       write(*, 107) k, ltri(1:nrow, k)
       nl = nl + 1
-    end do
+    enddo
 !
 !  Print NB, NA, and NT (boundary nodes, arcs, and triangles).
 !
@@ -6106,7 +6106,7 @@ contains
       na = 3*n - 6
     else
       na = nt + n - 1
-    end if
+    endif
 
     write(*, '(a)') ' '
     write(*, '(a,i6)') '  Number of boundary nodes NB = ', nb
@@ -6344,7 +6344,7 @@ contains
     if (nn < 3) then
       ier = -1
       return
-    end if
+    endif
 !
 !  Store the first triangle in the linked list.
 !
@@ -6400,7 +6400,7 @@ contains
 !
       ier = -2
       return
-    end if
+    endif
 !
 !  Initialize LNEW and test for N = 3.
 !
@@ -6409,7 +6409,7 @@ contains
     if (nn == 3) then
       ier = 0
       return
-    end if
+    endif
 !
 !  A nearest-node data structure (NEAR, NEXT, and DIST) is
 !  used to obtain an expected-time (N*log(N)) incremental
@@ -6462,9 +6462,9 @@ contains
         dist(k) = d3
         next(k) = near(3)
         near(3) = k
-      end if
+      endif
 
-    end do
+    enddo
 !
 !  Add the remaining nodes.
 !
@@ -6474,7 +6474,7 @@ contains
 
       if (ier /= 0) then
         return
-      end if
+      endif
 !
 !  Remove K from the set of unprocessed nodes associated with NEAR(K).
 !
@@ -6495,13 +6495,13 @@ contains
 
           if (i == k) then
             exit
-          end if
+          endif
 
-        end do
+        enddo
 
         next(i0) = next(k)
 
-      end if
+      endif
 
       near(k) = 0
 !
@@ -6527,7 +6527,7 @@ contains
 
         if (i == 0) then
           exit
-        end if
+        endif
 
         nexti = next(i)
 !
@@ -6548,17 +6548,17 @@ contains
             near(j) = nexti
           else
             next(i0) = nexti
-          end if
+          endif
 
           next(i) = near(k)
           near(k) = i
         else
           i0 = i
-        end if
+        endif
 
         i = nexti
 
-      end do
+      enddo
 !
 !  Bottom of loop on neighbors J.
 !
@@ -6566,11 +6566,11 @@ contains
 
       if (lp /= lpl) then
         go to 3
-      end if
+      endif
 
 6     continue
 
-    end do
+    enddo
 
     return
   end subroutine trmesh
@@ -6761,7 +6761,7 @@ contains
     else if (n < 3) then
       ier = 1
       return
-    end if
+    endif
 
     if (abs(elat) > 90.0E+00) then
       ier = 2
@@ -6772,7 +6772,7 @@ contains
     else if (a > 90.0E+00) then
       ier = 2
       return
-    end if
+    endif
 !
 !  Compute a conversion factor CF for degrees to radians.
 !
@@ -6870,7 +6870,7 @@ contains
     else
       r11 = 0.0E+00
       r12 = 1.0E+00
-    end if
+    endif
 
     r21 = -ez*r12
     r22 = ez*r11
@@ -6884,14 +6884,14 @@ contains
 
       if (z0 < 0.0E+00) then
         cycle
-      end if
+      endif
 
       x0 = r11*x(n0) + r12*y(n0)
       y0 = r21*x(n0) + r22*y(n0) + r23*z(n0)
 
       if (x0*x0 + y0*y0 > wrs) then
         cycle
-      end if
+      endif
 
       lpl = lend(n0)
       lp = lpl
@@ -6918,7 +6918,7 @@ contains
           t = sqrt(x1*x1 + y1*y1)
           x1 = x1/t
           y1 = y1/t
-        end if
+        endif
 !
 !  If node N1 is in the window and N1 < N0, bypass edge
 !  N0->N1 (since edge N1->N0 has already been drawn).
@@ -6928,15 +6928,15 @@ contains
         if (z1 < 0.0E+00 .or. x1*x1 + y1*y1 > wrs .or. n1 >= n0) then
           write(lun, '(2f12.6,a,2f12.6,a)') &
             x0, y0, ' moveto', x1, y1, ' lineto'
-        end if
+        endif
 
         if (lp == lpl) then
           exit
-        end if
+        endif
 
-      end do
+      enddo
 
-    end do
+    enddo
 !
 !  Paint the path and restore the saved graphics state (with
 !  no clip path).
@@ -6961,14 +6961,14 @@ contains
 
         if (ex*x(n0) + ey*y(n0) + ez*z(n0) < 0.0E+00) then
           cycle
-        end if
+        endif
 
         x0 = r11*x(n0) + r12*y(n0)
         y0 = r21*x(n0) + r22*y(n0) + r23*z(n0)
 
         if (x0*x0 + y0*y0 > wrs) then
           cycle
-        end if
+        endif
 !
 !  Move to (X0,Y0) and draw the label N0.  The first char-
 !  acter will will have its lower left corner about one
@@ -6977,9 +6977,9 @@ contains
         write(lun, '(2f12.6,a)') x0, y0, ' moveto'
         write(lun, '(a,i3,a)') '(', n0, ') show'
 
-      end do
+      enddo
 
-    end if
+    endif
 !
 !  Convert FSIZT from points to world coordinates, and output
 !  the commands to select a font and scale it.
@@ -7010,7 +7010,7 @@ contains
       write(lun, '(2f12.6,a)') x0, y0, ' moveto'
       write(lun, '(a,f5.2,a)') '(Angular extent = ', a, ') show'
 
-    end if
+    endif
 !
 !  Paint the path and output the showpage command and
 !  end-of-file indicator.
@@ -7123,7 +7123,7 @@ contains
       write(*, '(a)') 'TRPRNT - Fatal error!'
       write(*, '(a)') '  N is outside its valid range.'
       return
-    end if
+    endif
 !
 !  Initialize NL (the number of lines printed on the current
 !  page) and NB (the number of boundary nodes encountered).
@@ -7152,9 +7152,9 @@ contains
           nabor(k) = nd
           if (lp == lpl) then
             exit
-          end if
+          endif
 
-        end do
+        enddo
 !
 !  NODE is a boundary node.  Correct the sign of the last
 !  neighbor, add 0 to the end of the list, and increment NB.
@@ -7165,7 +7165,7 @@ contains
           nabor(k) = 0
           nb = nb + 1
 
-        end if
+        endif
 !
 !  Increment NL and print the list of neighbors.
 !
@@ -7177,14 +7177,14 @@ contains
           write(*, '(a)') ' '
           write(*, '(a)') ' '
           nl = inc
-        end if
+        endif
 
         write(*, 104) node, nabor(1:k)
         if (k /= 14) then
           write(*, '(a)') ' '
-        end if
+        endif
 
-      end do
+      enddo
 
     else if (iflag > 0) then
 !
@@ -7207,9 +7207,9 @@ contains
 
           if (lp == lpl) then
             exit
-          end if
+          endif
 
-        end do
+        enddo
 
         if (nd <= 0) then
 !
@@ -7219,7 +7219,7 @@ contains
           k = k + 1
           nabor(k) = 0
           nb = nb + 1
-        end if
+        endif
 !
 !  Increment NL and print X, Y, and NABOR.
 !
@@ -7231,15 +7231,15 @@ contains
           write(*, '(a)') ' '
           write(*, '(a)') ' '
           nl = inc
-        end if
+        endif
 
         write(*, 105) node, x(node), y(node), nabor(1:k)
 
         if (k /= 8) then
           write(*, '(a)') ' '
-        end if
+        endif
 
-      end do
+      enddo
 
     else
 !
@@ -7262,9 +7262,9 @@ contains
 
           if (lp == lpl) then
             exit
-          end if
+          endif
 
-        end do
+        enddo
 !
 !  NODE is a boundary node.
 !
@@ -7273,7 +7273,7 @@ contains
           k = k + 1
           nabor(k) = 0
           nb = nb + 1
-        end if
+        endif
 !
 !  Increment NL and print X, Y, Z, and NABOR.
 !
@@ -7285,17 +7285,17 @@ contains
           write(*, '(a)') ' '
           write(*, '(a)') ' '
           nl = inc
-        end if
+        endif
 
         write(*, 106) node, x(node), y(node), z(node), nabor(1:k)
 
         if (k /= 5) then
           write(*, '(a)') ' '
-        end if
+        endif
 
-      end do
+      enddo
 
-    end if
+    endif
 !
 !  Print NB, NA, and NT (boundary nodes, arcs, and triangles).
 !
@@ -7305,7 +7305,7 @@ contains
     else
       na = 3*nn - 6
       nt = 2*nn - 4
-    end if
+    endif
 
     write(*, '(a)') ' '
     write(*, 109) nb, na, nt
@@ -7393,17 +7393,17 @@ contains
 
         if (lp == lpl) then
           exit
-        end if
+        endif
 
-      end do
+      enddo
 
       if (0 < sides .and. sides < side_max) then
         count(sides) = count(sides) + 1
       else
         count(side_max) = count(side_max) + 1
-      end if
+      endif
 
-    end do
+    enddo
 
     edges = edges/2
 
@@ -7423,12 +7423,12 @@ contains
     do i = 1, side_max - 1
       if (count(i) /= 0) then
         write(*, '(i6,i6)') i, count(i)
-      end if
-    end do
+      endif
+    enddo
 
     if (count(side_max) /= 0) then
       write(*, '(i6,i6)') side_max, count(side_max)
-    end if
+    endif
 
     return
   end subroutine voronoi_poly_count
@@ -7645,12 +7645,12 @@ contains
         n < 3 .or. nt /= 2*n - 4) then
       ier = 1
       return
-    end if
+    endif
 
     if (abs(elat) > 90.0E+00 .or. abs(elon) > 180.0E+00 .or. a > 90.0E+00) then
       ier = 2
       return
-    end if
+    endif
 !
 !  Compute a conversion factor CF for degrees to radians.
 !
@@ -7748,7 +7748,7 @@ contains
     else
       r11 = 0.0E+00
       r12 = 1.0E+00
-    end if
+    endif
 
     r21 = -ez*r12
     r22 = ez*r11
@@ -7811,20 +7811,20 @@ contains
             t = sqrt(x2*x2 + y2*y2)
             x2 = x2/t
             y2 = y2/t
-          end if
+          endif
 
           write(lun, '(2f12.6,a,2f12.6,a)') &
             x1, y1, ' moveto', x2, y2, ' lineto'
 
-        end if
+        endif
 
         if (lp == lpl) then
           exit
-        end if
+        endif
 
-      end do
+      enddo
 
-    end do
+    enddo
 !
 !  Paint the path and restore the saved graphics state (with no clip path).
 !
@@ -7848,7 +7848,7 @@ contains
 
         if (ex*x(n0) + ey*y(n0) + ez*z(n0) < 0.0E+00) then
           cycle
-        end if
+        endif
 
         x0 = r11*x(n0) + r12*y(n0)
         y0 = r21*x(n0) + r22*y(n0) + r23*z(n0)
@@ -7859,11 +7859,11 @@ contains
         if (x0*x0 + y0*y0 <= wrs) then
           write(lun, '(2f12.6,a)') x0, y0, ' moveto'
           write(lun, '(a,i3,a)') '(', n0, ') show'
-        end if
+        endif
 
-      end do
+      enddo
 
-    end if
+    endif
 !
 !  Convert FSIZT from points to world coordinates, and output
 !  the commands to select a font and scale it.
@@ -7893,7 +7893,7 @@ contains
       write(lun, '(2f12.6,a)') x0, y0, ' moveto'
       write(lun, '(a,f5.2,a)') '(Angular extent = ', a, ') show'
 
-    end if
+    endif
 !
 !  Paint the path and output the showpage command and end-of-file indicator.
 !
@@ -7954,17 +7954,17 @@ contains
       Xyz1_D = 0.0
     else
       Xyz1_D = CoordXyzIn_DI(:, i1)
-    end if
+    endif
     if (i2 == 0) then
       Xyz2_D = 0.0
     else
       Xyz2_D = CoordXyzIn_DI(:, i2)
-    end if
+    endif
     if (i3 == 0) then
       Xyz3_D = 0.0
     else
       Xyz3_D = CoordXyzIn_DI(:, i3)
-    end if
+    endif
 
 !  write(*,*) 'Node1 Xyz', Xyz1_D
 !  write(*,*) 'Node2 Xyz', Xyz2_D
@@ -7990,7 +7990,7 @@ contains
       iNode1 = 0
       iNode2 = 0
       iNode3 = 0
-    end if
+    endif
 
   end subroutine find_triangle_sph
 end Module ModTriangulateSpherical

@@ -46,12 +46,12 @@ subroutine init_b0
           if (GeoLat > 90.0) then
             GeoLat = 180.0 - GeoLat
             GeoLon = mod(GeoLon + 180.0, 360.0)
-          end if
+          endif
 
           if (GeoLat < -90.0) then
             GeoLat = -180.0 - GeoLat
             GeoLon = mod(GeoLon + 180.0, 360.0)
-          end if
+          endif
 
           alat = 0.0
           alon = 0.0
@@ -79,7 +79,7 @@ subroutine init_b0
             b0_cD(iLon, iLat, iAlt, iBlock) = cD
             b0_Be3(iLon, iLat, iAlt, iBlock) = &
               B0(iLon, iLat, iAlt, iMag_, iBlock)/cD
-          end if
+          endif
 
           if (B0(iLon, iLat, iAlt, iMag_, iBlock) == 0.0) then
             B0(iLon, iLat, iAlt, iMag_, iBlock) = 1.0e-10
@@ -98,12 +98,12 @@ subroutine init_b0
               sin(DipAngle(iLon, iLat, iAlt, iBlock))
             DecAngle(iLon, iLat, iAlt, iBlock) = atan2(ymag, xmag)*180.0/pi
 
-          end if
+          endif
 
-        end do
-      end do
-    end do
-  end do
+        enddo
+      enddo
+    enddo
+  enddo
 
   if (UseApex .and. IsEarth) &
     call dypol( &
@@ -150,7 +150,7 @@ subroutine get_magfield(GeoLat, GeoLon, GeoAlt, xmag, ymag, zmag)
 !     xmag =     - DipoleStrength * cos(GeoLat*pi/180.0) * r3
 !     zmag = 2.0 * DipoleStrength * sin(GeoLat*pi/180.0) * r3
 
-  end if
+  endif
 
 end subroutine get_magfield
 
@@ -190,7 +190,7 @@ subroutine get_magfield_all(GeoLat, GeoLon, GeoAlt, alat, alon, xmag, ymag, zmag
     xmag = 0.0
     ymag = 0.0
     zmag = 0.0
-  end if
+  endif
 
   if (UseApex .and. IsEarth) then
 
@@ -227,10 +227,10 @@ subroutine get_magfield_all(GeoLat, GeoLon, GeoAlt, alat, alon, xmag, ymag, zmag
     londiff = alonp - alonm
     do while (londiff > 70.0)
       londiff = londiff - 90.0
-    end do
+    enddo
     do while (londiff < -70.0)
       londiff = londiff + 90.0
-    end do
+    enddo
 
     d1(iNorth_) = londiff/twodegrees
     d2(iNorth_) = (alatp - alatm)/twodegrees
@@ -249,10 +249,10 @@ subroutine get_magfield_all(GeoLat, GeoLon, GeoAlt, alat, alon, xmag, ymag, zmag
     londiff = alonp - alonm
     do while (londiff > 70.0)
       londiff = londiff - 90.0
-    end do
+    enddo
     do while (londiff < -70.0)
       londiff = londiff + 90.0
-    end do
+    enddo
 
     d1(iEast_) = (londiff)/(twodegrees*cos(GeoLat*pi/180.0))
     d2(iEast_) = (alatp - alatm)/(twodegrees*cos(GeoLat*pi/180.0))
@@ -273,15 +273,15 @@ subroutine get_magfield_all(GeoLat, GeoLon, GeoAlt, alat, alon, xmag, ymag, zmag
       write(*, *) 'This seems to be too high.  Please change the first few'
       write(*, *) 'lines in get_magfield_all.'
       call stop_gitm("Must Stop!!")
-    end if
+    endif
 
     londiff = alonp - alonm
     do while (londiff > 70.0)
       londiff = londiff - 90.0
-    end do
+    enddo
     do while (londiff < -70.0)
       londiff = londiff + 90.0
-    end do
+    enddo
 
     d1(iUp_) = (RBody + GeoAlt*1000.0)*(londiff)/(2000.0)
     d2(iUp_) = (RBody + GeoAlt*1000.0)*(alatp - alatm)/(2000.0)
@@ -328,10 +328,10 @@ subroutine get_magfield_all(GeoLat, GeoLon, GeoAlt, alat, alon, xmag, ymag, zmag
       londiff = alonp - alonm
       do while (londiff > 70.0)
         londiff = londiff - 90.0
-      end do
+      enddo
       do while (londiff < -70.0)
         londiff = londiff + 90.0
-      end do
+      enddo
 
       d1(iNorth_) = londiff/twodegrees
       d2(iNorth_) = (alatp - alatm)/twodegrees
@@ -344,10 +344,10 @@ subroutine get_magfield_all(GeoLat, GeoLon, GeoAlt, alat, alon, xmag, ymag, zmag
       londiff = alonp - alonm
       do while (londiff > 70.0)
         londiff = londiff - 90.0
-      end do
+      enddo
       do while (londiff < -70.0)
         londiff = londiff + 90.0
-      end do
+      enddo
 
       d1(iEast_) = (londiff)/(twodegrees*cos(GeoLat*pi/180.0))
       d2(iEast_) = (alatp - alatm)/(twodegrees*cos(GeoLat*pi/180.0))
@@ -358,10 +358,10 @@ subroutine get_magfield_all(GeoLat, GeoLon, GeoAlt, alat, alon, xmag, ymag, zmag
       londiff = alonp - alonm
       do while (londiff > 70.0)
         londiff = londiff - 90.0
-      end do
+      enddo
       do while (londiff < -70.0)
         londiff = londiff + 90.0
-      end do
+      enddo
 
       d1(iUp_) = (RBody + GeoAlt*1000.0)*(londiff)/(2000.0)
       d2(iUp_) = (RBody + GeoAlt*1000.0)*(alatp - alatm)/(2000.0)
@@ -383,9 +383,9 @@ subroutine get_magfield_all(GeoLat, GeoLon, GeoAlt, alat, alon, xmag, ymag, zmag
       d2 = 0.0
       LShell0 = rBelow
 
-    end if
+    endif
 
-  end if
+  endif
 
   ! Finish Eqn. 3.8-3.10 from Richmond 1995
 
@@ -405,7 +405,7 @@ subroutine get_magfield_all(GeoLat, GeoLon, GeoAlt, alat, alon, xmag, ymag, zmag
     d3(iUp_) = bz/CapDMag
   else
     d3 = 0.0
-  end if
+  endif
 
   e1(iEast_) = d2(iNorth_)*d3(iUp_) - d3(iNorth_)*d2(iUp_)
   e1(iNorth_) = -(d2(iEast_)*d3(iUp_) - d3(iEast_)*d2(iUp_))
@@ -593,7 +593,7 @@ subroutine test_mag_point(rBelow, LShell, RBody)
     write(*, *) 'This seems to be too high.  Please change the first few'
     write(*, *) 'lines in get_magfield_all.'
     call stop_gitm("Must Stop!!")
-  end if
+  endif
 
 end subroutine test_mag_point
 

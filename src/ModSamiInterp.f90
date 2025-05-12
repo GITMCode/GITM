@@ -59,7 +59,7 @@ contains
         alt1(iAlt) = baltst_g(iAlt, j, i) - re
         !alt1(iAlt) = baltst_g(iAlt,j,i)
 
-      end do
+      enddo
 
       if (gitm_alt <= maxval(alt1)) then
 
@@ -69,11 +69,11 @@ contains
 
           !print*,'check0', gitm_alt,maxval(alt1),minval(alt1)
           jflag = .false.
-        end if
-      end if
+        endif
+      endif
 
       j = j + 1
-    end do
+    enddo
 
     j = j - 1
 
@@ -102,7 +102,7 @@ contains
           lat_l1 = blatst_g(l + 1, ifl, i)
         else
           lat_l1 = blatst_g(l - 1, ifl, i)
-        end if
+        endif
 
         if (abs(gitm_mlat) <= abs(lat_l0)) then
 
@@ -116,18 +116,18 @@ contains
           if ((abs(gitm_mlat) < abs(lat_k0)) &
               .or. (k < 0)) stop
           jflag2 = .false.
-        end if
+        endif
 
         !l = l0
-      end if
+      endif
 
       ifl = ifl + 1
 
       if (ifl >= nf) then
         jflag2 = .false.
         print *, 'GITM nan', gitm_mlon, gitm_mlat, gitm_alt
-      end if
-    end do
+      endif
+    enddo
 
     j = ifl - 1
 
@@ -334,7 +334,7 @@ contains
 
       data_inp(ivar) = data0*(1.-zd) + data1*zd
       !if (ivar ==1 ) print*,'along z',iproc,data_inp(ivar)
-    end do
+    enddo
 
     return
 
@@ -372,7 +372,7 @@ contains
 
       yi_1jk = blatst_g(1, phi_j0, phi_i1)
       yi_1j_1l = blatst_g(1, phi_j1, phi_i1)
-    end if
+    endif
 
     !print*,'before',iproc,phi_i0,phi_i1,nlt,gitm_x,gitm_y,phi_sami_lon0,phi_sami_lon1
     if ((phi_i0 == 1) .and. (phi_i1 == nlt)) then
@@ -382,9 +382,9 @@ contains
         gitm_x = gitm_x + 360.0
       else if (gitm_x > phi_sami_lon1) then
         phi_sami_lon0 = phi_sami_lon0 + 360.0
-      end if
+      endif
 
-    end if
+    endif
 
     !print*,'after',iproc,phi_i0,phi_i1,nlt,gitm_x,gitm_y,phi_sami_lon0,phi_sami_lon1
     if ((phi_j0 == 1) .and. (phi_j1 == 1)) then
@@ -395,8 +395,8 @@ contains
       else
         yijk = -yijk
         yi_1jk = -yi_1jk
-      end if
-    end if
+      endif
+    endif
 
     xijk = phi_sami_lon0
     xij_1l = phi_sami_lon0
@@ -521,8 +521,8 @@ contains
         inz_i_1j_1l = 1
         inz_i_1j_1l_1 = 1
 
-      end if
-    end if
+      endif
+    endif
 
     yijk = blatst_g(inz_ijk, j0, i0)
     yijk_1 = blatst_g(inz_ijk_1, j0, i0)
@@ -545,11 +545,11 @@ contains
         gitm_x = gitm_x + 360.0
       elseif (gitm_x > sami_lon1) then
         sami_lon0 = sami_lon0 + 360.0
-      end if
+      endif
 
       !print*,'-- gitm_x,sami_lon0,b ',gitm_x,sami_lon0
 
-    end if
+    endif
 
     xijk = sami_lon0
     xijk_1 = sami_lon0
@@ -718,7 +718,7 @@ contains
       yi_1jk_1 = blatst_g(1, j0, i1)
       yi_1j_1l = blatst_g(1, j1, i1)
       yi_1j_1l_1 = blatst_g(1, j1, i1)
-    end if
+    endif
 
     !yijk     = blatst_g(k0,j0,i0)
     !yijk_1   = blatst_g(k1,j0,i0)
@@ -737,9 +737,9 @@ contains
         gitm_x = gitm_x + 360.0
       elseif (gitm_x > sami_lon1) then
         sami_lon0 = sami_lon0 + 360.0
-      end if
+      endif
 
-    end if
+    endif
 
     !if ((j0 == 1).and.(j1==1)) then
     !    if (gitm_mlat <0 ) then
@@ -763,8 +763,8 @@ contains
 
         yi_1jk = -yi_1jk
         yi_1jk_1 = -yi_1jk_1
-      end if
-    end if
+      endif
+    endif
 
     !print*,sami_lon0,gitm_x,sami_lon1,sami_lat0,gitm_y,sami_lat1
 
@@ -1231,7 +1231,7 @@ contains
       alt1(iAlt) = baltst_g(iAlt, j, i) - re
       !alt1(iAlt) = baltst_g(iAlt,j,i)
 
-    end do
+    enddo
 
     !print*, maxval(alt1),minval(alt1)
 
@@ -1248,16 +1248,16 @@ contains
         mm = 1
         do while (phi_gitm_alt >= alt1(mm))
           mm = mm + 1
-        end do
+        enddo
         k = mm - 1
       else
         mm = nz
         do while (phi_gitm_alt >= alt1(mm))
           mm = mm - 1
-        end do
+        enddo
         k = mm + 1
-      end if
-    end if
+      endif
+    endif
 
     !print*,'--k 100km',k
     !if (gitm_mlat < 0) then
@@ -1291,7 +1291,7 @@ contains
       alt1(iAlt) = baltst_g(iAlt, j, i) - re
       !alt1(iAlt) = baltst_g(iAlt,j,i)
 
-    end do
+    enddo
 
     !print*, maxval(alt1),minval(alt1)
 
@@ -1308,16 +1308,16 @@ contains
         mm = 1
         do while (gitm_alt >= alt1(mm))
           mm = mm + 1
-        end do
+        enddo
         k = mm - 1
       else
         mm = nz
         do while (gitm_alt >= alt1(mm))
           mm = mm - 1
-        end do
+        enddo
         k = mm + 1
-      end if
-    end if
+      endif
+    endif
 
     !print*,'--k',k
     !if (gitm_mlat < 0) then
@@ -1350,14 +1350,14 @@ contains
 
       do inlt = 1, nlt
         mlon0(inlt) = blonst_g(1, 1, inlt)
-      end do
+      enddo
 
       do inf = 1, nf
         mlat0(inf) = blatst_g(nz, inf, 1)
-      end do
+      enddo
 
       IsFirstTime = .false.
-    end if
+    endif
 
     k = -1
     l = -1
@@ -1373,14 +1373,14 @@ contains
       mm = 1
       do while (phi_gitm_mlon > mlon0(mm))
         mm = mm + 1
-      end do
+      enddo
       i = mm - 1
 
       phi_i0 = i
       phi_i1 = i + 1
 
       !print*, '=blon/i,i+1',i,mlon0(i),mlon0(i+1)
-    end if
+    endif
     !print*, '=blon/i,i+1',phi_i0,phi_i1,mlon0(phi_i0),mlon0(phi_i1)
 
     ! --find field_line_index : j
@@ -1398,12 +1398,12 @@ contains
       mm = 1
       do while (abs(phi_gitm_mlat) > mlat0(mm))
         mm = mm + 1
-      end do
+      enddo
       j = mm - 1
       phi_j0 = j
       phi_j1 = j + 1
       !print*, '=blat/j,j+1',j,mlat0(j),mlat0(j+1)
-    end if
+    endif
 
     !if (phi_j0 > 0) &
     !      print*, '=blat/j,j+1',phi_j0,phi_j1,mlat0(phi_j0),mlat0(phi_j1)
@@ -1416,16 +1416,16 @@ contains
 
       if ((k > 0) .and. (l > 0)) then
         phi_flag = 1
-      end if
+      endif
 
     else if ((phi_j0 == 1) .and. (phi_j1 == 1)) then
 
       call FindAltIndex_phi(phi_i0, phi_j0, k, phi_gitm_alt)
       if ((k > 0)) then
         phi_flag = 1
-      end if
+      endif
 
-    end if
+    endif
 
     if ((phi_j0 > 0) .and. (phi_flag == 1)) then
 
@@ -1438,10 +1438,10 @@ contains
       else
         phi_sami_lat0 = blatst_g(1, phi_j0, 1)
         phi_sami_lat1 = blatst_g(1, phi_j1, 1)
-      end if
+      endif
 
       !print*,phi_flag,phi_sami_lon0,phi_sami_lat0,phi_sami_lon1,phi_sami_lat1
-    end if
+    endif
 
   end subroutine get_index_4points_2
 
@@ -1469,11 +1469,11 @@ contains
 
       do inlt = 1, nlt
         mlon0(inlt) = blonst_g(1, 1, inlt)
-      end do
+      enddo
 
       do inf = 1, nf
         mlat0(inf) = blatst_g(nz, inf, 1)
-      end do
+      enddo
 
       !print*,'-->> sami mlon0'
       !print*,mlon0
@@ -1482,7 +1482,7 @@ contains
       !print*,'>>>>',blatst_g(:,nf,1)
 
       IsFirstTime = .false.
-    end if
+    endif
 
     k = -1
     l = -1
@@ -1497,14 +1497,14 @@ contains
       mm = 1
       do while (gitm_mlon > mlon0(mm))
         mm = mm + 1
-      end do
+      enddo
       i = mm - 1
 
       i0 = i
       i1 = i + 1
 
       !print*, '=blon/i,i+1',i,mlon0(i),mlon0(i+1)
-    end if
+    endif
 
     ! --find field_line_index : j
     if (abs(gitm_mlat) <= mlat0(1)) then
@@ -1521,12 +1521,12 @@ contains
       mm = 1
       do while (abs(gitm_mlat) > mlat0(mm))
         mm = mm + 1
-      end do
+      enddo
       j = mm - 1
       j0 = j
       j1 = j + 1
       !print*, '=blat/j,j+1',j,mlat0(j),mlat0(j+1)
-    end if
+    endif
 
     !if (j0>0) &
     !print*, '=blat/j,j+1',j0,mlat0(j0),mlat0(j1)
@@ -1546,9 +1546,9 @@ contains
         j1 = j0 + 1
 
         flag_eq = 1
-      end if
+      endif
 
-    end if
+    endif
 
     if (gitm_mlat > 0) then
       k1 = k - 1
@@ -1556,7 +1556,7 @@ contains
     else
       k1 = k + 1
       l1 = l + 1
-    end if
+    endif
 
     k0 = k
     l0 = l
@@ -1572,10 +1572,10 @@ contains
       else
         sami_lat0 = blatst_g(1, j0, 1)
         sami_lat1 = blatst_g(1, j1, 1)
-      end if
+      endif
       !print*, '--',sami_lon0,sami_lon1,sami_lat0,sami_lat1
       !print*,i0,j0,k0,l0,i1,j1,k1,l1
-    end if
+    endif
 
     !print*, '--',sami_lat0,sami_lat1
 
@@ -1617,11 +1617,11 @@ contains
 
       do inlt = 1, nlt
         mlon0(inlt) = blonst_g(1, 1, inlt)
-      end do
+      enddo
 
       do inf = 1, nf
         mlat0(inf) = blatst_g(nz, inf, 1)
-      end do
+      enddo
 
       !print*,'-->> sami mlon0'
       !print*,mlon0
@@ -1630,7 +1630,7 @@ contains
       !print*,'>>>>',blatst_g(:,nf,1)
 
       IsFirstTime = .false.
-    end if
+    endif
 
     k = -1
     l = -1
@@ -1645,14 +1645,14 @@ contains
       mm = 1
       do while (gitm_mlon > mlon0(mm))
         mm = mm + 1
-      end do
+      enddo
       i = mm - 1
 
       i0 = i
       i1 = i + 1
 
       !print*, '=blon/i,i+1',i,mlon0(i),mlon0(i+1)
-    end if
+    endif
     !print*, '=blon/i,i+1',i0,mlon0(i0),mlon0(i1)
 
     ! --find field_line_index : j
@@ -1670,12 +1670,12 @@ contains
       mm = 1
       do while (abs(gitm_mlat) > mlat0(mm))
         mm = mm + 1
-      end do
+      enddo
       j = mm - 1
       j0 = j
       j1 = j + 1
       !print*, '=blat/j,j+1',j,mlat0(j),mlat0(j+1)
-    end if
+    endif
 
     !if (j0>0) &
     !print*, '=blat/j,j+1',j0,mlat0(j0),mlat0(j1)
@@ -1690,7 +1690,7 @@ contains
       call FindAltIndex(i0, j0, k)
       if (k > 0) l = nz + 1 - k
 
-    end if
+    endif
 
     if (gitm_mlat > 0) then
       k1 = k - 1
@@ -1698,7 +1698,7 @@ contains
     else
       k1 = k + 1
       l1 = l + 1
-    end if
+    endif
 
     k0 = k
     l0 = l
@@ -1833,10 +1833,10 @@ contains
       else
         sami_lat0 = blatst_g(1, j0, 1)
         sami_lat1 = blatst_g(1, j1, 1)
-      end if
+      endif
       !print*, '--',sami_lon0,sami_lon1,sami_lat0,sami_lat1
       !print*,i0,j0,k0,l0,i1,j1,k1,l1
-    end if
+    endif
 
     !print*, '--',sami_lat0,sami_lat1
 
@@ -1876,11 +1876,11 @@ contains
 
       do inlt = 1, nlt
         mlon0(inlt) = blonst_g(1, 1, inlt)
-      end do
+      enddo
 
       do inf = 1, nf
         mlat0(inf) = blatst_g(nz, inf, 1)
-      end do
+      enddo
 
       !print*,'-->> sami mlon0'
       !print*,mlon0
@@ -1889,7 +1889,7 @@ contains
       !print*,'>>>>',blatst_g(:,nf,1)
 
       IsFirstTime = .false.
-    end if
+    endif
 
     k = -1
     l = -1
@@ -1902,10 +1902,10 @@ contains
       mm = 1
       do while (gitm_mlon >= mlon0(mm))
         mm = mm + 1
-      end do
+      enddo
       i = mm - 1
       !print*, '=blon/i,i+1',i,mlon0(i),mlon0(i+1)
-    end if
+    endif
 
     ! --find field_line_index : j
     if ((abs(gitm_mlat) < mlat0(1)) .or. (abs(gitm_mlat) > mlat0(nf))) then
@@ -1915,10 +1915,10 @@ contains
       mm = 1
       do while (abs(gitm_mlat) >= mlat0(mm))
         mm = mm + 1
-      end do
+      enddo
       j = mm - 1
       !print*, '=blat/j,j+1',j,mlat0(j),mlat0(j+1)
-    end if
+    endif
 
     !print*,'i/j',i,j
 
@@ -1942,7 +1942,7 @@ contains
 
         if (ktmp > 0) nn = nn + 1
 
-      end do
+      enddo
 
       allocate(AltIndex(1:nn))
       allocate(LatIndex(1:nn))
@@ -1962,8 +1962,8 @@ contains
           LatIndex(nn2) = LatIndex0(inn)
           LatsSel(nn2) = LatsSel0(inn)
           nn2 = nn2 + 1
-        end if
-      end do
+        endif
+      enddo
 
       !print*,LatsSel
       !print*,LatIndex
@@ -1981,7 +1981,7 @@ contains
         mm = 1
         do while (abs(gitm_mlat) >= abs(LatsSel(mm)))
           mm = mm + 1
-        end do
+        enddo
 
         ifl_sel = mm - 1
 
@@ -1990,12 +1990,12 @@ contains
         j = LatIndex(ifl_sel)
         k = AltIndex(ifl_sel)
         l = AltIndex(ifl_sel + 1)
-      end if
+      endif
 
       deallocate(AltIndex, LatIndex, LatsSel)
 
       !print*,'j b',j
-    end if
+    endif
 
     if (gitm_mlat > 0) then
       k1 = k - 1
@@ -2003,7 +2003,7 @@ contains
     else
       k1 = k + 1
       l1 = l + 1
-    end if
+    endif
 
     i1 = i + 1
     j1 = j + 1
@@ -2043,7 +2043,7 @@ contains
     mm = 2
     do while (gitm_mlon >= mlon0(mm))
       mm = mm + 1
-    end do
+    enddo
     i = mm - 1
     !print*, '=blon/i,i+1',mlon0(i),mlon0(i+1)
 
@@ -2052,7 +2052,7 @@ contains
     mm = 2
     do while (abs(gitm_mlat) >= mlat0(mm))
       mm = mm + 1
-    end do
+    enddo
     j = mm - 1
 
     !print*, '=blat/j,j+1',j,mlat0(j),mlat0(j+1)
@@ -2072,14 +2072,14 @@ contains
       LatsSel(ifl - j + 1) = blatst_g(ktmp, ifl, i)
       LatIndex(ifl - j + 1) = ifl
 
-    end do
+    enddo
 
     ! print*,LatsSel
 
     mm = 1
     do while (abs(gitm_mlat) >= abs(LatsSel(mm)))
       mm = mm + 1
-    end do
+    enddo
 
     ifl_sel = mm - 1
 
@@ -2093,7 +2093,7 @@ contains
     else
       k1 = k + 1
       l1 = l + 1
-    end if
+    endif
 
     i1 = i + 1
     j1 = j + 1

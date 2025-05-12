@@ -81,7 +81,7 @@ subroutine calc_rates(iBlock)
           write(*, *) 'Temperature(', iLon, iLat, iAlt, iBlock, ') = ', &
             Temperature(iLon, iLat, iAlt, iBlock)
           trouble = .true.
-        end if
+        endif
 
         do iSpecies = 1, nSpeciesTotal
           if (.not. (NDensityS(iLon, iLat, iAlt, iSpecies, iBlock) < 0.0) .and. &
@@ -101,8 +101,8 @@ subroutine calc_rates(iBlock)
             write(*, *) 'NDensityS(', iLon, iLat, iAlt, iSpecies, iBlock, ') = ', &
               NDensityS(iLon, iLat, iAlt, iSpecies, iBlock)
             trouble = .true.
-          end if
-        end do !iSpecies = 1,nSpeciesTotal
+          endif
+        enddo !iSpecies = 1,nSpeciesTotal
 
         if (.not. (NDensity(iLon, iLat, iAlt, iBlock) < 0.0) .and. &
             .not. (NDensity(iLon, iLat, iAlt, iBlock) > 0.0)) then
@@ -121,11 +121,11 @@ subroutine calc_rates(iBlock)
           write(*, *) 'NDensity(', iLon, iLat, iAlt, iBlock, ') = ', &
             NDensity(iLon, iLat, iAlt, iBlock)
           trouble = .true.
-        end if
+        endif
 
-      end do
-    end do
-  end do
+      enddo
+    enddo
+  enddo
 
   ! -------------------------------------------------------------------------------
 
@@ -133,7 +133,7 @@ subroutine calc_rates(iBlock)
     write(*, *) 'trouble found!!'
     write(*, *) 'Stop GITM'
     stop
-  end if
+  endif
 
   ! -------------------------------------------------------------------------------
 
@@ -169,7 +169,7 @@ subroutine calc_rates(iBlock)
     MeanMajorMass = MeanMajorMass + &
                     Mass(iSpecies)* &
                     NDensityS(:, :, :, iSpecies, iBlock)/mnd
-  end do
+  enddo
 
   !  MMM_3D(1:nLons,1:nLats,1:nAlts,iBlock) = &
   !       MeanMajorMass(1:nLons,1:nLats,1:nAlts)/AMU
@@ -184,7 +184,7 @@ subroutine calc_rates(iBlock)
   do iIon = 1, nIons - 1
     MeanIonMass = MeanIonMass + &
                   MassI(iIon)*IDensityS(:, :, :, iIon, iBlock)/Ne
-  end do
+  enddo
 
   ! -------------------------------------------------------------------------------
 
@@ -210,7 +210,7 @@ subroutine calc_rates(iBlock)
                        TempUnit(:, :, iAlt)
     tt(:, :, iAlt) = ttot(:, :, iAlt)**0.69
 
-  end do
+  enddo
 
   ! -------------------------------------------------------------------------------
 
@@ -273,9 +273,9 @@ subroutine calc_rates(iBlock)
                                    pco2(iLon, iLat, iAlt)*co2kt(iLon, iLat, iAlt))* &
                                   1.0E-05
 
-      end do
-    end do
-  end do
+      enddo
+    enddo
+  enddo
   ! -------------------------------------------------------------------------------
 
   if (iDebugLevel > 4) write(*, *) "=====> Before cp and kappatemp", iblock
@@ -308,8 +308,8 @@ subroutine calc_rates(iBlock)
           KappaTemp(iLon, iLat, iAlt, iBlock) + &
           EddyDiffusionCoef*cp(iLon, iLat, iAlt, iBlock)* &
           Rho(iLon, iLat, iAlt, iBlock)/10.
-      end do
-    end do
+      enddo
+    enddo
     ! ---------------------------------------------------------------------------
 
     !   Earth GITM formulation for Molecular Viscosity (mks)
@@ -323,7 +323,7 @@ subroutine calc_rates(iBlock)
 !     Visc_3D(:,:,iAlt,iBlock) =  kmmix(1:nLons,1:nLats,iAlt)
 
     ! ---------------------------------------------------------------------------
-  end do
+  enddo
 
   call end_timing("calc_rates")
 

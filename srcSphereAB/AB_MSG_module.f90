@@ -58,7 +58,7 @@ module AB_MSG_module
     if (.not. tmp_ok) then
       ok = .false.
       return
-    end if
+    endif
 
     ! allocate and initialize current message position
     allocate(msg%curr_out(0:max_pn), stat=ierror)
@@ -66,7 +66,7 @@ module AB_MSG_module
       ok = .false.
       call AB_ERROR_set("AB_MSG_create", "allocate error ", ierror)
       return
-    end if
+    endif
     msg%curr_out = 0
 
     ! allocate outgoing message buffers
@@ -75,7 +75,7 @@ module AB_MSG_module
       ok = .false.
       call AB_ERROR_set("AB_MSG_create", "allocate error ", ierror)
       return
-    end if
+    endif
 
     do p = 0, max_pn
       allocate(msg%out(p)%array(max_len(p)), stat=ierror)
@@ -83,8 +83,8 @@ module AB_MSG_module
         ok = .false.
         call AB_ERROR_set("AB_MSG_create", "allocate error ", ierror)
         return
-      end if
-    end do
+      endif
+    enddo
 
   end subroutine AB_MSG_create
 
@@ -122,12 +122,12 @@ module AB_MSG_module
     if (.not. tmp_ok) then
       ok = .false.
       return
-    end if
+    endif
 
     ! deallocate buffers
     do p = 0, msg%max_pn
       deallocate(msg%out(p)%array)
-    end do
+    enddo
 
     ! deallocate other memory
     deallocate(msg%curr_out)

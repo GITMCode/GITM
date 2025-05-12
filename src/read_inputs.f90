@@ -37,14 +37,14 @@ subroutine read_inputs(cFile)
       cInputText(nInputLines) = line
       nInputLines = nInputLines + 1
 
-    end do
+    enddo
 
     close(iInputUnit_)
 
     if (nInputLines == 0) &
       call stop_gitm("No lines of input read by read_inputs")
 
-  end if
+  endif
 
   ! Broadcast the number of lines and the text itself to all processors
   call MPI_Bcast(nInputLines, 1, MPI_Integer, 0, iCommGITM, ierror)

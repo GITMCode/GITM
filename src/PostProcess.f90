@@ -48,20 +48,20 @@ program PostProcess
   if (iStart > 0) then
   else
     iStart = index(FileName, " ") - 1
-  end if
+  endif
 
   inquire(file=FileName(1:iStart)//".header", EXIST=IsThere)
   if (.not. IsThere) then
     write(*, *) "Could not find header file : ", FileName(1:iStart)//".header"
     stop
-  end if
+  endif
 
   ! Xing Meng 2020-03-17: HIME type output requires special treatment
   if (FileName(3:5) == "HME") then
     IsHIMEType = .true.
   else
     IsHIMEType = .false.
-  end if
+  endif
 
   open(iInputUnitH_, file=FileName(1:iStart)//".header", status="old")
 
@@ -89,14 +89,14 @@ program PostProcess
         read(iInputUnitH_, *) nBlocksAlt
         read(iInputUnitH_, *) nBlocksLat
         read(iInputUnitH_, *) nBlocksLon
-      end if
+      endif
 
       if (index(cLine, "NUMERICAL") > 0) then
         read(iInputUnitH_, *) nVars
         read(iInputUnitH_, *) nAlts
         read(iInputUnitH_, *) nLats
         read(iInputUnitH_, *) nLons
-      end if
+      endif
 
       if (index(cLine, "TIME") > 0) then
         read(iInputUnitH_, *) iYear
@@ -106,37 +106,37 @@ program PostProcess
         read(iInputUnitH_, *) iMinute
         read(iInputUnitH_, *) iSecond
         read(iInputUnitH_, *) iMilli
-      end if
+      endif
 
       if (index(cLine, "VERSION") > 0) then
         read(iInputUnitH_, *) Version
-      end if
+      endif
 
       if (index(cLine, "VARIABLE") > 0) then
         do iVar = 1, nVars
           read(iInputUnitH_, "(i7,a40)") i, Variables(iVar)
-        end do
-      end if
+        enddo
+      endif
 
       if (index(cLine, "NGHOSTCELLS") > 0) then
         read(iInputUnitH_, *) nGhostAlts
         read(iInputUnitH_, *) nGhostLats
         read(iInputUnitH_, *) nGhostLons
-      end if
+      endif
 
       if (index(cLine, "NO GHOSTCELLS") > 0) then
         UseGhostCells = .false.
         nGhostLats = 0
         nGhostLons = 0
         nGhostAlts = 0
-      end if
+      endif
 
       if (index(cLine, "END") > 0) then
         iError = 1
         IsEnd = .true.
-      end if
+      endif
 
-    end do
+    enddo
 
     if (nAlts > 0) then
 
@@ -144,7 +144,7 @@ program PostProcess
       if (nLons == 1 .and. nLats == 1) then
         nBlocksLon = 1
         nBlocksLat = 1
-      end if
+      endif
 
       write(*, *) "Inputs :"
       write(*, *) "  nBlocksLon, nBlocksLat, nBlocksAlt : ", &
@@ -160,7 +160,7 @@ program PostProcess
         nLonsTotal = nBlocksLon*nLons
         nLatsTotal = nBlocksLat*nLats
         nAltsTotal = nBlocksAlt*nAlts
-      end if
+      endif
       write(*, *) "  nLonsTotal, nLatsTotal, nAltsTotal : ", &
         nLonsTotal, nLatsTotal, nAltsTotal, " (Predicted Values)"
 
@@ -169,7 +169,7 @@ program PostProcess
       if (IsHIMEType) then
         allocate(IsHIMEBlock(nBlocksLon, nBlocksLat, nBlocksAlt))
         IsHIMEBlock = 0
-      end if
+      endif
 
       if (.not. IsEnd .or. IsFirstTime) then
         open(iOutputUnit_, file=FileName(1:iStart)//".bin", &
@@ -178,7 +178,7 @@ program PostProcess
         write(*, *) "Appending Satellite Files...."
         open(iOutputUnit_, file=FileName(1:iStart)//".bin", &
              status="old", form="unformatted", position="append")
-      end if
+      endif
 
       nAltsTotal = 0
       nLatsTotal = 0
@@ -196,7 +196,7 @@ program PostProcess
             if (.not. IsThere .and. .not. IsHIMEType) then
               write(*, *) "Must be a satellite file...."
               cBlock = ".sat"
-            end if
+            endif
 
             if (IsHIMEType) then
               if (.not. IsThere) then
@@ -206,14 +206,14 @@ program PostProcess
               else
                 ! flag this block
                 IsHIMEBlock(iBlockLon, iBlockLat, iBlockAlt) = 1
-              end if
-            end if
+              endif
+            endif
 
             if (IsFirstTime .or. .not. IsEnd .or. iBlock > 1) then
               open(iInputUnitD_, file=FileName(1:iStart)//cBlock, &
                    status="old", form="unformatted")
               IsFirstTime = .false.
-            end if
+            endif
 
             do iAlt = 1, nAlts
               do iLat = 1, nLats
@@ -242,7 +242,7 @@ program PostProcess
                     if (iBlockAlt /= nBlocksAlt .and. &
                         iAlt > nAlts - nGhostAlts) DoWrite = .false.
 
-                  end if
+                  endif
 
                   if (DoWrite) then
 
@@ -258,7 +258,7 @@ program PostProcess
                       iiLat = (iBlockLat - 1)*(nLats) + iLat
                       iiAlt = (iBlockAlt - 1)*(nAlts) + iAlt
 
-                    end if
+                    endif
 
                     AllData(iiLon, iiLat, iiAlt, 1:nVars) = Data(1:nVars)
 
@@ -266,19 +266,19 @@ program PostProcess
                     if (iiLat > nLatsTotal) nLatsTotal = iiLat
                     if (iiAlt > nAltsTotal) nAltsTotal = iiAlt
 
-                  end if
+                  endif
 
-                end do
-              end do
-            end do
+                enddo
+              enddo
+            enddo
 
             if (.not. IsEnd .or. nBlocksLat > 1) close(iInputUnitD_)
 
             iBlock = iBlock + 1
 
-          end do
-        end do
-      end do
+          enddo
+        enddo
+      enddo
 
       ! Correct nLonsTotal, nLatsTotal, and nAltsTotal for HME
       if (IsHIMEType) then
@@ -296,7 +296,7 @@ program PostProcess
         nLonsTotal = nHIMEBlocksLon*nLons
         nLatsTotal = nHIMEBlocksLat*nLats
         nAltsTotal = nHIMEBlocksAlt*nAlts
-      end if
+      endif
 
       ! Write *bin file
       write(iOutputUnit_) Version
@@ -304,14 +304,14 @@ program PostProcess
       write(iOutputUnit_) nVars
       do iVar = 1, nVars
         write(iOutputUnit_) Variables(iVar)
-      end do
+      enddo
 
       write(iOutputUnit_) iYear, iMonth, iDay, iHour, iMinute, iSecond, iMilli
 
       if (.not. IsHIMEType) then
         do iVar = 1, nVars
           write(iOutputUnit_) AllData(:, :, :, iVar)
-        end do
+        enddo
       else
         do iVar = 1, nVars
           ! Write the data from the HIME output region. The rest should be zeros.
@@ -321,8 +321,8 @@ program PostProcess
                                       (iHIMEBlockStart(2) - 1)*nLats + nLatsTotal, &
                                       (iHIMEBlockStart(3) - 1)*nAlts + 1: &
                                       (iHIMEBlockStart(3) - 1)*nAlts + nAltsTotal, iVar)
-        end do
-      end if
+        enddo
+      endif
 
       write(*, *) "Output :"
       write(*, *) "  nLons, nLats, nAlts : ", nLonsTotal, nLatsTotal, nAltsTotal
@@ -331,9 +331,9 @@ program PostProcess
       deallocate(AllData)
       if (IsHIMEType) deallocate(IsHIMEBlock)
 
-    end if
+    endif
 
-  end do
+  enddo
 
   close(iInputUnitH_)
   close(iInputUnitD_)

@@ -37,9 +37,9 @@ subroutine set_bcs
           Velocity(iLon, iLat, nAlts + 1, iUp_, iBlock) = 0.0 ! -Vel(nAlts)
           Velocity(iLon, iLat, nAlts + 2, iUp_, iBlock) = 0.0 ! -Vel(nAlts-1)
 
-        end if
-      end do
-    end do
+        endif
+      enddo
+    enddo
 
 !     Temperature(:,:,nAlts+1,iBlock) = TempMax/TempUnit
 !     Temperature(:,:,nAlts+2,iBlock) = TempMax/TempUnit
@@ -54,7 +54,7 @@ subroutine set_bcs
       LogNS(:, :, nAlts + 1, iSpecies, iBlock) = &
         LogNS(:, :, nAlts, iSpecies, iBlock) + &
         2*dAlt(nAlts)*Gravity(nAlts)/Temperature(:, :, nAlts, iBlock)
-    end do
+    enddo
 
     LogRho(:, :, nAlts + 1, iBlock) = &
       LogRho(:, :, nAlts, iBlock) + &
@@ -63,6 +63,6 @@ subroutine set_bcs
       LogRho(:, :, nAlts, iBlock) + &
       2*dAlt(nAlts)*Gravity(nAlts)/Temperature(:, :, nAlts, iBlock)
 
-  end do
+  enddo
 
 end subroutine set_bcs

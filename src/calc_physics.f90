@@ -75,7 +75,7 @@ subroutine calc_physics(iBlock)
     DEccAnomaly = dM/(1 - eccentricity*cos(pi/180*eccAnomaly))
     eccAnomaly = eccAnomaly + dEccAnomaly
     i = i + 1
-  end do
+  enddo
 
   !Get heliocentric coordinates, TrueAnomaly and sunplanetdistance
   heliocentricX = semimajoraxis*(cos(EccAnomaly*pi/180.) - eccentricity)
@@ -139,13 +139,13 @@ subroutine calc_physics(iBlock)
             MLT(iLon, iLat, iAlt))
           if (mlt(iLon, iLat, iAlt) < 0) &
             mlt(iLon, iLat, iAlt) = mlt(iLon, iLat, iAlt) + 24.0
-        end do
-      end do
+        enddo
+      enddo
     else
 
       do iLat = -1, nLats + 2
         MLT(:, iLat, iAlt) = LocalTime
-      end do
+      enddo
 
       ! Since we go over the pole,
       !we have to move the points to the proper location:
@@ -153,16 +153,16 @@ subroutine calc_physics(iBlock)
       if (Latitude(0, iBlock) < -pi/2.0) then
         MLT(:, -1, iAlt) = MLT(:, 2, iAlt) + 12.0
         MLT(:, 0, iAlt) = MLT(:, 1, iAlt) + 12.0
-      end if
+      endif
 
       if (Latitude(0, iBlock) > pi/2.0) then
         MLT(:, nLats + 1, iAlt) = MLT(:, nLats, iAlt) + 12.0
         MLT(:, nLats + 2, iAlt) = MLT(:, nLats - 1, iAlt) + 12.0
-      end if
+      endif
 
-    end if
+    endif
 
-  end do
+  enddo
 
 !  write(*,*) mlt(1,1,1)
 
@@ -179,10 +179,10 @@ subroutine calc_physics(iBlock)
 
       if (DtLTERadiation < RotationPeriodInput) then
         call calc_avesza(iLon, iLat, iBlock, SinDec, CosDec)
-      end if
+      endif
 
-    end do
-  end do
+    enddo
+  enddo
 
   call calc_scaled_euv
 
@@ -191,7 +191,7 @@ subroutine calc_physics(iBlock)
                          *cos(SZA(:, :, iBlock))
     ySolar(:, :, iAlt) = RadialDistance_GB(1:nLons, 1:nLats, iAlt, iBlock) &
                          *sin(SZA(:, :, iBlock))
-  end do
+  enddo
 
 end subroutine calc_physics
 

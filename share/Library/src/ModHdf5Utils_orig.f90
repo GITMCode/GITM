@@ -200,7 +200,7 @@ contains
       iCommOpen = MPI_COMM_SELF
       iProc = 0
       nProc = 1
-    end if
+    endif
 
     nBlkUsed = NumberOfBlocksUsed
     CellsPerBlock(1:3) = n_D(1:3)
@@ -211,7 +211,7 @@ contains
     if (FileID == -1) then
       write(*, *) "Error: unable to initialize file"
       call stop_hdf5("unable to initialize hdf5 file")
-    end if
+    endif
 
     xMin = 0; yMin = 0; zMin = 0
     if (present(CoordMin)) then
@@ -220,8 +220,8 @@ contains
         yMin = CoordMin(2)
         if (nDimOut == 3) &
           zMin = CoordMin(3)
-      end if
-    end if  ! else make a grid?
+      endif
+    endif  ! else make a grid?
 
     xMax = 0; yMax = 0; zMax = 0
     if (present(CoordMax)) then
@@ -230,8 +230,8 @@ contains
         yMax = CoordMax(2)
         if (nDimOut == 3) &
           zMax = CoordMax(3)
-      end if
-    end if  ! else make a grid
+      endif
+    endif  ! else make a grid
 
     allocate(UnknownNameArray(nVar))
     call split_string(NameUnits, nVar, UnknownNameArray(1:nVar), i)
@@ -255,7 +255,7 @@ contains
                            Rank4RealData=PlotVarBlk(:, :, :, :, iVar), &
                            RealAttribute1=VarMin, RealAttribute2=VarMax, &
                            NameRealAttribute1="minimum", NameRealAttribute2="maximum")
-    end do
+    enddo
     deallocate(UnknownNameArray)
 
     iInteger8 = 2
@@ -265,7 +265,7 @@ contains
     allocate(coordinates(nPlotDim, nBlkUsed))
     do iBlk = 1, nBlkUsed
       coordinates(1:nPlotDim, iBlk) = .5*(XYZMinMax(1, 1:nPlotDim, iBlk) + XYZMinMax(2, 1:nPlotDim, iBlk))
-    end do
+    enddo
     call write_hdf5_data(FileID, "coordinates", 2, &
                          (/nPlotDim, nBlkUsed/), Rank2RealData=coordinates)
 
@@ -277,7 +277,7 @@ contains
       UnknownNameArray(2) = "Z-Axis"
       if (nPlotDim == 3) &
         UnknownNameArray(3) = "Z-Axis"
-    end if
+    endif
     iInteger4 = lNameh5
     call pad_string_with_null(nVar, iInteger4, UnknownNameArray, UnknownNameArray)
     iInteger8 = nPlotDim
@@ -324,7 +324,7 @@ contains
       RealMetaData(iData) = zMin
       iData = iData + 1
       RealMetaData(iData) = zMax
-    end if
+    endif
 
     !-------------------------------------------------------------------
     !write the real Metadata
@@ -372,7 +372,7 @@ contains
     do i = 1, 3
       IntegerMetaData(iData) = 0 ! none of the axis are periodic
       iData = iData + 1
-    end do
+    enddo
 
     integerMetaData(iData) = 1 !Tells VisIt that this is a cut file, which to VisIt means that
     ! there is no morton curve index to be read.
@@ -425,11 +425,11 @@ contains
           DoCollectiveWrite = .true.
         else
           DoCollectiveWrite = .false.
-        end if
+        endif
       else
         DoCollectiveWrite = .false.
-      end if
-    end if
+      endif
+    endif
 
     ! Create the file Collectively.
 
@@ -504,13 +504,13 @@ contains
       allocate(nCount(DatasetRank))
     else
       nBlocksLocal = nDatasetDimension(DatasetRank)
-    end if
+    endif
     if (present(nCellsLocalIn)) then
       nCellsLocal = nCellsLocalIn
       allocate(nCount(1))
     else
       nCellsLocal = nBlocksLocal
-    end if
+    endif
 
     if ((.not. present(nBlocksLocalIn)) .and. (.not. present(nCellsLocalIn))) &
       allocate(nCount(DatasetRank))
@@ -528,7 +528,7 @@ contains
     else if (present(CharacterData)) then
       call h5tcopy_f(H5T_NATIVE_CHARACTER, DataType, iErrorHdf)
       call h5tset_size_f(DataType, nStringChars, iErrorHdf)
-    end if
+    endif
 
     call h5screate_simple_f(DatasetRank, nDatasetDimension, DataSpaceId, iErrorHdf)
     !create the DatasetID
@@ -572,7 +572,7 @@ contains
         call h5dclose_f(DatasetID, iErrorHdf)
         deallocate(nCount)
         return
-      end if
+      endif
     else
       if (present(nOffsetLocal)) then
         if (DatasetRank == 1) then
@@ -583,7 +583,7 @@ contains
           nStart(DatasetRank) = nOffsetLocal
           nCount(1:DatasetRank - 1) = nDatasetDimension(1:DatasetRank - 1)
           nCount(DatasetRank) = nBlocksLocal
-        end if
+        endif
         !create the hyperslab.  This will differ on the different processors
         call h5sselect_hyperslab_f(DataSpaceId, H5S_SELECT_SET_F, nStart, nCount, iErrorHdf)
         !create the memory space
@@ -600,8 +600,8 @@ contains
         call h5sselect_all_f(DataSpaceId, iErrorHdf)
         !         !create the memory space
         call h5screate_simple_f(DatasetRank, nDatasetDimension, MemorySpaceId, iErrorHdf)
-      end if
-    end if
+      endif
+    endif
     if (DataType == H5T_NATIVE_DOUBLE) then
       if (present(Rank1RealData)) then
         call h5dwrite_f(DatasetID, DataType, Rank1RealData, nCount, iErrorHdf, &
@@ -627,7 +627,7 @@ contains
                         xfer_prp=PropertyListID)
         if (iErrorHdf == -1) &
           call stop_hdf5("iErrorHdf in subroutine write_hdf5_data. Error marker 9")
-      end if
+      endif
     else if (DataType == H5T_NATIVE_INTEGER) then
       if (present(Rank1IntegerData)) then
         call h5dwrite_f(DatasetID, DataType, Rank1IntegerData, nCount, iErrorHdf, &
@@ -653,7 +653,7 @@ contains
                         xfer_prp=PropertyListID)
         if (iErrorHdf == -1) &
           call stop_hdf5("iErrorHdf in subroutine write_hdf5_data. Error marker 13")
-      end if
+      endif
     else
       call h5dwrite_f(DatasetID, DataType, CharacterData, nCount, iErrorHdf, &
                       mem_space_id=MemorySpaceId, file_space_id=DataSpaceId, &
@@ -661,7 +661,7 @@ contains
       if (iErrorHdf == -1) &
         call stop_hdf5("iErrorHdf in subroutine write_hdf5_data. Error marker 14")
       call h5tclose_f(DataType, iErrorHdf)
-    end if
+    endif
     call h5sclose_f(MemorySpaceId, iErrorHdf)
     call h5pclose_f(PropertyListID, iErrorHdf)
     call h5sclose_f(DataSpaceId, iErrorHdf)
@@ -695,7 +695,7 @@ contains
                        iAttributeSpaceID, attribute, &
                        iErrorHdf, H5P_DEFAULT_F)
       call h5awrite_f(attribute, H5T_NATIVE_INTEGER, RealAtt, iDimension1D, iErrorHdf)
-    end if
+    endif
     call h5sclose_f(iAttributeSpaceID, iErrorHdf)
     call h5aclose_f(attribute, iErrorHdf)
 
@@ -726,7 +726,7 @@ contains
       nCharsIn = len_trim(StringsOut(iStr))
       do iLen = nCharsIn + 1, nCharNeeded
         StringsOut(iStr) (iLen:iLen) = CHAR(0)
-      end do
-    end do
+      enddo
+    enddo
   end subroutine pad_string_with_null
 end module ModHdf5Utils

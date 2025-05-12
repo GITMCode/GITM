@@ -23,7 +23,7 @@ subroutine get_msis_temperature(lon, lat, alt, t, h)
   i = 1
   do while (alt >= newalt(i))
     i = i + 1
-  end do
+  enddo
   i = i - 1
 
   t = InTemp(i)
@@ -89,7 +89,7 @@ subroutine init_msis
           NDensityS(iLon, iLat, -1:nAlts + 2, iSpecies, iBlock) = &
             InNDensityS(-1:nAlts + 2, iSpecies)*(1.0e+06)
 
-        end do ! end inner ispecies loop
+        enddo ! end inner ispecies loop
 
         !\
         ! These first few are from the input file read in earlier
@@ -107,14 +107,14 @@ subroutine init_msis
             IDensityS(iLon, iLat, -1:nAlts + 2, ie_, iBlock) + &
             IDensityS(iLon, iLat, -1:nAlts + 2, iIon, iBlock)
 
-        end do ! end inner ispecies loop
+        enddo ! end inner ispecies loop
 
         !
         ! End ion loop
         !/
 
-      end do! end iLon loop
-    end do ! end iLat loop
+      enddo! end iLon loop
+    enddo ! end iLat loop
 
     write(*, *) '============> init_msis.Mars.f90 Major Diagnostics:  Begin'
 
@@ -228,25 +228,25 @@ subroutine init_msis
             NDensity(iLon, iLat, iAlt, iBlock) = &
               NDensity(iLon, iLat, iAlt, iBlock) + &
               NDensityS(iLon, iLat, iAlt, iSpecies, iBlock)
-          end do
+          enddo
 
           do iSpecies = 1, nSpeciesTotal
             MeanMajorMass(iLon, iLat, iAlt) = &
               MeanMajorMass(iLon, iLat, iAlt) + &
               Mass(iSpecies)*NDensityS(iLon, iLat, iAlt, iSpecies, iBlock)/ &
               NDensity(iLon, iLat, iAlt, iBlock)
-          end do
+          enddo
 
           do iIon = 1, nIons - 1
             MeanIonMass(iLon, iLat, iAlt) = &
               MeanIonMass(iLon, iLat, iAlt) + &
               MassI(iIon)*IDensityS(iLon, iLat, iAlt, iIon, iBlock)/ &
               IDensityS(iLon, iLat, iAlt, ie_, iBlock)
-          end do
+          enddo
 
-        end do
-      end do
-    end do
+        enddo
+      enddo
+    enddo
 
     TempUnit(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2) = &
       MeanMajorMass(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2)/ &
@@ -268,7 +268,7 @@ subroutine init_msis
 
     write(*, *) '==> Now Completing Mars Background Composition: END', iBlock
 
-  end do
+  enddo
 
 end subroutine init_msis
 

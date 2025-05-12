@@ -24,31 +24,31 @@ subroutine indices_set_inputs(StringInputLines)
 
       if (index(StringLine, "#NGDC_INDICES") > 0) then
         call read_in_string(NameOfIndexFile)
-      end if
+      endif
 
       if (index(StringLine, "#NOAAHPI_INDICES") > 0) then
         call read_in_string(NameOfIndexFile)
-      end if
+      endif
 
       if (index(StringLine, "#MHD_INDICES") > 0) then
         call read_in_string(NameOfIndexFile)
-      end if
+      endif
 
       if (index(StringLine, "#END") > 0) then
         IsDone = .true.
-      end if
+      endif
 
       if (iLine >= MaxInputLines) then
         IsDone = .true.
-      end if
+      endif
 
     else
 
       iLine = iLine + 1
 
-    end if
+    endif
 
-  end do
+  enddo
 
 contains
 

@@ -31,7 +31,7 @@ subroutine get_msis_temperature(lon, lat, alt, t, h)
 ! do while (alt >= newalt(i))
   do while ((alt >= newalt(i)) .and. (i <= nAlts + 2))
     i = i + 1
-  end do
+  enddo
   i = i - 1
 
   t = InTemp(i)
@@ -88,9 +88,9 @@ subroutine init_msis
         klon = nint((longitude(ilon, iblock)*180.0/pi + 5.0)/10.0)
         SurfaceAlbedo(ilon, ilat, iblock) = dummyalbedo(jlat, klon)
         tinertia(ilon, ilat, iblock) = dummyti(jlat, klon)
-      end do
-    end do
-  end do
+      enddo
+    enddo
+  enddo
 
   if (useDustDistribution) call read_dust
 
@@ -115,7 +115,7 @@ subroutine init_msis
     do while (.not. Done)
       read(iInputUnit_, *) cLine
       if (cline .eq. '#START') Done = .True.
-    end do
+    enddo
 
     Done = .False.
     ialt = 1
@@ -128,11 +128,11 @@ subroutine init_msis
         initialAlt(ialt) = inDensities(1)
         !Convert to m^-3
         initialEDensity(ialt) = inDensities(9)*1.0e6
-      end if
+      endif
 
       iAlt = iAlt + 1
 
-    end do
+    enddo
     close(iInputUnit_)
 
     LogInitialDensity = log10(InitialEDensity)
@@ -179,11 +179,11 @@ subroutine init_msis
                                           LogInitialDensity(ialtlow(1)))*invAltDiff
               LogElectronDensity = LogInitialDensity(ialtlow(1) + 1) - ralt
 
-            end if
-          end if
+            endif
+          endif
           IDensityS(iLon, iLat, iialt, iE_, iBlock) = 10**LogElectronDensity
 
-        end do
+        enddo
 
         where (IDensityS(iLon, iLat, :, iE_, iBlock) .lt. 1.0) IDensityS(iLon, iLat, :, iE_, iBlock) = 1.0
 
@@ -228,10 +228,10 @@ subroutine init_msis
               ralt = (althigh - altFind)*(InTemp(ialtlow(1) + 1) - inTemp(ialtlow(1)))* &
                      invAltDiff
               Temperature(iLon, iLat, iAlt, iBlock) = InTemp(ialtlow(1)) - ralt
-            end if
-          end if
+            endif
+          endif
 
-        end do
+        enddo
 
         !           NDensityS(iLon,iLat,-1:nAlts + 2,1:nSpeciesTotal,iBlock) =  1.0
 
@@ -281,8 +281,8 @@ subroutine init_msis
         ! End ion loop
         !/
 
-      end do! end iLon loop
-    end do ! end iLat loop
+      enddo! end iLon loop
+    enddo ! end iLat loop
 
 !  Initialization of Major Ions for Ion Calculation
     IDensityS(:, :, :, iO2P_, iBlock) = 0.9*IDensityS(:, :, :, iE_, iBlock)
@@ -346,25 +346,25 @@ subroutine init_msis
             NDensity(iLon, iLat, iAlt, iBlock) = &
               NDensity(iLon, iLat, iAlt, iBlock) + &
               NDensityS(iLon, iLat, iAlt, iSpecies, iBlock)
-          end do
+          enddo
 
           do iSpecies = 1, nSpeciesTotal
             MeanMajorMass(iLon, iLat, iAlt) = &
               MeanMajorMass(iLon, iLat, iAlt) + &
               Mass(iSpecies)*NDensityS(iLon, iLat, iAlt, iSpecies, iBlock)/ &
               NDensity(iLon, iLat, iAlt, iBlock)
-          end do
+          enddo
 
           do iIon = 1, nIons - 1
             MeanIonMass(iLon, iLat, iAlt) = &
               MeanIonMass(iLon, iLat, iAlt) + &
               MassI(iIon)*IDensityS(iLon, iLat, iAlt, iIon, iBlock)/ &
               IDensityS(iLon, iLat, iAlt, ie_, iBlock)
-          end do
+          enddo
 
-        end do
-      end do
-    end do
+        enddo
+      enddo
+    enddo
 
     TempUnit(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2) = &
       MeanMajorMass(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2)/ &
@@ -396,7 +396,7 @@ subroutine init_msis
 
     call calc_electron_temperature(iBlock)
 
-  end do
+  enddo
 
 end subroutine init_msis
 
@@ -437,9 +437,9 @@ subroutine read_dust
         write(*, *) "Error reading Dust file"
         write(*, *) "Does this file exist?"
         call stop_GITM("In init_msis_Mars")
-      end if
+      endif
       if (cline(1:6) .eq. '#START') notstarted = 0
-    end do
+    enddo
 
     read(iInputUnit_, *, iostat=iError) DustLatitude
 
@@ -483,15 +483,15 @@ subroutine read_dust
                                         TempDust(ilatlow(1)))*invLatDiff
             Dust = TempDust(ilatlow(1) + 1) - rlat
 
-          end if
-        end if
+          endif
+        endif
         HorizontalDustProfile(iline, iLat, iblock) = Dust
 
-      end do
+      enddo
 
       iline = iline + 1
 
-    end do
+    enddo
 
     nDustTimes = iline - 1
     where (TempDust .lt. 0.2)
@@ -508,9 +508,9 @@ subroutine read_dust
         write(*, *) "Error reading Conrath file"
         write(*, *) "Does this file exist?"
         call stop_GITM("In init_msis_Mars")
-      end if
+      endif
       if (cline(1:6) .eq. '#START') notstarted = 0
-    end do
+    enddo
 
     read(iInputUnit_, *, iostat=iError) DustLatitude
 
@@ -556,17 +556,17 @@ subroutine read_dust
                                         TempConrath(ilatlow(1)))*invLatDiff
             Conrath = TempConrath(ilatlow(1) + 1) - rlat
 
-          end if
-        end if
+          endif
+        endif
         HorizontalConrathProfile(iline, iLat, iblock) = Conrath
 
-      end do
+      enddo
 
       iline = iline + 1
 
-    end do
+    enddo
     close(iInputUnit_)
-  end do
+  enddo
 
   nConrathTimes = iline - 1
 

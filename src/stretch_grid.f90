@@ -84,7 +84,7 @@ subroutine stretch_grid(x, y)
         xdist = (1.0 - cos(xnorm2)**SF)*(1.0 - latoffnorm) + latoffnorm
         xdist = StretchingPercentage2*xdist + OneMSP2*xnorm
 
-      end if
+      endif
 
     else
 
@@ -103,15 +103,15 @@ subroutine stretch_grid(x, y)
         xdist = (1.0 - cos(xnorm2)**SF)*(1.0 - latoffnorm) + latoffnorm
         xdist = StretchingPercentage2*xdist - OneMSP2*xnorm
 
-      end if
+      endif
 
       xdist = -xdist
 
-    end if
+    endif
 
     y = xdist/2.0 + 0.5
 
-  end if
+  endif
 
   if (x > 1.0) y = 2.0 - y
   if (x < 0.0) y = -y
@@ -169,7 +169,7 @@ subroutine stretch_grid_old(x, y)
       xdist = (1.0 - cos(xnorm2)**SF)*(1.0 - latoffnorm) + latoffnorm
       xdist = StretchingPercentage2*xdist + OneMSP2*xnorm
 
-    end if
+    endif
 
   else
 
@@ -188,11 +188,11 @@ subroutine stretch_grid_old(x, y)
       xdist = (1.0 - cos(xnorm2)**SF)*(1.0 - latoffnorm) + latoffnorm
       xdist = StretchingPercentage2*xdist - OneMSP2*xnorm
 
-    end if
+    endif
 
     xdist = -xdist
 
-  end if
+  endif
 
   y = xdist/2.0 + 0.5
 

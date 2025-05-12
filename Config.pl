@@ -157,11 +157,11 @@ sub install_code{
     # Import the file copy function to avoid calls to system.
     use File::Copy;
 
-    if($IsCompGitm){
+    # if($IsCompGitm){
 	# Move Util and Share:
-	move('share', 'component_share');
-	move('util',  'component_util');
-    }
+	# move('share', 'component_share');
+	# move('util',  'component_util');
+    # }
     
     return unless $Compiler =~ /ifort/ and $OS =~ /Linux/;
     # Unfix object list for Linux/ifort compiler (this is not kosher)

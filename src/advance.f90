@@ -45,7 +45,7 @@ subroutine advance
 
   else
     dt = DtStatisticalModels
-  end if
+  endif
 
   ! Increment time and all the time associated variables
   call update_time
@@ -56,7 +56,7 @@ subroutine advance
     call init_msis
     call init_iri
     call init_b0
-  end if
+  endif
 
   call end_timing("advance")
 

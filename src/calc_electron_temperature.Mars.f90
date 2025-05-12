@@ -59,19 +59,19 @@ subroutine calc_electron_temperature(iBlock)
           eTemperature(iLon, iLat, iAlt, iBlock) = &
             Temperature(iLon, iLat, iAlt, iBlock)*TempUnit(iLon, iLat, iAlt)
           k130 = ialt
-        end if
+        endif
 
         if (Alt >= 130.0 .and. Alt <= 180.0) Then
           TN130 = Temperature(iLon, iLat, k130, iBlock)*TempUnit(iLon, iLat, k130)
           eTemperature(iLon, iLat, iAlt, iBlock) = TN130 + (TE180 - TN130)*(Alt - 130.)/50.
-        end if
+        endif
 
         if (Alt > 180.0) eTemperature(iLon, iLat, iAlt, iBlock) = &
           0.5*(TH + TL) + 0.5*(TH - TL)*tanh((Alt - Z0)/H0)
 
-      end do
-    end do
-  end do
+      enddo
+    enddo
+  enddo
 
   !Ion Temperature
   !FOX[93] FORMULATION FOR DY TI FROM ROHRBAUGH ET. AL. [79]
@@ -91,9 +91,9 @@ subroutine calc_electron_temperature(iBlock)
         if (Alt >= 180.0 .and. Alt <= 300.0) iTemperature(iLon, iLat, iAlt, iBlock) = &
           10.0**(2.243 + (Alt - 180.0)/95.0)
 
-      end do
-    end do
-  end do
+      enddo
+    enddo
+  enddo
 
 end subroutine calc_electron_temperature
 

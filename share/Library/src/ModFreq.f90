@@ -83,7 +83,7 @@ contains
       write(*, *) NameSub, ' ERROR: Dn=', Act%Dn, ' for action ', NameAct
       call CON_stop(NameSub//' Dn must be positive in steady state mode!')
 
-    end if
+    endif
 
   end subroutine check_freq
 
@@ -149,7 +149,7 @@ contains
     if (.not. Act%DoThis) then
       IsTimeTo = .false.
       RETURN
-    end if
+    endif
 
     if (Act%Dn == 0) then
       IsTimeTo = .true.
@@ -161,13 +161,13 @@ contains
           IsTimeTo = tSimulation >= Act%tNext
         elseif (Act%Dn > 0) then
           IsTimeTo = nStep >= Act%nNext
-        end if
+        endif
       else
         if (Act%Dn > 0) then
           IsTimeTo = nStep >= Act%nNext
-        end if
-      end if
-    end if
+        endif
+      endif
+    endif
 
     if (IsTimeTo .and. .not. present(DoCheckOnly)) then
 
@@ -175,14 +175,14 @@ contains
         Act%tNext = Act%tNext + Act%Dt
         if (Act%tNext < tSimulation) &
           Act%tNext = tSimulation + Act%Dt
-      end if
+      endif
 
       if (Act%Dn > 0) then
         Act%nNext = Act%nNext + Act%Dn
         if (Act%nNext <= nStep) &
           Act%nNext = nStep + Act%Dn
-      end if
-    end if
+      endif
+    endif
 
   end function is_time_to
 
@@ -270,12 +270,12 @@ contains
       do iAct = 1, nAct
         t = t + 1.0
         DoAct(iAct) = is_time_to(Act, iAct, t, DoTimeAccurate)
-      end do
+      enddo
       if (IsVerbose) then
         write(*, *) 'DoTimeAccurate=', DoTimeAccurate
         write(*, *) 'Act  =', Act
         write(*, *) 'DoAct=', DoAct
-      end if
+      endif
     end subroutine check_act
 
   end subroutine test_freq

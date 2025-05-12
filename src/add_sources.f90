@@ -25,9 +25,9 @@ subroutine add_sources
       call UA_calc_electrodynamics(iLon, iLat)
     else
       call UA_calc_electrodynamics_1d
-    end if
+    endif
     IsFirstTime = .false.
-  end if
+  endif
 
   do iBlock = 1, nBlocks
 
@@ -91,7 +91,7 @@ subroutine add_sources
       Velocity(1:nLons, 1:nLats, 0:nAlts + 1, iDir, iBlock) = &
         Velocity(1:nLons, 1:nLats, 0:nAlts + 1, iDir, iBlock) + &
         Viscosity(1:nLons, 1:nLats, 0:nAlts + 1, iDir)
-    end do
+    enddo
 
      !! To turn off NeutralFriction, turn UseNeutralFriction=.false. in UAM.in
     do iSpecies = 1, nSpecies
@@ -104,7 +104,7 @@ subroutine add_sources
       VerticalVelocity(1:nLons, 1:nLats, 0:nAlts + 1, iSpecies, iBlock) = &
         VerticalVelocity(1:nLons, 1:nLats, 0:nAlts + 1, iSpecies, iBlock) + &
         VerticalViscosityS(1:nLons, 1:nLats, 0:nAlts + 1, iSpecies)
-    end do
+    enddo
 
     !-------------------------------------------------------------------------
     ! Electron Temperatures
@@ -123,7 +123,7 @@ subroutine add_sources
       IDensityS(:, :, :, ie_, iBlock) = &
         IDensityS(:, :, :, ie_, iBlock) + &
         IDensityS(:, :, :, iIon, iBlock)
-    end do
+    enddo
 
     Rho(1:nLons, 1:nLats, 1:nAlts, iBlock) = 0.0
     NDensity(1:nLons, 1:nLats, 1:nAlts, iBlock) = 0.0
@@ -137,7 +137,7 @@ subroutine add_sources
       NDensity(1:nLons, 1:nLats, 1:nAlts, iBlock) = &
         NDensity(1:nLons, 1:nLats, 1:nAlts, iBlock) + &
         NDensityS(1:nLons, 1:nLats, 1:nAlts, iSpecies, iBlock)
-    end do
+    enddo
 
     ! Have to do this separately, since depends on Rho
     do iSpecies = 1, nSpecies
@@ -147,14 +147,16 @@ subroutine add_sources
         Mass(iSpecies)* &
         NDensityS(1:nLons, 1:nLats, 1:nAlts, iSpecies, iBlock)/ &
         Rho(1:nLons, 1:nLats, 1:nAlts, iBlock)
-    end do
+    enddo
 
-  end do
+  enddo
 
   if (DoCheckForNans) then
     call check_for_nans_ions("After Sources")
     call check_for_nans_neutrals("After Sources")
     call check_for_nans_temps("After Sources")
-  end if
+  endif
+
+  call correct_min_ion_density
 
 end subroutine add_sources

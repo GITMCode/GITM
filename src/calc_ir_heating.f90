@@ -56,15 +56,15 @@ subroutine calc_ir_heating(iBlock)
             if (sza(iLon, iLat, iBlock) .le. sza_table(iSza + 1) .and. &
                 sza(iLon, iLat, iBlock) .ge. sza_table(iSza)) then
               exit
-            end if
-          end do
+            endif
+          enddo
 
           do jAlt = 1, 40
             if (Altitude_GB(iLon, iLat, iAlt, iBlock) .le. altitude_table(jAlt + 1) .and. &
                 Altitude_GB(iLon, iLat, iAlt, iBlock) .ge. altitude_table(jAlt)) then
               exit
-            end if
-          end do
+            endif
+          enddo
 
           !Debugging stuff
           !if (iProc == 0) then
@@ -94,13 +94,13 @@ subroutine calc_ir_heating(iBlock)
             write(*, *) "r is too big...", iLon, iLat, iAlt
             write(*, *) "GITM SZA:", sza(iLon, iLat, iBlock)
             write(*, *) "Table SZA:", sza_table(iSza), sza_table(iSza + 1)
-          end if
+          endif
 
           if (x03 < 0.0 .or. x12 < 0.0) then
             write(*, *) "First interpolated value is negative...this is wrong."
             write(*, *) "x03", x03
             write(*, *) "x12", x12
-          end if
+          endif
 
           QnirTOT(iLon, iLat, iAlt, iBlock) = &
             x03*(1 - r_sza) + x12*r_sza
@@ -112,7 +112,7 @@ subroutine calc_ir_heating(iBlock)
                                               /TempUnit(iLon, iLat, iAlt)! &
           ! / Rho(iLon,iLat,iAlt, iBlock) &
           ! / cp(iLon,iLat,iAlt,iBlock)
-        end if
+        endif
 
         !LTE IR Heating Section
         if (Altitude_GB(iLon, iLat, iAlt, iBlock)/1000.0 < 100.0) then
@@ -127,16 +127,16 @@ subroutine calc_ir_heating(iBlock)
             if (ABS(Latitude(iLat, iBlock)*180.0/pi) .ge. 5*(iLatTable - 1) .and. &
                 ABS(Latitude(iLat, iBlock)*180.0/pi) .le. 5*(iLatTable)) then
               exit
-            end if
-          end do
+            endif
+          enddo
 
           do iAltTable = 1, 16
             if (Altitude_GB(iLon, iLat, iAlt, iBlock)/1000.0 .ge. 70 + 2*(iAltTable - 1) &
                 .and. &
                 Altitude_GB(iLon, iLat, iAlt, iBlock)/1000.0 .le. 70 + 2*(iAltTable)) then
               exit
-            end if
-          end do
+            endif
+          enddo
 
           QnirTOT(iLon, iLat, iAlt, iBlock) = diurnalHeating(iLatTable, iAltTable)* &
                                               cos(2*pi/24*(LST - 12)) + &
@@ -145,7 +145,7 @@ subroutine calc_ir_heating(iBlock)
 
           if (QnirTOT(iLon, iLat, iAlt, iBlock) < 0.0) then
             QnirTOT(iLon, iLat, iAlt, iBlock) = 0.0
-          end if
+          endif
 
           !Given in K/s. No need for rho or cp because that
           !converts J/s -> K/s. Need TempUnit to normalize it to
@@ -154,10 +154,10 @@ subroutine calc_ir_heating(iBlock)
                                               /TempUnit(iLon, iLat, iAlt)! &
           ! / Rho(iLon,iLat,iAlt, iBlock) &
           ! / cp(iLon,iLat,iAlt,iBlock)
-        end if
-      end do
-    end do
-  end do
+        endif
+      enddo
+    enddo
+  enddo
 
   call end_timing("IR Heating")
 

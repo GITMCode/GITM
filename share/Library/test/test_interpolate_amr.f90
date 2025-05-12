@@ -75,9 +75,9 @@ contains
             Xyz_DCB(:, i, j, k, iBlock) = XyzCorner_D + &
                                           DxyzCoarse_D*(iCellIndex_D(1:nDim) - 0.50)
             Var_CB(i, j, k, iBlock) = random_real(iSeed)
-          end do
-        end do
-      end do
+          enddo
+        enddo
+      enddo
       do iSubGrid = 1, 2**nDim
         iBlock = iGrid*(2**nDim) + iSubGrid
         XyzCorner_D = DxyzCoarseBlock_D*iShift_DI(1:nDim, iGrid) + &
@@ -89,11 +89,11 @@ contains
               Xyz_DCB(:, i, j, k, iBlock) = XyzCorner_D + &
                                             DxyzFine_D*(iCellIndex_D(1:nDim) - 0.50)
               Var_CB(i, j, k, iBlock) = 0.25 + 0.50*random_real(iSeed)
-            end do
-          end do
-        end do
-      end do
-    end do
+            enddo
+          enddo
+        enddo
+      enddo
+    enddo
 
     nIndexes = nDim + 1
     CASE: do iCase = 0, 2**(2**nDim) - 2
@@ -103,7 +103,7 @@ contains
         iGrid = iGrid + 1
         iLevelTest_I(iGrid) = mod(iMisc, 2)
         iMisc = (iMisc - iLevelTest_I(iGrid))/2
-      end do
+      enddo
       !write(*,*)'Case=',iLevelTest_I(1:2**nDim)
       !\
       ! We generated refinement, now sample points
@@ -111,7 +111,7 @@ contains
       SAMPLE: do iSample = 1, nSample
         do iDir = 1, nDim
           Xyz_D(iDir) = (0.01 + 0.98*random_real(iSeed))*DxyzDomain_D(iDir)
-        end do
+        enddo
         !\
         ! call interpolate_amr
         !/
@@ -141,7 +141,7 @@ contains
                             Weight_I(iGrid)* &
                             Var_CB(iCellIndex_D(1), iCellIndex_D(2), &
                                    iCellIndex_D(3), iBlock)
-        end do
+        enddo
         if (any(abs(Xyz_D - XyzInterpolated_D) > 1.0e-6) .and. &
             IsSecondOrder) then
           write(*, *) 'Approximation test failed'
@@ -156,17 +156,17 @@ contains
             write(*, *) iIndexes_II(1:nDim, iGrid), iBlock, &
               Xyz_DCB(:, iCellIndex_D(1), iCellIndex_D(2), &
                       iCellIndex_D(3), iBlock), Weight_I(iGrid)
-          end do
+          enddo
           write(*, *) 'Xyz_D=', Xyz_D
           write(*, *) 'XyzInterpolated_D=', XyzInterpolated_D
           call CON_stop('Correct code and redo test')
-        end if
+        endif
         !\
         ! Test continuity
         !/
         do iDir = 1, nDim
           XyzCont_D(iDir) = Xyz_D(iDir) + (0.02*random_real(iSeed) - 0.01)
-        end do
+        enddo
         !\
         ! call interpolate_amr
         !/
@@ -196,7 +196,7 @@ contains
           XyzInterpolated_D = XyzInterpolated_D + Weight_I(iGrid)* &
                               Xyz_DCB(:, iCellIndex_D(1), iCellIndex_D(2), &
                                       iCellIndex_D(3), iBlock)
-        end do
+        enddo
         if (any(abs(XyzCont_D - XyzInterpolated_D) > 1.0e-6) .and. &
             IsSecondOrder) then
           write(*, *) 'Approximation test failed'
@@ -211,11 +211,11 @@ contains
             write(*, *) iIndexes_II(1:nDim, iGrid), iBlock, &
               Xyz_DCB(:, iCellIndex_D(1), iCellIndex_D(2), &
                       iCellIndex_D(3), iBlock), Weight_I(iGrid)
-          end do
+          enddo
           write(*, *) 'XyzCont_D=', XyzCont_D
           write(*, *) 'XyzInterpolated_D=', XyzInterpolated_D
           call CON_stop('Correct code and redo test')
-        end if
+        endif
         if (abs(VarContInterpolated - VarInterpolated) > nDim*0.01) then
           write(*, *) 'Continuity test failed'
           write(*, *) 'Grid:', iLevelTest_I
@@ -229,7 +229,7 @@ contains
             write(*, *) iIndexes_II(1:nDim, iGrid), iBlock, &
               Xyz_DCB(:, iCellIndex_D(1), iCellIndex_D(2), &
                       iCellIndex_D(3), iBlock), Weight_I(iGrid)
-          end do
+          enddo
           write(*, *) 'Xyz_D=', Xyz_D
           call interpolate_amr( &
             nDim=nDim, &
@@ -249,11 +249,11 @@ contains
             write(*, *) iIndexes_II(1:nDim, iGrid), iBlock, &
               Xyz_DCB(:, iCellIndex_D(1), iCellIndex_D(2), &
                       iCellIndex_D(3), iBlock), Weight_I(iGrid)
-          end do
+          enddo
           call CON_stop('Correct code and redo test')
-        end if
-      end do SAMPLE
-    end do CASE
+        endif
+      enddo SAMPLE
+    enddo CASE
     deallocate(Xyz_DCB, Var_CB)
 
   end subroutine test_interpolate_amr
@@ -309,7 +309,7 @@ contains
       iBlock = iGrid
       Dxyz_D = DxyzCoarse_D
       RETURN
-    end if
+    endif
     !\
     ! The coarser block is refined, find into which fine block
     ! the point falls

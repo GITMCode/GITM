@@ -18,7 +18,7 @@ subroutine calc_pressure
   do iSpecies = 1, nSpecies
     NDensity(:, :, :, 1:nBlocks) = &
       NDensity(:, :, :, 1:nBlocks) + NDensityS(:, :, :, iSpecies, 1:nBlocks)
-  end do
+  enddo
 
   Pressure = Temperature*Rho
 
@@ -27,7 +27,7 @@ subroutine calc_pressure
     IPressure(:, :, :, 1:nBlocks) = IPressure(:, :, :, 1:nBlocks) + &
                                     IDensityS(:, :, :, iSpecies, 1:nBlocks)* &
                                     Boltzmanns_Constant*ITemperature(:, :, :, 1:nBlocks)
-  end do
+  enddo
 
   ePressure(:, :, :, 1:nBlocks) = &
     IDensityS(:, :, :, ie_, 1:nBlocks)*Boltzmanns_Constant* &
@@ -72,7 +72,7 @@ subroutine calc_pressure
           NDensityS(1:nLons, 1:nLats, iAlt, iSpecies, iBlock)/ &
           (Vibration(iSpecies) - 2)
 
-      end do
+      enddo
 
       cp(:, :, iAlt, iBlock) = cp(:, :, iAlt, iBlock)/ &
                                (2.0*NDensity(1:nLons, 1:nLats, iAlt, iBlock))
@@ -81,8 +81,8 @@ subroutine calc_pressure
         gamma(1:nLons, 1:nLats, iAlt, iBlock)*2.0/ &
         NDensity(1:nLons, 1:nLats, iAlt, iBlock) + 1
 
-    end do
+    enddo
 
-  end do
+  enddo
 
 end subroutine calc_pressure

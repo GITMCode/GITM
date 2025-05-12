@@ -50,11 +50,11 @@ subroutine Insert_into_Indices_Array(array, label_)
       call time_int_to_real(itime, IndexTimes_TV(i, label_))
       Indices_TV(i, label_) = array(6, i)
 
-    end do
+    enddo
 
     nIndices_V(label_) = npts
 
-  end if
+  endif
 
   if (label_ == f107_) then
 
@@ -79,13 +79,13 @@ subroutine Insert_into_Indices_Array(array, label_)
         do while (iStart > 1 .and. &
                   IndexTimes_TV(i, f107_) - dt < IndexTimes_TV(iStart, f107_))
           iStart = iStart - 1
-        end do
+        enddo
 
         iEnd = i
         do while (iEnd < npts .and. &
                   IndexTimes_TV(i, f107_) + dt > IndexTimes_TV(iEnd, f107_))
           iEnd = iEnd + 1
-        end do
+        enddo
 
         nPtsSub = 0
         f107a = 0
@@ -94,18 +94,18 @@ subroutine Insert_into_Indices_Array(array, label_)
           f107a = f107a + Indices_TV(j, f107_)
           time_now = time_now + IndexTimes_TV(j, f107_)
           nPtsSub = nPtsSub + 1
-        end do
+        enddo
 
         IndexTimes_TV(i, f107a_) = time_now/nPtsSub
         Indices_TV(i, f107a_) = f107a/nPtsSub
 
-      end do
+      enddo
 
       nIndices_V(f107a_) = npts
 
-    end if
+    endif
 
-  end if
+  endif
 
 contains
 
@@ -133,13 +133,13 @@ contains
 
         do while (maxval(abs(array(:, Number_of_Points))) > 0)
           Number_of_Points = Number_of_Points + 1
-        end do
+        enddo
 
         Number_of_Points = Number_of_Points - 1
 
-      end if
+      endif
 
-    end if
+    endif
 
   end function Number_of_Points
 

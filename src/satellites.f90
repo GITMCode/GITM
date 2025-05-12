@@ -53,7 +53,7 @@ subroutine read_satellites(iError)
     call init_mod_satellites_rcmr
   else
     call init_mod_satellites
-  end if
+  endif
 
   iError = 0
   nSatLines = 0
@@ -70,7 +70,7 @@ subroutine read_satellites(iError)
     if (iError /= 0) then
       write(*, *) "Error opening satellite file : ", cSatFileName(iSat)
       return
-    end if
+    endif
 
     IsStartFound = .false.
 
@@ -79,14 +79,14 @@ subroutine read_satellites(iError)
       read(iSatUnit, *, iostat=iError) cLine
       if (iError /= 0) IsStartFound = .true.
       if (index(cline, "#START") > 0) IsStartFound = .true.
-    end do
+    enddo
 
     if (iError /= 0) then
       write(*, *) "Error finding #START in satellite file : ", &
         cSatFileName(iSat)
       close(iSatUnit)
       return
-    end if
+    endif
 
     OldTime = 0.0
     IsFine = .false.
@@ -98,7 +98,7 @@ subroutine read_satellites(iError)
         read(iSatUnit, *, iostat=iError) iTime, Pos, dat
       else
         read(iSatUnit, *, iostat=iError) iTime, Pos
-      end if
+      endif
 
       if (iError == 0) then
 
@@ -129,7 +129,7 @@ subroutine read_satellites(iError)
             SatTime(iSat, nSatLines(iSat)) = NewTime
 
             if (RCMRFlag) SatDat(iSat, nSatLines(iSat)) = dat
-          end if
+          endif
         else
           nSatPos(iSat, nSatLines(iSat)) = nSatPos(iSat, nSatLines(iSat)) + 1
           if (nSatPos(iSat, nSatLines(iSat)) > nMaxSatPos - 2) then
@@ -141,19 +141,19 @@ subroutine read_satellites(iError)
             SatPos(iSat, :, nSatPos(iSat, nSatLines(iSat)), nSatLines(iSat)) = &
               Pos
             if (RCMRFlag) SatDat(iSat, nSatLines(iSat)) = dat
-          end if
-        end if
+          endif
+        endif
 
         OldTime = NewTime
 
-      end if
+      endif
 
-    end do
+    enddo
 
     close(iSatUnit)
     if (IsFine) iError = 0
 
-  end do
+  enddo
 
   if (iDebugLevel > 1) then
 
@@ -163,11 +163,11 @@ subroutine read_satellites(iError)
       iMax = 1
       do i = 1, nSatLines(iSat)
         if (nSatPos(iSat, i) > iMax) iMax = nSatPos(iSat, i)
-      end do
+      enddo
       write(*, *) iSat, ". Max number of Positions : ", iMax
-    end do
+    enddo
 
-  end if
+  endif
 
 end subroutine read_satellites
 
@@ -218,22 +218,22 @@ subroutine move_satellites
           else
             do while (SatTime(iSat, iLine) < CurrentTime)
               iLine = iLine + 1
-            end do
+            enddo
             iLine = iLine - 1
 
-          end if
+          endif
           iSatCurrentIndex(iSat) = iLine
           iLine = 0
-        end if
+        endif
       else
         if (CurrentTime > SatTime(iSat, iSatCurrentIndex(iSat) + 1) .and. &
             (CurrentTime - dt) < SatTime(iSat, iSatCurrentIndex(iSat) + 1)) then
 
           iSatCurrentIndex(iSat) = iSatCurrentIndex(iSat) + 1
 
-        end if
+        endif
 
-      end if
+      endif
 
       if (iSatCurrentIndex(iSat) /= iLine) then
 !only plot if the index has changed!
@@ -251,8 +251,8 @@ subroutine move_satellites
           SatCurrentPos(iSat, i, iPos) = &
             SatPos(iSat, i, iPos, iLine)
 
-        end if
-        end do
+        endif
+        enddo
 
         do iBlock = 1, nBlocks
 
@@ -262,9 +262,9 @@ subroutine move_satellites
           CurrentSatellitePosition = SatCurrentPos(iSat, :, iPos)
           CurrentSatelliteName = cName
           call output("UA/data/", iBlock, -1)
-        end do
-        end do
-      end if
+        enddo
+        enddo
+      endif
 
     else
 
@@ -283,11 +283,11 @@ subroutine move_satellites
             else
               do while (SatTime(iSat, iLine) < CurrentTime)
                 iLine = iLine + 1
-              end do
+              enddo
               iLine = iLine - 1
-            end if
+            endif
             iSatCurrentIndex(iSat) = iLine
-          end if
+          endif
         else
           iLine = iSatCurrentIndex(iSat)
           if (SatTime(iSat, nSatLines(iSat)) >= CurrentTime) then
@@ -296,14 +296,14 @@ subroutine move_satellites
             else
               do while (SatTime(iSat, iLine) < CurrentTime)
                 iLine = iLine + 1
-              end do
+              enddo
               iLine = iLine - 1
-            end if
+            endif
           else
             iLine = 0
-          end if
+          endif
           iSatCurrentIndex(iSat) = iLine
-        end if
+        endif
 
         if (iSatCurrentIndex(iSat) > 0) then
 
@@ -315,13 +315,13 @@ subroutine move_satellites
             iLine = iSatCurrentIndex(iSat) - 1
             r = 1 - (CurrentTime - SatTime(iSat, iLine))/ &
                 (SatTime(iSat, iLine + 1) - SatTime(iSat, iLine))
-          end if
+          endif
 
           if (RCMRFlag) then
             ! Asad: Estimate the current time's data value for each satellite
             SatCurrentDat(iSat) = r*SatDat(iSat, iLine) + &
                                   (1 - r)*SatDat(iSat, iLine + 1)
-          end if
+          endif
 
           do iPos = 1, nSatPos(iSat, iLine)
             do i = 1, 3
@@ -335,12 +335,12 @@ subroutine move_satellites
                 SatCurrentPos(iSat, i, iPos) = &
                   (r)*SatPos(iSat, i, iPos, iLine) + &
                   (1 - r)*SatPos(iSat, i, iPos, iLine + 1)
-              end if
+              endif
 
 !                write(*,*) "Satellite : ",iSat, iSatCurrentIndex(iSat), &
 !                     CurrentTime - SatTime(iSat,iSatCurrentIndex(iSat)), &
 !                     iPos, i, SatCurrentPos(iSat, i, iPos)
-            end do
+            enddo
             write(cPos, '(i3.3)') iPos
 
             l1 = index(cSatFileName(iSat), '/', back=.true.) + 1
@@ -354,14 +354,14 @@ subroutine move_satellites
 !                 call output_1d("UA/data/",cName,iBlock, &
 !                      SatCurrentPos(iSat,:,iPos))
               call output("UA/data/", iBlock, iOut)
-            end do
-          end do
+            enddo
+          enddo
 
-        end if
-      end if
-    end if
+        endif
+      endif
+    endif
 
-  end do
+  enddo
 
 end subroutine move_satellites
 

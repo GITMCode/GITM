@@ -41,7 +41,7 @@ subroutine read_conductance_model(iOutputError)
     if (ierr /= 0) then
       write(6, *) 'Error opening file :', ihp_file
       iOutputError = ecFileNotFound_
-    end if
+    endif
 
     longmx = 30
     latmx = 20
@@ -50,7 +50,7 @@ subroutine read_conductance_model(iOutputError)
 
     do n = 1, 4
       read(iunit, *) char80
-    end do
+    enddo
 
     if (iDebugLevel > 2) write(*, *) "===> Hall"
     read(iunit, *) char80
@@ -58,8 +58,8 @@ subroutine read_conductance_model(iOutputError)
       do ilat = latmx, 0, -1
         read(iunit, "(15f7.0)") (halar(ilon, ilat, n), ilon=0, 14)
         read(iunit, "(15f7.0)") (halar(ilon, ilat, n), ilon=15, 29)
-      end do
-    end do
+      enddo
+    enddo
     halar(longmx, :, :) = halar(0, :, :)
 
     halar(0:30, 0:latmx, 1:ndx) = scale*halar(0:30, 0:latmx, 1:ndx)
@@ -70,8 +70,8 @@ subroutine read_conductance_model(iOutputError)
       do ilat = latmx, 0, -1
         read(iunit, "(15f7.0)") (pedar(ilon, ilat, n), ilon=0, 14)
         read(iunit, "(15f7.0)") (pedar(ilon, ilat, n), ilon=15, 29)
-      end do
-    end do
+      enddo
+    enddo
     pedar(longmx, :, :) = pedar(0, :, :)
     pedar(0:30, 0:latmx, 1:ndx) = scale*pedar(0:30, 0:latmx, 1:ndx)
 
@@ -84,9 +84,9 @@ subroutine read_conductance_model(iOutputError)
         do ilon = 0, 29
           if (avkar(ilon, ilat, n) == 2855) &
             avkar(ilon, ilat, n) = ConductanceBackground(avee_)/scale
-        end do
-      end do
-    end do
+        enddo
+      enddo
+    enddo
     avkar(longmx, :, :) = avkar(0, :, :)
     avkar(0:30, 0:latmx, 1:ndx) = scale*avkar(0:30, 0:latmx, 1:ndx)
 
@@ -96,7 +96,7 @@ subroutine read_conductance_model(iOutputError)
       do ilat = latmx, 0, -1
         read(iunit, "(15f7.0)") (efxar(ilon, ilat, n), ilon=0, 14)
         read(iunit, "(15f7.0)") (efxar(ilon, ilat, n), ilon=15, 29)
-      end do
+      enddo
 !        if (UseExperimentalCode) then
 !           do ilon=0,29
 !              maxflx = 0
@@ -109,7 +109,7 @@ subroutine read_conductance_model(iOutputError)
 !              efxar(ilon,ilatsave,n) = efxar(ilon,ilatsave,n)*2
 !           enddo
 !        endif
-    end do
+    enddo
     efxar(longmx, :, :) = efxar(0, :, :)
     efxar(0:30, 0:latmx, 1:ndx) = scale*efxar(0:30, 0:latmx, 1:ndx)
 
@@ -130,18 +130,18 @@ subroutine read_conductance_model(iOutputError)
     open(iunit, file=pem_file, status='old', iostat=ierr)
     if (ierr /= 0) then
       write(6, *) 'Error opening file :', pem_file
-    end if
+    endif
 
     do n = 1, 4
       read(iunit, *) char80
-    end do
+    enddo
 
     do n = 1, ndx
       read(iunit, "(a80)") char80
       do ilat = latmx, 0, -1
         read(iunit, "(24f6.0)") (halar(ilon, ilat, n), ilon=0, 23)
-      end do
-    end do
+      enddo
+    enddo
     halar(longmx, :, :) = halar(0, :, :)
     halar = scale*halar
 
@@ -149,8 +149,8 @@ subroutine read_conductance_model(iOutputError)
       read(iunit, "(a80)") char80
       do ilat = latmx, 0, -1
         read(iunit, "(24f6.0)") (pedar(ilon, ilat, n), ilon=0, 23)
-      end do
-    end do
+      enddo
+    enddo
     pedar(longmx, :, :) = pedar(0, :, :)
     pedar = scale*pedar
 
@@ -158,8 +158,8 @@ subroutine read_conductance_model(iOutputError)
       read(iunit, "(a80)") char80
       do ilat = latmx, 0, -1
         read(iunit, "(24f6.0)") (avkar(ilon, ilat, n), ilon=0, 23)
-      end do
-    end do
+      enddo
+    enddo
     avkar(longmx, :, :) = avkar(0, :, :)
     avkar = scale*avkar
 
@@ -167,14 +167,14 @@ subroutine read_conductance_model(iOutputError)
       read(iunit, "(a80)") char80
       do ilat = latmx, 0, -1
         read(iunit, "(24f6.0)") (efxar(ilon, ilat, n), ilon=0, 23)
-      end do
-    end do
+      enddo
+    enddo
     efxar(longmx, :, :) = efxar(0, :, :)
     efxar = scale*efxar
 
     close(iunit)
 
-  end if
+  endif
 
   ! get minimum or average long. value at lowest lat.
 
@@ -192,12 +192,12 @@ subroutine read_conductance_model(iOutputError)
       pedmin(n) = amin1(pedmin(n), pedar(ilon, latmx, n))
       avk50(n) = avk50(n) + avkar(1, latmx, n)
       efx50(n) = efx50(n) + efxar(1, latmx, n)
-    end do
+    enddo
 
     avk50(n) = avk50(n)/float(longmx)
     efx50(n) = efx50(n)/float(longmx)
 
-  end do
+  enddo
 
   if (iDebugLevel > 3) write(*, *) "====> Done with read_conductance_model"
 
@@ -262,7 +262,7 @@ subroutine get_auroral_conductance(alatd, amlt, hpi, ped, hal, avkev, eflx)
     if (avkev < ConductanceBackground(avee_)) avkev = ConductanceBackground(avee_)
     if (eflx < ConductanceBackground(eflux_)) eflx = ConductanceBackground(eflux_)
 
-  end if
+  endif
 
   return
 

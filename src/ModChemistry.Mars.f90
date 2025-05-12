@@ -710,7 +710,7 @@ contains
 
       NeutralSources = 0.0
       NeutralLosses = 0.0
-    end if
+    endif
 
     call end_timing("chemsources")
   end subroutine calc_chemical_sources

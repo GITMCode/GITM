@@ -43,9 +43,9 @@ subroutine GM_SetMLTs(MLTsIn, iError)
     do i = 1, GMi_NeednMLTs
       do j = 1, GMi_NeednLats
         GMr2_NeedMLTs(i, j) = mod((MLTsIn(i, j) + 24.0), 24.0)
-      end do
-    end do
-  end if
+      enddo
+    enddo
+  endif
 
 end subroutine GM_SetMLTs
 
@@ -70,7 +70,7 @@ subroutine GM_SetLats(LatsIn, iError)
   else
     GMr2_NeedLats(1:GMi_NeednMLTs, 1:GMi_NeednLats) = &
       LatsIn(1:GMi_NeednMLTs, 1:GMi_NeednLats)
-  end if
+  endif
 
 end subroutine GM_SetLats
 
@@ -103,14 +103,14 @@ subroutine GM_SetGrid(MLTsIn, LatsIn, iError)
   if (iError /= 0) then
     iError = ecAllocationError_
     return
-  end if
+  endif
 
   allocate(GMr3_InterpolationRatios(GMi_NeednMLTs, GMi_NeednLats, 2), &
            stat=iError)
   if (iError /= 0) then
     iError = ecAllocationError_
     return
-  end if
+  endif
 
   do i = 1, GMi_NeednLats
     do j = 1, GMi_NeednMLTs
@@ -125,10 +125,10 @@ subroutine GM_SetGrid(MLTsIn, LatsIn, iError)
         GMr3_InterpolationRatios(j, i, 1:2) = EIEr1_Location(4:5)
       else
         GMi3_InterpolationIndices(j, i, 1) = -1
-      end if
+      endif
 
-    end do
-  end do
+    enddo
+  enddo
 
 end subroutine GM_SetGrid
 
@@ -228,8 +228,8 @@ subroutine GM_GetValue(ValueIn, ValueOut, iError)
         (dM)*(1.0 - dL)*ValueIn(iM + 1, IL, iB) + &
         (1.0 - dM)*(dL)*ValueIn(iM, IL + 1, iB)
 
-    end do
-  end do
+    enddo
+  enddo
 
 end subroutine GM_GetValue
 
