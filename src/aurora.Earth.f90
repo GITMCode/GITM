@@ -20,7 +20,7 @@ subroutine aurora(iBlock)
   integer, intent(in) :: iBlock
 
   real :: ion_av_kev, ion_eflx_ergs, ion_eflux, ion_avee
-  real :: factor, p, Q0, cPi
+  real :: factor, p, Q0
   integer :: i, j, k, n, iError, iED, iErr, iEnergy
   logical :: IsDone, IsTop, HasSomeAurora
   real, dimension(ED_N_Energies) :: &
@@ -29,7 +29,7 @@ subroutine aurora(iBlock)
 
   real :: hpi, hpi_NH, hpi_SH
 
-  real, dimension(nLons, nLats, nAlts) :: temp, AuroralBulkIonRate,&
+  real, dimension(nLons, nLats, nAlts) :: temp, AuroralBulkIonRate, &
                                           IonPrecipitationBulkIonRate
 
   logical :: IsFirstTime(nBlocksMax) = .true.
@@ -308,7 +308,7 @@ contains
 
   end subroutine calc_kappa
 
-  subroutine calc_maxwellian(total_flux, avg_e, max_ed_flux)
+  subroutine calc_maxwellian(eflux, avg_e, max_ed_flux)
     ! From (Fang et al., [2010]), a
     ! Maxwellian is defined as:
     ! DifferentialNumberFlux = Q0/2/E0**3 * E * exp(-E/E0),
@@ -319,13 +319,13 @@ contains
     !
     ! Calculate as a * E * exp(-E/E0)
 
-    real, intent(in) :: total_flux, avg_e
-    real, intent(out), dimension(:) :: max_ed_flux
+    real, intent(in) :: eflux, avg_e
+    real, intent(inout), dimension(:) :: max_ed_flux
 
     real :: a, E0
 
     E0 = (0.5*avg_e)
-    a = (total_flux)/2/E0**3
+    a = (eflux)/2/E0**3
 
     do n = 1, ED_N_Energies
       max_ed_flux(n) = a*ED_Energies(n)*exp(-ED_Energies(n)/E0)
@@ -342,18 +342,18 @@ contains
 ! sig controls the width (std dev)
   subroutine calc_gaussian(eflux, avee, gaus_ed_flux, sig)
     real, intent(in) :: eflux, avee, sig
-    real, intent(out), dimension(:) :: gaus_ed_flux
+    real, intent(inout), dimension(:) :: gaus_ed_flux
 
     real :: emax
 
-    emax = eflux/(sqrt(cPi)/2)
+    emax = eflux/(sqrt(Pi)/2)
 
     do n = 1, ED_N_Energies
-      ed_flux(n) = emax*exp(-(avee - ED_Energies(n))**2 &
-                            /(sig*ED_delta_energy(n))**2)
-      ! Maxwellian_Energy-Deposition_flux
+      gaus_ed_flux(n) = emax*exp(-(avee - ED_Energies(n))**2 &
+                                 /(sig*ED_delta_energy(n))**2)
+      ! Gaussian-Deposition_flux
       gaus_ed_flux(n) = &
-        ed_flux(n)* &
+        gaus_ed_flux(n)* &
         ED_Energies(n)* &
         ED_delta_energy(n)
     enddo
@@ -412,6 +412,12 @@ contains
     ! Wave is a gaussian, centered at aveE w/std dev of 3*bin width
     if (eflux > 0.1 .and. avee > 0.1) &
       call calc_gaussian(eflux, avee, wave_EDEnergyFlux, 3.)
+
+    if (latitude(i, iBlock) < 0.0) then
+      HemisphericPowerSouth = HemisphericPowerSouth + power
+    else
+      HemisphericPowerNorth = HemisphericPowerNorth + power
+    endif
 
   end subroutine do_wave_aurora
 
