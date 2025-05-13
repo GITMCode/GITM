@@ -836,7 +836,6 @@ subroutine set_inputs
           IsDone = .true.
         endif
 
-        
       case ("#IONPRECIPITATION") !#TODO: Fix this! None works with new electrodynamics
         ! Leaving it in for backwards compatibility. Also can be set in #auroratypes
         call read_in_logical(UseIonAurora, iError)
@@ -953,7 +952,6 @@ subroutine set_inputs
       case ("#THERMO")
         call read_in_logical(UseSolarHeating, iError)
         call read_in_logical(UseJouleHeating, iError)
-        call read_in_logical(UseAuroralHeating, iError)
         call read_in_logical(UseNOCooling, iError)
         call read_in_logical(UseOCooling, iError)
         call read_in_logical(UseConduction, iError)
@@ -965,7 +963,6 @@ subroutine set_inputs
           write(*, *) '#THERMO'
           write(*, *) "UseSolarHeating   (logical)"
           write(*, *) "UseJouleHeating   (logical)"
-          write(*, *) "UseAuroralHeating (logical)"
           write(*, *) "UseNOCooling      (logical)"
           write(*, *) "UseOCooling       (logical)"
           write(*, *) "UseConduction     (logical)"

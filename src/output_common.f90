@@ -309,7 +309,7 @@ subroutine output(dir, iBlock, iOutputType)
 
   case ('3DTHM')
 
-    nvars_to_write = 14 + 4
+    nvars_to_write = 13 + 4
     call output_3dthm(iBlock)
 
   case ('1DCHM')
@@ -341,7 +341,7 @@ subroutine output(dir, iBlock, iOutputType)
 
   case ('3DHME')
 
-    nvars_to_write = 28 + nSpeciesTotal + nSpecies + nIons
+    nvars_to_write = 27 + nSpeciesTotal + nSpecies + nIons
     ! The following if statement is to not write output if DoSaveHIMEPlot=F
     ! for iProc=0. Header files are always written by iProc=0.
     if (DoSaveHIMEPlot) call output_3dhme(iBlock)
@@ -613,7 +613,6 @@ contains
 
       write(iOutputUnit_, "(I7,A1,a)") 14, " ", "Electron_Average_Energy_Wave"
       write(iOutputUnit_, "(I7,A1,a)") 15, " ", "Electron_Energy_Flux_Wave"
-      
       write(iOutputUnit_, "(I7,A1,a)") 16, " ", "Electron_Average_Energy_Mono"
       write(iOutputUnit_, "(I7,A1,a)") 17, " ", "Electron_Energy_Flux_Mono"
     endif
@@ -1348,7 +1347,6 @@ subroutine output_3dthm(iBlock)
           EddyCond(iiLon, iiLat, iiAlt), &
           EddyCondAdia(iiLon, iiLat, iiAlt), &
           ChemicalHeatingRate(iiLon, iiLat, iiAlt)*TempUnit(iiLon, iiLat, iiAlt), &
-          AuroralHeating(iiLon, iiLat, iiAlt)*dt*TempUnit(iiLon, iiLat, iiAlt), &
           JouleHeating(iiLon, iiLat, iiAlt)*dt*TempUnit(iiLon, iiLat, iiAlt), &
           -NOCooling(iiLon, iiLat, iiAlt)*dt*TempUnit(iiLon, iiLat, iiAlt), &
           -OCooling(iiLon, iiLat, iiAlt)*dt*TempUnit(iiLon, iiLat, iiAlt), &
@@ -1399,7 +1397,6 @@ subroutine output_3dhme(iBlock)
           (Ivelocity(iLon, iLat, iAlt, i, iBlock), i=1, 3), &
           PhotoElectronHeating(iLon, iLat, iiAlt, iBlock)*dt*TempUnit(iLon, iLat, iiAlt), &
           JouleHeating(iLon, iLat, iiAlt)*dt*TempUnit(iLon, iLat, iiAlt), &
-          AuroralHeating(iLon, iLat, iiAlt)*dt*TempUnit(iLon, iLat, iiAlt), &
           cp(iLon, iLat, iiAlt, iBlock), &
           mLatitude(iLon, iLat, iAlt, iBlock), &
           mLongitude(iLon, iLat, iAlt, iBlock), &
@@ -1445,7 +1442,6 @@ subroutine output_1dthm
       EddyCond(1, 1, iiAlt), &
       EddyCondAdia(1, 1, iiAlt), &
       ChemicalHeatingRate(1, 1, iiAlt)*TempUnit(1, 1, iiAlt), &
-      ! AuroralHeating(1, 1, iiAlt)*dt*TempUnit(1, 1, iiAlt), &
       JouleHeating(1, 1, iiAlt)*dt*TempUnit(1, 1, iiAlt), &
       -RadCooling(1, 1, iiAlt, 1)*dt*TempUnit(1, 1, iiAlt), &
       -OCooling(1, 1, iiAlt)*dt*TempUnit(1, 1, iiAlt), &
@@ -1636,7 +1632,7 @@ subroutine output_2dgel(iBlock)
         ElectronEnergyFluxWave(iLon, iLat), &
         ElectronAverageEnergyMono(iLon, iLat), &
         ElectronEnergyFluxMono(iLon, iLat)
-      enddo
+    enddo
   enddo
 
 end subroutine output_2dgel
