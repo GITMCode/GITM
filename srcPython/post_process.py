@@ -515,7 +515,11 @@ if __name__ == '__main__':  # main code block
                 currentTime = datetime.now()
                 dt = ((currentTime - startTime).total_seconds())/3600.0
                 if (dt > args.totaltime):
-                    print("  --> Stopping due to totaltime exceeded!")
+                    if args.totaltime == 0:
+                        # Different exit message for non-continuous runs 
+                        print("  --> All done!")
+                    else:
+                        print("  --> Stopping due to totaltime exceeded!")
                     # want to break out of loop, so set loop breaking condition:
                     DidWork = False
 
