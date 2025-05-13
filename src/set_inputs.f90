@@ -1959,6 +1959,7 @@ subroutine set_inputs
   ! We need to check to see if the current time and end time are
   ! larger than the last F107 time.  If that is the case, the code
   ! should stop
+
   ! NOTE: In component mode, start/end times are not passed in yet.
   ! -> So we cannot check these. A fix is in the works...
   if (.not. IsFramework) then !SWMF_TIME_NOT_AVAILABLE
@@ -1966,6 +1967,10 @@ subroutine set_inputs
     call check_all_indices(CurrentTime, iError)
     if (iError == 0) then
       call check_all_indices(EndTime, iError)
+      if (iError /= 0) &
+          write(*, *) 'Error with End Time and check_all_indices'
+    else
+      write(*, *) 'Error with Current Time and check_all_indices'
     endif
     if (iError /= 0) then
       call stop_gitm("Issue with Indices! Check the file(s) times!")

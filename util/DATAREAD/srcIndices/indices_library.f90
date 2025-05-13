@@ -10,6 +10,7 @@ subroutine check_all_indices(TimeIn, iOutputError)
   integer, intent(out) :: iOutputError
 
   integer :: iIndex
+  integer, dimension(7) :: itime
 
   iOutputError = 0
 
@@ -20,15 +21,30 @@ subroutine check_all_indices(TimeIn, iOutputError)
     if (nIndices_V(iIndex) > 1) then
       if ((IndexTimes_TV(1, iIndex) - TimeIn) > &
           5.0*(IndexTimes_TV(2, iIndex) - IndexTimes_TV(1, iIndex))) then
-        iOutputError = 3
-      endif
+         iOutputError = 3
+         write(*, *) 'Error in index file times, before start :'
+         write(*, *) 'index, first time, time in : '
+         write(*, *) iIndex, IndexTimes_TV(1, iIndex), TimeIn
+         call time_real_to_int(IndexTimes_TV(1, iIndex), iTime)
+         write(*, *) 'First Index Time : ', iTime
+         call time_real_to_int(TimeIn, iTime)
+         write(*, *) 'TimeIn : ', iTime
+      end if
 
       if ((TimeIn - IndexTimes_TV(nIndices_V(iIndex), iIndex)) > &
           5.0*(IndexTimes_TV(2, iIndex) - IndexTimes_TV(1, iIndex))) then
-        iOutputError = 3
-      endif
-    endif
-  enddo
+        iOutputError = 4
+         write(*, *) 'Error in index file times, after end :'
+         write(*, *) 'index, last time, time in : '
+         write(*, *) iIndex, IndexTimes_TV(nIndices_V(iIndex), iIndex), TimeIn
+         write(*, *) 'Number of values : ', nIndices_V(iIndex)
+         call time_real_to_int(IndexTimes_TV(nIndices_V(iIndex), iIndex), iTime)
+         write(*, *) 'Last Index Time : ', iTime
+         call time_real_to_int(TimeIn, iTime)
+         write(*, *) 'TimeIn : ', iTime
+      end if
+    end if
+  end do
 
   return
 end subroutine check_all_indices

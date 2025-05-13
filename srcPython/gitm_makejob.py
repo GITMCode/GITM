@@ -144,7 +144,7 @@ def modify_job(inLines, \
         m = re.match(r'.*group_list.*', line)
         if m:
             line = '#PBS -W group_list=' + gid
-        m = re.match(r'.*ncpus.*', line)
+        m = re.match(r'.*PBS.*ncpus.*', line)
         if m:
             line = '#PBS -lselect=%d:ncpus=%d' % \
                 (int(nodes), int(nProcsPerNode))
