@@ -139,7 +139,7 @@ subroutine init_iri
           !             utime/3600.+25.,geo_alt,nzkm
 
           ! zero out densities that are not set below
-          IRIDensity(iLon, iLat, iAlt, :, iBlock) = 1.0
+          IRIDensity(iLon, iLat, iAlt, :, iBlock) = minIonDensity
 
           call iri90(jf, jmag, geo_lat, geo_lon, -f107, -iJulianDay, &
                      utime/3600.+25., geo_alt, nzkm, 'UA/DataIn/ccir.cofcnts', &
@@ -153,9 +153,9 @@ subroutine init_iri
           IRIDensity(iLon, iLat, iAlt, iNOP_, iBlock) = &
             abs(outf(9, 1)*outf(1, 1))/100.0 + 1
           IRIDensity(iLon, iLat, iAlt, iHP_, iBlock) = &
-            1.0 ! abs(outf(6,1)*outf(1,1))/100.0+1
+            minIonDensity ! abs(outf(6,1)*outf(1,1))/100.0+1
           IRIDensity(iLon, iLat, iAlt, iHeP_, iBlock) = &
-            1.0 ! abs(outf(7,1)*outf(1,1))/100.0+1
+            minIonDensity ! abs(outf(7,1)*outf(1,1))/100.0+1
 
           ! IRI Ne from 60(day)/80(night) - 1000 km (-1 missing),
           !  ions 100-1000 km
@@ -174,6 +174,8 @@ subroutine init_iri
 
           IDensityS(iLon, iLat, iAlt, nIons, iBlock) = 0.0
           do iIon = 1, nIons - 1
+            if (IDensityS(iLon, iLat, iAlt, iIon, iBlock) < minIonDensity) &
+              IDensityS(iLon, iLat, iAlt, iIon, iBlock) = minIonDensity
             IDensityS(iLon, iLat, iAlt, nIons, iBlock) = &
               IDensityS(iLon, iLat, iAlt, nIons, iBlock) + &
               IDensityS(iLon, iLat, iAlt, iIon, iBlock)

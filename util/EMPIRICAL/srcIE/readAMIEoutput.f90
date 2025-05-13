@@ -83,7 +83,8 @@ subroutine readAMIEoutput(iBLK, IsMirror, iDebugGitm, iError)
   AMIE_iDebugLevel = iDebugGitm
 
   iError = 0
-  if (AMIE_iDebugLevel >= 0) write(*, *) '> reading AMIE file : ', trim(AMIE_FileName)
+  if (AMIE_iDebugLevel >= 0) &
+    write(*, *) '> reading AMIE file : ', trim(AMIE_FileName)
   open(UnitTmp_, &
        file=AMIE_FileName, &
        status='old', &
@@ -259,6 +260,11 @@ subroutine readAMIEoutput(iBLK, IsMirror, iDebugGitm, iError)
     itime_i(7) = 0
     call time_int_to_real(itime_i, rtime)
     AMIE_Time(iTime, iBLK) = rtime
+
+    if (AMIE_iDebugLevel >= 0) then
+      if (iTime == 1) write(*, *) ' -> AMIE Start Time : ', itime_i
+      if (iTime == AMIE_ntimes) write(*, *) ' -> AMIE End Time : ', itime_i
+    endif
 
     ! We need Potential to be in Volts
     !         AveE to be in keV

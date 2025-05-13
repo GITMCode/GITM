@@ -451,19 +451,14 @@ subroutine set_horizontal_bcs_1point(iLon, iLat, iAlt, iBlock, iPoint)
 
   Rho(iLon, iLat, iAlt, iBlock) = GitmFileData(iPoint, iRho_)
 
+  ! Densities:
   do iSpecies = 1, nSpeciesTotal
     NDensityS(iLon, iLat, iAlt, iSpecies, iBlock) = &
       GitmFileData(iPoint, iSpecies + iNeutralStart_ - 1)
-!     if (iProc == 0) then
-!        write(*,*) 'ndensity : ',iSpecies, GitmFileData(iPoint,iSpecies+iNeutralStart_-1)
-!     endif
   enddo
   do iSpecies = 1, nIons
     IDensityS(iLon, iLat, iAlt, iSpecies, iBlock) = &
       GitmFileData(iPoint, iSpecies + iIonStart_ - 1)
-!     if (iProc == 0) then
-!        write(*,*) 'idensity : ',iSpecies, GitmFileData(iPoint,iSpecies+iIonStart_-1)
-!     endif
   enddo
 
   ! Need to calculate tempunit to get normalized temperature
@@ -475,19 +470,21 @@ subroutine set_horizontal_bcs_1point(iLon, iLat, iAlt, iBlock, iPoint)
       sum(NDensityS(iLon, iLat, iAlt, :, iBlock))
   enddo
   TempUnit(iLon, iLat, iAlt) = MeanMajorMass(iLon, iLat, iAlt)/Boltzmanns_Constant
+
+  ! Temperatures:
   Temperature(iLon, iLat, iAlt, iBlock) = &
     GitmFileData(iPoint, iTn_)/TempUnit(iLon, iLat, iAlt)
-
   eTemperature(iLon, iLat, iAlt, iBlock) = GitmFileData(iPoint, iTe_)
   iTemperature(iLon, iLat, iAlt, iBlock) = GitmFileData(iPoint, iTe_ + 1)
-  ! Velocities
+
+  ! Velocities:
   do iDir = 1, 3
     Velocity(iLon, iLat, iAlt, iDir, iBlock) = &
       GitmFileData(iPoint, iVn_ + iDir - 1)
     iVelocity(iLon, iLat, iAlt, iDir, iBlock) = &
       GitmFileData(iPoint, iVi_ + iDir - 1)
   enddo
-  ! Vertical Velocities
+  ! Vertical Velocities:
   do iSpecies = 1, nSpecies
     VerticalVelocity(iLon, iLat, iAlt, iSpecies, iBlock) = &
       GitmFileData(iPoint, iVn_ + 3 + iSpecies - 1)
