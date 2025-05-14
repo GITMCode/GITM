@@ -16,8 +16,11 @@ DoRm = True
 
 def parse_args_post():
 
-    parser = argparse.ArgumentParser(description =
-                                     'Post process and move model results')
+    parser = argparse.ArgumentParser(
+        description = "Post process and (optionally) move model results.\n"+
+        "- This functions similar to pGITM.py, but can copy files to\n"+
+        "  a remote location, or postprocess files as they are created.",
+        formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('-remotefile',
                         help = 'File that contains info. about remote system',
                         default = 'remote')
@@ -31,15 +34,15 @@ def parse_args_post():
                         default = 'none')
     
     parser.add_argument('-dir',
-                        help = 'remote directory to use',
+                        help = 'remote directory to use (default none)',
                         default = 'none')
     
     parser.add_argument('-sleep',
-                        help = 'how long to sleep between loops',
+                        help = 'how long to sleep between loops in seconds, (default 300)',
                         default = 300, type = int)
 
     parser.add_argument('-totaltime',
-                        help = 'specify how long to run in total (in hours)',
+                        help = 'specify how long to run in total in hours, (default 0 - only run once)',
                         default = 0, type = int)
 
     parser.add_argument('-q',
