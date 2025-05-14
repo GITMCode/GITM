@@ -145,7 +145,6 @@ SAMIEXE = ${BINDIR}/GITMSAMI.exe
 
 GITM:	DEPEND
 	@make ${EXE}
-	@make POST
 	@echo
 	@echo "${EXE} has been created"
 	@echo
@@ -158,7 +157,6 @@ ${EXE}:	${OBJECTS_EXE}
 
 SAMI:	DEPENDSAMI
 	@make ${SAMIEXE}
-	@make POST
 	@echo "${SAMIEXE} has been created"
 
 ${SAMIEXE}:	${OBJECTS_SAMI}
