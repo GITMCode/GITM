@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 '''
-A wrapper for PostGITM.exe to handle all unconcatenated output fragments 
+Handle all unconcatenated output fragments 
 produced during a GITM simulation.
 
-This script is an alternative to pGITM (written in cshell) that works robustly
-and securely on a range of unix-like environments with Python available
+This script works robustly and securely on a range of
+unix-like environments with Python available
 (i.e., any modern computer.)
 '''
 
@@ -28,7 +28,7 @@ endChar='<'
 
 def get_args_pgitm():
     parser = argparse.ArgumentParser(
-        description = 'Plot Aether / GITM model results')
+        description = 'Post-process GITM model results')
     parser.add_argument('-v',  \
                         action='store_true', default = False, \
                         help = 'set verbose to true')
@@ -374,7 +374,7 @@ def post_process_gitm(dir, doRemove, isVerbose = False):
         print('Processing directory doesnt exist: ', processDir)
         print('Make sure to put in a valid -dir= ')
         exit()
-    # Move into the UA/data directory (required by PostGITM.exe)
+    # Move into the UA/data directory
     if (isVerbose):
         print('Moving into processing directory : ', processDir)
     cwd = os.getcwd()
