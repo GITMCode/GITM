@@ -374,8 +374,8 @@ subroutine set_inputs
           write(*, *) '#MSISOBC'
           write(*, *) 'UseOBCExperiment        (logical)'
           write(*, *) 'MsisOblateFactor           (real)'
-       endif
-       
+        endif
+
       case ("#MSIS21")
         call read_in_logical(UseMsis21, iError)
         if (iError /= 0) then
