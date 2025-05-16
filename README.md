@@ -122,9 +122,12 @@ lon. See below for how to set the resolution.
 ```
 
 > This can be called from `run/` and will postprocess the files in UA/output.
-> It also has functionality to copy files to a remote location, monitor the
+> It has functionality to copy files to a remote location, monitor the
 > output folder throughout a run, and more. Run `./post_process.py --help` to
 > see available options.
+
+> The legacy postprocessors are still available, but are not built by default. To build
+> PostProcess.exe, run `make POST` and the csh script can be found at `src/pGITM`.
 
 9\. Go into the output directory:
 
