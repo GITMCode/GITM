@@ -16,8 +16,11 @@ DoRm = True
 
 def parse_args_post():
 
-    parser = argparse.ArgumentParser(description =
-                                     'Post process and move model results')
+    parser = argparse.ArgumentParser(
+        description = "Post process and (optionally) move model results.\n"+
+        "- This functions similar to pGITM.py, but can copy files to\n"+
+        "  a remote location, or postprocess files as they are created.",
+        formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('-remotefile',
                         help = 'File that contains info. about remote system',
                         default = 'remote')
@@ -31,15 +34,15 @@ def parse_args_post():
                         default = 'none')
     
     parser.add_argument('-dir',
-                        help = 'remote directory to use',
+                        help = 'remote directory to use (default none)',
                         default = 'none')
     
     parser.add_argument('-sleep',
-                        help = 'how long to sleep between loops',
+                        help = 'how long to sleep between loops in seconds, (default 300)',
                         default = 300, type = int)
 
     parser.add_argument('-totaltime',
-                        help = 'specify how long to run in total (in hours)',
+                        help = 'specify how long to run in total in hours, (default 0 - only run once)',
                         default = 0, type = int)
 
     parser.add_argument('-q',
@@ -426,7 +429,14 @@ def do_loop(doTarZip, user, server, dir, IsRemote):
     if (doTarZip):
         DidWork = tar_and_zip_gitm()
     else:
+        # Default should be UA/data
         processDir = 'UA/data' 
+        if (not os.path.exists(processDir)):
+            # Maybe we are in the UA directory?
+            processDir = 'data'
+            if (not os.path.exists(processDir)):
+                # Maybe we are already in the data directory???
+                processDir = '.'
         DidWork = post_process_gitm(processDir, DoRm, isVerbose = IsVerbose)
         #DidWork = post_process_gitm()
         
@@ -508,7 +518,11 @@ if __name__ == '__main__':  # main code block
                 currentTime = datetime.now()
                 dt = ((currentTime - startTime).total_seconds())/3600.0
                 if (dt > args.totaltime):
-                    print("  --> Stopping due to totaltime exceeded!")
+                    if args.totaltime == 0:
+                        # Different exit message for non-continuous runs 
+                        print("  --> All done!")
+                    else:
+                        print("  --> Stopping due to totaltime exceeded!")
                     # want to break out of loop, so set loop breaking condition:
                     DidWork = False
 

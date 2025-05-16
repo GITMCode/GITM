@@ -115,25 +115,27 @@ blocks with 9 x 9 cells each, so the default resolution is 180 (deg
 lat) / (2 \* 9) = 10 deg lat, by 360 (deg lon) / (2 \* 9) = 20 deg
 lon. See below for how to set the resolution.
 
-8\. Go into the directory which contains many of the outputs:
+8\. Post process the output files by running:
 
 ```shell
-cd UA
+./post_process.py
 ```
 
-9\. Post process the output files by running:
+> This can be called from `run/` and will postprocess the files in UA/output.
+> It has functionality to copy files to a remote location, monitor the
+> output folder throughout a run, and more. Run `./post_process.py --help` to
+> see available options.
 
-```shell
-./pGITM
-```
+> The legacy postprocessors are still available, but are not built by default. To build
+> PostProcess.exe, run `make POST` and the csh script can be found at `src/pGITM`.
 
-10\. Go into the output directory:
+9\. Go into the output directory:
 
 ```shell
 cd data
 ```
 
-11\. Make some plots with an old plotter:
+10\. Make some plots with an old plotter:
 
 ```shell
 ../../../srcPython/plot_model_results.py -var=3 -alt=120 3DALL_t021221_000500.bin
@@ -142,7 +144,7 @@ cd data
 Then look at the png file that is created.  You can use a `-h` to see
 how to run this code.
 
-11b\. A more advanced plotter is available through aetherpy. This is a bit more
+10b\. A more advanced plotter is available through aetherpy. This is a bit more
 complicated, since you need to install aetherpy. If you don't use python
 much, this is harder. Here is how to do this:
 
@@ -165,7 +167,7 @@ git checkout develop
 python setup.py develop --user
 ```
 
-11c\. Test out the new plotter:
+10c\. Test out the new plotter:
 
 ```shell
 cd <directory where you started from>
