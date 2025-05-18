@@ -73,7 +73,7 @@ module ModInputs
   ! logical :: UseOvationSMEWave = .false.
   ! logical :: UseOvationSMEIon = .false.
 
-  logical :: UseFangEnergyDeposition = .true.
+  integer :: ED_N_Energies = 50
 
   logical :: IsKappaAurora = .false.
   real :: AuroraKappa = 3

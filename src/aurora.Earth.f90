@@ -39,7 +39,7 @@ subroutine aurora(iBlock)
 
   real :: LocalVar, HPn, HPs, avepower, ratio, ratio_NH, ratio_SH
 
-  if (UseFangEnergyDeposition .and. IsFirstTime(iBlock)) then
+  if (IsFirstTime(iBlock)) then
     call initialize_fang_arrays
   else
     if (floor((tSimulation - dT)/dTAurora) == &
@@ -482,6 +482,8 @@ subroutine initialize_fang_arrays
     Fang_Ion_Pij(12, :) = (/-1.89515E-01, 3.53452e-02, 7.77964E-02, -4.06034E-03/)
   endif
 
+  call init_energy_deposition()
+
   ! Electrons
   do iEnergy = 1, ED_N_Energies
     do i = 1, 8
@@ -589,9 +591,49 @@ subroutine calc_fang_rates(j, i, iBlock, AuroralBulkIonRate)
 
   enddo
 
-  ! AuroralHeatingRate(j, i, 1:nAlts, iBlock) = 0.0 ! ?? what is this for? move back to aurora?
-
 end subroutine calc_fang_rates
+
+! ================================== !
+! create the energy deposition stuff !
+! ================================== !
+
+subroutine init_energy_deposition()
+  use ModInputs, only: ED_N_Energies
+  use ModSources
+
+  ! temporary
+  real, dimension(ED_N_Energies):: energy_edges
+
+  allocate(ED_Energies(ED_N_Energies), stat=ierr)
+  allocate(ED_delta_energy(ED_N_Energies), stat=ierr)
+
+  ! min/max energy bins
+  ED_Max_Energy = 5.0e5
+  ED_Min_Energy = 10.0
+
+  ! log space the energy bins
+  de = (alog10(ED_Max_Energy) - alog10(ED_Min_Energy))/(ED_N_Energies - 1)
+  logmin = alog10(ED_Min_Energy)
+
+  do i = 1, ED_N_Energies
+    ED_Energies(ED_N_Energies - (i - 1)) = 10.0**(logmin + (i - 1)*de)
+  enddo
+
+  ! Calculate delta btwn bins
+  ED_delta_energy(1) = ED_Energies(1) - ED_Energies(2)
+  energy_edges(1) = ED_Energies(1) + ED_delta_energy(1)/2.0
+  iEnergy = 1
+  do iEnergy = 2, ED_N_Energies
+    energy_edges(iEnergy) = &
+      (ED_Energies(iEnergy - 1) + ED_Energies(iEnergy))/2
+    ED_delta_energy(iEnergy - 1) = &
+      energy_edges(iEnergy - 1) - energy_edges(iEnergy)
+  enddo
+
+  iEnergy = ED_N_Energies
+  ED_delta_energy(iEnergy) = ED_Energies(iEnergy - 1) - ED_Energies(iEnergy)
+
+end subroutine init_energy_deposition
 
 subroutine calculate_HP(iBlock, HPn, HPs)
   ! Calculate hemispheric power in n/s (NPn, HPs)

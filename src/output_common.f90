@@ -309,7 +309,7 @@ subroutine output(dir, iBlock, iOutputType)
 
   case ('3DTHM')
 
-    nvars_to_write = 13 + 4
+    nvars_to_write = 12 + 4
     call output_3dthm(iBlock)
 
   case ('1DCHM')
@@ -649,7 +649,6 @@ contains
       write(iOutputUnit_, "(I7,A1,a)") 7, " ", "Eddy Conduction"
       write(iOutputUnit_, "(I7,A1,a)") 8, " ", "Eddy Adiabatic Conduction"
       write(iOutputUnit_, "(I7,A1,a)") 9, " ", "Chemical Heating"
-      write(iOutputUnit_, "(I7,A1,a)") 10, " ", "Auroral Heating"
       write(iOutputUnit_, "(I7,A1,a)") 11, " ", "Joule Heating"
       write(iOutputUnit_, "(I7,A1,a)") 12, " ", "NO Cooling"
       write(iOutputUnit_, "(I7,A1,a)") 13, " ", "O Cooling"

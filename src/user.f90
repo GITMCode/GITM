@@ -457,7 +457,7 @@ end subroutine set_nVarsUser3d
 subroutine set_nVarsUser2d
 
   use ModUserGITM
-  use ModSources, only: ED_N_Energies
+  use ModInputs, only: ED_N_Energies
 
   ! Make sure to include Lat, Lon, and Alt
 
@@ -507,7 +507,8 @@ end subroutine set_nVarsUser0d
 subroutine output_header_user(cType, iOutputUnit_)
 
   use ModUserGITM
-  use ModSources, only: ED_Energies, ED_N_Energies
+  use ModSources, only: ED_Energies
+  use ModInputs, only: ED_N_Energies
 
   implicit none
 

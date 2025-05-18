@@ -84,7 +84,6 @@ OBJECTS = \
 	initialize.o\
 	init_altitude.o\
 	init_b0.o\
-	init_energy_deposition.o\
 	init_grid.o\
 	init_iri.o\
 	init_mpi.o\
