@@ -683,24 +683,23 @@ subroutine set_inputs
 
         endif
 
-      case ("#IEMODELS") ! would love to call this #ELECTRODYNAMICS, but...
+      case ("#ELECTRODYNAMICS")
         call read_in_string(cAuroralModel, iError)
+        call read_in_real(dTAurora, iError)
         call read_in_string(cPotentialModel, iError)
+        call read_in_real(dTPotential, iError)
 
         if (iError /= 0) then
-          write(*, *) 'Incorrect format for #IEMODELS!!'
-          write(*, *) ''
-          write(*, *) '#IEMODELS'
-          write(*, *) 'AuroralModel     [fta], fre, pem, hpi/ihp, amie, etc.'
+          write(*, *) 'Incorrect format for #ELECTRODYNAMICS'
+          write(*, *) 'Sets the time for updating the high-latitude'
+          write(*, *) '(and low-latitude) electrodynamic drivers, such as'
+          write(*, *) 'the potential and the aurora.'
+          write(*, *) '#ELECTRODYNAMICS'
+          write(*, *) 'AuroralModel     [fta], fre, pem, ovation, hpi/ihp, amie, etc.'
+          write(*, *) 'DtAurora    (real, seconds [60.0])'
           write(*, *) 'PotentialModel   [weimer05], hepmay, amie, etc.'
-          write(*, *) ''
-          write(*, *) ' => See Electrodynamics/src/interpret_names.f90 for available options <='
-          call set_error("Aurora and efield names not correctly specified!")
-        endif
-
-        if (.not. isOk) then
-          call report_errors
-          call stop_gitm("")
+          write(*, *) 'DtPotential (real, seconds [60.0])'
+          IsDone = .true.
         endif
 
       case ("#AMIEFILES")
@@ -746,7 +745,7 @@ subroutine set_inputs
         call read_in_logical(UseDiffuseAurora, iError)
         call read_in_logical(UseMonoAurora, iError)
         call read_in_logical(UseWaveAurora, iError)
-        call read_in_logical(UseIonAurora, iError) ! unused 
+        call read_in_logical(UseIonAurora, iError) ! unused
 
         if (iError /= 0) then
           write(*, *) 'Incorrect format for #AURORATYPES'
@@ -755,7 +754,7 @@ subroutine set_inputs
           write(*, *) 'These are all False by default, using only diffuse:'
           write(*, *) ''
           write(*, *) '#AURORATYPES'
-          write(*, *) 'UseDiffuseAurora (logical) - True by default' 
+          write(*, *) 'UseDiffuseAurora (logical) - True by default'
           write(*, *) 'UseMonoAurora (logical)'
           write(*, *) 'UseWaveAurora (logical)'
           write(*, *) 'UseIonAurora (logical)'
@@ -819,32 +818,6 @@ subroutine set_inputs
           write(*, *) 'AMIELatStart         (real)'
           write(*, *) 'AMIELatEnd           (real)'
           write(*, *) 'AMIEBoundaryWidth    (real)'
-          IsDone = .true.
-        endif
-
-      case ("#ELECTRODYNAMICS")
-        call read_in_real(dTPotential, iError)
-        call read_in_real(dTAurora, iError)
-        if (iError /= 0) then
-          write(*, *) 'Incorrect format for #ELECTRODYNAMICS'
-          write(*, *) 'Sets the time for updating the high-latitude'
-          write(*, *) '(and low-latitude) electrodynamic drivers, such as'
-          write(*, *) 'the potential and the aurora.'
-          write(*, *) '#ELECTRODYNAMICS'
-          write(*, *) 'DtPotential (real, seconds)'
-          write(*, *) 'DtAurora    (real, seconds)'
-          IsDone = .true.
-        endif
-
-      case ("#IONPRECIPITATION") !#TODO: Fix this! None works with new electrodynamics
-        ! Leaving it in for backwards compatibility. Also can be set in #auroratypes
-        call read_in_logical(UseIonAurora, iError)
-        if (iError /= 0) then
-          write(*, *) 'Incorrect format for #IONPRECIPITATION'
-          write(*, *) 'You can only have an AMIE input file for this now.'
-          write(*, *) 'Make sure you put the ions in the AMIE file!!!'
-          write(*, *) '#IONPRECIPITATION'
-          write(*, *) 'UseIonAurora     (logical)'
           IsDone = .true.
         endif
 

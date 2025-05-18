@@ -62,10 +62,11 @@ Output file stuff
 ------------ Electrodynamics Drivers ------------
 
 New auroral model from Wu and Ridley, which is driven by AU/AL/AE
-#IEMODELS
+#ELECTRODYNAMICS
 FTA
+60.0
 weimer05
-
+60.0
 
 ----------- Data Files ------------------
 
