@@ -98,10 +98,11 @@ module ModSources
   !\
   ! Stuff for auroral energy deposition and ionization
   !/
-  ! int ED_N_Energies !>> set by mod_inputs
   real, dimension(:), allocatable :: &
     ED_Energies, ED_delta_energy, ED_EnergyFlux, &
     ED_Ion_EnergyFlux
+  integer :: ED_N_Energies = 50
+
 
   real, allocatable :: AuroralIonRateS(:, :, :, :, :)
   real, allocatable :: IonPrecipIonRateS(:, :, :, :, :)

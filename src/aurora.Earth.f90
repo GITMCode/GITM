@@ -605,7 +605,6 @@ end subroutine calc_fang_rates
 ! ================================== !
 
 subroutine init_energy_deposition()
-  use ModInputs, only: ED_N_Energies
   use ModSources
 
   ! temporary

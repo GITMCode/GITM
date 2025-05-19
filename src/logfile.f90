@@ -143,7 +143,6 @@ subroutine logfile(dir)
     endif
     write(iLogFileUnit_, '(4(a))') "# E-Field Model: ", trim(cPotentialModel), &
       " Auroral Model: ", trim(cAuroralModel)
-    write(iLogFileUnit_, '(a,i4)') "# ED_N_Energies: ", ED_N_Energies
     write(iLogFileUnit_, '(a,a15)') "# AMIE: ", cAmieFileNorth, cAmieFileSouth
     write(iLogFileUnit_, '(3(a,L2))') "# Solar Heating: ", useSolarHeating, &
       " Joule Heating: ", useJouleHeating
@@ -165,7 +164,7 @@ subroutine logfile(dir)
     write(iLogFileUnit_, '(a)') &
       "   iStep yyyy mm dd hh mm ss  ms      dt "// &
       "min(T) max(T) mean(T) min(VV) max(VV) mean(VV) F107 F107A "// &
-      "By Bz Vx HP HPn HPs HPn_diff HPs_diff HPn_w HPs_w HPn_m HPs_w "//&
+      "By Bz Vx HP HPn HPs HPn_diff HPs_diff HPn_w HPs_w HPn_m HPs_w "// &
       "SubsolarLon SubsolarLat SubsolarVTEC"
   endif
 
@@ -256,7 +255,7 @@ subroutine logfile(dir)
       minVertVel, maxVertVel, AverageVertVel, &
       f107, f107A, By, Bz, Vx, Hpi, &
       HPn/1.0e9, HPs/1.0e9, HPn_d/1.0e9, HPs_d/1.0e9, &
-      HPn_w/1.0e9, HPs_w/1.0e9,HPn_m/1.0e9, HPs_m/1.0e9,&
+      HPn_w/1.0e9, HPs_w/1.0e9, HPn_m/1.0e9, HPs_m/1.0e9, &
       SSLon, SSLat, SSVTEC
 
     call flush_unit(iLogFileUnit_)
