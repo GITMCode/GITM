@@ -748,7 +748,7 @@ subroutine set_inputs
         call read_in_logical(UseDiffuseAurora, iError)
         call read_in_logical(UseMonoAurora, iError)
         call read_in_logical(UseWaveAurora, iError)
-        call read_in_logical(UseIonAurora, iError) ! unused
+        call read_in_logical(UseIonAurora, iError)
 
         if (iError /= 0) then
           write(*, *) 'Incorrect format for #AURORATYPES'

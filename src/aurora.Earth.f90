@@ -176,14 +176,6 @@ subroutine aurora(iBlock)
 
       UserData2d(j, i, 1, 2:nUserOutputs, iBlock) = 0.0
 
-      if (UseIonAurora) then
-        ion_eflx_ergs = IonEnergyFlux(j, i)
-        ion_av_kev = IonAverageEnergy(j, i)
-      else
-        ion_eflx_ergs = 0.001
-        ion_av_kev = 10.0
-      endif
-
       e_diffuse_ED_flux = 0.0
       i_diffuse_ED_flux = 0.0
       wave_ED_flux = 0.0
@@ -202,10 +194,12 @@ subroutine aurora(iBlock)
         HasSomeAurora = .true.
       endif
 
-      if (ion_eflx_ergs > 0.1 &
+      if (IonEnergyFlux(j,i) > 0.1 &
           .and. UseIonAurora &
           ) then
-        call do_diffuse_aurora(ion_av_kev, ion_eflx_ergs, i_diffuse_ED_flux)
+        call do_diffuse_aurora(IonEnergyFlux(j, i), &
+                               IonAverageEnergy(j, i), &
+                               i_diffuse_ED_flux)
         HasSomeAurora = .true.
       endif
 
@@ -234,6 +228,7 @@ subroutine aurora(iBlock)
 
       do n = 1, ED_N_Energies
         ED_EnergyFlux(n) = e_diffuse_ED_flux(n) + wave_ED_flux(n) + mono_ED_flux(n)
+        ED_Ion_EnergyFlux(n) = i_diffuse_ED_flux(n) ! for consistency
       enddo
 
       if (maxval(ED_EnergyFlux) > 0.1) &
@@ -259,6 +254,11 @@ subroutine aurora(iBlock)
     NDensityS(1:nLons, 1:nLats, 1:nAlts, iN2_, iBlock)/temp
 
   IsFirstTime(iBlock) = .false.
+
+  HemisphericPowerNorth = HemisphericPowerNorth_diffuse + HemisphericPowerNorth_ion &
+                          + HemisphericPowerNorth_mono + HemisphericPowerNorth_wave
+  HemisphericPowerSouth = HemisphericPowerSouth_diffuse + HemisphericPowerSouth_ion &
+                          + HemisphericPowerSouth_mono + HemisphericPowerSouth_wave
 
   call end_timing("Aurora")
 
@@ -383,15 +383,15 @@ contains
             dLatDist_FB(j, i, nAlts, iBlock)* &
             dLonDist_FB(j, i, nAlts, iBlock)
 
-    ! Mono is treated as a (skinny) gaussian:
-    if (eflux > 0.1 .and. avee > 0.1) &
-      call calc_gaussian(eflux, avee, Mono_ED_EnergyFlux, 0.1)
-
     if (latitude(i, iBlock) < 0.0) then
       HemisphericPowerSouth_mono = HemisphericPowerSouth_mono + power
     else
       HemisphericPowerNorth_mono = HemisphericPowerNorth_mono + power
     endif
+
+    ! Mono is treated as a (skinny) gaussian:
+    if (eflux > 0.1 .and. avee > 0.1) &
+      call calc_gaussian(eflux, avee, Mono_ED_EnergyFlux, 0.1)
 
   end subroutine do_mono_aurora
 
@@ -411,20 +411,14 @@ contains
             dLonDist_FB(j, i, nAlts, iBlock)
 
     if (latitude(i, iBlock) < 0.0) then
-      HemisphericPowerSouth = HemisphericPowerSouth + power
+      HemisphericPowerSouth_wave = HemisphericPowerSouth_wave + power
     else
-      HemisphericPowerNorth = HemisphericPowerNorth + power
+      HemisphericPowerNorth_wave = HemisphericPowerNorth_wave + power
     endif
 
     ! Wave is a gaussian, centered at aveE
     if (eflux > 0.1 .and. avee > 0.1) &
       call calc_gaussian(eflux, avee, wave_EDEnergyFlux, 0.75)
-
-    if (latitude(i, iBlock) < 0.0) then
-      HemisphericPowerSouth_wave = HemisphericPowerSouth_wave + power
-    else
-      HemisphericPowerNorth_wave = HemisphericPowerNorth_wave + power
-    endif
 
   end subroutine do_wave_aurora
 
@@ -587,7 +581,7 @@ subroutine calc_fang_rates(j, i, iBlock, AuroralBulkIonRate)
         Ion_Ci(9)*Fang_Ion_y(iEnergy, :)**Ion_Ci(10)* &
         exp(-Ion_Ci(11)*Fang_Ion_y(iEnergy, :)**Ion_Ci(12))
 
-      fac = ED_ion_energyflux(iEnergy)/1000.0/ &
+      fac = ED_Ion_EnergyFlux(iEnergy)/1000.0/ &
             Fang_de/ &
             BulkScaleHeight1d
 
@@ -613,6 +607,7 @@ subroutine init_energy_deposition()
 
   allocate(ED_Energies(ED_N_Energies), stat=ierr)
   allocate(ED_EnergyFlux(ED_N_Energies), stat=ierr)
+  allocate(ED_Ion_EnergyFlux(ED_N_Energies), stat=ierr)
   allocate(ED_delta_energy(ED_N_Energies), stat=ierr)
 
   ! min/max energy bins

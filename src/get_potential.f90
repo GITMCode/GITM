@@ -277,32 +277,12 @@ subroutine get_potential(iBlock)
     if (UseMonoAurora) &
       call IEModel_%get_electron_mono_aurora(ElectronEnergyFluxMono, ElectronAverageEnergyMono)
 
-    ! if (UseIonAurora) &
-    !   call IEModel_%get_ion(ElectronEnergyFluxWave, ElectronAverageEnergyWave)
+    if (UseIonAurora) &
+      call IEModel_%get_ion_diffuse_aurora(IonEnergyFlux, IonAverageEnergy)
 
-    ! -----------------------------------------------------
-    ! Get Ion Precipitation if desired
-    ! -----------------------------------------------------
-
-    if (UseIonAurora) then
-      call stop_gitm("I don't know how to do ion aurora yet, sorry!")
-      !   call UA_GetIonAveE(IonAverageEnergy, iError)
-      !   if (iError /= 0) then
-      !     write(*, *) "Error in get_potential (UA_GetAveE):"
-      !     write(*, *) iError
-      !     IonAverageEnergy = 1.0
-      !   endif
-
-      !   call UA_GetIonEFlux(IonEnergyFlux, iError)
-      !   if (iError /= 0) then
-      !     write(*, *) "Error in get_potential (UA_GetEFlux):"
-      !     write(*, *) iError
-      !     IonEnergyFlux = 0.1
-      !   endif
-
-      ! endif
-
-    endif
+    ! -----------------------------
+    ! Cusp, if desired
+    ! -----------------------------
 
     if (UseCusp) then
 
