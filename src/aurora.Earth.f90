@@ -358,16 +358,11 @@ contains
 
     real :: emax
 
-    emax = eflux/(sqrt(Pi)/2)
+    emax = eflux/(sqrt(2*pi*sig*sig))
 
     do n = 1, ED_N_Energies
-      gaus_ed_flux(n) = emax*exp(-(avee - ED_Energies(n))**2 &
-                                 /(sig*ED_delta_energy(n))**2)
-      ! Gaussian-Deposition_flux
-      gaus_ed_flux(n) = &
-        gaus_ed_flux(n)* &
-        ED_Energies(n)* &
-        ED_delta_energy(n)
+      gaus_ed_flux(n) = emax*exp(-(alog10(ED_Energies(n)) - alog10(avee))**2 &
+                                 /(2.0*sig*sig))
     enddo
 
   end subroutine calc_gaussian
@@ -390,7 +385,7 @@ contains
 
     ! Mono is treated as a (skinny) gaussian:
     if (eflux > 0.1 .and. avee > 0.1) &
-      call calc_gaussian(eflux, avee, Mono_ED_EnergyFlux, 1.)
+      call calc_gaussian(eflux, avee, Mono_ED_EnergyFlux, 0.1)
 
     if (latitude(i, iBlock) < 0.0) then
       HemisphericPowerSouth_mono = HemisphericPowerSouth_mono + power
@@ -421,9 +416,9 @@ contains
       HemisphericPowerNorth = HemisphericPowerNorth + power
     endif
 
-    ! Wave is a gaussian, centered at aveE w/std dev of 3*bin width
+    ! Wave is a gaussian, centered at aveE
     if (eflux > 0.1 .and. avee > 0.1) &
-      call calc_gaussian(eflux, avee, wave_EDEnergyFlux, 3.)
+      call calc_gaussian(eflux, avee, wave_EDEnergyFlux, 0.75)
 
     if (latitude(i, iBlock) < 0.0) then
       HemisphericPowerSouth_wave = HemisphericPowerSouth_wave + power
