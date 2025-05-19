@@ -64,7 +64,7 @@ subroutine aurora(iBlock)
     ! Let's scale our hemispheric power so it is roughly the same as what
     ! is measured.
 
-    ! Calculate HP from e- flux
+    ! Calculate HP from (diffuse) e- flux
     call calculate_HP(iBlock, HPn, HPs)
 
     ! Collect all of the powers by summing them together
@@ -152,6 +152,14 @@ subroutine aurora(iBlock)
   if (iBlock == 1) then
     HemisphericPowerNorth = 0.0
     HemisphericPowerSouth = 0.0
+    HemisphericPowerNorth_diffuse = 0.0
+    HemisphericPowerSouth_diffuse = 0.0
+    HemisphericPowerNorth_wave = 0.0
+    HemisphericPowerSouth_wave = 0.0
+    HemisphericPowerSouth_mono = 0.0
+    HemisphericPowerNorth_mono = 0.0
+    HemisphericPowerNorth_ion = 0.0
+    HemisphericPowerSouth_ion = 0.0
   endif
 
   if (iProc == 0 .and. AveEFactor /= 1.0 .and. IsFirstTime(iBlock)) then
@@ -272,9 +280,9 @@ contains
             dLonDist_FB(j, i, nAlts, iBlock)
 
     if ((latitude(i, iBlock) < 0.0)) then
-      HemisphericPowerSouth = HemisphericPowerSouth + power
+      HemisphericPowerSouth_diffuse = HemisphericPowerSouth_diffuse + power
     else
-      HemisphericPowerNorth = HemisphericPowerNorth + power
+      HemisphericPowerNorth_diffuse = HemisphericPowerNorth_diffuse + power
     endif
 
     if (IsKappaAurora) then
@@ -383,9 +391,9 @@ contains
       call calc_gaussian(eflux, avee, Mono_ED_EnergyFlux, 1.)
 
     if (latitude(i, iBlock) < 0.0) then
-      HemisphericPowerSouth = HemisphericPowerSouth + power
+      HemisphericPowerSouth_mono = HemisphericPowerSouth_mono + power
     else
-      HemisphericPowerNorth = HemisphericPowerNorth + power
+      HemisphericPowerNorth_mono = HemisphericPowerNorth_mono + power
     endif
 
   end subroutine do_mono_aurora
@@ -416,9 +424,9 @@ contains
       call calc_gaussian(eflux, avee, wave_EDEnergyFlux, 3.)
 
     if (latitude(i, iBlock) < 0.0) then
-      HemisphericPowerSouth = HemisphericPowerSouth + power
+      HemisphericPowerSouth_wave = HemisphericPowerSouth_wave + power
     else
-      HemisphericPowerNorth = HemisphericPowerNorth + power
+      HemisphericPowerNorth_wave = HemisphericPowerNorth_wave + power
     endif
 
   end subroutine do_wave_aurora

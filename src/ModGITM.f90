@@ -174,6 +174,10 @@ module ModGITM
   real :: SubsolarLatitude, SubsolarLongitude
   real :: MagneticPoleColat, MagneticPoleLon
   real :: HemisphericPowerNorth, HemisphericPowerSouth
+  real :: HemisphericPowerNorth_diffuse, HemisphericPowerSouth_diffuse
+  real :: HemisphericPowerNorth_wave, HemisphericPowerSouth_wave
+  real :: HemisphericPowerNorth_mono, HemisphericPowerSouth_mono
+  real :: HemisphericPowerNorth_ion, HemisphericPowerSouth_ion
   real :: SunDeclination
 
   ! For WP-GITM: horizontal mean values at GITM's lower boundary
