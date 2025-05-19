@@ -219,7 +219,9 @@ subroutine aurora(iBlock)
         HasSomeAurora = .true.
       endif
 
-      ED_EnergyFlux = e_diffuse_ED_flux + i_diffuse_ED_flux + wave_ED_flux + mono_ED_flux
+      do n=1, ED_N_Energies
+        ED_EnergyFlux(n) = e_diffuse_ED_flux(n) + wave_ED_flux(n) + mono_ED_flux(n)
+      enddo
 
       if (HasSomeAurora) then
 
