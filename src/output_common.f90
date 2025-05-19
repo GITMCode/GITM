@@ -309,7 +309,7 @@ subroutine output(dir, iBlock, iOutputType)
 
   case ('3DTHM')
 
-    nvars_to_write = 12 + 4
+    nvars_to_write = 15 + 4
     call output_3dthm(iBlock)
 
   case ('1DCHM')
@@ -668,6 +668,9 @@ contains
         write(iOutputUnit_, "(I7,A1,a)") 16, " ", "Rho"
         write(iOutputUnit_, "(I7,A1,a)") 17, " ", "E-Field Mag"
         write(iOutputUnit_, "(I7,A1,a)") 18, " ", "Sigma Ped"
+        write(iOutputUnit_, "(I7,A1,a)") 18, " ", "Ionization Rate O_3P"
+        write(iOutputUnit_, "(I7,A1,a)") 18, " ", "Ionization Rate O2"
+        write(iOutputUnit_, "(I7,A1,a)") 18, " ", "Ionization Rate N2"
       endif
 
     endif
@@ -1353,7 +1356,10 @@ subroutine output_3dthm(iBlock)
           cp(iiLon, iiLat, iiAlt, iBlock), &
           rho(iiLon, iiLat, iiAlt, iBlock), &
           sqrt(sum(EField(iLon, iLat, iAlt, :)**2)), & ! magnitude of E.F.
-          Sigma_Pedersen(iLon, iLat, iAlt)
+          Sigma_Pedersen(iLon, iLat, iAlt), &
+          AuroralIonRateS(iiLon, iiLat, iiAlt, iO_3P_, iBlock), &
+          AuroralIonRateS(iiLon, iiLat, iiAlt, iO2_, iBlock), &
+          AuroralIonRateS(iiLon, iiLat, iiAlt, iN2_, iBlock)
 
       enddo
     enddo
