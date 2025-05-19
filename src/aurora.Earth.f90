@@ -361,7 +361,7 @@ contains
     emax = eflux/(sqrt(2*pi*sig*sig))
 
     do n = 1, ED_N_Energies
-      gaus_ed_flux(n) = emax*exp(-(alog10(ED_Energies(n)) - alog10(avee))**2 &
+      gaus_ed_flux(n) = emax*exp(-(log10(ED_Energies(n)) - log10(avee))**2 &
                                  /(2.0*sig*sig))
     enddo
 
@@ -615,8 +615,8 @@ subroutine init_energy_deposition()
   ED_Min_Energy = 10.0
 
   ! log space the energy bins
-  de = (alog10(ED_Max_Energy) - alog10(ED_Min_Energy))/(ED_N_Energies - 1)
-  logmin = alog10(ED_Min_Energy)
+  de = (log10(ED_Max_Energy) - log10(ED_Min_Energy))/(ED_N_Energies - 1)
+  logmin = log10(ED_Min_Energy)
 
   do i = 1, ED_N_Energies
     ED_Energies(ED_N_Energies - (i - 1)) = 10.0**(logmin + (i - 1)*de)

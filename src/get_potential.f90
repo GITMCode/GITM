@@ -60,6 +60,7 @@ subroutine init_get_potential
   endif
 
   ! Now run some checks on user's settings:
+  if (iProc == 0) then
   if (IEModel_%iAurora_ == iOvationPrime_) then
     if (NormalizeAuroraToHP .and. (iProc == 0)) &
       call raise_warning("You probably should not use NormalizeAuroraToHP and Ovation")
@@ -68,6 +69,12 @@ subroutine init_get_potential
       call raise_warning("Kappa aurora & ion precipitation cannot be used simultaneously, yet.")
   endif
 
+  if (IEModel_%iAurora_ /= iOvationPrime_ .and. UseMonoAurora) &
+    call set_error("Mono-energetic aurora can only be used with ovation currently")
+
+  if (IEModel_%iAurora_ /= iOvationPrime_ .and. UseWaveAurora) &
+    call set_error("Wave aurora can only be used with ovation currently")
+  endif
   ! Initialize the grid:
   call IEModel_%nMlts(nLons + 4)
   call IEModel_%nLats(nLats + 4)
@@ -252,6 +259,8 @@ subroutine get_potential(iBlock)
 
     ! Sometimes, in AMIE, things get messed up in the
     ! Average energy, so go through and fix some of these.
+    ! (also checked in aurora.f90)
+    if (iDebugLevel > 1) then
     do iLat = -1, nLats + 2
       do iLon = -1, nLons + 2
         if (ElectronAverageEnergyDiffuse(iLon, iLat) < 0.0) then
@@ -266,6 +275,7 @@ subroutine get_potential(iBlock)
         endif
       enddo
     enddo
+  endif
 
     ! -----------------------------
     ! Ion, Wave- & Mono- aurora
