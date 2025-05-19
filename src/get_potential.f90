@@ -275,7 +275,7 @@ subroutine get_potential(iBlock)
         endif
       enddo
     enddo
-  endif
+    endif
 
     ! -----------------------------
     ! Ion, Wave- & Mono- aurora

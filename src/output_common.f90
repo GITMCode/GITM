@@ -309,7 +309,7 @@ subroutine output(dir, iBlock, iOutputType)
 
   case ('3DTHM')
 
-    nvars_to_write = 15 + 4
+    nvars_to_write = 16 + 4
     call output_3dthm(iBlock)
 
   case ('1DCHM')

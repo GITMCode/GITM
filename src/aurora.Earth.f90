@@ -195,8 +195,8 @@ subroutine aurora(iBlock)
         HasSomeAurora = .true.
       endif
 
-      if (IonEnergyFlux(j,i) > 0.1 &
-          .and. IonAverageEnergy(j,i) > 0.1 &
+      if (IonEnergyFlux(j, i) > 0.1 &
+          .and. IonAverageEnergy(j, i) > 0.1 &
           .and. IonAverageEnergy(j, i) < MaxAveEAurora &
           .and. UseIonAurora &
           ) then

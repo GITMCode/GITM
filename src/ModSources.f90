@@ -103,7 +103,6 @@ module ModSources
     ED_Ion_EnergyFlux
   integer :: ED_N_Energies = 50
 
-
   real, allocatable :: AuroralIonRateS(:, :, :, :, :)
   real, allocatable :: IonPrecipIonRateS(:, :, :, :, :)
   real :: ChemicalHeatingRate(nLons, nLats, nAlts)

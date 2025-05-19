@@ -44,8 +44,8 @@ subroutine add_sources
       /TempUnit(1:nLons, 1:nLats, 1:nAlts) &
       + EuvHeating(1:nLons, 1:nLats, 1:nAlts, iBlock) &
       - RadCooling(1:nLons, 1:nLats, 1:nAlts, iBlock) &
-     + JouleHeating) + &
-      Conduction + ChemicalHeatingRate
+      + JouleHeating) &
+      + ChemicalHeatingRate
 
 !     write(*,*) Temperature(1,1,1:nAlts,1)
 
