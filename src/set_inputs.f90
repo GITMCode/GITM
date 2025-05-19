@@ -725,6 +725,7 @@ subroutine set_inputs
         call read_in_logical(IsKappaAurora, iError)
         call read_in_real(AuroraKappa, iError)
         call read_in_logical(AllowAurWODiffuse, iError)
+        call read_in_real(MaxAveEAurora, iError)
         if (iError /= 0) then
           write(*, *) 'Incorrect format for #AURORAMODS'
           write(*, *) 'This is for modifying the aurora a bit.  The'
@@ -735,6 +736,7 @@ subroutine set_inputs
           write(*, *) 'IsKappaAurora - use a kappa instead of Maxwellian'
           write(*, *) 'AuroraKappa - kappa to use in the distribution'
           write(*, *) 'AllowAurWODiffuse: allow other aurora if diffuse is zero? [F]'
+          write(*, *) 'MaxAveEAurora - Maximum allowed value of AvgE'
           write(*, *) ''
           write(*, *) '#AURORAMODS'
           write(*, *) 'NormalizeAuroraToHP     (logical)'
@@ -742,6 +744,7 @@ subroutine set_inputs
           write(*, *) 'IsKappaAurora     (logical)'
           write(*, *) 'AuroraKappa    (real)'
           write(*, *) 'AllowAurWODiffuse (logical)'
+          write(*, *) 'MaxAveEAurora    (real)'
         endif
 
       case ("#AURORATYPES") !"auroratypes? diffuse=true, rest=false

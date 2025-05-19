@@ -186,6 +186,7 @@ subroutine aurora(iBlock)
       ! For diffuse auroral models (default)
       if (ElectronEnergyFluxDiffuse(j, i) > 0.1 &
           .and. ElectronAverageEnergyDiffuse(j, i) > 0.1 &
+          .and. ElectronAverageEnergyDiffuse(j, i) < MaxAveEAurora &
           .and. UseDiffuseAurora &
           ) then
         call do_diffuse_aurora(ElectronEnergyFluxDiffuse(j, i), &
@@ -195,6 +196,8 @@ subroutine aurora(iBlock)
       endif
 
       if (IonEnergyFlux(j,i) > 0.1 &
+          .and. IonAverageEnergy(j,i) > 0.1 &
+          .and. IonAverageEnergy(j, i) < MaxAveEAurora &
           .and. UseIonAurora &
           ) then
         call do_diffuse_aurora(IonEnergyFlux(j, i), &
@@ -207,6 +210,7 @@ subroutine aurora(iBlock)
       if (UseMonoAurora &
           .and. ElectronAverageEnergyMono(j, i) > 1. &
           .and. ElectronEnergyFluxMono(j, i) > 0.1 &
+          .and. ElectronAverageEnergyMono(j, i) < MaxAveEAurora &
           ) then
         if (HasSomeAurora .or. AllowAurWODiffuse) &
           call do_mono_aurora(ElectronEnergyFluxMono(j, i), &
@@ -219,6 +223,7 @@ subroutine aurora(iBlock)
       if (UseWaveAurora &
           .and. ElectronEnergyFluxWave(j, i) > 0.1 &
           .and. ElectronAverageEnergyWave(j, i) > 0.1 &
+          .and. ElectronAverageEnergyWave(j, i) < MaxAveEAurora &
           ) then
         if (HasSomeAurora .or. AllowAurWODiffuse) &
           call do_wave_aurora(ElectronEnergyFluxWave(j, i), &

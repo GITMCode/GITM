@@ -73,7 +73,6 @@ module ModInputs
   ! logical :: UseOvationSMEWave = .false.
   ! logical :: UseOvationSMEIon = .false.
 
-
   logical :: IsKappaAurora = .false.
   real :: AuroraKappa = 3
   real :: AveEFactor = 1.0
@@ -81,6 +80,7 @@ module ModInputs
   logical :: NormalizeAuroraToHP = .true.
   logical :: DoSeparateHPI = .false.
   logical::AllowAurWODiffuse = .false.
+  real :: MaxAveEAurora = 80.0
 
   logical :: UseCusp = .false.
   real :: CuspAveE = 0.1
