@@ -81,6 +81,7 @@ module ModInputs
   ! This is true because FR&E is default.
   logical :: NormalizeAuroraToHP = .true.
   logical :: DoSeparateHPI = .false.
+  logical::AllowAurWODiffuse = .false.
 
   logical :: UseCusp = .false.
   real :: CuspAveE = 0.1

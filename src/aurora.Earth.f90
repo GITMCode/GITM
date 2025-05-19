@@ -194,48 +194,50 @@ subroutine aurora(iBlock)
       ! For diffuse auroral models (default)
       if (ElectronEnergyFluxDiffuse(j, i) > 0.1 &
           .and. ElectronAverageEnergyDiffuse(j, i) > 0.1 &
-          .and. UseDiffuseAurora) then
+          .and. UseDiffuseAurora &
+          ) then
         call do_diffuse_aurora(ElectronEnergyFluxDiffuse(j, i), &
                                ElectronAverageEnergyDiffuse(j, i)*AveEFactor, &
                                e_diffuse_ED_flux)
         HasSomeAurora = .true.
       endif
 
-      if (ion_eflx_ergs > 0.1) then
+      if (ion_eflx_ergs > 0.1 &
+          .and. UseIonAurora &
+          ) then
         call do_diffuse_aurora(ion_av_kev, ion_eflx_ergs, i_diffuse_ED_flux)
         HasSomeAurora = .true.
       endif
 
       ! Monoenergetic aurora
-      if (UseMonoAurora .and. &
-          ElectronAverageEnergyMono(j, i) > 1.0e4 .and. &
-          ElectronEnergyFluxMono(j, i) > 0.1) then
-
-        call do_mono_aurora(ElectronEnergyFluxMono(j, i), &
-                            ElectronAverageEnergyMono(j, i), &
-                            mono_ED_flux)
-        HasSomeAurora = .true.
+      if (UseMonoAurora &
+          .and. ElectronAverageEnergyMono(j, i) > 1. &
+          .and. ElectronEnergyFluxMono(j, i) > 0.1 &
+          ) then
+        if (HasSomeAurora .or. AllowAurWODiffuse) &
+          call do_mono_aurora(ElectronEnergyFluxMono(j, i), &
+                              ElectronAverageEnergyMono(j, i), &
+                              mono_ED_flux)
 
       endif
 
       ! Wave (broadband) aurora
-      if (UseWaveAurora .and. &
-          ElectronEnergyFluxWave(j, i) > 0.1) then
-        call do_wave_aurora(ElectronEnergyFluxWave(j, i), &
-                            ElectronAverageEnergyWave(j, i), &
-                            wave_ED_flux)
-        HasSomeAurora = .true.
+      if (UseWaveAurora &
+          .and. ElectronEnergyFluxWave(j, i) > 0.1 &
+          .and. ElectronAverageEnergyWave(j, i) > 0.1 &
+          ) then
+        if (HasSomeAurora .or. AllowAurWODiffuse) &
+          call do_wave_aurora(ElectronEnergyFluxWave(j, i), &
+                              ElectronAverageEnergyWave(j, i), &
+                              wave_ED_flux)
       endif
 
-      do n=1, ED_N_Energies
+      do n = 1, ED_N_Energies
         ED_EnergyFlux(n) = e_diffuse_ED_flux(n) + wave_ED_flux(n) + mono_ED_flux(n)
       enddo
 
-      if (HasSomeAurora) then
-
+      if (maxval(ED_EnergyFlux) > 0.1) &
         call calc_fang_rates(j, i, iBlock, AuroralBulkIonRate)
-
-      endif
 
     enddo
   enddo
@@ -534,7 +536,7 @@ subroutine calc_fang_rates(j, i, iBlock, AuroralBulkIonRate)
   use ModGITM
 
   integer, intent(in) :: i, j, iBlock
-  real, dimension(nLons, nLats, nAlts), intent(out) :: AuroralBulkIonRate
+  real, dimension(nLons, nLats, nAlts), intent(inout) :: AuroralBulkIonRate
   real :: BulkScaleHeight1d(nAlts)
   real :: fac(nAlts)
   real :: Ci(8) ! e-
@@ -613,8 +615,10 @@ subroutine init_energy_deposition()
 
   ! temporary
   real, dimension(ED_N_Energies):: energy_edges
+  real ed_max_energy, ed_min_energy, de, logmin
 
   allocate(ED_Energies(ED_N_Energies), stat=ierr)
+  allocate(ED_EnergyFlux(ED_N_Energies), stat=ierr)
   allocate(ED_delta_energy(ED_N_Energies), stat=ierr)
 
   ! min/max energy bins
