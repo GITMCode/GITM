@@ -658,7 +658,7 @@ subroutine init_energy_deposition()
   logmin = log10(ED_Min_Energy)
 
   do i = 1, ED_N_Energies
-    ED_Energies(ED_N_Energies - (i - 1)) = 10.0**(logmin + (i - 1)*de)
+    ED_Energies(i) = 10.0**(logmin + (i - 1)*de)
   enddo
 
   ! Calculate delta btwn bins
@@ -669,11 +669,11 @@ subroutine init_energy_deposition()
     energy_edges(iEnergy) = &
       (ED_Energies(iEnergy - 1) + ED_Energies(iEnergy))/2
     ED_delta_energy(iEnergy - 1) = &
-      energy_edges(iEnergy - 1) - energy_edges(iEnergy)
+      abs(energy_edges(iEnergy - 1) - energy_edges(iEnergy))
   enddo
 
   iEnergy = ED_N_Energies
-  ED_delta_energy(iEnergy) = ED_Energies(iEnergy - 1) - ED_Energies(iEnergy)
+  ED_delta_energy(ED_N_Energies) = ED_Energies(ED_N_Energies) - ED_Energies(ED_N_Energies-1)
 
 end subroutine init_energy_deposition
 
