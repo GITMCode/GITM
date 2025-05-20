@@ -19,25 +19,18 @@ subroutine aurora(iBlock)
 
   integer, intent(in) :: iBlock
 
-  real :: ion_av_kev, ion_eflx_ergs, ion_eflux, ion_avee
-  real :: factor, p, Q0
-  integer :: i, j, k, n, iError, iED, iErr, iEnergy
-  logical :: IsDone, IsTop, HasSomeAurora
+  real :: Q0
+  integer :: i, j, n, iError, iErr, iEnergy
+  logical :: HasSomeAurora
   real, dimension(ED_N_Energies) :: &
     e_diffuse_ED_flux, i_diffuse_ED_flux, mono_ED_flux, wave_ED_flux, &
     ED_Flux ! for temp values
 
-  real :: hpi, hpi_NH, hpi_SH
+  real :: power
 
-  real, dimension(nLons, nLats, nAlts) :: temp, AuroralBulkIonRate, &
-                                          IonPrecipitationBulkIonRate
+  real, dimension(nLons, nLats, nAlts) :: temp, AuroralBulkIonRate
 
   logical :: IsFirstTime(nBlocksMax) = .true.
-
-  real :: f1, f2, f3, f4, f5, power
-  real :: de1, de2, de3, de4, de5, detotal, h
-
-  real :: LocalVar, HPn, HPs, avepower, ratio, ratio_NH, ratio_SH
 
   if (IsFirstTime(iBlock)) then
     call initialize_fang_arrays
@@ -48,8 +41,6 @@ subroutine aurora(iBlock)
 
   AuroralBulkIonRate = 0.0
   AuroralIonRateS = 0.0
-  HPn = 0
-  HPs = 0
 
   call report("Aurora", 1)
   call start_timing("Aurora")
@@ -64,86 +55,7 @@ subroutine aurora(iBlock)
     ! Let's scale our hemispheric power so it is roughly the same as what
     ! is measured.
 
-    ! Calculate HP from (diffuse) e- flux
-    call calculate_HP(iBlock, HPn, HPs)
-
-    ! Collect all of the powers by summing them together
-
-    LocalVar = HemisphericPowerNorth/1.0e9
-    call MPI_REDUCE(LocalVar, HPn, 1, MPI_REAL, MPI_SUM, &
-                    0, iCommGITM, iError)
-
-    LocalVar = HemisphericPowerSouth/1.0e9
-    call MPI_REDUCE(LocalVar, HPs, 1, MPI_REAL, MPI_SUM, &
-                    0, iCommGITM, iError)
-
-    ! Average north and south together
-    avepower = (HPn + HPs)/2.0
-
-    ! If we are only have one hemisphere or the other, assign to avepower
-    if (HPs < 0.1*HPn) avepower = HPn
-    if (HPn < 0.1*HPs) avepower = HPs
-
-    call MPI_Bcast(avepower, 1, MPI_Real, 0, iCommGITM, ierror)
-    call MPI_Bcast(Hps, 1, MPI_Real, 0, iCommGITM, ierror)
-    call MPI_Bcast(HPn, 1, MPI_Real, 0, iCommGITM, ierror)
-
-    if (DoSeparateHPI) then
-      call get_hpi_n(CurrentTime, hpi_NH, iError)
-      call get_hpi_s(CurrentTime, hpi_SH, iError)
-
-      if (Hps == 0) call set_error("HPs is zero!")
-      if (Hpn == 0) call set_error("HPn is zero!")
-
-      ratio_NH = Hpi_NH/HPn
-      ratio_SH = Hpi_SH/HPs
-
-    else
-
-      call get_hpi(CurrentTime, Hpi, iError)
-      if (avepower == 0) then
-        call set_error("AvePower is zero!")
-        avepower = 1.0
-      endif
-      ratio_NH = Hpi/avepower
-      ratio_SH = Hpi/avepower
-
-    endif
-
-    if (iDebugLevel >= 0) then
-      if ((iDebugLevel == 0) .and. IsFirstTime(iBlock) .and. .not. doSeparateHPI) then
-        write(*, *) '---------------------------------------------------'
-        write(*, *) 'Using auroral normalizing ratios!!! '
-        write(*, *) 'no longer reporting!'
-        write(*, *) '---------------------------------------------------'
-      elseif ((iDebugLevel == 0) .and. IsFirstTime(iBlock) .and. doSeparateHPI) then
-        write(*, *) '---------------------------------------------------'
-        write(*, *) 'Using HPI from each hemisphere to normalize aurora!!'
-        write(*, *) 'no longer reporting!'
-        write(*, *) '---------------------------------------------------'
-      endif
-      if (iDebugLevel >= 2) then
-        if (doSeparateHPI) then
-          write(*, *) 'Auroral normalizing ratios: '
-          write(*, *) 'Hpi(NH)  HPI(SH)  HPI(NH-modeled)  HPI(SH-modeled)  ratio_n  ratio_s'
-          write(*, *) Hpi_NH, Hpi_SH, HPn, HPs, ratio_NH, ratio_sh
-        else
-          write(*, *) 'Auroral normalizing ratio: ', Hpi_NH, ratio_SH, ratio_NH
-        endif
-      endif
-
-    endif
-    do i = 1, nLats
-      do j = 1, nLons
-        if (ElectronEnergyFluxDiffuse(j, i) > 0.1) then
-          if (latitude(i, iBlock) < 0.0) then
-            ElectronEnergyFluxDiffuse(j, i) = ElectronEnergyFluxDiffuse(j, i)*ratio_sh
-          else
-            ElectronEnergyFluxDiffuse(j, i) = ElectronEnergyFluxDiffuse(j, i)*ratio_NH
-          endif
-        endif
-      enddo
-    enddo
+    call NormalizeDiffuseAuroraToHP
 
   endif
 
@@ -427,6 +339,128 @@ contains
 
   end subroutine do_wave_aurora
 
+  subroutine NormalizeDiffuseAuroraToHP
+
+    real :: hpi_NH, hpi_SH, Hpi
+    real :: LocalVar, HPn, HPs, avepower, ratio, ratio_NH, ratio_SH
+
+    HPn = 0
+    HPs = 0
+    ! Calculate HP from (diffuse) e- flux
+    call calculate_HP(HPn, HPs)
+
+    ! Collect all of the powers by summing them together
+
+    LocalVar = HemisphericPowerNorth/1.0e9
+    call MPI_REDUCE(LocalVar, HPn, 1, MPI_REAL, MPI_SUM, &
+                    0, iCommGITM, iError)
+
+    LocalVar = HemisphericPowerSouth/1.0e9
+    call MPI_REDUCE(LocalVar, HPs, 1, MPI_REAL, MPI_SUM, &
+                    0, iCommGITM, iError)
+
+    ! Average north and south together
+    avepower = (HPn + HPs)/2.0
+
+    ! If we are only have one hemisphere or the other, assign to avepower
+    if (HPs < 0.1*HPn) avepower = HPn
+    if (HPn < 0.1*HPs) avepower = HPs
+
+    call MPI_Bcast(avepower, 1, MPI_Real, 0, iCommGITM, ierror)
+    call MPI_Bcast(Hps, 1, MPI_Real, 0, iCommGITM, ierror)
+    call MPI_Bcast(HPn, 1, MPI_Real, 0, iCommGITM, ierror)
+
+    if (DoSeparateHPI) then
+      call get_hpi_n(CurrentTime, hpi_NH, iError)
+      call get_hpi_s(CurrentTime, hpi_SH, iError)
+
+      if (Hps == 0) call set_error("HPs is zero!")
+      if (Hpn == 0) call set_error("HPn is zero!")
+
+      ratio_NH = Hpi_NH/HPn
+      ratio_SH = Hpi_SH/HPs
+
+    else
+
+      call get_hpi(CurrentTime, Hpi, iError)
+      if (avepower == 0) then
+        call set_error("AvePower is zero!")
+        avepower = 1.0
+      endif
+      ratio_NH = Hpi/avepower
+      ratio_SH = Hpi/avepower
+
+    endif
+
+    if (iDebugLevel >= 0) then
+      if ((iDebugLevel == 0) .and. IsFirstTime(iBlock) .and. .not. doSeparateHPI) then
+        write(*, *) '---------------------------------------------------'
+        write(*, *) 'Using auroral normalizing ratios!!! '
+        write(*, *) 'no longer reporting!'
+        write(*, *) '---------------------------------------------------'
+      elseif ((iDebugLevel == 0) .and. IsFirstTime(iBlock) .and. doSeparateHPI) then
+        write(*, *) '---------------------------------------------------'
+        write(*, *) 'Using HPI from each hemisphere to normalize aurora!!'
+        write(*, *) 'no longer reporting!'
+        write(*, *) '---------------------------------------------------'
+      endif
+      if (iDebugLevel >= 2) then
+        if (doSeparateHPI) then
+          write(*, *) 'Auroral normalizing ratios: '
+          write(*, *) 'Hpi(NH)  HPI(SH)  HPI(NH-modeled)  HPI(SH-modeled)  ratio_n  ratio_s'
+          write(*, *) Hpi_NH, Hpi_SH, HPn, HPs, ratio_NH, ratio_sh
+        else
+          write(*, *) 'Auroral normalizing ratio: ', Hpi_NH, ratio_SH, ratio_NH
+        endif
+      endif
+
+    endif
+    do i = 1, nLats
+      do j = 1, nLons
+        if (ElectronEnergyFluxDiffuse(j, i) > 0.1) then
+          if (latitude(i, iBlock) < 0.0) then
+            ElectronEnergyFluxDiffuse(j, i) = ElectronEnergyFluxDiffuse(j, i)*ratio_sh
+          else
+            ElectronEnergyFluxDiffuse(j, i) = ElectronEnergyFluxDiffuse(j, i)*ratio_NH
+          endif
+        endif
+      enddo
+    enddo
+  end subroutine NormalizeDiffuseAuroraToHP
+
+  subroutine calculate_HP(HPn, HPs)
+    ! Calculate hemispheric power in n/s (NPn, HPs)
+    ! Scaling is done in NormalizeDiffuseAuroraToHP
+
+    real, intent(out) :: HPn, HPs
+    real :: eflx_ergs, eflux
+
+    do i = 1, nLats
+      do j = 1, nLons
+
+        eflx_ergs = ElectronEnergyFluxDiffuse(j, i) !/ (1.0e-7 * 100.0 * 100.0)
+
+        if (eflx_ergs > 0.1) then
+          eflux = eflx_ergs*6.242e11  ! ergs/cm2/s -> eV/cm2/s
+
+          !(eV/cm2/s -> J/m2/s)
+          power = eflux*Element_Charge*100.0*100.0* &
+                  dLatDist_FB(j, i, nAlts, iBlock)* &
+                  dLonDist_FB(j, i, nAlts, iBlock)
+
+          if (latitude(i, iBlock) < 0.0) then
+            HemisphericPowerSouth = HemisphericPowerSouth + power
+          else
+            HemisphericPowerNorth = HemisphericPowerNorth + power
+          endif
+
+        endif
+
+      enddo
+    enddo
+
+  end subroutine calculate_HP
+
 end subroutine aurora
 
 ! --------------------------------
@@ -642,45 +676,4 @@ subroutine init_energy_deposition()
   ED_delta_energy(iEnergy) = ED_Energies(iEnergy - 1) - ED_Energies(iEnergy)
 
 end subroutine init_energy_deposition
-
-subroutine calculate_HP(iBlock, HPn, HPs)
-  ! Calculate hemispheric power in n/s (NPn, HPs)
-  ! Scaling is done in aurora
-
-  use ModGITM
-  use ModUserGITM
-  use ModSources
-  use ModIndicesInterfaces
-  use ModInputs
-  use ModMpi
-
-  real :: LocalVar
-  real, intent(out) :: HPn, HPs
-  integer, intent(in) :: iBlock
-
-  do i = 1, nLats
-    do j = 1, nLons
-
-      eflx_ergs = ElectronEnergyFluxDiffuse(j, i) !/ (1.0e-7 * 100.0 * 100.0)
-
-      if (eflx_ergs > 0.1) then
-        eflux = eflx_ergs*6.242e11  ! ergs/cm2/s -> eV/cm2/s
-
-        !(eV/cm2/s -> J/m2/s)
-        power = eflux*Element_Charge*100.0*100.0* &
-                dLatDist_FB(j, i, nAlts, iBlock)* &
-                dLonDist_FB(j, i, nAlts, iBlock)
-
-        if (latitude(i, iBlock) < 0.0) then
-          HemisphericPowerSouth = HemisphericPowerSouth + power
-        else
-          HemisphericPowerNorth = HemisphericPowerNorth + power
-        endif
-
-      endif
-
-    enddo
-  enddo
-
-end subroutine calculate_HP
 
