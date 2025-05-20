@@ -202,15 +202,18 @@ subroutine set_inputs
           call read_in_real(DtStatisticalModels, iError)
         if (iError /= 0) then
           write(*, *) 'Incorrect format for #STATISTICALMODELSONLY:'
-          write(*, *) 'This command will skip all pretty much all of the '
+          write(*, *) 'This command will skip pretty much all of the '
           write(*, *) 'physics of GITM, and will reinitialize the model '
-          write(*, *) 'with the MSIS and IRI values at the interval set in '
-          write(*, *) 'the second variable. If you want to compare a run to'
-          write(*, *) 'MSIS and IRI, you can run GITM with this command and'
-          write(*, *) 'get output at exactly the same cadence and locations,'
-          write(*, *) 'thereby allowing easier comparisons. The dt can be '
-          write(*, *) 'set as low as needed, so you can run satellites '
-          write(*, *) 'through MSIS and IRI.'
+          write(*, *) 'with MSIS, IRI & ELECTRODYNAMICS values at the interval set in '
+          write(*, *) 'the second variable. '
+          write(*, *) ' > If you want to compare a run to MSIS and IRI, you can run '
+          write(*, *) '   GITM with this command and get output at exactly the same '
+          write(*, *) '   cadence and locations, thereby allowing easier comparisons. '
+          write(*, *) ' > For running electrodynamics, the outputs will, by default, be'
+          write(*, *) '   on a geographic grid. To get the outputs on a magnetic grid,'
+          write(*, *) '   use #DIPOLE and set all the values to zero, forcing the '
+          write(*, *) '   magnetic & geographics grid to align. Use 2DGEL outputs.'
+          write(*, *) ''
           write(*, *) '#STATISTICALMODELSONLY'
           write(*, *) 'UseStatisticalModelsOnly    (logical)'
           write(*, *) 'DtStatisticalModels         (real)'
@@ -1146,6 +1149,8 @@ subroutine set_inputs
 
         if (iError /= 0) then
           write(*, *) 'Incorrect format for #DIPOLE:'
+          write(*, *) "For #USESTATISTICALMODELSONLY's electrodynamics outputs (2DGEL),"
+          write(*, *) ' set all 5 values to zero to align magnetic & geographic grids.'
           write(*, *) ''
           write(*, *) '#DIPOLE'
           write(*, *) 'MagneticPoleRotation   (real)'

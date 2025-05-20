@@ -61,6 +61,8 @@ subroutine advance
     call init_msis
     call init_iri
     call init_b0
+    UseDynamo = .false.
+    call get_potential(1)
   endif
 
   if (.not. isOk) then
