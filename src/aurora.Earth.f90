@@ -267,18 +267,15 @@ contains
 
   end subroutine calc_maxwellian
 
-! Gaussian distribution
-! sig controls the width (std dev)
-  subroutine calc_gaussian(eflux, avee, gaus_ed_flux, sig)
-    real, intent(in) :: eflux, avee, sig
+  ! Gaussian distribution (in log coordinates)
+  ! sig controls the width (std dev)
+  ! Is not normalized to eflux! Done for mono/wave differently
+  subroutine calc_gaussian(avee, gaus_ed_flux, sig)
+    real, intent(in) :: avee, sig
     real, intent(inout), dimension(:) :: gaus_ed_flux
 
-    real :: emax
-
-    emax = eflux/(sqrt(2*pi*sig*sig))
-
     do n = 1, ED_N_Energies
-      gaus_ed_flux(n) = emax*exp(-(log10(ED_Energies(n)) - log10(avee))**2 &
+      gaus_ed_flux(n) = exp(-(log10(ED_Energies(n)) - log10(avee))**2 &
                                  /(2.0*sig*sig))
     enddo
 
@@ -291,7 +288,7 @@ contains
 
     real, intent(in) :: eflux_ergs, av_kev
     real, intent(inout), dimension(:) :: Mono_ED_EnergyFlux
-    real :: avee, eflux
+    real :: avee, eflux, sum_gaus
 
     avee = av_kev*1000.0        ! keV -> eV
     eflux = eflux_ergs*6.242e11  ! ergs/cm2/s -> eV/cm2/s
@@ -308,7 +305,13 @@ contains
 
     ! Mono is treated as a (skinny) gaussian:
     if (eflux > 0.1 .and. avee > 0.1) &
-      call calc_gaussian(eflux, avee, Mono_ED_EnergyFlux, 0.1)
+      call calc_gaussian(avee, Mono_ED_EnergyFlux, 0.1)
+
+    ! Normalize to E-Flux
+    sum_gaus = sum(Mono_ED_EnergyFlux)
+    do n=1,ED_N_Energies
+      Mono_ED_EnergyFlux(n) = Mono_ED_EnergyFlux(n) * eflux / sum_gaus
+    enddo
 
   end subroutine do_mono_aurora
 
@@ -318,7 +321,9 @@ contains
   subroutine do_wave_aurora(eflux_ergs, av_kev, wave_EDEnergyFlux)
     real, intent(in) :: eflux_ergs, av_kev
     real, intent(inout), dimension(:) :: wave_EDEnergyFlux
-    real :: avee, eflux
+    real, dimension(ED_N_Energies) :: tmp_wavflux
+    real :: avee, eflux, sum_gaus
+    integer :: nearBin
 
     avee = av_kev*1000.0        ! keV -> eV
     eflux = eflux_ergs*6.242e11  ! ergs/cm2/s -> eV/cm2/s
@@ -335,8 +340,29 @@ contains
 
     ! Wave is a gaussian, centered at aveE
     if (eflux > 0.1 .and. avee > 0.1) &
-      call calc_gaussian(eflux, avee, wave_EDEnergyFlux, 0.75)
+      call calc_gaussian(avee, tmp_wavflux, 0.4)
 
+    ! But only in a few bins!
+    ! Flux only exists in bin holding aveE & 3 bins to either side
+    do iEnergy = 1, ED_N_Energies-1
+      if (ED_Energies(iEnergy) < avee .and. ED_Energies(iEnergy+1) > avee) then
+        ! center bin
+        wave_EDEnergyFlux(iEnergy) = tmp_wavflux(iEnergy)
+        do nearBin = 1, 3 ! 3 on either side
+          if (iEnergy + nearBin < ED_N_Energies) &
+          wave_EDEnergyFlux(iEnergy + nearBin) = tmp_wavflux(iEnergy + nearBin)
+          if (iEnergy - nearBin > 0) &
+          wave_EDEnergyFlux(iEnergy - nearBin) = tmp_wavflux(iEnergy - nearBin)
+    enddo
+  endif
+  enddo
+
+  ! Then normalize
+    sum_gaus = sum(wave_EDEnergyFlux)
+    ! write(*,*) sum_gaus,
+  do n=1, ED_N_Energies
+    wave_EDEnergyFlux(n) = wave_EDEnergyFlux(n) * eflux / sum_gaus
+  enddo
   end subroutine do_wave_aurora
 
   subroutine NormalizeDiffuseAuroraToHP
