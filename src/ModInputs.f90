@@ -46,8 +46,8 @@ module ModInputs
   character(len=iCharLen_) :: cAMIEFileSouth = "none"
   character(len=iCharLen_) :: cAMIEFileNorth = "none"
 
-  character(len=iCharLen_) :: cPotentialModel
-  character(len=iCharLen_) :: cAuroralModel
+  character(len=iCharLen_) :: cAuroralModel = "FTA"
+  character(len=iCharLen_) :: cPotentialModel = "weimer05"
 
   logical :: UseCCMCFileName = .false.
 
