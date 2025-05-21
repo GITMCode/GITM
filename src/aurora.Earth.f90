@@ -102,6 +102,7 @@ subroutine aurora(iBlock)
           .and. UseDiffuseAurora &
           ) then
         call do_diffuse_aurora(ElectronEnergyFluxDiffuse(j, i), &
+                               ! aveEFactor is 1 unless set in #auroramods
                                ElectronAverageEnergyDiffuse(j, i)*AveEFactor, &
                                e_diffuse_ED_flux)
         HasSomeAurora = .true.
@@ -148,7 +149,7 @@ subroutine aurora(iBlock)
         ED_Ion_EnergyFlux(n) = i_diffuse_ED_flux(n) ! for consistency
       enddo
 
-      if (maxval(ED_EnergyFlux) > 0.1) &
+      if (maxval(ED_EnergyFlux) > 0.1 .or. maxval(ED_Ion_EnergyFlux) > 0.1) &
         call calc_fang_rates(j, i, iBlock, AuroralBulkIonRate)
 
     enddo
@@ -183,7 +184,7 @@ contains
 
   ! --------------------------
   ! Diffuse Aurora can be represented by kappa or maxwellian
-  ! - This is for Newell diffuse, or all other auroral models!
+  ! - This is for Newell diffuse, or all other auroral models
   ! --------------------------
   subroutine do_diffuse_aurora(eflux_ergs, av_kev, diff_ED_Energy_Flux)
     real, intent(in) :: av_kev, eflux_ergs
@@ -276,7 +277,7 @@ contains
 
     do n = 1, ED_N_Energies
       gaus_ed_flux(n) = exp(-(log10(ED_Energies(n)) - log10(avee))**2 &
-                                 /(2.0*sig*sig))
+                            /(2.0*sig*sig))
     enddo
 
   end subroutine calc_gaussian
@@ -309,8 +310,8 @@ contains
 
     ! Normalize to E-Flux
     sum_gaus = sum(Mono_ED_EnergyFlux)
-    do n=1,ED_N_Energies
-      Mono_ED_EnergyFlux(n) = Mono_ED_EnergyFlux(n) * eflux / sum_gaus
+    do n = 1, ED_N_Energies
+      Mono_ED_EnergyFlux(n) = Mono_ED_EnergyFlux(n)*eflux/sum_gaus
     enddo
 
   end subroutine do_mono_aurora
@@ -344,25 +345,25 @@ contains
 
     ! But only in a few bins!
     ! Flux only exists in bin holding aveE & 3 bins to either side
-    do iEnergy = 1, ED_N_Energies-1
-      if (ED_Energies(iEnergy) < avee .and. ED_Energies(iEnergy+1) > avee) then
+    do iEnergy = 1, ED_N_Energies - 1
+      if (ED_Energies(iEnergy) < avee .and. ED_Energies(iEnergy + 1) > avee) then
         ! center bin
         wave_EDEnergyFlux(iEnergy) = tmp_wavflux(iEnergy)
         do nearBin = 1, 3 ! 3 on either side
           if (iEnergy + nearBin < ED_N_Energies) &
-          wave_EDEnergyFlux(iEnergy + nearBin) = tmp_wavflux(iEnergy + nearBin)
+            wave_EDEnergyFlux(iEnergy + nearBin) = tmp_wavflux(iEnergy + nearBin)
           if (iEnergy - nearBin > 0) &
-          wave_EDEnergyFlux(iEnergy - nearBin) = tmp_wavflux(iEnergy - nearBin)
+            wave_EDEnergyFlux(iEnergy - nearBin) = tmp_wavflux(iEnergy - nearBin)
+        enddo
+      endif
     enddo
-  endif
-  enddo
 
-  ! Then normalize
+    ! Then normalize
     sum_gaus = sum(wave_EDEnergyFlux)
     ! write(*,*) sum_gaus,
-  do n=1, ED_N_Energies
-    wave_EDEnergyFlux(n) = wave_EDEnergyFlux(n) * eflux / sum_gaus
-  enddo
+    do n = 1, ED_N_Energies
+      wave_EDEnergyFlux(n) = wave_EDEnergyFlux(n)*eflux/sum_gaus
+    enddo
   end subroutine do_wave_aurora
 
   subroutine NormalizeDiffuseAuroraToHP
@@ -376,7 +377,6 @@ contains
     call calculate_HP(HPn, HPs)
 
     ! Collect all of the powers by summing them together
-
     LocalVar = HemisphericPowerNorth/1.0e9
     call MPI_REDUCE(LocalVar, HPn, 1, MPI_REAL, MPI_SUM, &
                     0, iCommGITM, iError)
@@ -699,7 +699,8 @@ subroutine init_energy_deposition()
   enddo
 
   iEnergy = ED_N_Energies
-  ED_delta_energy(ED_N_Energies) = ED_Energies(ED_N_Energies) - ED_Energies(ED_N_Energies-1)
+  ED_delta_energy(ED_N_Energies) = &
+    ED_Energies(ED_N_Energies) - ED_Energies(ED_N_Energies - 1)
 
 end subroutine init_energy_deposition
 
