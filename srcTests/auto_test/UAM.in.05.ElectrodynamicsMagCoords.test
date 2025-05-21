@@ -79,6 +79,9 @@ UA/DataIn/ae_20021221.txt		SME Filename
 none              			onset time delay file
 T					convert SME to Hemispheric Power
 
+#NGDC_INDICES
+UA/DataIn/f107.txt
+
 ------------ Some options ------------
 
 Low-latitude dynamo (only run with higher res). Turn on for higher res sims:
@@ -94,12 +97,20 @@ F               UseNewTrace
 The default is to have apex off, since other planets don't have
 apex, so need to turn apex on!
 
-#APEX
-T
+#APEX 
+F     Apex is turned off for speed (so a dipole is used), but it can be turned on.
+
+#DIPOLE
+0.0
+0.0
+0.0
+0.0
+0.0
 
 #STATISTICALMODELSONLY
 T
 60.0
+
 
 
 #END

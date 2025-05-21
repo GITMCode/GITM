@@ -70,9 +70,12 @@ T					convert SME to Hemispheric Power
 #MHD_INDICES
 UA/DataIn/imf20021221.dat
 
-#IEMODELS
+#ELECTRODYNAMICS
 FTA
+60.0
 weimer05
+60.0
+
 
 -----------------------------------------------------------------
 
