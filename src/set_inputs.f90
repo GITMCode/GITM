@@ -373,10 +373,21 @@ subroutine set_inputs
         if (iError /= 0) then
           write(*, *) 'Incorrect format for #MSISOBC:'
           write(*, *) 'UseOBCExperiment - use MSIS [O] BC shifted by 6 months'
+          write(*, *) '                   Only applicable for MSIS00!'
           write(*, *) 'MsisOblateFactor - alt = alt * (1.0-f/2 + f*cos(lat))'
+          write(*, *) '                 - seems like -0.1 works well'
           write(*, *) '#MSISOBC'
           write(*, *) 'UseOBCExperiment        (logical)'
           write(*, *) 'MsisOblateFactor           (real)'
+        endif
+
+      case ("#MSIS21")
+        call read_in_logical(UseMsis21, iError)
+        if (iError /= 0) then
+          write(*, *) 'Incorrect format for #MSIS21:'
+          write(*, *) 'This toggles between using MSIS00 (false) and MSIS-2.1 (true)'
+          write(*, *) '#MSISOBC'
+          write(*, *) 'UseMsis21       (logical)'
         endif
 
         !xianjing
@@ -898,14 +909,14 @@ subroutine set_inputs
       case ("#IONLIMITS")
         call read_in_real(MaxVParallel, iError)
         call read_in_real(MaxEField, iError)
+        call read_in_real(MinIonDensity, iError)
         if (iError /= 0) then
           write(*, *) 'Incorrect format for #IONLIMITS:'
           write(*, *) ''
           write(*, *) '#IONLIMITS'
-          write(*, *) "MaxVParallel   (real, default=100 m/s)"
-          write(*, *) "MaxEField      (real, default=0.1 V/m)"
-          MaxVParallel = 100.0
-          MaxEField = 0.1
+          write(*, *) "MaxVParallel     (real, default=100 m/s)"
+          write(*, *) "MaxEField        (real, default=0.1 V/m)"
+          write(*, *) "MinIonDensity    (real, default=100 m^-3)"
           IsDone = .true.
         endif
 
@@ -928,6 +939,16 @@ subroutine set_inputs
           write(*, *) ''
           write(*, *) '#NEUTRALHEATING'
           write(*, *) "NeutralHeatingEfficiency   (real)"
+          IsDone = .true.
+        endif
+
+      case ("#DON4SHACK")
+        call read_in_logical(DoN4SHack, iError)
+        if (iError /= 0) then
+          write(*, *) 'Incorrect format for #DON4SHACK:'
+          write(*, *) ''
+          write(*, *) '#DON4SHACK'
+          write(*, *) "DoN4SHack       (logical)"
           IsDone = .true.
         endif
 
@@ -1073,6 +1094,7 @@ subroutine set_inputs
           write(*, *) '#USEIMPROVEDIONADVECTION'
           write(*, *) "UseImprovedIonAdvection      (logical)"
           write(*, *) "UseNighttimeIonBCs           (logical)"
+          write(*, *) "MinTEC                       (real)"
         endif
 
       case ("#USETESTVISCOSITY")
@@ -1930,6 +1952,7 @@ subroutine set_inputs
   ! We need to check to see if the current time and end time are
   ! larger than the last F107 time.  If that is the case, the code
   ! should stop
+
   ! NOTE: In component mode, start/end times are not passed in yet.
   ! -> So we cannot check these. A fix is in the works...
   if (.not. IsFramework) then !SWMF_TIME_NOT_AVAILABLE
@@ -1937,6 +1960,10 @@ subroutine set_inputs
     call check_all_indices(CurrentTime, iError)
     if (iError == 0) then
       call check_all_indices(EndTime, iError)
+      if (iError /= 0) &
+          write(*, *) 'Error with End Time and check_all_indices'
+    else
+      write(*, *) 'Error with Current Time and check_all_indices'
     endif
     if (iError /= 0) then
       call stop_gitm("Issue with Indices! Check the file(s) times!")

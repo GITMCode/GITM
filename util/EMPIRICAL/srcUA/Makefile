@@ -9,7 +9,8 @@ MY_LIB = ${LIBDIR}/libEMPIRICALUA.a
 OBJECTS =\
 	ModIri90.o\
 	ModMsis90.o\
-        ModMsis00.o
+        ModMsis00.o\
+	ModMsis21.o
 
 LIB:
 	@make ${MY_LIB}

@@ -3,9 +3,10 @@
 
 module ModReadGitm3d
 
-  use ModInputs, only: iCharLen_
+  use ModGITM, only: iCommGITM
+  use ModInputs, only: iCharLen_, iDebugLevel
+  use ModKind, ONLY: Real8_
 
-  integer, parameter :: Real8_ = selected_real_kind(12, 100)
   integer, parameter :: i3dall_ = 1
   integer, parameter :: i3dlst_ = 2
   integer, parameter :: nGitmCharLength = iCharLen_
@@ -147,19 +148,27 @@ contains
     real, dimension(nPointsToGetGitm), intent(in) :: InAlts
 
     integer :: iPoint, i
+    logical :: IsAllGood
 
     GitmInLons = InLons
     GitmInLats = InLats
     GitmInAlts = inAlts
+    IsAllGood = .true.
 
     do iPoint = 1, nPointsToGetGitm
 
       ! Lons First
       if (InLons(iPoint) < GitmLons(1)) then
         GitmLonsIndex(iPoint) = -1
+        IsAllGood = .false.
+        if (iDebugLevel > -1) &
+          write(*, *) 'GitmLonsIndex < 0!', InLons(iPoint), GitmLons(1)
       else
         if (InLons(iPoint) > GitmLons(nLonsGitm)) then
           GitmLonsIndex(iPoint) = -1
+          IsAllGood = .false.
+          if (iDebugLevel > -1) &
+            write(*, *) 'GitmLonsIndex > max!', InLons(iPoint), GitmLons(nLonsGitm)
         else
           if (InLons(iPoint) == GitmLons(nLonsGitm)) then
             i = nLonsGitm
@@ -179,9 +188,15 @@ contains
       ! Lats
       if (InLats(iPoint) < GitmLats(1)) then
         i = -1
+        IsAllGood = .false.
+        if (iDebugLevel > -1) &
+          write(*, *) 'GitmLatsIndex < 0!', InLats(iPoint), GitmLats(1)
       else
         if (InLats(iPoint) > GitmLats(nLatsGitm)) then
           i = -1
+          IsAllGood = .false.
+          if (iDebugLevel > -1) &
+            write(*, *) 'GitmLatsIndex > max!', InLats(iPoint), GitmLats(nLonsGitm)
         else
           if (InLats(iPoint) == GitmLats(nLatsGitm)) then
             i = nLatsGitm
@@ -205,7 +220,7 @@ contains
         if (InAlts(iPoint) > GitmAlts(nAltsGitm)) then
           i = -1
         else
-          if (InAlts(iPoint) == GitmAlts(nAltsGitm)) then
+          if (InAlts(iPoint) >= GitmAlts(nAltsGitm)) then
             i = nAltsGitm
           else
             i = 2
@@ -213,13 +228,41 @@ contains
               i = i + 1
             enddo
           endif
-          GitmAltsIndex(iPoint) = i
+        endif
+      endif
+
+      if (i > -1) then
+        GitmAltsIndex(iPoint) = i
+        GitmAltsFactor(iPoint) = &
+          (GitmAlts(i) - InAlts(iPoint))/ &
+          (GitmAlts(i) - GitmAlts(i - 1))
+      else
+        ! Extrapolate the values:
+        if (InAlts(iPoint) < GitmAlts(1)) then
+          GitmAltsIndex(iPoint) = 2
           GitmAltsFactor(iPoint) = &
-            (GitmAlts(i) - InAlts(iPoint))/ &
-            (GitmAlts(i) - GitmAlts(i - 1))
+            (GitmAlts(2) - InAlts(iPoint))/ &
+            (GitmAlts(2) - GitmAlts(1))
+        endif
+        if (InAlts(iPoint) > GitmAlts(nAltsGitm)) then
+          GitmAltsIndex(iPoint) = nAltsGitm
+          GitmAltsFactor(iPoint) = &
+            (GitmAlts(nAltsGitm) - InAlts(iPoint))/ &
+            (GitmAlts(nAltsGitm) - GitmAlts(nAltsGitm - 1))
         endif
       endif
     enddo
+
+    if (.not. IsAllGood) then
+      if (iDebugLevel > -1) then
+        write(*, *) 'Errors can happen if the requested grid extends'
+        write(*, *) 'beyond the grid of the original GITM run.'
+        write(*, *) 'This can happen because of ghostcells and resolution.'
+        write(*, *) 'Move edges away from boundaries and improve'
+        write(*, *) 'resolution, maybe?'
+      endif
+      call stop_gitm("Stopping in ModReadGitm3d.")
+    endif
 
   end subroutine GitmSetGrid
 
@@ -281,13 +324,13 @@ contains
 
     if (iGitmIndex /= iGitmIndexOld) then
 
-      write(*, *) 'Updating GITM files!'
-
-      write(*, *) 'Reading First File : ', GitmFileList(iGitmIndex - 1)
+      if (iDebugLevel > -1) &
+        write(*, *) '> GITM BCs -> Reading First File : ', trim(GitmFileList(iGitmIndex - 1))
       call GitmReadFile(GitmFileList(iGitmIndex - 1), iError)
       GitmDataTwoFiles(1, :, :, :, :) = GitmDataDummy
 
-      write(*, *) 'Reading Second File : ', GitmFileList(iGitmIndex)
+      if (iDebugLevel > 0) &
+        write(*, *) '   -> Reading Second File : ', trim(GitmFileList(iGitmIndex))
       call GitmReadFile(GitmFileList(iGitmIndex), iError)
       GitmDataTwoFiles(2, :, :, :, :) = GitmDataDummy
 
@@ -314,23 +357,29 @@ contains
     iError = 0
 
     ! First try 3DALL files:
-    write(*, *) 'ls -1 '//trim(GitmDir)//'3DALL*.bin > .list_of_gitm_files 2> .gitm_err'
-    call execute_command_line('ls -1 '//trim(GitmDir)// &
-                              '3DALL*.bin > .list_of_gitm_files 2> .gitm_err')
+    ! write(*, *) 'ls -1 '//trim(GitmDir)//'3DALL*.bin > .list_of_gitm_files 2> .gitm_err'
+    if (iProc == 0) then
+      call execute_command_line('ls -1 '//trim(GitmDir)// &
+                                '3DALL*.bin > .list_of_gitm_files 2> .gitm_err')
+    endif
+    call MPI_BARRIER(iCommGITM, iError)
+
     nGitmFiles = 0
     open(iGitmUnit, file='.list_of_gitm_files', status='old')
     iError = 0
     do while (iError == 0)
       read(iGitmUnit, '(a)', iostat=iError) Dummy
-      write(*, *) 'dummy : ', dummy
       if (iError == 0) nGitmFiles = nGitmFiles + 1
     enddo
     close(iGitmUnit)
 
     if (nGitmFiles == 0) then
       ! Second try LST files:
-      call execute_command_line('ls -1 '//GitmDir// &
-                                '3DLST*.bin > .list_of_gitm_files 2> .gitm_err')
+      if (iProc == 0) then
+        call execute_command_line('ls -1 '//GitmDir// &
+                                  '3DLST*.bin > .list_of_gitm_files 2> .gitm_err')
+      endif
+      call MPI_BARRIER(iCommGITM, iError)
       nGitmFiles = 0
       open(iGitmUnit, file='.list_of_gitm_files', status='old')
       iError = 0
@@ -341,9 +390,6 @@ contains
       close(iGitmUnit)
       iGitmFileType = i3dlst_
     endif
-
-    write(*, *) "nGitmFiles : ", nGitmFiles
-    write(*, *) "Filetype : ", iGitmFileType
 
     open(iGitmUnit, file='.list_of_gitm_files', status='old')
     do iFile = 1, nGitmFiles
@@ -500,6 +546,20 @@ contains
     deallocate(GitmInLats)
     deallocate(GitmInAlts)
     deallocate(GitmOutData)
+
+    deallocate(GitmLonsIndex)
+    deallocate(GitmLatsIndex)
+    deallocate(GitmAltsIndex)
+
+    deallocate(GitmLonsFactor)
+    deallocate(GitmLatsFactor)
+    deallocate(GitmAltsFactor)
+
+    deallocate(GitmLons)
+    deallocate(GitmLats)
+    deallocate(GitmAlts)
+
+    iGitmIndexOld = -1
 
   end subroutine GitmShutDown
 

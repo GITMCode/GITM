@@ -146,3 +146,38 @@ subroutine check_for_nans_temps(cMarker)
   if (IsFound) call stop_gitm("Stopping...")
 
 end subroutine check_for_nans_temps
+
+subroutine correct_min_ion_density
+  ! Corrects for ion densities below MinIonDensity
+
+  use ModSizeGitm
+  use ModGitm
+  use ModInputs, only: minIonDensity, iDebugLevel
+  implicit none
+  integer :: iLon, iLat, iAlt, iIon
+
+  if (minval(IDensityS) < MinIonDensity) then
+    if (iDebugLevel > 5) &
+      write(*, *) "low ion density found... replacing with min ion density"
+    do iIon = 1, nIons
+      if (minval(IDensityS(:, :, :, iIon, 1)) < MinIonDensity) then
+        do iLon = -1, nLons + 2
+          do iLat = -1, nLats + 2
+            do iAlt = -1, nAlts + 2
+              if (iDensityS(iLon, iLat, iAlt, iIon, 1) < MinIonDensity) then
+                if (iDebugLevel > 7) &
+                  write(*, *) ' -> low density found in iDensityS : ', &
+                  iLon, iLat, iAlt, iProc, iIon, iDensityS(iLon, iLat, iAlt, iIon, 1), &
+                  MinIonDensity
+                iDensityS(iLon, iLat, iAlt, iIon, 1) = MinIonDensity
+              endif
+            enddo
+          enddo
+        enddo
+      endif
+    enddo
+  endif
+
+  return
+
+end subroutine correct_min_ion_density
