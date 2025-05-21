@@ -348,7 +348,7 @@ subroutine output(dir, iBlock, iOutputType)
 
   case ('2DGEL')
 
-    nvars_to_write = 17
+    nvars_to_write = 19
     call output_2dgel(iBlock)
 
   case ('2DMEL')
@@ -605,16 +605,17 @@ contains
       write(iOutputUnit_, "(I7,A1,a)") 6, " ", "Hall Conductance"
       write(iOutputUnit_, "(I7,A1,a)") 7, " ", "Electron_Average_Energy_Diffuse"
       write(iOutputUnit_, "(I7,A1,a)") 8, " ", "Electron_Energy_Flux_Diffuse"
-      write(iOutputUnit_, "(I7,A1,a)") 9, " ", "DivJuAlt"
-      write(iOutputUnit_, "(I7,A1,a)") 10, " ", "Pedersen FL Conductance"
-      write(iOutputUnit_, "(I7,A1,a)") 11, " ", "Hall FL Conductance"
-      write(iOutputUnit_, "(I7,A1,a)") 12, " ", "DivJu FL"
-      write(iOutputUnit_, "(I7,A1,a)") 13, " ", "FL Length"
-
-      write(iOutputUnit_, "(I7,A1,a)") 14, " ", "Electron_Average_Energy_Wave"
-      write(iOutputUnit_, "(I7,A1,a)") 15, " ", "Electron_Energy_Flux_Wave"
-      write(iOutputUnit_, "(I7,A1,a)") 16, " ", "Electron_Average_Energy_Mono"
-      write(iOutputUnit_, "(I7,A1,a)") 17, " ", "Electron_Energy_Flux_Mono"
+      write(iOutputUnit_, "(I7,A1,a)") 9, " ", "Electron_Average_Energy_Wave"
+      write(iOutputUnit_, "(I7,A1,a)") 10, " ", "Electron_Energy_Flux_Wave"
+      write(iOutputUnit_, "(I7,A1,a)") 11, " ", "Electron_Average_Energy_Mono"
+      write(iOutputUnit_, "(I7,A1,a)") 12, " ", "Electron_Energy_Flux_Mono"
+      write(iOutputUnit_, "(I7,A1,a)") 13, " ", "Ion_Average_Energy_Mono"
+      write(iOutputUnit_, "(I7,A1,a)") 14, " ", "Ion_Energy_Flux"
+      write(iOutputUnit_, "(I7,A1,a)") 15, " ", "DivJuAlt"
+      write(iOutputUnit_, "(I7,A1,a)") 16, " ", "Pedersen FL Conductance"
+      write(iOutputUnit_, "(I7,A1,a)") 17, " ", "Hall FL Conductance"
+      write(iOutputUnit_, "(I7,A1,a)") 18, " ", "DivJu FL"
+      write(iOutputUnit_, "(I7,A1,a)") 19, " ", "FL Length"
     endif
 
     if (cType(1:5) == "2DANC") then
@@ -1628,15 +1629,17 @@ subroutine output_2dgel(iBlock)
         HallConductance(iLon, iLat, iBlock), &
         ElectronAverageEnergyDiffuse(iLon, iLat), &
         ElectronEnergyFluxDiffuse(iLon, iLat), &
+        ElectronAverageEnergyWave(iLon, iLat), &
+        ElectronEnergyFluxWave(iLon, iLat), &
+        ElectronAverageEnergyMono(iLon, iLat), &
+        ElectronEnergyFluxMono(iLon, iLat), &
+        IonAverageEnergy(iLon, iLat), &
+        IonEnergyFlux(iLon, iLat), &
         DivJuAlt(iLon, iLat), &
         PedersenFieldLine(iLon, iLat), &
         HallFieldLine(iLon, iLat), &
         DivJuFieldLine(iLon, iLat), &
-        LengthFieldLine(iLon, iLat), &
-        ElectronAverageEnergyWave(iLon, iLat), &
-        ElectronEnergyFluxWave(iLon, iLat), &
-        ElectronAverageEnergyMono(iLon, iLat), &
-        ElectronEnergyFluxMono(iLon, iLat)
+        LengthFieldLine(iLon, iLat)
     enddo
   enddo
 
