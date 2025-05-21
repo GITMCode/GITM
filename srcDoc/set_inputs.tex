@@ -458,6 +458,8 @@ If UseMSIS is false (F) then:
 
 There can be benefits to running a simpler ionosphere and thermosphere models.  GITM can be used as a shell to run MSIS and IRI without any coupling.  This input option bypasses GITM and only outputs results from MSIS and IRI.  This option allows the user who is familiar with GITM to get MSIS and IRI output without having to install or know how to run these models independently.  The UseStatisticalModelsOnly flag can be set to {\tt T} or {\tt F} (true or false) and the DtStatisticalModels options lets you specify the time-step (in seconds) used in MSIS and IRI.
 
+This can also be used for geo-Apex conversions (if #APEX is T), or to run the selected auroral & potential models (set in #ELECTRODYNAMICS). By default, 2DGEL (the "electrodynamics outputs") are on a geographic grid. To instead output on a magnetic grid, set #APEX to F, and put 0.0 for all options in #DIPOLE.
+
 \begin{verbatim}
 #STATISTICALMODELSONLY
 (logical) UseStatisticalModelsOnly
@@ -538,42 +540,69 @@ A switch to add heating to the atmosphere.  This was primarily used to explore g
 (logical) UseGravityWave
 \end{verbatim}
 
+\subsubsection{ELECTRODYNAMICS}
+\label{edynamics.sec}
+This is where the desirec Aurora and Potential models are set, along with the time delta the inputs should be specified.
+
+GITM uses an external library for Electrodynamics, which is downloaded automatically when running Config.pl. The documentation for that library may have more information on the available options than this document.
+
+Available auroral models are: zero (none), FTA, FRE/IHP, PEM, OVATION, or AMIE (from file).
+
+Available potential models are: zero (none), Weimer05, Millstone, HeppnerMaynard, or AMIE (from file)
+
+Defaults are FTA and Weimer05, both updated every 60.0 seconds. Tu use AMIE files, make sure to set #AMIEFILES too.
+
+\begin{verbatim}
+  #ELECTRODYNAMICS
+  (string)    AuroralModel
+  (real)      DtAurora
+  (string)    PotentialModel
+  (real)      DtPotential
+\end{verbatim}
+
+
 \subsubsection{AURORAMODS}
 \label{auroramods.sec}
+
+This is for modifying the aurora a bit.  TheNormalizeAuroraToHP variable calculates the modeled hemispheric power and then normalizes it to the hemispheric power read in. AveEFactor - changes the aveE of the aurora by this factor. IsKappaAurora - use a kappa instead of Maxwellian? AuroraKappa - kappa to use in the distribution. AllowAurWODiffuse: allow other auror types if diffuse is zero? MaxAveEAurora - Maximum allowed value of AvgE.
+
+
 
 \begin{verbatim}
 #AURORAMODS
 (logical) Normalize Aurora to Hemispheric Power
-(real) Auroral Height Factor
+(real)    AveEFactor
+(logical) IsKappaAurora
+(real)    AuroraKappa
+(logical) AllowAurWODiffuse
+(real)    MaxAveEAurora
 \end{verbatim}
 
-\subsubsection{NEWELLAURORA}
-\label{newellaurora.sec}
+\subsubsection{AURORATYPES}
+\label{newellauroratypes.sec}
 
-This input option provides several logical flags that allow GITM to use Pat Newell's aurora model, Ovation~\citep{Newell:2002ov}.
+This input option provides several logical flags that allow GITM to use different auroral types (currently only supported by Pat Newell's aurora model, Ovation~\citep{Newell:2002ov}).
 
 \begin{verbatim}
-#NEWELLAURORA
-(logical) UseNewellAurora   
-(logical) UseNewellAveraged 
-(logical) UseNewellMono 
-(logical) UseNewellWave
-(logical) UseNewellRemoveSpikes 
-(logical) UseNewellAverage  
+#AURORATYPES
+(logical) UseDiffuseAurora [true]
+(logical) UseMonoAurora
+(logical) UseWaveAurora
+(logical) UseIonAurora 
 \end{verbatim}
 
-\subsubsection{OVATION}
-\label{ovation.sec}
+% \subsubsection{OVATION}
+% \label{ovation.sec}
 
-This input option provides several logical flags that allow GITM to use the SME Ovation model.
+% This input option provides several logical flags that allow GITM to use the SME Ovation model.
 
-\begin{verbatim}
-#OVATION
-(logical) UseOvationSME   
-(logical) UseOvationSMEMono
-(logical) UseOvationSMEWave
-(logical) UseOvationSMEIon
-\end{verbatim}
+% \begin{verbatim}
+% #OVATION
+% (logical) UseOvationSME   
+% (logical) UseOvationSMEMono
+% (logical) UseOvationSMEWave
+% (logical) UseOvationSMEIon
+% \end{verbatim}
 
 \subsubsection{AMIEFILES}
 \label{amiefiles.sec}
@@ -722,29 +751,6 @@ This input option provides flags for the ionospheric dynamo.  The UseDynamo flag
 (real) DynamoHighLatBoundary 
 (integer) nItersMax        
 (real) MaxResidual     
-\end{verbatim}
-
-\subsubsection{ELECTRODYNAMICS}
-\label{electrodynamics.sec}
-
-Sets the time-step (in seconds) for updating the high-latitude (and low-latitude) electrodynamic drivers, such as the potential and the aurora.
-
-\begin{verbatim}
-#ELECTRODYNAMICS
-(real) DtPotential 
-(real) DtAurora  
-\end{verbatim}
-
-\subsubsection{IONPRECIPITATION}
-\label{ionprecipitation.sec}
-
-This is a highly specific input option for experienced users.  Most users should set this option to false.  This is only for people wishing to do very specific runs in high altitude regions.  IonIonizationFilename and IonHeatingRateFilename allow the advanced user to specify the ionization and ion heating rates due to precipitation using auxiliary input files.
-
-\begin{verbatim}
-#IONPRECIPITATION
-(logical) UseIonPrecipitation 
-(string) IonIonizationFilename
-(string) IonHeatingRateFilename
 \end{verbatim}
 
 \subsubsection{LTERADIATION}
