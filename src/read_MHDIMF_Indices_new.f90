@@ -154,8 +154,8 @@ subroutine read_MHDIMF_Indices_new(iOutputError, StartTime, EndTime)
             ! This means that the GITM time is all BEFORE the first
             ! line in the file!
             if (EndTime < IndexTimes_TV(iIMF, imf_bx_) .and. iIMF == 1) then
-               iIMF = iIMF + 1
-               iSW = iSW + 1
+              iIMF = iIMF + 1
+              iSW = iSW + 1
             endif
 
           endif
@@ -176,38 +176,37 @@ subroutine read_MHDIMF_Indices_new(iOutputError, StartTime, EndTime)
 
   iIMF = iIMF - 2
   iSW = iSW - 2
-  
+
   ! There is sometimes a problem where the end time is in the middle of
   ! a data gap. Let's check this:
   if (iIMF > 2) then
-     if (IndexTimes_TV(iIMF, imf_bx_) < EndTime) then
-        ! Copy the last index into the next index and assign times
-        iIMF = iIMF + 1
-        IndexTimes_TV(iIMF, imf_bx_) = EndTime
-        IndexTimes_TV(iIMF, imf_by_) = EndTime
-        IndexTimes_TV(iIMF, imf_bz_) = EndTime
-        Indices_TV(iIMF, imf_bx_) = Indices_TV(iIMF - 1, imf_bx_)
-        Indices_TV(iIMF, imf_by_) = Indices_TV(iIMF - 1, imf_by_)
-        Indices_TV(iIMF, imf_bz_) = Indices_TV(iIMF - 1, imf_bz_)
+    if (IndexTimes_TV(iIMF, imf_bx_) < EndTime) then
+      ! Copy the last index into the next index and assign times
+      iIMF = iIMF + 1
+      IndexTimes_TV(iIMF, imf_bx_) = EndTime
+      IndexTimes_TV(iIMF, imf_by_) = EndTime
+      IndexTimes_TV(iIMF, imf_bz_) = EndTime
+      Indices_TV(iIMF, imf_bx_) = Indices_TV(iIMF - 1, imf_bx_)
+      Indices_TV(iIMF, imf_by_) = Indices_TV(iIMF - 1, imf_by_)
+      Indices_TV(iIMF, imf_bz_) = Indices_TV(iIMF - 1, imf_bz_)
 
-        IndexTimes_TV(iSW, sw_vx_) = EndTime
-        IndexTimes_TV(iSW, sw_vy_) = EndTime
-        IndexTimes_TV(iSW, sw_vz_) = EndTime
-        IndexTimes_TV(iSW, sw_v_) = EndTime
-        IndexTimes_TV(iSW, sw_n_) = EndTime
-        IndexTimes_TV(iSW, sw_t_) = EndTime
+      IndexTimes_TV(iSW, sw_vx_) = EndTime
+      IndexTimes_TV(iSW, sw_vy_) = EndTime
+      IndexTimes_TV(iSW, sw_vz_) = EndTime
+      IndexTimes_TV(iSW, sw_v_) = EndTime
+      IndexTimes_TV(iSW, sw_n_) = EndTime
+      IndexTimes_TV(iSW, sw_t_) = EndTime
 
-        Indices_TV(iSW, sw_vx_) = Indices_TV(iSW - 1, sw_vx_)
-        Indices_TV(iSW, sw_vy_) = Indices_TV(iSW - 1, sw_vy_)
-        Indices_TV(iSW, sw_vz_) = Indices_TV(iSW - 1, sw_vz_)
-        Indices_TV(iSW, sw_v_) = Indices_TV(iSW - 1, sw_v_)
-        Indices_TV(iSW, sw_n_) = Indices_TV(iSW - 1, sw_n_)
-        Indices_TV(iSW, sw_t_) = Indices_TV(iSW - 1, sw_t_)
-        
-     endif
+      Indices_TV(iSW, sw_vx_) = Indices_TV(iSW - 1, sw_vx_)
+      Indices_TV(iSW, sw_vy_) = Indices_TV(iSW - 1, sw_vy_)
+      Indices_TV(iSW, sw_vz_) = Indices_TV(iSW - 1, sw_vz_)
+      Indices_TV(iSW, sw_v_) = Indices_TV(iSW - 1, sw_v_)
+      Indices_TV(iSW, sw_n_) = Indices_TV(iSW - 1, sw_n_)
+      Indices_TV(iSW, sw_t_) = Indices_TV(iSW - 1, sw_t_)
+
+    endif
   endif
 
-  
   nIndices_V(imf_bx_) = iIMF
   nIndices_V(imf_by_) = iIMF
   nIndices_V(imf_bz_) = iIMF
