@@ -458,7 +458,7 @@ If UseMSIS is false (F) then:
 
 There can be benefits to running a simpler ionosphere and thermosphere models.  GITM can be used as a shell to run MSIS and IRI without any coupling.  This input option bypasses GITM and only outputs results from MSIS and IRI.  This option allows the user who is familiar with GITM to get MSIS and IRI output without having to install or know how to run these models independently.  The UseStatisticalModelsOnly flag can be set to {\tt T} or {\tt F} (true or false) and the DtStatisticalModels options lets you specify the time-step (in seconds) used in MSIS and IRI.
 
-This can also be used for geo-Apex conversions (if #APEX is T), or to run the selected auroral & potential models (set in #ELECTRODYNAMICS). By default, 2DGEL (the "electrodynamics outputs") are on a geographic grid. To instead output on a magnetic grid, set #APEX to F, and put 0.0 for all options in #DIPOLE.
+This can also be used for geo-Apex conversions (if \#APEX is T), or to run the selected auroral \& potential models (set in \#ELECTRODYNAMICS). By default, 2DGEL (the "electrodynamics outputs") are on a geographic grid. To instead output on a magnetic grid, set \#APEX to F, and put 0.0 for all options in \#DIPOLE.
 
 \begin{verbatim}
 #STATISTICALMODELSONLY
@@ -550,7 +550,7 @@ Available auroral models are: zero (none), FTA, FRE/IHP, PEM, OVATION, or AMIE (
 
 Available potential models are: zero (none), Weimer05, Millstone, HeppnerMaynard, or AMIE (from file)
 
-Defaults are FTA and Weimer05, both updated every 60.0 seconds. Tu use AMIE files, make sure to set #AMIEFILES too.
+Defaults are FTA and Weimer05, both updated every 60.0 seconds. Tu use AMIE files, make sure to set \#AMIEFILES too.
 
 \begin{verbatim}
   #ELECTRODYNAMICS
@@ -607,7 +607,7 @@ This input option provides several logical flags that allow GITM to use differen
 \subsubsection{AMIEFILES}
 \label{amiefiles.sec}
 
-This option allows the user to specify the electrodynamic state of the polar regions using the Assimilative Mapping of Ionospheric Electrodynamics (AMIE) model~\citep{ridley:2004aa}.  Input files separately specify the conditions at the northern and southern polar caps, and should be in the MIE binary format.  Contact Aaron Ridley for more information about using AMIE with GITM.
+This option allows the user to specify the electrodynamic state of the polar regions using the Assimilative Mapping of Ionospheric Electrodynamics (AMIE) model~\citep{ridley:2004aa}.  Input files separately specify the conditions at the northern and southern polar caps, and should be in the AMIE binary format.  Contact Aaron Ridley for more information about using AMIE with GITM.
 
 \begin{verbatim}
 #AMIEFILES
