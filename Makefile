@@ -64,7 +64,6 @@ LIB:
 	cd $(GLDIR)     ; make LIBPREV=${LIBDIR}/libSphere.a   LIBADD
 	cd $(MAINDIR)   ; make LIBPREV=${GITM}/${GLDIR}/libUPTOGL.a   LIB
 	cd srcInterface ; make LIBPREV=${GITM}/${MAINDIR}/libUA.a     LIB
-	make POST
 
 nompirun:
 	make GITM
@@ -108,17 +107,13 @@ rundir:
                 ln -s restartOUT restartIN; \
                 ln -s ${UADIR}/srcSAMI/srcInputs ./input; \
 	fi
-	cd ${RUNDIR}; rm -f ./PostGITM.exe ; ln -s ${UADIR}/src/PostProcess.exe ./PostGITM.exe
 	cd ${RUNDIR}/UA; \
-		if [ ! -f pGITM ]; then \
 			mkdir -p restartOUT data  DataIn; \
 			ln -s restartOUT restartIN; \
-			ln -s ${UADIR}/src/pGITM .; \
-			ln -s ${UADIR}/srcPython/pGITM.py .; \
+			ln -s ${UADIR}/src/post_process.py .; \
 			ln -s ${UADIR}/srcData/* DataIn; rm -f DataIn/CVS; \
 			ln -s ${UADIR}/data/* DataIn;    rm -f DataIn/CVS; \
-			ln -s ${EIEDIR}/data/ext extIE; \
-		fi
+			ln -s ${EIEDIR}/data/ext extIE; 
 	cd ${RUNDIR} ;                                   \
 		if [ -e ${BINDIR}/GITM.exe ]; then       \
 			ln -s ${BINDIR}/GITM.exe . ;     \

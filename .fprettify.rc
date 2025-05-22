@@ -9,7 +9,7 @@ i: 2
 recursive
 # Excluded files:
 # Anything compiled, src/venus.f90 (it's incomplete), old fortran files, makefiles, template files
-exclude: ["*.exe","*.o","Venus.f90","*.f","Makef*","*emplate.f90"]
+exclude: ["*.exe","*.o","Venus.f90","*.f","Makef*","*emplate.f90","*Msis21.F90"]
 
 # Whitespace option 2 (check fprettify -h for info):
 whitespace: 2
