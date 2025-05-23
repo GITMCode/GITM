@@ -95,7 +95,7 @@ do_tests(){
         rm -f GITM.DONE
 
         # Run GITM, stop if error.
-        mpirun -np 4 ./GITM.exe
+        mpirun -np 4 --oversubscribe ./GITM.exe
         if [ -f GITM.DONE ]; then
             printf "\n\n>>> $test_uam ran successfully! <<< \n\n"
             mv $test_uam $test_uam.success && rm -f GITM.DONE
