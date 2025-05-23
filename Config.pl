@@ -87,7 +87,8 @@ if ($Install and not $IsCompGitm){
             # If this fails, the script will exit with an error message
         }
     } else {
-        print "ext/Electrodynamics already exists. Not updating it.\n";
+        print "ext/Electrodynamics already exists. Not attempting update.\n";
+	print " >> NOTICE: You may wish to `git pull` from within ext/Electrodynamics.\n";
     }
 }
 
