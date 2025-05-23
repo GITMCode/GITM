@@ -69,16 +69,16 @@ jobs:
           path: GITM_manual.pdf
           retention-days: 31
 
-  # Tests:
-  #   runs-on: ubuntu-latest
-  #   name: Run Automatic Tests
-  #   needs: [Format, Documentation]
-  #   steps:
-  #     - name: Install MPI (mpich)
-  #       run: sudo apt update && sudo apt install -y openmpi-bin
-  #     - name: Clone GITM repository
-  #       uses: actions/checkout@v4
-  #     - name: Run tests in srcTests/auto_test
-  #       run: |
-  #         cd srcTests/auto_test
-  #         ./run_all_tests.sh
+  Tests:
+    runs-on: ubuntu-latest
+    name: Run Automatic Tests
+    needs: [Format, Documentation]
+    steps:
+      - name: Install MPI (OpenMPI)
+        run: sudo apt update && sudo apt install -y libopenmpi-dev
+      - name: Clone GITM repository
+        uses: actions/checkout@v4
+      - name: Run tests in srcTests/auto_test
+        run: |
+          cd srcTests/auto_test
+          ./run_all_tests.sh
