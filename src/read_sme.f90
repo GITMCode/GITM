@@ -276,8 +276,8 @@ subroutine read_sme(iOutputError, StartTime, EndTime, doUseAeForHp)
 
   ! Need to update the number of hemispheric power indices:
   if (doUseAeForHp) then
-     nIndices_V(hpi_) = iAE - 2
-     nIndices_V(hpi_norm_) = iAE - 2
+    nIndices_V(hpi_) = iAE - 2
+    nIndices_V(hpi_norm_) = iAE - 2
   endif
 
   ! If we have gotten to this point and we have no data,

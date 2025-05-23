@@ -1968,7 +1968,7 @@ subroutine set_inputs
     if (iError == 0) then
       call check_all_indices(EndTime, iError)
       if (iError /= 0) &
-          write(*, *) 'Error with End Time and check_all_indices'
+        write(*, *) 'Error with End Time and check_all_indices'
     else
       write(*, *) 'Error with Current Time and check_all_indices'
     endif
