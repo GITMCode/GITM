@@ -147,7 +147,7 @@ iFile = 0
 # get lons, lats, alts:
 iVars_ = [0,1,2]
 data = read_gitm_one_file(headers["filename"][iFile], iVars_)
-Alts3d = data[2];
+Alts3d = data[2]
 Alts = data[2][0,0,:]/1000.0;
 Lons2d = data[0][:,:,0]*rtod;
 Lats2d = data[1][:,:,0]*rtod;
