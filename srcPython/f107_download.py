@@ -11,6 +11,9 @@ from glob import glob
 import numpy as np
 import re
 
+# running this without any parameters produces an f107_downloaded.txt file.
+# this can be copied into ../srcData/f107.txt and committed.
+
 # ----------------------------------------------------------------------
 # There are two sites that seem to have this data:
 #
