@@ -204,6 +204,8 @@ subroutine calc_chemistry(iBlock)
           + Temperature(1:nLons, 1:nLats, 1:nAlts, iBlock)* &
           TempUnit(1:nLons, 1:nLats, 1:nAlts))/2.0
 
+  tr33d = tr3d/300.0
+
   tn3d = Temperature(1:nLons, 1:nLats, 1:nAlts, iBlock)* &
          TempUnit(1:nLons, 1:nLats, 1:nAlts)
 

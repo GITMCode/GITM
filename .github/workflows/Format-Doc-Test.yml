@@ -74,8 +74,8 @@ jobs:
     name: Run Automatic Tests
     needs: [Format, Documentation]
     steps:
-      - name: Install MPI (mpich)
-        run: sudo apt update && sudo apt install -y mpich
+      - name: Install MPI (OpenMPI)
+        run: sudo apt update && sudo apt install -y libopenmpi-dev
       - name: Clone GITM repository
         uses: actions/checkout@v4
       - name: Run tests in srcTests/auto_test

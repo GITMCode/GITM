@@ -26,13 +26,13 @@ DEPEND:
 	@perl ${SCRIPTDIR}/depend.pl -I${SHAREDIR} ${OBJECTS}
 
 LIB:    DEPEND
-	make ${MY_LIB}
+	@make ${MY_LIB}
 	@echo
 	@echo ${MY_LIB} has been brought up to date.
 	@echo
 
 ${MY_LIB}: ${OBJECTS}
-	rm -f ${MY_LIB}
+	@rm -f ${MY_LIB}
 	${AR} ${MY_LIB} ${OBJECTS}
 
 distclean: clean

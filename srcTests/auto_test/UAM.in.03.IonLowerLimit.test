@@ -1,6 +1,6 @@
 
 #DEBUG
-0		debug level (0 = no info, 10 = max info)
+1		debug level (0 = no info, 10 = max info)
 0		cpu to watch
 60.0		dt between normal code output to stdout
 F		usebarriers - forces the code to stop and wait more often
@@ -31,7 +31,7 @@ start and end times:
 12		month
 21		day
 00		hour
-05		minute
+15		minute
 00		second
 
 --------------------------------------------------------------------------
@@ -42,10 +42,10 @@ Set blocks in lon and lat.
 #GRID
 2		number of blocks in longitude
 2		number of blocks in latitude
--40.0		minimum latitude to model
-40.0		maximum latitude to model
-40.0		longitude start to model (set to 0.0 for whole Earth)
-200.0             longitude end to model (set to 0.0 for whole Earth)
+-90.0		minimum latitude to model
+90.0		maximum latitude to model
+0.0		longitude start to model (set to 0.0 for whole Earth)
+0.0             longitude end to model (set to 0.0 for whole Earth)
 
 --------------------------------------------------------------------------
 Output file stuff
@@ -57,39 +57,47 @@ Output file stuff
 300.0		dt for output (1 every 5 min)
 
 
+If this is before 2019, f107 should work fine:
+
 #NGDC_INDICES
 UA/DataIn/f107.txt
+
+From 1990 - 2018, it is best to use FISM (and need F107 too!)
 
 #EUV_DATA
 T						Use FISM solar flux data
 UA/DataIn/FISM/fismflux_daily_2002.dat		Filename
-
------------- Auroral Drivers ------------
-
-#FTAMODEL
-T                 Use FTA model of the aurora
-
 
 #SME_INDICES
 UA/DataIn/ae_20021221.txt		SME Filename
 none              			onset time delay file
 T					convert SME to Hemispheric Power
 
------------- E-Field Drivers ------------
-
 #MHD_INDICES
 UA/DataIn/imf20021221.dat
 
-#APEX
-T
+#DYNAMO
+F		UseDynamo
+45.0		DynamoHighLatBoundary
+500		nItersMax
+1.0		MaxResidual
+F		IncludeCowling
+40.0		LongitudinalAveraging
+F               UseNewTrace
 
------------------------------------------------------------------
+#APEX
+F
+
 
 #MSISOBC
 T		Shift the [O] density at the lower boundary by 6 months 
 0.0		change the obateness of the Earth by this percent (0 = none)
 
---------------------------------------------------------------------------
+
+#IONLIMITS
+100   # max Vparallel
+0.1   # max E-field
+1e8   # min ion density - absurdly high, but good to test.
 
 #AUSMSOLVER
 T       	Use AUSM+-up Solvers

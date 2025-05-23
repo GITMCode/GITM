@@ -68,7 +68,7 @@ module ModEUV
 
   real, dimension(Num_WaveLengths_High, nSeeLinesMax) :: SeeFlux
   real, dimension(nSeeLinesMax) :: TimeSee
-  real, dimension(nFlaresMax) :: FlareTimes
+  real, dimension(nFlaresMax) :: FlareTimes = 0
   logical :: ReReadEUVFile = .false.
 
   character(len=iCharLen_) :: cRidleyEUVFile = 'UA/DataIn/waves.dat'
@@ -893,7 +893,11 @@ module ModEUV
     0.40e-18, 0.20e-18, 0.08e-18, 0.01e-18, 0.00e-18, 0.00e-18, &
     0.00e-18, 0.00e-18, 0.00e-18, 0.00e-18, 0.00e-18/
 
-! sigio
+  !initialize this for nagfor, otherwise it's all nan
+  data PhotoIon_CO/ &
+    59*0.0/
+
+  ! sigio
   data Photoionization_O/ &
     0.00e+00, 0.00e+00, 0.00e+00, 0.00e+00, 0.00e+00, 1.32e-18, &
     4.55e-18, 3.50e-18, 5.09e-18, 3.75e-18, 3.89e-18, 4.00e-18, &

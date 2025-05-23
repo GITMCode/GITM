@@ -17,6 +17,7 @@ subroutine advance
 
   use ModRCMR, only: RCMRFlag
   use ModGITM, only: dt
+  use ModErrors
   use ModInputs
 
   implicit none
@@ -38,9 +39,13 @@ subroutine advance
     ! Break the time-step up into three parts:
     ! (1) vertical solver; (2) horizontal solver;
     ! (3) source terms
+    ! ALB CHANGED THIS:
+    ! Needs verification. But solvers need ion velocities, which are only set
+    !   in add_sources. So I switched this order. Or we could add sources in initialize
+    call add_sources
 
     call advance_vertical_all
-    call add_sources
+
     if (.not. Is1D) call advance_horizontal_all
 
   else
@@ -56,6 +61,13 @@ subroutine advance
     call init_msis
     call init_iri
     call init_b0
+    UseDynamo = .false.
+    call get_potential(1)
+  endif
+
+  if (.not. isOk) then
+    call report_errors
+    call stop_gitm("Stopping in Advance")
   endif
 
   call end_timing("advance")

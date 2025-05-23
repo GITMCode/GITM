@@ -36,7 +36,6 @@ subroutine add_sources
 
      !! To turn off EuvHeating, turn UseSolarHeating=.false. in UAM.in
      !! To turn off JouleHeating, turn UseJouleHeating=.false. in UAM.in
-     !! To turn off AuroralHeating, turn Use=AuroralHeating.false. in UAM.in
      !! To turn off Conduction, turn UseConduction=.false. in UAM.in
 
     Temperature(1:nLons, 1:nLats, 1:nAlts, iBlock) = &
@@ -45,8 +44,8 @@ subroutine add_sources
       /TempUnit(1:nLons, 1:nLats, 1:nAlts) &
       + EuvHeating(1:nLons, 1:nLats, 1:nAlts, iBlock) &
       - RadCooling(1:nLons, 1:nLats, 1:nAlts, iBlock) &
-      + AuroralHeating + JouleHeating) + &
-      Conduction + ChemicalHeatingRate
+      + JouleHeating) &
+      + ChemicalHeatingRate
 
 !     write(*,*) Temperature(1,1,1:nAlts,1)
 
@@ -84,7 +83,6 @@ subroutine add_sources
                 temperature(iLon, iLat, iAlt, iBlock), &
                 EuvHeating(iLon, iLat, iAlt, iBlock)*dt, &
                 RadCooling(iLon, iLat, iAlt, iBlock)*dt, &
-                AuroralHeating(iLon, iLat, iAlt)*dt, &
                 JouleHeating(iLon, iLat, iAlt)*dt, &
                 Conduction(iLon, iLat, iAlt), &
                 ChemicalHeatingRate(iLon, iLat, iAlt)
@@ -103,7 +101,6 @@ subroutine add_sources
         EuvHeating(1, 1, iAlt, iBlock)*dt, &
         !                NOCooling(1,1,iAlt)*dt, &
         !                OCooling(1,1,iAlt)*dt, &
-        AuroralHeating(1, 1, iAlt)*dt, &
         JouleHeating(1, 1, iAlt)*dt, &
         ChemicalHeatingRate(1, 1, iAlt), &
         Conduction(1, 1, iAlt), temperature(1, 1, iAlt, iBlock)
@@ -116,7 +113,6 @@ subroutine add_sources
       sum(EuvHeating(1:nLons, 1:nLats, iAlt, iBlock))*dt, &
       sum(NOCooling(:, :, iAlt))*dt, &
       sum(OCooling(:, :, iAlt))*dt, &
-      sum(AuroralHeating(:, :, iAlt))*dt, &
       sum(JouleHeating(:, :, iAlt))*dt, &
       sum(Conduction(:, :, iAlt))
 

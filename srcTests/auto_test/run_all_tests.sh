@@ -84,20 +84,21 @@ do_tests(){
 
     # Copy the test files into run/
     cd srcTests/auto_test/
-    cp UAM* run/
+    cp UAM.*.test run/
 
     # begin running:
     cd run/
     for test_uam in UAM.*.test; do
         printf "\n\n>> Testing with $test_uam ...\n"
         # Copy UAM 
-        cp $test_uam UAM.in
+        ln -sf $test_uam UAM.in
+        rm -f GITM.DONE
 
         # Run GITM, stop if error.
-        mpirun -np 4 ./GITM.exe
-        if [ $? -eq 0 ]; then
+        mpirun -np 4 --oversubscribe ./GITM.exe
+        if [ -f GITM.DONE ]; then
             printf "\n\n>>> $test_uam ran successfully! <<< \n\n"
-            mv $test_uam $test_uam.success
+            mv $test_uam $test_uam.success && rm -f GITM.DONE
         else
             printf "\n\n>>> $test_uam   UNSUCCESSFUL! <<< \n\n EXITING\n\n"
             exit 1

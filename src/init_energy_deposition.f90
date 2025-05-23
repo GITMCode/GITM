@@ -52,9 +52,7 @@ subroutine init_energy_deposition
     call stop_gitm("Error allocating array ED_Energies")
   endif
 
-  allocate(ED_Flux(ED_N_Energies), stat=ierr)
   allocate(ED_EnergyFlux(ED_N_Energies), stat=ierr)
-  allocate(ED_Ion_Flux(ED_N_Energies), stat=ierr)
   allocate(ED_Ion_EnergyFlux(ED_N_Energies), stat=ierr)
   if (ierr /= 0) then
     call stop_gitm("Error allocating array ED_Flux")

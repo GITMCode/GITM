@@ -32,7 +32,6 @@ LIB:	DEPEND
 
 ${MY_LIB}: ${MF} ${MODULES} ${OBJECTS}
 	@echo 'Creating libSphere library'
+	@rm -f ${MY_LIB}
 	${AR} ${MY_LIB} ${MODULES} ${OBJECTS}
 
-clean:
-	rm -f *~ core *.o *.mod fort.* a.out *.exe *.a *.so *.protex

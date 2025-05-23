@@ -24,8 +24,9 @@ module ModVertical
 !  real, dimension(-1:nAlts+2,nIonsAdvect) :: NewLogINS
 !  real, dimension(-1:nAlts+2,nIonsAdvect) :: LogINS
 
-  real, dimension(-1:nAlts + 2, nIons) :: NewLogINS
-  real, dimension(-1:nAlts + 2, nIons) :: LogINS
+  ! Fill GC's with 0, not NaN
+  real, dimension(-1:nAlts + 2, nIons) :: NewLogINS = 0
+  real, dimension(-1:nAlts + 2, nIons) :: LogINS = 0
 !  real, dimension(1:2,nIons) :: OldLogINSc
 
   real, dimension(-1:nAlts + 2, nSpecies) :: LogNS, VertVel

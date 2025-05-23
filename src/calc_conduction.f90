@@ -38,7 +38,7 @@ subroutine calc_thermal_conduction(iBlock)
   real :: DtCSLocal
 
   ! Temperature variables
-  real :: TemperatureStage1(1:nLons, 1:nLats, -1:nAlts + 2)
+  real :: TemperatureStage1(1:nLons, 1:nLats, -1:nAlts + 2) = 0.0
   real :: TemperatureH(1:nLons, 1:nLats, -1:nAlts + 2)
   real :: TemperatureF(1:nLons, 1:nLats, -1:nAlts + 2)
 

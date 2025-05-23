@@ -12,7 +12,7 @@ module ModSources
 
   real, dimension(nLons, nLats, nAlts) :: &
     NOCooling, OCooling, ElectronHeating, &
-    AuroralHeating, JouleHeating, IonPrecipHeating, &
+    JouleHeating, IonPrecipHeating, &
     EddyCond, EddyCondAdia
 
   real, dimension(nLons, nLats, 0:nAlts + 1) :: MoleConduction
@@ -20,7 +20,7 @@ module ModSources
 ! JMB: 07/13/2017.  Conduction must extend 0:nAlts+1
 ! for the 2nd order update and 2nd order boundary conditions
   real, dimension(nLons, nLats, 0:nAlts + 1) :: &
-    Conduction
+    Conduction = 0.0
 
   real, dimension(nLons, nLats) :: &
     JouleHeating2d, EuvHeating2d, HeatTransfer2d, RadiativeCooling2d, &
@@ -98,19 +98,13 @@ module ModSources
   !\
   ! Stuff for auroral energy deposition and ionization
   !/
-
   real, dimension(:), allocatable :: &
-    ED_grid, ED_Energies, ED_Flux, ED_Ion, ED_Heating, &
-    ED_energy_edges, ED_delta_energy, ED_EnergyFlux, &
-    ED_Ion_EnergyFlux, ED_Ion_Flux
-  integer :: ED_N_Energies, ED_N_Alts
-  real, dimension(nAlts) :: ED_Interpolation_Weight
-  integer, dimension(nAlts) :: ED_Interpolation_Index
+    ED_Energies, ED_delta_energy, ED_EnergyFlux, &
+    ED_Ion_EnergyFlux
+  integer :: ED_N_Energies = 50
 
   real, allocatable :: AuroralIonRateS(:, :, :, :, :)
-  real, allocatable :: AuroralHeatingRate(:, :, :, :)
   real, allocatable :: IonPrecipIonRateS(:, :, :, :, :)
-  real, allocatable :: IonPrecipHeatingRate(:, :, :, :)
   real :: ChemicalHeatingRate(nLons, nLats, nAlts)
   real :: ChemicalHeatingRateIon(nLons, nLats, nAlts)
   real :: ChemicalHeatingRateEle(nLons, nLats, nAlts)
@@ -121,6 +115,7 @@ module ModSources
   real, allocatable :: Fang_Ci(:, :)  ! nEnergies, 8
   real, allocatable :: Fang_y(:, :)   ! nEnergies, nAlts
   real, allocatable :: Fang_f(:, :)   ! nEnergies, nAlts
+  real, allocatable :: Fang_Pij(:, :)
 
   !\
   ! Needed for Fang et al, 2013:
@@ -128,6 +123,7 @@ module ModSources
   real, allocatable :: Fang_Ion_Ci(:, :)  ! nEnergies, 8
   real, allocatable :: Fang_Ion_y(:, :)   ! nEnergies, nAlts
   real, allocatable :: Fang_Ion_f(:, :)   ! nEnergies, nAlts
+  real, allocatable :: Fang_Ion_Pij(:, :)
 
   !BP
   real, dimension(40, 11) :: qIR_NLTE_table
@@ -136,7 +132,6 @@ module ModSources
   real :: HorizontalTempSource(nLons, nLats, nAlts)
 
   real :: Diffusion(nLons, nLats, nAlts, nSpecies)
-  real :: NeutralFriction(nLons, nLats, nAlts, nSpecies)
   real :: IonNeutralFriction(nLons, nLats, nAlts, nSpecies)
 
   real, allocatable :: KappaEddyDiffusion(:, :, :, :)
@@ -158,12 +153,12 @@ contains
     allocate(QnirLTE(nLons, nLats, nAlts, nBlocks))
     allocate(CirLTE(nLons, nLats, nAlts, nBlocks))
     allocate(UserHeatingRate(nLons, nLats, nAlts, nBlocks))
+    UserHeatingRate = 0.0
     allocate(ISourcesTotal(nLons, nLats, nAlts, nIons - 1, nBlocks))
     allocate(ILossesTotal(nLons, nLats, nAlts, nIons - 1, nBlocks))
     allocate(AuroralIonRateS(nLons, nLats, nAlts, nSpecies, nBlocks))
-    allocate(AuroralHeatingRate(nLons, nLats, nAlts, nBlocks))
     allocate(IonPrecipIonRateS(nLons, nLats, nAlts, nSpecies, nBlocks))
-    allocate(IonPrecipHeatingRate(nLons, nLats, nAlts, nBlocks))
+    IonPrecipIonRateS = 0.0
     allocate(KappaEddyDiffusion(nLons, nLats, -1:nAlts + 2, nBlocks))
 
     allocate(eHeatingp(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1))
@@ -194,9 +189,7 @@ contains
     deallocate(ISourcesTotal)
     deallocate(ILossesTotal)
     deallocate(AuroralIonRateS)
-    deallocate(AuroralHeatingRate)
     deallocate(IonPrecipIonRateS)
-    deallocate(IonPrecipHeatingRate)
     deallocate(KappaEddyDiffusion)
   end subroutine clean_mod_sources
   !=========================================================================

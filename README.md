@@ -38,7 +38,7 @@ git remote prune origin
 1\. Clone the repository and cd into the repo folder
 
 ```shell
-git clone https://github.com/GITMCode/GITM
+git clone --recursive https://github.com/GITMCode/GITM
 ```
 
 2\. Go into the repo directory

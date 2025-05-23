@@ -432,7 +432,8 @@ contains
     use ModNumConst, only: cPi
     use CON_coupler, ONLY: Grid_C, IE_, ncell_id
     use ModGITM, ONLY: iProcGITM => iProc
-    use ModEIE_Interface
+    use ModIE
+    use ModElectrodynamics, only: IEModel_
 
     ! This gets called for each variable- external loop over all variable names.
     ! Namevar = Pot, Ave, and Tot.
@@ -479,7 +480,7 @@ contains
     endif
 
     ! Debug: print basic coupling info:
-    if (DoTest .and. (iProcGITM == 0)) then
+    if ((DoTest .or. iDebugLevel > 3) .and. (iProcGITM == 0)) then
       write(*, *) NameSub//' coupling info:'
       write(*, *) 'UA/GITM: IE grid set to nLats x nLons = ', &
         iSizeIeHemi, jSizeIeHemi

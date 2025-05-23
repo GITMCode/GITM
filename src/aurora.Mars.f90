@@ -15,7 +15,6 @@ subroutine aurora(iBlock)
 
   ! No aurora by default
 
-  AuroralHeatingRate(:, :, :, iBlock) = 0.0
   AuroralIonRateS(:, :, :, :, iBlock) = 0.0
 
   call end_timing("Aurora")

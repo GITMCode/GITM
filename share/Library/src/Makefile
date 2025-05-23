@@ -65,7 +65,7 @@ LIB:	DEPEND
 	@echo
 
 ${MY_LIB}: ${MODULES}
-	rm -f ${MY_LIB}
+	@rm -f ${MY_LIB}
 	${AR} ${MY_LIB} ${MODULES}
 
 distclean: clean

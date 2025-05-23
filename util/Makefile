@@ -2,7 +2,6 @@ touch_install_files:
 	@(if [ -d NOMPI ];     then touch NOMPI/src/Makefile.RULES; fi)
 	@(if [ -d DATAREAD ];  then touch DATAREAD/srcIndices/Makefile.DEPEND; fi)
 	@(if [ -d EMPIRICAL ]; then touch EMPIRICAL/srcEE/Makefile.DEPEND \
-					  EMPIRICAL/srcIE/Makefile.DEPEND \
 					  EMPIRICAL/srcUA/Makefile.RULES; fi)
 
 install: touch_install_files
