@@ -21,30 +21,30 @@ subroutine check_all_indices(TimeIn, iOutputError)
     if (nIndices_V(iIndex) > 1) then
       if ((IndexTimes_TV(1, iIndex) - TimeIn) > &
           5.0*(IndexTimes_TV(2, iIndex) - IndexTimes_TV(1, iIndex))) then
-         iOutputError = 3
-         write(*, *) 'Error in index file times, before start :'
-         write(*, *) 'index, first time, time in : '
-         write(*, *) iIndex, IndexTimes_TV(1, iIndex), TimeIn
-         call time_real_to_int(IndexTimes_TV(1, iIndex), iTime)
-         write(*, *) 'First Index Time : ', iTime
-         call time_real_to_int(TimeIn, iTime)
-         write(*, *) 'TimeIn : ', iTime
-      end if
+        iOutputError = 3
+        write(*, *) 'Error in index file times, before start :'
+        write(*, *) 'index, first time, time in : '
+        write(*, *) iIndex, IndexTimes_TV(1, iIndex), TimeIn
+        call time_real_to_int(IndexTimes_TV(1, iIndex), iTime)
+        write(*, *) 'First Index Time : ', iTime
+        call time_real_to_int(TimeIn, iTime)
+        write(*, *) 'TimeIn : ', iTime
+      endif
 
       if ((TimeIn - IndexTimes_TV(nIndices_V(iIndex), iIndex)) > &
           5.0*(IndexTimes_TV(2, iIndex) - IndexTimes_TV(1, iIndex))) then
         iOutputError = 4
-         write(*, *) 'Error in index file times, after end :'
-         write(*, *) 'index, last time, time in : '
-         write(*, *) iIndex, IndexTimes_TV(nIndices_V(iIndex), iIndex), TimeIn
-         write(*, *) 'Number of values : ', nIndices_V(iIndex)
-         call time_real_to_int(IndexTimes_TV(nIndices_V(iIndex), iIndex), iTime)
-         write(*, *) 'Last Index Time : ', iTime
-         call time_real_to_int(TimeIn, iTime)
-         write(*, *) 'TimeIn : ', iTime
-      end if
-    end if
-  end do
+        write(*, *) 'Error in index file times, after end :'
+        write(*, *) 'index, last time, time in : '
+        write(*, *) iIndex, IndexTimes_TV(nIndices_V(iIndex), iIndex), TimeIn
+        write(*, *) 'Number of values : ', nIndices_V(iIndex)
+        call time_real_to_int(IndexTimes_TV(nIndices_V(iIndex), iIndex), iTime)
+        write(*, *) 'Last Index Time : ', iTime
+        call time_real_to_int(TimeIn, iTime)
+        write(*, *) 'TimeIn : ', iTime
+      endif
+    endif
+  enddo
 
   return
 end subroutine check_all_indices

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 from gitm_routines import *
 from omniweb import *
@@ -574,7 +574,7 @@ if (args.fism):
     fromRunDir = 'UA/DataIn/FISM/'
     fismFound = False
     
-    if (os.path.exists(fismFile)):
+    if (os.path.exists(fromRunDir + fismFile)):
         fismFound = True
     else:
         if (useGitmDir):
@@ -699,9 +699,12 @@ if (args.fang):
 # FTA model of the aurora
 
 if (args.fta):
-    # turn on fang auroral energy deposition
+    # turn on fta auroral precip model
     uam['#FTAMODEL'] = {
         0 : ['T', ' Use FTA model of the aurora'] }
+    uam['#IEMODELS'] = {
+        0 : ['FTA', ' Use FTA model of the aurora'],
+        1 : ['Weimer', ' Use Weimer potential model'] }
     print('--> Turning on FTA Model')
 
     # Turn off other aurora
@@ -726,6 +729,10 @@ if (args.newell):
         5 : ['T', ' Average patterns'] }   
     print('--> Turning on Newell Ovation Model')
 
+    uam['#IEMODELS'] = {
+        0 : ['OVATION', ' Use OVATION model of the aurora'],
+        1 : ['Weimer', ' Use Weimer potential model'] }
+    
     uam['#FTAMODEL'] = {
         0 : ['F', ' Use FTA model of the aurora'] }
     print(' --> Turning off FTA Model')

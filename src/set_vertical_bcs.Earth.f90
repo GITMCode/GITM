@@ -182,8 +182,8 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
     ! run (i.e. MSIS-flat).  So, we can then assume that we can simply
     ! perturb the MSIS density.
     NS(0, 1:nSpecies) = &
-         NS(0, 1:nSpecies) * &
-         TidesRhoRat(iLon1D, iLat1D, 2, iBlock1D)
+      NS(0, 1:nSpecies)* &
+      TidesRhoRat(iLon1D, iLat1D, 2, iBlock1D)
     LogNS(0, 1:nSpecies) = alog(NS(0, 1:nSpecies))
 
   endif
