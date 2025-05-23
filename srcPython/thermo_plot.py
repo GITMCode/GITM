@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """ Standard model visualization routines
 """
 
@@ -30,14 +30,20 @@ def get_args():
     parser.add_argument('-timeplot',  \
                         action='store_true', default = False, \
                         help = 'Plot integrated (or mean) value vs. time')
-
     parser.add_argument('-mean',  \
                         action='store_true', default = False, \
                         help = 'Plot mean value instead of integrated value')
+    parser.add_argument('-timefile',  default ='none', \
+                        help = 'output filename for timeline file')
     
     parser.add_argument('-label',  \
                         action='store_true', default = False, \
                         help = 'Add label (e.g., (a), (b)..) to title')
+
+    parser.add_argument('-color',  default ='default', \
+                        choices = ['default', 'red'], 
+                        help = 'set color bar')
+
     
     parser.add_argument('-var',  \
                         default = 3, type = int, \
@@ -59,6 +65,9 @@ def get_args():
                         default =4, type = int, \
                         help = 'number of steps between wind quivers')
     
+    parser.add_argument('-nopole', default = False,\
+                        help='dont plot polar regions', \
+                        action="store_true")
     parser.add_argument('-north', default = False,\
                         help='only plot northern hemisphere results', \
                         action="store_true")
@@ -75,10 +84,18 @@ def get_args():
     parser.add_argument('-alog',  default = False,
                         action="store_true",
                         help = 'plot the log of the variable')
-
     parser.add_argument('-IsLog', default =False,
                         help='plot the log of the variable', 
                         action="store_true")    
+
+    parser.add_argument('-mini',  default = 1e32, type = float, \
+                        help = 'manually set the minimum value for the plots')
+    parser.add_argument('-maxi',  default = -1e32, type = float, \
+                        help = 'manually set the maxiumum value for the plots')
+
+    parser.add_argument('-percent', default = False, 
+                        action = 'store_true',
+                        help = 'plot percentage difference of files')
     parser.add_argument('-diff', default = False, 
                         action = 'store_true',
                         help = 'plot difference of files (2 files needed)')
@@ -104,6 +121,9 @@ def get_args():
     parser.add_argument('-tec',  default = False, \
                         action='store_true',
                         help = 'plot total electron content (TEC)')
+    parser.add_argument('-on2',  default = False, \
+                        action='store_true',
+                        help = 'plot O/N2 ratio')
     parser.add_argument('-rate',  default =30,\
                         help = 'framerate for movie')
     parser.add_argument('filelist', nargs='+', \
@@ -129,6 +149,10 @@ def determine_file_type(file):
 
     return IsGitm, HasHeader
 
+#-----------------------------------------------------------------------------
+# GITM's output variables are weird.  Fix them.
+#-----------------------------------------------------------------------------
+
 def fix_vars(vars):
     newvars = []
     for v in vars:
@@ -139,19 +163,52 @@ def fix_vars(vars):
 
     return newvars
 
+
+#-----------------------------------------------------------------------------
+# vertically integrate the 3D data given the altitudes.
+#-----------------------------------------------------------------------------
+
+def vertically_integrate(value, alts, calc3D = False):
+    [nLons, nLats, nAlts] = value.shape
+    integrated = np.zeros((nLons, nLats, nAlts))
+    descending = np.arange(nAlts-2, -1, -1)
+    dz = alts[:,:,-1] - alts[:,:,-2]
+    integrated[:,:,-1] = value[:,:,-1] * dz
+    for i in descending:
+        dz = alts[:,:,i+1] - alts[:,:,i]
+        integrated[:,:,i] = integrated[:,:,i+1] + value[:,:,i] * dz
+    if (not calc3D):
+        integrated = integrated[:,:,0]
+    return integrated
+
+
 # ----------------------------------------------------------------------------
 # Read in all of the model files:
 # ----------------------------------------------------------------------------
 
 def read_in_model_files(args, header):
 
-    # Define the plotting inputs
-    plot_vars = [0, 1, 2, args.var]
+    if (args.tec):
+        ivar = 34
+        plot_vars = [0, 1, 2, ivar]
+        args.var = ivar
+    elif (args.on2):
+        iO_ = 4
+        iN2_ = 6
+        ivar = iO_
+        plot_vars = [0, 1, 2, iO_, iN2_]
+    else:
+        plot_vars = [0, 1, 2, args.var]
+        ivar = args.var
 
     # Update plotting variables to include the wind, if desired
     if args.winds:
-        plot_vars.append(16 if args.cut in ['alt', 'lat'] else 17)
-        plot_vars.append(18 if args.cut in ['lat', 'lon'] else 17)
+        if (ivar > 18):
+            plot_vars.append(37 if args.cut in ['alt', 'lat'] else 38)
+            plot_vars.append(39 if args.cut in ['lat', 'lon'] else 38)
+        else:
+            plot_vars.append(16 if args.cut in ['alt', 'lat'] else 17)
+            plot_vars.append(18 if args.cut in ['lat', 'lon'] else 17)
 
     all_winds_x = []
     all_winds_y = []
@@ -164,7 +221,7 @@ def read_in_model_files(args, header):
     for j, filename in enumerate(header['filename']):
         # Read in the data file
         if header['IsGitm']:
-            print('=> Reading file : ', filename)
+            print('=> Reading GITM file : ', filename)
             data = read_routines.read_gitm_file(filename, plot_vars)
             ivar = args.var
         else:
@@ -184,16 +241,19 @@ def read_in_model_files(args, header):
         if j == 0:
             # Get 1D arrays for the coordinates
             alts = data[2][0][0] / 1000.0  # Convert from m to km
+            nAlts = len(alts)
+            Alts3d = data[2]
             lons = np.degrees(data[0][:, 0, 0])  # Convert from rad to deg
+            nLons = len(lons)
             lats = np.degrees(data[1][0, :, 0])  # Convert from rad to deg
+            nLats = len(lats)
             # Find the desired index to cut along to get a 2D slice
             isgrid = False
 
             if (args.cut == 'lon'):
-                pos = args.lon
+                pos = float(args.lon)
             if (args.cut == 'lat'):
-                pos = args.lat
-            
+                pos = float(args.lat)
             if (args.cut == 'alt'):
                 pos = args.alt
                 if (len(alts) == 1):
@@ -221,11 +281,30 @@ def read_in_model_files(args, header):
         if args.tec:
             all_2dim_data.append(data_prep.calc_tec(alts, data[ivar], 2, -4))
         else:
-            all_2dim_data.append(data[ivar][cut_data])
+            if (args.on2):
+                oDensity = data[iO_]
+                n2Density = data[iN2_]
+                # 1e21/m2 is the integration boundary.  
+                n2Int = vertically_integrate(n2Density, Alts3d, calc3D = True)
+                oInt = vertically_integrate(oDensity, Alts3d, calc3D = True)
+                on2 = np.zeros((nLons, nLats))
+                iAlts = np.arange(nAlts)
+                for iLat in range(nLats):
+                    for iLon in range(nLons):
+                        n21d = n2Int[iLon,iLat,:]/1e21
+                        o1d = oInt[iLon,iLat,:]
+                        i = iAlts[n21d < 1.0][0]
+                        r = (1.0 - n21d[i]) / (n21d[i-1] - n21d[i])
+                        n2 = (r * n21d[i-1] + (1.0 - r) * n21d[i]) * 1e21
+                        o = r * o1d[i-1] + (1.0 - r) * o1d[i]
+                        on2[iLon, iLat] = o / n2
+                all_2dim_data.append(on2)
+            else:
+                all_2dim_data.append(data[ivar][cut_data])
 
-            if (args.winds):
-                all_winds_x.append(data[plot_vars[-2]][cut_data])
-                all_winds_y.append(data[plot_vars[-1]][cut_data])
+        if (args.winds):
+            all_winds_x.append(data[plot_vars[-2]][cut_data])
+            all_winds_y.append(data[plot_vars[-1]][cut_data])
 
     # Convert data list to a numpy array
     all_2dim_data = np.array(all_2dim_data)
@@ -311,8 +390,10 @@ def rescale_data(original_data):
 def get_min_max_data(model_data, y_pos, args, minDomain, maxDomain):
     
     symmetric = False
-    cmap = mpl.cm.plasma
-
+    if (args.color == 'default'):
+        cmap = mpl.cm.plasma
+    if (args.color == 'red'):
+        cmap = mpl.cm.YlOrRd
     mask = ((y_pos >= minDomain) & (y_pos <= maxDomain))
 
     if (mask.max()):    
@@ -330,7 +411,12 @@ def get_min_max_data(model_data, y_pos, args, minDomain, maxDomain):
         doPlot = False
         mini = -1.0
         maxi = 1.0
-            
+
+    if (args.mini < 1e31):
+        mini = args.mini
+    if (args.maxi > -1e31):
+        maxi = args.maxi
+        
     min_max_data = {'mini' : mini,
                     'maxi' : maxi,
                     'cmap' : cmap,
@@ -375,8 +461,52 @@ def plot_value_vs_time(times, values, var, loc, args, filename):
         
     stime = times[0].strftime('%y%m%d')
     fileout = filename + '_' + stime + '.' + args.ext
-    print('Writing file : ' + fileout)
+    print(' ==> Writing file : ' + fileout)
     fig.savefig(fileout)
+
+    return
+
+# ----------------------------------------------------------------------------
+# Write file with value vs time
+# ----------------------------------------------------------------------------
+
+def write_value_vs_time(times, values, var, loc, args, filename):
+
+    if (args.mean):
+        integral = 'global mean'
+    else:
+        integral = 'global integral'
+
+    print(' ==> Writing file : ' + filename)
+
+    fp = open(filename, "w")
+    fp.write("\n")
+    fp.write("#VAR\n")
+    fp.write(var + "\n")
+
+    fp.write("\n")
+    fp.write("#INTEGRAL\n")
+    fp.write(integral + "\n")
+
+    fp.write("\n")
+    fp.write("#ALTITUDE\n")
+    ls = "%8.2f" % (loc)
+    fp.write(ls + "\n")
+
+    pwd = os.getcwd()
+    fp.write("\n")
+    fp.write("#DIRECTORY\n")
+    fp.write(pwd + "\n")
+    
+    fp.write("\n")
+    fp.write("#START\n")
+
+    for i, t in enumerate(times):
+        ts = t.strftime("%Y %m %d %H %M %S ")
+        vs = "%e" % values[i]
+        fp.write(ts + vs + "\n")
+
+    fp.close()
 
     return
 
@@ -387,7 +517,7 @@ def plot_value_vs_time(times, values, var, loc, args, filename):
 
 def plot_polar_region(fig, axplot, x_pos, y_pos, values,
                       utime, mask, whichPole,
-                      mini, maxi, cmap, title, cbar_label):
+                      miniPole, maxiPole, cmap, title, cbar_label):
 
     if (whichPole =='North'):
         ylabels = [r'80$^\circ$', r'70$^\circ$', r'60$^\circ$',
@@ -417,13 +547,20 @@ def plot_polar_region(fig, axplot, x_pos, y_pos, values,
     z = values[mask, :]
     axplot.grid(False)
     conn = axplot.pcolormesh(xp, yp, z,
-                          shading = 'auto',
-                          vmin = mini, vmax = maxi,
-                          cmap = cmap)
-    axplot.set_title(title)
+                             shading = 'auto',
+                             vmin = miniPole, vmax = maxiPole,
+                             cmap = cmap)
+    axplot.text(132.0/180. * np.pi, 72.5, title,
+                verticalalignment = 'top',
+                horizontalalignment = 'left',
+                fontsize = 14)
+    axplot.text(55.0/180.0 * np.pi, 46.0, cbar_label,
+                verticalalignment = 'bottom',
+                horizontalalignment = 'left',
+                fontsize = 14)
     axplot.set_xticks(xlabelpos)
     axplot.set_xticklabels(xlabels)
-    axplot.text(-np.pi/2, 45.0, '00 LT',
+    axplot.text(-np.pi/2, 46.0, '00 LT',
              verticalalignment='top', horizontalalignment='center')
     axplot.text(np.pi/2, 45.0, '12 LT',
              verticalalignment='bottom', horizontalalignment='center')
@@ -440,8 +577,7 @@ def plot_polar_region(fig, axplot, x_pos, y_pos, values,
     axplot.set_yticks(yticks)
     axplot.set_ylim([0, 45])
 
-    cbar = fig.colorbar(conn, ax = axplot, shrink=0.5, pad=0.01)
-    cbar.set_label(cbar_label, rotation=90)    
+    cbar = fig.colorbar(conn, ax = axplot, shrink=0.5, pad=0.005)
 
     return
 
@@ -465,7 +601,8 @@ def get_min_time_index(times, utime):
 # ----------------------------------------------------------------------------
 
 def plot_data_locations_polar(axplot, DataLat, DataLon, DataTime,
-                              utime, whichPole):
+                              utime, whichPole, data = [],
+                              doPlotWind = False):
 
     # Find rotation for convertion to local time
     shift = time_conversion.calc_time_shift(utime)
@@ -483,9 +620,29 @@ def plot_data_locations_polar(axplot, DataLat, DataLon, DataTime,
     if (doPlotDataLoc):
         axplot.plot((DataLon + shift - 90.0) * np.pi/180.0,
                     r, color = 'yellow')
-        axplot.plot((DataLon[iTimeData] + shift - 90.0) * np.pi/180.0,
-                    r[iTimeData], 'o', markersize = 10, color = 'yellow')
 
+        if (doPlotWind):
+            axplot.plot((DataLon[iTimeData] + shift - 90.0) * np.pi/180.0,
+                        r[iTimeData], 'o', markersize = 4, color = 'yellow')
+            timeM = data['merid_time']
+            timeZ = data['zonal_time']
+            zonal = data['zonal_wind']
+            merid = data['merid_wind']
+            iTz_ = get_min_time_index(timeZ, utime)
+            iTm_ = get_min_time_index(timeM, utime)
+            north = merid[iTm_]
+            east = zonal[iTz_]
+            x = (DataLon[iTimeData] + shift - 90.0) * np.pi/180.0
+            y = r[iTimeData]
+            fac = 1.0
+            xwind = - fac * north * np.cos(x) - east * np.sin(x)
+            ywind = - fac * north * np.sin(x) + east * np.cos(x)
+            
+            axplot.quiver(x, y, xwind, ywind, scale = 2500.0, color = 'grey')
+        else:
+            axplot.plot((DataLon[iTimeData] + shift - 90.0) * np.pi/180.0,
+                        r[iTimeData], 'o', markersize = 10, color = 'yellow')
+            
     return
 
 # ----------------------------------------------------------------------------
@@ -493,7 +650,7 @@ def plot_data_locations_polar(axplot, DataLat, DataLon, DataTime,
 # ----------------------------------------------------------------------------
 
 def plot_winds_polar(axplot, x_pos, y_pos, xwinds, ywinds,
-                     utime, mask, whichPole, nStep):
+                     utime, mask, whichPole, nStep, scale):
 
     # Find rotation for convertion to local time
     shift = time_conversion.calc_time_shift(utime)
@@ -518,7 +675,7 @@ def plot_winds_polar(axplot, x_pos, y_pos, xwinds, ywinds,
         nStepL = int(nStep / np.sin(yp[ix]*np.pi/180.0))
         axplot.quiver(xp[::nStepL], yp[ix],
                       xwind[ix][::nStepL],
-                      ywind[ix][::nStepL], scale = 2500.0)
+                      ywind[ix][::nStepL], scale = scale/4.0)
     
     return
 
@@ -567,7 +724,14 @@ def plot_model_results():
     # Get the input arguments
     args = get_args()
 
+    noPole = args.nopole
+    if args.cut == 'lon':
+        noPole = True
+    if args.cut == 'lat':
+        noPole = True
+
     header = get_file_info(args)
+        
     if (args.list):
         list_vars(header)
         exit()
@@ -589,8 +753,16 @@ def plot_model_results():
             exit()
         all_winds_x = data['winds_x'] - databack['winds_x']
         all_winds_y = data['winds_y'] - databack['winds_y']
-        all_2dim_data = data['slices'] - databack['slices']
-        all_int_data = data['integrated_data'] - databack['integrated_data']
+        if (args.percent):
+            all_2dim_data = (data['slices'] - databack['slices']) / \
+                databack['slices']
+            all_int_data = (data['integrated_data'] - \
+                            databack['integrated_data']) / \
+                            databack['integrated_data']
+        else:
+            all_2dim_data = data['slices'] - databack['slices']
+            all_int_data = data['integrated_data'] - \
+                databack['integrated_data']
     else:
         all_winds_x = data['winds_x']
         all_winds_y = data['winds_y']
@@ -604,13 +776,31 @@ def plot_model_results():
     z_val = data['z_val']
 
     # Prepare the output filename
-    filename = "var{:02d}_{:s}{:03d}".format(args.var, args.cut, icut)
+
+    if (args.tec):
+        sVar = 'varTEC'
+        varName = 'TEC'
+    elif (args.on2):
+        sVar = 'varON2'
+        varName = 'ON2'
+    else:
+        sVar = 'var%02d' % args.var
+        varName = header["vars"][args.var]
+    if args.alog:
+        sVar = sVar + 'L'
+    
+    filename = sVar + "_{:s}{:03d}".format(args.cut, icut)
 
     # ------------------------------------------------------------------
     # 1-d plot:
     if (args.timeplot):
         plot_value_vs_time(all_times, all_int_data,
-                           header["vars"][args.var], z_val, args, filename)
+                           varName, z_val, args,
+                           args.timefile)
+        if (args.timefile != "none"):
+            write_value_vs_time(all_times, all_int_data,
+                                varName, z_val, args,
+                                args.timefile)
         exit()
     
     # ------------------------------------------------------------------
@@ -625,6 +815,9 @@ def plot_model_results():
         DataLat = hiwind['lats']
         DataLon = (hiwind['lons'] + 360.0) % 360.0
         DataTime = hiwind['merid_time']
+        DataTimeZ = hiwind['merid_time']
+        DataZonal = hiwind['zonal_wind']
+        DataMerid = hiwind['merid_wind']
 
     # Does the user want to add (a), (b), (c) labels?
     doLabel = False
@@ -643,7 +836,12 @@ def plot_model_results():
     scaled_slice_data, factorString = rescale_data(all_2dim_data)
     all_2dim_data = scaled_slice_data
 
-    cbar_label = header["vars"][args.var] + factorString
+    if (args.tec):
+        cbar_label = 'TEC'
+    elif (args.on2):
+        cbar_label = 'ON2'        
+    else:
+        cbar_label = header["vars"][args.var] + factorString
     
     # ----------------------------------------------------------
     # Define plotting limits    
@@ -654,6 +852,11 @@ def plot_model_results():
     mini = min_max_whole['mini']
     maxi = min_max_whole['maxi']
 
+    if args.winds:
+        windMag = np.sqrt(all_winds_x**2 + all_winds_y**2)
+        windScale = np.round(np.max(windMag))
+        
+    doPlotGlobal = True
     if args.cut == 'alt':
 
         min_max_north = get_min_max_data(all_2dim_data,
@@ -670,13 +873,16 @@ def plot_model_results():
         maxi_south = min_max_south['maxi']
         mini_south = min_max_south['mini']
 
-        doPlotGlobal = True
         if (args.north or args.south):
             doPlotGlobal = False
             if (args.north):
                 plot_south = False
             else:
                 plot_north = False
+        if (noPole):
+            plot_north = False
+            plot_south = False
+        
 
     # Define plot range
     minx, maxx = get_boundaries(x_pos, 2)
@@ -699,15 +905,24 @@ def plot_model_results():
 
         outfile_add = ''
         if (doPlotGlobal):
-            fig = plt.figure(constrained_layout=False, figsize=(10, 8.5),
-                             dpi = dpi)
+            if (noPole):
+                fig = plt.figure(constrained_layout=False, figsize=(10, 5.5),
+                                 dpi = dpi)
+            else:
+                fig = plt.figure(constrained_layout=False, figsize=(10, 8.5),
+                                 dpi = dpi)
             xSize = 10.0 * dpi
             ySize = 8.5 * dpi
-            ax = fig.add_axes([0.07, 0.06, 0.97, 0.48])
-            # Top Left Graph Northern Hemisphere
-            ax2 = fig.add_axes([0.06, 0.55, 0.425, 0.43], projection='polar')
-            # Top Right Graph Southern Hemisphere
-            ax3 = fig.add_axes([0.535, 0.55, 0.425, 0.43], projection='polar')
+            if (noPole):
+                ax = fig.add_axes([0.07, 0.06, 0.97, 0.9])
+            else:
+                ax = fig.add_axes([0.07, 0.06, 0.97, 0.48])
+                # Top Left Graph Northern Hemisphere
+                ax2 = fig.add_axes([0.06, 0.55, 0.425, 0.43],
+                                   projection='polar')
+                # Top Right Graph Southern Hemisphere
+                ax3 = fig.add_axes([0.535, 0.55, 0.425, 0.43],
+                                   projection='polar')
         else:
             fig = plt.figure(constrained_layout=False, figsize=(5.4, 5))
             xSize = 5.4 * dpi
@@ -720,14 +935,18 @@ def plot_model_results():
                 ax3 = fig.add_axes(pos, projection='polar')
                 outfile_add = 's'
 
-        title = "{:s}; {:s}: {:.2f} {:s}".format(
+        if ((not args.tec) and (not args.on2)):
+            title = "{:s}\n{:s}: {:.2f} {:s}".format(
                 utime.strftime("%d %b %Y %H:%M:%S UT"), args.cut, z_val,
                 'km' if args.cut == 'alt' else r'$^\circ$')
-
+        else:
+            title = utime.strftime("%d %b %Y %H:%M:%S UT")
+        if args.winds:
+            title = title + '; max wind: %.0f m/s' % windScale
         if (doLabel):
             title = '('+abc[itime]+') ' + title
 
-        pwd = os. getcwd()
+        pwd = os.getcwd()
         filename = pwd + '/' + header['filename'][itime]
         if (doSubtrackBack):
             filename = filename + ' -- ' + args.backdir
@@ -767,15 +986,23 @@ def plot_model_results():
                 ywinds = ywind[::args.nstep, ::args.nstep]
                 xp = np.array(x_pos)[::args.nstep]
                 yp = np.array(y_pos)[::args.nstep]
-                ax.quiver(xp, yp, xwinds, ywinds, scale = 10000.0)
+                ax.quiver(xp, yp, xwinds, ywinds, scale = windScale * 10.0)
 
             # plot data locations:
             if (doPlotDataLoc):
                 ax.plot(DataLon, DataLat, 'o', color = 'yellow', markersize=1)
                 iTimeData = get_min_time_index(DataTime, utime)
+                xp = [DataLon[iTimeData]]
+                yp = [DataLat[iTimeData]]
                 ax.plot(DataLon[iTimeData], DataLat[iTimeData],
                         'o', markersize = 10, color = 'yellow')
-        
+                if (args.winds):
+                    yDataWind = [DataMerid[iTimeData]]
+                    iTimeData = get_min_time_index(DataTimeZ, utime)
+                    xDataWind = [DataZonal[iTimeData]]
+                    ax.quiver(xp, yp, xDataWind, yDataWind,
+                              scale = windScale * 10.0, color = 'yellow')
+                            
             # Set the colorbar
             cbar = fig.colorbar(con, ax = ax, shrink = 0.75, pad = 0.02)
             cbar.set_label(cbar_label, rotation=90)
@@ -785,7 +1012,9 @@ def plot_model_results():
             title_temp = title
             
         # If this is an altitude slice, add polar dials
-        if args.cut == 'alt' and (plot_north or plot_south):
+        if (args.cut == 'alt') and \
+           (plot_north or plot_south) and \
+           (noPole):
 
             if plot_north:
                 plot_polar_region(fig, ax2, x_pos, y_pos, data2d,
@@ -795,15 +1024,18 @@ def plot_model_results():
 
                 # overplot data locations:
                 if (doPlotDataLoc):
-                    plot_data_locations_polar(ax2, DataLat, DataLon, DataTime,
-                                              utime, 'North')
+                    plot_data_locations_polar(ax2, \
+                                              DataLat, DataLon, DataTime, \
+                                              utime, 'North', \
+                                              data = hiwind, \
+                                              doPlotWind = args.winds)
                 
                 # Add the winds, if desired
                 if args.winds:
                     plot_winds_polar(ax2, x_pos, y_pos,
                                      all_winds_x[itime].transpose(),
                                      all_winds_y[itime].transpose(),
-                                     utime, mask_north, 'North', args.nstep)
+                                     utime, mask_north, 'North', args.nstep, windScale)
                 
             if plot_south:
                 plot_polar_region(fig, ax3, x_pos, y_pos, data2d,
@@ -814,14 +1046,16 @@ def plot_model_results():
                 # overplot data locations:
                 if (doPlotDataLoc):
                     plot_data_locations_polar(ax3, DataLat, DataLon, DataTime,
-                                              utime, 'South')
+                                              utime, 'South', \
+                                              data = hiwind, \
+                                              doPlotWind = args.winds)
                 
                 # Add the winds, if desired
                 if args.winds:
                     plot_winds_polar(ax3, x_pos, y_pos,
                                      all_winds_x[itime].transpose(),
                                      all_winds_y[itime].transpose(),
-                                     utime, mask_south, 'South', args.nstep)
+                                     utime, mask_south, 'South', args.nstep, windScale)
                 
         # Format the output filename
         if args.movie > 0:
@@ -831,7 +1065,7 @@ def plot_model_results():
         outfile = img_file_fmt.format(fmt_input)
 
         # Save the output file
-        print("Writing file : ", outfile)
+        print(" ==> Writing file : ", outfile)
         fig.savefig(outfile, dpi = dpi)
         plt.close(fig)
 
