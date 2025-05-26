@@ -3,5 +3,4 @@ theme:
   name: material
 plugins:
   - search
-docs_dir:
-  - srcDoc/
+docs_dir: srcDoc
