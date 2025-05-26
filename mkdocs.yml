@@ -1,5 +1,6 @@
 site_name: GITM
-#theme:
+theme:
+  name: sphinx_rtd_theme
 #  name: material
 plugins:
   - search
