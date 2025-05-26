@@ -1,6 +1,6 @@
 site_name: GITM
 theme:
-  name: sphinx_rtd_theme
+  name: readthedocs
 #  name: material
 plugins:
   - search
