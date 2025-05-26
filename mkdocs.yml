@@ -1,6 +1,6 @@
 site_name: GITM
-theme:
-  name: material
+#theme:
+#  name: material
 plugins:
   - search
 docs_dir: srcDoc
