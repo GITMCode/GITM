@@ -1,5 +1,7 @@
 # Chemistry
 
+Chemical reactions in GITM for Earth
+
 ```math
 \begin{align}
 O_2 \rightarrow 2O
