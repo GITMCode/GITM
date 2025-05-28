@@ -8,36 +8,33 @@ involve some thought. There are a few variables that control this. In
     integer, parameter :: nLats = 9
     integer, parameter :: nAlts = 50
 
-    integer, parameter :: nBlocksMax = 4
+    integer, parameter :: nBlocksMax = 1
 
-The first three variables (nLons, nLats and nAlts) define the size of a
-single block. In the example above, there are 9 cells in latitude, 9
-cells in longitude and 50 cells in altitude. The latitude and longitude
-resolution in GITM is defined by the cell numbers specified here and the
-block numbers discussed in the following section. The size of the
-altitude cells are measured in scale heights instead of kilometers, as
-certain regions require higher resolutions than others based on the
-dominating chemical and dynamical processes. Each altitude cell contains
-$`\frac{1}{3}`$ of a scale height, starting at 80 km and typically
-reaching up to 500 km. Increasing the number of altitude blocks will
-increase the altitude range, but if this value is increased too much the
-model becomes unstable. This altitude limit makes it problematic to
-model the equatorial region during storms, where increased vertical
-plasma transport requires the model consider altitudes of 2000 km and
-higher.
+The first three variables (`nLons`, `nLats` and `nAlts`) define the size of a
+single block. In the example above, there are 9 cells in latitude, 9 cells in
+longitude and 50 cells in altitude. The latitude and longitude resolution in
+GITM is defined by the cell numbers specified here and the block numbers
+discussed in the following section. ~~The size of the altitude cells are
+measured in scale heights instead of kilometers, as certain regions require
+higher resolutions than others based on the dominating chemical and dynamical
+processes~~. As defined in `src/ModEarth.,f90`, each altitude cell contains
+$`\frac{1}{3}`$ of a scale height, starting at ~~80~~ 100 km and typically
+reaching up to 500 km. Increasing the number of altitude blocks will increase
+the altitude range, but if this value is increased too much the model becomes
+unstable. ~~This altitude limit makes it problematic to model the equatorial
+region during storms, where increased vertical plasma transport requires the
+model consider altitudes of 2000 km and higher.~~
 
-The final variable (`nBlocksMax`) defines the maximum number of blocks you
-can have on a single processor. Most people run with one single block
-per processor, as this is faster. So setting this to "1" is usually
-preferred, and is necessary when running with the Dynamo option on. This
-is a necessity because the Dynamo routine does not correctly transfer
-the geomagnetically oriented data into the geographic coordinates used
-in the ghost cells. Hopefully this will be updated in future versions,
-as allowing multiple blocks per node can, in theory, save memory.
+The final variable (`nBlocksMax`) defines the maximum number of blocks you can
+have on a single processor. Most people run with one single block per processor,
+as this is faster, and is necessary when running with the Dynamo option on. This
+is a necessity because the Dynamo routine does not correctly transfer the
+geomagnetically oriented data into the geographic coordinates used in the ghost
+cells.
 
-Don't forget, if you change any of these parameters you will need to
-recompile the code (run the Makefile again) so that a new executable
-using the newly defined variables can be produced.
+!!! note
+    If you change any of these parameters you will need to recompile the code
+    so that a new executable using the newly defined variables can be produced.
 
 ## Running 3D Over the Whole Globe
 

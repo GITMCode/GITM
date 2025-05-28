@@ -1,4 +1,4 @@
-# Outputs
+# Outputs {#outputs.sec}
 
 #TODO:
 
@@ -6,6 +6,7 @@
 - [ ] remove idl code
 - [ ] probably(?) remove the python stuff too
 - [ ] Fix and/or remove images
+- [ ] Update the log file
 - [ ] update with other output types:
     - [ ] 3D*, 2D*
     - [ ] satellite outputs
