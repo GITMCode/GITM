@@ -1,0 +1,26 @@
+site_name: GITM
+theme:
+  name: readthedocs
+  # name: mkdocs
+  # name: material
+plugins:
+  - search # allow for search after being built
+  - mermaid2 # cool flowcharts
+
+markdown_extensions:
+  - pymdownx.extra #footnotes, abbreviations, tables, definitions, etc.
+  - pymdownx.fancylists # lists continuing after breaking for indentation
+  - pymdownx.saneheaders #allows for "#text" to not be parsed as a header
+  - pymdownx.tasklist
+  - markdown_katex # math
+  - admonition # note, warning, etc. blocks
+  - markdown_del_ins # strike-through & insert
+  - markdown_captions # figure captions.
+  - pymdownx.superfences:
+        # make exceptions to highlighting of code:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:mermaid2.fence_mermaid
+
+docs_dir: srcDoc
