@@ -167,6 +167,18 @@ Math can be done inline, differing from LaTex in that we need to use $\` and \`$
 to surround the math. For example, $`\pi \approx \frac{22}{7}`$ is an equation
 *inline*. For equation blocks we need to surround it with backticks, like so:
 
+
+````
+```math
+% comments can be placed in math mode
+\begin{align}
+    E=mc^2
+\end{align}
+```
+````
+
+Which produces:
+
 ```math
 % comments can be placed in math mode
 \begin{align}
