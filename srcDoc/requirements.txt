@@ -1,6 +1,6 @@
 mkdocs
 mkdocs-material
-mkdocs-mermai2-plugin
+mkdocs-mermaid2-plugin
 markdown-captions
 markdown-del-ins
 markdown-katex
