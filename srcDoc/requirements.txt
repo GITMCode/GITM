@@ -1,5 +1,7 @@
-scipy
-numpy
-ford
+mkdocs
 mkdocs-material
-sphinx_rtd_theme
+mkdocs-mermai2-plugin
+markdown-captions
+markdown-del-ins
+markdown-katex
+pymdown-extensions
