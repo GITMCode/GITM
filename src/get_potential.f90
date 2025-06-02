@@ -75,6 +75,14 @@ subroutine init_get_potential
   if (IEModel_%iAurora_ /= iOvationPrime_ .and. UseWaveAurora) &
     call set_error("Wave aurora can only be used with ovation currently")
   endif
+  
+  if (cPlanet == "Earth") then
+    if (IEModel_%iAurora_ == iZero_) &
+      call raise_warning("!!!! Warning!!!! Running on Earth with no aurora!!! ")
+    if (IEModel_%iEfield_ == iZero_) &
+      call raise_warning("!!!! Warning!!!! Running on Earth with no high latitude potential!!! ")
+  endif
+
   ! Initialize the grid:
   call IEModel_%nMlts(nLons + 4)
   call IEModel_%nLats(nLats + 4)
