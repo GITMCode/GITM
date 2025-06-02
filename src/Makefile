@@ -168,7 +168,7 @@ ${SAMIEXE}:	${OBJECTS_SAMI}
 
 
 POST:	PostProcess.o
-	${LINK.f90} ${Lflag2} -o PostProcess.exe PostProcess.o
+	${LINK.f90} ${Lflag2} -o PostGITM.exe PostProcess.o
 
 MY_LIB = libGITM.a
 

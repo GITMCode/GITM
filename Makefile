@@ -113,7 +113,13 @@ rundir:
 			ln -s ${UADIR}/srcPython/post_process.py .; \
 			ln -s ${UADIR}/srcData/* DataIn; rm -f DataIn/CVS; \
 			ln -s ${UADIR}/data/* DataIn;    rm -f DataIn/CVS; \
-			ln -s ${EIEDIR}/data/ext extIE; 
+			ln -s ${EIEDIR}/data/ext extIE; \
+	# For legacy postprocessor. If user has already run make POST, take those files:
+	cd ${RUNDIR} ; \
+		if [ -e ${UADIR}/src/PostGITM.exe ]; then \
+			ln -s ${UADIR}/src/PostGITM.exe .; \
+			ln -s ${UADIR}/src/pGITM .; \
+		fi
 	cd ${RUNDIR} ;                                   \
 		if [ -e ${BINDIR}/GITM.exe ]; then       \
 			ln -s ${BINDIR}/GITM.exe . ;     \
