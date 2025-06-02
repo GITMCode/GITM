@@ -75,6 +75,9 @@ subroutine init_get_potential
   if (IEModel_%iAurora_ /= iOvationPrime_ .and. UseWaveAurora) &
     call set_error("Wave aurora can only be used with ovation currently")
   endif
+
+  if (IEModel_%iAurora_ /= iFRE_ .and. NormalizeAuroraToHP) &
+    call raise_warning("You probably should not be normalizing aurora with non-FRE models")
   
   if (cPlanet == "Earth") then
     if (IEModel_%iAurora_ == iZero_) &

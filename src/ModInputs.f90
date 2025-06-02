@@ -77,8 +77,8 @@ module ModInputs
   logical :: IsKappaAurora = .false.
   real :: AuroraKappa = 3
   real :: AveEFactor = 1.0
-  ! This is true because FR&E is default.
-  logical :: NormalizeAuroraToHP = .true.
+  ! This is False because FR&E is not default.
+  logical :: NormalizeAuroraToHP = .false.
   logical :: DoSeparateHPI = .false.
   logical::AllowAurWODiffuse = .false.
   real :: MaxAveEAurora = 80.0
