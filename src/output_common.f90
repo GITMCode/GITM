@@ -609,7 +609,7 @@ contains
       write(iOutputUnit_, "(I7,A1,a)") 10, " ", "Electron_Energy_Flux_Wave"
       write(iOutputUnit_, "(I7,A1,a)") 11, " ", "Electron_Average_Energy_Mono"
       write(iOutputUnit_, "(I7,A1,a)") 12, " ", "Electron_Energy_Flux_Mono"
-      write(iOutputUnit_, "(I7,A1,a)") 13, " ", "Ion_Average_Energy_Mono"
+      write(iOutputUnit_, "(I7,A1,a)") 13, " ", "Ion_Average_Energy"
       write(iOutputUnit_, "(I7,A1,a)") 14, " ", "Ion_Energy_Flux"
       write(iOutputUnit_, "(I7,A1,a)") 15, " ", "DivJuAlt"
       write(iOutputUnit_, "(I7,A1,a)") 16, " ", "Pedersen FL Conductance"
