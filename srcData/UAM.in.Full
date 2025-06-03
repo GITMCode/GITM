@@ -85,7 +85,7 @@ or
 
 #EUV_DATA
 F						Use FISM solar flux data
-srcData/FISM/fismflux_daily_2002.dat		Filename
+UA/DataIn/FISM/fismflux_daily_2002.dat		Filename
 
 ------------ Auroral Drivers ------------
 
