@@ -142,8 +142,8 @@ subroutine init_iri
           IRIDensity(iLon, iLat, iAlt, :, iBlock) = minIonDensity
 
           call iri90(jf, jmag, geo_lat, geo_lon, -f107, -iJulianDay, &
-                     utime/3600.+25., geo_alt, nzkm, 'UA/DataIn/ccir.cofcnts', &
-                     'UA/DataIn/ursi.cofcnts', outf, oarr, iProc)
+                     utime/3600.+25., geo_alt, nzkm, 'UA/DataIn/Earth/ccir.cofcnts', &
+                     'UA/DataIn/Earth/ursi.cofcnts', outf, oarr, iProc)
 
           IRIDensity(iLon, iLat, iAlt, ie_, iBlock) = abs(outf(1, 1))
           IRIDensity(iLon, iLat, iAlt, iO_4SP_, iBlock) = &

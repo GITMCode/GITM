@@ -279,7 +279,7 @@ subroutine init_msis
   real*4 :: hwm_utime, hwm_alt, hwm_lat, hwm_lon, hwm_lst
   real*4 :: hwm_f107a, hwm_f107, hwm_ap(2), qw(2)
 
-  character(250) :: path = './DataIn/'
+  character(250) :: path = './DataIn/LowerBCs/'
 
   call report("init_msis", 0)
 
@@ -537,7 +537,7 @@ subroutine msis_bcs(iJulianDay, UTime, Alt, LatIn, LonIn, Lst, &
   real*4 :: hwm_utime, hwm_alt, hwm_lat, hwm_lon, hwm_lst
   real*4 :: hwm_f107a, hwm_f107, hwm_ap(2), qw(2)
 
-  character(250) :: path = './DataIn/'
+  character(250) :: path = './DataIn/LowerBCs/'
 
   lat = LatIn
   lon = mod(LonIn + 360.0, 360.0)
