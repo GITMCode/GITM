@@ -56,8 +56,6 @@ ${MY_LIB}: ${MF} ${MODULES} ${OBJECTS}
 	cp -f ${LIBPREV} ${MY_LIB}
 	${AR} ${MY_LIB} ${OBJECTS} ${MODULES}
 
-
-
 GLOW: DEPEND
 	 @make ${EXE}
 

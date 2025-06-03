@@ -72,7 +72,7 @@ OBJECTS = \
 	calc_tec.o \
 	calc_timestep.o\
 	calc_viscosity.o\
-	chapman_new.o\
+	chapman.o\
 	check_for_nans.o\
 	divergence.o\
 	exchange_messages_sphere.o\
