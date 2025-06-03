@@ -75,7 +75,7 @@ OBJECTS = \
 	calc_tec.o \
 	calc_timestep.o\
 	calc_viscosity.o\
-	chapman_new.o\
+	chapman.o\
 	check_for_nans.o\
 	divergence.o\
 	exchange_messages_sphere.o\
@@ -181,10 +181,6 @@ LIB:	DEPEND
 ${MY_LIB}: ${LIBPREV} ${MF} ${MODULES} ${OBJECTS}
 	cp -f ${LIBPREV} ${MY_LIB}
 	${AR} ${MY_LIB} ${OBJECTS} ${MODULES}
-
-
-clean:
-	rm -f *~ core *.o *.mod fort.* a.out *.exe *.a *.so *.protex
 
 distclean: clean
 	rm -f 	ModSize.f90 \

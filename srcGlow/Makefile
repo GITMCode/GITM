@@ -55,13 +55,9 @@ ${MY_LIB}: ${MF} ${MODULES} ${OBJECTS}
 	cp -f ${LIBPREV} ${MY_LIB}
 	${AR} ${MY_LIB} ${OBJECTS} ${MODULES}
 
-
-
 GLOW: DEPEND
 	 @make ${EXE}
 
 glow: 	${OBJECTS} ${MODULES} 
 	${COMPILE.f77} ${Cflag3} -o ${EXE} main.o ${OBJECTS} ${MODULES}
 
-clean:
-	rm -f *~ core *.o *.mod fort.* a.out *.exe *.a *.so *.protex
