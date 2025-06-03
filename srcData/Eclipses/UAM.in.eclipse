@@ -1,0 +1,98 @@
+
+#DEBUG
+0		debug level
+0		cpu to watch
+300.0		dt between normal code output to stdout
+F		usebarriers - forces the code to stop and wait more often
+
+#ECLIPSE
+    2017       8      21      13      37      30
+    2017       8      21      23      11      30
+     -15282.0
+      6676.38
+      16606.2
+     -1430.05
+     0.900000
+      3000.00
+    0.0700000
+      400.000
+
+#RESTART
+F
+
+This is a course grid (5 deg x 5 deg), so should be adjusted:
+
+#GRID
+8		lons
+4		lats
+-90.0 		minimum latitude to model
+90.0		maximum latitude to model
+0.0		longitude start to model (set to 0.0 for whole Earth)
+360.0           longitude end to model (set to 0.0 for whole Earth)
+
+#TIMESTART
+2017		year
+08		month
+21		day
+00		hour
+00		minute
+00		second
+
+#TIMEEND
+2017		year
+08		month
+22		day
+00		hour
+00		minute
+00		second
+
+#AUSMSOLVER
+T
+
+#LOGFILE
+1.0		dt for output to a log file
+
+#SAVEPLOTS
+7200.0		dt for writing restart files
+1		how many output files do you want
+3DALL		second output style
+600.0		dt for output (1 every 5 min)
+
+#APEX
+T		Use apex magnetic coordinate system
+
+Low-latitude dynamo (only run with higher res). Turn on for higher res sims:
+#DYNAMO
+T		UseDynamo
+45.0		DynamoHighLatBoundary
+500		nItersMax
+1.0		MaxResidual
+F		IncludeCowling
+40.0		LongitudinalAveraging
+F               UseNewTrace
+
+#NGDC_INDICES
+UA/DataIn/f107.txt
+
+#EUV_DATA
+T						Use FISM solar flux data
+UA/DataIn/FISM/fismflux_daily_2017.dat		Filename
+
+
+These inputs are set to constants, which is not good.  Actual driver
+files should be used, please see the default UAM.in file so see how to
+do this.
+
+#HPI
+1.0		hemispheric power
+
+#KP
+1.0		kp
+
+#SOLARWIND
+0.0		IMF Bx
+0.0		IMF By
+-2.0		IMF Bz
+400.0		Solar wind Vx
+
+#END
