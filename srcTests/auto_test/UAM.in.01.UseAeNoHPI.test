@@ -50,6 +50,11 @@ start and end times:
 3DALL		second output style
 300.0		dt for output (1 every 5 min)
 
+#ELECTRODYNAMICS
+FTA
+60.0
+weimer05
+60.0
 
 #MHD_INDICES
 DataIn/imf20021221.dat

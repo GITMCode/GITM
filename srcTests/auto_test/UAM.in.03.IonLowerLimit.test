@@ -68,6 +68,12 @@ From 1990 - 2018, it is best to use FISM (and need F107 too!)
 T						Use FISM solar flux data
 UA/DataIn/FISM/fismflux_daily_2002.dat		Filename
 
+#ELECTRODYNAMICS
+FTA
+60.0
+weimer05
+60.0
+
 #SME_INDICES
 UA/DataIn/ae_20021221.txt		SME Filename
 none              			onset time delay file
