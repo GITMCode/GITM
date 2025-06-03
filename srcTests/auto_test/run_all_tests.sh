@@ -105,6 +105,7 @@ do_tests(){
 
     # Copy the test files into run/
     cd srcTests/auto_test/
+    rm -f run/UAM*
     cp UAM.*.test run/
 
     # begin running:
@@ -186,6 +187,10 @@ while [[ $# -gt 0 ]]; do
       fi
       shift 2
       ;;
+    *)
+      echo "Unrecognized argument: $1"
+      if [[ -e $1 ]]; then echo "Run with '-o $1' to test one file"; fi
+      exit 1
 
 
   esac
