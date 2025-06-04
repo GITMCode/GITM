@@ -6,13 +6,18 @@ get_help(){
   printf "
 ------------------------------------------------------------------------------------
 
-> This script will automatically compile GITM
-  run all tests scripts located within srcTests/auto_test/
+> This script will automatically compile GITM and
+  run the test cases located within srcTests/auto_test/
+  - All UAM files matching the pattern UAM.*.test
+    are automatically tested on GitHub
 
-> New UAM.in files should be placed within this folder,
-  with the naming convention UAM.in.__.test
-  Information regarding the test configuration may be added, 
-  though no spaces can be used.
+> When adding a new feature, it is recommended to create a test. 
+  - To do this, first create a UAM.in file here which uses the new feature.
+  - Then, run this script with: 
+    > ./run_all_tests.sh -d -c --save_solution -o [your uam file]
+  - Information regarding the test configuration may be added to the file name, 
+    though no spaces can be used.
+  - Please try to keep the numbers increasing sequentially, if possible.
 
 Additional notes about the test may be added. Name must conform to: 
             UAM.*.##.test
@@ -44,14 +49,75 @@ Arguments:
         -o, --only                Only run this UAM test file.
                                     Useful if a higher number test has failed.
                                     By default, all tests are run alphabetically.
-        --skip_config             skip running Config.pl?
-        --compare_with [path]     Path to the run directory which has outputs
-                                    from all tests (not implemented yet)
-        --save_to [path]          Save outputs? Useful to compare when making
-                                    changes that could affect outputs. (not implemented yet)
+        --skip_config             Skip running Config.pl? Can save time.
+        --nocompare               Default configuration diff's the log file.
+                                    Use this if you want to only do a run & not
+                                    check the output.
+        --save_solution           Rewrite (or create) reference solution?
+                                    - Similar to the SWMF's '-BLESS'.
+                                    - Will take a moment to rewrite a solution in case
+                                      this is set erroreously.
+                                    - If a test was overwritten by mistake, use
+                                      'git restore' to put it back.
 
 "
   exit 1
+}
+
+warnsavesolution(){
+  # refactored to clean up arg parsing
+  # This is only called if --savesolutions is set
+
+  printf "
+!!!!!!!!!!!!!!!!!    WARNING    !!!!!!!!!!!!!!!!!
+
+Using --savesolutions will overwrite the reference logfiles
+
+Only use this if you know what you are doing.
+
+If you just created a new test, run with -o/--only 
+to save a solution for the test you created.
+
+Cancel with Ctrl+C
+
+"
+  sleep 4
+
+  return
+
+}
+
+
+checkoutputs(){
+  # refactored for cleanliness
+
+  if [[ $do_save = true ]]; then
+    cp UA/data/log00000002.dat ../ref_solns/log.$test_uam
+    echo
+    echo
+    echo " Created ref solution: log." $test_uam 
+
+    return;
+  fi
+
+  if [[ $do_compare = true ]]; then
+    echo
+    ../../../share/Scripts/DiffNum.pl ../ref_solns/log.$test_uam UA/data/log00000002.dat
+    
+    if [[ $? = 0 ]]; then
+      # test was a success. no differences found.
+      return 
+    
+    else
+      echo
+      echo " ============    ERROR!!!!!    ============"
+      echo "  Output differs from reference solution."
+      echo "  Something has gone terribly wrong!!"
+      rm GITM.DONE
+      return
+    fi
+
+  fi
 
 }
 
@@ -64,6 +130,13 @@ run_a_test(){
 
   # Run GITM, stop if error.
   mpirun -np 4 --oversubscribe ./GITM.exe
+
+  # this will either save, or diff, the output log files.
+  # (double sanity-check): only run if GITM.DONE exists & above exited with no error code.
+  if [[ -f GITM.DONE && $? = 0 ]]; then
+    checkoutputs
+  fi
+
   if [ -f GITM.DONE ]; then
       printf "\n\n>>> $test_uam ran successfully! <<< \n\n"
       mv $test_uam $test_uam.success && rm -f GITM.DONE
@@ -131,7 +204,7 @@ config=true
 onlyone=false
 
 do_save=false
-do_compare=false
+do_compare=true
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -157,28 +230,19 @@ while [[ $# -gt 0 ]]; do
       config=false
       shift
       ;;
-    --compare_with)
-      if [[ -d "$2" ]]; then
-        echo "Comparing with" $2
-        compare_dir=$2
-      else
-        echo "ERROR: --compare_with directory $2 not found!"
-        exit 1
-      fi
-      shift 2
+
+    --nocompare)
+      do_compare=false
+      echo "Not checking outputs!"
+      shift
       ;;
-    --save_to)
-      if [[ -d "$2" ]]; then
-        echo "--save_to directory $2 already exists! Waiting 5 seconds then overwriting."
-        echo "   cancel with 'Ctrl C'"
-        sleep 5
-        compare_dir=$2
-      else
-        echo "ERROR: --compare_with directory $2 not found!"
-        exit 1
-      fi
-      shift 2
+
+    --save_solution)
+      # warnsavesolution is called after args are all parsed, before running.
+      do_save=true
+      shift      
       ;;
+
     -o|--only)
       if [[ -e "$2" ]]; then
         echo "Only running test: $2" 
@@ -199,6 +263,8 @@ while [[ $# -gt 0 ]]; do
   esac 
 done
 
+# get mad about overwriting ref solutions
+if [[ $do_save = true ]]; then warnsavesolution; fi
 
 # wait a sec to show users that settings are being used
 sleep 1.5
