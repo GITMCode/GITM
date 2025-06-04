@@ -148,8 +148,7 @@ run_a_test(){
 }
 
 do_tests(){
-    # setup run directory
-    
+    # Configure & compile
     cd ../../ 
     
     if [ $config = true ]; then
@@ -168,12 +167,29 @@ do_tests(){
       echo "The tests have failed. Exiting."
       exit 1
     fi
-    
-    if [ ! -f run/GITM.exe ]; then
-        # only make rundir if it does not already exist
-        make rundir
+
+    # make GITM/run to srcTest/auto_test/run
+    # - Old rundir's can cause unintended issues.
+    # - Rename GITM/run it if it exists & make a new rundir
+    if [[ -d run ]]; then
+      echo
+      echo " ==========================================================="
+      echo " Found a run directory at GITM's root folder!!"
+      echo " Moving its contents to run_madebytestscript/, just in case"
+      echo " You have 10 seconds to cancel ..."
+      echo 
+      echo " > ls" $(pwd)"/run"
+      ls run/
+      sleep 10
+
+      mv run run_madebytestscript
     fi
-    cp -fr run srcTests/auto_test/
+
+    # Cnsecutive test runs won't have to sleep for 10 seconds
+    # Since we can't tell when (or how) srcTest/auto_test/run was made, replace it
+    make rundir
+    rm -rf srcTests/auto_test/run
+    mv run srcTests/auto_test/
 
     # Copy the test files into run/
     cd srcTests/auto_test/
