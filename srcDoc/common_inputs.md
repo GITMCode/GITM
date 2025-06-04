@@ -1,7 +1,12 @@
-# Input Files {#indices.sec}
+# Common Inputs {#indices.sec}
 
-All of these auxiliary input files should be kept in the same directory as the
-GITM executable and the `UAM.in` file.
+This only touches on the most frequently changed input options. For a full
+reference of all available inputs, please see [All Inputs](inputs.md)
+
+!!!note
+    All of the auxiliary input (data) files can be kept in the same directory
+    as the GITM executable and the `UAM.in` file. Otherwise, the path should be
+    specified relative to the GITM executable.
 
 ## IMF and Solar Wind {#imf.sec}
 
@@ -55,9 +60,10 @@ Here is an example file:
      2000  3 20  3  3  0  0  0.0 0.0 -2.0 -400.0  0.0  0.0  5.0  50000.0
      2000  3 20  3  4  0  0  0.0 0.0 -2.0 -400.0  0.0  0.0  5.0  50000.0
 
-To actually read in this file, in `UAM.in`, use the input option
-MHD_INDICES described in
-[the Indices section](#indices.sec).
+This file is provided to GITM with:
+
+    #MHD_INDICES
+    imf_file_name.dat
 
 ## Hemispheric Power {#hp.sec}
 
@@ -80,10 +86,16 @@ HPI = 2.09 \log(HP)^{1.0475}
 
 The National Oceanic and Atmospheric Administration (NOAA) provides
 these hemispheric power files for public use online at
-`http://www.swpc.noaa.gov/ftpmenu/lists/hpi.html`. There are two types
+<http://www.swpc.noaa.gov/ftpmenu/lists/hpi.html>. There are two types
 of formats used for hemispheric power files (due to a change in the NOAA
 output format in 2007). Both file formats can be used by GITM, and are
 shown in the examples below.
+
+!!! attention 
+    GITM can read a NOAA HPI file, however the recommended way to provide
+    hemispheric power is to have GITM derive HPI from the AE-index.
+    
+    See [SME Indices](#sme-indices) for more information. 
 
 Example file 1 for data prior to 2007:
 
@@ -156,8 +168,61 @@ Example file 2 for data in and after 2007:
     .
     .
 
-The file type is not specified in `UAM.in`, instead different subroutines within
-GITM will use it as needed.
+The file type is automatically inferred. To provide an HPI file, use:
+
+    #NOAAHPI_INDICES
+    hemi-power-file.txt
+
+## SME Indices
+
+*[SME]: SuperMag auroral Electrojet
+
+To use models such as FTA[^1] to drive the aurora, GUITM must be provided
+Auroral Electrojet (AE) indices. Normally this is from SuperMag, but any source
+may be used. 
+
+These files are normally of the format:
+
+    File created by python code using SuperMAGGetIndices
+
+    ============================================================
+    <year>  <month>  <day>  <hour>  <min>  <sec>  <SME (nT)>  <SML (nT)>  <SMU (nT)>
+    2002  12  21  00  00  00   616.74  -354.47   262.26
+    2002  12  21  00  01  00   623.75  -354.72   269.03
+    2002  12  21  00  02  00   617.18  -349.28   267.90
+    2002  12  21  00  03  00   633.56  -350.01   283.55
+    2002  12  21  00  04  00   664.55  -357.88   306.68
+
+A python routine to download these files over a given date range can be found
+in ____.
+<!-- #FIXME #TODO> </!-->
+
+The correspoinding section in `UAM.in` is read as:
+
+    #SME_INDICES
+    ae_file-name.dat        ae file name
+    none                    onset file
+    T                       use AE for HP
+
+The lines following the AE file are for the AL-onset file. This can be set to
+`none` if you do not have one. The next line tells GITM whether to derive HP
+from AE or to use a NOAA HPI file (if one is required). Even if AE is not
+required, it is recommended to provide one to derive HP as it is often more
+representative of geomagnetic conditions than the NOAA HPI.
+
+The formula to calculate hemispheric power from AE is taken from (Wu et al.,
+2021)[^wuetal] and is given as:
+
+```math
+\begin{align}
+HemisphericPower = 0.102 * AE + 8.953
+\end{align}
+```
+
+[^wuetal]: Wu, C., Ridley, A. J., DeJong, A. D., & Paxton, L. J. (2021).
+FTA: A Feature Tracking Empirical Model Of Auroral Precipitation. 
+Space Weather, 19, e2020SW002629. <https://doi.org/10.1029/2020SW002629>
+
 
 ## Solar Irradiance {#solar_irradiance.sec}
 
