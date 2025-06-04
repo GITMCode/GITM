@@ -1,7 +1,7 @@
 # Common Inputs {#indices.sec}
 
 This only touches on the most frequently changed input options. For a full
-reference of all available inputs, please see [All Inputs](inputs.md)
+reference of all available inputs, please see [All Inputs](all_inputs.md)
 
 !!!note
     All of the auxiliary input (data) files can be kept in the same directory
@@ -16,9 +16,7 @@ field (IMF). It allows GITM to dynamically control these quantities. You
 can create either realistic IMF files or hypothetical ones.
 
 A script is provided to automatically download these files, and can be called
-using the `download_imf.py` python file in ____.
-<!-- #FIXME #TODO> </!-->
-
+using the `srcPython/omni_download_write_swmf.py` python file.
 
 Here is an example file:
 
@@ -194,8 +192,8 @@ These files are normally of the format:
     2002  12  21  00  04  00   664.55  -357.88   306.68
 
 A python routine to download these files over a given date range can be found
-in ____.
-<!-- #FIXME #TODO> </!-->
+in `srcPython/supermag_download_ae.py`.
+
 
 The correspoinding section in `UAM.in` is read as:
 
@@ -259,21 +257,23 @@ below.
     .
 
 GITM knows to use the provided solar irradiance file through the EUV_DATA input
-option specified in the `UAM.in` file. More information about this input option
-can be found in section [\[indices.sec\]](#indices.sec){reference-type="ref"
-reference="indices.sec"}. ~~For more information on specifying to solar
-irradiance, please contact Professors Ridley or Pawlowski.~~
+option specified in the `UAM.in` file:
+
+    #EUV_DATA
+    T
+    UA/DataIn/FISM/fismflux_daily_[year].dat
+
+These files are included by default, however will not be read unless this option
+is added to the `UAM.in` file.
 
 ## Satellites {#sat_aux.sec}
 
 GITM can provide output data at a list of times and locations using the
-SATELLITE input option, described in more detain in
-section [\[def_out.sec\]](#def_out.sec){reference-type="ref"
-reference="def_out.sec"}. Although this is designed to output data along
+SATELLITE input option. Although this is designed to output data along
 a satellite orbit, any list of locations may be used. There is currently
 no routine to create a satellite input file, but the format is simple
 and may be easily constructed from a satellite ASCII data file using
-awk. Here is a sample satellite input file:
+awk or Python. Here is a sample satellite input file:
 
     year mm dd hh mm ss msec long lat alt
     #START
