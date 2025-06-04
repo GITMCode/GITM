@@ -45,7 +45,11 @@ Arguments:
         [none]                    run automatically with defaults.
         -h, --help                see this information
         -d, --debug               Configure & compile GITM in -debug
-        -c, --clean               run a 'make clean' before make-ing?
+        -c, --clean               Run a 'make clean' before make-ing?
+        -u, --uninstall           Force a 'make distclean' before running?
+                                    This effectively uninstalls GITM before running. 
+                                    Useful when dependencies change, or when a lot of
+                                    changes have been made (by you or git).
         -o, --only                Only run this UAM test file.
                                     Useful if a higher number test has failed.
                                     By default, all tests are run alphabetically.
@@ -151,12 +155,14 @@ do_tests(){
     # Configure & compile
     cd ../../ 
     
-    if [ $config = true ]; then
-        ./Config.pl -install -earth -compiler=gfortran10 $debug
-    fi
-    
     if [ $clean = true ]; then
       make clean
+    elif [ $distclean = true ]; then
+      make distclean    
+    fi
+
+    if [ $config = true ]; then
+        ./Config.pl -install -earth -compiler=gfortran10 $debug
     fi
 
     make -j
@@ -216,6 +222,7 @@ do_tests(){
 
 debug=""
 clean=false
+distclean=false
 config=true
 onlyone=false
 
@@ -238,6 +245,12 @@ while [[ $# -gt 0 ]]; do
     -c|--clean)
       echo "Forcing a 'make clean' before compiling!"
       clean=true
+      shift
+      ;;
+
+    -u|--uninstall)
+      echo "Uninstalling with 'make distclean' before running!"
+      distclean=true
       shift
       ;;
 
