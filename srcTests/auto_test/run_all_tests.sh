@@ -140,16 +140,19 @@ while [[ $# -gt 0 ]]; do
       get_help
       exit 1
       ;;
+
     -d|--debug)
       echo "Using -debug"
       debug="-debug"
       shift
       ;;
+
     -c|--clean)
       echo "Forcing a 'make clean' before compiling!"
       clean=true
       shift
       ;;
+
     --skip_config)
       echo "skipping config!"
       config=false
@@ -187,16 +190,19 @@ while [[ $# -gt 0 ]]; do
       fi
       shift 2
       ;;
+
     *)
       echo "Unrecognized argument: $1"
       if [[ -e $1 ]]; then echo "Run with '-o $1' to test one file"; fi
       exit 1
 
-
-  esac
-
+  # end arg parsing
+  esac 
 done
 
+
+# wait a sec to show users that settings are being used
+sleep 1.5
 
 do_tests
 done
