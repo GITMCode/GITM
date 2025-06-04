@@ -4,7 +4,7 @@ default : GITM
 include Makefile.def
 
 ABDIR   = srcSphereAB
-EIEDIR  = ${EMPIRICALIEDIR}
+EIEDIR   = ${IEDIR}
 EUADIR  = ${EMPIRICALUADIR}
 IODIR   = ${DATAREADINDICESDIR}
 MAINDIR = src
@@ -13,11 +13,15 @@ SAMIDIR = srcSAMI
 
 PLANET=earth
 
+help:
+	@echo "GITM    - make GITM.exe"
+
 src/ModSize.f90:
 	cp src/ModSize.f90.orig src/ModSize.f90
 
 INSTALLFILES =  src/Makefile.DEPEND \
 		src/Makefile.RULES  \
+		${ABDIR}/Makefile.DEPEND \
 		srcInterface/Makefile.DEPEND
 
 install: src/ModSize.f90
@@ -75,9 +79,11 @@ clean:
 	if [ -d share ]; then cd share; make cleanall; fi;
 	if [ -d util ];  then cd util;  make cleanall; fi;
 	if [ -d srcSAMI ]; then cd srcSAMI; make clean; fi;
+	if [ -d ext/Electrodynamics ]; then cd ext/Electrodynamics; make cleanall; fi;
 
 
 distclean: 
+	make clean
 	./Config.pl -uninstall
 
 allclean:
@@ -88,8 +94,6 @@ allclean:
 	rm -f *~ srcData/UAM.in
 	# If util and share were moved because of GITM being
 	# used in SWMF component mode, put them back.
-	if [ -d component_util ]; then mv component_util util; fi
-	if [ -d component_share ]; then mv component_share share; fi
 
 #
 #       Create run directories
@@ -104,16 +108,19 @@ rundir:
                 ln -s restartOUT restartIN; \
                 ln -s ${UADIR}/srcSAMI/srcInputs ./input; \
 	fi
-	cd ${RUNDIR}; \
-		if [ ! -e "EIE/README" ]; then \
-			ln -s ${EMPIRICALIEDIR}/data EIE;\
-		fi;
 	cd ${RUNDIR}/UA; \
-		mkdir restartOUT data DataIn; \
-		ln -s restartOUT restartIN; \
-		ln -s ${UADIR}/srcPython/post_process.py .; \
-		ln -s ${UADIR}/srcData/* DataIn; rm -f DataIn/CVS; \
-		ln -s ${UADIR}/data/* DataIn;    rm -f DataIn/CVS
+			mkdir -p restartOUT data  DataIn; \
+			ln -s restartOUT restartIN; \
+			ln -s ${UADIR}/srcPython/post_process.py .; \
+			ln -s ${UADIR}/srcData/* DataIn; rm -f DataIn/CVS; \
+			ln -s ${UADIR}/data/* DataIn;    rm -f DataIn/CVS; \
+			ln -s ${EIEDIR}/data/ext extIE; \
+	# For legacy postprocessor. If user has already run make POST, take those files:
+	cd ${RUNDIR} ; \
+		if [ -e ${UADIR}/src/PostGITM.exe ]; then \
+			ln -s ${UADIR}/src/PostGITM.exe .; \
+			ln -s ${UADIR}/src/pGITM .; \
+		fi
 	cd ${RUNDIR} ;                                   \
 		if [ -e ${BINDIR}/GITM.exe ]; then       \
 			ln -s ${BINDIR}/GITM.exe . ;     \

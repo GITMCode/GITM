@@ -79,7 +79,7 @@ subroutine user_perturbation
   use ModNumConst
   use ModKind, ONLY: Real8_
   use ModTime
-  use ModSources, only: UserHeatingRate
+  use ModSources, only: UserHeatingRate, ED_N_Energies
 
   implicit none
 

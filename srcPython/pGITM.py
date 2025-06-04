@@ -391,7 +391,13 @@ def post_process_gitm(dir, doRemove, isVerbose = False):
         if (isVerbose):
             print(f' --> Processing {head}')
 
-        data = process_one_file(head, isVerbose = isVerbose)
+        if os.path.exists("../../PostGITM.exe"):
+            # Check if we can use the old postprocessor. it's faster.
+            # Pipe the header filename into PostGITM.exe
+            run(f"echo {head} | ../../PostGITM.exe ", check=True, shell=True)
+        else:
+            data = process_one_file(head, isVerbose = isVerbose)
+
         if (doRemove):
             remove_files(head, isVerbose = isVerbose)
 

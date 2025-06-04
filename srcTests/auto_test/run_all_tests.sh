@@ -49,6 +49,9 @@ Arguments:
         -h, --help                see this information
         -d, --debug               Configure & compile GITM in -debug
         -c, --clean               run a 'make clean' before make-ing?
+        -o, --only                Only run this UAM test file.
+                                    Useful if a higher number test has failed.
+                                    By default, all tests are run alphabetically.
         --skip_config             skip running Config.pl?
         --compare_with [path]     Path to the run directory which has outputs
                                     from all tests (not implemented yet)
@@ -60,6 +63,24 @@ Arguments:
 
 }
 
+run_a_test(){
+
+  printf "\n\n>> Testing with $test_uam ...\n"
+  # Copy UAM 
+  ln -sf $test_uam UAM.in
+  rm -f GITM.DONE
+
+  # Run GITM, stop if error.
+  mpirun -np 4 --oversubscribe ./GITM.exe
+  if [ -f GITM.DONE ]; then
+      printf "\n\n>>> $test_uam ran successfully! <<< \n\n"
+      mv $test_uam $test_uam.success && rm -f GITM.DONE
+  else
+      printf "\n\n>>> $test_uam   UNSUCCESSFUL! <<< \n\n EXITING\n\n"
+      exit 1
+  fi
+
+}
 
 do_tests(){
     # setup run directory
@@ -84,26 +105,21 @@ do_tests(){
 
     # Copy the test files into run/
     cd srcTests/auto_test/
-    cp UAM* run/
+    rm -f run/UAM*
+    cp UAM.*.test run/
 
     # begin running:
     cd run/
-    for test_uam in UAM.*.test; do
-        printf "\n\n>> Testing with $test_uam ...\n"
-        # Copy UAM 
-        cp $test_uam UAM.in
-
-        # Run GITM, stop if error.
-        mpirun -np 4 ./GITM.exe
-        if [ $? -eq 0 ]; then
-            printf "\n\n>>> $test_uam ran successfully! <<< \n\n"
-            mv $test_uam $test_uam.success
-        else
-            printf "\n\n>>> $test_uam   UNSUCCESSFUL! <<< \n\n EXITING\n\n"
-            exit 1
-        fi
-    done
-    exit 0
+    if [ $onlyone = false ]; then
+      for test_uam in UAM.*.test; do
+          run_a_test
+      done
+      exit 0
+    else # if we are only running one UAM file
+      test_uam=$onlyone
+      run_a_test
+      exit 0
+      fi
 }
 
 
@@ -113,6 +129,7 @@ do_tests(){
 debug=""
 clean=false
 config=true
+onlyone=false
 
 do_save=false
 do_compare=false
@@ -149,7 +166,7 @@ while [[ $# -gt 0 ]]; do
       shift 2
       ;;
     --save_to)
-    if [[ -d "$2" ]]; then
+      if [[ -d "$2" ]]; then
         echo "--save_to directory $2 already exists! Waiting 5 seconds then overwriting."
         echo "   cancel with 'Ctrl C'"
         sleep 5
@@ -160,6 +177,22 @@ while [[ $# -gt 0 ]]; do
       fi
       shift 2
       ;;
+    -o|--only)
+      if [[ -e "$2" ]]; then
+        echo "Only running test: $2" 
+        onlyone=$2
+      else
+        echo "ERROR!! Testfile $2 does not appear to exist!"
+        exit 1
+      fi
+      shift 2
+      ;;
+    *)
+      echo "Unrecognized argument: $1"
+      if [[ -e $1 ]]; then echo "Run with '-o $1' to test one file"; fi
+      exit 1
+
+
   esac
 
 done
