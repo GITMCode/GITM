@@ -21,6 +21,7 @@ src/ModSize.f90:
 
 INSTALLFILES =  src/Makefile.DEPEND \
 		src/Makefile.RULES  \
+		${ABDIR}/Makefile.DEPEND \
 		srcInterface/Makefile.DEPEND
 
 install: src/ModSize.f90
