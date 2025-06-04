@@ -48,9 +48,10 @@ And it should be auto-magic. open the link in your browser.
 
 Feel free to add to this
 
-- [ ] Move over the existing latex manual pages
-    - [ ] Verify that info is correct, relevant, and necessary
-    - [ ] Organize that information
+- [x] Move over the existing latex manual pages
+    - [ ] Verify that info is correct, relevant, and necessary (ALB in progress)
+    - [ ] Organize that information (ALB in progress)
+    - [ ] Fix links from latex manual pages
 - [ ] Keep filling out information!
 
 
@@ -65,12 +66,14 @@ few sections here are repetitive and don't need to be.
 - Quick start
     - more detailed config options
     - how to actually run the code
-- Running the code
-    - grid resolution & blocks explained
-    - what inputs are necessary for what IE models (basic)
-- Inputs
+- Grid
+    - cells vs blocks
+    - how to get to the resolution you want
+- Inputs - common
     - Important and/or frequently changed UAM options
     - more details on files necessary for some options
+- Inputs - all
+    - long page with all possible options that GITM can check
 - Outputs
     - each output type's variables?
   - FAQ
@@ -81,3 +84,5 @@ few sections here are repetitive and don't need to be.
     - where can I find example input files? (GITMCode/GITM_Input_files)
     - where can I find example outputs (CCMC?)
     - Can you add this feature? no. You can, or fill out a feature request.
+- Electrodynamics
+- Chemistry
