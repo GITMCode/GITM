@@ -5,7 +5,8 @@ theme:
   # name: material
 plugins:
   - search # allow for search after being built
-  - mermaid2 # cool flowcharts
+  - mermaid2: # cool diagrams
+      javascript: js/mermaid.min.js # local path to mermaid javascript file
 
 markdown_extensions:
   - pymdownx.extra #footnotes, abbreviations, tables, definitions, etc.
