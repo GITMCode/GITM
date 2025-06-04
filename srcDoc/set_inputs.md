@@ -1,5 +1,9 @@
 # All Inputs
 
+<!-- This file is automatically made by set_inputs.py -->
+
+## STARTTIME
+
 This sets the starting time of the simulation. Even when you restart,
 the starttime should be to the real start time, not the restart time.
 
@@ -11,6 +15,8 @@ the starttime should be to the real start time, not the restart time.
     iMinute  (integer)
     iSecond  (integer)
 
+## ENDTIME
+
 This sets the ending time of the simulation.
 
     #ENDTIME
@@ -21,17 +27,23 @@ This sets the ending time of the simulation.
     iMinute  (integer)
     iSecond  (integer)
 
+## PAUSETIME
+
 This will set a time for the code to just pause. Really, this should
 never be used.
 
     #PAUSETIME
     iYear iMonth iDay iHour iMinute iSecond
 
+## ISTEP
+
 This is typically only specified in a restart header. If you specify it
 in a start UAM.in it will start the counter to whatever you specify.
 
     #ISTEP
     iStep     (integer)
+
+## CPUTIMEMAX
 
 This sets the maximum CPU time that the code should run before it starts
 to write a restart file and end the simulation. It is very useful on
@@ -41,6 +53,8 @@ since it needs some time to write the restart files.
 
     #CPUTIMEMAX
     CPUTimeMax    (real)
+
+## STATISTICALMODELSONLY
 
 This command will skip all pretty much all of the physics of GITM, and
 will reinitialize the model with the MSIS and IRI values at the interval
@@ -54,6 +68,8 @@ IRI.
     UseStatisticalModelsOnly    (logical)
     DtStatisticalModels         (real)
 
+## TSIMULATION
+
 This is typically only specified in a restart header. It sets the offset
 from the starttime to the currenttime. Should really only be used with
 caution.
@@ -61,12 +77,16 @@ caution.
     #TSIMULATION
     tsimulation    (real)
 
+## F107
+
 Sets the F10.7 and 81 day average F10.7. This is used to set the initial
 altitude grid, and drive the lower boundary conditions.
 
     #F107
     f107  (real)
     f107a (real - 81 day average of f107)
+
+## INITIAL
 
 This specifies the initial conditions and the lower boundary conditions.
 For Earth, we typically just use MSIS and IRI for initial conditions.
@@ -81,6 +101,8 @@ For other planets, the vertical BCs can be set here.
     TempHeight     (real, Height of the middle of temp gradient)
     TempWidth      (real, Width of the temperature gradient)
 
+## TIDES
+
 This says how to use tides. The first one is using MSIS with no tides.
 The second is using MSIS with full up tides. The third is using GSWM
 tides, while the forth is for experimentation with using WACCM tides.
@@ -92,6 +114,8 @@ tides, while the forth is for experimentation with using WACCM tides.
     UseWACCMTides      (logical)
     UseHmeTides        (logical)
 
+## MSISTIDES
+
 This says how to use msis tides. The first one is using diurnal tide The
 first one is using semi-diurnal tide The first one is using terdiurnal
 tide
@@ -101,6 +125,8 @@ tide
     UseMSISSemidiurnal    (logical)
     UseMSISTerdiurnal     (logical)
 
+## MSISOBC
+
 UseOBCExperiment - use MSIS \[O\] BC shifted by 6 months Only applicable
 for MSIS00! MsisOblateFactor - alt = alt \* (1.0-f/2 + f\*cos(lat)) -
 seems like -0.1 works well
@@ -109,10 +135,14 @@ seems like -0.1 works well
     UseOBCExperiment        (logical)
     MsisOblateFactor           (real)
 
+## MSISOBC
+
 This toggles between using MSIS00 (false) and MSIS-2.1 (true)
 
     #MSISOBC
     UseMsis21       (logical)
+
+## DUST
 
 This says whether you want seconds in output file name. F means no
 seconds in output file name.
@@ -121,19 +151,27 @@ seconds in output file name.
     cDustFile
     cConrathFile
 
+## OVERWRITEIONOSPHERE
+
     #OVERWRITEIONOSPHERE
     DoOverwriteIonosphere
     DoOverwriteWithIRI
     DoOverwriteWithSami
     SamiInFile
 
+## GITMBCS
+
     #GITMBCS
     UseGitmBCs
     GitmBCsDir
 
+## DUST
+
     #DUST
     TauTot
     Conrnu
+
+## GSWMCOMP
 
 If you selected to use GSWM tides above, you can specify which
 components to use.
@@ -144,8 +182,12 @@ components to use.
     GSWMsemidiurnal(1)    (logical)
     GSWMsemidiurnal(2)    (logical)
 
+## USEPERTURBATION
+
     #USEPERTURBATION
     UsePerturbation        (logical)
+
+## USEBCPERTURBATION
 
     #USEBCPERTURBATION
     UseBcPerturbation        (logical)
@@ -153,16 +195,22 @@ components to use.
     iTypeBcPerturb         (int) 
     perturbation characteristics ...
 
+## DAMPING
+
 This is probably for damping vertical wind oscillations that can occur
 in the lower atmosphere.
 
     #DAMPING
     UseDamping        (logical)
 
+## GRAVITYWAVE
+
 I dont know what this is for\...
 
     #GRAVITYWAVE
     UseGravityWave        (logical)
+
+## HPI
 
 This sets the hemispheric power of the aurora. Typical it ranges from
 1-1000, although 20 is a nominal, quiet time value.
@@ -170,11 +218,15 @@ This sets the hemispheric power of the aurora. Typical it ranges from
     #HPI
     HemisphericPower  (real)
 
+## KP
+
 I dont think that GITM actually uses this unless the Foster electric
 field model is used.
 
     #KP
     kp  (real)
+
+## CFL
 
 The CFL condition sets how close to the maximum time step that GITM will
 take. 1.0 is the maximum value. A value of about 0.75 is typical. If
@@ -183,11 +235,15 @@ instabilities form, a lower value is probably needed.
     #CFL
     cfl  (real)
 
+## FIXEDDT
+
 If you would like to force GITM to take a fixed dt you can use this. It
 will try to take that fixed dt, unless the CFL condition is violated.
 
     #FIXEDDT
     FixedDt  (real)
+
+## SOLARWIND
 
 This sets the driving conditions for the high-latitude electric field
 models. This is static for the whole run, though. It is better to use
@@ -199,11 +255,15 @@ the MHD_INDICES command to have dynamic driving conditions.
     bz  (real)
     vx  (real)
 
+## MHD_INDICES
+
 Use this for dynamic IMF and solar wind conditions. The exact format of
 the file is discussed further in the manual.
 
     #MHD_INDICES
     filename  (string)
+
+## AURORAMODS
 
 This is for modifying the aurora a bit. The NormalizeAuroraToHP variable
 calculates the modeled hemispheric power and then normalizes it the
@@ -217,6 +277,8 @@ AuroraKappa - kappa to use in the distribution
     IsKappaAurora     (logical)
     AuroraKappa    (real)
 
+## NEWELLAURORA
+
 This is for using Pat Newells aurora (Ovation).
 
     #NEWELLAURORA
@@ -227,6 +289,8 @@ This is for using Pat Newells aurora (Ovation).
     UseNewellRemoveSpikes (logical)
     UseNewellAverage      (logical)
 
+## OVATIONSME
+
 This is for using Betsy Michells aurora (OvationSME).
 
     #OVATIONSME
@@ -235,20 +299,28 @@ This is for using Betsy Michells aurora (OvationSME).
     UseOvationSMEWave (logical)
     UseOvationSMEIon  (logical)
 
+## AEMODEL
+
 This is for using Dongjies aurora.
 
     #AEMODEL
     UseAeModel        (logical)
+
+## FTAMODEL
 
 This is for using the FTA Model of the aurora.
 
     #FTAMODEL
     UseFtaModel        (logical)
 
+## FANGENERGY
+
 This is for using Dongjies aurora.
 
     #FANGENERGY
     UseFangEnergyDeposition        (logical)
+
+## USECUSP
 
 This is for specifying a cusp.
 
@@ -257,9 +329,13 @@ This is for specifying a cusp.
     CuspAveE       (real)
     CuspEFlux      (real)
 
+## AMIEFILES
+
     #AMIEFILES
     cAMIEFileNorth  (string)
     cAMIEFileSouth  (string)
+
+## USEREGIONALAMIE
 
 This is to set up a local region with specified potential from AMIE
 files. Use Weimer potential elsewhere. AMIEBoundaryWidth is padded
@@ -277,6 +353,8 @@ below.
     AMIELatEnd           (real)
     AMIEBoundaryWidth    (real)
 
+## LIMITER
+
 The limiter is quite important. It is a value between 1.0 and 2.0, with
 1.0 being more diffuse and robust, and 2.0 being less diffuse, but less
 robust.
@@ -285,10 +363,14 @@ robust.
     TypeLimiter  (string)
     BetaLimiter  (real between 1.0-minmod and 2.0-mc)
 
+## NANCHECK
+
 This will turn on all of the NaN checks in the code!
 
     #NANCHECK
     DoCheckForNans (logical)
+
+## DEBUG
 
 This will set how much information the code screams at you - set to 0 to
 get minimal, set to 10 to get EVERYTHING. You can also change which
@@ -304,19 +386,29 @@ code to sync up a LOT.
     DtReport    (real)
     UseBarriers (logical)
 
+## IONLIMITS
+
     #IONLIMITS
     MaxVParallel     (real, default=100 m/s)
     MaxEField        (real, default=0.1 V/m)
     MinIonDensity    (real, default=100 m^-3)
 
+## PHOTOELECTRON
+
     #PHOTOELECTRON
     PhotoElectronHeatingEfficiency   (real)
+
+## NEUTRALHEATING
 
     #NEUTRALHEATING
     NeutralHeatingEfficiency   (real)
 
+## DON4SHACK
+
     #DON4SHACK
     DoN4SHack       (logical)
+
+## THERMO
 
     #THERMO
     UseSolarHeating   (logical)
@@ -328,19 +420,29 @@ code to sync up a LOT.
     UseTurbulentCond  (logical)
     UseIRHeating      (logical)
 
+## THERMALDIFFUSION
+
     #THERMALDIFFUSION
     KappaTemp0    (thermal conductivity, real)
+
+## THERMALCONDUCTION
 
     #THERMALCONDUCTION
     ThermalConduction_AO2 (Conduction A(O2): 3.6e-4, real)
     ThermalConduction_AO  (Conduction A(O): 5.6e-4, real)
     ThermalConduction_s   (Conduction s: 0.75, real)
 
+## VERTICALSOURCES
+
     #VERTICALSOURCES
     MaximumVerticalVelocity      (real)
 
+## AUSMSOLVER
+
     #AUSMSOLVER
     Use AUSM Solver      (logical)
+
+## DIFFUSION
 
 If you use eddy diffusion, you must specify two pressure levels - under
 the first, the eddy diffusion is constant. Between the first and the
@@ -353,6 +455,8 @@ larger than the second!
     EddyDiffusionPressure0 (real)
     EddyDiffusionPressure1 (real)
 
+## FORCING
+
     #FORCING
     UsePressureGradient (logical)
     UseIonDrag          (logical)
@@ -361,21 +465,31 @@ larger than the second!
     UseCoriolis         (logical)
     UseGravity          (logical)
 
+## MODIFYPLANET
+
     #MODIFYPLANET
     RotationPeriodInput        (real)
     DaysPerYearInput           (real)
     DaysPerYearInput           (real)
 
+## USEIMPLICITIONMOMENTUM
+
     #USEIMPLICITIONMOMENTUM
     UseImplicitFieldAlignedMomentum      (logical)
+
+## USEIMPROVEDIONADVECTION
 
     #USEIMPROVEDIONADVECTION
     UseImprovedIonAdvection      (logical)
     UseNighttimeIonBCs           (logical)
     MinTEC                       (real)
 
+## USETESTVISCOSITY
+
     #USETESTVISCOSITY
     TestViscosityFactor      (real)
+
+## DYNAMO
 
     #DYNAMO
     UseDynamo              (logical)
@@ -385,14 +499,20 @@ larger than the second!
     IncludeCowling         (logical)
     DynamoLonAverage       (real)
 
+## IONFORCING
+
     #IONFORCING
     UseExB                 (logical)
     UseIonPressureGradient (logical)
     UseIonGravity          (logical)
     UseNeutralDrag         (logical)
 
+## FIXTILT
+
     #FIXTILT
     IsFixedTilt   (logical)
+
+## DIPOLE
 
     #DIPOLE
     MagneticPoleRotation   (real)
@@ -401,10 +521,14 @@ larger than the second!
     yDipoleCenter          (real)
     zDipoleCenter          (real)
 
+## APEX
+
     #APEX
     UseApex (logical)
             Sets whether to use a realistic magnetic
             field (T) or a dipole (F)
+
+## ALTITUDE
 
 For Earth, the AltMin is the only variable used here. The altitudes are
 set to 0.3 times the scale height reported by MSIS, at the equator for
@@ -414,6 +538,8 @@ the specified F107 and F107a values.
     AltMin                (real, km)
     AltMax                (real, km)
     UseStretchedAltitude  (logical)
+
+## GRID
 
 If LatStart and LatEnd are set to \< -90 and \> 90, respectively, then
 GITM does a whole sphere. If not, it models between the two. If you want
@@ -428,6 +554,8 @@ set LatStart and LonStart to the point on the Globe you want to model.
     LonStart     (real)
     LonEnd       (real)
 
+## NEWSTRETCH
+
     #NEWSTRETCH
     Poleward Edge of Stretch Region (real, degrees)
     StretchWidth  (real, 1.0-20.0, deg)
@@ -437,6 +565,8 @@ set LatStart and LonStart to the point on the Globe you want to model.
     65.0 ! location of minimum grid spacing
     5.0         ! Width of stretched region
     0.6         ! Amount of stretch 0 (none) to 1 (lots)
+
+## STRETCH
 
     #STRETCH
     ConcentrationLatitude (real, degrees)
@@ -448,12 +578,18 @@ set LatStart and LonStart to the point on the Globe you want to model.
     0.0         ! Amount of stretch 0 (none) to 1 (lots)
     1.0  
 
+## TOPOGRAPHY
+
     #TOPOGRAPHY
     UseTopography (logical)
     AltMinUniform (real)
 
+## RESTART
+
     #RESTART
     DoRestart (logical)
+
+## PLOTTIMECHANGE
 
 This allows you to change the output cadence of the files for a limited
 time. If you have an event then you can output much more often during
@@ -463,6 +599,8 @@ that event.
     yyyy mm dd hh mm ss ms (start)
     yyyy mm dd hh mm ss ms (end)
 
+## APPENDFILES
+
 For satellite files, you can have one single file per satellite, instead
 of one for every output. This makes GITM output significantly less
 files. It only works for satellite files now.
@@ -470,11 +608,15 @@ files. It only works for satellite files now.
     #APPENDFILES
     DoAppendFiles    (logical)
 
+## CCMCFILENAME
+
 Typicaly file is named (e.g.) 1DALL_yymmdd_hhmmss.bin With this it will
 be named 1DALL_GITM_yyyy-mm-ddThh-mm-ss.bin
 
     #CCMCFILENAME
     UseCCMCFileName    (logical)
+
+## SAVEPLOT
 
 The DtRestart variable sets the time in between writing full restart
 files to the UA/restartOUT directory.\
@@ -489,11 +631,15 @@ all primary state variables. Types include : 3DALL, 3DNEU, 3DION, 3DTHM,
     Outputtype (string, 3D, 2D, ION, NEUTRAL, ...)
     DtPlot    (real, seconds)
 
+## SAVEHIMEPLOT
+
     #SAVEHIMEPLOT
     HIMEPlotLonStart (real)
     HIMEPlotLonEnd (real)
     HIMEPlotLatStart (real)
     HIMEPlotLatEnd (real)
+
+## SATELLITES
 
     #SATELLITES
     nSats     (integer - max = ', nMaxSats, ')
@@ -501,6 +647,8 @@ all primary state variables. Types include : 3DALL, 3DNEU, 3DION, 3DTHM,
     SatOutputtype1  (string, 0DUSR or 1DUSR or other)
     DtPlot1   (real, seconds)
     etc...
+
+## RCMR
 
     #RCMR
     Input data type to assimilate (RHO/VTEC)
@@ -511,8 +659,12 @@ all primary state variables. Types include : 3DALL, 3DNEU, 3DION, 3DTHM,
     2nd satellite index to assimilate
     etc...
 
+## DART
+
     #DART
     useDART (integer, {default 0=no}, 1=master ensemble member, 2=slave ens.)
+
+## ELECTRODYNAMICS
 
 Sets the time for updating the high-latitude (and low-latitude)
 electrodynamic drivers, such as the potential and the aurora.
@@ -521,20 +673,28 @@ electrodynamic drivers, such as the potential and the aurora.
     DtPotential (real, seconds)
     DtAurora    (real, seconds)
 
+## INPUTTIMEDELAY
+
 Sets the time delay for the high latitude drivers and solar EUV inputs.
 
     #INPUTTIMEDELAY
     TimeDelayHighLat (real, seconds)
     TimeDelayEUV     (real, seconds)
 
+## LTERadiation
+
     #LTERadiation
     DtLTERadiation (real)
+
+## IONPRECIPITATION
 
 You can only have an AMIE input file for this now. Make sure you put the
 ions in the AMIE file!!!
 
     #IONPRECIPITATION
     UseIonPrecipitation     (logical)
+
+## LOGFILE
 
 You really want a log file. They are very important. It is output in
 UA/data/log\*.dat. You can output the log file at whatever frequency you
@@ -543,6 +703,8 @@ output every iteration, which is probably a good thing.
 
     #LOGFILE
     DtLogFile   (real, seconds)
+
+## EUV_DATA
 
 If EUVAC = true, use EUVAC Model If Tobiska = true, use Tobiska91 Model
 If both are true, average them together If UseAboveHigh, then extend the
@@ -553,20 +715,11 @@ spectrum to the shorter wavelengths
     UseEUVData            (logical)
     cEUVFile              (string)
 
+## EUV_DATA
+
 This is for a FISM or some other solar spectrum file.
 
     #EUV_DATA
     UseEUVData            (logical)
     cEUVFile              (string)
 
-    #ECLIPSE
-    start y m d h m s            (int x 6)
-    end   y m d h m s            (int x 6)
-    start-y-gse                  (real)
-    start-z-gse                  (real)
-    end-y-gse                    (real)
-    end-z-gse                    (real)
-    peak                         (real)
-    Max Distance                 (real)
-    ExpAmp                       (real)
-    ExpWidth                     (real)
