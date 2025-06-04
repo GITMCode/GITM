@@ -29,17 +29,9 @@ Usage:
 - If a test fails and you have made edits, you don't need to re-config:
     > ./run_all_tests.sh --skip_config
 
-- For a sanity test, you can force re-configuring & re-compiling everything in 
+- For a sanity check, you can force re-configuring & re-compiling everything in 
   debug mode with:
     > ./run_all_tests.sh -c -d
-
-- When making large changes that could affect outputs, it may be useful to
-  compare with the latest release. 
-  First, commit your changes then 'git checkout main'. Save the outputs from 
-  the latest release with:
-    > ./run_all_tests.sh --save_to testoutputs_default
-  Then, checkout your branch 'git checkout branch_name' and compare the results with:
-    > ./run_all_tests.sh --compare_with testoutputs_default
 
 ------------------------------------------------------------------------------------
 Arguments:
