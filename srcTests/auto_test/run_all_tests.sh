@@ -95,7 +95,7 @@ do_tests(){
       make clean
     fi
 
-    make
+    make -j
 
     if [[ $? != 0 ]]; then
       echo
