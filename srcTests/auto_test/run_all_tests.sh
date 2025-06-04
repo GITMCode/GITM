@@ -96,6 +96,13 @@ do_tests(){
     fi
 
     make
+
+    if [[ $? != 0 ]]; then
+      echo
+      echo "Could not compile!"
+      echo "The tests have failed. Exiting."
+      exit 1
+    fi
     
     if [ ! -f run/GITM.exe ]; then
         # only make rundir if it does not already exist
