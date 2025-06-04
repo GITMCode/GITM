@@ -138,6 +138,17 @@ label, as long as it is unique, `[^aHJpxms]`, for example)[^notbottom].
 
 Footnotes are great for citations!
 
+### References {gohere}
+
+We can add references to any header level. Links are automatically created, but
+we can make out own by adding `{#refname}` to the header. If we do not add
+anything, the name for `## a subheader section` would be `#a-subheader-section.`
+
+Then later we can point to it like any other hyperlink.  For example,
+`[this link will go to the above subsection](#a-subheader-section)`.
+Or, a real one:
+[this link points to the More Complex Syntax](#more-complex-syntax) sub-header.
+
 ## Admonitions
 
 Admonitions are these fancy boxes:
