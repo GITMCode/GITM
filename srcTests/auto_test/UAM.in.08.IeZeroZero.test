@@ -58,15 +58,6 @@ zero
 
 ----------- Data Files ------------------
 
-This is the most common thing - specify an IMF file:
-#MHD_INDICES
-UA/DataIn/imf20021221.dat
-
-#SME_INDICES
-UA/DataIn/ae_20021221.txt		SME Filename
-none              			onset time delay file
-T					convert SME to Hemispheric Power
-
 #NGDC_INDICES
 UA/DataIn/f107.txt
 

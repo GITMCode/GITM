@@ -57,11 +57,11 @@ weimer05
 60.0
 
 #MHD_INDICES
-DataIn/imf20021221.dat
+UA/DataIn/Examples/imf20021221.dat
 
 Can download AU/AL/AE indices from SuperMAG and use them here:
 #SME_INDICES
-DataIn/ae_20021221.txt
+UA/DataIn/Examples/ae20021221.dat
 none              onset time delay file
 T
 T
