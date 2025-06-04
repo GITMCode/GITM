@@ -46,4 +46,4 @@ while (<INFILE>) {
 close(INFILE);
 close(OUTFILE);
 
-exit(1);
+exit(0);
