@@ -173,4 +173,4 @@ Wait a moment... And if no errors are reported then congratulations! You have
 now run GITM! 
 
 The next steps include exploring how to [postprocess](postprocessing.md) the 
-outputs, and modifying the [input files](inputs.md).
+outputs, and modifying some [input files](common_inputs.md).

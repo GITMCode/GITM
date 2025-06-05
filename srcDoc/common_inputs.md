@@ -1,7 +1,7 @@
 # Common Inputs {#indices.sec}
 
 This only touches on the most frequently changed input options. For a full
-reference of all available inputs, please see [All Inputs](all_inputs.md)
+reference of all available inputs, please see [All Inputs](set_inputs.md)
 
 !!!note
     All of the auxiliary input (data) files can be kept in the same directory
