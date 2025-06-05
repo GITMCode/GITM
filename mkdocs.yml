@@ -25,3 +25,20 @@ markdown_extensions:
           format: !!python/name:mermaid2.fence_mermaid
 
 docs_dir: srcDoc
+
+nav:
+  - Home: index.md
+  - Quick Start: quick_start.md
+  - Inputs:
+    - Common Inputs: common_inputs.md
+    - Grid: grid.md
+    - All Inputs: set_inputs.md
+  - Outputs:
+    - Postprocessing: postprocessing.md
+    - Available Outputs: outputs.md
+  - Internals:
+    - Earth Chemistry: chemistry.md
+  - Development:
+    - GITM Developers: dev_team.md
+    - Markdown Reference: markdown_ref.md
+    - GITM Outline: outline.md
