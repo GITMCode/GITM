@@ -5,8 +5,7 @@ Chemical reactions in GITM for Earth
 Some things we may want #todo:
 
 - label each reaction; like half are currently labeled
-- Add refs to each so we can link to them? will be a lot of work. chatgpt can
-  help
+- Add refs to each so we can link to them? will be a lot of work.
 - make sure everything is actually ref'd and used
 - we can make an `Earth` folder, so this doesn't appear to be the only chemistry
   option. 

@@ -39,6 +39,7 @@ nav:
   - Internals:
     - Earth Chemistry: chemistry.md
   - Development:
-    - GITM Developers: dev_team.md
-    - Markdown Reference: markdown_ref.md
-    - GITM Outline: outline.md
+    - Site Information: devstuff/devhome.md
+    - GITM Developers: devstuff/dev_team.md
+    - Markdown Reference: devstuff/markdown_ref.md
+    - GITM Outline: devstuff/outline.md

@@ -218,7 +218,7 @@ equation. These are consistently numbered throughout the document.
 Insert images with `![caption text](relative/path/to/image)`. The caption will
 appear below the image, for example:
 
-![hmf2 flowchart example figure](Figures/determining_hmF2_flowchart.png)
+![hmf2 flowchart example figure](../Figures/determining_hmF2_flowchart.png)
 
 This figure was made with the code:
 
@@ -244,7 +244,7 @@ More splendid documentation.
 To forgo a caption entirely (they aren't even that useful), just do not include
 it in the `![](../path/to/image)`. For example:
 
-![](Figures/determining_hmF2_flowchart.png)
+![](../Figures/determining_hmF2_flowchart.png)
 
 See? No caption! It is possibly to define a new style for figures, and to
 uniquely number them, but it is probably not worth doing.
