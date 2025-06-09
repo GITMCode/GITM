@@ -95,7 +95,7 @@ Cancel with Ctrl+C
 checkoutputs(){
   # refactored for cleanliness
 
-  if [[ $do_save = true ]]; then
+  if [ $do_save = true ]; then
     cp UA/data/log00000002.dat ../ref_solns/log.$test_uam
     echo
     echo
@@ -104,11 +104,11 @@ checkoutputs(){
     return;
   fi
 
-  if [[ $do_compare = true ]]; then
+  if [ $do_compare = true ]; then
     echo
     ../../../share/Scripts/DiffNum.pl ../ref_solns/log.$test_uam UA/data/log00000002.dat
     
-    if [[ $? = 0 ]]; then
+    if [ $? = 0 ]; then
       # test was a success. no differences found.
       return 
     
@@ -167,7 +167,7 @@ do_tests(){
 
     make -j
 
-    if [[ $? != 0 ]]; then
+    if [ $? != 0 ]; then
       echo
       echo "Could not compile!"
       echo "The tests have failed. Exiting."
@@ -273,7 +273,7 @@ while [[ $# -gt 0 ]]; do
       ;;
 
     -o|--only)
-      if [[ -e "$2" ]]; then
+      if [ -e "$2" ]; then
         echo "Only running test: $2" 
         onlyone=$2
       else
@@ -285,7 +285,7 @@ while [[ $# -gt 0 ]]; do
 
     *)
       echo "Unrecognized argument: $1"
-      if [[ -e $1 ]]; then echo "Run with '-o $1' to test one file"; fi
+      if [ -e $1 ]; then echo "Run with '-o $1' to test one file"; fi
       exit 1
 
   # end arg parsing
@@ -293,7 +293,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 # get mad about overwriting ref solutions
-if [[ $do_save = true ]]; then warnsavesolution; fi
+if [ $do_save = true ]; then warnsavesolution; fi
 
 # wait a sec to show users that settings are being used
 sleep 1.5
