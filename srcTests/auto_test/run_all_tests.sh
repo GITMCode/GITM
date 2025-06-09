@@ -66,6 +66,11 @@ Arguments:
                                       this is set erroreously.
                                     - If a test was overwritten by mistake, use
                                       'git restore' to put it back.
+        --oversubscribe           Run 'mpirun' with the '--oversubscribe' flag?
+                                    This is necessary on GitHub's CI/CD servers, but
+                                    is not be necessary for *most* users. As some MPI
+                                    libraries implement this differently, this is
+                                    off by default.
 
 "
   exit 1
@@ -136,7 +141,7 @@ run_a_test(){
   rm -f GITM.DONE
 
   # Run GITM, stop if error.
-  mpirun -np 4 --oversubscribe ./GITM.exe
+  mpirun -np 4 $oversubscribe ./GITM.exe
 
   # this will either save, or diff, the output log files.
   # (double sanity-check): only run if GITM.DONE exists & above exited with no error code.
@@ -228,6 +233,7 @@ clean=false
 distclean=false
 config=false
 onlyone=false
+oversubscribe=""
 
 do_save=false
 do_compare=true
@@ -279,6 +285,12 @@ while [[ $# -gt 0 ]]; do
         exit 1
       fi
       shift 2
+      ;;
+
+    --oversubscribe)
+      echo "Oversubscribing! Using 4 threads."
+      oversubscribe="--oversubscribe"
+      shift
       ;;
 
     *)
