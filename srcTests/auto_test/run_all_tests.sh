@@ -28,6 +28,9 @@ when comparing outputs. It is recommended to follow the pattern:
 Usage:
 ------
 
+> First, from root of repository, install GITM with './Config.pl [...]'
+> Next, 'cd srcTests/auto_test/'
+
 - To just check that the code compiles and all tests run, use:
     > ./run_all_tests.sh
 
@@ -45,16 +48,15 @@ Arguments:
 
         [none]                    run automatically with defaults.
         -h, --help                see this information
-        -d, --debug               Configure & compile GITM in -debug
         -c, --clean               Run a 'make clean' before make-ing?
         -u, --uninstall           Force a 'make distclean' before running?
                                     This effectively uninstalls GITM before running. 
                                     Useful when dependencies change, or when a lot of
-                                    changes have been made (by you or git).
+                                    changes have been made (by you or git). 
+                                    * Will only work with gfortran10 & in debug mode. *
         -o, --only                Only run this UAM test file.
                                     Useful if a higher number test has failed.
                                     By default, all tests are run alphabetically.
-        --skip_config             Skip running Config.pl? Can save time.
         --nocompare               Default configuration diff's the log file.
                                     Use this if you want to only do a run & not
                                     check the output.
@@ -224,7 +226,7 @@ do_tests(){
 debug=""
 clean=false
 distclean=false
-config=true
+config=false
 onlyone=false
 
 do_save=false
@@ -252,12 +254,7 @@ while [[ $# -gt 0 ]]; do
     -u|--uninstall)
       echo "Uninstalling with 'make distclean' before running!"
       distclean=true
-      shift
-      ;;
-
-    --skip_config)
-      echo "skipping config!"
-      config=false
+      config=true
       shift
       ;;
 
