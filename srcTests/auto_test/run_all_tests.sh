@@ -12,17 +12,17 @@ get_help(){
     are automatically tested on GitHub
 
 > When adding a new feature, it is recommended to create a test. 
-  - To do this, first create a UAM.in file here which uses the new feature.
+  - To do this, first create a UAM.in file which uses the new feature.
   - Then, run this script with: 
     > ./run_all_tests.sh -d -c --save_solution -o [your uam file]
-  - Information regarding the test configuration may be added to the file name, 
-    though no spaces can be used.
+  - Add a few words to the file name to explain the test. See below for more.
   - Please try to keep the numbers increasing sequentially, if possible.
 
 Additional notes about the test may be added. Name must conform to: 
-            UAM.*.##.test
+            UAM.in.##.*.test
 and no spaces can be added. Numbers do not need to be increasing, but will be useful 
-when comparing outputs.
+when comparing outputs. It is recommended to follow the pattern:
+            UAM.in.##.[anything_you_want].test
 
 ------------------------------------------------------------------------------------
 Usage:
@@ -31,12 +31,13 @@ Usage:
 - To just check that the code compiles and all tests run, use:
     > ./run_all_tests.sh
 
-- If a test fails and you have made edits, you don't need to re-config:
-    > ./run_all_tests.sh --skip_config
+- If a test fails and you have made edits, you don't need to re-run every test.
+  (substitute for another test):
+    > ./run_all_tests.sh --only UAM.in.00.default.test
 
-- For a sanity check, you can force re-configuring & re-compiling everything in 
-  debug mode with:
-    > ./run_all_tests.sh -c -d
+- For a sanity check, you can force the code to be re-compiled with the (-c/--clean) 
+  flag:
+    > ./run_all_tests.sh -c
 
 ------------------------------------------------------------------------------------
 Arguments:
