@@ -13,7 +13,7 @@ correctly.
 
 At a minimum, you need:
 
-- a fortran compiler (gfortran, ifort, ifx, etc.)
+- a Fortran compiler (gfortran, ifort, ifx, etc.)
 - MPI (~~mpich~~, openmpi, mvapich, etc.)
 - GNU Make (`make`)
 
@@ -32,7 +32,7 @@ turnaround for test runs will be much faster.
 ### Linux Install Dependencies
 
 On a Ubuntu-based linux distribution, the following commands will download GNU
-Make, the GCC fortran compiler & Open-MPI:
+Make, the GCC Fortran compiler & Open-MPI:
 
 ```bash
 sudo apt-get install gfortran libopenmpi-dev make
@@ -57,7 +57,7 @@ brew install gfortran open-mpi
 And MacPorts users can run:
 
 ```bash
-sudo port install gcc?? open-mpi
+sudo port install gcc[??] open-mpi
 ```
 > Make sure to specify a version number in place of `??` above! Use 
 > `port search --name --glob 'gcc*'`, or `port search gfortran` to see
@@ -77,9 +77,9 @@ experience with GITM on other systems:
     - `cray-mpich`
 
 Consult the documentation for each system to see which modules are available and
-how to load them. The modules you use to compile GITM *may* be required to be
+how to load them. The modules you use to compile GITM *may* also need to be
 loaded when running, so it may be wise to set these to your defaults, or at
-least take note of what was used and load them in the job script.
+least take note of what was used so they can be loaded in the job script.
 
 ## Getting the code
 
@@ -108,15 +108,15 @@ anything! Simply `cd` back to `GITM/` and try again.
 
 ## Configuring & Compiling
 
-This step ensures GITM compiles with the correct compilers, for the correct
-planet, and a few other settings. To configure GITM for Earth using the
-`gfortran` compiler, run:
+This step configures the planet, compiler, and some paths GITM needs to
+work properly. To configure GITM for Earth using the `gfortran` compiler, run:
 
 ```bash
 ./Config.pl -install -earth -compiler=gfortran
 ```
 
-!!! caution <!--#TODO> </!--> 
+!!! caution
+     <!--#TODO> </!--> 
     Prior GITM versions required specifying `compiler=gfortran10` when using
     `gfortran>=10.0.0`, however this is no longer necessary.
 
@@ -141,9 +141,9 @@ If this runs without error, GITM is ready to be run!
 
 ## Running the Code
 
-When GITM is compiled, the executable is placed in `src/GITM.exe`. This is not
-where we want to run it from, however. To create a directory with the GITM
-executable and the necessary input files, run the command:
+This will have created the executable `src/GITM.exe`. This is not where we want
+to run it from, however. To create a directory where the GITM executable is run
+from and organize some input files, run the command:
 
 ```bash
 make rundir
@@ -173,4 +173,4 @@ Wait a moment... And if no errors are reported then congratulations! You have
 now run GITM! 
 
 The next steps include exploring how to [postprocess](postprocessing.md) the 
-outputs, and modifying some [input files](common_inputs.md).
+outputs, and modifying the [input files](common_inputs.md).

@@ -179,6 +179,8 @@ To use models such as FTA[^1] to drive the aurora, GUITM must be provided
 Auroral Electrojet (AE) indices. Normally this is from SuperMag, but any source
 may be used. 
 
+[^1]: Wu, C., Ridley, A. J., DeJong, A. D., & Paxton, L. J. (2021). FTA: A Feature Tracking Empirical Model Of Auroral Precipitation. Space Weather, 19, e2020SW002629. <https://doi.org/10.1029/2020SW002629>.
+
 These files are normally of the format:
 
     File created by python code using SuperMAGGetIndices
@@ -195,7 +197,7 @@ A python routine to download these files over a given date range can be found
 in `srcPython/supermag_download_ae.py`.
 
 
-The correspoinding section in `UAM.in` is read as:
+The corresponding section in `UAM.in` is read as:
 
     #SME_INDICES
     ae_file-name.dat        ae file name
