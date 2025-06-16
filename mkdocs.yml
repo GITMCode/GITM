@@ -38,6 +38,7 @@ nav:
     - Available Outputs: outputs.md
   - Internals:
     - Earth Chemistry: chemistry.md
+    - Electrodynamics: electrodynamics.md
   - Development:
     - Site Information: devstuff/devhome.md
     - GITM Developers: devstuff/dev_team.md
