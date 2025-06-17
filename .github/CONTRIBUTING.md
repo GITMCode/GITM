@@ -10,15 +10,17 @@ experience for all involved.
 
 ## Outline
 
-- [Opening an Issue](#opening-an-issue)
-  - [Bug Report](#bug-report)
-  - [Feature Requests](#feature-requests)
-- [Pull Requests](#pull-requests)
-  - [Committing Changes](#committing-changes)
-    - [Commit Styling](#commit-styling)
-- [Code Formatting](#code-formatting)
-  - [Automatic/Validating Code Formatting](#automaticvalidating-code-formatting)
-  - [Style Guidelines \& `.fprettify.rc`](#style-guidelines--fprettifyrc)
+- [Contributing Guidelines](#contributing-guidelines)
+  - [Outline](#outline)
+  - [Opening an Issue](#opening-an-issue)
+    - [Bug Report](#bug-report)
+    - [Feature Requests](#feature-requests)
+  - [Pull Requests](#pull-requests)
+    - [Committing Changes](#committing-changes)
+      - [Commit Styling](#commit-styling)
+  - [Code Formatting](#code-formatting)
+    - [Automatic/Validating Code Formatting](#automaticvalidating-code-formatting)
+    - [Style Guidelines \& `.fprettify.rc`](#style-guidelines--fprettifyrc)
 
 ## Opening an Issue
 
@@ -30,7 +32,7 @@ are creating and then modify the contents of the template to describe your issue
 
 ### Bug Report
 
-If you notice a problkem with GITM and are unsure of how to fix it yourself, please
+If you notice a problem with GITM and are unsure of how to fix it yourself, please
 create a bug report detailing the problem. The template has several optional sections,
 so read through them all before adding information to the wrong section.
 
@@ -78,7 +80,7 @@ are working on a feature and notice an unrelated bug or typo, create a new branc
 `develop`, fix it, and submit the pull request separately. There is no harm in
 submitting many small pull requests!
 - **Document your changes**. If you are introducing a new feature, please include
-a description of it and its uses in both the documentation (`docs/` folder) and
+a description of it and its uses in both the documentation (`srcDoc/` folder) and
 in comments within the code.
 - **Include new tests**. If you are adding a new feature, please add a sample `UAM.in`
 file with this option enabled in the `srcTests/auto_test/` folder. We do not want future updates

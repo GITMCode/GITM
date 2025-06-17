@@ -173,11 +173,9 @@ The file type is automatically inferred. To provide an HPI file, use:
 
 ## SME Indices
 
-*[SME]: SuperMag auroral Electrojet
-
-To use models such as FTA[^1] to drive the aurora, GUITM must be provided
-Auroral Electrojet (AE) indices. Normally this is from SuperMag, but any source
-may be used. 
+To use models such as FTA[^1] to drive the aurora, GITM must be provided Auroral
+Electrojet (AE) indices. Normally this is from SuperMag (hence the name "SME":
+SuperMag auroral Electrojet), but any source may be used. 
 
 [^1]: Wu, C., Ridley, A. J., DeJong, A. D., & Paxton, L. J. (2021). FTA: A Feature Tracking Empirical Model Of Auroral Precipitation. Space Weather, 19, e2020SW002629. <https://doi.org/10.1029/2020SW002629>.
 
@@ -206,12 +204,14 @@ The corresponding section in `UAM.in` is read as:
 
 The lines following the AE file are for the AL-onset file. This can be set to
 `none` if you do not have one. The next line tells GITM whether to derive HP
-from AE or to use a NOAA HPI file (if one is required). Even if AE is not
-required, it is recommended to provide one to derive HP as it is often more
-representative of geomagnetic conditions than the NOAA HPI.
+from AE or to use a NOAA HPI file (if one is required). 
 
-The formula to calculate hemispheric power from AE is taken from (Wu et al.,
-2021)[^wuetal] and is given as:
+Even if AE is not required, it is recommended to provide a SME file as input to
+derive HP, as it is often more representative of geomagnetic conditions than the
+NOAA HPI.
+
+The formula to calculate hemispheric power (HP) from AE is taken from (Wu et
+al., 2021)[^wuetal] and is given as:
 
 ```math
 \begin{align}

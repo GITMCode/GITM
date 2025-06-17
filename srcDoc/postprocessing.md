@@ -61,6 +61,18 @@ The help message for `post_process.py`:
     -tgz                  tar and zip raw GITM file instead of process
 ```
 
+
+!!! note "Post-processing Speed" 
+
+    The default "engine" for reading the raw GITM
+    outputs is `scipy.io.FortranFile`. In some cases like high processor-count, 
+    many output files, etc., files may not be post-processing as quickly as they
+    are created. 
+
+    In this case, it is recommended to use the Fortran engine which is included within GITM. The executable can be created by running `make POST` from GITM's root folder (`GITM/`). If this is done before `make rundir`, it will automatically be copied. Otherwise it must be moved to `run/` manually.
+
+    The python post-processor will use `PostGITM.exe` if it is found in `run/`. This is not the default behavior as some systems limit which programs can be run from login nodes.
+
 ### Arguments
 
 #### remotefile

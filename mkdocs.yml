@@ -3,6 +3,8 @@ theme:
   name: readthedocs
   # name: mkdocs
   # name: material
+  # palette:
+  #   scheme: slate
 plugins:
   - search # allow for search after being built
   - mermaid2: # cool diagrams
