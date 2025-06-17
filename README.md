@@ -5,9 +5,13 @@ This is the home of the Global Ionosphere/Thermosphere Model (GITM).
 GITM has been developed in fortran-90. It has been tested with gfortran
 on Linux and MacOS as well as ifort on NASA's Pleiades computer.
 
-The latest version of the documentation can be accessed at:
+The latest version of the PDF documentation can be accessed at:
 
 [![Build Documentation](https://github.com/GITMCode/GITM/actions/workflows/build-docs.yml/badge.svg)](https://github.com/GITMCode/GITM/actions/workflows/build-docs.yml)
+
+For a more complete documentation, see [GITM's Read the Docs Page](https://gitm.readthedocs.io).
+
+---
 
 <details>
 <summary><b>GITM's default branch recently changed names. To access the latest features, please update your local refs.</b></summary>
@@ -29,17 +33,18 @@ git remote prune origin
 
 </details>
 
-## Dependencies
-
-1. GITM needs MPI to work.
-
 ## Quick Start
+
+> GITM needs MPI to work properly. This can be installed with your system's package manager, or loaded as a `module` on an HPC system.
+> See [the installation guide](https://gitm.readthedocs.io/en/latest/quick_start/#requirements) for more information.
 
 1\. Clone the repository and cd into the repo folder
 
 ```shell
-git clone https://github.com/GITMCode/GITM
+git clone git@github.com:GITMCode/GITM.git
 ```
+
+Substitute the URL with the https link from the "Code" button above if you do not have SSH keys set up.
 
 2\. Go into the repo directory
 
@@ -47,19 +52,18 @@ git clone https://github.com/GITMCode/GITM
 cd GITM
 ```
 
-3\. Configure the Fortran compiler (version 10)
+3\. Configure the Fortran compiler and download external electrodynamics library
+(gfortran versions 10+)
 
 ```shell
 ./Config.pl -install -earth -compiler=gfortran10
 ```
 
 The biggest issue with the above command is that it assumes that you
-have the gfortran (version 10) compiler and things like mpif90 work
+have the gfortran (version 10+) compiler and things like mpif90 work
 ok.  If you don't have gfortran and mpif90, then you need to get these
 things for your computer.  If you have version 9 or before for gfortran,
 you can do:
-
-3b\. Configure the Fortran compiler (version 9 or below)
 
 ```shell
 ./Config.pl -install -earth -compiler=gfortran
@@ -69,17 +73,15 @@ In theory, Mars, Venus, Titan, and LV-426 should work.  These are in
 various states of completion, so I wouldn't count on them being
 perfect.
 
-If running on Pleiades (as of March 3, 2022), you need to have these
+If running on Pleiades, you need to have these
 in your start-up script (.cshrc, .bashrc, etc):
 
 ```
-module load comp-intel/2016.2.181
-module load mpi-hpe/mpt
+module load comp-intel
+module load mpi-hpe
 ```
 
-And you can use 3c below to configure the code.
-
-3c\. Configure for Pleiades
+And you can use the below line below to configure the code:
 
 ```shell
 ./Config.pl -install -earth -compiler=ifort
@@ -127,7 +129,7 @@ lon. See below for how to set the resolution.
 > see available options.
 
 > The legacy postprocessors are still available, but are not built by default. To build
-> PostProcess.exe, run `make POST` and the csh script can be found at `src/pGITM`.
+> PostProcess.exe, run `make POST`. The csh script can be found at `src/pGITM`.
 
 9\. Go into the output directory:
 
@@ -200,7 +202,9 @@ team.  For example:
 NCAR. The IGRF code that comes with it is also not developed at UM.
 
 2. Many electrodynamics models (Weimer, Newell's Ovation Prime,
-Mitchell's Ovation SME, others in the util/EMPIRICAL/srcIE directory).
+Mitchell's Ovation SME, others in the 
+[GITMCode/Electrodynamics](https://github.com/GITMCode/Electrodynamics)
+repository).
 
 3. MSIS and IRI, which are in util/EMPIRICAL/srcUA. MSIS is used as a
 lower BC at Earth and was developed at NRL. IRI is used to initialize
@@ -228,3 +232,7 @@ processors, you can change the parameters in `src/ModSize.f90` and adjust the
 number of cells in each block to compensate. For example, you have 8
 processors, so you can adjust `src/ModSize.f90` to have 18 cells in lat and
 lon, then ask for 2 (lat) x 4 (lon) blocks to get 5 deg x 5 deg resolution.
+
+See the 
+[grid page](https://gitm.readthedocs.io/en/latest/grid/#horizontal-resolution)
+in the documentation for more details and some examples.
