@@ -48,27 +48,6 @@ jobs:
           cd GITM
           python srcPython/format_GITM.py -l -s -v ${ALL_CHANGED_FILES}
 
-  Documentation:
-    runs-on: ubuntu-latest
-    name: Build Documentation
-    needs: [Format]
-    steps:
-      - name: Clone GITM repository
-        uses: actions/checkout@v4
-      - name: Compile LaTeX document
-        uses: xu-cheng/latex-action@v3
-        with:
-          root_file: manual.tex
-          working_directory: srcDoc
-      - name: Rename GITM Manual
-        run: mv srcDoc/manual.pdf GITM_manual.pdf
-      - name: Upload PDF file
-        uses: actions/upload-artifact@v4
-        with:
-          name: PDF
-          path: GITM_manual.pdf
-          retention-days: 31
-
   Tests:
     runs-on: ubuntu-latest
     name: Run Automatic Tests

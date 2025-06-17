@@ -5,11 +5,7 @@ This is the home of the Global Ionosphere/Thermosphere Model (GITM).
 GITM has been developed in fortran-90. It has been tested with gfortran
 on Linux and MacOS as well as ifort on NASA's Pleiades computer.
 
-The latest version of the PDF documentation can be accessed at:
-
-[![Build Documentation](https://github.com/GITMCode/GITM/actions/workflows/build-docs.yml/badge.svg)](https://github.com/GITMCode/GITM/actions/workflows/build-docs.yml)
-
-For a more complete documentation, see [GITM's Read the Docs Page](https://gitm.readthedocs.io).
+For the complete documentation, see [GITM's Read the Docs Page](https://gitm.readthedocs.io).
 
 ---
 
