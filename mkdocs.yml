@@ -1,10 +1,41 @@
 site_name: GITM
 theme:
-  name: readthedocs
+  # name: readthedocs
   # name: mkdocs
-  # name: material
-  # palette:
-  #   scheme: slate
+  name: material
+  icon:
+    logo: material/earth
+    repo: material/github
+
+  features:
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.footer
+    - toc.integrate
+    - content.code.annotate
+    - content.code.copy
+
+  palette:
+    # Palette toggle for automatic mode
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode
+
+    # Palette toggle for light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default 
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+
+    # Palette toggle for dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to system preference
+
 plugins:
   - search # allow for search after being built
   - mermaid2: # cool diagrams
