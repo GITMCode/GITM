@@ -92,12 +92,12 @@ the GITM repository, and all dependencies like the
 [electrodynamics](https://github.com/GITMCode/Electrodynamics) libraries will be
 downloaded during configuration.
 
-```shell
+```
 git clone git@github.com:GITMCode/GITM.git
 cd GITM
 ```
 
-!!! note
+!!! tip
     Replace `git@github.com:GITMCode/GITM.git` with
     `https://github.com/GITMCode/GITM.git` if you don't have Github ssh keys set
     up.
@@ -112,13 +112,12 @@ This step configures the planet, compiler, and some paths GITM needs to
 work properly. To configure GITM for Earth using the `gfortran` compiler, run:
 
 ```bash
-./Config.pl -install -earth -compiler=gfortran
+./Config.pl -install -earth -compiler=gfortran10
 ```
 
-!!! caution
-     <!--#TODO> </!--> 
-    Prior GITM versions required specifying `compiler=gfortran10` when using
-    `gfortran>=10.0.0`, however this is no longer necessary.
+!!! warning 
+    <!--#TODO> </!--> The above example assumes you are using gfortran
+     version 10+. If your gfortran version is <10, use `compiler=gfortran`
 
 The full list of available configuration options can be found by running
 `./Config.pl -h`. A useful flag while developing is `-debug` which will print a

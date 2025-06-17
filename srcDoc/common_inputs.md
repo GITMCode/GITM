@@ -89,7 +89,7 @@ of formats used for hemispheric power files (due to a change in the NOAA
 output format in 2007). Both file formats can be used by GITM, and are
 shown in the examples below.
 
-!!! attention 
+!!! tip 
     GITM can read a NOAA HPI file, however the recommended way to provide
     hemispheric power is to have GITM derive HPI from the AE-index.
     

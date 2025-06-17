@@ -151,23 +151,23 @@ Or, a real one:
 
 ## Admonitions
 
-Admonitions are these fancy boxes:
+Admonitions are these fancy boxes. See [here](https://squidfunk.github.io/mkdocs-material/reference/admonitions/#customization) for more information
 
 !!! tip
-    Identical to `important` and `hint`. All appear green.
+    Our theme (material) supports some non-standard admonitions
 
 !!! warning
     Here's a warning. new lines need two breaks.
 
     Here's how to put multiple lines in an admonition
 
-    > Warning, caution, and attention all appear orange.
+!!! danger
+    This is for something very serious
 
-!!! error
-    Synonymous to `danger`, both appear red
-
-!!! note "custom label"
+!!! bug "custom label"
     notes can be given custom labels!
+
+    This uses the `bug` callout
 
 !!! OnlyTheFirstWordFromTheLabel is shown
     Stick to using `!!!note "multi word label"` when possible.
