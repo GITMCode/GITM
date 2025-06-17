@@ -1,4 +1,4 @@
-# Quick Start
+# Installation
 
 If a fortran compiler & MPI are already installed on your system, you may wish
 to skip down to [Getting the Code](#getting-the-code).

@@ -28,17 +28,18 @@ docs_dir: srcDoc
 
 nav:
   - Home: index.md
-  - Quick Start: quick_start.md
+  - Getting Started: install.md
   - Inputs:
     - Common Inputs: common_inputs.md
-    - Grid: grid.md
     - All Inputs: set_inputs.md
   - Outputs:
     - Postprocessing: postprocessing.md
     - Available Outputs: outputs.md
   - Internals:
-    - Earth Chemistry: chemistry.md
-    - Electrodynamics: electrodynamics.md
+    - Overview: internals/overview.md
+    - Grid: internals/grid.md
+    - Earth Chemistry: internals/chemistry.md
+    - Electrodynamics: internals/electrodynamics.md
   - Development:
     - Site Information: devstuff/devhome.md
     - GITM Developers: devstuff/dev_team.md

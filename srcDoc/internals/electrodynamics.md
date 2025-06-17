@@ -128,7 +128,7 @@ Some required input file-types are listed below:
 | Ovation | Yes     | No    | No    | Yes   |
 
 HP can be derived from AE, and is not necessarily required to be in a standalone
-file. See [here](common_inputs.md#sme-indices) for more details.
+file. See [here](../common_inputs.md#sme-indices) for more details.
 
 ## File-based Electrodynamics
 
@@ -143,11 +143,11 @@ several intense monoenergetic beams at any number of locations.
 
 ## Running Electrodynamics Only
 
-By using the [`#STATISTICALMODELSONLY`](set_inputs.md#statisticalmodelsonly)
+By using the [`#STATISTICALMODELSONLY`](../set_inputs.md#statisticalmodelsonly)
 option in `UAM.in`, it is possible to run any configuration of Electrodynamics
 models without GITM's physics, making the runs faster. 
 
-By setting the desired output type to [`2DGEL`](outputs.md#2dgel), and an
+By setting the desired output type to [`2DGEL`](../outputs.md#2dgel), and an
 appropriate Dt for `#STATISTICALMODELSONLY` and `#OUTPUT`, GITM will read in the
 necessary input files and output precipitation & potential patterns using the
 specified electrodynamics modules. An example of this is located in
