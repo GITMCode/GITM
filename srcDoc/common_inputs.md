@@ -211,18 +211,13 @@ derive HP, as it is often more representative of geomagnetic conditions than the
 NOAA HPI.
 
 The formula to calculate hemispheric power (HP) from AE is taken from (Wu et
-al., 2021)[^wuetal] and is given as:
+al., 2021)[^1] and is given as:
 
 ```math
 \begin{align}
 HemisphericPower = 0.102 * AE + 8.953
 \end{align}
 ```
-
-[^wuetal]: Wu, C., Ridley, A. J., DeJong, A. D., & Paxton, L. J. (2021).
-FTA: A Feature Tracking Empirical Model Of Auroral Precipitation. 
-Space Weather, 19, e2020SW002629. <https://doi.org/10.1029/2020SW002629>
-
 
 ## Solar Irradiance {#solar_irradiance.sec}
 
