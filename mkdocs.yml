@@ -75,6 +75,7 @@ nav:
     - Electrodynamics: internals/electrodynamics.md
   - Development:
     - Site Information: devstuff/devhome.md
+    - Contributing: https://github.com/GITMCode/GITM/blob/main/.github/CONTRIBUTING.md
     - GITM Developers: https://github.com/GITMCode/GITM/graphs/contributors
     - Markdown Reference: devstuff/markdown_ref.md
     - GITM Outline: devstuff/outline.md
