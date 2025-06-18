@@ -36,6 +36,11 @@ NOMPI:
 	@echo ${NOMPIDIR}
 	@cd ${NOMPIDIR}; make LIB
 
+VERSION:
+	git log -1 HEAD --date=format:'%Y%m%d'  --pretty="format:\"%ad_%h_" > src/.version;
+	echo -n $(shell git status --porcelain | wc -l  | cut -f1 -d' ')\" >> src/.version
+	@echo 
+
 GITM:
 	@cd ${SHAREDIR}; echo "Entering ${SHAREDIR}"; make --no-print-directory LIB
 	@cd $(ABDIR); echo "Entering ${ABDIR}" ; make --no-print-directory LIB
@@ -43,6 +48,7 @@ GITM:
 	@cd ${EUADIR}; echo "Entering ${EUADIR}"; make --no-print-directory LIB
 	@cd $(IODIR); echo "Entering ${IODIR}"; make --no-print-directory LIB
 	@cd $(GLDIR); echo "Entering ${GLDIR}";	make --no-print-directory LIB
+	@echo "Adding version info to executable:"; make --no-print-directory VERSION
 	@cd $(MAINDIR); make --no-print-directory GITM
 
 SAMI:
