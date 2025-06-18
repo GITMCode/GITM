@@ -3,14 +3,52 @@
 Setting the grid resolution in GITM is not very complicated, but it does involve
 some thought. There are a few variables that control this. 
 
+In essence, GITM's resolution is dictated by the number of CPU cores it is run
+on. The number of cores must equal the product of the number of blocks in
+longitude and latitude, which are both set in `UAM.in`. The resolution in the
+longitudinal and latitudinal directions are, by default, 9 times the number of
+blocks in each direction.
+
 ## Important Variables
 
 Each CPU core that GITM is run on is considered a **block**. Within each block,
-the grid is further divided into **cells**. The number of cells per block is set
-before compiling, and the number of blocks to model is decided at runtime. The
-number of blocks per core cannot change from 1. Thus, the resulting resolution
-is dependent on how many cores GITM is run on, specified in the `UAM.in` file,
-and the number of cells within each block, specified in `src/ModSize.f90`.
+the grid is further divided into individual grid **cells**. The number of cells
+per block is set before compiling, and the number of blocks to model is decided
+at runtime. The number of blocks per core cannot change from 1. How many cores
+GITM is run on is specified in the `UAM.in` file, and the number of cells within
+each block is specified in `src/ModSize.f90`.
+
+### Blocks (UAM.in)
+
+When GITM is first creating its grid, the region of interest (usually the entire
+globe) if first divided into blocks. Each block is a region that is modeled on a
+single CPU core. This is the most common variable to adjust when trying to
+change the resolution.
+
+These values are set in the `UAM.in` file and read at runtime. So the same
+executable can be used for many different resolutions without needing to
+recompile!
+
+For example, the initial settings have 2 blocks in latitude and 2 in
+longitude:
+
+    #GRID
+    2           lons
+    2           lats
+    -90.0       minimum latitude to model
+    90.0        maximum latitude to model
+    0.0		    longitude start to model (set to 0.0 for whole Earth)
+    0.0         longitude end to model (set to 0.0 for whole Earth)
+
+The number of CPU cores required is the product of the number of blocks in
+longitude and latitude. Doubling the resolution in both latitude and longitude
+requires four times as many cores since 
+$`(2*nLons) \times (2*nLats) = 4\times (nLons*nLats)`$.
+
+```math
+nCPUs = (nBlocksLon) \times (nBlocksLat)
+```
+
 
 ### Cells
 
@@ -35,28 +73,6 @@ something other than 1. It will be removed in a future release.
 !!! note
     If you change any of these parameters, you will need to recompile the code.
 
-### Blocks (UAM.in)
-
-Once the number of cells per block is defined, then the number of blocks in
-latitude and longitude need to be defined. This is done in the `UAM.in` file at
-runtime. For example, the initial settings have 2 blocks in latitude and 2 in
-longitude:
-
-    #GRID
-    2           lons
-    2           lats
-    -90.0       minimum latitude to model
-    90.0        maximum latitude to model
-    0.0		    longitude start to model (set to 0.0 for whole Earth)
-    0.0         longitude end to model (set to 0.0 for whole Earth)
-
-The number of blocks can be changed without needing to recompile. The same
-binary can be used to verify things are working on four cores, and then do a
-science run on 200 cores.
-
-The number of cores required is the product of the number of blocks in longitude
-and latitude. Doubling the resolution in both latitude and longitude requires
-four times as many cores since $`(2*nLons) \times (2*nLats) = 4\times (nLons*nLats)`$.
 
 ## Horizontal Resolution
 
@@ -124,7 +140,7 @@ maximum and minimum longitude are not equal to each other.
 ## Altitudes
 
 As defined in `src/ModEarth.f90`, each altitude block contains $`\frac{1}{3}`$
-of a scale height, starting at 100 km and typically reaching up to ~5-700 km.
+of a scale height, starting at 100 km and typically reaching up to ~500-700 km.
 Increasing the number of altitude blocks will increase the altitude range, but
 if this value is increased too much the model may become unstable and/or
 inaccurate.
