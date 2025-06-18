@@ -39,7 +39,7 @@ NOMPI:
 GITM:
 	@cd ${SHAREDIR}; make LIB
 	@cd $(ABDIR);    make LIB
-	@cd $(EIEDIR);   make LIB
+	@cd $(EIEDIR)/src;   make SHARELIB
 	@cd ${EUADIR};   make LIB
 	@cd $(IODIR);    make LIB
 	@cd $(GLDIR);	 make LIB
