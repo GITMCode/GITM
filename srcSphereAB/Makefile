@@ -25,9 +25,7 @@ DEPEND:
 MY_LIB = ${LIBDIR}/libSphere.a
 
 LIB:	DEPEND
-	${MAKE} ${MY_LIB}
-	@echo
-	@echo ${MY_LIB} has been brought up to date.
+	@make ${MY_LIB}
 	@echo
 
 ${MY_LIB}: ${MF} ${MODULES} ${OBJECTS}
