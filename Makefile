@@ -3,13 +3,13 @@ default : GITM
 
 include Makefile.def
 
-ABDIR   = srcSphereAB
-EIEDIR   = ${IEDIR}
-EUADIR  = ${EMPIRICALUADIR}
-IODIR   = ${DATAREADINDICESDIR}
-MAINDIR = src
-GLDIR   = srcGlow
-SAMIDIR = srcSAMI
+ABDIR = ${UADIR}/srcSphereAB
+EIEDIR = ${IEDIR}
+EUADIR = ${EMPIRICALUADIR}
+IODIR = ${DATAREADINDICESDIR}
+MAINDIR = ${UADIR}/src
+GLDIR = ${UADIR}/srcGlow
+SAMIDIR = ${UADIR}/srcSAMI
 
 PLANET=earth
 
@@ -37,13 +37,13 @@ NOMPI:
 	@cd ${NOMPIDIR}; make LIB
 
 GITM:
-	@cd ${SHAREDIR}; make LIB
-	@cd $(ABDIR);    make LIB
-	@cd $(EIEDIR);   make LIB
-	@cd ${EUADIR};   make LIB
-	@cd $(IODIR);    make LIB
-	@cd $(GLDIR);	 make LIB
-	@cd $(MAINDIR);  make GITM
+	@cd ${SHAREDIR}; echo "Entering ${SHAREDIR}"; make --no-print-directory LIB
+	@cd $(ABDIR); echo "Entering ${ABDIR}" ; make --no-print-directory LIB
+	@cd $(EIEDIR)/src; echo "Entering ${EIEDIR}/src"; make --no-print-directory LIB
+	@cd ${EUADIR}; echo "Entering ${EUADIR}"; make --no-print-directory LIB
+	@cd $(IODIR); echo "Entering ${IODIR}"; make --no-print-directory LIB
+	@cd $(GLDIR); echo "Entering ${GLDIR}";	make --no-print-directory LIB
+	@cd $(MAINDIR); make --no-print-directory GITM
 
 SAMI:
 	@cd ${SHAREDIR}; make LIB MEM=-mcmodel=large
@@ -72,14 +72,14 @@ nompirun:
 
 clean:
 	@touch ${INSTALLFILES}
-	cd $(ABDIR); make clean
-	cd $(MAINDIR); make clean
-	cd $(GLDIR); make clean
-	cd srcInterface; make clean
-	if [ -d share ]; then cd share; make cleanall; fi;
-	if [ -d util ];  then cd util;  make cleanall; fi;
-	if [ -d srcSAMI ]; then cd srcSAMI; make clean; fi;
-	if [ -d ext/Electrodynamics ]; then cd ext/Electrodynamics; make cleanall; fi;
+	cd $(ABDIR); make --no-print-directory clean
+	cd $(MAINDIR); make --no-print-directory clean
+	cd $(GLDIR); make --no-print-directory clean
+	cd srcInterface; make --no-print-directory clean
+	if [ -d share ]; then cd share; make --no-print-directory cleanall; fi;
+	if [ -d util ]; then cd util; make --no-print-directory cleanall; fi;
+	if [ -d srcSAMI ]; then cd srcSAMI; make --no-print-directory clean; fi;
+	if [ -d $(EIEDIR) ]; then cd $(EIEDIR); make --no-print-directory cleanall; fi;
 
 
 distclean: 
@@ -88,9 +88,9 @@ distclean:
 
 allclean:
 	@touch ${INSTALLFILES}
-	@cd $(ABDIR);    make clean
-	@cd $(MAINDIR);  make distclean
-	@cd srcInterface;make distclean
+	@cd $(ABDIR); make clean
+	@cd $(MAINDIR); make distclean
+	@cd srcInterface; make distclean
 	rm -f *~ srcData/UAM.in
 	# If util and share were moved because of GITM being
 	# used in SWMF component mode, put them back.
