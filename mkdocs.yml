@@ -1,4 +1,10 @@
 site_name: GITM
+site_url: https://gitm.readthedocs.io
+site_description: >-
+  Official documentation for the Global Ionosphere Thermosphere Model (GITM)
+repo_name: GITMCode/GITM
+repo_url: https://github.com/GITMCode/GITM
+
 theme:
   # name: readthedocs
   # name: mkdocs
