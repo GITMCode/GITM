@@ -33,9 +33,7 @@ EXE = ${BINDIR}/GLOW.exe
 MYLIB = ${LIBDIR}/libGLOW.a
 
 LIB:	DEPEND
-	${MAKE} ${MYLIB}
-	@echo
-	@echo ${MYLIB} has been brought up to date.
+	@make ${MYLIB}
 	@echo
 
 ${MYLIB}: ${MODULES} ${OBJECTS}
@@ -48,12 +46,10 @@ MY_LIB=libUPTOGL.a
 LIBADD: DEPEND
 	@make ${MY_LIB}
 	@echo
-	@echo ${MY_LIB} has been brought up to date.
-	@echo
 
 ${MY_LIB}: ${MF} ${MODULES} ${OBJECTS}
-	${MAKE} ${MYLIB}
-	cp -f ${LIBPREV} ${MY_LIB}
+	@make ${MYLIB}
+	@cp -f ${LIBPREV} ${MY_LIB}
 	${AR} ${MY_LIB} ${OBJECTS} ${MODULES}
 
 GLOW: DEPEND
