@@ -91,4 +91,11 @@ jobs:
         run: |
           ./Config.pl -install -earth -compiler=gfortran10 -debug
           cd srcTests/auto_test
+      - name: Run tests on Linux
+        if: runner.os == 'Linux'
+        run: |
           ./run_all_tests.sh --oversubscribe
+      - name: Run tests on MacOS (nocompare)
+        if: runner.os == 'macOS'
+        run: |
+          ./run_all_tests.sh --oversubscribe --nocompare
