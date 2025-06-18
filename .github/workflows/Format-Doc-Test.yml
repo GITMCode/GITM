@@ -89,5 +89,6 @@ jobs:
         uses: actions/checkout@v4
       - name: Run tests in srcTests/auto_test
         run: |
+          ./Config.pl -install -earth -compiler=gfortran10 -debug
           cd srcTests/auto_test
-          ./run_all_tests.sh
+          ./run_all_tests.sh --oversubscribe
