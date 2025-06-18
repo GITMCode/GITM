@@ -1004,7 +1004,7 @@ contains
   subroutine write_head_version
 
     use ModGITMVersion
-  
+
     write(iOutputUnit_, *) "VERSION"
     write(iOutputUnit_, *) trim(GitmVersion)
     write(iOutputUnit_, *) ""
