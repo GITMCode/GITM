@@ -90,6 +90,9 @@ if ($Install and not $IsCompGitm){
         print "ext/Electrodynamics already exists. Not attempting update.\n";
 	print " >> NOTICE: You may wish to `git pull` from within ext/Electrodynamics.\n";
     }
+    my $command = "touch ext/Electrodynamics/src/Makefile.DEPEND";
+    print "creating DEPEND file in electrodynamics:\n\t $command\n";
+    my $exit_status = `$command`;
 }
 
 &modify_utilities if $NoFlush;
