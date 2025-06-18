@@ -87,8 +87,14 @@ if ($Install and not $IsCompGitm){
             # If this fails, the script will exit with an error message
         }
     } else {
-        print "ext/Electrodynamics already exists. Not attempting update.\n";
-	print " >> NOTICE: You may wish to `git pull` from within ext/Electrodynamics.\n";
+        print "ext/Electrodynamics already exists.\n";
+        my $command = "git -C ext/Electrodynamics pull";
+        my $exit_status = `$command`;
+        if (!$exit_status){
+             print "\next/Electrodynamics could not be updated.\n";
+             print "==> You may wish to 'git pull' from ext/Electrodynamics manually\n";
+             print "Continuing config...\n"
+        }
     }
     my $command = "touch ext/Electrodynamics/src/Makefile.DEPEND";
     print "creating DEPEND file in electrodynamics:\n\t $command\n";
