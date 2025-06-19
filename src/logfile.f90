@@ -164,7 +164,7 @@ subroutine logfile(dir)
     write(iLogFileUnit_, '(a)') &
       "   iStep yyyy mm dd hh mm ss  ms      dt "// &
       "min(T) max(T) mean(T) min(VV) max(VV) mean(VV) F107 F107A "// &
-      "By Bz Vx HP HPn HPs HPn_diff HPs_diff HPn_w HPs_w HPn_m HPs_w "// &
+      "By Bz Vx HP HPn HPs HPn_diff HPs_diff HPn_w HPs_w HPn_m HPs_m "// &
       "SubsolarLon SubsolarLat SubsolarVTEC"
   endif
 
