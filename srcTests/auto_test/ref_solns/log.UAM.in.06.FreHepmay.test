@@ -15,7 +15,7 @@ none
 # Ion Chemistry:  T Ion Advection:  T Neutral Chemistry:  T
  
 #START
-   iStep yyyy mm dd hh mm ss  ms      dt min(T) max(T) mean(T) min(VV) max(VV) mean(VV) F107 F107A By Bz Vx HP HPn HPs HPn_diff HPs_diff HPn_w HPs_w HPn_m HPs_w SubsolarLon SubsolarLat SubsolarVTEC
+   iStep yyyy mm dd hh mm ss  ms      dt min(T) max(T) mean(T) min(VV) max(VV) mean(VV) F107 F107A By Bz Vx HP HPn HPs HPn_diff HPs_diff HPn_w HPs_w HPn_m HPs_m SubsolarLon SubsolarLat SubsolarVTEC
        2 2002 12 21  0  0  4 105  4.1058    157.74815   1316.94399   1012.00744     -3.86975      4.80289      0.02833    177.9    149.5      6.1     -6.0    531.2     71.9     95.5     95.5  95.48751  95.48751   0.00000   0.00000   0.00000   0.00000   3.14129  -0.40992  58.10300
        3 2002 12 21  0  0  8 203  4.0977    157.87028   1316.73590   1012.12672     -5.52743      3.91095     -0.31462    177.9    149.5      6.2     -6.0    531.0     72.0     95.5     95.5  95.48751  95.48751   0.00000   0.00000   0.00000   0.00000   3.14100  -0.40992  58.06740
        4 2002 12 21  0  0 12 301  4.0979    157.90494   1316.53883   1012.25819     -6.40138      3.49807     -0.57158    177.9    149.5      6.2     -6.0    530.7     72.0     95.5     95.5  95.48751  95.48751   0.00000   0.00000   0.00000   0.00000   3.14070  -0.40992  58.05555
