@@ -39,7 +39,7 @@ NOMPI:
 GITM:
 	@cd ${SHAREDIR}; echo "Entering ${SHAREDIR}"; make --no-print-directory LIB
 	@cd $(ABDIR); echo "Entering ${ABDIR}" ; make --no-print-directory LIB
-	@cd $(EIEDIR)/src; echo "Entering ${EIEDIR}/src"; make --no-print-directory LIB
+	@cd $(EIEDIR)/src; echo "Entering ${EIEDIR}/src"; make --no-print-directory SHARELIB
 	@cd ${EUADIR}; echo "Entering ${EUADIR}"; make --no-print-directory LIB
 	@cd $(IODIR); echo "Entering ${IODIR}"; make --no-print-directory LIB
 	@cd $(GLDIR); echo "Entering ${GLDIR}";	make --no-print-directory LIB
