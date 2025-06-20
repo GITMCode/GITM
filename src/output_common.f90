@@ -644,15 +644,15 @@ contains
 
     if (cType(3:5) == "THM") then
 
-      write(iOutputUnit_, "(I7,A1,a)") 4, " ", "EUV Heating"
-      write(iOutputUnit_, "(I7,A1,a)") 5, " ", "Conduction"
-      write(iOutputUnit_, "(I7,A1,a)") 6, " ", "Molecular Conduction"
-      write(iOutputUnit_, "(I7,A1,a)") 7, " ", "Eddy Conduction"
-      write(iOutputUnit_, "(I7,A1,a)") 8, " ", "Eddy Adiabatic Conduction"
-      write(iOutputUnit_, "(I7,A1,a)") 9, " ", "Chemical Heating"
-      write(iOutputUnit_, "(I7,A1,a)") 11, " ", "Joule Heating"
-      write(iOutputUnit_, "(I7,A1,a)") 12, " ", "NO Cooling"
-      write(iOutputUnit_, "(I7,A1,a)") 13, " ", "O Cooling"
+      write(iOutputUnit_, "(I7,A1,a)") 4, " ", "EUV Heating (K/s)"
+      write(iOutputUnit_, "(I7,A1,a)") 5, " ", "Conduction (K/s)"
+      write(iOutputUnit_, "(I7,A1,a)") 6, " ", "Molecular Conduction (K/s)"
+      write(iOutputUnit_, "(I7,A1,a)") 7, " ", "Eddy Conduction (K/s)"
+      write(iOutputUnit_, "(I7,A1,a)") 8, " ", "Eddy Adiabatic Conduction (K/s)"
+      write(iOutputUnit_, "(I7,A1,a)") 9, " ", "Chemical Heating (K/s)"
+      write(iOutputUnit_, "(I7,A1,a)") 11, " ", "Joule Heating (K/s)"
+      write(iOutputUnit_, "(I7,A1,a)") 12, " ", "NO Cooling (K/s)"
+      write(iOutputUnit_, "(I7,A1,a)") 13, " ", "O Cooling (K/s)"
       write(iOutputUnit_, "(I7,A1,a)") 14, " ", "Total Abs EUV"
       if (cType(1:2) == "1D") then
         do iSpecies = 1, nSpeciesTotal
@@ -1344,16 +1344,16 @@ subroutine output_3dthm(iBlock)
           Longitude(iLon, iBlock), &
           Latitude(iLat, iBlock), &
           Altitude_GB(iLon, iLat, iAlt, iBlock), &
-          EuvHeating(iiLon, iiLat, iiAlt, iBlock)*dt*TempUnit(iiLon, iiLat, iiAlt), &
-          Conduction(iiLon, iiLat, iiAlt)*TempUnit(iiLon, iiLat, iiAlt), &
+          EuvHeating(iiLon, iiLat, iiAlt, iBlock)*TempUnit(iiLon, iiLat, iiAlt), &
+          Conduction(iiLon, iiLat, iiAlt)*TempUnit(iiLon, iiLat, iiAlt)/dt, &
           MoleConduction(iiLon, iiLat, iiAlt), &
           EddyCond(iiLon, iiLat, iiAlt), &
           EddyCondAdia(iiLon, iiLat, iiAlt), &
-          ChemicalHeatingRate(iiLon, iiLat, iiAlt)*TempUnit(iiLon, iiLat, iiAlt), &
-          JouleHeating(iiLon, iiLat, iiAlt)*dt*TempUnit(iiLon, iiLat, iiAlt), &
-          -NOCooling(iiLon, iiLat, iiAlt)*dt*TempUnit(iiLon, iiLat, iiAlt), &
-          -OCooling(iiLon, iiLat, iiAlt)*dt*TempUnit(iiLon, iiLat, iiAlt), &
-          EuvTotal(iiLon, iiLat, iiAlt, iBlock)*dt, &
+          ChemicalHeatingRate(iiLon, iiLat, iiAlt)*TempUnit(iiLon, iiLat, iiAlt)/dt, &
+          JouleHeating(iiLon, iiLat, iiAlt)*TempUnit(iiLon, iiLat, iiAlt), &
+          -NOCooling(iiLon, iiLat, iiAlt)*TempUnit(iiLon, iiLat, iiAlt), &
+          -OCooling(iiLon, iiLat, iiAlt)*TempUnit(iiLon, iiLat, iiAlt), &
+          EuvTotal(iiLon, iiLat, iiAlt, iBlock), &
           cp(iiLon, iiLat, iiAlt, iBlock), &
           rho(iiLon, iiLat, iiAlt, iBlock), &
           sqrt(sum(EField(iLon, iLat, iAlt, :)**2)), & ! magnitude of E.F.
