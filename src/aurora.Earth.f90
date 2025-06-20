@@ -75,12 +75,15 @@ subroutine aurora(iBlock)
   endif
 
   if (iProc == 0 .and. AveEFactor /= 1.0 .and. IsFirstTime(iBlock)) then
-    write(*, *) "Auroral Experiments!!!!"
-    write(*, *) "AveEFactor : ", AveEFactor
+    write(*, *) "Reminder / Warning!!!"
+    write(*, *) " --> Auroral Experiment, AveEFactor is set"
+    write(*, *) " --> AveEFactor : ", AveEFactor
+    write(*, *) " --> This factor is currently applied in get_potential!"
   endif
   if (iProc == 0 .and. IsKappaAurora .and. IsFirstTime(iBlock)) then
-    write(*, *) "Auroral Experiments!!!!"
-    write(*, *) "kappa : ", AuroraKappa
+    write(*, *) "Reminder / Warning!!!"
+    write(*, *) " --> Auroral Experiments, AuroraKappa is set"
+    write(*, *) " --> kappa : ", AuroraKappa
   endif
 
   do i = 1, nLats
@@ -103,7 +106,7 @@ subroutine aurora(iBlock)
           ) then
         call do_diffuse_aurora(ElectronEnergyFluxDiffuse(j, i), &
                                ! aveEFactor is 1 unless set in #auroramods
-                               ElectronAverageEnergyDiffuse(j, i)*AveEFactor, &
+                               ElectronAverageEnergyDiffuse(j, i), &
                                e_diffuse_ED_flux)
         HasSomeAurora = .true.
       endif

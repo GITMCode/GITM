@@ -61,13 +61,19 @@ subroutine init_get_potential
 
   ! Now run some checks on user's settings:
   if (iProc == 0) then
-    if (IEModel_%iAurora_ == iOvationPrime_) then
-      if (NormalizeAuroraToHP) &
-        call raise_warning("You probably should not use NormalizeAuroraToHP and Ovation")
+  if (IEModel_%iAurora_ == iOvationPrime_) then
+    if (NormalizeAuroraToHP .and. (iProc == 0)) &
+      call raise_warning("You probably should not use NormalizeAuroraToHP and Ovation")
 
-      if (UseIonAurora .and. IsKappaAurora) &
-        call raise_warning("Ion precipitation cannot be Kappa distribution yet.")
-    endif
+    if (UseIonAurora .and. IsKappaAurora) &
+      call raise_warning("Kappa aurora & ion precipitation cannot be used simultaneously, yet.")
+  endif
+
+  if (IEModel_%iAurora_ /= iOvationPrime_ .and. UseMonoAurora) &
+    call set_error("Mono-energetic aurora can only be used with ovation currently")
+
+  if (IEModel_%iAurora_ /= iOvationPrime_ .and. UseWaveAurora) &
+    call set_error("Wave aurora can only be used with ovation currently")
   endif
 
   if (IEModel_%iAurora_ /= iFRE_ .and. NormalizeAuroraToHP) &
@@ -282,6 +288,8 @@ subroutine get_potential(iBlock)
     enddo
     endif
 
+    ElectronAverageEnergyDiffuse = ElectronAverageEnergyDiffuse * AveEFactor
+    
     ! -----------------------------
     ! Ion, Wave- & Mono- aurora
     ! -----------------------------
