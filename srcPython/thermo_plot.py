@@ -920,7 +920,7 @@ def plot_model_results():
             xSize = 10.0 * dpi
             ySize = 8.5 * dpi
             if (noPole):
-                ax = fig.add_axes([0.07, 0.06, 0.97, 0.9])
+                ax = fig.add_axes([0.07, 0.09, 0.97, 0.83])
             else:
                 ax = fig.add_axes([0.07, 0.06, 0.97, 0.48])
                 # Top Left Graph Northern Hemisphere
