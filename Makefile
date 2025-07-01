@@ -37,8 +37,8 @@ NOMPI:
 	@cd ${NOMPIDIR}; make LIB
 
 VERSION:
-	printf 'character(25), parameter :: GitmVersion = "%s_%s"\n' \
-	"$$(git log -1 --date=format:'%Y%m%d' --pretty='format:%ad_%h')" \
+	printf 'character(25), parameter :: GitmVersion = "%s.%s"\n' \
+	"$$(git log -1 --date=format:'%Y%m%d' --pretty='format:%ad')" \
 	"$$(git status --porcelain | grep -v '^??' | wc -l | cut -f1 -d' ')" > src/.version
 	@echo
 
