@@ -64,6 +64,8 @@ for all of the selected auroral types. At the moment these all must be from the
 same module, so one cannot use FTA for diffuse electron precipitation and AMIE
 for monoenergetic electron precipitation.
 
+### Aurora Types
+
 Auroral types are specified in the `#AURORATYPES` section of `UAM.in`, and only
 electron diffuse aurora are included by default:
 
@@ -75,8 +77,21 @@ F         UseWaveAurora (logical)
 F         UseIonAurora (logical)
 ```
 
+Some notes on the different auroral types:
+
+- `NormalizeAuroraToHP` is only recommended to be used in conjunction with FRE,
+- `#AURORATYPES` are not supported by all auroral models. Presently, only
+OVATION & MAGNIT (AMIE) can provide other than electron diffuse aurora.
+- `AllowAurWODiffuse` was added for stability with OVATION-Prime; it restricts
+mono/wave/ion aurora to only exist in locations which also contain electron
+diffuse aurora. This can be set in [`#AURORAMODS`](../common_inputs.md#auroramods)
+
 Internally, GITM represents Monoenergetic and Wave/broadband aurora with a
-gaussian centered at the average energy. The diffuse aurora can be represnted by
+gaussian centered at the average energy. 
+
+### Aurora Mods
+
+The diffuse aurora can be represnted by
 either a Maxwellian or Kappa distribution using the `#AURORAMODS` section of
 `UAM.in`:
 
@@ -90,11 +105,7 @@ F               AllowAurWODiffuse (logical)
 50.0            MaxAveEAurora    (real)
 ```
 
-`NormalizeAuroraToHP` is only recommended to be used in conjunction with FRE,
-and the other Aurora mods are recommended to be used only with Diffuse Aurora.
-`AllowAurWODiffuse` was assed for stability with OVATION-Prime; it restricts
-mono/wave/ion aurora to only exist in locations which also contain electron
-diffuse aurora.
+
 
 ## Potentials
 
