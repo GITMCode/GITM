@@ -27,55 +27,112 @@ This sets the ending time of the simulation.
     iMinute  (integer)
     iSecond  (integer)
 
-## PAUSETIME
 
-This will set a time for the code to just pause. Really, this should
-never be used.
+## ALTITUDE
 
-    #PAUSETIME
-    iYear iMonth iDay iHour iMinute iSecond
+For Earth, the AltMin is the only variable used here. The altitudes are
+set to 0.3 times the scale height reported by MSIS, at the equator for
+the specified F107 and F107a values.
 
-## ISTEP
+    #ALTITUDE
+    AltMin                (real, km)
+    AltMax                (real, km)
+    UseStretchedAltitude  (logical)
 
-This is typically only specified in a restart header. If you specify it
-in a start UAM.in it will start the counter to whatever you specify.
+## GRID
 
-    #ISTEP
-    iStep     (integer)
+If LatStart and LatEnd are set to \< -90 and \> 90, respectively, then
+GITM does a whole sphere. If not, it models between the two. If you want
+to do 1-D, set nLons=1, nLats=1 in ModSizeGitm.f90, then recompile, then
+set LatStart and LonStart to the point on the Globe you want to model.
 
-## CPUTIMEMAX
+    #GRID
+    nBlocksLon   (integer)
+    nBlocksLat   (integer)
+    LatStart     (real)
+    LatEnd       (real)
+    LonStart     (real)
+    LonEnd       (real)
 
-This sets the maximum CPU time that the code should run before it starts
-to write a restart file and end the simulation. It is very useful on
-systems that have a queueing system and has limited time runs.
-Typically, set it for a couple of minutes short of the max wall clock,
-since it needs some time to write the restart files.
 
-    #CPUTIMEMAX
-    CPUTimeMax    (real)
+## RESTART
 
-## STATISTICALMODELSONLY
+    #RESTART
+    DoRestart (logical)
 
-This command will skip all pretty much all of the physics of GITM, and
-will reinitialize the model with the MSIS and IRI values at the interval
-set in the second variable. If you want to compare a run to MSIS and
-IRI, you can run GITM with this command and get output at exactly the
-same cadence and locations, thereby allowing easier comparisons. The dt
-can be set as low as needed, so you can run satellites through MSIS and
-IRI.
+## SAVEPLOT
 
-    #STATISTICALMODELSONLY
-    UseStatisticalModelsOnly    (logical)
-    DtStatisticalModels         (real)
+The DtRestart variable sets the time in between writing full restart
+files to the UA/restartOUT directory.\
+This sets the output files. The most common type is 3DALL, which outputs
+all primary state variables. Types include : 3DALL, 3DNEU, 3DION, 3DTHM,
+3DCHM, 3DUSR, 3DGLO, 2DGEL, 2DMEL, 2DUSR, 1DALL, 1DGLO, 1DTHM, 1DNEW,
+1DCHM, 1DCMS, 1DUSR. DtPlot sets the frequency of output
 
-## TSIMULATION
+    #SAVEPLOT
+    DtRestart (real, seconds)
+    nOutputTypes  (integer)
+    Outputtype (string, 3D, 2D, ION, NEUTRAL, ...)
+    DtPlot    (real, seconds)
 
-This is typically only specified in a restart header. It sets the offset
-from the starttime to the currenttime. Should really only be used with
-caution.
+## PLOTTIMECHANGE
 
-    #TSIMULATION
-    tsimulation    (real)
+This allows you to change the output cadence of the files for a limited
+time. If you have an event then you can output much more often during
+that event.
+
+    #PLOTTIMECHANGE
+    yyyy mm dd hh mm ss ms (start)
+    yyyy mm dd hh mm ss ms (end)
+
+
+## LOGFILE
+
+You really want a log file. They are very important. It is output in
+UA/data/log\*.dat. You can output the log file at whatever frequency you
+would like, but if you set dt to some very small value, you will get an
+output every iteration, which is probably a good thing.
+
+    #LOGFILE
+    DtLogFile   (real, seconds)
+
+## CCMCFILENAME
+
+Typicaly file is named (e.g.) 1DALL_yymmdd_hhmmss.bin With this it will
+be named 1DALL_GITM_yyyy-mm-ddThh-mm-ss.bin
+
+    #CCMCFILENAME
+    UseCCMCFileName    (logical)
+
+
+## SAVEHIMEPLOT
+
+    #SAVEHIMEPLOT
+    HIMEPlotLonStart (real)
+    HIMEPlotLonEnd (real)
+    HIMEPlotLatStart (real)
+    HIMEPlotLatEnd (real)
+
+## SATELLITES
+
+    #SATELLITES
+    nSats     (integer - max = ', nMaxSats, ')
+    SatFile1  (string)
+    SatOutputtype1  (string, 0DUSR or 1DUSR or other)
+    DtPlot1   (real, seconds)
+    etc...
+
+
+## APPENDFILES
+
+For satellite files, you can have one single file per satellite, instead
+of one for every output. This makes GITM output significantly less
+files. It only works for satellite files now.
+
+    #APPENDFILES
+    DoAppendFiles    (logical)
+
+# Drivers
 
 ## F107
 
@@ -85,130 +142,6 @@ altitude grid, and drive the lower boundary conditions.
     #F107
     f107  (real)
     f107a (real - 81 day average of f107)
-
-## INITIAL
-
-This specifies the initial conditions and the lower boundary conditions.
-For Earth, we typically just use MSIS and IRI for initial conditions.
-For other planets, the vertical BCs can be set here.
-
-    #INITIAL
-    UseMSIS        (logical)
-    UseIRI         (logical)
-    If UseMSIS is .false. then :
-    TempMin        (real, bottom temperature)
-    TempMax        (real, top initial temperature)
-    TempHeight     (real, Height of the middle of temp gradient)
-    TempWidth      (real, Width of the temperature gradient)
-
-## TIDES
-
-This says how to use tides. The first one is using MSIS with no tides.
-The second is using MSIS with full up tides. The third is using GSWM
-tides, while the forth is for experimentation with using WACCM tides.
-
-    #TIDES
-    UseMSISOnly        (logical)
-    UseMSISTides       (logical)
-    UseGSWMTides       (logical)
-    UseWACCMTides      (logical)
-    UseHmeTides        (logical)
-
-## MSISTIDES
-
-This says how to use msis tides. The first one is using diurnal tide The
-first one is using semi-diurnal tide The first one is using terdiurnal
-tide
-
-    #MSISTIDES
-    UseMSISDiurnal        (logical)
-    UseMSISSemidiurnal    (logical)
-    UseMSISTerdiurnal     (logical)
-
-## MSISOBC
-
-UseOBCExperiment - use MSIS \[O\] BC shifted by 6 months Only applicable
-for MSIS00! MsisOblateFactor - alt = alt \* (1.0-f/2 + f\*cos(lat)) -
-seems like -0.1 works well
-
-    #MSISOBC
-    UseOBCExperiment        (logical)
-    MsisOblateFactor           (real)
-
-## MSISOBC
-
-This toggles between using MSIS00 (false) and MSIS-2.1 (true)
-
-    #MSISOBC
-    UseMsis21       (logical)
-
-## DUST
-
-This says whether you want seconds in output file name. F means no
-seconds in output file name.
-
-    #DUST
-    cDustFile
-    cConrathFile
-
-## OVERWRITEIONOSPHERE
-
-    #OVERWRITEIONOSPHERE
-    DoOverwriteIonosphere
-    DoOverwriteWithIRI
-    DoOverwriteWithSami
-    SamiInFile
-
-## GITMBCS
-
-    #GITMBCS
-    UseGitmBCs
-    GitmBCsDir
-
-## DUST
-
-    #DUST
-    TauTot
-    Conrnu
-
-## GSWMCOMP
-
-If you selected to use GSWM tides above, you can specify which
-components to use.
-
-    #GSWMCOMP
-    GSWMdiurnal(1)        (logical)
-    GSWMdiurnal(2)        (logical)
-    GSWMsemidiurnal(1)    (logical)
-    GSWMsemidiurnal(2)    (logical)
-
-## USEPERTURBATION
-
-    #USEPERTURBATION
-    UsePerturbation        (logical)
-
-## USEBCPERTURBATION
-
-    #USEBCPERTURBATION
-    UseBcPerturbation        (logical)
-    If UseBcPerturbation = .true. then:
-    iTypeBcPerturb         (int) 
-    perturbation characteristics ...
-
-## DAMPING
-
-This is probably for damping vertical wind oscillations that can occur
-in the lower atmosphere.
-
-    #DAMPING
-    UseDamping        (logical)
-
-## GRAVITYWAVE
-
-I dont know what this is for\...
-
-    #GRAVITYWAVE
-    UseGravityWave        (logical)
 
 ## HPI
 
@@ -226,22 +159,6 @@ field model is used.
     #KP
     kp  (real)
 
-## CFL
-
-The CFL condition sets how close to the maximum time step that GITM will
-take. 1.0 is the maximum value. A value of about 0.75 is typical. If
-instabilities form, a lower value is probably needed.
-
-    #CFL
-    cfl  (real)
-
-## FIXEDDT
-
-If you would like to force GITM to take a fixed dt you can use this. It
-will try to take that fixed dt, unless the CFL condition is violated.
-
-    #FIXEDDT
-    FixedDt  (real)
 
 ## SOLARWIND
 
@@ -262,6 +179,14 @@ the file is discussed further in the manual.
 
     #MHD_INDICES
     filename  (string)
+
+## EUV_DATA
+
+This is for a FISM or some other solar spectrum file.
+
+    #EUV_DATA
+    UseEUVData            (logical)
+    cEUVFile              (string)
 
 ## AURORAMODS
 
@@ -288,6 +213,15 @@ This is for using Pat Newells aurora (Ovation).
     UseNewellWave (logical)
     UseNewellRemoveSpikes (logical)
     UseNewellAverage      (logical)
+
+
+## IONPRECIPITATION
+
+You can only have an AMIE input file for this now. Make sure you put the
+ions in the AMIE file!!!
+
+    #IONPRECIPITATION
+    UseIonPrecipitation     (logical)
 
 ## OVATIONSME
 
@@ -353,6 +287,141 @@ below.
     AMIELatEnd           (real)
     AMIEBoundaryWidth    (real)
 
+## ELECTRODYNAMICS
+
+Sets the time for updating the high-latitude (and low-latitude)
+electrodynamic drivers, such as the potential and the aurora.
+
+    #ELECTRODYNAMICS
+    DtPotential (real, seconds)
+    DtAurora    (real, seconds)
+
+## INPUTTIMEDELAY
+
+Sets the time delay for the high latitude drivers and solar EUV inputs.
+
+    #INPUTTIMEDELAY
+    TimeDelayHighLat (real, seconds)
+    TimeDelayEUV     (real, seconds)
+
+
+# Boundary and Initial Conditions
+
+## INITIAL
+
+This specifies the initial conditions and the lower boundary conditions.
+For Earth, we typically just use MSIS and IRI for initial conditions.
+For other planets, the vertical BCs can be set here.
+
+    #INITIAL
+    UseMSIS        (logical)
+    UseIRI         (logical)
+    If UseMSIS is .false. then :
+    TempMin        (real, bottom temperature)
+    TempMax        (real, top initial temperature)
+    TempHeight     (real, Height of the middle of temp gradient)
+    TempWidth      (real, Width of the temperature gradient)
+
+## MSISTIDES
+
+This says how to use msis tides. The first one is using diurnal tide The
+first one is using semi-diurnal tide The first one is using terdiurnal
+tide
+
+    #MSISTIDES
+    UseMSISDiurnal        (logical)
+    UseMSISSemidiurnal    (logical)
+    UseMSISTerdiurnal     (logical)
+
+## MSISOBC
+
+UseOBCExperiment - use MSIS \[O\] BC shifted by 6 months Only applicable
+for MSIS00! MsisOblateFactor - alt = alt \* (1.0-f/2 + f\*cos(lat)) -
+seems like -0.1 works well
+
+    #MSISOBC
+    UseOBCExperiment        (logical)
+    MsisOblateFactor           (real)
+
+## MSISOBC
+
+This toggles between using MSIS00 (false) and MSIS-2.1 (true)
+
+    #MSISOBC
+    UseMsis21       (logical)
+
+
+## TIDES
+
+This says how to use tides. The first one is using MSIS with no tides.
+The second is using MSIS with full up tides. The third is using GSWM
+tides, while the forth is for experimentation with using WACCM tides.
+
+    #TIDES
+    UseMSISOnly        (logical)
+    UseMSISTides       (logical)
+    UseGSWMTides       (logical)
+    UseWACCMTides      (logical)
+    UseHmeTides        (logical)
+
+## GSWMCOMP
+
+If you selected to use GSWM tides above, you can specify which
+components to use.
+
+    #GSWMCOMP
+    GSWMdiurnal(1)        (logical)
+    GSWMdiurnal(2)        (logical)
+    GSWMsemidiurnal(1)    (logical)
+    GSWMsemidiurnal(2)    (logical)
+
+## USEPERTURBATION
+
+    #USEPERTURBATION
+    UsePerturbation        (logical)
+
+## USEBCPERTURBATION
+
+    #USEBCPERTURBATION
+    UseBcPerturbation        (logical)
+    If UseBcPerturbation = .true. then:
+    iTypeBcPerturb         (int) 
+    perturbation characteristics ...
+
+## GITMBCS
+
+    #GITMBCS
+    UseGitmBCs
+    GitmBCsDir
+
+# Numerics
+
+
+## STATISTICALMODELSONLY
+
+This command will skip all pretty much all of the physics of GITM, and
+will reinitialize the model with the MSIS and IRI values at the interval
+set in the second variable. If you want to compare a run to MSIS and
+IRI, you can run GITM with this command and get output at exactly the
+same cadence and locations, thereby allowing easier comparisons. The dt
+can be set as low as needed, so you can run satellites through MSIS and
+IRI.
+
+    #STATISTICALMODELSONLY
+    UseStatisticalModelsOnly    (logical)
+    DtStatisticalModels         (real)
+
+## CFL
+
+The CFL condition sets how close to the maximum time step that GITM will
+take. 1.0 is the maximum value. A value of about 0.75 is typical. If
+instabilities form, a lower value is probably needed.
+
+    #CFL
+    cfl  (real)
+
+
+
 ## LIMITER
 
 The limiter is quite important. It is a value between 1.0 and 2.0, with
@@ -408,6 +477,46 @@ code to sync up a LOT.
     #DON4SHACK
     DoN4SHack       (logical)
 
+
+## VERTICALSOURCES
+
+    #VERTICALSOURCES
+    MaximumVerticalVelocity      (real)
+
+## AUSMSOLVER
+
+    #AUSMSOLVER
+    Use AUSM Solver      (logical)
+
+
+## USEIMPLICITIONMOMENTUM
+
+    #USEIMPLICITIONMOMENTUM
+    UseImplicitFieldAlignedMomentum      (logical)
+
+## USEIMPROVEDIONADVECTION
+
+    #USEIMPROVEDIONADVECTION
+    UseImprovedIonAdvection      (logical)
+    UseNighttimeIonBCs           (logical)
+    MinTEC                       (real)
+
+## USETESTVISCOSITY
+
+    #USETESTVISCOSITY
+    TestViscosityFactor      (real)
+
+## FIXEDDT
+
+If you would like to force GITM to take a fixed dt you can use this. It
+will try to take that fixed dt, unless the CFL condition is violated.
+
+    #FIXEDDT
+    FixedDt  (real)
+
+# Physics
+
+
 ## THERMO
 
     #THERMO
@@ -432,15 +541,6 @@ code to sync up a LOT.
     ThermalConduction_AO  (Conduction A(O): 5.6e-4, real)
     ThermalConduction_s   (Conduction s: 0.75, real)
 
-## VERTICALSOURCES
-
-    #VERTICALSOURCES
-    MaximumVerticalVelocity      (real)
-
-## AUSMSOLVER
-
-    #AUSMSOLVER
-    Use AUSM Solver      (logical)
 
 ## DIFFUSION
 
@@ -471,23 +571,6 @@ larger than the second!
     RotationPeriodInput        (real)
     DaysPerYearInput           (real)
     DaysPerYearInput           (real)
-
-## USEIMPLICITIONMOMENTUM
-
-    #USEIMPLICITIONMOMENTUM
-    UseImplicitFieldAlignedMomentum      (logical)
-
-## USEIMPROVEDIONADVECTION
-
-    #USEIMPROVEDIONADVECTION
-    UseImprovedIonAdvection      (logical)
-    UseNighttimeIonBCs           (logical)
-    MinTEC                       (real)
-
-## USETESTVISCOSITY
-
-    #USETESTVISCOSITY
-    TestViscosityFactor      (real)
 
 ## DYNAMO
 
@@ -528,31 +611,88 @@ larger than the second!
             Sets whether to use a realistic magnetic
             field (T) or a dipole (F)
 
-## ALTITUDE
 
-For Earth, the AltMin is the only variable used here. The altitudes are
-set to 0.3 times the scale height reported by MSIS, at the equator for
-the specified F107 and F107a values.
+# Misc
 
-    #ALTITUDE
-    AltMin                (real, km)
-    AltMax                (real, km)
-    UseStretchedAltitude  (logical)
+## CPUTIMEMAX
 
-## GRID
+This sets the maximum CPU time that the code should run before it starts
+to write a restart file and end the simulation. It is very useful on
+systems that have a queueing system and has limited time runs.
+Typically, set it for a couple of minutes short of the max wall clock,
+since it needs some time to write the restart files.
 
-If LatStart and LatEnd are set to \< -90 and \> 90, respectively, then
-GITM does a whole sphere. If not, it models between the two. If you want
-to do 1-D, set nLons=1, nLats=1 in ModSizeGitm.f90, then recompile, then
-set LatStart and LonStart to the point on the Globe you want to model.
+    #CPUTIMEMAX
+    CPUTimeMax    (real)
 
-    #GRID
-    nBlocksLon   (integer)
-    nBlocksLat   (integer)
-    LatStart     (real)
-    LatEnd       (real)
-    LonStart     (real)
-    LonEnd       (real)
+
+## PAUSETIME
+
+This will set a time for the code to just pause. Really, this should
+never be used.
+
+    #PAUSETIME
+    iYear iMonth iDay iHour iMinute iSecond
+
+## ISTEP
+
+This is typically only specified in a restart header. If you specify it
+in a start UAM.in it will start the counter to whatever you specify.
+
+    #ISTEP
+    iStep     (integer)
+
+
+
+## TSIMULATION
+
+This is typically only specified in a restart header. It sets the offset
+from the starttime to the currenttime. Should really only be used with
+caution.
+
+    #TSIMULATION
+    tsimulation    (real)
+
+## DUST
+
+This says whether you want seconds in output file name. F means no
+seconds in output file name.
+
+    #DUST
+    cDustFile
+    cConrathFile
+
+## OVERWRITEIONOSPHERE
+
+    #OVERWRITEIONOSPHERE
+    DoOverwriteIonosphere
+    DoOverwriteWithIRI
+    DoOverwriteWithSami
+    SamiInFile
+
+
+
+## DUST
+
+    #DUST
+    TauTot
+    Conrnu
+
+## DAMPING
+
+This is probably for damping vertical wind oscillations that can occur
+in the lower atmosphere.
+
+    #DAMPING
+    UseDamping        (logical)
+
+## GRAVITYWAVE
+
+I dont know what this is for\...
+
+    #GRAVITYWAVE
+    UseGravityWave        (logical)
+
 
 ## NEWSTRETCH
 
@@ -584,70 +724,6 @@ set LatStart and LonStart to the point on the Globe you want to model.
     UseTopography (logical)
     AltMinUniform (real)
 
-## RESTART
-
-    #RESTART
-    DoRestart (logical)
-
-## PLOTTIMECHANGE
-
-This allows you to change the output cadence of the files for a limited
-time. If you have an event then you can output much more often during
-that event.
-
-    #PLOTTIMECHANGE
-    yyyy mm dd hh mm ss ms (start)
-    yyyy mm dd hh mm ss ms (end)
-
-## APPENDFILES
-
-For satellite files, you can have one single file per satellite, instead
-of one for every output. This makes GITM output significantly less
-files. It only works for satellite files now.
-
-    #APPENDFILES
-    DoAppendFiles    (logical)
-
-## CCMCFILENAME
-
-Typicaly file is named (e.g.) 1DALL_yymmdd_hhmmss.bin With this it will
-be named 1DALL_GITM_yyyy-mm-ddThh-mm-ss.bin
-
-    #CCMCFILENAME
-    UseCCMCFileName    (logical)
-
-## SAVEPLOT
-
-The DtRestart variable sets the time in between writing full restart
-files to the UA/restartOUT directory.\
-This sets the output files. The most common type is 3DALL, which outputs
-all primary state variables. Types include : 3DALL, 3DNEU, 3DION, 3DTHM,
-3DCHM, 3DUSR, 3DGLO, 2DGEL, 2DMEL, 2DUSR, 1DALL, 1DGLO, 1DTHM, 1DNEW,
-1DCHM, 1DCMS, 1DUSR. DtPlot sets the frequency of output
-
-    #SAVEPLOT
-    DtRestart (real, seconds)
-    nOutputTypes  (integer)
-    Outputtype (string, 3D, 2D, ION, NEUTRAL, ...)
-    DtPlot    (real, seconds)
-
-## SAVEHIMEPLOT
-
-    #SAVEHIMEPLOT
-    HIMEPlotLonStart (real)
-    HIMEPlotLonEnd (real)
-    HIMEPlotLatStart (real)
-    HIMEPlotLatEnd (real)
-
-## SATELLITES
-
-    #SATELLITES
-    nSats     (integer - max = ', nMaxSats, ')
-    SatFile1  (string)
-    SatOutputtype1  (string, 0DUSR or 1DUSR or other)
-    DtPlot1   (real, seconds)
-    etc...
-
 ## RCMR
 
     #RCMR
@@ -664,62 +740,10 @@ all primary state variables. Types include : 3DALL, 3DNEU, 3DION, 3DTHM,
     #DART
     useDART (integer, {default 0=no}, 1=master ensemble member, 2=slave ens.)
 
-## ELECTRODYNAMICS
-
-Sets the time for updating the high-latitude (and low-latitude)
-electrodynamic drivers, such as the potential and the aurora.
-
-    #ELECTRODYNAMICS
-    DtPotential (real, seconds)
-    DtAurora    (real, seconds)
-
-## INPUTTIMEDELAY
-
-Sets the time delay for the high latitude drivers and solar EUV inputs.
-
-    #INPUTTIMEDELAY
-    TimeDelayHighLat (real, seconds)
-    TimeDelayEUV     (real, seconds)
 
 ## LTERadiation
 
     #LTERadiation
     DtLTERadiation (real)
 
-## IONPRECIPITATION
-
-You can only have an AMIE input file for this now. Make sure you put the
-ions in the AMIE file!!!
-
-    #IONPRECIPITATION
-    UseIonPrecipitation     (logical)
-
-## LOGFILE
-
-You really want a log file. They are very important. It is output in
-UA/data/log\*.dat. You can output the log file at whatever frequency you
-would like, but if you set dt to some very small value, you will get an
-output every iteration, which is probably a good thing.
-
-    #LOGFILE
-    DtLogFile   (real, seconds)
-
-## EUV_DATA
-
-If EUVAC = true, use EUVAC Model If Tobiska = true, use Tobiska91 Model
-If both are true, average them together If UseAboveHigh, then extend the
-spectrum to the longer wavelengths If UseBelowLow, then extend the
-spectrum to the shorter wavelengths
-
-    #EUV_DATA
-    UseEUVData            (logical)
-    cEUVFile              (string)
-
-## EUV_DATA
-
-This is for a FISM or some other solar spectrum file.
-
-    #EUV_DATA
-    UseEUVData            (logical)
-    cEUVFile              (string)
 
