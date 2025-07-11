@@ -51,6 +51,8 @@ Once these things are set, you should be able to run GITM for the event of your 
 
 We provide a code in srcPython called gitm_makerun.py that will take the default UAM.in file, change the start/end times, download IMF and AE files, and flip switches that you may want. 
 
+For more information on plotting, please see [the plotting description page](plotters.md).
+
 ## The More Thorough Start
 
 Please see the [installation page](install.md) page for more info on how to

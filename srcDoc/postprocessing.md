@@ -139,6 +139,10 @@ raw outputs.
 
 ---
 
+## Plotting
+
+For information on plotting, please see [the plotting description page](plotters.md).
+
 
 ## pGITM
 
