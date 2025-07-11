@@ -23,9 +23,9 @@ mpirun -np 4 ./GITM.exe
 Then to produce a plot:
 ```bash
 cd UA/data
-python3 ../../../srcPython/gitm_plot_one_alt.py -alt=250 -var=3 *bin
+python3 ../../../srcPython/gitm_plot_simple.py -alt=250 -var=3 *bin
 ```
-This should produce two png files showing the density across the globe at about 250 km altitude.  This is not the latest, greatest plotter, but it should hopefully work and produce something.
+This should produce two png files showing the density across the globe at about 250 km altitude.  This is a relatively simple plotter that will make cuts in altitude, latitude, and longitude. They are quite basic, but this should provide some framework for reading in GITM files and visualizing the results.  More complex plotters exist. Some of these are described in [this document](plotting.md).
 
 ## A Bit More Explaination
 
