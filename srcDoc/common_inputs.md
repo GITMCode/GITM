@@ -54,10 +54,6 @@ and 32 processors would be needed.
 
 There is a lot more to learn here, so we have written a whole section on this. [See this grid description for more.](internals/grid.md).
 
-!!!note
-    All of the auxiliary input (data) files can be kept in the same directory
-    as the GITM executable and the `UAM.in` file. Otherwise, the path should be
-    specified relative to the GITM executable.
 
 ## Saving output files
 
@@ -94,6 +90,11 @@ Another example:
 900.0           dt for output (one every 15 min)
 ```
 2DGEL files output things like the electric potential and auroral precipitation on the geographic grid at the top of the model. 3DTHM files are thermodynamic variables such as heating and cooling rates.
+
+!!!note
+    All of the auxiliary input (data) files can be kept in the same run directory
+    as the linked GITM executable and the `UAM.in` file. Otherwise, the path should be
+    specified in the UAM.in file relative to the run directory.
 
 ## IMF and Solar Wind {#imf.sec}
 

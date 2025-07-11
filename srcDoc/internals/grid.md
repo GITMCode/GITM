@@ -71,7 +71,7 @@ have on a single processor. This is deprecated and will cause issues when set to
 something other than 1. It will be removed in a future release.
 
 !!! note
-    If you change any of these parameters, you will need to recompile the code.
+    If you change any of these parameters, you have to recompile the code.
 
 
 ## Horizontal Resolution
@@ -109,41 +109,66 @@ While the latitudinal resolution ($`\Delta{\theta}`$) is set by:
 
 ---
 
-Some recommended settings are listed below. An ideal setup would minimize the
+Some settings are listed below.  Machines like NASA's Pleiades have a certain number of cores (processors) per node, like Ivy has 20 cores/node. An ideal setup would minimize the
 unused cores on each node, while balancing runtime (increases with more cells
-per block) and the number of files created (increases with more cores (blocks))
+per block) and the number of files created (increases with more cores (blocks)). What this practically means is that it is a good idea to have the total number of processors used being a multiple of the processors/node.  
 
 | Resolution <br> $`(^\circ Lon \times ^\circ Lat)`$ |   Total Cores   |  nBlocks <br> (nLons x nLats)  | nCells <br> (nLon x nLat) |
 | :---  |      ----       |   :-----:   | :----: |
 | 4 x 1 | 200             | 10 x 20     | 9 x 9  |
-| 4 x 1 | 360 = (120 * 3) | 10 x  36    | 9 x 5  |
+| 4 x 1 | 360             | 10 x 36     | 9 x 5  |
 | 4 x 1 | 120             | 6 x 20      | 15 x 9 |
 | 4 x 1 | 180             | 9 x 20      | 10 x 9 |
+| 4 x 1 | 10              | 2 x 5       | 45 x 36 |
 | 2 x 0.5 | 800           | 20 x 40     | 9 x 9  |
 
 Experimentation may be necessary to find the parameters which work best on the
-system GITM is run on. 
+system GITM is run on. You can always increase nCells in order to run on fewer processors - GITM will just take longer to run, but should be fine. For example, the second to last line shows that GITM can run at production levels on 10 processors, which relatively high-end laptops have currently and many modern desktop machines have.
 
-## Running 3D Over the Part of the Globe
+## Running 3D Over Part of the Globe
 
 GITM can be run over part of the globe - both in latitude and in longitude. It
-can be run over a single polar region (by setting either the minimum or maximum
+can be run over a single polar region by setting either the minimum or maximum
 latitude to be greater (or less) than $`\pm 90^\circ`$). If this is selected,
-message passing over the poles is implemented. If the pole is not selected, then
-boundary conditions have to be set in `set_horizontal_bcs.f90`. By default, a
+message passing over the poles is implemented. For example, this simulates the entire northern polar region at $`4^\circ`$ longitude and $`1^\circ`$ latitude resolution:
+    #GRID
+    8            lons
+    4            lats
+    45.0         minimum latitude to model
+    90.0         maximum latitude to model
+    0.0		     longitude start to model (set to 0.0 for whole Earth)
+    0.0          longitude end to model (set to 0.0 for whole Earth)
+
+If only part of the globe is selected, then boundary conditions have to be set in `set_horizontal_bcs.f90`. By default, a
 continuous gradient boundary condition is used on the densities and
 temperatures, while a continuous value is used on the velocity. This is true in
-both latitude and longitude. In longitude, message passing is implemented all of
-the time, but the values are over-written by the boundary conditions if the
-maximum and minimum longitude are not equal to each other.
+both latitude and longitude.
+
+Running in a small region does not capture the global-scale dynamics, since the EUV heating on the dayside would not be specified correctly in the regions that are not modeled.  So, things like the global-scale neutral wind pattern will not be correct. This means that if the physics that you are desiring to simulate depends on things that are more global-scale, then it is not a good idea to run over an isolated region.  But, if the physics is much more localized and the time-scales are significantly shorter than a day, this is a fine feature to use. Example of good and bad cases would include:
+
+- Good case: Exploring how an ionospheric travelling convection vortex interacts with the local thermosphere to drive strong vertical winds.
+-Bad case: Exploring how to meridional neutral winds drive field-aligned flows over Michigan.
+
+In order to mitigate the effects of this (but not completely eliminate the effects), we have implemented a feature that allows you to use global-scale simulation results as a horizontal boundary condition for a regional simulation.  In addition, GITM initializes the states with the global-scale simulation, so that you don't have to run the regional-scale simulation for a long period to get rid of the initial condition. In order to do this, you need to do the following:
+
+- Run one simulation over the whole globe using some nominal resolution, outputting 3DALL files at a time-scale that is appropriate for capturing the global-scale dynamics (say every 15 minutes if there is nothing of geophysical interest occuring).  Remember that it is always a good idea to run 24 hours before an event in order to get rid of the initial condition!
+- Post process the 3DALL files.
+- Move the UA/data directory into some place like UA/GlobalScaleOutputs.
+- Make a new UA/data directory.
+- Modify the UAM.in file so that the grid captures the region of interest, and the start/end times align with the time of interest. Also, set the number of blocks so that you have the resolution you desire.
+- Add the following line into the UAM.in file:
+    #GITMBCS
+    T
+    UA/GlobalScaleOutputs
+
+Then, when you run GITM, it will simulate only the region of interest.
 
 ## Altitudes
 
-As defined in `src/ModEarth.f90`, each altitude block contains $`\frac{1}{3}`$
-of a scale height, starting at 100 km and typically reaching up to ~500-700 km.
-Increasing the number of altitude blocks will increase the altitude range, but
-if this value is increased too much the model may become unstable and/or
-inaccurate.
+As defined in `src/ModEarth.f90`, the altitude spacing in GITM is 0.3  
+scale heights. In the UAM.in file, the starting altitude is typically set to 100 km.  Given that in ModSize.f90, the number of altitudes is 50 (by default), GITM simulates 15 scale heights, typically reaching up to ~500-700 km.
+Increasing the number of altitudes in ModSize.f90 will increase the altitude range, but
+if this value is increased too much the model may become unstable and/or inaccurate.  It is also possible to reduce the starting altitude below 100 km, but decreasing it below the mesopause is not a great idea, since the physics of the mesopause (i.e., CO2 cooling) is not included in the current version of GITM.  Therefore, moving the lower boundary below about 95 km is not recommended.
 
 ## Running in 1D
 
@@ -169,10 +194,10 @@ location. To specify the exact location, in `UAM.in`:
     275.0       minimum longitude to model
     275.0       maximum longitude to model
 
-This is pretty close to some place in Michigan. GITM will model this
+This is some place in Michigan. GITM will model this
 exact point for as long as you specify. One thing to keep in mind with
 running in 1D is that the Earth still rotates, so the spot will have a
-strong day to night variation in temperature. In 3D, the winds decrease
+strong day to night variation in temperature and will not capture any horizontal dynamics at all, such as the horizontal neutral winds (which are primarily driven by pressure gradients). In 3D, the winds decrease
 some of the variability between day and night, but in 1D, this doesn't
-happen. So, the results are not going to be perfect. But 1D is great for
-debugging.
+happen. So, the results are not going to be (even close to) perfect. But 1D is great for
+debugging, since it is incredibly fast and many days can be run within a few minutes.
