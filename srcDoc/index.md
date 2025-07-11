@@ -38,6 +38,7 @@ ln -s /scratchdisk/mydirectory/run.gitm.event01 .
 ```
 
 Then, within this directory, there is a file called 'UAM.in', which is what GITM reads to set all of its parameters. This is an extremely brief description of settings within the file - to understand more, please read the manual! Within this file, there are several things that need to be altered when running GITM:
+
 - Start time, given as year, month, day, hour, minute, second.
 - End time, given as year, month, day, hour, minute, second.
 - The grid, given as start and end latitude, start and end longitude, and the number of blocks (processors) to use in latitude and longitude. [See this grid description for more.](internals/grid.md).
