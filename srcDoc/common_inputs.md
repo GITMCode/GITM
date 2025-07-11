@@ -3,10 +3,97 @@
 This only touches on the most frequently changed input options. For a full
 reference of all available inputs, please see [All Inputs](set_inputs.md)
 
+## Time
+
+The start time and end time of a GITM simulation can be set using the following commands (as an example):
+
+```bash
+#TIMESTART
+2002            year
+12              month
+21              day
+00              hour
+00              minute
+00              second
+
+#TIMEEND
+2002            year
+12              month
+21              day
+00              hour
+05              minute
+00              second
+```
+
+Hopefully these are obvious what they are.
+
+## Setting the grid
+
+GITM can simulate the whole planet or a portion of the planet.  Unless you know what you are doing, I would stick to modeling the whole planet. This can be done with the following command (as an example):
+
+```bash
+#GRID
+2               number of blocks in longitude
+2               number of blocks in latitude
+-90.0           minimum latitude to model
+90.0            maximum latitude to model
+0.0             longitude start to model (set to 0.0 for whole Earth)
+0.0             longitude end to model (set to 0.0 for whole Earth)
+```
+The first two numbers control the resolution. The higher these numbers, the finer the resolution, but the more processors you will need - you need one processor for each block that you asked for (2 x 2 = 4 blocks / processors). If you wanted to run at 5 degrees by 5 degrees, the following could be used:
+```bash
+#GRID
+8               number of blocks in longitude
+4               number of blocks in latitude
+-90.0           minimum latitude to model
+90.0            maximum latitude to model
+0.0             longitude start to model (set to 0.0 for whole Earth)
+0.0             longitude end to model (set to 0.0 for whole Earth)
+```
+and 32 processors would be needed.
+
+There is a lot more to learn here, so we have written a whole section on this. [See this grid description for more.](internals/grid.md).
+
 !!!note
     All of the auxiliary input (data) files can be kept in the same directory
     as the GITM executable and the `UAM.in` file. Otherwise, the path should be
     specified relative to the GITM executable.
+
+## Saving output files
+
+GITM outputs a wide variety of output files. [There is a whole section that describes them.](outputs.md)
+
+Output files are controlled with the `#SAVEPLOTS` command. 
+
+The first line says how often to output restart files, which we will set aside for a bit. It is ok to leave this as 2 hours (7200), unless you know what you are doing.
+
+The second line tells GITM how many types of output files you want.
+
+The following lines tell GITM what type of file output you want and how often you want them. The most common type of output is 3DALL, which includes all ion and neutral states (densities, temperatures, velocities). 
+
+An example:
+```bash
+#SAVEPLOTS
+7200.0          dt for writing restart files
+1               how many output files do you want
+3DALL           second output style
+900.0           dt for output (one every 15 min)
+```
+This will output restart files every 2 hours (this can be ignored) and 3DALL files every 15 minutes.
+
+Another example:
+```bash
+#SAVEPLOTS
+7200.0          dt for writing restart files
+3               how many output files do you want
+3DALL           second output style
+900.0           dt for output (one every 15 min)
+2DGEL           third output style
+300.0           dt for output (one every 15 min)
+3DTHM           forth output style
+900.0           dt for output (one every 15 min)
+```
+2DGEL files output things like the electric potential and auroral precipitation on the geographic grid at the top of the model. 3DTHM files are thermodynamic variables such as heating and cooling rates.
 
 ## IMF and Solar Wind {#imf.sec}
 
@@ -59,39 +146,78 @@ Here is an example file:
      2000  3 20  3  4  0  0  0.0 0.0 -2.0 -400.0  0.0  0.0  5.0  50000.0
 
 This file is provided to GITM with:
+```bash
+#MHD_INDICES
+imf_file_name.dat
+```
 
-    #MHD_INDICES
-    imf_file_name.dat
+
+## SME Indices
+
+To use models such as FTA[^1] to drive the aurora, GITM must be provided Auroral
+Electrojet (AE) indices. Normally this is from SuperMag (hence the name "SME":
+SuperMag auroral Electrojet), but any source may be used. 
+
+[^1]: Wu, C., Ridley, A. J., DeJong, A. D., & Paxton, L. J. (2021). FTA: A Feature Tracking Empirical Model Of Auroral Precipitation. Space Weather, 19, e2020SW002629. <https://doi.org/10.1029/2020SW002629>.
+
+These files are normally of the format:
+
+    File created by python code using SuperMAGGetIndices
+
+    ============================================================
+    <year>  <month>  <day>  <hour>  <min>  <sec>  <SME (nT)>  <SML (nT)>  <SMU (nT)>
+    2002  12  21  00  00  00   616.74  -354.47   262.26
+    2002  12  21  00  01  00   623.75  -354.72   269.03
+    2002  12  21  00  02  00   617.18  -349.28   267.90
+    2002  12  21  00  03  00   633.56  -350.01   283.55
+    2002  12  21  00  04  00   664.55  -357.88   306.68
+
+A python routine to download these files over a given date range can be found
+in `srcPython/supermag_download_ae.py`.
+
+The corresponding section in `UAM.in` is read as:
+```bash
+#SME_INDICES
+ae_file-name.dat        ae file name
+none                    onset file
+T                       use AE for HP
+F                       don't automatically incorporate hemispheric asymmetries 
+```
+
+The lines following the AE file are for the AL-onset file. This can be set to
+`none` if you do not have one. The next line tells GITM whether to derive HP
+from AE or to use a NOAA HPI file (if one is required). Since production of hemispheric power was stopped by NOAA in 2013 (the world has moved on), it is best to use the HP derived from AE.
+
+Even if AE is not required, it is recommended to provide a SME file as input to
+derive HP, as it is often more representative of geomagnetic conditions than the
+NOAA HPI (maybe this is why they stopped producing it). The formula to calculate hemispheric power (HP) from AE is taken from (Wu et al., 2021)[^1] and is given as:
+
+```math
+\begin{align}
+HemisphericPower = 0.102 * AE + 8.953
+\end{align}
+```
 
 ## Hemispheric Power {#hp.sec}
 
 The hemispheric power files describe the dynamic variation of the
 auroral power going into each hemisphere. Models such as FRE[^FRE] use
 the Hemispheric Power to determine which level of the model it should
-use. The Hemispheric Power is converted to a Hemispheric Power Index
-using the formula:
-
-```math
-\begin{equation}
-HPI = 2.09 \log(HP)^{1.0475}
-\end{equation}
-```
-
-[^FRE]: Fuller-Rowell, T. J., and D. S. Evans (1987), Height-integrated Pedersen
-    and Hall conductivity patterns inferred from the TIROS-NOAA satellite data,
-    J. Geophys. Res., 92(A7), 7606–7618, 
-    doi:[10.1029/JA092iA07p07606](https://doi.org/10.1029/JA092iA07p07606).
-
-The National Oceanic and Atmospheric Administration (NOAA) provides
+use. It is recommended to not use the NOAA provided HP files, but to use the AE derived HP, as described above.  But, if you are a purist, the National Oceanic and Atmospheric Administration (NOAA) provides
 these hemispheric power files for public use online at
 <http://www.swpc.noaa.gov/ftpmenu/lists/hpi.html>. There are two types
 of formats used for hemispheric power files (due to a change in the NOAA
 output format in 2007). Both file formats can be used by GITM, and are
 shown in the examples below.
 
+[^FRE]: Fuller-Rowell, T. J., and D. S. Evans (1987), Height-integrated Pedersen
+    and Hall conductivity patterns inferred from the TIROS-NOAA satellite data,
+    J. Geophys. Res., 92(A7), 7606–7618, 
+    doi:[10.1029/JA092iA07p07606](https://doi.org/10.1029/JA092iA07p07606).
+
 !!! tip 
     GITM can read a NOAA HPI file, however the recommended way to provide
-    hemispheric power is to have GITM derive HPI from the AE-index.
+    hemispheric power is to have GITM derive HPI from the AE-index. Seriously.
     
     See [SME Indices](#sme-indices) for more information. 
 
@@ -168,63 +294,30 @@ Example file 2 for data in and after 2007:
 
 The file type is automatically inferred. To provide an HPI file, use:
 
-    #NOAAHPI_INDICES
-    hemi-power-file.txt
-
-## SME Indices
-
-To use models such as FTA[^1] to drive the aurora, GITM must be provided Auroral
-Electrojet (AE) indices. Normally this is from SuperMag (hence the name "SME":
-SuperMag auroral Electrojet), but any source may be used. 
-
-[^1]: Wu, C., Ridley, A. J., DeJong, A. D., & Paxton, L. J. (2021). FTA: A Feature Tracking Empirical Model Of Auroral Precipitation. Space Weather, 19, e2020SW002629. <https://doi.org/10.1029/2020SW002629>.
-
-These files are normally of the format:
-
-    File created by python code using SuperMAGGetIndices
-
-    ============================================================
-    <year>  <month>  <day>  <hour>  <min>  <sec>  <SME (nT)>  <SML (nT)>  <SMU (nT)>
-    2002  12  21  00  00  00   616.74  -354.47   262.26
-    2002  12  21  00  01  00   623.75  -354.72   269.03
-    2002  12  21  00  02  00   617.18  -349.28   267.90
-    2002  12  21  00  03  00   633.56  -350.01   283.55
-    2002  12  21  00  04  00   664.55  -357.88   306.68
-
-A python routine to download these files over a given date range can be found
-in `srcPython/supermag_download_ae.py`.
-
-
-The corresponding section in `UAM.in` is read as:
-
-    #SME_INDICES
-    ae_file-name.dat        ae file name
-    none                    onset file
-    T                       use AE for HP
-
-The lines following the AE file are for the AL-onset file. This can be set to
-`none` if you do not have one. The next line tells GITM whether to derive HP
-from AE or to use a NOAA HPI file (if one is required). 
-
-Even if AE is not required, it is recommended to provide a SME file as input to
-derive HP, as it is often more representative of geomagnetic conditions than the
-NOAA HPI.
-
-The formula to calculate hemispheric power (HP) from AE is taken from (Wu et
-al., 2021)[^1] and is given as:
-
-```math
-\begin{align}
-HemisphericPower = 0.102 * AE + 8.953
-\end{align}
+```bash
+#NOAAHPI_INDICES
+hemi-power-file.txt
 ```
+
 
 ## Solar Irradiance {#solar_irradiance.sec}
 
 To provide GITM with realistic solar irradiance, the solar EUV must be
-specified. This can be done through a file containing modeled or
-observed solar irradiance data. An example from the FISM model is shown
-below.
+specified. There are two pathways for doing this.  The easiest is to simply specify the F10.7. GITM then runs some EUV empirical models of the irradiance (such as EUVAC), and uses these results to drive GITM. The F10.7 is provided with GITM, so you can just point GITM to this file and be done:
+```bash
+#NGDC_INDICES
+UA/DataIn/f107.txt
+```
+It should be noted that MSIS also needs F10.7, so really this command should be included in every UAM.in file.
+
+In addition, GITM can use the Flare Irradiance Spectrum Model specification of the EUV flux.  Daily values of FISM can be used unless you are doing a flare study.  These daily values are included with GITM and can be found in UA/DataIn/FISM.  As an example, a yearly file can be used with the command (for example):
+```bash
+#EUV_DATA
+F                                               Use FISM solar flux data
+UA/DataIn/FISM/fismflux_daily_2002.dat          Filename for specific year
+```
+
+An example from the FISM model is shown below.
 
     #START
         2009       3      20       0       0       0   0.00389548   0.00235693
@@ -253,15 +346,7 @@ below.
     .
     .
 
-GITM knows to use the provided solar irradiance file through the EUV_DATA input
-option specified in the `UAM.in` file:
-
-    #EUV_DATA
-    T
-    UA/DataIn/FISM/fismflux_daily_[year].dat
-
-These files are included by default, however will not be read unless this option
-is added to the `UAM.in` file.
+If you want to create your own files, there is a code in srcPython to download and produce the FISM files.  You can use this python code to download daily values or flare values (although the flare files are huge compared to the yearly files).
 
 ## Satellites {#sat_aux.sec}
 
@@ -293,6 +378,8 @@ geographic location and universal time. Although millisecond accuracy is
 provided, GITM should not be output at a resolution smaller than 1 second. The
 temporal resolution in the satellite file does not need to match the output
 resolution.
+
+Because GITM by default outputs a file for every output time, if you use a satellite file, it produces a LOT of files.
 
 The types of outputs are specified in the [`#OUTPUT`](outputs.md) section of
 the UAM file.

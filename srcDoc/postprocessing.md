@@ -1,11 +1,11 @@
 # Postprocessing
 
-GITM stores outputs at a cadence specified in the input `UAM.in` file. When
-running, there is one file created by each processor, for each output type
-(`3DALL`, `2DANC`, etc.), plus one header file at each `DtOutput`. This creates
+GITM stores outputs at a cadence specified in the input `UAM.in` file (in #SAVEPLOTS). When
+running at each `DtOutput`, each processor writes its own (block) file for each output type
+(`3DALL`, `2DANC`, etc.), plus the first processor writes a header file. This creates
 an extremely large number of files on long runs across many cores. To make the
 number of files more manageable and easier to read, they are post-processed into
-`.bin` files, one for each output type at each `DtOutput`.
+`.bin` files, one for each output type at each `DtOutput`.  This is different than other codes that write all of the output for all timesteps into a single file (so that file can be huge), or that writes different files for different states.  GITM's post-processor writes all of the requested variables to one file for each time-step.
 
 When running `make rundir`, a file is placed within the `run/` folder called
 `post_process.py` which is the entrypoint for postprocessing. This turns the raw
@@ -32,6 +32,10 @@ Into this:
 can watch for new outputs for a specified duration and process new outputs as
 they are created. The output `.bin` files can be moved to a remote system,
 tarred, and/or exist alongside the raw outputs.
+
+This means that there are essentailly two ways of running the post-processor:
+- Once the run is completed, run it and post process all of the files at once.
+- Run it after starting the simulation, so it runs in parallel to the simulation.  This post processes the output files as the code is running, so that the files should be post processed soon after GITM is done running.
 
 The help message for `post_process.py`:
 
@@ -61,17 +65,19 @@ The help message for `post_process.py`:
     -tgz                  tar and zip raw GITM file instead of process
 ```
 
-
 !!! note "Post-processing Speed" 
 
-    The default "engine" for reading the raw GITM
-    outputs is `scipy.io.FortranFile`. In some cases like high processor-count, 
-    many output files, etc., files may not be post-processing as quickly as they
-    are created. 
+    The post_process.py code is relatively slow - it was written to be more robust and to be clean and not fast.  If extremely fast post processing is desired, the older fortran post processor (driven by a shell script) can be used. This is not the recommended way of doing things, but it can be much faster. The old post processor executable can be created by running `make POST` from GITM's root folder (`GITM/`). If this is done before `make rundir`, it will automatically be copied. Otherwise it must be linked to `run/` manually.
 
-    In this case, it is recommended to use the Fortran engine which is included within GITM. The executable can be created by running `make POST` from GITM's root folder (`GITM/`). If this is done before `make rundir`, it will automatically be copied. Otherwise it must be moved to `run/` manually.
+    The python post-processor will use `PostGITM.exe` if it is found in `run/`. This is not the default behavior as some systems limit which programs can be run from login nodes (but don't seem to limit python yet!).
 
-    The python post-processor will use `PostGITM.exe` if it is found in `run/`. This is not the default behavior as some systems limit which programs can be run from login nodes.
+One of the benefits of post_process.py is that it can post process the files and then scp them over to another system. In order to do this, you need to have keyless entry setup, so that files can be transferred without entering a password. The machine name, user name, and directory to move the run into have to be passed into the post_process.py script, which is done with a 'remotefile'.  If the python code finds this file, it will read it and start moving files. Specifically, the post processor:
+- checks to see if the directory on the remote system exists. If not, it tries to create it.
+- post processes any files that need to be post processed in UA/data.
+- pushes the UA/data/*bin files over to the remote system.
+- checks one-by-one to see if the files exist on the remote system. If the file exists on the remote system, it removes it from the UA/data directory on the compute node.
+- pushes supplemental files (like log files and run files) to the remote system.
+- if the processing time has not expired, it waits a give amount of time (5 minutes by default) and loops. If the processing time has been exceeded, it exists.
 
 ### Arguments
 
@@ -129,8 +135,7 @@ raw outputs.
 
 #### tgz
 
-`-tgz` tells the script to tar and g-zip the outputs to save space. This is
-somewhat CPU intensive.
+`-tgz` tells the script to not post process the files at all, but to tar and zip them together. They can then be post-processed on a different machine. This is somewhat CPU intensive and slow. The remote feature will work with these files, so that they can be automatically pushed to another system. (This was created when Pleiades would not allow post processing on head nodes. After using this for a while, we made the post processor code do what the fortran code does, so that this option is mostly moot now.)
 
 ---
 
@@ -141,7 +146,7 @@ If the run is creating files faster than they are postprocessed, do not panic.
 
 GITM would create a `csh` script before the introduction of this Python script
 which is still available. `pGITM` and `PostGITM.exe` use a Fortran backend
-instead of post_process.py which uses Scipy. The Fortran code may be faster than
+instead of post_process.py which is slow. The Fortran code should be much faster than
 Python.
 
 To access these, run `make POST` from GITM's root folder. If this is run before
@@ -150,4 +155,4 @@ To access these, run `make POST` from GITM's root folder. If this is run before
 manually. `post_process.py` will prefer to use the Fortran post-processor and
 only use Scipy if it is not found.
 
-`pGITM` will only run one time and required `csh`.
+`pGITM` will only run one time and requires `csh` which doesn't seem to be available on systems by default anymore. The world has moved on.
