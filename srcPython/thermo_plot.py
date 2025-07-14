@@ -676,7 +676,7 @@ def plot_winds_polar(axplot, x_pos, y_pos, xwinds, ywinds,
         nStepL = int(nStep / np.sin(yp[ix]*np.pi/180.0))
         axplot.quiver(xp[::nStepL], yp[ix],
                       xwind[ix][::nStepL],
-                      ywind[ix][::nStepL], scale = scale/4.0)
+                      ywind[ix][::nStepL], scale = scale * 5.0)
     
     return
 
