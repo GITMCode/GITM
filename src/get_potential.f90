@@ -121,6 +121,7 @@ subroutine get_potential(iBlock)
   real, dimension(-1:nLons + 2, -1:nLats + 2, 2) :: TempPotential, AMIEPotential
   real, dimension(-1:nLons + 2, -1:nLats + 2) :: Grid, dynamo, SubMLats, SubMLons
   real, dimension(-1:nLons + 2, -1:nLats + 2) :: lats, mlts, EFlux
+  real, dimension(-1:nLons + 2, -1:nLats + 2) :: polarCap
   real :: by, bz, CuspLat, CuspMlt
 
   logical :: UAl_UseGridBasedEIE
@@ -239,6 +240,12 @@ subroutine get_potential(iBlock)
 
   endif
 
+  if (iDebugLevel >= 1) &
+    write(*, *) "==> Min, Max, CPC Potential : ", &
+    minval(Potential(:, :, :, iBlock))/1000.0, &
+    maxval(Potential(:, :, :, iBlock))/1000.0, &
+    (maxval(Potential(:, :, :, iBlock)) - minval(Potential(:, :, :, iBlock)))/1000.0
+
   ! -----------------------------------------------------
   ! Now get the aurora.
   ! This assumes that the field lines are basically
@@ -262,26 +269,27 @@ subroutine get_potential(iBlock)
       call stop_gitm("Stopping in get_potential")
     endif
 
-    ! Sometimes, in AMIE, things get messed up in the
-    ! Average energy, so go through and fix some of these.
-    ! (also checked in aurora.f90)
+    ! Sometimes, in AMIE, things get messed up in the Average energy, 
+    ! so go through and fix some of these (Also checked in aurora.f90.)
     if (iDebugLevel > 1) then
-    do iLat = -1, nLats + 2
-      do iLon = -1, nLons + 2
-        if (ElectronAverageEnergyDiffuse(iLon, iLat) < 0.0) then
-          ElectronAverageEnergyDiffuse(iLon, iLat) = 0.1
-          write(*, *) "ave e i,j Negative : ", iLon, iLat, &
-            ElectronAverageEnergyDiffuse(iLon, iLat)
-        endif
-        if (ElectronAverageEnergyDiffuse(iLon, iLat) > 100.0) then
-          write(*, *) "ave e i,j Positive : ", iLon, iLat, &
-            ElectronAverageEnergyDiffuse(iLon, iLat)
-          ElectronAverageEnergyDiffuse(iLon, iLat) = 0.1
-        endif
+      do iLat = -1, nLats + 2
+        do iLon = -1, nLons + 2
+          if (ElectronAverageEnergyDiffuse(iLon, iLat) < 0.0) then
+            ElectronAverageEnergyDiffuse(iLon, iLat) = 0.1
+            write(*, *) "ave e i,j Negative : ", iLon, iLat, &
+              ElectronAverageEnergyDiffuse(iLon, iLat)
+          endif
+          if (ElectronAverageEnergyDiffuse(iLon, iLat) > 100.0) then
+            write(*, *) "ave e i,j Positive : ", iLon, iLat, &
+              ElectronAverageEnergyDiffuse(iLon, iLat)
+            ElectronAverageEnergyDiffuse(iLon, iLat) = 0.1
+          endif
+        enddo
       enddo
-    enddo
     endif
 
+    ! Adjust the Average Energy of the Diffuse Aurora, if desired:
+    if (iDebugLevel > 1) write (*,*) '=> Adjusting average energy of the aurora : ', AveEFactor
     ElectronAverageEnergyDiffuse = ElectronAverageEnergyDiffuse * AveEFactor
     
     ! -----------------------------
@@ -357,11 +365,30 @@ subroutine get_potential(iBlock)
 
   endif
 
-  if (iDebugLevel >= 1) &
-    write(*, *) "==> Min, Max, CPC Potential : ", &
-    minval(Potential(:, :, :, iBlock))/1000.0, &
-    maxval(Potential(:, :, :, iBlock))/1000.0, &
-    (maxval(Potential(:, :, :, iBlock)) - minval(Potential(:, :, :, iBlock)))/1000.0
+  ! -----------------------------
+  ! Polar Rain, if desired
+  ! -----------------------------
+
+  if (UsePolarRain) then
+
+    ! Get the polar cap - this variable is 1 if it is the polar cap and 0 is not
+    call IEModel_%get_polarcap(polarCap)
+
+    ! Then, if we are in the polar cap, fill in the energy flux with values
+    ! entered by the user in the UAM.in file
+    do iLat = -1, nLats + 2
+      do iLon = -1, nLons + 2
+        if (polarCap(iLon, iLat) > 0 .and. &
+            ElectronEnergyFluxDiffuse(iLon, iLat) < 0.1) then
+          ElectronEnergyFluxDiffuse(iLon, iLat) = polarRainEFlux
+          ElectronAverageEnergyDiffuse(iLon, iLat) = polarRainAveE
+        endif
+      enddo
+    enddo
+
+  endif
+
+
 
   call end_timing("get_potential")
 

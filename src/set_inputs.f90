@@ -811,6 +811,22 @@ subroutine set_inputs
           IsDone = .true.
         endif
 
+      case ("#USEPOLARRAIN")
+        call read_in_logical(UsePolarRain, iError)
+        call read_in_real(polarRainAveE, iError)
+        call read_in_real(polarRainEFlux, iError)
+        if (iError /= 0) then
+          write(*, *) 'Incorrect format for #USECUSP'
+          write(*, *) 'This is for specifying a cusp.'
+          write(*, *) ''
+          write(*, *) '#USEPOLARRAIN'
+          write(*, *) 'UsePolarRain        (logical)'
+          write(*, *) 'PolarRainAveE       (real)'
+          write(*, *) 'PolarRainEFlux      (real)'
+          IsDone = .true.
+        endif
+
+
       case ("#USEREGIONALAMIE")
         call read_in_logical(UseRegionalAMIE, iError)
         call read_in_logical(UseTwoAMIEPotentials, iError)

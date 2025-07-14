@@ -99,7 +99,7 @@ subroutine aurora(iBlock)
       HasSomeAurora = .false.
 
       ! For diffuse auroral models (default)
-      if (ElectronEnergyFluxDiffuse(j, i) > 0.1 &
+      if (ElectronEnergyFluxDiffuse(j, i) > 0.001 &
           .and. ElectronAverageEnergyDiffuse(j, i) > 0.1 &
           .and. ElectronAverageEnergyDiffuse(j, i) < MaxAveEAurora &
           .and. UseDiffuseAurora &
