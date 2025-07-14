@@ -13,6 +13,8 @@ subroutine finalize_gitm
   integer :: iError, iBlock, iOutputType
   integer :: nMLTsTmp, nLatsTmp
 
+  call start_timing("Finalize")
+
   if (.not. Is1D) &
     call UA_calc_electrodynamics(nMLTsTmp, nLatsTmp)
 
@@ -36,6 +38,7 @@ subroutine finalize_gitm
     call report_warnings
   endif
 
+  call end_timing("Finalize")
   call end_timing("GITM")
 
   if (iDebugLevel >= 0) call report_timing("all")
