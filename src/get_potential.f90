@@ -339,6 +339,12 @@ subroutine get_potential(iBlock)
           endif
         endif
 
+        ! Typical values are:
+        !   - electron average energy = 30-100 eV (< 220 eV) 
+        !   - electron energy flux = 1-2 ergs/cm2/s
+        !   - ion average energy = 300 - 3000 keV
+        !   - ion energy flux = ~ 6x less than electrons
+
         EFlux = CuspEFlux* &
                 exp(-abs(lats - CuspLat)/CuspLatHalfWidth)* &
                 exp(-abs(mlts - CuspMlt)/CuspMltHalfWidth)
@@ -376,6 +382,9 @@ subroutine get_potential(iBlock)
 
     ! Then, if we are in the polar cap, fill in the energy flux with values
     ! entered by the user in the UAM.in file
+    ! Typical values of polar rain are [Newell et al., 1990]:
+    ! aveE ~ 80 - 110 eV
+    ! eflux ~ 0.01 - 0.1 ergs/cm2/s for nominal events; 1.0 for extreme events
     do iLat = -1, nLats + 2
       do iLon = -1, nLons + 2
         if (polarCap(iLon, iLat) > 0 .and. &
