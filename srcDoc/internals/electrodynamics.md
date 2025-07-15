@@ -84,7 +84,7 @@ Some notes on the different auroral types:
 OVATION & MAGNIT (AMIE) can provide other than electron diffuse aurora.
 - `AllowAurWODiffuse` was added for stability with OVATION-Prime; it restricts
 mono/wave/ion aurora to only exist in locations which also contain electron
-diffuse aurora. This can be set in [`#AURORAMODS`](../common_inputs.md#auroramods)
+diffuse aurora. This can be set in [`#AURORAMODS`](../set_inputs.md#auroramods)
 
 Internally, GITM represents Monoenergetic and Wave/broadband aurora with a
 gaussian centered at the average energy. 
