@@ -1,18 +1,5 @@
 # Outputs {#outputs.sec}
 
-#TODO:
-
-- [ ] Fix the links
-- [ ] remove idl code
-- [ ] probably(?) remove the python stuff too
-- [ ] Fix and/or remove images
-- [ ] Update the log file
-- [ ] update with other output types:
-    - [ ] 3D*, 2D*
-    - [ ] satellite outputs
-    - [ ] empirical models only!
-
-
 Now that you have managed to successfully complete a GITM run you've
 found yourself with a bunch of output files. All of the GITM output is
 in mks units and this data is contained within several files located in
