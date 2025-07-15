@@ -74,6 +74,7 @@ nav:
   - Outputs:
     - Postprocessing: postprocessing.md
     - Available Outputs: outputs.md
+    - Plotting Outputs: plotters.md
   - Internals:
     - Overview: internals/overview.md
     - Grid: internals/grid.md
