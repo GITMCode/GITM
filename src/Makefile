@@ -43,7 +43,8 @@ MODULES = \
 	ModTimingGITM.o\
 	ModUser.o \
 	ModVertical.o\
-	ModHmeModel.o
+	ModHmeModel.o\
+	ModGITMVersion.o
 
 
 OBJECTS = \

@@ -8,8 +8,6 @@ module ModGITM
 
   implicit none
 
-  real :: GitmVersion = 21.11
-
   real :: dt = 0.0
 
   integer :: iCommGITM, iProc, nProcs
