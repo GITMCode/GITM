@@ -32,14 +32,24 @@ mkdocs serve
 
 And it should be auto-magic. open the link in your browser.
 
-## To Do list for documentation
+## Versioning
 
-Feel free to add to this
+GITM now builds the code version into the executable automatically. This is sourced
+from `src/.version` within `src/ModGITMVersion.f90`.
 
-- [ ] Section on FAQ?
-- [ ] More on internals:
-    - [ ] Electrodynamics section!
-    - [ ] Better info in common inputs?
-- [ ] GitHub walkthrough in dev section
-- [ ] some way to auto-update outline?
-- [ ] more more more!
+The version file is created when compiling, and checked every time the code is compiled.
+If the number of files that are different from HEAD changes, the version is updated.
+In practice this means that if the number of lines output from 
+`git status --porcelain` changes, the version is updated.
+
+The version has information on the last commit date, the branch, the last commit hash,
+and the number of files changed since the last commit. This should provide enough
+information to track down any kinds of bugs or to ensure that results can be traced
+back to a certain state of the code.
+
+The file is created in the last step of compiling by the shell script 
+`share/Scripts/Makeversion.sh`.
+
+If the `.git` folder does not exist (so the code was downloaded as a .zip from GitHub),
+the version info is taken from `version.def` at the root folder. This should be updated
+whenever the code is released.
