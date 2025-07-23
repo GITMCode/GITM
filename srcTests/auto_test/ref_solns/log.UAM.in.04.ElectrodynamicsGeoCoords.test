@@ -1,0 +1,23 @@
+GITM2 log file
+## Inputs from UAM.in
+# Resart= F
+# Eddy coef:    50.000 Eddy P0:     0.010 Eddy P1:     0.005
+# Statistical Models Only:  T Apex:  T
+# EUV Data:  F
+# E-Field Model: weimer05 Auroral Model: FTA
+# AMIE: none           
+none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
+# Solar Heating:  T Joule Heating:  T
+# NO Cooling:  T O Cooling:  T
+# Conduction:  T Turbulent Conduction:  T
+# Pressure Grad:  T Ion Drag:  T Neutral Drag:  T
+# Viscosity:  T Coriolis:  T Gravity:  T
+# Ion Chemistry:  T Ion Advection:  T Neutral Chemistry:  T
+ 
+#START
+   iStep yyyy mm dd hh mm ss  ms      dt min(T) max(T) mean(T) min(VV) max(VV) mean(VV) F107 F107A By Bz Vx HP HPn HPs HPn_diff HPs_diff HPn_w HPs_w HPn_m HPs_m SubsolarLon SubsolarLat SubsolarVTEC
+       2 2002 12 21  0  1  0   0 60.0000    157.53547   1317.47667   1011.88104      0.00000      0.00000      0.00000    177.9    149.5      6.6     -6.0    527.7     72.6      0.0      0.0   0.00000   0.00000   0.00000   0.00000   0.00000   0.00000   3.13723  -0.40992  58.50262
+       3 2002 12 21  0  2  0   0 60.0000    157.47072   1317.47219   1011.87449      0.00000      0.00000      0.00000    177.9    149.5      6.4     -6.1    529.5     71.9      0.0      0.0   0.00000   0.00000   0.00000   0.00000   0.00000   0.00000   3.13287  -0.40992  58.41360
+       4 2002 12 21  0  3  0   0 60.0000    157.40796   1317.45846   1011.86795      0.00000      0.00000      0.00000    177.9    149.5      6.2     -6.4    530.0     73.6      0.0      0.0   0.00000   0.00000   0.00000   0.00000   0.00000   0.00000   3.12850  -0.40992  58.32593
+       5 2002 12 21  0  4  0   0 60.0000    157.34717   1317.43544   1011.86141      0.00000      0.00000      0.00000    177.9    149.5      6.4     -6.0    531.4     76.7      0.0      0.0   0.00000   0.00000   0.00000   0.00000   0.00000   0.00000   3.12414  -0.40992  58.23965
+       6 2002 12 21  0  5  0   0 60.0000    157.28834   1317.40312   1011.85489      0.00000      0.00000      0.00000    177.9    149.5      5.5     -6.4    533.7     77.3      0.0      0.0   0.00000   0.00000   0.00000   0.00000   0.00000   0.00000   3.11978  -0.40992  58.15479

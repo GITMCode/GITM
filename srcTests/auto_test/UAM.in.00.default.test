@@ -59,34 +59,40 @@ UA/DataIn/f107.txt
 T						Use FISM solar flux data
 UA/DataIn/FISM/fismflux_daily_2002.dat		Filename
 
------------- Auroral Drivers ------------
-
-#FTAMODEL
-T                 Use FTA model of the aurora
+------------ Electrodynamics Drivers ------------
 
 
 #SME_INDICES
-UA/DataIn/ae_20021221.txt		SME Filename
+UA/DataIn/Examples/ae20021221.dat		SME Filename
 none              			onset time delay file
 T					convert SME to Hemispheric Power
 
------------- E-Field Drivers ------------
-
 #MHD_INDICES
-UA/DataIn/imf20021221.dat
+UA/DataIn/Examples/imf20021221.dat
 
-#APEX
-T
+#ELECTRODYNAMICS
+FTA
+60.0
+weimer05
+60.0
+
 
 -----------------------------------------------------------------
+
+
+#APEX
+F
 
 #MSISOBC
 T		Shift the [O] density at the lower boundary by 6 months 
 0.0		change the obateness of the Earth by this percent (0 = none)
 
---------------------------------------------------------------------------
 
 #AUSMSOLVER
 T       	Use AUSM+-up Solvers
+
+--------------------------------------------------------------------------
+
+
 
 #END

@@ -17,7 +17,7 @@ subroutine init_b0
   real, dimension(3) :: d1, d2, d3, e1, e2, e3
   integer :: iLat, iLon, iBlock, iAlt
   character(128) :: apexfile
-  apexfile = 'UA/DataIn/apex_1970_2015.dat'
+  apexfile = 'UA/DataIn/Earth/apex_1970_2015.dat'
 
   ! We need to fill in the Ghost Cells for the NonChanging Variables, such
   ! as the Magnetic Field:

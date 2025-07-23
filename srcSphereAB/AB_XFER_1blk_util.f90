@@ -38,7 +38,7 @@ contains
     logical, intent(in) :: pole
     integer, intent(inout) :: p
     real, dimension(1 - gcn:, 1 - gcn:, 1:), intent(in) :: v_in
-    real, dimension(:), intent(out) :: out_array
+    real, dimension(:), intent(inout) :: out_array
     integer :: i, j, a, shifted_j, half_long
 
     half_long = long/2
@@ -204,7 +204,7 @@ contains
     integer, intent(in) :: long, lat, alt, gcn
     integer, intent(in) :: dir
     integer, intent(inout) :: p
-    real, dimension(1 - gcn:, 1 - gcn:, 1:), intent(out) :: v_out
+    real, dimension(1 - gcn:, 1 - gcn:, 1:), intent(inout) :: v_out
     real, dimension(:), intent(in) :: in_array
     integer :: i, j, a
 
@@ -316,7 +316,7 @@ contains
     logical, intent(in) :: pole
     integer, intent(inout) :: p
     real, dimension(1 - gcn:, 1 - gcn:, 1:, 1:), intent(in) :: v_in
-    real, dimension(:), intent(out) :: out_array
+    real, dimension(:), intent(inout) :: out_array
     integer :: i, j, a, e, shifted_j, half_long
 
     half_long = long/2
@@ -511,7 +511,7 @@ contains
     integer, intent(in) :: long, lat, alt, eta, gcn
     integer, intent(in) :: dir
     integer, intent(inout) :: p
-    real, dimension(1 - gcn:, 1 - gcn:, 1:, 1:), intent(out) :: v_out
+    real, dimension(1 - gcn:, 1 - gcn:, 1:, 1:), intent(inout) :: v_out
     real, dimension(:), intent(in) :: in_array
     integer :: i, j, a, e
 

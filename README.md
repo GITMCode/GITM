@@ -40,7 +40,7 @@ git remote prune origin
 git clone git@github.com:GITMCode/GITM.git
 ```
 
-Substitute the URL with the https link from the "Code" button above if you do not have SSH keys set up.
+Substitute the URL with the `https` link from the "Code" button above if you do not have SSH keys set up.
 
 2\. Go into the repo directory
 
