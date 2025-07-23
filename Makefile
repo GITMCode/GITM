@@ -37,9 +37,7 @@ NOMPI:
 	@cd ${NOMPIDIR}; make LIB
 
 VERSION:
-	printf 'character(25), parameter :: GitmVersion = "%s.%s"\n' \
-	"$$(git log -1 --date=format:'%Y%m%d' --pretty='format:%ad')" \
-	"$$(git status --porcelain | grep -v '^??' | wc -l | cut -f1 -d' ')" > src/.version
+	./share/Scripts/Makeversion.sh
 	@echo
 
 GITM:
@@ -87,6 +85,7 @@ clean:
 	if [ -d util ]; then cd util; make --no-print-directory cleanall; fi;
 	if [ -d srcSAMI ]; then cd srcSAMI; make --no-print-directory clean; fi;
 	if [ -d $(EIEDIR) ]; then cd $(EIEDIR); make --no-print-directory cleanall; fi;
+	if [ -f src/.version ]; then rm src/.version; fi
 
 
 distclean: 
