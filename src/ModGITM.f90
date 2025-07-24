@@ -289,6 +289,7 @@ contains
     deallocate(dAltDLon_CB)
     deallocate(dAltDLat_CB)
     deallocate(Rho)
+    deallocate(ColumnIntegralRho)
     deallocate(Temperature)
     deallocate(Pressure)
     deallocate(NDensity)
