@@ -1,7 +1,7 @@
 # Installation
 
-If a fortran compiler & MPI are already installed on your system, you may wish
-to skip down to [Getting the Code](#getting-the-code).
+If a fortran compiler & MPI are already installed on your system, you can skip down to
+[Getting the Code](#getting-the-code).
 
 If you are unsure whether or not things are installed & set up correctly, a good
 way to check is to print the version number with `gfortran --version` (change to
@@ -17,26 +17,39 @@ At a minimum, you need:
 - MPI (~~mpich~~, openmpi, mvapich, etc.)
 - GNU Make (`make`)
 - Python3 (most any version should work, but we have been testing with versions in the 3.10+ range)
-- Perl (for configuring the code)
+- Perl (for configuring the code). This comes installed on most machines.
 
 <!-- abbreviation definition -->
 *[MPI]: Message Passing Interface
 
-On linux systems (including Windows Subsystem for Linux), gfortran is often used.  This is the most robustly tested compiler for GITM.  One problem with gfortran is that the gcc-10 and above version don't place well with MPI for some reason.  A flag has to be specified to make them play nice, and therefore there are two different compiler options for gfortran (-compiler=gfortran for older versions and -compiler=-gfortran10 for version 10+). There is a very good chance that you have 10+.
+On linux systems (including Windows Subsystem for Linux), gfortran is often used.  This
+is the most robustly tested compiler for GITM.  One problem with gfortran is that the
+gcc-10 and above version don't place well with MPI for some reason.  A flag has to be
+specified to make them play nice, and therefore there are two different compiler options
+for gfortran when configuring (`-compiler=gfortran` for older versions and
+`-compiler=-gfortran10` for version 10+). There is a very good chance that you have 10+.
 
 There is no difference in the outputs between different compilers, however some
 compilers may produce slightly faster executables than others. For example,
 using ifort on [Pleiades](https://www.nas.nasa.gov/hecc/resources/pleiades.html)
 is faster than using gfortran (gcc) or aocc. 
 
-As GITM can run on as many (or few) CPU cores as you wish, it is possible to run
-GITM on a laptop or workstation. This is recommended for development, as the
-turnaround for test runs will be much faster. Most developers of GITM have 8-core machines and can run the default test problem of 4 processors with no problems.  Most modern computers are capable of this now.
+As GITM can run on as many (or few) CPU cores as you wish, it is possible to run GITM on
+a laptop or a workstation. This is recommended for development, as the turnaround for
+test runs will be much faster. We develop GITM on 8+ core machines and can run the
+default test problem of 4 processors with no problems.  Most modern computers are
+capable of this now.
+
+!!! warning "Using `conda` to install dependencies is not recommended" 
+
+    In the past, people have had very strange errors when using Anaconda to get
+    dependencies installed. We highly recommend you use a system-wide package manager,
+    or install the dependencies manually, instead of using something language-specific.
 
 ### Linux Install Dependencies
 
-On a Ubuntu-based linux distribution, the following commands will download GNU
-Make, the GCC Fortran compiler & Open-MPI:
+On an Ubuntu-based linux distribution, the following commands will download GNU Make,
+the GCC Fortran compiler & Open-MPI:
 
 ```bash
 sudo apt-get install gfortran libopenmpi-dev make
@@ -50,8 +63,11 @@ sudo yum install gcc-gfortran openmpi-devel
 
 ### MacOS Install Dependencies
 
-Installing gfortran on MacOS is most easily accomplished with a package manager
-like [Homebrew](https://brew.sh/) or [MacPorts](https://www.macports.org/).
+Installing gfortran on MacOS is most easily accomplished with a package manager like
+[Homebrew](https://brew.sh/) or [MacPorts](https://www.macports.org/). It is easiest to
+use a package manager, however it is also possible to install things manually. The
+following steps assume you are using a package manager.
+
 Homebrew users will need to run:
 
 ```bash
@@ -70,12 +86,19 @@ sudo port install gcc[??] open-mpi
 
 ### Recommended HPC Modules
 
-On some computer systems, there are multiple versions of compilers, MPI, and other things like python available.  They deal with these things by making "modules".  This means that in order to compile the code, modules need to be loaded.  For example, on NASA's Pleiades computer, this line needs to be put into your .cshrc or .bashrc or whatever dot file you are using for your setup:
+On some computer systems, there are multiple versions of compilers, MPI, and other
+things like python available.  They deal with these things by making "modules".  This
+means that in order to compile the code, modules need to be loaded.  For example, on
+NASA's Pleiades computer, this line can be added to your shell startup script (.cshrc,
+.zshrc, or .bashrc):
+
 ```bash
 module load comp-intel mpi-hpe
 ```
 
-The modules that need to be loaded on different systems will differ. Feel free to contribute to this list of recommended modules if you have experience with GITM on other systems:
+The modules that need to be loaded on different systems will differ. Feel free to
+contribute to this list of recommended modules if you have experience with GITM on other
+systems:
 
 - Pleiades
     - `comp-intel`
@@ -91,28 +114,31 @@ least take note of what was used so they can be loaded in the job script.
 
 ## Getting the code
 
-GITM is hosted on GitHub. The `main` branch is stable and updated as important
-features are added (in the `develop` branch). The `main` branch is default and
-no additional steps are needed to use the latest, stable, version. Just clone
-the GITM repository, and all dependencies like the
-[share](https://github.com/SWMFsoftware/share),
-[util](https://github.com/SWMFsoftware/util), and
-[electrodynamics](https://github.com/GITMCode/Electrodynamics) libraries will be
-downloaded during configuration. The following command is assuming that you will be using GITM and not developing GITM.  
+GITM is hosted on GitHub. The `main` branch is stable and updated as important features
+are added (in the `develop` branch). The `main` branch is default and no additional
+steps are needed to use this version. Just clone the GITM repository, and all dependent
+libraries will be downloaded during configuration. The following command is assuming
+that you will be using GITM and not developing GITM.  
 
 ```
 git clone git@github.com:GITMCode/GITM.git
 cd GITM
 ```
 
-!!! tip
-    Replace `git@github.com:GITMCode/GITM.git` with `https://github.com/GITMCode/GITM.git` if you don't have Github ssh keys set up. If you are going to be developing GITM, you may take the time to fork the repository (including all of the branches!), and then substitute your forked repository location in the git clone command. If you are NOT doing development, just use this command.
-
-All of the following steps assume you have not changed out of the `GITM/`
-directory. Most will error if run from another location, but this will not break
-anything! Simply `cd` back to `GITM/` and try again. 
+!!! tip 
+    Replace `git@github.com:GITMCode/GITM.git` with 
+    `https://github.com/GITMCode/GITM.git` if you don't have Github ssh keys set up. If
+    you are going to be developing GITM, you may take the time to fork the repository
+    (including all of the branches!), and then substitute your forked repository
+    location in the git clone command. If you are NOT doing development, just use this
+    command.
 
 ## Configuring & Compiling
+
+All of the following steps assume you have not changed out of the `GITM/` directory.
+Most will error if run from another location, but this will not break anything! Simply
+`cd` back to `GITM/` and try again. Installation needs to be done from within `GITM/`,
+then the code can be run from anywhere by moving the `run/` directory.
 
 This step configures the planet, compiler, and some paths GITM needs to
 work properly. To configure GITM for Earth using the `gfortran` compiler, run:
@@ -122,8 +148,10 @@ work properly. To configure GITM for Earth using the `gfortran` compiler, run:
 ```
 
 !!! warning 
-    <!--#TODO> </!--> The above example assumes you are using gfortran
-     version 10+. If your gfortran version is <10 (you should upgrade your system!), use `compiler=gfortran`
+    <!--#TODO> </!--> 
+    The above example assumes you are using gfortran
+     version 10+. If your gfortran version is <10 (you should upgrade your system!),
+     use `compiler=gfortran`
 
 The full list of available configuration options can be found by running
 `./Config.pl -h`. A useful flag while developing is `-debug` which will print a
@@ -137,12 +165,16 @@ extra files necessary to compile. To compile, simply run:
 make
 ```
 
-!!! note
-    Compilation can often take a while. This can be done in parallel with
-    `make -j`, which will use all available cores on your computer. To limit the number of cores
-    to 8, for example, use `make -j8`
+!!! tip
 
-If this runs without error, GITM is ready to be run!
+    Compilation can often take a while. This can be done in parallel using `make -j`,
+    which will use all available cores on your computer. To limit the number of cores,
+    for example, to 8 use `make -j8`
+
+If this runs without error, GITM is ready to be run! No changes are made to your system
+so if errors do occur, you can remove the `GITM/` directory and try again. If trying
+again does not work, you can always submit a
+[bug report](https://github.com/GITMCode/GITM/issues) on GitHub.
 
 ## Running the Code
 
