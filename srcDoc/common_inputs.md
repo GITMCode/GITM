@@ -29,7 +29,9 @@ Hopefully these are obvious what they are.
 
 ## Setting the grid
 
-GITM can simulate the whole planet or a portion of the planet.  Unless you know what you are doing, I would stick to modeling the whole planet. This can be done with the following command (as an example):
+GITM can simulate the whole planet or a portion of the planet.  Unless you know what you
+are doing, I would stick to modeling the whole planet. This can be done with the
+following command (as an example):
 
 ```bash
 #GRID
@@ -40,7 +42,11 @@ GITM can simulate the whole planet or a portion of the planet.  Unless you know 
 0.0             longitude start to model (set to 0.0 for whole Earth)
 0.0             longitude end to model (set to 0.0 for whole Earth)
 ```
-The first two numbers control the resolution. The higher these numbers, the finer the resolution, but the more processors you will need - you need one processor for each block that you asked for (2 x 2 = 4 blocks / processors). If you wanted to run at 5 degrees by 5 degrees, the following could be used:
+The first two numbers control the resolution. The higher these numbers, the finer the
+resolution, but the more processors you will need - you need one processor for each
+block that you asked for (2 x 2 = 4 blocks / processors). For example, if you wanted to
+run at 5 degrees by 5 degrees reolution, the following could be used:
+
 ```bash
 #GRID
 8               number of blocks in longitude
@@ -61,38 +67,47 @@ GITM outputs a wide variety of output files. [There is a whole section that desc
 
 Output files are controlled with the `#SAVEPLOTS` command. 
 
-The first line says how often to output restart files, which we will set aside for a bit. It is ok to leave this as 2 hours (7200), unless you know what you are doing.
+The first line says how often to output restart files, which we will set aside for a
+bit. It is ok to leave this as 2 hours (7200 - these are all specified in seconds),
+unless you know what you are doing.
 
 The second line tells GITM how many types of output files you want.
 
-The following lines tell GITM what type of file output you want and how often you want them. The most common type of output is 3DALL, which includes all ion and neutral states (densities, temperatures, velocities). 
+The following lines tell GITM what type of file output you want and how often you want
+them. The most common type of output is 3DALL, which includes all ion and neutral states
+(densities, temperatures, velocities). 
 
 An example:
 ```bash
 #SAVEPLOTS
 7200.0          dt for writing restart files
 1               how many output files do you want
-3DALL           second output style
+3DALL           first output style
 900.0           dt for output (one every 15 min)
 ```
-This will output restart files every 2 hours (this can be ignored) and 3DALL files every 15 minutes.
+
+This will output restart files every 2 hours (this can be ignored) and 3DALL files every
+15 minutes. 2 hours is from 7200.0 seconds, and 15 minutes is from 900.0 seconds.
 
 Another example:
 ```bash
 #SAVEPLOTS
 7200.0          dt for writing restart files
 3               how many output files do you want
-3DALL           second output style
+3DALL           first output style
 900.0           dt for output (one every 15 min)
-2DGEL           third output style
+2DGEL           second output style
 300.0           dt for output (one every 15 min)
-3DTHM           forth output style
+3DTHM           third output style
 900.0           dt for output (one every 15 min)
 ```
-2DGEL files output things like the electric potential and auroral precipitation on the geographic grid at the top of the model. 3DTHM files are thermodynamic variables such as heating and cooling rates.
+
+2DGEL files output things like the electric potential and auroral precipitation on the
+geographic grid at the top of the model. 3DTHM files are thermodynamic variables such
+as heating and cooling rates.
 
 !!!note
-    All of the auxiliary input (data) files can be kept in the same run directory
+    All of the auxiliary input (data) files can (and should) be kept in the same run directory
     as the linked GITM executable and the `UAM.in` file. Otherwise, the path should be
     specified in the UAM.in file relative to the run directory.
 
@@ -146,7 +161,8 @@ Here is an example file:
      2000  3 20  3  3  0  0  0.0 0.0 -2.0 -400.0  0.0  0.0  5.0  50000.0
      2000  3 20  3  4  0  0  0.0 0.0 -2.0 -400.0  0.0  0.0  5.0  50000.0
 
-This file is provided to GITM with:
+This file is provided to GITM by setting the input:
+
 ```bash
 #MHD_INDICES
 imf_file_name.dat
@@ -155,7 +171,7 @@ imf_file_name.dat
 
 ## SME Indices
 
-To use models such as FTA[^1] to drive the aurora, GITM must be provided Auroral
+To use models such as FTA[^1] to drive the aurora, GITM must be provided with Auroral
 Electrojet (AE) indices. Normally this is from SuperMag (hence the name "SME":
 SuperMag auroral Electrojet), but any source may be used. 
 
@@ -185,9 +201,11 @@ T                       use AE for HP
 F                       don't automatically incorporate hemispheric asymmetries 
 ```
 
-The lines following the AE file are for the AL-onset file. This can be set to
-`none` if you do not have one. The next line tells GITM whether to derive HP
-from AE or to use a NOAA HPI file (if one is required). Since production of hemispheric power was stopped by NOAA in 2013 (the world has moved on), it is best to use the HP derived from AE.
+The lines following the AE file-name are for the AL-onset file. This can be set to
+`none` if you do not have one or do not know what that means. The next line tells GITM
+whether to derive HP (Hemispheric Power) from AE or to use a NOAA HPI file (if one is
+required). Since production of hemispheric power was stopped by NOAA in 2013 (the world
+has moved on), it is best to use the HP derived from AE.
 
 Even if AE is not required, it is recommended to provide a SME file as input to
 derive HP, as it is often more representative of geomagnetic conditions than the
@@ -198,6 +216,8 @@ NOAA HPI (maybe this is why they stopped producing it). The formula to calculate
 HemisphericPower = 0.102 * AE + 8.953
 \end{align}
 ```
+
+*[HP]: Hemispheric Power
 
 ## Hemispheric Power {#hp.sec}
 
@@ -314,7 +334,7 @@ It should be noted that MSIS also needs F10.7, so really this command should be 
 In addition, GITM can use the Flare Irradiance Spectrum Model specification of the EUV flux.  Daily values of FISM can be used unless you are doing a flare study.  These daily values are included with GITM and can be found in UA/DataIn/FISM.  As an example, a yearly file can be used with the command (for example):
 ```bash
 #EUV_DATA
-F                                               Use FISM solar flux data
+T                                               Use FISM solar flux data
 UA/DataIn/FISM/fismflux_daily_2002.dat          Filename for specific year
 ```
 
@@ -380,7 +400,27 @@ provided, GITM should not be output at a resolution smaller than 1 second. The
 temporal resolution in the satellite file does not need to match the output
 resolution.
 
-Because GITM by default outputs a file for every output time, if you use a satellite file, it produces a LOT of files.
+Because GITM by default outputs one file for every output time, if you use a satellite
+file, it produces a LOT of files.
 
-The types of outputs are specified in the [`#OUTPUT`](outputs.md) section of
-the UAM file.
+The types of outputs are specified in the `#SATELLITES` section of the UAM.in file. The
+number of satellites must be speficied along with the path to the locations, output type
+& cadence for each file. For example, if we want to output 3DALL files for one satellite
+every 2 minutes, we would use:
+
+    #SATELLITES
+    1                       nSats
+    satfile1.txt            sat file name
+    3DALL                   output type
+    120.0                   output cadence, in seconds
+
+Or for two satellites, every 1 minute:
+
+    #SATELLITES
+    2                       nSats
+    satfile1.txt            sat file name
+    3DALL                   output type
+    60.0                   output cadence, in seconds
+    satfile2.txt            sat file name
+    3DALL                   output type
+    60.0                   output cadence, in seconds
