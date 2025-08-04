@@ -208,8 +208,9 @@ required). Since production of hemispheric power was stopped by NOAA in 2013 (th
 has moved on), it is best to use the HP derived from AE.
 
 Even if AE is not required, it is recommended to provide a SME file as input to
-derive HP, as it is often more representative of geomagnetic conditions than the
-NOAA HPI (maybe this is why they stopped producing it). The formula to calculate hemispheric power (HP) from AE is taken from (Wu et al., 2021)[^1] and is given as:
+derive HP, as it is often more representative of geomagnetic conditions than the NOAA
+HPI (maybe this is why they stopped producing it). The formula to calculate hemispheric
+power (HP) from AE is taken from (Wu et al., 2021)[^1] and is given as:
 
 ```math
 \begin{align}
@@ -221,15 +222,15 @@ HemisphericPower = 0.102 * AE + 8.953
 
 ## Hemispheric Power {#hp.sec}
 
-The hemispheric power files describe the dynamic variation of the
-auroral power going into each hemisphere. Models such as FRE[^FRE] use
-the Hemispheric Power to determine which level of the model it should
-use. It is recommended to not use the NOAA provided HP files, but to use the AE derived HP, as described above.  But, if you are a purist, the National Oceanic and Atmospheric Administration (NOAA) provides
-these hemispheric power files for public use online at
-<http://www.swpc.noaa.gov/ftpmenu/lists/hpi.html>. There are two types
-of formats used for hemispheric power files (due to a change in the NOAA
-output format in 2007). Both file formats can be used by GITM, and are
-shown in the examples below.
+The hemispheric power files describe the dynamic variation of the auroral power going
+into each hemisphere. Models such as FRE[^FRE] use the Hemispheric Power to determine
+which level of the model it should use. It is recommended to not use the NOAA provided
+HP files, but to use the AE derived HP, as described above.  But, if you are a purist,
+the National Oceanic and Atmospheric Administration (NOAA) provides these hemispheric
+power files for public use online at <http://www.swpc.noaa.gov/ftpmenu/lists/hpi.html>.
+There are two types of formats used for hemispheric power files (due to a change in the
+NOAA output format in 2007). Both file formats can be used by GITM, and are shown in the
+examples below.
 
 [^FRE]: Fuller-Rowell, T. J., and D. S. Evans (1987), Height-integrated Pedersen
     and Hall conductivity patterns inferred from the TIROS-NOAA satellite data,
