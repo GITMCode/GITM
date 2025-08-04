@@ -54,7 +54,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest]
     name: Run Automatic Tests
-    needs: [Format, Documentation]
+    needs: [Format]
     steps:
       - name: Linux install gfortran & openmpi
         if: runner.os == 'Linux'
