@@ -41,7 +41,7 @@ latitude, and longitude. They are quite basic, but this should provide some fram
 for reading in GITM files and visualizing the results.  More complex plotters exist,
 and dome of these are described in [this document](plotters.md).
 
-## A Bit More Explaination
+## A Bit More Explanation
 
 GITM is a fortran code that uses the message passing interface (MPI) to run on multiple
 processors, hence the need for a fortran compiler and MPI.  If the code compiles
