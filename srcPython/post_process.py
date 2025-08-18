@@ -56,6 +56,18 @@ def parse_args_post():
     parser.add_argument('-tgz',
                         help = "tar and zip raw GITM file instead of process",
                         action = 'store_true')
+
+    parser.add_argument('-nc',
+                        help = "Postprocess to netCDF files? Each output type becomes "
+                        "its own file (ex: 3DALL.nc, 2DANC.nc, etc.) and subsequent "
+                        "outputs are appended along the time dimension."
+                        "\nNOTE: Move existing files or set a unique runname, otherwise "
+                        "existing files are appended to.",
+                        action = 'store_true')
+    
+    parser.add_argument('-n', '--runname', type=str, default = '',
+                        help="If processing to netCDF, this is appended to the output type. "
+                        "(ex: '3DALL_runname.nc). Not used by default")
     
     args = parser.parse_args()
 
@@ -399,7 +411,9 @@ def transfer_model_output_files(user, server, dir):
 # Post process and then transfer files once:
 # ----------------------------------------------------------------------
 
-def do_loop(doTarZip, user, server, dir, IsRemote):
+def do_loop(doTarZip, user, server, dir, IsRemote,
+            write_nc=False, runname='', # For writing outputs to netCDF
+            ):
 
     DidWork = True
 
@@ -433,9 +447,9 @@ def do_loop(doTarZip, user, server, dir, IsRemote):
             if (not os.path.exists(processDir)):
                 # Maybe we are already in the data directory???
                 processDir = '.'
-        DidWork = post_process_gitm(processDir, DoRm, isVerbose = IsVerbose)
-        #DidWork = post_process_gitm()
-        
+        DidWork = post_process_gitm(processDir, DoRm, isVerbose = IsVerbose,
+                                    write_nc=write_nc, runname=runname)
+
     # 4 - Check if remote data directory exists, make it if it doesn't:
     data_remote = '/data'
     if (IsRemote and DidWork):
@@ -502,7 +516,7 @@ if __name__ == '__main__':  # main code block
         IsRemote, user, server, dir = load_remote_file(args)
         print('Move files to remote system? ', IsRemote)
         
-        DidWork = do_loop(doTarZip, user, server, dir, IsRemote)
+        DidWork = do_loop(doTarZip, user, server, dir, IsRemote, args.nc, args.runname)
         if (DidWork):
             # Check if stop file exists:
             stopCheck = check_for_stop_file()
