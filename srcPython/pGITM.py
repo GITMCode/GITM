@@ -537,6 +537,10 @@ def post_process_gitm(dir, doRemove, isVerbose = False, write_nc=False, runname=
             print(f' --> Processing {head}')
 
         if os.path.exists("../../PostGITM.exe"):
+            if write_nc:
+                raise ValueError(
+                    "Cannot use PostGITM and netCDF at the same time, yet."
+                    "\n  >> either remove PostGITM.exe or disable -nc option")
             # Check if we can use the old postprocessor. it's faster.
             # Pipe the header filename into PostGITM.exe
             run(f"echo {head} | ../../PostGITM.exe ", check=True, shell=True)
