@@ -19,6 +19,7 @@ import numpy as np
 from scipy.io import FortranFile
 from struct import unpack
 
+# check if netcdf can be imported. if not, don't error unless writing netcdf files
 canWriteCDF = True
 try:
     from netCDF4 import Dataset
@@ -208,6 +209,9 @@ def write_to_netcdf(file, data, runname='', isVerbose=False):
 
     if runname != '':
         runname = file.split('_')[0] + '_' + runname + '.nc'
+
+    if file.startswith('1D'):
+        raise ValueError("Cannot write netcdf files for 1D outputs yet!")
 
     if (isVerbose):
         print(' -> Writing NetCDF for: ', file, " to:", runname)

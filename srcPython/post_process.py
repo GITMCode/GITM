@@ -59,15 +59,16 @@ def parse_args_post():
 
     parser.add_argument('-nc',
                         help = "Postprocess to netCDF files? Each output type becomes "
-                        "its own file (ex: 3DALL.nc, 2DANC.nc, etc.) and subsequent "
+                        "its own file (ex: 3DALL.nc, 2DANC.nc, etc.), and subsequent "
                         "outputs are appended along the time dimension."
-                        "\nNOTE: Move existing files or set a unique runname, otherwise "
-                        "existing files are appended to.",
+                        "\n-> Move existing files or set a unique runname, otherwise "
+                        "existing files are appended to."
+                        "\n-> Cannot be used with remote functionality or 1D files",
                         action = 'store_true')
     
     parser.add_argument('-n', '--runname', type=str, default = '',
                         help="If processing to netCDF, this is appended to the output type. "
-                        "(ex: '3DALL_runname.nc). Not used by default")
+                        "(ex: '3DALL_runname.nc). Not used by default.")
     
     args = parser.parse_args()
 
@@ -515,6 +516,10 @@ if __name__ == '__main__':  # main code block
         # load remote file every iteration so we can change it if needed:
         IsRemote, user, server, dir = load_remote_file(args)
         print('Move files to remote system? ', IsRemote)
+        print('Process into netCDF files? ', args.nc)
+        if IsRemote and args.nc:
+            raise NotImplementedError(
+                "The remote system & netcdf options cannot be combined yet")
         
         DidWork = do_loop(doTarZip, user, server, dir, IsRemote, args.nc, args.runname)
         if (DidWork):
