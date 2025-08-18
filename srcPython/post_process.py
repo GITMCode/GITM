@@ -44,12 +44,8 @@ def parse_args_post():
     parser.add_argument('-totaltime',
                         help = 'specify how long to run in total in hours, (default 0 - only run once)',
                         default = 0, type = int)
-
-    parser.add_argument('-q',
-                        help = 'Run with verbose turned off',
-                        action = 'store_true')
     
-    parser.add_argument('-v',
+    parser.add_argument('-v', '--verbose',
                         help = 'Run with verbose',
                         action = 'store_true')
     
@@ -491,7 +487,7 @@ if __name__ == '__main__':  # main code block
 
     # make local variables for arguments:
     doTarZip = args.tgz
-    IsVerbose = args.v
+    IsVerbose = args.verbose
     if (args.norm):
         DoRm = False
 
