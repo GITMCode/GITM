@@ -59,16 +59,16 @@ def parse_args_post():
 
     parser.add_argument('-nc',
                         help = "Postprocess to netCDF files? Each output type becomes "
-                        "its own file (ex: 3DALL.nc, 2DANC.nc, etc.), and subsequent "
-                        "outputs are appended along the time dimension."
-                        "\n-> Move existing files or set a unique runname, otherwise "
-                        "existing files are appended to."
+                        "its own file (ex: 3DALL.nc, 2DANC.nc, etc.).\n"
+                        "Subsequent outputs are appended along the 'time' dimension."
+                        "\n-> Move/rename existing files, or set a runname."
+                        " Otherwise data may not be readable."
                         "\n-> Cannot be used with remote functionality or 1D files",
                         action = 'store_true')
     
     parser.add_argument('-n', '--runname', type=str, default = '',
                         help="If processing to netCDF, this is appended to the output type. "
-                        "(ex: '3DALL_runname.nc). Not used by default.")
+                        "(ex: '3DALL_runname.nc'). Not used by default.")
     
     args = parser.parse_args()
 
