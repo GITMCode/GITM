@@ -781,21 +781,6 @@ subroutine set_inputs
           IsDone = .true.
         endif
 
-        ! case ("#OVATIONSME")
-        !   call read_in_logical(UseOvationSMEWave, iError)
-        !   call read_in_logical(UseOvationSMEIon, iError)
-        !   if (iError /= 0) then
-        !     write(*, *) 'Incorrect format for #OVATIONSME'
-        !     write(*, *) 'This is for using Betsy Michells aurora (OvationSME).'
-        !     write(*, *) 'These are all False by default:'
-        !     write(*, *) ''
-        !     write(*, *) '#OVATIONSME'
-        !     write(*, *) 'UseOvationSMEMono (logical)'
-        !     write(*, *) 'UseOvationSMEWave (logical)'
-        !     write(*, *) 'UseOvationSMEIon  (logical)'
-        !     IsDone = .true.
-        !   endif
-
       case ("#USECUSP")
         call read_in_logical(UseCusp, iError)
         call read_in_real(CuspAveE, iError)
