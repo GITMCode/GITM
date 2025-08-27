@@ -1045,7 +1045,7 @@ subroutine set_inputs
           IsDone = .true.
         endif
 
-      case ("#MODIFIYPLANET")
+      case ("#MODIFYPLANET")
         call read_in_real(RotationPeriodInput, iError)
         call read_in_real(DaysPerYearInput, iError)
         call read_in_real(PlanetTiltInput, iError)
