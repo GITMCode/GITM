@@ -229,57 +229,16 @@ AuroraKappa - kappa to use in the distribution
     IsKappaAurora     (logical)
     AuroraKappa    (real)
 
-### NEWELLAURORA
+### AURORATYPES
 
-This is for using Pat Newells aurora (Ovation).
+This is for using different types of aurora. Currently this is supported by Ovation & 
+AMIE. The first three options (diffuse, mono, wave) are for electrons only.
 
-    #NEWELLAURORA
-    UseNewellAurora   (logical)
-    UseNewellAveraged (logical)
-    UseNewellMono (logical)
-    UseNewellWave (logical)
-    UseNewellRemoveSpikes (logical)
-    UseNewellAverage      (logical)
-
-
-### IONPRECIPITATION
-
-You can only have an AMIE input file for this now. Make sure you put the
-ions in the AMIE file!!!
-
-    #IONPRECIPITATION
-    UseIonPrecipitation     (logical)
-
-### OVATIONSME
-
-This is for using Betsy Michells aurora (OvationSME).
-
-    #OVATIONSME
-    UseOvationSME     (logical)
-    UseOvationSMEMono (logical)
-    UseOvationSMEWave (logical)
-    UseOvationSMEIon  (logical)
-
-### AEMODEL
-
-This is for using Dongjies aurora.
-
-    #AEMODEL
-    UseAeModel        (logical)
-
-### FTAMODEL
-
-This is for using the FTA Model of the aurora.
-
-    #FTAMODEL
-    UseFtaModel        (logical)
-
-### FANGENERGY
-
-This is for using Dongjies aurora.
-
-    #FANGENERGY
-    UseFangEnergyDeposition        (logical)
+    #AURORATYPES
+    UseDiffuseAurora   (logical)
+    UseMonoAurora (logical)
+    UseWaveAurora (logical)
+    UseIonAurora (logical)
 
 ### USECUSP
 
