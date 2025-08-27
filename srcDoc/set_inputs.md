@@ -1,6 +1,31 @@
 # All Inputs
 
-<!-- This file is automatically made by set_inputs.py -->
+When running, GITM looks for a file called `UAM.in` in the same directory as the
+executable. This is where all of the settings for a run are read from.
+
+This plain-text file can contain comments and other notes which will not be used. Only
+sections that begin with a `#` and match one of the GITM's settings are actually read.
+GITM will print a message if it finds a line that begins with `#` that was not used.
+
+For example, in the following snippet, only the first block of text will be recognized
+as a valid setting:
+
+```
+#LOGFILE
+10.0
+
+# LOGFILE
+10.0       not read, space after # in first line
+
+#LOG_FILE
+10.0       not read, key does not match
+
+#LOGFILE
+ 10.0      will cause error, space before value!
+
+```
+
+This allows us to add comments or descriptors, if we wish.
 
 ## General Configuration
 
