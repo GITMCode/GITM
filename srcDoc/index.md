@@ -19,6 +19,12 @@ relatively recent.
 Download, configure, and run (`gfortran10` is for any gfortran version 10 or higher,
 for versions 9 and lower just use `-compiler=gfortran`):
 
+! note
+  The current documentation only applies to the develop branch of GITM.
+
+  After the seconds line below, run `git checkout develop` 
+
+
 ```bash
 git clone https://github.com/GITMCode/GITM.git
 cd GITM
