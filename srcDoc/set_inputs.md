@@ -68,7 +68,7 @@ the specified F107 and F107a values.`
 
 ### GRID
 
-If LatStart and LatEnd are set to \< -90 and \> 90, respectively, then
+If LatStart and LatEnd are set to < -90 and > 90, respectively, then
 GITM does a whole sphere. If not, it models between the two. If you want
 to do 1-D, set nLons=1, nLats=1 in ModSizeGitm.f90, then recompile, then
 set LatStart and LonStart to the point on the Globe you want to model.
@@ -90,9 +90,10 @@ set LatStart and LonStart to the point on the Globe you want to model.
 ### SAVEPLOT
 
 The DtRestart variable sets the time in between writing full restart
-files to the UA/restartOUT directory.\
-This sets the output files. The most common type is 3DALL, which outputs
-all primary state variables. Types include : 3DALL, 3DNEU, 3DION, 3DTHM,
+files to the UA/restartOUT directory. This sets the output files. The most common
+type is 3DALL, which outputs all primary state variables. 
+
+Other types include : 3DALL, 3DNEU, 3DION, 3DTHM,
 3DCHM, 3DUSR, 3DGLO, 2DGEL, 2DMEL, 2DUSR, 1DALL, 1DGLO, 1DTHM, 1DNEW,
 1DCHM, 1DCMS, 1DUSR. DtPlot sets the frequency of output
 
@@ -108,9 +109,14 @@ This allows you to change the output cadence of the files for a limited
 time. If you have an event then you can output much more often during
 that event.
 
+Specify the start and end time the new cadence will be used for, followed by the new Dt
+for each output type. This example would be for two output types:
+
     #PLOTTIMECHANGE
     yyyy mm dd hh mm ss ms (start)
     yyyy mm dd hh mm ss ms (end)
+    DtOutputType1           (real, seconds)
+    DtOutputType2           (real, seconds)
 
 
 ### LOGFILE
@@ -142,6 +148,8 @@ be named 1DALL_GITM_yyyy-mm-ddThh-mm-ss.bin
 
 ### SATELLITES
 
+See [this page](common_inputs.md#satellite-section) for more details.
+
     #SATELLITES
     nSats     (integer - max = ', nMaxSats, ')
     SatFile1  (string)
@@ -170,6 +178,20 @@ altitude grid, and drive the lower boundary conditions.
     f107  (real)
     f107a (real - 81 day average of f107)
 
+### ELECTRODYNAMICS
+
+Sets the sources for, and the time for updating, the high-latitude (and low-latitude)
+electrodynamic drivers, such as the potential and the aurora.
+
+See [the electrodynamics page](internals/electrodynamics.md) for more details
+
+    #ELECTRODYNAMICS
+    AuroralModel     [fta], fre, pem, ovation, hpi/ihp, amie, etc.
+    DtAurora    (real, seconds [60.0])
+    PotentialModel   [weimer05], hepmay, amie, etc.
+    DtPotential (real, seconds [60.0])'
+
+
 ### HPI
 
 This sets the hemispheric power of the aurora. Typical it ranges from
@@ -180,7 +202,7 @@ This sets the hemispheric power of the aurora. Typical it ranges from
 
 ### KP
 
-I dont think that GITM actually uses this unless the Foster electric
+GITM will not use this unless the Foster electric
 field model is used.
 
     #KP
@@ -273,15 +295,6 @@ below.
     AMIELatEnd           (real)
     AMIEBoundaryWidth    (real)
 
-### ELECTRODYNAMICS
-
-Sets the time for updating the high-latitude (and low-latitude)
-electrodynamic drivers, such as the potential and the aurora.
-
-    #ELECTRODYNAMICS
-    DtPotential (real, seconds)
-    DtAurora    (real, seconds)
-
 ### INPUTTIMEDELAY
 
 Sets the time delay for the high latitude drivers and solar EUV inputs.
@@ -310,9 +323,9 @@ For other planets, the vertical BCs can be set here.
 
 ### MSISTIDES
 
-This says how to use msis tides. The first one is using diurnal tide The
-first one is using semi-diurnal tide The first one is using terdiurnal
-tide
+This says how to use msis tides. The first argument is for using diurnal tide, the
+second is for using semi-diurnal tide and the third is to use terdiurnal
+tide.
 
     #MSISTIDES
     UseMSISDiurnal        (logical)
@@ -329,11 +342,11 @@ seems like -0.1 works well
     UseOBCExperiment        (logical)
     MsisOblateFactor           (real)
 
-### MSISOBC
+### MSIS21
 
 This toggles between using MSIS00 (false) and MSIS-2.1 (true)
 
-    #MSISOBC
+    #MSIS21
     UseMsis21       (logical)
 
 
@@ -368,6 +381,8 @@ components to use.
 
 ### USEBCPERTURBATION
 
+Use Boundary Condition Perturbation are a set of arguments for running WP-GITM.
+
     #USEBCPERTURBATION
     UseBcPerturbation        (logical)
     If UseBcPerturbation = .true. then:
@@ -385,9 +400,9 @@ components to use.
 
 ### STATISTICALMODELSONLY
 
-This command will skip all pretty much all of the physics of GITM, and
-will reinitialize the model with the MSIS and IRI values at the interval
-set in the second variable. If you want to compare a run to MSIS and
+This command will skip pretty much all of the physics of GITM, and
+will reinitialize the model with the MSIS, IRI, APEX, and Electrodynamics values at
+the interval set in the second variable. If you want to compare a run to MSIS and
 IRI, you can run GITM with this command and get output at exactly the
 same cadence and locations, thereby allowing easier comparisons. The dt
 can be set as low as needed, so you can run satellites through MSIS and
@@ -411,7 +426,7 @@ instabilities form, a lower value is probably needed.
 ### LIMITER
 
 The limiter is quite important. It is a value between 1.0 and 2.0, with
-1.0 being more diffuse and robust, and 2.0 being less diffuse, but less
+1.0 being more diffuse and robust, and 2.0 being less diffuse and less
 robust.
 
     #LIMITER
@@ -470,6 +485,8 @@ code to sync up a LOT.
     MaximumVerticalVelocity      (real)
 
 ### AUSMSOLVER
+
+This dictates whether to use the AUSM solver (T) or the Rusanov solver (F)
 
     #AUSMSOLVER
     Use AUSM Solver      (logical)
@@ -639,10 +656,7 @@ caution.
     #TSIMULATION
     tsimulation    (real)
 
-### DUST
-
-This says whether you want seconds in output file name. F means no
-seconds in output file name.
+### DUSTDATA
 
     #DUST
     cDustFile
@@ -673,8 +687,6 @@ in the lower atmosphere.
     UseDamping        (logical)
 
 ### GRAVITYWAVE
-
-I dont know what this is for\...
 
     #GRAVITYWAVE
     UseGravityWave        (logical)

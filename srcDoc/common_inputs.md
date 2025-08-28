@@ -372,6 +372,8 @@ If you want to create your own files, there is a code in srcPython to download a
 
 ## Satellites {#sat_aux.sec}
 
+<a name="satellite-section"></a>
+
 GITM can provide output data at a list of times and locations using the
 SATELLITE input option. Although this is designed to output data along
 a satellite orbit, any list of locations may be used. There is currently
