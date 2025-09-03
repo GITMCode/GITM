@@ -1,0 +1,17 @@
+character(25), parameter :: GitmVersion = & 
+ "20250723.0"
+
+character(50), parameter :: GitmVersionFull = "main-release_" // GitmVersion
+
+
+character(50), parameter :: ElectrodynamicsVersionFull = GitmVersionFull
+
+character(*), parameter :: DifferentFilesGitm = &
+"none"
+character(*), parameter :: DifferentFilesElectrodyunamics = &
+"none"
+
+
+! This file contains version information for cases where the user has downloaded a 
+!  "release" of GITM. Since there is no .git/ folder, we cannot extract git information.
+! -> The date should be changed upon making a new release.

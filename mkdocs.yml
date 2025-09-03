@@ -1,0 +1,90 @@
+site_name: GITM
+site_url: https://gitm.readthedocs.io
+site_description: >-
+  Official documentation for the Global Ionosphere Thermosphere Model (GITM)
+repo_name: GITMCode/GITM
+repo_url: https://github.com/GITMCode/GITM
+
+theme:
+  # name: readthedocs
+  # name: mkdocs
+  name: material
+  icon:
+    logo: material/earth
+    repo: material/github
+
+  features:
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.footer
+    - toc.integrate
+    - content.code.annotate
+    - content.code.copy
+
+  palette:
+    # Palette toggle for automatic mode
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode
+
+    # Palette toggle for light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default 
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+
+    # Palette toggle for dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to system preference
+
+plugins:
+  - search # allow for search after being built
+  - mermaid2: # cool diagrams
+      javascript: js/mermaid.min.js # local path to mermaid javascript file
+
+markdown_extensions:
+  - pymdownx.extra #footnotes, abbreviations, tables, definitions, etc.
+  - pymdownx.fancylists # lists continuing after breaking for indentation
+  - pymdownx.saneheaders #allows for "#text" to not be parsed as a header
+  - pymdownx.tasklist
+  - markdown_katex # math
+  - admonition # note, warning, etc. blocks
+  - markdown_del_ins # strike-through & insert
+  - markdown_captions # figure captions.
+  - pymdownx.superfences:
+        # make exceptions to highlighting of code:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:mermaid2.fence_mermaid
+
+docs_dir: srcDoc
+
+nav:
+  - Home: index.md
+  - Getting Started: install.md
+  - Inputs:
+    - Common Inputs: common_inputs.md
+    - All Inputs: set_inputs.md
+  - Outputs:
+    - Postprocessing: postprocessing.md
+    - Available Outputs: outputs.md
+    - Plotting Outputs: plotters.md
+  - Internals:
+    - Overview: internals/overview.md
+    - Grid: internals/grid.md
+    - Earth Chemistry: internals/chemistry.md
+    - Electrodynamics: internals/electrodynamics.md
+  - Development:
+    - Site Information: devstuff/devhome.md
+    - Contributing: https://github.com/GITMCode/GITM/blob/main/.github/CONTRIBUTING.md
+    - GITM Developers: https://github.com/GITMCode/GITM/graphs/contributors
+    - Markdown Reference: devstuff/markdown_ref.md
+    - GITM Outline: devstuff/outline.md
+    - Other Useful Links: devstuff/somelinks.md
+  - Getting Help: FAQ/faq.md
