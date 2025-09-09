@@ -61,7 +61,7 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
   logical :: UsePlasmasphereBC
 
   ! Gradient Terms
-  real :: dLogNS, dTemp, dVertVel
+  real :: dLogNS, dTemp, dVertVel, dVel
   real :: dLogINS
 
   ! Use for 4-th Order Forward Differences
@@ -128,12 +128,15 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
                     F107A, F107, AP, LogNS_Species, temptemp, &
                     LogRho(iAlt), v)
 
+      ! transfer log of densities to variables that are used:
+      LogNS(iAlt, :) = LogNS_Species
       if (.not. DuringPerturb) temp(iAlt) = temptemp
-
       vel_gd(iAlt, iEast_) = v(iEast_)
       vel_gd(iAlt, iNorth_) = v(iNorth_)
 
     enddo
+    NS = exp(LogNS)
+
   else
     ! Don't Let the winds blow
     Vel_GD(-1:0, iEast_) = 0.0
@@ -229,8 +232,11 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
 
     if (.not. IsPhotoChemical(iSpecies)) then
 
-      ! This is what we do when (1) We're using MSIS and (2) the
-      ! species is NOT Photochemical
+      ! This is setting the lowest ghostcell (-1), assuming that the 0th
+      ! ghostcell has been set.  The reason for this is that we want to
+      ! make sure that we have a very good hydrostatic density here.
+
+      ! These species are advected!
 
       iAlt = -1
       MeanGravity = -0.5*(EffectiveGravity(iAlt) + EffectiveGravity(iAlt + 1))
@@ -240,9 +246,10 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
         MeanGravity*MeanMass/(MeanTemp*Boltzmanns_Constant)
 
       ! Note the + in exponent, since we are going down in altitude.
-      NS(iAlt, iSpecies) = NS(iAlt + 1, iSpecies)* &
-                           (Temp(iAlt + 1)/Temp(iAlt))* &
-                           exp(1.0*InvScaleHeightS*dAlt_F(iAlt))
+      NS(iAlt, iSpecies) = &
+        NS(iAlt + 1, iSpecies)* &
+        (Temp(iAlt + 1)/Temp(iAlt))* &
+        exp(InvScaleHeightS*dAlt_F(iAlt))
 
       LogNS(iAlt, iSpecies) = alog(NS(iAlt, iSpecies))
 
@@ -252,6 +259,8 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
       endif
 
     else
+
+      ! These are for non-advected species:
 
       do iAlt = 0, -1, -1
 
@@ -266,7 +275,7 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
         MeshH3 = h1 + h2 + h3
         MeshH4 = h1 + h2 + h3 + h4
 
-          !!! 3rd Order Mesh Coef
+        ! 3rd Order Mesh Coef
         MeshCoef0 = -1.0*(MeshH2*MeshH3*MeshH4 + MeshH1*MeshH3*MeshH4 + &
                           MeshH1*MeshH2*MeshH4 + MeshH1*MeshH2*MeshH3)/ &
                     (MeshH1*MeshH2*MeshH3*MeshH4)
@@ -277,11 +286,12 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
         MeshCoef4 = -1.0*(MeshH1*MeshH2*MeshH3)/ &
                     (MeshH4*(h2 + h3 + h4)*(h3 + h4)*h4)
 
-        dLogNS = LogNS(iAlt + 1, iSpecies)*MeshCoef0 + &
-                 LogNS(iAlt + 2, iSpecies)*MeshCoef1 + &
-                 LogNS(iAlt + 3, iSpecies)*MeshCoef2 + &
-                 LogNS(iAlt + 4, iSpecies)*MeshCoef3 + &
-                 LogNS(iAlt + 5, iSpecies)*MeshCoef4
+        dLogNS = &
+          LogNS(iAlt + 1, iSpecies)*MeshCoef0 + &
+          LogNS(iAlt + 2, iSpecies)*MeshCoef1 + &
+          LogNS(iAlt + 3, iSpecies)*MeshCoef2 + &
+          LogNS(iAlt + 4, iSpecies)*MeshCoef3 + &
+          LogNS(iAlt + 5, iSpecies)*MeshCoef4
 
         LogNS(iAlt, iSpecies) = &
           LogNS(iAlt + 1, iSpecies) - dAlt_F(iAlt + 1)*dLogNS
@@ -391,18 +401,20 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
                            exp(LogRho(iAlt))
     enddo
 
+    ! Here we are projecting the east/west velocities from
+    ! the 0th ghostcell to the -1 ghost cell.
+
     if ((iAlt == -1) .and. (UseMsisBcs)) then
-
       do iDir = iEast_, iNorth_
-        dVertVel = Vel_GD(iAlt + 1, iDir)*MeshCoef0 + &
-                   Vel_GD(iAlt + 2, iDir)*MeshCoef1 + &
-                   Vel_GD(iAlt + 3, iDir)*MeshCoef2 + &
-                   Vel_GD(iAlt + 4, iDir)*MeshCoef3 + &
-                   Vel_GD(iAlt + 5, iDir)*MeshCoef4
+        dVel = &
+          Vel_GD(iAlt + 1, iDir)*MeshCoef0 + &
+          Vel_GD(iAlt + 2, iDir)*MeshCoef1 + &
+          Vel_GD(iAlt + 3, iDir)*MeshCoef2 + &
+          Vel_GD(iAlt + 4, iDir)*MeshCoef3 + &
+          Vel_GD(iAlt + 5, iDir)*MeshCoef4
 
-        Vel_GD(iAlt, iDir) = Vel_GD(iAlt + 1, iDir) - dAlt_F(iAlt + 1)*dVertVel
+        Vel_GD(iAlt, iDir) = Vel_GD(iAlt + 1, iDir) - dAlt_F(iAlt + 1)*dVel
       enddo
-
     endif
 
   enddo ! End Outer IAlt Loop (0, -1, -1)
