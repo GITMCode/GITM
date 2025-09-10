@@ -139,13 +139,16 @@ def create_netcdf(filename, data, isVerbose=False):
             lon.units = 'degrees_east'
             lon.long_name = 'Longitude'
 
-        if np.all([data['Latitude'][0, :, 0] == data['Latitude'][i, :, :].T for i in range(nx)]):#, axis=(0, 2)):
+        # Latitude needs to be checked differently...
+        diffarray = np.diff(data['Latitude'], axis=2)
+        if np.all(diffarray == diffarray[0, 0, 0]):
+            print('lat')
             lat = ncfile.createVariable('lat', np.float64, ('lat'))
             lat[:] = np.rad2deg(data['Latitude'][0, :, 0])
             lat.units = 'degrees_north'
             lat.long_name = 'Latitude'
 
-        if np.all(data['Altitude'][:, 0, 0] == data['Altitude'].T):#, axis=(0, 1)):
+        if np.all(data['Altitude'][:, 0, 0] == data['Altitude'].T):
             alt = ncfile.createVariable('z', np.float64, ('z'))
             alt[:] = data['Altitude'][:, 0, 0] / 1000
             alt.units = 'km'
