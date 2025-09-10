@@ -23,6 +23,7 @@ from struct import unpack
 canWriteCDF = True
 try:
     from netCDF4 import Dataset
+    from pyitm.fileio import variables
 except:
     canWriteCDF = False
 
@@ -132,35 +133,42 @@ def create_netcdf(filename, data, isVerbose=False):
             print(ncfile)
 
         # We'll try to add the coordinates, if they can be added cleanly...
-        print(data['Longitude'].shape)
         if np.all(data['Longitude'][0, 0, :] == data['Longitude']):
             lon = ncfile.createVariable('lon', np.float64, ('lon'))
             lon[:] = np.rad2deg(data['Longitude'][0, 0, :])
             lon.units = 'degrees_east'
             lon.long_name = 'Longitude'
-            print('lon')
+
         if np.all([data['Latitude'][0, :, 0] == data['Latitude'][i, :, :].T for i in range(nx)]):#, axis=(0, 2)):
             lat = ncfile.createVariable('lat', np.float64, ('lat'))
             lat[:] = np.rad2deg(data['Latitude'][0, :, 0])
             lat.units = 'degrees_north'
             lat.long_name = 'Latitude'
-            print('lat')
+
         if np.all(data['Altitude'][:, 0, 0] == data['Altitude'].T):#, axis=(0, 1)):
             alt = ncfile.createVariable('z', np.float64, ('z'))
             alt[:] = data['Altitude'][:, 0, 0] / 1000
             alt.units = 'km'
             alt.long_name = 'Altitude'
-            print('alt')
-        
+
         # Then put the variables in
         for varname in data['vars']:
-            newname = varname
-            if '[' in newname:
-                newname = newname.replace('[', '').replace(']','')
-                # thisvar.units = 'kg/m3'
+            unit = None
+            newname = variables.get_short_names([varname])[0]
             thisvar = ncfile.createVariable(newname, np.float64, 
                                             ('time', 'lon', 'lat', 'z'))
             thisvar[:] = data[varname].T
+            if 'V' in newname:
+                unit = 'm/s'
+            elif '[' in varname:
+                unit='/m3'
+            elif 'Temp' in varname:
+                unit = 'K'
+            if unit:
+                ncfile[newname].units = unit
+            
+            ncfile[newname].long_name = variables.get_long_names([varname])[0]
+
     return
 
 def append_netcdf(filename, data, isVerbose):
@@ -175,7 +183,8 @@ def append_netcdf(filename, data, isVerbose):
         time[len(time)] = (data["time"] - reftime).total_seconds()
 
         for varname in data['vars']:
-            ncfile[varname.replace('[', '').replace(']','')][-1, ...] = data[varname].T
+            newname = variables.get_short_names([varname])[0]
+            ncfile[newname][-1, ...] = data[varname].T
 
     return
 
