@@ -826,7 +826,6 @@ subroutine set_inputs
           IsDone = .true.
         endif
 
-
       case ("#USEREGIONALAMIE")
         call read_in_logical(UseRegionalAMIE, iError)
         call read_in_logical(UseTwoAMIEPotentials, iError)

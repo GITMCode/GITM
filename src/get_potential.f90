@@ -61,13 +61,13 @@ subroutine init_get_potential
 
   ! Now run some checks on user's settings:
   if (iProc == 0) then
-     if (IEModel_%iAurora_ == iOvationPrime_) then
-        if (NormalizeAuroraToHP) &
-             call raise_warning("You probably should not use NormalizeAuroraToHP and Ovation")
-        
-        if (UseIonAurora .and. IsKappaAurora) &
-             call raise_warning("Kappa aurora & ion precipitation cannot be used simultaneously, yet.")
-     endif
+    if (IEModel_%iAurora_ == iOvationPrime_) then
+      if (NormalizeAuroraToHP) &
+        call raise_warning("You probably should not use NormalizeAuroraToHP and Ovation")
+
+      if (UseIonAurora .and. IsKappaAurora) &
+        call raise_warning("Kappa aurora & ion precipitation cannot be used simultaneously, yet.")
+    endif
   endif
 
   if (IEModel_%iAurora_ /= iFRE_ .and. NormalizeAuroraToHP) &
@@ -269,7 +269,7 @@ subroutine get_potential(iBlock)
       call stop_gitm("Stopping in get_potential")
     endif
 
-    ! Sometimes, in AMIE, things get messed up in the Average energy, 
+    ! Sometimes, in AMIE, things get messed up in the Average energy,
     ! so go through and fix some of these (Also checked in aurora.f90.)
     if (iDebugLevel > 1) then
       do iLat = -1, nLats + 2
@@ -289,9 +289,9 @@ subroutine get_potential(iBlock)
     endif
 
     ! Adjust the Average Energy of the Diffuse Aurora, if desired:
-    if (iDebugLevel > 1) write (*,*) '=> Adjusting average energy of the aurora : ', AveEFactor
-    ElectronAverageEnergyDiffuse = ElectronAverageEnergyDiffuse * AveEFactor
-    
+    if (iDebugLevel > 1) write(*, *) '=> Adjusting average energy of the aurora : ', AveEFactor
+    ElectronAverageEnergyDiffuse = ElectronAverageEnergyDiffuse*AveEFactor
+
     ! -----------------------------
     ! Ion, Wave- & Mono- aurora
     ! -----------------------------
@@ -340,7 +340,7 @@ subroutine get_potential(iBlock)
         endif
 
         ! Typical values are:
-        !   - electron average energy = 30-100 eV (< 220 eV) 
+        !   - electron average energy = 30-100 eV (< 220 eV)
         !   - electron energy flux = 1-2 ergs/cm2/s
         !   - ion average energy = 300 - 3000 keV
         !   - ion energy flux = ~ 6x less than electrons
