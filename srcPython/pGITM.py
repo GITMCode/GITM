@@ -159,7 +159,7 @@ def create_netcdf(filename, data, isVerbose=False):
             newname = variables.get_short_names([varname])[0]
             thisvar = ncfile.createVariable(newname, np.float64, 
                                             ('time', 'lon', 'lat', 'z'))
-            thisvar[:] = data[varname].T
+            thisvar[0, :, :, :] = data[varname].T
             if 'V' in newname:
                 unit = 'm/s'
             elif '[' in varname:
@@ -186,7 +186,7 @@ def append_netcdf(filename, data, isVerbose):
 
         for varname in data['vars']:
             newname = variables.get_short_names([varname])[0]
-            ncfile[newname][-1, ...] = data[varname].T
+            ncfile[newname][-1, :, :, :] = data[varname].T
 
     return
 
