@@ -142,7 +142,6 @@ def create_netcdf(filename, data, isVerbose=False):
         # Latitude needs to be checked differently...
         diffarray = np.diff(data['Latitude'], axis=2)
         if np.all(diffarray == diffarray[0, 0, 0]):
-            print('lat')
             lat = ncfile.createVariable('lat', np.float64, ('lat'))
             lat[:] = np.rad2deg(data['Latitude'][0, :, 0])
             lat.units = 'degrees_north'
