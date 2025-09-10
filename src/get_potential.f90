@@ -397,8 +397,6 @@ subroutine get_potential(iBlock)
 
   endif
 
-
-
   call end_timing("get_potential")
 
 end subroutine get_potential
