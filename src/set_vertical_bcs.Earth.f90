@@ -61,7 +61,7 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
   logical :: UsePlasmasphereBC
 
   ! Gradient Terms
-  real :: dLogNS, dTemp, dVertVel
+  real :: dLogNS, dTemp, dVertVel, dVel
   real :: dLogINS
 
   ! Use for 4-th Order Forward Differences
@@ -127,13 +127,16 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
       call msis_bcs(iJulianDay, UTime, Alt, Lat, Lon, Lst, &
                     F107A, F107, AP, LogNS_Species, temptemp, &
                     LogRho(iAlt), v)
-
+      
+      ! transfer log of densities to variables that are used:
+      LogNS(iAlt, :) = LogNS_Species
       if (.not. DuringPerturb) temp(iAlt) = temptemp
-
       vel_gd(iAlt, iEast_) = v(iEast_)
       vel_gd(iAlt, iNorth_) = v(iNorth_)
 
-    enddo
+   enddo
+   NS = exp(LogNS)
+   
   else
     ! Don't Let the winds blow
     Vel_GD(-1:0, iEast_) = 0.0
@@ -229,77 +232,84 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
 
     if (.not. IsPhotoChemical(iSpecies)) then
 
-      ! This is what we do when (1) We're using MSIS and (2) the
-      ! species is NOT Photochemical
+       ! This is setting the lowest ghostcell (-1), assuming that the 0th
+       ! ghostcell has been set.  The reason for this is that we want to
+       ! make sure that we have a very good hydrostatic density here.
 
-      iAlt = -1
-      MeanGravity = -0.5*(EffectiveGravity(iAlt) + EffectiveGravity(iAlt + 1))
-      MeanTemp = 0.5*(Temp(iAlt + 1) + Temp(iAlt))
-      MeanMass = 0.5*(MeanMajorMass_1d(iAlt + 1) + MeanMajorMass_1d(iAlt))
-      InvScaleHeightS = &
-        MeanGravity*MeanMass/(MeanTemp*Boltzmanns_Constant)
+       ! These species are advected!
+       
+       iAlt = -1
+       MeanGravity = -0.5*(EffectiveGravity(iAlt) + EffectiveGravity(iAlt + 1))
+       MeanTemp = 0.5*(Temp(iAlt + 1) + Temp(iAlt))
+       MeanMass = 0.5*(MeanMajorMass_1d(iAlt + 1) + MeanMajorMass_1d(iAlt))
+       InvScaleHeightS = &
+            MeanGravity*MeanMass/(MeanTemp*Boltzmanns_Constant)
 
-      ! Note the + in exponent, since we are going down in altitude.
-      NS(iAlt, iSpecies) = NS(iAlt + 1, iSpecies)* &
-                           (Temp(iAlt + 1)/Temp(iAlt))* &
-                           exp(1.0*InvScaleHeightS*dAlt_F(iAlt))
+       ! Note the + in exponent, since we are going down in altitude.
+       NS(iAlt, iSpecies) = &
+            NS(iAlt + 1, iSpecies) * &
+            (Temp(iAlt + 1)/Temp(iAlt))* &
+            exp(InvScaleHeightS * dAlt_F(iAlt))
 
-      LogNS(iAlt, iSpecies) = alog(NS(iAlt, iSpecies))
+       LogNS(iAlt, iSpecies) = alog(NS(iAlt, iSpecies))
 
-      if (iSpecies == iO_3P_) then
-        ! Assume 0 gradient below boundary
-        LogNS(iAlt, iSpecies) = LogNS(0, iSpecies)
-      endif
+       if (iSpecies == iO_3P_) then
+          ! Assume 0 gradient below boundary
+          LogNS(iAlt, iSpecies) = LogNS(0, iSpecies)
+       endif
 
     else
 
-      do iAlt = 0, -1, -1
+       ! These are for non-advected species:
+       
+       do iAlt = 0, -1, -1
+         
+          h1 = dAlt_F(iAlt + 2) ! dAlt_F(1) = Alt(1) - Alt(0);  h1 in notes
+          h2 = dAlt_F(iAlt + 3) ! dAlt_F(2) = Alt(2) - Alt(1);  h2 in notes
+          h3 = dAlt_F(iAlt + 4) ! dAlt_F(3) = Alt(3) - Alt(2);  h3 in notes
+          h4 = dAlt_F(iAlt + 5) ! dAlt_F(4) = Alt(4) - Alt(3);  h4 in notes
 
-        h1 = dAlt_F(iAlt + 2) ! dAlt_F(1) = Alt(1) - Alt(0);  h1 in notes
-        h2 = dAlt_F(iAlt + 3) ! dAlt_F(2) = Alt(2) - Alt(1);  h2 in notes
-        h3 = dAlt_F(iAlt + 4) ! dAlt_F(3) = Alt(3) - Alt(2);  h3 in notes
-        h4 = dAlt_F(iAlt + 5) ! dAlt_F(4) = Alt(4) - Alt(3);  h4 in notes
+          ! Mesh Coefficients are summations over the individual mesh scales
+          MeshH1 = h1
+          MeshH2 = h1 + h2
+          MeshH3 = h1 + h2 + h3
+          MeshH4 = h1 + h2 + h3 + h4
 
-        ! Mesh Coefficients are summations over the individual mesh scales
-        MeshH1 = h1
-        MeshH2 = h1 + h2
-        MeshH3 = h1 + h2 + h3
-        MeshH4 = h1 + h2 + h3 + h4
+          ! 3rd Order Mesh Coef
+          MeshCoef0 = -1.0*(MeshH2*MeshH3*MeshH4 + MeshH1*MeshH3*MeshH4 + &
+               MeshH1*MeshH2*MeshH4 + MeshH1*MeshH2*MeshH3)/ &
+               (MeshH1*MeshH2*MeshH3*MeshH4)
+          MeshCoef1 = 1.0*(MeshH2*MeshH3*MeshH4)/ &
+               (h1*h2*(h2 + h3)*(h2 + h3 + h4))
+          MeshCoef2 = -1.0*(MeshH1*MeshH3*MeshH4)/(MeshH2*h2*h3*(h3 + h4))
+          MeshCoef3 = 1.0*(MeshH1*MeshH2*MeshH4)/(MeshH3*(h3 + h2)*h3*h4)
+          MeshCoef4 = -1.0*(MeshH1*MeshH2*MeshH3)/ &
+               (MeshH4*(h2 + h3 + h4)*(h3 + h4)*h4)
 
-          !!! 3rd Order Mesh Coef
-        MeshCoef0 = -1.0*(MeshH2*MeshH3*MeshH4 + MeshH1*MeshH3*MeshH4 + &
-                          MeshH1*MeshH2*MeshH4 + MeshH1*MeshH2*MeshH3)/ &
-                    (MeshH1*MeshH2*MeshH3*MeshH4)
-        MeshCoef1 = 1.0*(MeshH2*MeshH3*MeshH4)/ &
-                    (h1*h2*(h2 + h3)*(h2 + h3 + h4))
-        MeshCoef2 = -1.0*(MeshH1*MeshH3*MeshH4)/(MeshH2*h2*h3*(h3 + h4))
-        MeshCoef3 = 1.0*(MeshH1*MeshH2*MeshH4)/(MeshH3*(h3 + h2)*h3*h4)
-        MeshCoef4 = -1.0*(MeshH1*MeshH2*MeshH3)/ &
-                    (MeshH4*(h2 + h3 + h4)*(h3 + h4)*h4)
+          dLogNS = &
+               LogNS(iAlt + 1, iSpecies)*MeshCoef0 + &
+               LogNS(iAlt + 2, iSpecies)*MeshCoef1 + &
+               LogNS(iAlt + 3, iSpecies)*MeshCoef2 + &
+               LogNS(iAlt + 4, iSpecies)*MeshCoef3 + &
+               LogNS(iAlt + 5, iSpecies)*MeshCoef4
 
-        dLogNS = LogNS(iAlt + 1, iSpecies)*MeshCoef0 + &
-                 LogNS(iAlt + 2, iSpecies)*MeshCoef1 + &
-                 LogNS(iAlt + 3, iSpecies)*MeshCoef2 + &
-                 LogNS(iAlt + 4, iSpecies)*MeshCoef3 + &
-                 LogNS(iAlt + 5, iSpecies)*MeshCoef4
+          LogNS(iAlt, iSpecies) = &
+               LogNS(iAlt + 1, iSpecies) - dAlt_F(iAlt + 1)*dLogNS
 
-        LogNS(iAlt, iSpecies) = &
-          LogNS(iAlt + 1, iSpecies) - dAlt_F(iAlt + 1)*dLogNS
-
-        ! Limit the Gradients through the lower boundary
-        if (dLogNS .le. 0.0) then
-          LogNS(iAlt, iSpecies) = LogNS(iAlt + 1, iSpecies)
-        endif
-
-        ! Only allow the NO density to decrease by roughly 1/3 scale
-        ! height max
-        if (iSpecies == iNO_) then
-          if (LogNS(iAlt, iSpecies) < LogNS(iAlt + 1, iSpecies) - 0.333) then
-            LogNS(iAlt, iSpecies) = LogNS(iAlt + 1, iSpecies) - 0.333
+          ! Limit the Gradients through the lower boundary
+          if (dLogNS .le. 0.0) then
+             LogNS(iAlt, iSpecies) = LogNS(iAlt + 1, iSpecies)
           endif
-        endif
 
-      enddo !iAlt = 0,-1,-1
+          ! Only allow the NO density to decrease by roughly 1/3 scale
+          ! height max
+          if (iSpecies == iNO_) then
+             if (LogNS(iAlt, iSpecies) < LogNS(iAlt + 1, iSpecies) - 0.333) then
+                LogNS(iAlt, iSpecies) = LogNS(iAlt + 1, iSpecies) - 0.333
+             endif
+          endif
+
+       enddo !iAlt = 0,-1,-1
 
     endif ! PhotoChemical Check
   enddo  ! iSpecies loop
@@ -391,18 +401,20 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
                            exp(LogRho(iAlt))
     enddo
 
+    ! Here we are projecting the east/west velocities from
+    ! the 0th ghostcell to the -1 ghost cell.
+
     if ((iAlt == -1) .and. (UseMsisBcs)) then
+       do iDir = iEast_, iNorth_
+          dVel = &
+               Vel_GD(iAlt + 1, iDir)*MeshCoef0 + &
+               Vel_GD(iAlt + 2, iDir)*MeshCoef1 + &
+               Vel_GD(iAlt + 3, iDir)*MeshCoef2 + &
+               Vel_GD(iAlt + 4, iDir)*MeshCoef3 + &
+               Vel_GD(iAlt + 5, iDir)*MeshCoef4
 
-      do iDir = iEast_, iNorth_
-        dVertVel = Vel_GD(iAlt + 1, iDir)*MeshCoef0 + &
-                   Vel_GD(iAlt + 2, iDir)*MeshCoef1 + &
-                   Vel_GD(iAlt + 3, iDir)*MeshCoef2 + &
-                   Vel_GD(iAlt + 4, iDir)*MeshCoef3 + &
-                   Vel_GD(iAlt + 5, iDir)*MeshCoef4
-
-        Vel_GD(iAlt, iDir) = Vel_GD(iAlt + 1, iDir) - dAlt_F(iAlt + 1)*dVertVel
-      enddo
-
+          Vel_GD(iAlt, iDir) = Vel_GD(iAlt + 1, iDir) - dAlt_F(iAlt + 1)*dVel
+       enddo
     endif
 
   enddo ! End Outer IAlt Loop (0, -1, -1)
