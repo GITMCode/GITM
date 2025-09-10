@@ -100,18 +100,17 @@ subroutine aurora(iBlock)
 
       ! For diffuse auroral models (default)
       if (ElectronEnergyFluxDiffuse(j, i) > 0.001 &
-          .and. ElectronAverageEnergyDiffuse(j, i) > 0.1 &
+          .and. ElectronAverageEnergyDiffuse(j, i) > 0.01 &
           .and. ElectronAverageEnergyDiffuse(j, i) < MaxAveEAurora &
           .and. UseDiffuseAurora &
           ) then
         call do_diffuse_aurora(ElectronEnergyFluxDiffuse(j, i), &
-                               ! aveEFactor is 1 unless set in #auroramods
                                ElectronAverageEnergyDiffuse(j, i), &
                                e_diffuse_ED_flux)
         HasSomeAurora = .true.
       endif
 
-      if (IonEnergyFlux(j, i) > 0.1 &
+      if (IonEnergyFlux(j, i) > 0.001 &
           .and. IonAverageEnergy(j, i) > 0.1 &
           .and. IonAverageEnergy(j, i) < MaxAveEAurora &
           .and. UseIonAurora &
@@ -124,7 +123,7 @@ subroutine aurora(iBlock)
 
       ! Monoenergetic aurora
       if (UseMonoAurora &
-          .and. ElectronAverageEnergyMono(j, i) > 1. &
+          .and. ElectronAverageEnergyMono(j, i) > 0.1 &
           .and. ElectronEnergyFluxMono(j, i) > 0.1 &
           .and. ElectronAverageEnergyMono(j, i) < MaxAveEAurora &
           ) then
@@ -152,7 +151,7 @@ subroutine aurora(iBlock)
         ED_Ion_EnergyFlux(n) = i_diffuse_ED_flux(n) ! for consistency
       enddo
 
-      if (maxval(ED_EnergyFlux) > 0.1 .or. maxval(ED_Ion_EnergyFlux) > 0.1) &
+      if (HasSomeAurora) &
         call calc_fang_rates(j, i, iBlock, AuroralBulkIonRate)
 
     enddo
@@ -307,8 +306,8 @@ contains
       HemisphericPowerNorth_mono = HemisphericPowerNorth_mono + power
     endif
 
-    ! Mono is treated as a (skinny) gaussian:
-    if (eflux > 0.1 .and. avee > 0.1) &
+    ! Mono is treated as a (skinny) gaussian, width of 0.1 keV
+    if (avee > 0.0) &
       call calc_gaussian(avee, Mono_ED_EnergyFlux, 0.1)
 
     ! Normalize to E-Flux
@@ -342,8 +341,8 @@ contains
       HemisphericPowerNorth_wave = HemisphericPowerNorth_wave + power
     endif
 
-    ! Wave is a gaussian, centered at aveE
-    if (eflux > 0.1 .and. avee > 0.1) &
+    ! Wave is a gaussian, centered at aveE, width of 0.4 keV
+    if (avee > 0.1) &
       call calc_gaussian(avee, tmp_wavflux, 0.4)
 
     ! But only in a few bins!
