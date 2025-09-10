@@ -99,74 +99,68 @@ def create_netcdf(filename, data, isVerbose=False):
     if isVerbose:
         print(" --> Creating netCDF file:", filename)
     
-    #2D files won't have altitude dimension
-    doalt =  filename.startswith('3D')
-    
     # get dimensions:
     nz, ny, nx = data["Longitude"].shape
-    if doalt: # remove ghost cells
-        nx -= 4
-        ny -= 4
-        nz -= 4
 
     with Dataset(filename, mode="w", format="NETCDF4") as ncfile:
         # Dimensions
         t = ncfile.createDimension('time', None)
-        lon = ncfile.createDimension('lon', nx)
-        lat = ncfile.createDimension('lat', ny)
-        if doalt:
-            alt = ncfile.createDimension('alt', nz)
-
-        x = ncfile.createVariable('lon', np.float64, ('lon',))
-        x.units = 'degrees_east'
-        x.long_name = 'longitude'
-
-        y = ncfile.createVariable('lat', np.float64, ('lat',))
-        y.units = 'degrees_east'
-        y.long_name = 'latitude'
-
-        if doalt:
-            z = ncfile.createVariable('alt', np.float64, ('alt',))
-            z.units = 'kilometers'
-            z.long_name = 'altitude'
-
-        # Remove ghost cells from 3D outputs
-        if doalt:
-            x[:] = np.rad2deg(np.sort(np.unique(data['Longitude'])))[2:-2]
-            y[:] = np.rad2deg(np.sort(np.unique(data['Latitude'])))[2:-2]
-            z[:] = np.sort(np.unique(data['Altitude']))[2:-2] / 1000.
-        else:
-            x[:] = np.rad2deg(np.sort(np.unique(data['Longitude'])))
-            y[:] = np.rad2deg(np.sort(np.unique(data['Latitude'])))
+        xdim = ncfile.createDimension('lon', nx)
+        ydim = ncfile.createDimension('lat', ny)
+        zdim = ncfile.createDimension('z', nz)
 
         # time!
-        reftime = data['time']
+        reftime = data['time'].date()
         time = ncfile.createVariable('time', np.float64, ('time',))
-        time.units = 'seconds since ' + str(reftime.date())
+        time.units = 'seconds since ' + str(reftime)
         time.long_name = 'time'
-        time[:] = [(data['time'] - reftime).total_seconds()]
+        time[:] = [(data['time'] 
+                    - datetime.datetime(reftime.year, reftime.month, reftime.day)
+                    ).total_seconds()]
 
         if isVerbose:
-            print(" --> Created dataset with coordinates:")
+            print(" --> Created dataset with dimensions:")
+            [print(dim) for dim in ncfile.dimensions.items()]
+        
+        # Add in attributes. Version, etc.
+        ncfile.title = f"{filename[:5]} GITM Outputs"
+        ncfile.model = "GITM"
+        ncfile.version = data['version']
+
+        if isVerbose:
+            print(" --> Attributes added. Current ncfile:")
             print(ncfile)
 
+        # We'll try to add the coordinates, if they can be added cleanly...
+        print(data['Longitude'].shape)
+        if np.all(data['Longitude'][0, 0, :] == data['Longitude']):
+            lon = ncfile.createVariable('lon', np.float64, ('lon'))
+            lon[:] = np.rad2deg(data['Longitude'][0, 0, :])
+            lon.units = 'degrees_east'
+            lon.long_name = 'Longitude'
+            print('lon')
+        if np.all([data['Latitude'][0, :, 0] == data['Latitude'][i, :, :].T for i in range(nx)]):#, axis=(0, 2)):
+            lat = ncfile.createVariable('lat', np.float64, ('lat'))
+            lat[:] = np.rad2deg(data['Latitude'][0, :, 0])
+            lat.units = 'degrees_north'
+            lat.long_name = 'Latitude'
+            print('lat')
+        if np.all(data['Altitude'][:, 0, 0] == data['Altitude'].T):#, axis=(0, 1)):
+            alt = ncfile.createVariable('z', np.float64, ('z'))
+            alt[:] = data['Altitude'][:, 0, 0] / 1000
+            alt.units = 'km'
+            alt.long_name = 'Altitude'
+            print('alt')
+        
         # Then put the variables in
-        for ivar, varname in enumerate(data['vars'][3:]): # Skip lon, lat, altitude
-            # 2D outputs don't have ghost cells...
+        for varname in data['vars']:
             newname = varname
             if '[' in newname:
                 newname = newname.replace('[', '').replace(']','')
                 # thisvar.units = 'kg/m3'
             thisvar = ncfile.createVariable(newname, np.float64, 
-                                            ('time', 'lon', 'lat', 'alt')
-                                            if doalt else ('time', 'lon', 'lat'))
-            # Need to .T to switch from F to C ordering.
-            # All the two's get rid of ghost cells
-            if doalt:
-                thisvar[:] = data[varname][ 2:-2, 2:-2, 2:-2].T
-            else:
-                thisvar[:] = data[varname].T
-    
+                                            ('time', 'lon', 'lat', 'z'))
+            thisvar[:] = data[varname].T
     return
 
 def append_netcdf(filename, data, isVerbose):
@@ -176,39 +170,36 @@ def append_netcdf(filename, data, isVerbose):
 
     with Dataset(filename, mode='a', format='NETCDF4') as ncfile:
         time = ncfile['time']
-        timevals = list(time[:])
-        reftime = datetime.datetime.strptime(time.units.split(" ")[-1], "%Y-%m-%d")
-        timevals.append((reftime - data["time"]).total_seconds())
-        time[:] = timevals
 
-        doalt = filename.startswith("3D")
+        reftime = datetime.datetime.strptime(time.units.split("since ")[-1], "%Y-%m-%d")
+        time[len(time)] = (data["time"] - reftime).total_seconds()
 
-        for varname in data['vars'][3:]:
-            if doalt:
-                ncfile[varname.replace('[', '').replace(']','')][-1, :, :, :] = data[varname][2:-2, 2:-2, 2:-2].T
-            else:
-                ncfile[varname.replace('[', '').replace(']','')][-1, :, :] = data[varname].T
+        for varname in data['vars']:
+            ncfile[varname.replace('[', '').replace(']','')][-1, ...] = data[varname].T
 
     return
 
 
-def write_to_netcdf(file, data, runname='', isVerbose=False):
+def write_to_netcdf(file, data, combine=False, runname='', isVerbose=False):
     """
-        This is where we convert halfway-processed files to xarray datasets, 
-    drop ghost cells, and write them.
+        Dispatcher for writing/appending netCDFs
 
     inputs:
         file (str): file name (that the bin would have been written to). Used to
             determine if the data is 2D/3D & whether we need to drop ghost cells
         data (dict): The gitm outputs.
         runname (str, optional): name to add to processed files. output format is:
-            '3DALL_runname.nc', or if no runname is given its just '3DALL.nc'
+            'runname_3DALL.nc', or if no runname is given its just '3DALL.nc'
         isVerbose (bool): whether to print extra info.
 
     """
 
-    if runname != '':
-        runname = file.split('_')[0] + '_' + runname + '.nc'
+    if combine:
+        file = file.split('_')[0] + '.nc'
+        if runname:
+            file = runname + '_' + file
+    else:
+        file = file.replace('bin', 'nc')
 
     if file.startswith('1D'):
         raise ValueError("Cannot write netcdf files for 1D outputs yet!")
@@ -216,10 +207,10 @@ def write_to_netcdf(file, data, runname='', isVerbose=False):
     if (isVerbose):
         print(' -> Writing NetCDF for: ', file, " to:", runname)
 
-    if not os.path.exists(runname):
-        create_netcdf(runname, data, isVerbose)
+    if not os.path.exists(file):
+        create_netcdf(file, data, isVerbose)
     else:
-        append_netcdf(runname, data, isVerbose)
+        append_netcdf(file, data, isVerbose)
 
 # ----------------------------------------------------------------------------
 # 
@@ -433,7 +424,8 @@ def remove_files(header, isVerbose = False):
 # 
 # ----------------------------------------------------------------------------
 
-def process_one_file(header, isVerbose = False, dowrite=True, write_nc=False, runname=''):
+def process_one_file(header, isVerbose = False, dowrite=True, 
+                     write_nc=False, combine=False, runname=''):
 
     fileOut = header.replace('.header','.bin')
 
@@ -500,7 +492,8 @@ def process_one_file(header, isVerbose = False, dowrite=True, write_nc=False, ru
     if dowrite:
         if write_nc:
             if canWriteCDF:
-                write_to_netcdf(fileOut, data, runname=runname, isVerbose=isVerbose)
+                write_to_netcdf(fileOut, data, runname=runname, combine=combine,
+                                 isVerbose=isVerbose)
             else:
                 raise ImportError("Cant import netCDF4")
         else: # default !!
@@ -511,7 +504,8 @@ def process_one_file(header, isVerbose = False, dowrite=True, write_nc=False, ru
     return data
     
 
-def post_process_gitm(dir, doRemove, isVerbose = False, write_nc=False, runname=''):
+def post_process_gitm(dir, doRemove, isVerbose = False,
+                      write_nc=False, combine=False, runname=''):
 
     # Get into the correct directory for processing
     processDir = dir
@@ -529,6 +523,8 @@ def post_process_gitm(dir, doRemove, isVerbose = False, write_nc=False, runname=
     headers = sorted(glob('*.header'))
     if (isVerbose):
         print('Found %i files to process' % len(headers))
+    elif len(headers) == 0:
+        print(" -> Did not find any files to process.")
     
     # Process each single header:
     for head in headers:
@@ -546,7 +542,7 @@ def post_process_gitm(dir, doRemove, isVerbose = False, write_nc=False, runname=
             run(f"echo {head} | ../../PostGITM.exe ", check=True, shell=True)
         else:
             process_one_file(head, isVerbose=isVerbose, 
-                                    write_nc=write_nc, runname=runname)
+                            write_nc=write_nc, combine=combine, runname=runname)
 
         if (doRemove):
             remove_files(head, isVerbose = isVerbose)
