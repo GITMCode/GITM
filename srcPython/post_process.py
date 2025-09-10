@@ -504,7 +504,8 @@ if __name__ == '__main__':  # main code block
     while DidWork:
         # load remote file every iteration so we can change it if needed:
         IsRemote, user, server, dir = load_remote_file(args)
-        print('Move files to remote system? ', IsRemote)
+        if (IsVerbose):
+            print('Move files to remote system? ', IsRemote)
         
         DidWork = do_loop(doTarZip, user, server, dir, IsRemote)
         if (DidWork):
@@ -520,9 +521,9 @@ if __name__ == '__main__':  # main code block
                 if (dt > args.totaltime):
                     if args.totaltime == 0:
                         # Different exit message for non-continuous runs 
-                        print("  --> All done!")
+                        print(" -> All done!")
                     else:
-                        print("  --> Stopping due to totaltime exceeded!")
+                        print(" -> Stopping due to totaltime exceeded!")
                     # want to break out of loop, so set loop breaking condition:
                     DidWork = False
 
