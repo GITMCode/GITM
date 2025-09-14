@@ -89,6 +89,10 @@ module ModInputs
   real :: CuspMltHalfWidth = 1.5
   real :: CuspLatHalfWidth = 1.0
 
+  logical :: UsePolarRain = .false.
+  real :: polarRainEFlux = 0.1 ! 0.1 ergs/cm2/s is a small value
+  real :: polarRainAveE = 0.3 ! 300 eV is a nominal polar rain value
+
   logical :: DoOverwriteIonosphere = .false.
   logical :: DoOverwriteWithIRI = .true.
   logical :: DoOverwriteWithSami = .false.

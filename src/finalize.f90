@@ -13,6 +13,8 @@ subroutine finalize_gitm
   integer :: iError, iBlock, iOutputType
   integer :: nMLTsTmp, nLatsTmp
 
+  call start_timing("Finalize")
+
   if (.not. Is1D) &
     call UA_calc_electrodynamics(nMLTsTmp, nLatsTmp)
 
@@ -31,6 +33,12 @@ subroutine finalize_gitm
     close(iOutputUnit_)
   endif
 
+  if (iProc == 0) then
+    call report_errors
+    call report_warnings
+  endif
+
+  call end_timing("Finalize")
   call end_timing("GITM")
 
   if (iDebugLevel >= 0) call report_timing("all")
@@ -48,10 +56,5 @@ subroutine finalize_gitm
 
   ! cleanup mpi
   if (.not. IsFrameWork) call MPI_FINALIZE(iError)
-
-  if (iProc == 0) then
-    call report_errors
-    call report_warnings
-  endif
 
 end subroutine finalize_gitm

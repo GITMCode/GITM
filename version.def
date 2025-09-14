@@ -1,5 +1,5 @@
 character(25), parameter :: GitmVersion = & 
- "20250909.0"
+ "20250914.0"
 
 character(50), parameter :: GitmVersionFull = "develop-update_" // GitmVersion
 
@@ -8,7 +8,7 @@ character(50), parameter :: ElectrodynamicsVersionFull = GitmVersionFull
 
 character(*), parameter :: DifferentFilesGitm = &
 "none"
-character(*), parameter :: DifferentFilesElectrodyunamics = &
+character(*), parameter :: DifferentFilesElectrodynamics = &
 "none"
 
 

@@ -288,7 +288,8 @@ def delete_files(header, isVerbose = False):
 
 def read_header(headerFile, isVerbose = False):
 
-    print(' --> Reading file : ', headerFile)
+    if (isVerbose):
+        print(' --> Reading file : ', headerFile)
     fpin = open(headerFile, 'r')
     lines = fpin.readlines()
     fpin.close()
@@ -440,7 +441,7 @@ def process_one_file(header, isVerbose = False, dowrite=True,
 
     fileOut = header.replace('.header','.bin')
 
-    print('Processing : ', header)
+    print(' -> Processing : ', header)
     headerInfo = read_header(header, isVerbose = isVerbose)
 
     fpin = open(header, 'r')

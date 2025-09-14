@@ -17,11 +17,11 @@ F                 no descriptor
 0.000000          max longitude to model (0 = whole earth) (deg)
 
 #MSISOBC
-T                 no descriptor
-0.0               no descriptor
+T                 shift [O] in lower BC by six months 
+0.0               Oblat spheroid (-0.1 is a good value)
 
 #DIFFUSION
-T                 no descriptor
+T                 Use eddy diffusion
 50.0              Eddy Diffusion Coefficient (Should be about 37.5 for 1-D runs)
 0.01000           Total Eddy Diffusion applied at alts below this pressures level
 0.00500           No Eddy Diffusion at altitudes above this pressure level
@@ -114,9 +114,9 @@ T                 Use AUSM+-up Solvers
 T
 
 #USEIMPROVEDIONADVECTION
-T                 no descriptor
-T                 no descriptor
-2.0               no descriptor
+T                 use improved ion advection
+T                 use TEC BC on nightside
+2.0               minimum TEC on nightside to shoot for
 
 #DYNAMO
 T                 UseDynamo
@@ -180,11 +180,28 @@ T                 UseNeutralChemistry
 sme_2010.txt      SME Filename
 none              onset time delay file
 
-#FTAMODEL
-T                 Use FTA model of the aurora
+#ELECTRODYNAMICS
+FTA
+60.0
+Weimer
+60.0
 
-#NEWELLAURORA
-F                 Use Newell Ovation model of the aurora
+In order to use Mono, Wave, and Ion, you need to have a source of this
+such as ovation, swmf, or something else.
+
+#AURORATYPES
+T			Diffuse
+F			Mono
+F			Wave
+F			Ion
+
+In order to use polar rain, the polar cap must be defined.  This is done
+with FTA and SWMF aurora only at this time.
+
+#USEPOLARRAIN
+F
+0.1			avee
+0.25			eflux
 
 #END
 

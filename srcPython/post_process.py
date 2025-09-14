@@ -529,8 +529,9 @@ if __name__ == '__main__':  # main code block
     while DidWork:
         # load remote file every iteration so we can change it if needed:
         IsRemote, user, server, dir = load_remote_file(args)
-        print('Move files to remote system? ', IsRemote)
-        print('Process into netCDF files? ', args.nc)
+        if (IsVerbose):
+            print('Move files to remote system? ', IsRemote)
+            print('Process into netCDF files? ', args.nc)
         if IsRemote and args.nc and args.combine:
             raise ValueError(
                 "The remote transfer & netcdf combine options cannot be used together")
@@ -550,9 +551,9 @@ if __name__ == '__main__':  # main code block
                 if (dt > args.totaltime):
                     if args.totaltime == 0:
                         # Different exit message for non-continuous runs 
-                        print("  --> All done!")
+                        print(" -> All done!")
                     else:
-                        print("  --> Stopping due to totaltime exceeded!")
+                        print(" -> Stopping due to totaltime exceeded!")
                     # want to break out of loop, so set loop breaking condition:
                     DidWork = False
 
