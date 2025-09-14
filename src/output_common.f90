@@ -1003,8 +1003,10 @@ contains
 
   subroutine write_head_version
 
+    use ModGITMVersion
+
     write(iOutputUnit_, *) "VERSION"
-    write(iOutputUnit_, *) GitmVersion + PlanetNum
+    write(iOutputUnit_, *) trim(GitmVersion)
     write(iOutputUnit_, *) ""
 
   end subroutine write_head_version

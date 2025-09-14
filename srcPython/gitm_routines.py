@@ -354,8 +354,9 @@ def read_gitm_one_file(file_to_read, vars_to_read=-1):
 
     # Collect variable names.
     for i in range(data["nVars"]):
-        data["vars"].append(unpack(endChar+'%is'%(recLen),f.read(recLen))[0])
-        (oldLen, recLen)=unpack(endChar+'2l',f.read(8))
+        v = unpack(endChar+'%is'%(recLen),f.read(recLen))[0]
+        data["vars"].append(v.decode('utf-8').replace(" ",""))
+        (oldLen, recLen)=unpack(endChar+'2l',f.read(8))    
 
     # Extract time. 
     (yy,mm,dd,hh,mn,ss,ms)=unpack(endChar+'lllllll',f.read(recLen))

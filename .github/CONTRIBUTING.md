@@ -8,17 +8,19 @@ and feedback from users.
 wish to contribute to GITM. Following these guidelines will ensure a positive
 experience for all involved.
 
-## Outline
+- [Contributing Guidelines](#contributing-guidelines)
+  - [Opening an Issue](#opening-an-issue)
+    - [Bug Report](#bug-report)
+    - [Feature Requests](#feature-requests)
+  - [Pull Requests](#pull-requests)
+    - [Committing Changes](#committing-changes)
+      - [Commit Styling](#commit-styling)
+  - [Testing GITM](#testing-gitm)
+  - [Code Formatting](#code-formatting)
+    - [Automatic/Validating Code Formatting](#automaticvalidating-code-formatting)
+    - [Style Guidelines \& `.fprettify.rc`](#style-guidelines--fprettifyrc)
 
-- [Opening an Issue](#opening-an-issue)
-  - [Bug Report](#bug-report)
-  - [Feature Requests](#feature-requests)
-- [Pull Requests](#pull-requests)
-  - [Committing Changes](#committing-changes)
-    - [Commit Styling](#commit-styling)
-- [Code Formatting](#code-formatting)
-  - [Automatic/Validating Code Formatting](#automaticvalidating-code-formatting)
-  - [Style Guidelines \& `.fprettify.rc`](#style-guidelines--fprettifyrc)
+---
 
 ## Opening an Issue
 
@@ -30,15 +32,15 @@ are creating and then modify the contents of the template to describe your issue
 
 ### Bug Report
 
-If you notice a problkem with GITM and are unsure of how to fix it yourself, please
+If you notice a problem with GITM and are unsure of how to fix it yourself, please
 create a bug report detailing the problem. The template has several optional sections,
 so read through them all before adding information to the wrong section.
 
 - **Do not open an issue for problems installing GITM on a specific system.** Since
 there is no way to predict all possible systems which GITM will be used on, details on
 specific systems cannot be provided. Try the steps in the [README](../README.md) first,
-then reach out to #TODO if you need mroe help.
-- Please include enough information to allow a maintainer to reproduce your bug
+then reach out to the development team if you need more help.
+- Please include enough information to allow a maintainer to reproduce your bug,
 only seeing the information in the bug report. Forgetting to attach input files or
 only saying "the code did not run on system X", for example, will result in a delay.
 - Check if another issue is open (or closed) with the same problem. Duplicate issues
@@ -78,7 +80,7 @@ are working on a feature and notice an unrelated bug or typo, create a new branc
 `develop`, fix it, and submit the pull request separately. There is no harm in
 submitting many small pull requests!
 - **Document your changes**. If you are introducing a new feature, please include
-a description of it and its uses in both the documentation (`docs/` folder) and
+a description of it and its uses in both the documentation (`srcDoc/` folder) and
 in comments within the code.
 - **Include new tests**. If you are adding a new feature, please add a sample `UAM.in`
 file with this option enabled in the `srcTests/auto_test/` folder. We do not want future updates
@@ -133,6 +135,19 @@ FEAT: Hydrostatic density implementation.
 ```gh
 Implemented hydrostatic density. (feature)
 ```
+
+## Testing GITM
+
+GITM has a number of tests that are maintained and run automatically on every
+release & pull-request. To run these yourself, run the script `run_all_tests.sh`
+from within `srcTests/auto_test`. New tests can be added by simply creating
+another UAM.in file, and will be run automatically if the file matches the
+pattern `UAM.in.*.test`.
+
+It is best practice to create tests as bugs are fixed. For example, if running
+GITM in a certain configuration causes a crash, it is recommended to create a
+test with this configuration which will help ensure the bug does not sneak back
+in with future development.
 
 ## Code Formatting
 

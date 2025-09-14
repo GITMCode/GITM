@@ -36,6 +36,10 @@ NOMPI:
 	@echo ${NOMPIDIR}
 	@cd ${NOMPIDIR}; make LIB
 
+VERSION:
+	./share/Scripts/Makeversion.sh
+	@echo
+
 GITM:
 	@cd ${SHAREDIR}; echo "Entering ${SHAREDIR}"; make --no-print-directory LIB
 	@cd $(ABDIR); echo "Entering ${ABDIR}" ; make --no-print-directory LIB
@@ -43,6 +47,7 @@ GITM:
 	@cd ${EUADIR}; echo "Entering ${EUADIR}"; make --no-print-directory LIB
 	@cd $(IODIR); echo "Entering ${IODIR}"; make --no-print-directory LIB
 	@cd $(GLDIR); echo "Entering ${GLDIR}";	make --no-print-directory LIB
+	@echo "Creating version file:"; make --no-print-directory VERSION
 	@cd $(MAINDIR); make --no-print-directory GITM
 
 SAMI:
@@ -80,6 +85,7 @@ clean:
 	if [ -d util ]; then cd util; make --no-print-directory cleanall; fi;
 	if [ -d srcSAMI ]; then cd srcSAMI; make --no-print-directory clean; fi;
 	if [ -d $(EIEDIR) ]; then cd $(EIEDIR); make --no-print-directory cleanall; fi;
+	if [ -f src/.version ]; then rm src/.version; fi
 
 
 distclean: 

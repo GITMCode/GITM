@@ -44,12 +44,8 @@ def parse_args_post():
     parser.add_argument('-totaltime',
                         help = 'specify how long to run in total in hours, (default 0 - only run once)',
                         default = 0, type = int)
-
-    parser.add_argument('-q',
-                        help = 'Run with verbose turned off',
-                        action = 'store_true')
     
-    parser.add_argument('-v',
+    parser.add_argument('-v', '--verbose',
                         help = 'Run with verbose',
                         action = 'store_true')
     
@@ -60,7 +56,20 @@ def parse_args_post():
     parser.add_argument('-tgz',
                         help = "tar and zip raw GITM file instead of process",
                         action = 'store_true')
+
+    parser.add_argument('-nc', action = 'store_true',
+                        help = "Postprocess to netCDF files instead on '.bin'?")
     
+    parser.add_argument('--combine', action='store_true',
+                        help="If processing to netCDF, we can combine each timestep to a"
+                        " single file per output type. (ex: 3DALL.nc, etc.). "
+                        "Will not work without -nc or if using remote.")
+    
+    parser.add_argument('--runname', type=str, default='', help=
+                        "When combining, this is prepended to the output type in the "
+                        "resulting files: '[runname]_3DALL.nc'. Default is no descriptor.")
+
+
     args = parser.parse_args()
 
     return args
@@ -403,7 +412,9 @@ def transfer_model_output_files(user, server, dir):
 # Post process and then transfer files once:
 # ----------------------------------------------------------------------
 
-def do_loop(doTarZip, user, server, dir, IsRemote):
+def do_loop(doTarZip, user, server, dir, IsRemote,
+            write_nc=False, combine=False, runname='', # For writing outputs to netCDF
+            ):
 
     DidWork = True
 
@@ -437,9 +448,9 @@ def do_loop(doTarZip, user, server, dir, IsRemote):
             if (not os.path.exists(processDir)):
                 # Maybe we are already in the data directory???
                 processDir = '.'
-        DidWork = post_process_gitm(processDir, DoRm, isVerbose = IsVerbose)
-        #DidWork = post_process_gitm()
-        
+        DidWork = post_process_gitm(processDir, DoRm, isVerbose = IsVerbose,
+                                    write_nc=write_nc, combine=combine, runname=runname)
+
     # 4 - Check if remote data directory exists, make it if it doesn't:
     data_remote = '/data'
     if (IsRemote and DidWork):
@@ -491,9 +502,23 @@ if __name__ == '__main__':  # main code block
 
     # make local variables for arguments:
     doTarZip = args.tgz
-    IsVerbose = args.v
+    IsVerbose = args.verbose
     if (args.norm):
         DoRm = False
+
+    # Sanity check netCDF-related arguments...
+    if args.nc or args.combine or (args.runname != ''):
+        if not args.nc:
+            raise ValueError(f"Combine and Runname can only be used with NetCDF files!")
+        if (args.runname != '') and not args.combine:
+            print(f"Using runname '{args.runname}' and combining")
+            args.combine = True
+        # For compatibility, make sure we can import PyITM if we're using netcdf files
+        try:
+            import pyitm
+        except ImportError:
+            raise ImportError("\n>> PyITM is required for NetCDF post-processing!\n"
+                              " It is available at https://github.com/GITMCode/PyITM.git")
 
     # Check if stop file exists:
     check_for_stop_file(delete = True)
@@ -506,8 +531,13 @@ if __name__ == '__main__':  # main code block
         IsRemote, user, server, dir = load_remote_file(args)
         if (IsVerbose):
             print('Move files to remote system? ', IsRemote)
-        
-        DidWork = do_loop(doTarZip, user, server, dir, IsRemote)
+            print('Process into netCDF files? ', args.nc)
+        if IsRemote and args.nc and args.combine:
+            raise ValueError(
+                "The remote transfer & netcdf combine options cannot be used together")
+
+        DidWork = do_loop(doTarZip, user, server, dir, IsRemote,
+                          args.nc, args.combine, args.runname)
         if (DidWork):
             # Check if stop file exists:
             stopCheck = check_for_stop_file()

@@ -8,8 +8,6 @@ module ModGITM
 
   implicit none
 
-  real :: GitmVersion = 21.11
-
   real :: dt = 0.0
 
   integer :: iCommGITM, iProc, nProcs
@@ -291,6 +289,7 @@ contains
     deallocate(dAltDLon_CB)
     deallocate(dAltDLat_CB)
     deallocate(Rho)
+    deallocate(ColumnIntegralRho)
     deallocate(Temperature)
     deallocate(Pressure)
     deallocate(NDensity)
