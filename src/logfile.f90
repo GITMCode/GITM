@@ -274,6 +274,7 @@ subroutine write_code_information(dir)
   use ModIoUnit, ONLY: io_unit_new
   use ModUtilities, ONLY: flush_unit
   use ModRCMR
+  use ModGITMVersion
 
   implicit none
 
@@ -291,7 +292,12 @@ subroutine write_code_information(dir)
 
     write(iCodeInfoFileUnit_, *) "GITM2 Run Information"
     write(iCodeInfoFileUnit_, *) "---------------------"
+    write(iCodeInfoFileUnit_, *) "GITM Version ", trim(GitmVersion)
+    write(iCodeInfoFileUnit_, *) "GITM Full Version ", trim(GitmVersionFull)
+    write(iCodeInfoFileUnit_, *) "Electrodynamics Version ", trim(ElectrodynamicsVersionFull)
+    write(iCodeInfoFileUnit_, *) "---------------------"
     write(iCodeInfoFileUnit_, *) ""
+
 
     write(iCodeInfoFileUnit_, *) "nSpecies", nSpecies
     write(iCodeInfoFileUnit_, *) "nSpeciesTotal", nSpeciesTotal
