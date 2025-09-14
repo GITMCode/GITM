@@ -298,7 +298,6 @@ subroutine write_code_information(dir)
     write(iCodeInfoFileUnit_, *) "---------------------"
     write(iCodeInfoFileUnit_, *) ""
 
-
     write(iCodeInfoFileUnit_, *) "nSpecies", nSpecies
     write(iCodeInfoFileUnit_, *) "nSpeciesTotal", nSpeciesTotal
     do i = 1, nSpeciesTotal
