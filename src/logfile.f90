@@ -474,6 +474,8 @@ subroutine write_code_information(dir)
     write(iCodeInfoFileUnit_, *) "#IONLIMITS"
     write(iCodeInfoFileUnit_, *) MaxVParallel
     write(iCodeInfoFileUnit_, *) MaxEField
+    write(iCodeInfoFileUnit_, *) MinIonDensity
+    write(iCodeInfoFileUnit_, *) MinIonDensityAdvect
     write(iCodeInfoFileUnit_, *) ""
 
     write(iCodeInfoFileUnit_, *) "#VERTICALSOURCES"
