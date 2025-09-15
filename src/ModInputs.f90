@@ -317,6 +317,7 @@ module ModInputs
   real :: MaxEField = 0.1
   ! Lower limit on ion density
   real :: MinIonDensity = 100.0
+  real :: MinIonDensityAdvect = 1e5
 
   !\
   ! Methods for completing chemistry
