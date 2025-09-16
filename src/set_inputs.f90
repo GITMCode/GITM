@@ -910,6 +910,7 @@ subroutine set_inputs
         call read_in_real(MaxVParallel, iError)
         call read_in_real(MaxEField, iError)
         call read_in_real(MinIonDensity, iError)
+        call read_in_real(MinIonDensityAdvect, iError)
         if (iError /= 0) then
           write(*, *) 'Incorrect format for #IONLIMITS:'
           write(*, *) ''
@@ -917,6 +918,7 @@ subroutine set_inputs
           write(*, *) "MaxVParallel     (real, default=100 m/s)"
           write(*, *) "MaxEField        (real, default=0.1 V/m)"
           write(*, *) "MinIonDensity    (real, default=100 m^-3)"
+          write(*, *) "MinIonDensityAdvect    (real, default=1e5 m^-3)"
           IsDone = .true.
         endif
 

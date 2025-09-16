@@ -104,6 +104,7 @@ T		Shift the [O] density at the lower boundary by 6 months
 100   # max Vparallel
 0.1   # max E-field
 1e8   # min ion density - absurdly high, but good to test.
+1e10  # min advected ion density
 
 #AUSMSOLVER
 T       	Use AUSM+-up Solvers

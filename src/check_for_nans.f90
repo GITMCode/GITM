@@ -152,7 +152,7 @@ subroutine correct_min_ion_density
 
   use ModSizeGitm
   use ModGitm
-  use ModInputs, only: minIonDensity, iDebugLevel
+  use ModInputs, only: minIonDensity, minIonDensityAdvect, iDebugLevel
   implicit none
   integer :: iLon, iLat, iAlt, iIon
 
@@ -160,20 +160,38 @@ subroutine correct_min_ion_density
     if (iDebugLevel > 5) &
       write(*, *) "low ion density found... replacing with min ion density"
     do iIon = 1, nIons
-      if (minval(IDensityS(:, :, :, iIon, 1)) < MinIonDensity) then
-        do iLon = -1, nLons + 2
-          do iLat = -1, nLats + 2
-            do iAlt = -1, nAlts + 2
-              if (iDensityS(iLon, iLat, iAlt, iIon, 1) < MinIonDensity) then
-                if (iDebugLevel > 7) &
-                  write(*, *) ' -> low density found in iDensityS : ', &
-                  iLon, iLat, iAlt, iProc, iIon, iDensityS(iLon, iLat, iAlt, iIon, 1), &
-                  MinIonDensity
-                iDensityS(iLon, iLat, iAlt, iIon, 1) = MinIonDensity
-              endif
+      if (iIon > nIonsAdvect) then
+        if (minval(IDensityS(:, :, :, iIon, 1)) < MinIonDensity) then
+          do iLon = -1, nLons + 2
+            do iLat = -1, nLats + 2
+              do iAlt = -1, nAlts + 2
+                if (iDensityS(iLon, iLat, iAlt, iIon, 1) < MinIonDensity) then
+                  if (iDebugLevel > 7) &
+                    write(*, *) ' -> low density found in iDensityS : ', &
+                    iLon, iLat, iAlt, iProc, iIon, iDensityS(iLon, iLat, iAlt, iIon, 1), &
+                    MinIonDensity
+                  iDensityS(iLon, iLat, iAlt, iIon, 1) = MinIonDensity
+                endif
+              enddo
             enddo
           enddo
-        enddo
+        endif
+      else
+        if (minval(IDensityS(:, :, :, iIon, 1)) < MinIonDensityAdvect) then
+          do iLon = -1, nLons + 2
+            do iLat = -1, nLats + 2
+              do iAlt = -1, nAlts + 2
+                if (iDensityS(iLon, iLat, iAlt, iIon, 1) < MinIonDensityAdvect) then
+                  if (iDebugLevel > 7) &
+                    write(*, *) ' -> low density found in iDensityS : ', &
+                    iLon, iLat, iAlt, iProc, iIon, iDensityS(iLon, iLat, iAlt, iIon, 1), &
+                    MinIonDensity
+                  iDensityS(iLon, iLat, iAlt, iIon, 1) = MinIonDensityAdvect
+                endif
+              enddo
+            enddo
+          enddo
+        endif
       endif
     enddo
   endif

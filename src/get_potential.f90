@@ -537,22 +537,22 @@ subroutine set_ie_indices(IEModel_, TimeIn)
     if (iError /= 0) call set_error("Issue reading IMF file in get_potential")
 
     call get_IMF_Bz(TimeIn + TimeDelayHighLat, val, iError)
-    if (val < -50.0) val = -50.0
-    if (val > 50.0) val = 50.0
+    if (val < -40.0) val = -40.0
+    if (val > 40.0) val = 40.0
     call IEModel_%imfBz(val)
 
     call get_IMF_By(TimeIn, val, iError)
-    if (val < -50.0) val = -50.0
-    if (val > 50.0) val = 50.0
+    if (val < -40.0) val = -40.0
+    if (val > 40.0) val = 40.0
     call IEModel_%imfBy(val)
 
     call get_SW_V(TimeIn, val, iError)
-    if (val < -1800.0) val = -1800.0
-    if (val > 1800.0) val = 1800.0
+    if (val < -1500.0) val = -1500.0
+    if (val > 1500.0) val = 1500.0
     call IEModel_%swV(val)
 
     call get_SW_N(TimeIn, val, iError)
-    if (val > 80) val = 80
+    if (val > 80) val = 50
     call IEModel_%swN(val)
 
     if (iError /= 0 .or. .not. isOk) then
