@@ -61,19 +61,13 @@ subroutine init_get_potential
 
   ! Now run some checks on user's settings:
   if (iProc == 0) then
-  if (IEModel_%iAurora_ == iOvationPrime_) then
-    if (NormalizeAuroraToHP .and. (iProc == 0)) &
-      call raise_warning("You probably should not use NormalizeAuroraToHP and Ovation")
+    if (IEModel_%iAurora_ == iOvationPrime_) then
+      if (NormalizeAuroraToHP) &
+        call raise_warning("You probably should not use NormalizeAuroraToHP and Ovation")
 
-    if (UseIonAurora .and. IsKappaAurora) &
-      call raise_warning("Kappa aurora & ion precipitation cannot be used simultaneously, yet.")
-  endif
-
-  if (IEModel_%iAurora_ /= iOvationPrime_ .and. UseMonoAurora) &
-    call set_error("Mono-energetic aurora can only be used with ovation currently")
-
-  if (IEModel_%iAurora_ /= iOvationPrime_ .and. UseWaveAurora) &
-    call set_error("Wave aurora can only be used with ovation currently")
+      if (UseIonAurora .and. IsKappaAurora) &
+        call raise_warning("Kappa aurora & ion precipitation cannot be used simultaneously, yet.")
+    endif
   endif
 
   if (IEModel_%iAurora_ /= iFRE_ .and. NormalizeAuroraToHP) &
@@ -127,6 +121,7 @@ subroutine get_potential(iBlock)
   real, dimension(-1:nLons + 2, -1:nLats + 2, 2) :: TempPotential, AMIEPotential
   real, dimension(-1:nLons + 2, -1:nLats + 2) :: Grid, dynamo, SubMLats, SubMLons
   real, dimension(-1:nLons + 2, -1:nLats + 2) :: lats, mlts, EFlux
+  real, dimension(-1:nLons + 2, -1:nLats + 2) :: polarCap
   real :: by, bz, CuspLat, CuspMlt
 
   logical :: UAl_UseGridBasedEIE
@@ -245,6 +240,12 @@ subroutine get_potential(iBlock)
 
   endif
 
+  if (iDebugLevel >= 1) &
+    write(*, *) "==> Min, Max, CPC Potential : ", &
+    minval(Potential(:, :, :, iBlock))/1000.0, &
+    maxval(Potential(:, :, :, iBlock))/1000.0, &
+    (maxval(Potential(:, :, :, iBlock)) - minval(Potential(:, :, :, iBlock)))/1000.0
+
   ! -----------------------------------------------------
   ! Now get the aurora.
   ! This assumes that the field lines are basically
@@ -268,25 +269,28 @@ subroutine get_potential(iBlock)
       call stop_gitm("Stopping in get_potential")
     endif
 
-    ! Sometimes, in AMIE, things get messed up in the
-    ! Average energy, so go through and fix some of these.
-    ! (also checked in aurora.f90)
+    ! Sometimes, in AMIE, things get messed up in the Average energy,
+    ! so go through and fix some of these (Also checked in aurora.f90.)
     if (iDebugLevel > 1) then
-    do iLat = -1, nLats + 2
-      do iLon = -1, nLons + 2
-        if (ElectronAverageEnergyDiffuse(iLon, iLat) < 0.0) then
-          ElectronAverageEnergyDiffuse(iLon, iLat) = 0.1
-          write(*, *) "ave e i,j Negative : ", iLon, iLat, &
-            ElectronAverageEnergyDiffuse(iLon, iLat)
-        endif
-        if (ElectronAverageEnergyDiffuse(iLon, iLat) > 100.0) then
-          write(*, *) "ave e i,j Positive : ", iLon, iLat, &
-            ElectronAverageEnergyDiffuse(iLon, iLat)
-          ElectronAverageEnergyDiffuse(iLon, iLat) = 0.1
-        endif
+      do iLat = -1, nLats + 2
+        do iLon = -1, nLons + 2
+          if (ElectronAverageEnergyDiffuse(iLon, iLat) < 0.0) then
+            ElectronAverageEnergyDiffuse(iLon, iLat) = 0.1
+            write(*, *) "ave e i,j Negative : ", iLon, iLat, &
+              ElectronAverageEnergyDiffuse(iLon, iLat)
+          endif
+          if (ElectronAverageEnergyDiffuse(iLon, iLat) > 100.0) then
+            write(*, *) "ave e i,j Positive : ", iLon, iLat, &
+              ElectronAverageEnergyDiffuse(iLon, iLat)
+            ElectronAverageEnergyDiffuse(iLon, iLat) = 0.1
+          endif
+        enddo
       enddo
-    enddo
     endif
+
+    ! Adjust the Average Energy of the Diffuse Aurora, if desired:
+    if (iDebugLevel > 1) write(*, *) '=> Adjusting average energy of the aurora : ', AveEFactor
+    ElectronAverageEnergyDiffuse = ElectronAverageEnergyDiffuse*AveEFactor
 
     ! -----------------------------
     ! Ion, Wave- & Mono- aurora
@@ -335,6 +339,12 @@ subroutine get_potential(iBlock)
           endif
         endif
 
+        ! Typical values are:
+        !   - electron average energy = 30-100 eV (< 220 eV)
+        !   - electron energy flux = 1-2 ergs/cm2/s
+        !   - ion average energy = 300 - 3000 keV
+        !   - ion energy flux = ~ 6x less than electrons
+
         EFlux = CuspEFlux* &
                 exp(-abs(lats - CuspLat)/CuspLatHalfWidth)* &
                 exp(-abs(mlts - CuspMlt)/CuspMltHalfWidth)
@@ -361,11 +371,31 @@ subroutine get_potential(iBlock)
 
   endif
 
-  if (iDebugLevel >= 1) &
-    write(*, *) "==> Min, Max, CPC Potential : ", &
-    minval(Potential(:, :, :, iBlock))/1000.0, &
-    maxval(Potential(:, :, :, iBlock))/1000.0, &
-    (maxval(Potential(:, :, :, iBlock)) - minval(Potential(:, :, :, iBlock)))/1000.0
+  ! -----------------------------
+  ! Polar Rain, if desired
+  ! -----------------------------
+
+  if (UsePolarRain) then
+
+    ! Get the polar cap - this variable is 1 if it is the polar cap and 0 is not
+    call IEModel_%get_polarcap(polarCap)
+
+    ! Then, if we are in the polar cap, fill in the energy flux with values
+    ! entered by the user in the UAM.in file
+    ! Typical values of polar rain are [Newell et al., 1990]:
+    ! aveE ~ 80 - 110 eV
+    ! eflux ~ 0.01 - 0.1 ergs/cm2/s for nominal events; 1.0 for extreme events
+    do iLat = -1, nLats + 2
+      do iLon = -1, nLons + 2
+        if (polarCap(iLon, iLat) > 0 .and. &
+            ElectronEnergyFluxDiffuse(iLon, iLat) < 0.1) then
+          ElectronEnergyFluxDiffuse(iLon, iLat) = polarRainEFlux
+          ElectronAverageEnergyDiffuse(iLon, iLat) = polarRainAveE
+        endif
+      enddo
+    enddo
+
+  endif
 
   call end_timing("get_potential")
 
@@ -507,22 +537,22 @@ subroutine set_ie_indices(IEModel_, TimeIn)
     if (iError /= 0) call set_error("Issue reading IMF file in get_potential")
 
     call get_IMF_Bz(TimeIn + TimeDelayHighLat, val, iError)
-    if (val < -50.0) val = -50.0
-    if (val > 50.0) val = 50.0
+    if (val < -40.0) val = -40.0
+    if (val > 40.0) val = 40.0
     call IEModel_%imfBz(val)
 
     call get_IMF_By(TimeIn, val, iError)
-    if (val < -50.0) val = -50.0
-    if (val > 50.0) val = 50.0
+    if (val < -40.0) val = -40.0
+    if (val > 40.0) val = 40.0
     call IEModel_%imfBy(val)
 
     call get_SW_V(TimeIn, val, iError)
-    if (val < -1800.0) val = -1800.0
-    if (val > 1800.0) val = 1800.0
+    if (val < -1500.0) val = -1500.0
+    if (val > 1500.0) val = 1500.0
     call IEModel_%swV(val)
 
     call get_SW_N(TimeIn, val, iError)
-    if (val > 80) val = 80
+    if (val > 80) val = 50
     call IEModel_%swN(val)
 
     if (iError /= 0 .or. .not. isOk) then

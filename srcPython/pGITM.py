@@ -139,13 +139,15 @@ def create_netcdf(filename, data, isVerbose=False):
             lon.units = 'degrees_east'
             lon.long_name = 'Longitude'
 
-        if np.all([data['Latitude'][0, :, 0] == data['Latitude'][i, :, :].T for i in range(nx)]):#, axis=(0, 2)):
+        # Latitude needs to be checked differently...
+        diffarray = np.diff(data['Latitude'], axis=2)
+        if np.all(diffarray == diffarray[0, 0, 0]):
             lat = ncfile.createVariable('lat', np.float64, ('lat'))
             lat[:] = np.rad2deg(data['Latitude'][0, :, 0])
             lat.units = 'degrees_north'
             lat.long_name = 'Latitude'
 
-        if np.all(data['Altitude'][:, 0, 0] == data['Altitude'].T):#, axis=(0, 1)):
+        if np.all(data['Altitude'][:, 0, 0] == data['Altitude'].T):
             alt = ncfile.createVariable('z', np.float64, ('z'))
             alt[:] = data['Altitude'][:, 0, 0] / 1000
             alt.units = 'km'
@@ -157,7 +159,7 @@ def create_netcdf(filename, data, isVerbose=False):
             newname = variables.get_short_names([varname])[0]
             thisvar = ncfile.createVariable(newname, np.float64, 
                                             ('time', 'lon', 'lat', 'z'))
-            thisvar[:] = data[varname].T
+            thisvar[0, :, :, :] = data[varname].T
             if 'V' in newname:
                 unit = 'm/s'
             elif '[' in varname:
@@ -184,7 +186,7 @@ def append_netcdf(filename, data, isVerbose):
 
         for varname in data['vars']:
             newname = variables.get_short_names([varname])[0]
-            ncfile[newname][-1, ...] = data[varname].T
+            ncfile[newname][-1, :, :, :] = data[varname].T
 
     return
 
@@ -286,7 +288,8 @@ def delete_files(header, isVerbose = False):
 
 def read_header(headerFile, isVerbose = False):
 
-    print(' --> Reading file : ', headerFile)
+    if (isVerbose):
+        print(' --> Reading file : ', headerFile)
     fpin = open(headerFile, 'r')
     lines = fpin.readlines()
     fpin.close()
@@ -438,7 +441,7 @@ def process_one_file(header, isVerbose = False, dowrite=True,
 
     fileOut = header.replace('.header','.bin')
 
-    print('Processing : ', header)
+    print(' -> Processing : ', header)
     headerInfo = read_header(header, isVerbose = isVerbose)
 
     fpin = open(header, 'r')

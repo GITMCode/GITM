@@ -355,16 +355,18 @@ subroutine calc_electron_ion_temperature(iBlock)
   where (etemp .LT. tn) etemp = tn
   where (etemp .GT. 6000.) etemp = 6000.
 
-  eTemperature(1:nLons, 1:nLats, 0:nAlts + 1, iBlock) = etemp(1:nLons, 1:nLats, 0:nAlts + 1)
-  eTemperature(1:nLons, 1:nLats, -1, iBlock) = etemp(1:nLons, 1:nLats, 0)
+  eTemperature(1:nLons, 1:nLats, 1:nAlts + 1, iBlock) = etemp(1:nLons, 1:nLats, 1:nAlts + 1)
+  eTemperature(1:nLons, 1:nLats, 0, iBlock) = Temperature(1:nLons, 1:nLats, 0, iBlock)*TempUnit(1:nLons, 1:nLats, 0)
+  eTemperature(1:nLons, 1:nLats, -1, iBlock) = Temperature(1:nLons, 1:nLats, -1, iBlock)*TempUnit(1:nLons, 1:nLats, -1)
   eTemperature(1:nLons, 1:nLats, nAlts + 2, iBlock) = etemp(1:nLons, 1:nLats, nAlts + 1)
 
   where (itemp .GT. tipct*etemp) itemp = tipct*etemp
   where (itemp .LT. tn) itemp = tn
   where (itemp .GT. 6000.) itemp = 6000.
 
-  iTemperature(1:nLons, 1:nLats, 0:nAlts + 1, iBlock) = itemp(1:nLons, 1:nLats, 0:nAlts + 1)
-  iTemperature(1:nLons, 1:nLats, -1, iBlock) = itemp(1:nLons, 1:nLats, 0)
+  iTemperature(1:nLons, 1:nLats, 1:nAlts + 1, iBlock) = itemp(1:nLons, 1:nLats, 1:nAlts + 1)
+  iTemperature(1:nLons, 1:nLats, 0, iBlock) = Temperature(1:nLons, 1:nLats, 0, iBlock)*TempUnit(1:nLons, 1:nLats, 0)
+  iTemperature(1:nLons, 1:nLats, -1, iBlock) = Temperature(1:nLons, 1:nLats, -1, iBlock)*TempUnit(1:nLons, 1:nLats, -1)
   iTemperature(1:nLons, 1:nLats, nAlts + 2, iBlock) = itemp(1:nLons, 1:nLats, nAlts + 1)
 
   call report("done with calc_electron_temperature", 2)
