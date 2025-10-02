@@ -46,6 +46,11 @@ module ModInputs
   character(len=iCharLen_) :: cAMIEFileSouth = "none"
   character(len=iCharLen_) :: cAMIEFileNorth = "none"
 
+  character(len=iCharLen_), allocatable :: cAMIEListSouth(:)
+  character(len=iCharLen_), allocatable :: cAMIEListNorth(:)
+  integer :: nAMIENorth = 0
+  integer :: nAMIESouth = 0
+
   ! Set to zero because planets other than earth exist.
   character(len=iCharLen_) :: cAuroralModel = "zero"
   character(len=iCharLen_) :: cPotentialModel = "zero"
