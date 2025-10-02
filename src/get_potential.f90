@@ -12,7 +12,7 @@ subroutine init_get_potential
 
   implicit none
 
-  integer :: iError = 0
+  integer :: iError = 0, iFile
 
   call report("init_get_potential", 2)
 
@@ -30,6 +30,22 @@ subroutine init_get_potential
   ! If we are using AMIE files, set north and south files:
   call IEModel_%filename_north(cAMIEFileNorth)
   call IEModel_%filename_south(cAMIEFileSouth)
+
+  ! If we have a list of files, then set them this way:
+  if (nAMIENorth > 0) then
+    call IEModel_%nfiles_north(nAMIENorth)
+    do iFile = 1, nAMIENorth
+      call IEModel_%filename_list_north(iFile, cAMIEListNorth(iFile))
+    enddo
+  endif
+
+  ! If we have a list of files, then set them this way:
+  if (nAMIESouth > 0) then
+    call IEModel_%nfiles_south(nAMIESouth)
+    do iFile = 1, nAMIESouth
+      call IEModel_%filename_list_south(iFile, cAMIEListSouth(iFile))
+    enddo
+  endif
 
   ! If there were errors picking settings, stop before initializing
   if (.not. isOk) then
@@ -242,9 +258,9 @@ subroutine get_potential(iBlock)
 
   if (iDebugLevel >= 1) &
     write(*, *) "==> Min, Max, CPC Potential : ", &
-    minval(Potential(:, :, :, iBlock))/1000.0, &
-    maxval(Potential(:, :, :, iBlock))/1000.0, &
-    (maxval(Potential(:, :, :, iBlock)) - minval(Potential(:, :, :, iBlock)))/1000.0
+    int(minval(Potential(:, :, :, iBlock))/1000.0), &
+    int(maxval(Potential(:, :, :, iBlock))/1000.0), &
+    int((maxval(Potential(:, :, :, iBlock)) - minval(Potential(:, :, :, iBlock)))/1000.0)
 
   ! -----------------------------------------------------
   ! Now get the aurora.
