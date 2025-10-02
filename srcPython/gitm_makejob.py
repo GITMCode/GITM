@@ -140,7 +140,7 @@ def modify_job(inLines, \
             line = '#PBS -N ' + name
         m = re.match(r'.*walltime.*', line)
         if m:
-            line = '#PBS -l walltime=' + walltime + ':00:00'
+            line = '#PBS -lwalltime=' + walltime + ':00:00'
         m = re.match(r'.*group_list.*', line)
         if m:
             line = '#PBS -W group_list=' + gid
