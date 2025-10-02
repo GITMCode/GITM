@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import re
 import datetime as dt
@@ -9,6 +9,7 @@ import argparse, os
 
 from swmf_imf import *
 from read_ae import *
+from dst import *
 
 #------------------------------------------------------------------------------
 # Get closest day boundary
@@ -49,7 +50,7 @@ def plot_day_boundaries(ax, times):
     return
 
 
-def main(imf=None, ae=None):
+def main(imf=None, ae=None, dst=None):
     """
     Makes plots of IMF and/or AE
 
@@ -65,7 +66,6 @@ def main(imf=None, ae=None):
 
     """
 
-
     fig = plt.figure(figsize = (7,10))
     nY = 4
     if imf is not None:
@@ -75,15 +75,20 @@ def main(imf=None, ae=None):
     else:
         raise ValueError("Neither AE nor IMF were provided!")
 
+    if dst is not None:
+        nY = nY + 1
+    
     plt.rcParams.update({'font.size': 14})
 
     ax = []
 
     xStart = 0.15
     xSize = 0.81
-    ySize = 0.19
+    
     yGap = 0.04
     yEnd = 0.95
+
+    ySize = (yEnd - 0.06 - yGap * (nY-1)) / nY 
 
     iY = 0
 
@@ -128,17 +133,35 @@ def main(imf=None, ae=None):
         ax[-1].set_ylim(0.0, np.max(ae["ae"])*1.05)
 
         plot_day_boundaries(ax[-1], ae["time"])
-        mint = np.min(ae["time"])
-        maxt = np.max(ae["time"])
+        if (np.min(ae["time"]) > mint):
+            mint = np.min(ae["time"])
+        if (np.max(ae["time"]) < maxt):
+            maxt = np.max(ae["time"])
 
+    if dst is not None:
+        iY += 1
+        ax.append(fig.add_subplot(nY*100 + 10 + iY))
+        yStart = yEnd - ySize * iY - yGap * (iY-1)
+        ax[-1].set_position([xStart, yStart, xSize, ySize])
+        ax[-1].plot(dst["times"], dst["dst"])
+        ax[-1].set_ylabel('(e) Dst (nT)')
+        maxi = np.max([np.max(dst["dst"]) * 1.05, 0.0])
+        mini = np.floor(np.min(dst["dst"])/100.0) * 100.0
+        ax[-1].set_ylim(mini, maxi)
+        plot_day_boundaries(ax[-1], dst["times"])
+        zeros = np.array(dst["dst"]) * 0.0
+        ax[-1].plot(dst["times"], zeros, 'k:')
+        
     sTime = mint.strftime('%b %d, %Y %H:%M UT') + ' - ' + \
         maxt.strftime('%b %d, %Y %H:%M UT')
     ax[-1].set_xlabel(sTime)
+    for iY in range(nY):
+        ax[iY].set_xlim(mint, maxt)
 
     plotfile = mint.strftime('drivers%Y%m%d.png')
+    print('-> Writing: ', plotfile)
     fig.savefig(plotfile)
     plt.close()
-
 
 
 def parse_args():
@@ -151,6 +174,10 @@ def parse_args():
     parser.add_argument('-ae', type=str, default='ae.txt',
                         help='Path to AE file')
 
+    parser.add_argument('-dst', \
+                        help='plot dst with drivers', \
+                        action="store_true")
+    
     args = parser.parse_args()
 
     return args
@@ -169,6 +196,13 @@ if __name__ == '__main__':
         ae = read_ae(args.ae)
     else:
         ae=None
-    
-    main(imf, ae)
+
+    if (args.dst):
+        sTime = imf["times"][0].strftime('%Y-%m-%d')
+        print(sTime)
+        dst = get_dst(times = [sTime])
+    else:
+        dst = None
+        
+    main(imf, ae, dst = dst)
 
