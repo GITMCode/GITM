@@ -66,10 +66,11 @@ def make_map(ix, iy, values, lats, lsts, nX, nY):
         mapA[i][j] = mapA[i][j] + values[iPt]
         mapAc[i][j] = mapAc[i][j] + 1
         if (np.abs(lats[iPt]) < 45.0):
-            print(lsts[iPt])
             asc = asc + lsts[iPt]
             ascN = ascN + 1
         
+    if (ascN == 0):
+        ascN = 1
     asc = asc / ascN
     mapA[mapAc > 0] = mapA[mapAc > 0] / mapAc[mapAc > 0]
     mapA[mapAc == 0] = np.nan
@@ -163,6 +164,7 @@ for iFile, file in enumerate(headers["filename"]):
     oDensity = data[iO_]
     n2Density = data[iN2_]
 
+    intBnd = 1.0e21
     # 1e21/m2 is the integration boundary.  
     n2Int = vertically_integrate(n2Density, Alts3d, calc3D = True)
     oInt = vertically_integrate(oDensity, Alts3d, calc3D = True)
@@ -171,33 +173,32 @@ for iFile, file in enumerate(headers["filename"]):
     iAlts = np.arange(nAlts)
     for iLat in range(nLats):
         for iLon in range(nLons):
-            n21d = n2Int[iLon,iLat,:]/1e21
+            n21d = n2Int[iLon,iLat,:]/intBnd
             o1d = oInt[iLon,iLat,:]
 
             i = iAlts[n21d < 1.0][0]
             r = (1.0 - n21d[i]) / (n21d[i-1] - n21d[i])
-            n2 = (r * n21d[i-1] + (1.0 - r) * n21d[i]) * 1e21
+            n2 = (r * n21d[i-1] + (1.0 - r) * n21d[i]) * intBnd
             o = r * o1d[i-1] + (1.0 - r) * o1d[i]
             on2[iLon, iLat] = o / n2
 
     on2all.append(on2)
 
 
-guvidir = '/Users/ridley/Data/Gitm/run.202405/guvi/'
+#guvidir = '/Users/ridley/Data/Gitm/run.202405/guvi/'
+guvidir = '/backup/Data/Guvi/'
 
 # brute force!
 oldday = -1
 guvifilelist = []
 for t in times:
     if (t.day != oldday):
-        guvifile = guvidir + t.strftime('ON2_%Y_%jm.sav')
+        guvifile = guvidir + t.strftime('%Y/ON2_%Y_%jm.sav')
         guvifilelist.append(guvifile)
         oldday = t.day
         
-print(guvifilelist)
 guvi = read_list_of_guvi_files(guvifilelist)
 
-print(guvi['times'][0], guvi['times'][-1])
 period = np.mean(guvi['period'])
 
 saveTimes = []
@@ -355,3 +356,32 @@ node = 'Descending)'
 plot_map(mapTime, mapLats, gitmOn2MapD, guviOn2MapD, sLt, node, \
              mini, maxi, sTime,
              minLat, maxLat, outfile)
+
+# output some statistics:
+
+diff = gitmOn2 - guviOn2
+
+globalMedianGuvi = np.median(guviOn2)
+globalMedianGitm = np.median(gitmOn2)
+globalMedianDiff = np.median(diff) / globalMedianGuvi * 100.0
+print('Global Medians (GUVI, GITM) : ', globalMedianGuvi, globalMedianGitm, globalMedianDiff)
+
+northMeanGuvi = np.mean(guviOn2[saveLats > 0.0])
+northMeanGitm = np.mean(gitmOn2[saveLats > 0.0])
+northRMS = np.sqrt(np.mean(diff**2)) / northMeanGuvi * 100.0
+print('North Means (GUVI, GITM, RMS) : ', northMeanGuvi, northMeanGitm, northRMS)
+northStdGuvi = np.std(guviOn2[saveLats > 0.0]) / northMeanGuvi * 100.0
+northStdGitm = np.std(gitmOn2[saveLats > 0.0]) / northMeanGitm * 100.0
+print('North Std (GUVI, GITM) : ', northStdGuvi, northStdGitm)
+northPolarMeanGuvi = np.mean(guviOn2[saveLats > 40.0])
+northPolarMeanGitm = np.mean(gitmOn2[saveLats > 40.0])
+print('North Polar Mean (GUVI, GITM) : ', northPolarMeanGuvi, northPolarMeanGitm)
+southPolarMeanGuvi = np.mean(guviOn2[saveLats < -40.0])
+southPolarMeanGitm = np.mean(gitmOn2[saveLats < -40.0])
+print('South Polar Mean (GUVI, GITM) : ', southPolarMeanGuvi, southPolarMeanGitm)
+northPolarStdGuvi = np.std(guviOn2[saveLats > 40.0]) / northPolarMeanGuvi * 100.0
+northPolarStdGitm = np.std(gitmOn2[saveLats > 40.0]) / northPolarMeanGitm * 100.0
+print('North Polar Std (GUVI, GITM) : ', northPolarStdGuvi, northPolarStdGitm)
+southPolarStdGuvi = np.std(guviOn2[saveLats < -40.0]) / southPolarMeanGuvi * 100.0
+southPolarStdGitm = np.std(gitmOn2[saveLats < -40.0]) / southPolarMeanGitm * 100.0
+print('South Polar Std (GUVI, GITM) : ', southPolarStdGuvi, southPolarStdGitm)
