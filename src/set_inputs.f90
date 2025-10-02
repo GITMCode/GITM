@@ -37,7 +37,7 @@ subroutine set_inputs
   integer :: iDebugProc = 0
   character(len=iCharLen_) :: cLine
   integer :: iLine, iSpecies, iSat
-  integer :: i, iError, iOutputTypes, iErrorFile, iFreq
+  integer :: i, iError, iOutputTypes, iErrorFile, iFreq, iFile
   integer, dimension(7) :: iTimeEnd
   integer :: iUnitFile = UnitTmp_
 
@@ -731,6 +731,51 @@ subroutine set_inputs
               .not. HasSetAuroraMods) &
             NormalizeAuroraToHP = .false.
         endif
+
+      case ("#AMIENORTH")
+        nAMIENorth = 0 
+        call read_in_int(nAMIENorth, iError)
+        if (iError == 0 .and. nAMIENorth > 0) then
+          allocate(cAMIEListNorth(nAMIENorth))
+          do iFile = 1, nAMIENorth
+            call read_in_string(cAMIEListNorth(iFile), iError)
+          enddo
+        else
+          iError = 1
+        endif
+        if (iError /= 0) then
+          write(*, *) 'Incorrect format for #AMIENORTH:'
+          write(*, *) ''
+          write(*, *) '#AMIENORTH'
+          write(*, *) 'nAMIENorth       (int)'
+          write(*, *) 'cAMIEFileNorth1  (string)'
+          write(*, *) '...              (string)s'
+          write(*, *) 'cAMIEFileNorth(n)  (string)'
+          IsDone = .true.
+        endif
+
+      case ("#AMIESOUTH")
+        nAMIESouth = 0 
+        call read_in_int(nAMIESouth, iError)
+        if (iError == 0 .and. nAMIESouth > 0) then
+          allocate(cAMIEListSouth(nAMIESouth))
+          do iFile = 1, nAMIESouth
+            call read_in_string(cAMIEListSouth(iFile), iError)
+          enddo
+        else
+          iError = 1
+        endif
+        if (iError /= 0) then
+          write(*, *) 'Incorrect format for #AMIESOUTH:'
+          write(*, *) ''
+          write(*, *) '#AMIESOUTH'
+          write(*, *) 'nAMIESouth       (int)'
+          write(*, *) 'cAMIEFileSouth1  (string)'
+          write(*, *) '...              (string)s'
+          write(*, *) 'cAMIEFileSouth(n)  (string)'
+          IsDone = .true.
+        endif
+
 
       case ("#AURORAMODS")
         HasSetAuroraMods = .true.
