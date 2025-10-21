@@ -379,20 +379,31 @@ contains
     call calculate_HP(HPn, HPs)
 
     ! Collect all of the powers by summing them together
-    LocalVar = HemisphericPowerNorth/1.0e9
+    LocalVar = HPn/1.0e9
     call MPI_REDUCE(LocalVar, HPn, 1, MPI_REAL, MPI_SUM, &
                     0, iCommGITM, iError)
 
-    LocalVar = HemisphericPowerSouth/1.0e9
+    LocalVar = HPs/1.0e9
     call MPI_REDUCE(LocalVar, HPs, 1, MPI_REAL, MPI_SUM, &
                     0, iCommGITM, iError)
 
     ! Average north and south together
     avepower = (HPn + HPs)/2.0
 
+    if (avepower == 0) then
+      call set_error("AvePower is zero!")
+      avepower = 1.0
+    endif
+
     ! If we are only have one hemisphere or the other, assign to avepower
-    if (HPs < 0.1*HPn) avepower = HPn
-    if (HPn < 0.1*HPs) avepower = HPs
+    if (HPs < 0.1*HPn) then 
+      avepower = HPn
+      HPs = HPn
+    endif
+    if (HPn < 0.1*HPs) then
+      avepower = HPs
+      HPn = HPs
+    endif
 
     call MPI_Bcast(avepower, 1, MPI_Real, 0, iCommGITM, ierror)
     call MPI_Bcast(Hps, 1, MPI_Real, 0, iCommGITM, ierror)
@@ -411,12 +422,8 @@ contains
     else
 
       call get_hpi(CurrentTime, Hpi, iError)
-      if (avepower == 0) then
-        call set_error("AvePower is zero!")
-        avepower = 1.0
-      endif
-      ratio_NH = Hpi/avepower
-      ratio_SH = Hpi/avepower
+      ratio_NH = Hpi/HPn
+      ratio_SH = Hpi/HPs
 
     endif
 
@@ -424,28 +431,31 @@ contains
       if ((iDebugLevel == 0) .and. IsFirstTime(iBlock) .and. .not. doSeparateHPI) then
         write(*, *) '---------------------------------------------------'
         write(*, *) 'Using auroral normalizing ratios!!! '
-        write(*, *) 'no longer reporting!'
+        write(*, *) '  -> forcing the HP to be the same in both hemispheres!'
+        write(*, *) '  -> no longer reporting!'
         write(*, *) '---------------------------------------------------'
       elseif ((iDebugLevel == 0) .and. IsFirstTime(iBlock) .and. doSeparateHPI) then
         write(*, *) '---------------------------------------------------'
         write(*, *) 'Using HPI from each hemisphere to normalize aurora!!'
-        write(*, *) 'no longer reporting!'
+        write(*, *) '  -> Normalizing to mean, then calculating ratios seperately'
+        write(*, *) '  -> no longer reporting!'
         write(*, *) '---------------------------------------------------'
       endif
-      if (iDebugLevel >= 2) then
+      if (iDebugLevel >= 1) then
         if (doSeparateHPI) then
           write(*, *) 'Auroral normalizing ratios: '
-          write(*, *) 'Hpi(NH)  HPI(SH)  HPI(NH-modeled)  HPI(SH-modeled)  ratio_n  ratio_s'
+          write(*, *) 'HP(N)  HP(S)  HP(N-model)  HP(S-model)  ratio_n  ratio_s'
           write(*, *) Hpi_NH, Hpi_SH, HPn, HPs, ratio_NH, ratio_sh
         else
-          write(*, *) 'Auroral normalizing ratio: ', Hpi_NH, ratio_SH, ratio_NH
+          write(*, *) 'Auroral normalizing ratio (hp, hp model averaged, ratios (S/N)): ', &
+            Hpi, avepower, ratio_SH, ratio_NH
         endif
       endif
 
     endif
     do i = 1, nLats
       do j = 1, nLons
-        if (ElectronEnergyFluxDiffuse(j, i) > 0.1) then
+        if (ElectronEnergyFluxDiffuse(j, i) > 0.001) then
           if (latitude(i, iBlock) < 0.0) then
             ElectronEnergyFluxDiffuse(j, i) = ElectronEnergyFluxDiffuse(j, i)*ratio_sh
           else
@@ -463,12 +473,15 @@ contains
     real, intent(out) :: HPn, HPs
     real :: eflx_ergs, eflux
 
+    HPn = 0.0
+    HPs = 0.0
+
     do i = 1, nLats
       do j = 1, nLons
 
         eflx_ergs = ElectronEnergyFluxDiffuse(j, i) !/ (1.0e-7 * 100.0 * 100.0)
 
-        if (eflx_ergs > 0.1) then
+        if (eflx_ergs > 0.001) then
           eflux = eflx_ergs*6.242e11  ! ergs/cm2/s -> eV/cm2/s
 
           !(eV/cm2/s -> J/m2/s)
@@ -477,9 +490,9 @@ contains
                   dLonDist_FB(j, i, nAlts, iBlock)
 
           if (latitude(i, iBlock) < 0.0) then
-            HemisphericPowerSouth = HemisphericPowerSouth + power
+            HPs = HPs + power
           else
-            HemisphericPowerNorth = HemisphericPowerNorth + power
+            HPn = HPn + power
           endif
 
         endif
