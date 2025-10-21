@@ -1848,7 +1848,7 @@ subroutine set_inputs
           write(*, *) "----------------------------------------------"
           write(*, *) "GITM allows the use of a 10% seasonal "
           write(*, *) "correction factor in the conversion of AE to HP"
-          write(*, *) "Put another T after the onset file if you want this,"
+          write(*, *) "Put another T after convert to HP if you want this,"
           write(*, *) "or put an F to silence this message."
           write(*, *) "----------------------------------------------"
           iError = 0
