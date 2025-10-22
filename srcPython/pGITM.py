@@ -111,7 +111,7 @@ def create_netcdf(filename, data, isVerbose=False):
         zdim = ncfile.createDimension('z', nz)
 
         # time!
-        reftime = data['time'].date()
+        reftime = datetime.date(1965, 1, 1)
         time = ncfile.createVariable('time', np.float64, ('time',))
         time.units = 'seconds since ' + str(reftime)
         time.long_name = 'time'
