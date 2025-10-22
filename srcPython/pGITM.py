@@ -218,10 +218,10 @@ def write_to_netcdf(file, data, combine=False, runname='', isVerbose=False):
     if (isVerbose):
         print(' -> Writing NetCDF for: ', file, " to:", runname)
 
-    if not os.path.exists(file):
-        create_netcdf(file, data, isVerbose)
-    else:
+    if os.path.exists(file) and combine:
         append_netcdf(file, data, isVerbose)
+    else:
+        create_netcdf(file, data, isVerbose)
 
 # ----------------------------------------------------------------------------
 # 
