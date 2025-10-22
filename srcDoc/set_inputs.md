@@ -464,6 +464,19 @@ code to sync up a LOT.
     MinIonDensity    (real, default=100 m^-3)
     MinIonDensityAdvect    (real, default=1e5 m^-3)
 
+### NEUTRALLIMITS
+
+Neutral limits only get applied if the deniity of the species drops below zero.
+This is very rare and only occurs a few times when simulating extreme event. This 
+likely does not need to be changed.
+
+As with the ion limits, the lower limit for advected vs non-advected species can be set
+differently.
+
+    #NEUTRALLIMITS
+    MinNeutralDensity    (real, default=100 m^-3)
+    MinNeutralDensityAdvect    (real, default=1e5 m^-3)
+
 ### PHOTOELECTRON
 
     #PHOTOELECTRON

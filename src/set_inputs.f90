@@ -967,6 +967,18 @@ subroutine set_inputs
           IsDone = .true.
         endif
 
+      case ("#NEUTRALLIMITS")
+        call read_in_real(MinNeutralDensity, iError)
+        call read_in_real(MinNeutralDensityAdvect, iError)
+        if (iError /= 0) then
+          write(*, *) 'Incorrect format for #NEUTRALLIMITS:'
+          write(*, *) ''
+          write(*, *) '#IONLIMITS'
+          write(*, *) "MinNeutralDensity    (real, default=100 m^-3)"
+          write(*, *) "MinNeutralDensityAdvect    (real, default=1e5 m^-3)"
+          IsDone = .true.
+        endif
+
       case ("#PHOTOELECTRON")
         if (RCMROutType /= 'PHOTOELECTRON') then
           call read_in_real(PhotoElectronHeatingEfficiency, iError)
