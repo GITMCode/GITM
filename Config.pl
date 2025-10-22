@@ -109,7 +109,7 @@ if ($Install and not $IsCompGitm){
 
 &set_planet if $Planet and $Planet ne $PlanetOrig;
 
-&show_settings if $Show; 
+&show_settings_ if $Show; 
 
 print "Config.pl -g=$GridSize\n" if $ShowGridSize and not $Show;
 

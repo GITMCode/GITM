@@ -171,6 +171,8 @@ module ModGITM
 
   real :: SubsolarLatitude, SubsolarLongitude
   real :: MagneticPoleColat, MagneticPoleLon
+  real :: PotentialMax_North, PotentialMin_North
+  real :: PotentialMax_South, PotentialMin_South
   real :: HemisphericPowerNorth, HemisphericPowerSouth
   real :: HemisphericPowerNorth_diffuse, HemisphericPowerSouth_diffuse
   real :: HemisphericPowerNorth_wave, HemisphericPowerSouth_wave

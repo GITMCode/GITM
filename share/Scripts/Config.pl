@@ -433,6 +433,18 @@ sub install_code_{
 	&shell_command("echo COMPILER=$Compiler >> $MakefileDef");
 	&shell_command("cat $MakefileDefOrig >> $MakefileDef");
 
+	# Check gfortran version and automatically select gfortran10 if >= 10
+	if ($Compiler eq 'gfortran') {
+	    my $version_output = `gfortran --version 2>/dev/null | head -n1`;
+	    if ($version_output =~ /(\d+)\.\d+\.\d+/) {
+		my $major_version = $1;
+		if ($major_version >= 10) {
+		    $Compiler = 'gfortran10';
+		}
+		print "Detected gfortran version $major_version, using $Compiler makefile\n";
+	    }
+	}
+
 	my $Makefile = "$MakefileConfOrig.$OS.$Compiler";
 	if(-f $Makefile){
 	    &shell_command("cat $Makefile > $MakefileConf");

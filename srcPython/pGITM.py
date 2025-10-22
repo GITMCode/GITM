@@ -111,7 +111,7 @@ def create_netcdf(filename, data, isVerbose=False):
         zdim = ncfile.createDimension('z', nz)
 
         # time!
-        reftime = data['time'].date()
+        reftime = datetime.date(1965, 1, 1)
         time = ncfile.createVariable('time', np.float64, ('time',))
         time.units = 'seconds since ' + str(reftime)
         time.long_name = 'time'
@@ -218,10 +218,10 @@ def write_to_netcdf(file, data, combine=False, runname='', isVerbose=False):
     if (isVerbose):
         print(' -> Writing NetCDF for: ', file, " to:", runname)
 
-    if not os.path.exists(file):
-        create_netcdf(file, data, isVerbose)
-    else:
+    if os.path.exists(file) and combine:
         append_netcdf(file, data, isVerbose)
+    else:
+        create_netcdf(file, data, isVerbose)
 
 # ----------------------------------------------------------------------------
 # 
