@@ -733,7 +733,7 @@ subroutine set_inputs
         endif
 
       case ("#AMIENORTH")
-        nAMIENorth = 0 
+        nAMIENorth = 0
         call read_in_int(nAMIENorth, iError)
         if (iError == 0 .and. nAMIENorth > 0) then
           allocate(cAMIEListNorth(nAMIENorth))
@@ -755,7 +755,7 @@ subroutine set_inputs
         endif
 
       case ("#AMIESOUTH")
-        nAMIESouth = 0 
+        nAMIESouth = 0
         call read_in_int(nAMIESouth, iError)
         if (iError == 0 .and. nAMIESouth > 0) then
           allocate(cAMIEListSouth(nAMIESouth))
@@ -775,7 +775,6 @@ subroutine set_inputs
           write(*, *) 'cAMIEFileSouth(n)  (string)'
           IsDone = .true.
         endif
-
 
       case ("#AURORAMODS")
         HasSetAuroraMods = .true.

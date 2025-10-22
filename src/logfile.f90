@@ -216,7 +216,7 @@ subroutine logfile(dir)
 
   LocalVar = PotentialMax_South
   call MPI_REDUCE(LocalVar, PotMaxS, 1, MPI_REAL, MPI_MAX, &
-       0, iCommGITM, iError)
+                  0, iCommGITM, iError)
 
   CPCPn = PotMaxN - PotMinN
   CPCPs = PotMaxS - PotMinS

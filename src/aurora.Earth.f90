@@ -396,7 +396,7 @@ contains
     endif
 
     ! If we are only have one hemisphere or the other, assign to avepower
-    if (HPs < 0.1*HPn) then 
+    if (HPs < 0.1*HPn) then
       avepower = HPn
       HPs = HPn
     endif

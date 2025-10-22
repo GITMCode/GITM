@@ -363,11 +363,11 @@ subroutine advance_horizontal(iBlock)
               write(*, *) "Species : ", iLon, iLat, iAlt, iSpecies, iBlock
               ! call stop_gitm("neg ion density! stopping in advance_horizontal")
               if (iSpecies <= nSpecies) then
-                 NewNum_CV(iLon, iLat, iSpecies) = MinNeutralDensityAdvect
+                NewNum_CV(iLon, iLat, iSpecies) = MinNeutralDensityAdvect
               else
                 NewNum_CV(iLon, iLat, iSpecies) = MinNeutralDensity
               endif
-              
+
               IsFound = .true.
             endif
           enddo
