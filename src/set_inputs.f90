@@ -733,7 +733,7 @@ subroutine set_inputs
         endif
 
       case ("#AMIENORTH")
-        nAMIENorth = 0 
+        nAMIENorth = 0
         call read_in_int(nAMIENorth, iError)
         if (iError == 0 .and. nAMIENorth > 0) then
           allocate(cAMIEListNorth(nAMIENorth))
@@ -755,7 +755,7 @@ subroutine set_inputs
         endif
 
       case ("#AMIESOUTH")
-        nAMIESouth = 0 
+        nAMIESouth = 0
         call read_in_int(nAMIESouth, iError)
         if (iError == 0 .and. nAMIESouth > 0) then
           allocate(cAMIEListSouth(nAMIESouth))
@@ -775,7 +775,6 @@ subroutine set_inputs
           write(*, *) 'cAMIEFileSouth(n)  (string)'
           IsDone = .true.
         endif
-
 
       case ("#AURORAMODS")
         HasSetAuroraMods = .true.
@@ -964,6 +963,18 @@ subroutine set_inputs
           write(*, *) "MaxEField        (real, default=0.1 V/m)"
           write(*, *) "MinIonDensity    (real, default=100 m^-3)"
           write(*, *) "MinIonDensityAdvect    (real, default=1e5 m^-3)"
+          IsDone = .true.
+        endif
+
+      case ("#NEUTRALLIMITS")
+        call read_in_real(MinNeutralDensity, iError)
+        call read_in_real(MinNeutralDensityAdvect, iError)
+        if (iError /= 0) then
+          write(*, *) 'Incorrect format for #NEUTRALLIMITS:'
+          write(*, *) ''
+          write(*, *) '#IONLIMITS'
+          write(*, *) "MinNeutralDensity    (real, default=100 m^-3)"
+          write(*, *) "MinNeutralDensityAdvect    (real, default=1e5 m^-3)"
           IsDone = .true.
         endif
 
@@ -1848,7 +1859,7 @@ subroutine set_inputs
           write(*, *) "----------------------------------------------"
           write(*, *) "GITM allows the use of a 10% seasonal "
           write(*, *) "correction factor in the conversion of AE to HP"
-          write(*, *) "Put another T after the onset file if you want this,"
+          write(*, *) "Put another T after convert to HP if you want this,"
           write(*, *) "or put an F to silence this message."
           write(*, *) "----------------------------------------------"
           iError = 0

@@ -16,19 +16,27 @@ Dependencies: fortran (assuming gfortran), mpi (mpich doesn't seem to work), mak
 (we are old school!), and python 3+. The version should not matter as long as it is
 relatively recent.
 
-Download, configure, and run (`gfortran10` is for any gfortran version 10 or higher,
-for versions 9 and lower just use `-compiler=gfortran`):
+Download, configure, and run:
 
 ! note
   The current documentation only applies to the develop branch of GITM.
 
-  After the seconds line below, run `git checkout develop` 
+  After the second line below, run `git checkout develop`
+
+! note
+  GITM now automatically detects whether the version of gfortran being used is 10 
+  or greater. If you notice `Config.pl` is incorrectly detecting the version of
+  gfortran for your system, try specifying it as was necessary in previous versions
+  of GITM.
+
+  Previously, if you were using gfortran < 10, `compiler=gfortran`.
+  If gfortran >= 10, `compiler=gfortran10`.
 
 
 ```bash
 git clone https://github.com/GITMCode/GITM.git
 cd GITM
-./Config.pl -install -compiler=gfortran10 -earth
+./Config.pl -install -compiler=gfortran -earth
 make
 make rundir
 cd run

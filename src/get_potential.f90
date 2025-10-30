@@ -256,6 +256,21 @@ subroutine get_potential(iBlock)
 
   endif
 
+  if (maxval(Mlatitude(:, :, :, iBlock)) > 45.0) then
+    PotentialMax_North = maxval(Potential(:, :, :, iBlock))/1000.0
+    PotentialMin_North = minval(Potential(:, :, :, iBlock))/1000.0
+  else
+    PotentialMax_North = 0.0
+    PotentialMin_North = 0.0
+  endif
+  if (maxval(Mlatitude(:, :, :, iBlock)) < -45.0) then
+    PotentialMax_South = maxval(Potential(:, :, :, iBlock))/1000.0
+    PotentialMin_South = minval(Potential(:, :, :, iBlock))/1000.0
+  else
+    PotentialMax_South = 0.0
+    PotentialMin_South = 0.0
+  endif
+
   if (iDebugLevel >= 1) &
     write(*, *) "==> Min, Max, CPC Potential : ", &
     int(minval(Potential(:, :, :, iBlock))/1000.0), &

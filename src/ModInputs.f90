@@ -323,6 +323,9 @@ module ModInputs
   ! Lower limit on ion density
   real :: MinIonDensity = 100.0
   real :: MinIonDensityAdvect = 1e5
+  !Lower limits on neutral density
+  real :: MinNeutralDensity = 200.0
+  real :: MinNeutralDensityAdvect = 1e5
 
   !\
   ! Methods for completing chemistry

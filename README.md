@@ -49,21 +49,21 @@ cd GITM
 ```
 
 3\. Configure the Fortran compiler and download external electrodynamics library
-(gfortran versions 10+)
-
-```shell
-./Config.pl -install -earth -compiler=gfortran10
-```
-
-The biggest issue with the above command is that it assumes that you
-have the gfortran (version 10+) compiler and things like mpif90 work
-ok.  If you don't have gfortran and mpif90, then you need to get these
-things for your computer.  If you have version 9 or before for gfortran,
-you can do:
 
 ```shell
 ./Config.pl -install -earth -compiler=gfortran
 ```
+
+The above command is that it assumes that you have a working gfortran compiler and
+things like mpif90 work ok.  If you don't have gfortran and mpif90, then you need
+to get these things for your computer. 
+
+> `Config.pl` should automatically your gfortran version since gfortran>=10 needs
+> to use different compilation commands than versions 9 and below.
+> If you notice that `Config.pl` does not detect the correct gfoetran version, set
+> `-compiler=gfortran` if you have gfortran <10 or `-compiler=gfortran10` for 
+> gfortran>=10
+
 
 In theory, Mars, Venus, Titan, and LV-426 should work.  These are in
 various states of completion, so I wouldn't count on them being

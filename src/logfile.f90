@@ -112,6 +112,7 @@ subroutine logfile(dir)
   real    :: minTemp, maxTemp, localVar, minVertVel, maxVertVel
   real    :: AverageTemp, AverageVertVel, TotalVolume, Bx, By, Bz, Vx, Hpi
   real    :: HPn, HPs, HPn_d, HPs_d, HPn_w, HPs_w, HPn_m, HPs_m
+  real    :: PotMaxN, PotMaxS, PotMinN, PotMinS, CPCPn, CPCPs
   real    :: SSLon, SSLat, SSVTEC
   integer :: iError
 
@@ -162,9 +163,10 @@ subroutine logfile(dir)
     write(iLogFileUnit_, '(a)') " "
     write(iLogFileUnit_, '(a)') "#START"
     write(iLogFileUnit_, '(a)') &
-      "   iStep yyyy mm dd hh mm ss  ms      dt "// &
+      "   iStep year month day hour min sec  ms      dt "// &
       "min(T) max(T) mean(T) min(VV) max(VV) mean(VV) F107 F107A "// &
       "By Bz Vx HP HPn HPs HPn_diff HPs_diff HPn_w HPs_w HPn_m HPs_m "// &
+      "CPCPn CPCPs "// &
       "SubsolarLon SubsolarLat SubsolarVTEC"
   endif
 
@@ -199,6 +201,25 @@ subroutine logfile(dir)
   LocalVar = AverageVertVel
   call MPI_REDUCE(LocalVar, AverageVertVel, 1, MPI_REAL, MPI_SUM, &
                   0, iCommGITM, iError)
+
+  LocalVar = PotentialMin_North
+  call MPI_REDUCE(LocalVar, PotMinN, 1, MPI_REAL, MPI_MIN, &
+                  0, iCommGITM, iError)
+
+  LocalVar = PotentialMin_South
+  call MPI_REDUCE(LocalVar, PotMinS, 1, MPI_REAL, MPI_MIN, &
+                  0, iCommGITM, iError)
+
+  LocalVar = PotentialMax_North
+  call MPI_REDUCE(LocalVar, PotMaxN, 1, MPI_REAL, MPI_MAX, &
+                  0, iCommGITM, iError)
+
+  LocalVar = PotentialMax_South
+  call MPI_REDUCE(LocalVar, PotMaxS, 1, MPI_REAL, MPI_MAX, &
+                  0, iCommGITM, iError)
+
+  CPCPn = PotMaxN - PotMinN
+  CPCPs = PotMaxS - PotMinS
 
   LocalVar = HemisphericPowerNorth
   call MPI_REDUCE(LocalVar, HPn, 1, MPI_REAL, MPI_SUM, &
@@ -250,13 +271,15 @@ subroutine logfile(dir)
 
     if (Is1D) SSVTEC = -1.0
 
-    write(iLogFileUnit_, "(i8,i5,5i3,i4,f8.4,6f13.5,8f9.1,10f10.5,10f10.5,10f8.3)") &
-      iStep, iTimeArray, dt, minTemp, maxTemp, AverageTemp, &
-      minVertVel, maxVertVel, AverageVertVel, &
-      f107, f107A, By, Bz, Vx, Hpi, &
-      HPn/1.0e9, HPs/1.0e9, HPn_d/1.0e9, HPs_d/1.0e9, &
-      HPn_w/1.0e9, HPs_w/1.0e9, HPn_m/1.0e9, HPs_m/1.0e9, &
-      SSLon, SSLat, SSVTEC
+    write(iLogFileUnit_, "(i8,i5,5i3,i4,f8.4,6f9.1,5f7.1,9f8.1,2f7.1,3f8.3)") &
+      iStep, iTimeArray, &  ! i8, i5, 5i3, i4
+      dt, &  ! f8.4
+      minTemp, maxTemp, AverageTemp, minVertVel, maxVertVel, AverageVertVel, & ! 6f13.5
+      f107, f107A, By, Bz, Vx, &  ! 5f9.1
+      Hpi, HPn/1.0e9, HPs/1.0e9, &
+      HPn_d/1.0e9, HPs_d/1.0e9, HPn_w/1.0e9, HPs_w/1.0e9, HPn_m/1.0e9, HPs_m/1.0e9, & ! 9f10.1
+      CPCPn, CPCPs, & ! 2f10.2
+      SSLon, SSLat, SSVTEC   ! 3f8.3
 
     call flush_unit(iLogFileUnit_)
   endif

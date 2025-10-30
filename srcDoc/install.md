@@ -22,12 +22,17 @@ At a minimum, you need:
 <!-- abbreviation definition -->
 *[MPI]: Message Passing Interface
 
-On linux systems (including Windows Subsystem for Linux), gfortran is often used.  This
-is the most robustly tested compiler for GITM.  One problem with gfortran is that the
-gcc-10 and above version don't place well with MPI for some reason.  A flag has to be
-specified to make them play nice, and therefore there are two different compiler options
-for gfortran when configuring (`-compiler=gfortran` for older versions and
-`-compiler=-gfortran10` for version 10+). There is a very good chance that you have 10+.
+
+! note 
+  On linux systems (including Windows Subsystem for Linux), gfortran is often used.  This
+  is the most robustly tested compiler for GITM.  One problem with gfortran is that the
+  gcc-10 and above version don't place well with MPI for some reason. 
+  
+  The version of gfortran on your system should be automatically detected. If it is not,
+  you may specify the version manually. Use `-compiler=gfortran` for older versions 
+  (9 and below) and `-compiler=-gfortran10` for version 10+.
+  
+  There is a very good chance that you have 10+.
 
 There is no difference in the outputs between different compilers, however some
 compilers may produce slightly faster executables than others. For example,
