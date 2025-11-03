@@ -104,7 +104,7 @@ checkoutputs(){
   # refactored for cleanliness
 
   if [ $do_save = true ]; then
-    cp UA/data/log00000002.dat ../ref_solns/log.$test_uam
+    cp UA/data/log*.dat ../ref_solns/log.$test_uam
     echo
     echo
     echo " Created ref solution: log." $test_uam 
@@ -151,9 +151,12 @@ run_a_test(){
 
   if [ -f GITM.DONE ]; then
       printf "\n\n>>> $test_uam ran successfully! <<< \n\n"
-      mv $test_uam $test_uam.success && rm -f GITM.DONE
+      mv $test_uam $test_uam.success 
+      mv UA/data/log*.dat UA/data/log_$test_uam.success
+      rm -f GITM.DONE
   else
       printf "\n\n>>> $test_uam   UNSUCCESSFUL! <<< \n\n EXITING\n\n"
+      mv UA/data/log*.dat log_$test_uam.fail
       exit 1
   fi
 
