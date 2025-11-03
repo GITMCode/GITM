@@ -83,7 +83,7 @@ warnsavesolution(){
   printf "
 !!!!!!!!!!!!!!!!!    WARNING    !!!!!!!!!!!!!!!!!
 
-Using --savesolutions will overwrite the reference logfiles
+Using --save_solution will overwrite the reference logfiles
 
 Only use this if you know what you are doing.
 
