@@ -349,12 +349,6 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
   do iBlock = 1, nBlocks
     if (Debug) write(*, *) 'DBG: starting block ', iBlock, ' of ', nBlocks
 
-    call calc_physics(iBlock)
-    call calc_rates(iBlock)
-    call calc_collisions(iBlock)
-    !call get_potential(iBlock)
-    !call calc_efield(iBlock)
-
     e_density = IDensityS(:, :, :, ie_, iBlock)
 
     ! Should probably improve these collision frequencies:

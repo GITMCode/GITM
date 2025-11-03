@@ -521,9 +521,14 @@ subroutine initialize_gitm(TimeIn)
                  SubsolarLongitude)
   endif
 
-  call calc_physics(iBlock)
   call init_get_potential
-  ! Should call get potential here:
+
+  do iBlock = 1, nBlocks
+    call calc_physics(iBlock)
+    call calc_rates(iBlock)
+    call calc_collisions(iBlock)
+  enddo
+
   if (UseDynamo .and. .not. Is1D) then
     call UA_calc_electrodynamics(iLon, iLat)
   else
