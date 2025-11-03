@@ -274,11 +274,11 @@ subroutine logfile(dir)
     write(iLogFileUnit_, "(i8,i5,5i3,i4,f8.4,6f9.1,5f7.1,9f8.1,2f7.1,3f8.3)") &
       iStep, iTimeArray, &  ! i8, i5, 5i3, i4
       dt, &  ! f8.4
-      minTemp, maxTemp, AverageTemp, minVertVel, maxVertVel, AverageVertVel, & ! 6f13.5
-      f107, f107A, By, Bz, Vx, &  ! 5f9.1
+      minTemp, maxTemp, AverageTemp, minVertVel, maxVertVel, AverageVertVel, & ! 6f9.1
+      f107, f107A, By, Bz, Vx, &  ! 5f7.1
       Hpi, HPn/1.0e9, HPs/1.0e9, &
-      HPn_d/1.0e9, HPs_d/1.0e9, HPn_w/1.0e9, HPs_w/1.0e9, HPn_m/1.0e9, HPs_m/1.0e9, & ! 9f10.1
-      CPCPn, CPCPs, & ! 2f10.2
+      HPn_d/1.0e9, HPs_d/1.0e9, HPn_w/1.0e9, HPs_w/1.0e9, HPn_m/1.0e9, HPs_m/1.0e9, & ! 9f8.1
+      CPCPn, CPCPs, & ! 2f7.1
       SSLon, SSLat, SSVTEC   ! 3f8.3
 
     call flush_unit(iLogFileUnit_)
