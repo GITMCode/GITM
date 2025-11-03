@@ -280,7 +280,7 @@ subroutine get_potential(iBlock)
   ! -----------------------------------------------------
   ! Now get the aurora.
   ! This assumes that the field lines are basically
-  ! vertical starting at the top of the model.
+  ! vertical starting at the bottom of the model.
   ! -----------------------------------------------------
 
   if (floor((tSimulation - dt)/DtAurora) /= &

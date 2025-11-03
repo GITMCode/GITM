@@ -336,7 +336,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
   KlmMC = -1.0e32
   KpmMC = -1.0e32
   SigmaLLMC = 0.0
-  SigmaPPMC = 0.0 
+  SigmaPPMC = 0.0
   SigmaLPMC = -1.0e32
   SigmaPLMC = -1.0e32
   DivJuAltMC = -1.0e32
