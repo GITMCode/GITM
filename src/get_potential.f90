@@ -280,7 +280,7 @@ subroutine get_potential(iBlock)
   ! -----------------------------------------------------
   ! Now get the aurora.
   ! This assumes that the field lines are basically
-  ! vertical starting at the top of the model.
+  ! vertical starting at the bottom of the model.
   ! -----------------------------------------------------
 
   if (floor((tSimulation - dt)/DtAurora) /= &
@@ -288,7 +288,20 @@ subroutine get_potential(iBlock)
 
     call report("Getting Aurora", 1)
 
-    iAlt = nAlts + 1
+    iAlt = 2
+
+    call iemodel_%grid( &
+      MLT(-1:nLons + 2, -1:nLats + 2, iAlt), &
+      MLatitude(-1:nLons + 2, -1:nLats + 2, iAlt, iBlock))
+
+    ElectronEnergyFluxDiffuse = 0.0
+    ElectronEnergyFluxWave = 0.0
+    ElectronEnergyFluxMono = 0.0
+    IonEnergyFlux = 0.0
+    ElectronAverageEnergyWave = 3.0
+    ElectronAverageEnergyDiffuse = 3.0
+    ElectronAverageEnergyMono = 10.0
+    IonAverageEnergy = 10.0
 
     ! We get the diffuse aurora always, since it *should* always be done.
     ! Inside the aurora subroutine we check if the user wants to use it or not.

@@ -328,15 +328,15 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
   !/
 
   DivJuAltMC = -1.0e32
-  SigmaHallMC = 0.0 !-1.0e32
-  SigmaPedersenMC = 0.0  !-1.0e32
+  SigmaHallMC = 0.0
+  SigmaPedersenMC = 0.0
   LengthMC = -1.0e32
   KDlmMC = -1.0e32
   KDpmMC = -1.0e32
   KlmMC = -1.0e32
   KpmMC = -1.0e32
-  SigmaLLMC = 0.0  !-1.0e32
-  SigmaPPMC = 0.0  !-1.0e32
+  SigmaLLMC = 0.0
+  SigmaPPMC = 0.0
   SigmaLPMC = -1.0e32
   SigmaPLMC = -1.0e32
   DivJuAltMC = -1.0e32
@@ -348,12 +348,6 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
 
   do iBlock = 1, nBlocks
     if (Debug) write(*, *) 'DBG: starting block ', iBlock, ' of ', nBlocks
-
-    call calc_physics(iBlock)
-    call calc_rates(iBlock)
-    call calc_collisions(iBlock)
-    call get_potential(iBlock)
-    call calc_efield(iBlock)
 
     e_density = IDensityS(:, :, :, ie_, iBlock)
 

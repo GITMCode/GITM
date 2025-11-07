@@ -1,0 +1,111 @@
+
+#DEBUG
+0		debug level (0 = no info, 10 = max info)
+0		cpu to watch
+60.0		dt between normal code output to stdout
+F		usebarriers - forces the code to stop and wait more often
+
+--------------------------------------------------------------------------
+
+#RESTART
+F		Restart Code
+
+--------------------------------------------------------------------------
+start and end times:
+
+#TIMESTART
+2002		year
+12		month
+21		day
+00		hour
+00		minute
+00		second
+
+#TIMEEND
+2002		year
+12		month
+21		day
+00		hour
+05		minute
+00		second
+
+--------------------------------------------------------------------------
+Set blocks in lon and lat. 
+  - total cells in a direction = nBlocks x nCells (set in ModSize)
+  - res = (max - min) / num cells
+
+#GRID
+2		number of blocks in longitude
+2		number of blocks in latitude
+-90.0		minimum latitude to model
+90.0		maximum latitude to model
+0.0		longitude start to model (set to 0.0 for whole Earth)
+0.0             longitude end to model (set to 0.0 for whole Earth)
+
+--------------------------------------------------------------------------
+Output file stuff
+
+#SAVEPLOTS
+7200.0		dt for writing restart files
+1		how many output files do you want
+3DALL		second output style
+300.0		dt for output (1 every 5 min)
+
+
+#NGDC_INDICES
+UA/DataIn/f107.txt
+
+#EUV_DATA
+T						Use FISM solar flux data
+UA/DataIn/FISM/fismflux_daily_2002.dat		Filename
+
+------------ Electrodynamics Drivers ------------
+
+
+#SME_INDICES
+UA/DataIn/Examples/ae20021221.dat		SME Filename
+none              			onset time delay file
+T					convert SME to Hemispheric Power
+
+#MHD_INDICES
+UA/DataIn/Examples/imf20021221.dat
+
+#ELECTRODYNAMICS
+FTA
+60.0
+weimer05
+60.0
+
+
+-----------------------------------------------------------------
+
+
+#APEX
+T
+
+#DYNAMO
+T		UseDynamo
+45.0		DynamoHighLatBoundary
+500		nItersMax
+1.0		MaxResidual
+F		IncludeCowling
+40.0		LongitudinalAveraging
+F               UseNewTrace
+
+#MSIS21
+T
+
+
+#MSISOBC
+F		Shift the [O] density at the lower boundary by 6 months 
+0.0		change the obateness of the Earth by this percent (0 = none)
+
+
+#AUSMSOLVER
+F       	Use AUSM+-up Solvers
+
+--------------------------------------------------------------------------
+
+
+
+#END

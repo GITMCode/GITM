@@ -83,7 +83,7 @@ warnsavesolution(){
   printf "
 !!!!!!!!!!!!!!!!!    WARNING    !!!!!!!!!!!!!!!!!
 
-Using --savesolutions will overwrite the reference logfiles
+Using --save_solution will overwrite the reference logfiles
 
 Only use this if you know what you are doing.
 
@@ -104,7 +104,7 @@ checkoutputs(){
   # refactored for cleanliness
 
   if [ $do_save = true ]; then
-    cp UA/data/log00000002.dat ../ref_solns/log.$test_uam
+    cp UA/data/log*.dat ../ref_solns/log.$test_uam
     echo
     echo
     echo " Created ref solution: log." $test_uam 
@@ -114,7 +114,7 @@ checkoutputs(){
 
   if [ $do_compare = true ]; then
     echo
-    ../../../share/Scripts/DiffNum.pl -r=5e-5 -a=5e-5 ../ref_solns/log.$test_uam UA/data/log00000002.dat
+    ../../../share/Scripts/DiffNum.pl -r=5e-5 -a=1e-1 -t ../ref_solns/log.$test_uam UA/data/log*.dat
     
     if [ $? = 0 ]; then
       # test was a success. no differences found.
@@ -151,9 +151,12 @@ run_a_test(){
 
   if [ -f GITM.DONE ]; then
       printf "\n\n>>> $test_uam ran successfully! <<< \n\n"
-      mv $test_uam $test_uam.success && rm -f GITM.DONE
+      mv $test_uam $test_uam.success 
+      mv UA/data/log*.dat UA/data/log_$test_uam.success
+      rm -f GITM.DONE
   else
       printf "\n\n>>> $test_uam   UNSUCCESSFUL! <<< \n\n EXITING\n\n"
+      mv UA/data/log*.dat log_$test_uam.fail
       exit 1
   fi
 

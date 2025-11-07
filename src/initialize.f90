@@ -514,14 +514,27 @@ subroutine initialize_gitm(TimeIn)
   endif
 
   call init_b0
-  call init_get_potential
-
   if (UseApex .and. IsEarth) then
     call report("subsolr", 2)
     call SUBSOLR(iTimeArray(1), iJulianDay, iTimeArray(4), &
                  iTimeArray(5), iTimeArray(6), SubsolarLatitude, &
                  SubsolarLongitude)
   endif
+
+  call init_get_potential
+
+  do iBlock = 1, nBlocks
+    call calc_physics(iBlock)
+    call calc_rates(iBlock)
+    call calc_collisions(iBlock)
+  enddo
+
+  if (UseDynamo .and. .not. Is1D) then
+    call UA_calc_electrodynamics(iLon, iLat)
+  else
+    call UA_calc_electrodynamics_1d
+  endif
+  call get_potential(1)
 
   if (.not. Is1D) call exchange_messages_sphere
 
