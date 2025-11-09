@@ -698,7 +698,7 @@ subroutine set_inputs
         endif
 
       case ("#ELECTRODYNAMICS")
-        call read_in_string(cAuroralModel, iError)        
+        call read_in_string(cAuroralModel, iError)
         call read_in_real(dTAurora, iError)
         call read_in_string(cPotentialModel, iError)
         call read_in_real(dTPotential, iError)

@@ -207,7 +207,7 @@ subroutine get_potential(iBlock)
         call get_dynamo_potential( &
           MLongitude(-1:nLons + 2, -1:nLats + 2, iAlt, iBlock), &
           MLatitude(-1:nLons + 2, -1:nLats + 2, iAlt, iBlock), dynamo)
-          DynamoPotential(:, :, iAlt) = dynamo
+        DynamoPotential(:, :, iAlt) = dynamo
 
         ! Set latitude boundary between region of high lat convection
         ! and region of neutral wind dyanmo based on if SWMF potential
