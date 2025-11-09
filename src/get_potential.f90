@@ -265,11 +265,11 @@ subroutine get_potential(iBlock)
   PotentialMax_South = 0.0
   PotentialMin_South = 0.0
 
-  if (maxval(Mlatitude(:, :, :, iBlock)) > 0.0) then
+  if (maxval(Mlatitude(:, :, :, iBlock)) > 45.0) then
     PotentialMax_North = maxval(MagnetosphericPotential(:, :, :))/1000.0
     PotentialMin_North = minval(MagnetosphericPotential(:, :, :))/1000.0
   endif
-  if (maxval(Mlatitude(:, :, :, iBlock)) < 0.0) then
+  if (minval(Mlatitude(:, :, :, iBlock)) < -45.0) then
     PotentialMax_South = maxval(MagnetosphericPotential(:, :, :))/1000.0
     PotentialMin_South = minval(MagnetosphericPotential(:, :, :))/1000.0
   endif
