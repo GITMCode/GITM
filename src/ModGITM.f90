@@ -135,6 +135,8 @@ module ModGITM
     VerticalIonDrag
 
   real, allocatable :: Potential(:, :, :, :), PotentialY(:, :, :, :)
+  ! Separate potentials, leaving nBlocks out:
+  real, allocatable :: MagnetosphericPotential(:, :, :), DynamoPotential(:, :, :)
 
   real, dimension(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, 3) :: &
     ExB, EField
@@ -171,8 +173,7 @@ module ModGITM
 
   real :: SubsolarLatitude, SubsolarLongitude
   real :: MagneticPoleColat, MagneticPoleLon
-  real :: PotentialMax_North, PotentialMin_North
-  real :: PotentialMax_South, PotentialMin_South
+  real :: CPCPn, CPCPs
   real :: HemisphericPowerNorth, HemisphericPowerSouth
   real :: HemisphericPowerNorth_diffuse, HemisphericPowerSouth_diffuse
   real :: HemisphericPowerNorth_wave, HemisphericPowerSouth_wave
@@ -254,6 +255,8 @@ contains
     allocate(cMax_GDB(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1, 3, nBlocks))
     allocate(IonPressureGradient(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, 3, nBlocks))
     allocate(Potential(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, nBlocks))
+    allocate(MagnetosphericPotential(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2))
+    allocate(DynamoPotential(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2))
     allocate(PotentialY(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, nBlocks))
     PotentialY = 0.0
     allocate(Velocity(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, 3, nBlocks))
