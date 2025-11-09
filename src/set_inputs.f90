@@ -698,7 +698,7 @@ subroutine set_inputs
         endif
 
       case ("#ELECTRODYNAMICS")
-        call read_in_string(cAuroralModel, iError)
+        call read_in_string(cAuroralModel, iError)        
         call read_in_real(dTAurora, iError)
         call read_in_string(cPotentialModel, iError)
         call read_in_real(dTPotential, iError)
@@ -709,12 +709,22 @@ subroutine set_inputs
           write(*, *) '(and low-latitude) electrodynamic drivers, such as'
           write(*, *) 'the potential and the aurora.'
           write(*, *) '#ELECTRODYNAMICS'
-          write(*, *) 'AuroralModel     [fta], fre, pem, ovation, hpi/ihp, amie, etc.'
+          write(*, *) 'AuroralModel     [fta], fre, pem, ovation, hpi/ihp, amie, zero, etc.'
           write(*, *) 'DtAurora    (real, seconds [60.0])'
-          write(*, *) 'PotentialModel   [weimer05], hepmay, amie, etc.'
+          write(*, *) 'PotentialModel   [weimer05], hepmay, amie, zero, etc.'
           write(*, *) 'DtPotential (real, seconds [60.0])'
           IsDone = .true.
         endif
+
+        call lower_case(cAuroralModel)
+        call lower_case(cPotentialModel)
+
+        ! This is saying if auroral model is NOT zero, then stop if there is no aurora
+        if (index(cAuroralModel, 'zero') == 0) &
+          doStopIfNoAurora = .true.
+        ! This is saying if potential model is NOT zero, then stop if there is no potential
+        if (index(cPotentialModel, 'zero') == 0) &
+          doStopIfNoPotential = .true.
 
       case ("#AMIEFILES")
         call read_in_string(cAMIEFileNorth, iError)
