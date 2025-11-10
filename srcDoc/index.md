@@ -18,21 +18,6 @@ relatively recent.
 
 Download, configure, and run:
 
-! note
-  The current documentation only applies to the develop branch of GITM.
-
-  After the second line below, run `git checkout develop`
-
-! note
-  GITM now automatically detects whether the version of gfortran being used is 10 
-  or greater. If you notice `Config.pl` is incorrectly detecting the version of
-  gfortran for your system, try specifying it as was necessary in previous versions
-  of GITM.
-
-  Previously, if you were using gfortran < 10, `compiler=gfortran`.
-  If gfortran >= 10, `compiler=gfortran10`.
-
-
 ```bash
 git clone https://github.com/GITMCode/GITM.git
 cd GITM
@@ -43,6 +28,15 @@ cd run
 mpirun -np 4 ./GITM.exe
 ./post_process.py
 ```
+
+!!! tip
+    GITM now automatically detects the version of gfortran being used. If you notice
+    `Config.pl` is incorrectly detecting the version of gfortran for your system, try
+    specifying it manually.
+  
+    The compiler version only matters for gfortran, and the specific version is not
+    important - only whether is it $`\pm 10`$. So use `compiler=gfortran` for 
+    gfortran versions 9 and below, and `compiler=gfortran10` for versions 10 and up.
 
 Then to produce a plot:
 ```bash
