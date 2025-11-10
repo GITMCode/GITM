@@ -34,7 +34,7 @@ GITM can simulate the whole planet or a portion of the planet.  Unless you know 
 are doing, I would stick to modeling the whole planet. This can be done with the
 following command (as an example):
 
-```bash
+```
 #GRID
 2               number of blocks in longitude
 2               number of blocks in latitude
@@ -48,7 +48,7 @@ resolution, but the more processors you will need - you need one processor for e
 block that you asked for (2 x 2 = 4 blocks / processors). For example, if you wanted to
 run at 5 degrees by 5 degrees reolution, the following could be used:
 
-```bash
+```
 #GRID
 8               number of blocks in longitude
 4               number of blocks in latitude
@@ -59,12 +59,13 @@ run at 5 degrees by 5 degrees reolution, the following could be used:
 ```
 and 32 processors would be needed.
 
-There is a lot more to learn here, so we have written a whole section on this. [See this grid description for more.](internals/grid.md).
+There is a lot more to learn here, so we have written a whole section on this. [See this grid description for more](internals/grid.md).
 
 
 ## Saving output files
 
-GITM outputs a wide variety of output files. [There is a whole section that describes them.](outputs.md)
+GITM outputs a wide variety of output files.
+[There is a whole section that describes them](outputs.md).
 
 Output files are controlled with the `#SAVEPLOTS` command. 
 
@@ -79,7 +80,7 @@ them. The most common type of output is 3DALL, which includes all ion and neutra
 (densities, temperatures, velocities). 
 
 An example:
-```bash
+```
 #SAVEPLOTS
 7200.0          dt for writing restart files
 1               how many output files do you want
@@ -91,7 +92,7 @@ This will output restart files every 2 hours (this can be ignored) and 3DALL fil
 15 minutes. 2 hours is from 7200.0 seconds, and 15 minutes is from 900.0 seconds.
 
 Another example:
-```bash
+```
 #SAVEPLOTS
 7200.0          dt for writing restart files
 3               how many output files do you want
@@ -104,13 +105,8 @@ Another example:
 ```
 
 2DGEL files output things like the electric potential and auroral precipitation on the
-geographic grid at the top of the model. 3DTHM files are thermodynamic variables such
-as heating and cooling rates.
-
-!!!note
-    All of the auxiliary input (data) files can (and should) be kept in the same run directory
-    as the linked GITM executable and the `UAM.in` file. Otherwise, the path should be
-    specified in the UAM.in file relative to the run directory.
+geographic grid at the bottom of the model. 3DTHM files contain thermodynamic variables
+such as heating and cooling rates.
 
 ## IMF and Solar Wind {#imf.sec}
 
@@ -169,6 +165,10 @@ This file is provided to GITM by setting the input:
 imf_file_name.dat
 ```
 
+!!!note
+    All of the auxiliary input (data) files can (and should) be kept in the same run directory
+    as the linked GITM executable and the `UAM.in` file. Otherwise, the path should be
+    specified in the UAM.in file relative to the run directory.
 
 ## SME Indices
 
