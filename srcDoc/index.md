@@ -13,8 +13,8 @@ place to start. A more detailed explanation can be found on the
 [installation page](install.md).
 
 Dependencies: fortran (assuming gfortran), mpi (mpich doesn't seem to work), make, perl
-(we are old school!), and python 3+. The version should not matter as long as it is
-relatively recent.
+(we are old school!), and python 3+ for postprocessing & plotting. The version of
+anything else should not matter as long as it is relatively recent.
 
 Download, configure, and run:
 
@@ -47,7 +47,7 @@ This should produce two png files showing the density across the globe at about 
 altitude.  This is a relatively simple plotter that will make cuts in altitude,
 latitude, and longitude. They are quite basic, but this should provide some framework
 for reading in GITM files and visualizing the results.  More complex plotters exist,
-and dome of these are described in [this document](plotters.md).
+and some of these are described in [this document](plotters.md).
 
 ## A Bit More Explanation
 
@@ -57,7 +57,7 @@ correctly, then the biggest issue is setting up the run.
 
 GITM can create a run directory for you, so you don't have to worry about the executable
 and input files and everything being in the right place - it does it for you with the
-'make rundir' command.  This will create a directory called 'run'. You can move this
+`make rundir` command.  This will create a directory called 'run'. You can move this
 directory to where ever you want. Often the run directory is moved to a scratch disk
 and renamed. For example:
 
@@ -66,7 +66,7 @@ mv run /scratchdisk/mydirectory/run.gitm.event01
 ln -s /scratchdisk/mydirectory/run.gitm.event01 .
 ```
 
-Then, within this directory, there is a file called 'UAM.in', which is what GITM reads
+Then, within this directory, there is a file called `UAM.in`, which is what GITM reads
 to set all of its parameters. 
 
 ## Basic Inputs
@@ -80,7 +80,7 @@ things that need to be altered when running GITM:
 - The grid, given as start and end latitude, start and end longitude, and the number of
   blocks (processors) to use in latitude and longitude. [See this grid description for
   more](internals/grid.md).
-- Save plots, telling what type of plots to output (`3DALL` by default) and how often
+- Save plots, telling what type of files to output (`3DALL` by default) and how often
   (300s = 5 minutes). The restarts can be ignored unless you know you will need them.
 - MHD_Indices - This is the the path to a file which is used as inputs to the
   high-latitude electrodynamics, specifying IMF and solar wind.  There are instructions
