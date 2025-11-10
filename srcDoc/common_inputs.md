@@ -322,6 +322,11 @@ The file type is automatically inferred. To provide an HPI file, use:
 hemi-power-file.txt
 ```
 
+## More information on GITM's IE
+
+For more information on GITM's ionospheric electrodynamics, which is where the above
+indices are passed, please refer to the [Electrodynamics](internals/electrodynamics.md) page.
+
 
 ## Solar Irradiance {#solar_irradiance.sec}
 
