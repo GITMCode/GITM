@@ -25,7 +25,8 @@ The start time and end time of a GITM simulation can be set using the following 
 00              second
 ```
 
-Hopefully these are obvious what they are.
+Hopefully these are obvious what they are. See [restarts](set_inputs.md#restart) for
+more information on how to restart a run.
 
 ## Setting the grid
 

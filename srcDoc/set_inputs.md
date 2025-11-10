@@ -87,6 +87,35 @@ set LatStart and LonStart to the point on the Globe you want to model.
     #RESTART
     DoRestart (logical)
 
+When doing a restart, GITM will look for "restart files" in `UA/restartIN/`. These files
+are automatically created when running, so you do not have to move anything to restart
+a failed run.
+
+A common use case for restarts is where we stop a run after initializing and then
+restart it with different settings. 
+For example, maybe we scheduled a run to stop at 12:00 after 36 hours of 
+initialization, but now want it to continue with some different settings. To do this:
+
+- Create new run directories for each of the different settings. Since GITM outputs are
+  named with the output time, the subsequest runs may overwrite existing files. It is
+  up to you on how you want to do this.
+- Copy the restart files from the initial runs so the new runs can find them. We need
+  all of the files in UA/restartOUT/, so one way to do this is to run
+  `cp run_initial/UA/restartOUT/* run_setting01/UA/restartIN/`.
+- Copy all of the input files (UAM.in, IMF, SME, etc) from the initial run directory to
+  the new one: 
+  `cp run_initial/*.dat run_initial/UAM.in run_initial/*.txt run_setting01/`
+- Modify the new UAM file however you want. Take note of the important notes below
+- Run `GITM.exe` from the new directory
+
+!!! note "Some important notes on restarts"
+    - Do not change the start time when restarting! The start time in the original and
+      "restart" UAM.in file must be the same. This is because of how GITM handles
+      temperature and altitude.
+    - The end time can be increased in the new UAM.in file. 
+    - If you do not specify the `#RESTART` flag GITM will not know to restart, even if the
+      files are present.
+
 ### SAVEPLOT
 
 The DtRestart variable sets the time in between writing full restart
