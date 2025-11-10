@@ -23,26 +23,25 @@ At a minimum, you need:
 *[MPI]: Message Passing Interface
 
 
-! note 
+!!! note 
   On linux systems (including Windows Subsystem for Linux), gfortran is often used.  This
-  is the most robustly tested compiler for GITM.  One problem with gfortran is that the
-  gcc-10 and above version don't place well with MPI for some reason. 
+  is the most robustly tested compiler for GITM. 
   
   The version of gfortran on your system should be automatically detected. If it is not,
   you may specify the version manually. Use `-compiler=gfortran` for older versions 
-  (9 and below) and `-compiler=-gfortran10` for version 10+.
+  (9 and below) and `-compiler=-gfortran10` for version 10+ when running `./Config.pl`.
   
   There is a very good chance that you have 10+.
 
 There is no difference in the outputs between different compilers, however some
 compilers may produce slightly faster executables than others. For example,
 using ifort on [Pleiades](https://www.nas.nasa.gov/hecc/resources/pleiades.html)
-is faster than using gfortran (gcc) or aocc. 
+is faster than using gfortran (gcc) or aocc.
 
 As GITM can run on as many (or few) CPU cores as you wish, it is possible to run GITM on
 a laptop or a workstation. This is recommended for development, as the turnaround for
 test runs will be much faster. We develop GITM on 8+ core machines and can run the
-default test problem of 4 processors with no problems.  Most modern computers are
+default tests on 4 processors with no problems.  Most modern computers are
 capable of this now.
 
 !!! warning "Using `conda` to install dependencies is not recommended" 
@@ -69,9 +68,9 @@ sudo yum install gcc-gfortran openmpi-devel
 ### MacOS Install Dependencies
 
 Installing gfortran on MacOS is most easily accomplished with a package manager like
-[Homebrew](https://brew.sh/) or [MacPorts](https://www.macports.org/). It is easiest to
-use a package manager, however it is also possible to install things manually. The
-following steps assume you are using a package manager.
+[Homebrew](https://brew.sh/) or [MacPorts](https://www.macports.org/). The
+following steps assume you are using a package manager, but it is possible to
+build from source if you want to.
 
 Homebrew users will need to run:
 
@@ -149,14 +148,13 @@ This step configures the planet, compiler, and some paths GITM needs to
 work properly. To configure GITM for Earth using the `gfortran` compiler, run:
 
 ```bash
-./Config.pl -install -earth -compiler=gfortran10
+./Config.pl -install -earth -compiler=gfortran
 ```
 
-!!! warning 
-    <!--#TODO> </!--> 
-    The above example assumes you are using gfortran
-     version 10+. If your gfortran version is <10 (you should upgrade your system!),
-     use `compiler=gfortran`
+If you are not using gfortran, you can see which other compilers are available by
+looking in `share/build/`. These files are named according to the operating system
+and compiler that are used. For example, if a MacOS user runs `Config.pl` with
+`-compiler=ifort`, the file called `Makefile.Darwin.ifort` will be used.
 
 The full list of available configuration options can be found by running
 `./Config.pl -h`. A useful flag while developing is `-debug` which will print a
@@ -171,19 +169,31 @@ make
 ```
 
 !!! tip
-
     Compilation can often take a while. This can be done in parallel using `make -j`,
     which will use all available cores on your computer. To limit the number of cores,
     for example, to 8 use `make -j8`
 
-If this runs without error, GITM is ready to be run! No changes are made to your system
-so if errors do occur, you can remove the `GITM/` directory and try again. If trying
-again does not work, you can always submit a
-[bug report](https://github.com/GITMCode/GITM/issues) on GitHub.
+If this runs without error, GITM is ready to be run! 
+
+If errors occur, here are some things to try:
+- Compiling with fewer (or no) parallel processors - remove the `-j` if you used it.
+- Just retry! Maybe run `make` again, or start over with `make clean` and `make`.
+- Re-configuring: Maybe some paths got confused. Try running `./Config.pl [...]` again.
+- Start from scratch: `make distclean` will remove all compiled files & settings. 
+  You will need to run `Config.pl [...]` and then `make`.
+- The nuclear option: Remove `GITM/` and redownload. This shouldn't be necessary, but
+  is always an option.
+
+Remember, nothing is altered on your systemn outside of the GITM/ folder. There's no
+harm to trying new things and nothing will break if you do things over again. Each step
+iterates on the previous cleanly, so you can always go back to a previous step without
+needing to start over. If things are still not working, you can submit a
+[bug report](https://github.com/GITMCode/GITM/issues) on GitHub; please include details
+about your system along with what you have tried and what specifically is not working.
 
 ## Running the Code
 
-This will have created the executable `src/GITM.exe`. This is not where we want
+Compiling will have created the executable `src/GITM.exe`. This is not where we want
 to run it from, however. To create a directory where the GITM executable is run
 from and organize some input files, run the command:
 
@@ -192,12 +202,16 @@ make rundir
 ```
 
 Now there should be a new directory in the GITM folder called `run/`. This
-folder can be moved, copied, renamed, etc. without issue. If a study requires multiple runs of GITM, it can be most time-effective to copy or move the folder that was just created to somewhere a lot of data can be stored. For example, one could now run:
+folder can be moved, copied, renamed, etc. without issue. If a study requires multiple
+runs of GITM, it can be most time-effective to copy or move the folder that was just
+created to somewhere a lot of data can be stored. For example, one could now run:
 ```bash
 mv run /path/to/scratch/storage/thisproject/run01
 ln -s /path/to/scratch/storage/thisproject/run01 .
 ```
-The 'ln' command will just create a link to the run directory in the GITM directory, so you don't lose it. If you want to make yet another run directory (you can make as many as you want!), you could then do:
+The `ln` command will just create a link to the run directory in the GITM directory, 
+so you don't lose it. If you want to make yet another run directory (you can make as 
+many as you want!), you could then do:
 ```bash
 make rundir
 mv run /path/to/scratch/storage/thisproject/run02
@@ -214,8 +228,8 @@ cd run/
 mpirun -np 4 ./GITM.exe
 ```
 
-Twiddle your thumbs for a moment... And if no errors are reported then congratulations! You have
-now run GITM! 
+Twiddle your thumbs for a moment... And if no errors are reported then congratulations!
+You have now run GITM! 
 
 The next steps include exploring how to [postprocess](postprocessing.md) the 
 outputs, and modifying the [input files](common_inputs.md).
