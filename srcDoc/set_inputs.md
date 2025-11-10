@@ -306,6 +306,36 @@ This is for specifying a cusp.
     cAMIEFileNorth  (string)
     cAMIEFileSouth  (string)
 
+### AMIENORTH
+
+There have been issues with some filesystems (Lustre) not allowing large files to be
+read across large numbers of processors simultaneously. To deal with this, AMIE files
+can be split when they reach a certain size when they are created using the Python
+routines in Electrodynamics. 
+
+For these to be read by GITM, we first say how many files there are and then specify
+the names of these files. This option, and the option below, are replacements for
+#AMIEFILES (above) - #AMIENORTH/#AMIESOUTH should not be used at the same time as 
+#AMIEFILES.
+
+    #AMIENORTH
+    nAMIENorth       (int)
+    cAMIEFileNorth1  (string)
+    ...              (string)s
+    cAMIEFileNorth(n)  (string)
+
+
+### AMIESOUTH
+
+See above...
+
+    #AMIESOUTH
+    nAMIESouth       (int)
+    cAMIEFileSouth1  (string)
+    ...              (string)s
+    cAMIEFileSouth(n)  (string)
+
+
 ### USEREGIONALAMIE
 
 This is to set up a local region with specified potential from AMIE
