@@ -85,7 +85,7 @@ set LatStart and LonStart to the point on the Globe you want to model.
 ### RESTART
 
     #RESTART
-    DoRestart (logical)
+    DoRestart   (logical)
 
 When doing a restart, GITM will look for "restart files" in `UA/restartIN/`. These files
 are automatically created when running, so you do not have to move anything to restart
@@ -127,10 +127,10 @@ Other types include : 3DALL, 3DNEU, 3DION, 3DTHM,
 1DCHM, 1DCMS, 1DUSR. DtPlot sets the frequency of output
 
     #SAVEPLOT
-    DtRestart (real, seconds)
+    DtRestart     (real, seconds)
     nOutputTypes  (integer)
-    Outputtype (string, 3D, 2D, ION, NEUTRAL, ...)
-    DtPlot    (real, seconds)
+    Outputtype    (string, 3D, 2D, ION, NEUTRAL, ...)
+    DtPlot        (real, seconds)
 
 ### PLOTTIMECHANGE
 
@@ -142,8 +142,8 @@ Specify the start and end time the new cadence will be used for, followed by the
 for each output type. This example would be for two output types:
 
     #PLOTTIMECHANGE
-    yyyy mm dd hh mm ss ms (start)
-    yyyy mm dd hh mm ss ms (end)
+    yyyy mm dd hh mm ss ms  (start)
+    yyyy mm dd hh mm ss ms  (end)
     DtOutputType1           (real, seconds)
     DtOutputType2           (real, seconds)
 
@@ -170,20 +170,20 @@ be named 1DALL_GITM_yyyy-mm-ddThh-mm-ss.bin
 ### SAVEHIMEPLOT
 
     #SAVEHIMEPLOT
-    HIMEPlotLonStart (real)
-    HIMEPlotLonEnd (real)
-    HIMEPlotLatStart (real)
-    HIMEPlotLatEnd (real)
+    HIMEPlotLonStart  (real)
+    HIMEPlotLonEnd    (real)
+    HIMEPlotLatStart  (real)
+    HIMEPlotLatEnd    (real)
 
 ### SATELLITES
 
 See [this page](common_inputs.md#satellite-section) for more details.
 
     #SATELLITES
-    nSats     (integer - max = ', nMaxSats, ')
-    SatFile1  (string)
+    nSats           (integer - max = ', nMaxSats, ')
+    SatFile1        (string)
     SatOutputtype1  (string, 0DUSR or 1DUSR or other)
-    DtPlot1   (real, seconds)
+    DtPlot1         (real, seconds)
     etc...
 
 
@@ -215,10 +215,10 @@ electrodynamic drivers, such as the potential and the aurora.
 See [the electrodynamics page](internals/electrodynamics.md) for more details
 
     #ELECTRODYNAMICS
-    AuroralModel     [fta], fre, pem, ovation, hpi/ihp, amie, etc.
-    DtAurora    (real, seconds [60.0])
-    PotentialModel   [weimer05], hepmay, amie, etc.
-    DtPotential (real, seconds [60.0])'
+    AuroralModel     [fta], fre, pem, ovation, hpi/ihp, amie, zero, etc.
+    DtAurora         (real, seconds [60.0])
+    PotentialModel   [weimer05], hepmay, amie, zero, etc.
+    DtPotential      (real, seconds [60.0])'
 
 
 ### HPI
@@ -275,10 +275,10 @@ by factor IsKappaAurora - use a kappa instead of Maxwellian
 AuroraKappa - kappa to use in the distribution
 
     #AURORAMODS
-    NormalizeAuroraToHP     (logical)
-    AveEFactor    (real)
-    IsKappaAurora     (logical)
-    AuroraKappa    (real)
+    NormalizeAuroraToHP    (logical)
+    AveEFactor             (real)
+    IsKappaAurora          (logical)
+    AuroraKappa            (real)
 
 ### AURORATYPES
 
@@ -287,9 +287,9 @@ AMIE. The first three options (diffuse, mono, wave) are for electrons only.
 
     #AURORATYPES
     UseDiffuseAurora   (logical)
-    UseMonoAurora (logical)
-    UseWaveAurora (logical)
-    UseIonAurora (logical)
+    UseMonoAurora      (logical)
+    UseWaveAurora      (logical)
+    UseIonAurora       (logical)
 
 ### USECUSP
 
@@ -319,9 +319,9 @@ the names of these files. This option, and the option below, are replacements fo
 #AMIEFILES.
 
     #AMIENORTH
-    nAMIENorth       (int)
-    cAMIEFileNorth1  (string)
-    ...              (string)s
+    nAMIENorth         (int)
+    cAMIEFileNorth1    (string)
+    ...                (string)
     cAMIEFileNorth(n)  (string)
 
 
@@ -330,9 +330,9 @@ the names of these files. This option, and the option below, are replacements fo
 See above...
 
     #AMIESOUTH
-    nAMIESouth       (int)
-    cAMIEFileSouth1  (string)
-    ...              (string)s
+    nAMIESouth         (int)
+    cAMIEFileSouth1    (string)
+    ...                (string)
     cAMIEFileSouth(n)  (string)
 
 
@@ -425,7 +425,7 @@ tides, while the forth is for experimentation with using WACCM tides.
 ### GSWMCOMP
 
 If you selected to use GSWM tides above, you can specify which
-components to use.
+components to use. This has not been used in a while.
 
     #GSWMCOMP
     GSWMdiurnal(1)        (logical)
@@ -449,6 +449,13 @@ Use Boundary Condition Perturbation are a set of arguments for running WP-GITM.
     perturbation characteristics ...
 
 ### GITMBCS
+
+This allows the use of a lower resolution GITM run to be used as horizontal
+boundary conditions within a regional GITM simulation. In order to do this,
+you need to do a full global simulation at whatever resolution you want, 
+post process the 3DALL files, move those files into a directory, set up the
+regional run, and point the UAM.in file to the directory where you put the 
+global 3DALL files.
 
     #GITMBCS
     UseGitmBCs
@@ -494,7 +501,10 @@ robust.
 
 ### NANCHECK
 
-This will turn on all of the NaN checks in the code!
+This will turn on all of the NaN checks in the code!  This potentially
+slows the code down, so having it be false is good for a normal run.  If the
+code crashes for some reason, this flag allows you to figure out where the
+crash is occuring (in time and space), which helps with debugging.
 
     #NANCHECK
     DoCheckForNans (logical)
@@ -507,25 +517,30 @@ processor is shouting the information - PE 0 is the first one. If you
 set the iDebugLevel to 0, you can set the dt of the reporting. If you
 set it to a big value, you wont get very many outputs. If you set it to
 a tiny value, you will get a LOT of outputs. UseBarriers will force the
-code to sync up a LOT.
+code to sync up a LOT (which slows down the code). 
 
     #DEBUG
-    iDebugLevel (integer)
-    iDebugProc  (integer)
-    DtReport    (real)
-    UseBarriers (logical)
+    iDebugLevel   (integer)
+    iDebugProc    (integer)
+    DtReport      (real)
+    UseBarriers   (logical)
 
 ### IONLIMITS
 
+These set floors or ceilings on values. These values can been tightened or
+loosened if instabilities form or if there are extreme cases.  Most of the
+time, these values don't matter, since they should be set to values that are
+far outside of expectations.
+
     #IONLIMITS
-    MaxVParallel     (real, default=100 m/s)
-    MaxEField        (real, default=0.1 V/m)
-    MinIonDensity    (real, default=100 m^-3)
-    MinIonDensityAdvect    (real, default=1e5 m^-3)
+    MaxVParallel          (real, default=100 m/s)
+    MaxEField             (real, default=0.1 V/m)
+    MinIonDensity         (real, default=100 m^-3)
+    MinIonDensityAdvect   (real, default=1e5 m^-3)
 
 ### NEUTRALLIMITS
 
-Neutral limits only get applied if the deniity of the species drops below zero.
+Neutral limits only get applied if the density of the species drops below zero.
 This is very rare and only occurs a few times when simulating extreme event. This 
 likely does not need to be changed.
 
@@ -533,33 +548,48 @@ As with the ion limits, the lower limit for advected vs non-advected species can
 differently.
 
     #NEUTRALLIMITS
-    MinNeutralDensity    (real, default=100 m^-3)
+    MinNeutralDensity          (real, default=100 m^-3)
     MinNeutralDensityAdvect    (real, default=1e5 m^-3)
 
 ### PHOTOELECTRON
+
+This sets how much indirect EUV heating there may be through photoelectrons. Most of
+the time, this is set to zero, allowing chemistry and direct heating to account for
+the EUV heating, but it is here incase you want to play with it.
 
     #PHOTOELECTRON
     PhotoElectronHeatingEfficiency   (real)
 
 ### NEUTRALHEATING
 
+This sets how much direct EUV heating there is in the thermosphere.  Most of the 
+EUV heating comes from Chemistry, so this typically is set to about 0.05 (5%).
+
     #NEUTRALHEATING
     NeutralHeatingEfficiency   (real)
 
 ### DON4SHACK
 
+In MSIS, there seems to be an altitude, below which N(4S) is not physical.  So, this 
+allows a hack to get a physically realistic value of N(4S).  This is only needed if
+GITM is run with a lower altitude below something like 90 km.
+
     #DON4SHACK
     DoN4SHack       (logical)
 
-
 ### VERTICALSOURCES
+
+This is meant to limit the maximum vertical velocity on the neutrals.  In extreme cases,
+this could help with instabilities.
 
     #VERTICALSOURCES
     MaximumVerticalVelocity      (real)
 
 ### AUSMSOLVER
 
-This dictates whether to use the AUSM solver (T) or the Rusanov solver (F)
+This dictates whether to use the AUSM solver (T) or the Rusanov solver (F). The AUSM
+solver has significantly less diffusion for advected minor species.  So, that means
+that it is sharper but more unstable.
 
     #AUSMSOLVER
     Use AUSM Solver      (logical)
@@ -567,10 +597,19 @@ This dictates whether to use the AUSM solver (T) or the Rusanov solver (F)
 
 ### USEIMPLICITIONMOMENTUM
 
+This is for the ion momentum equation.  It determines whether the ion momentum 
+equation is solved in steady-state or using a time-accurate, but semi-implicit 
+time-stepping scheme.  It should be true.
+
     #USEIMPLICITIONMOMENTUM
     UseImplicitFieldAlignedMomentum      (logical)
 
 ### USEIMPROVEDIONADVECTION
+
+The improved ion momentum should be used.  The nighttime ion BCs are for Earth
+and are meant to try to have a downward flux on the nightside in the mid-latitude
+region.  The MinTEC is set to 2 TECU, which may be too low, but this needs to
+be explored more.
 
     #USEIMPROVEDIONADVECTION
     UseImprovedIonAdvection      (logical)
@@ -578,6 +617,10 @@ This dictates whether to use the AUSM solver (T) or the Rusanov solver (F)
     MinTEC                       (real)
 
 ### USETESTVISCOSITY
+
+If you want to artificially increase or decrease viscosity, you can do that here. The
+default value is 1.0, so increasing would be larger than 1 and decreasing would be smaller
+than one.  This multiplies the normal viscosity.
 
     #USETESTVISCOSITY
     TestViscosityFactor      (real)
@@ -592,31 +635,36 @@ will try to take that fixed dt, unless the CFL condition is violated.
 
 ## Physics
 
-
-### THERMO
-
-    #THERMO
-    UseSolarHeating   (logical)
-    UseJouleHeating   (logical)
-    UseAuroralHeating (logical)
-    UseNOCooling      (logical)
-    UseOCooling       (logical)
-    UseConduction     (logical)
-    UseTurbulentCond  (logical)
-    UseIRHeating      (logical)
-
-### THERMALDIFFUSION
-
-    #THERMALDIFFUSION
-    KappaTemp0    (thermal conductivity, real)
-
 ### THERMALCONDUCTION
+
+These are the most important terms for controlling the temperature of the
+thermosphere.  If you set these values higher, the temperature will go down.
+If you set them lower, the temperature will go up.
 
     #THERMALCONDUCTION
     ThermalConduction_AO2 (Conduction A(O2): 3.6e-4, real)
     ThermalConduction_AO  (Conduction A(O): 5.6e-4, real)
     ThermalConduction_s   (Conduction s: 0.75, real)
 
+### THERMALDIFFUSION
+
+    #THERMALDIFFUSION
+    KappaTemp0    (thermal conductivity, real)
+
+### DYNAMO
+
+The dynamo controls the ion vertical velocities at the equator, and is therefore
+quite important.  So, the dynamo should alway be on (TRUE).  The different parameters
+can set how the solver works and the extent of the solution.  For normal conditions, the
+defaults are fine.
+
+    #DYNAMO
+    UseDynamo              (logical)
+    DynamoHighLatBoundary  (real)
+    nItersMax              (integer)
+    MaxResidual            (V,real)
+    IncludeCowling         (logical)
+    DynamoLonAverage       (real)
 
 ### DIFFUSION
 
@@ -631,7 +679,25 @@ larger than the second!
     EddyDiffusionPressure0 (real)
     EddyDiffusionPressure1 (real)
 
+### THERMO
+
+This is to turn different heating terms off explicitly.  These have not been used
+in a while, so it would be good to check them in the code.
+
+    #THERMO
+    UseSolarHeating   (logical)
+    UseJouleHeating   (logical)
+    UseAuroralHeating (logical)
+    UseNOCooling      (logical)
+    UseOCooling       (logical)
+    UseConduction     (logical)
+    UseTurbulentCond  (logical)
+    UseIRHeating      (logical)
+
 ### FORCING
+
+This is to turn different momentum terms off explicitly.  These have not been used
+in a while, so it would be good to check them in the code.
 
     #FORCING
     UsePressureGradient (logical)
@@ -641,24 +707,10 @@ larger than the second!
     UseCoriolis         (logical)
     UseGravity          (logical)
 
-### MODIFYPLANET
-
-    #MODIFYPLANET
-    RotationPeriodInput        (real)
-    DaysPerYearInput           (real)
-    DaysPerYearInput           (real)
-
-### DYNAMO
-
-    #DYNAMO
-    UseDynamo              (logical)
-    DynamoHighLatBoundary  (real)
-    nItersMax              (integer)
-    MaxResidual            (V,real)
-    IncludeCowling         (logical)
-    DynamoLonAverage       (real)
-
 ### IONFORCING
+
+This is to turn different ion momentum terms off explicitly.  These have not been used
+in a while, so it would be good to check them in the code.
 
     #IONFORCING
     UseExB                 (logical)
@@ -666,12 +718,34 @@ larger than the second!
     UseIonGravity          (logical)
     UseNeutralDrag         (logical)
 
+### MODIFYPLANET
+
+You can play with planetary characteristics with this.  You can modify the rotation
+rate and the length of a year.
+
+    #MODIFYPLANET
+    RotationPeriodInput        (real)
+    DaysPerYearInput           (real)
+    DaysPerYearInput           (real)
+
 ### FIXTILT
+
+This may be to fix the tilt of the planet to allow conditions to be set and stay fixed.
 
     #FIXTILT
     IsFixedTilt   (logical)
 
+### APEX
+
+Sets whether to use a realistic magnetic field (T) or a dipole (F). This is for Earth.
+
+    #APEX
+    UseApex    (logical)
+
 ### DIPOLE
+
+Can set the dipole field to be centered, non-tilted dipole, or can set each of the 
+different parameters explicitely with this:
 
     #DIPOLE
     MagneticPoleRotation   (real)
@@ -679,14 +753,6 @@ larger than the second!
     xDipoleCenter          (real)
     yDipoleCenter          (real)
     zDipoleCenter          (real)
-
-### APEX
-
-    #APEX
-    UseApex (logical)
-            Sets whether to use a realistic magnetic
-            field (T) or a dipole (F)
-
 
 ## Misc
 
@@ -700,7 +766,6 @@ since it needs some time to write the restart files.
 
     #CPUTIMEMAX
     CPUTimeMax    (real)
-
 
 ### PAUSETIME
 
@@ -718,8 +783,6 @@ in a start UAM.in it will start the counter to whatever you specify.
     #ISTEP
     iStep     (integer)
 
-
-
 ### TSIMULATION
 
 This is typically only specified in a restart header. It sets the offset
@@ -731,25 +794,29 @@ caution.
 
 ### DUSTDATA
 
+This is for Mars.
+
     #DUST
     cDustFile
     cConrathFile
 
+### DUST
+
+This is for Mars.
+
+    #DUST
+    TauTot
+    Conrnu
+
 ### OVERWRITEIONOSPHERE
+
+This is for coupling with SAMI - it can overwrite the ionosphere computed within GITM.
 
     #OVERWRITEIONOSPHERE
     DoOverwriteIonosphere
     DoOverwriteWithIRI
     DoOverwriteWithSami
     SamiInFile
-
-
-
-### DUST
-
-    #DUST
-    TauTot
-    Conrnu
 
 ### DAMPING
 
@@ -767,35 +834,44 @@ in the lower atmosphere.
 
 ### NEWSTRETCH
 
+Poleward Edge of Stretch Region (real, degrees)
+StretchWidth  (real, 1.0-20.0, deg)
+StretchingPercentage  (real, 0-1)
+
+Example is provided here (this is not the default!):
+
     #NEWSTRETCH
-    Poleward Edge of Stretch Region (real, degrees)
-    StretchWidth  (real, 1.0-20.0, deg)
-    StretchingPercentage  (real, 0-1)
-    Example (auroral zone):
-    #NEWSTRETCH
-    65.0 ! location of minimum grid spacing
-    5.0         ! Width of stretched region
-    0.6         ! Amount of stretch 0 (none) to 1 (lots)
+    65.0        (real) location of minimum grid spacing
+    5.0         (real) Width of stretched region
+    0.6         (real) Amount of stretch 0 (none) to 1 (lots)
 
 ### STRETCH
 
-    #STRETCH
-    ConcentrationLatitude (real, degrees)
-    StretchingPercentage  (real, 0-1)
-    StretchingFactor      (real)
+Old method of stretching with the same inputs as the new.
+
+ConcentrationLatitude (real, degrees)
+StretchingPercentage  (real, 0-1)
+StretchingFactor      (real)
+
     Example (no stretching):
+
     #STRETCH
-    65.0 ! location of minimum grid spacing
-    0.0         ! Amount of stretch 0 (none) to 1 (lots)
-    1.0  
+    65.0        (real) location of minimum grid spacing
+    0.0         (real) Amount of stretch 0 (none) to 1 (lots)
+    1.0         (real) Amount of stretch
 
 ### TOPOGRAPHY
+
+This is for Mars.
 
     #TOPOGRAPHY
     UseTopography (logical)
     AltMinUniform (real)
 
 ### RCMR
+
+This is for adaptive control of different parameters within GITM.  It 
+reads in data and tries to force GITM to match those satellites.
 
     #RCMR
     Input data type to assimilate (RHO/VTEC)
@@ -808,11 +884,14 @@ in the lower atmosphere.
 
 ### DART
 
+DART is the data assimilation research testbed.
+
     #DART
     useDART (integer, {default 0=no}, 1=master ensemble member, 2=slave ens.)
 
-
 ### LTERadiation
+
+This is for Mars and Venus.
 
     #LTERadiation
     DtLTERadiation (real)
