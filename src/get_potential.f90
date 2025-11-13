@@ -130,8 +130,11 @@ subroutine get_potential(iBlock)
   logical :: IsFirstTime = .true.
   logical :: IsFirstPotential(nBlocksMax) = .true.
   logical :: IsFirstAurora(nBlocksMax) = .true.
-  real    :: mP, dis, TempWeight
-  real    ::  LocalSumDiffPot, MeanDiffPot, LatBoundNow
+  real :: mP, dis, TempWeight
+  real :: LocalSumDiffPot, MeanDiffPot, LatBoundNow
+  real :: PotentialMin_North, PotentialMin_South
+  real :: PotentialMax_North, PotentialMax_South
+  real :: maxEnergyFlux
 
   real, dimension(-1:nLons + 2, -1:nLats + 2) :: TempPotential2d
   real, dimension(-1:nLons + 2, -1:nLats + 2, 2) :: TempPotential, AMIEPotential
@@ -150,7 +153,6 @@ subroutine get_potential(iBlock)
   if (index(cPlanet, "Earth") == 0) then
 
     potential = 0.0
-    ElectronEnergyFluxDiffuse = 0.1
     ElectronEnergyFluxDiffuse = 0.0001
     return
 
@@ -169,7 +171,7 @@ subroutine get_potential(iBlock)
     call set_ie_indices(IEModel_, CurrentTime)
 
     Potential(:, :, :, iBlock) = 0.0
-
+    DynamoPotential = 0.0
     do iAlt = -1, nAlts + 2
 
       call iemodel_%grid( &
@@ -190,6 +192,7 @@ subroutine get_potential(iBlock)
 
       call iemodel_%get_potential(TempPotential2d)
       TempPotential(:, :, 1) = TempPotential2d
+      MagnetosphericPotential(:, :, iAlt) = TempPotential2d
 
       if (.not. isOk) then
         call set_error("Error in routine get_potential (getting potential):")
@@ -204,6 +207,7 @@ subroutine get_potential(iBlock)
         call get_dynamo_potential( &
           MLongitude(-1:nLons + 2, -1:nLats + 2, iAlt, iBlock), &
           MLatitude(-1:nLons + 2, -1:nLats + 2, iAlt, iBlock), dynamo)
+        DynamoPotential(:, :, iAlt) = dynamo
 
         ! Set latitude boundary between region of high lat convection
         ! and region of neutral wind dyanmo based on if SWMF potential
@@ -256,26 +260,39 @@ subroutine get_potential(iBlock)
 
   endif
 
+  PotentialMax_North = 0.0
+  PotentialMin_North = 0.0
+  PotentialMax_South = 0.0
+  PotentialMin_South = 0.0
+
   if (maxval(Mlatitude(:, :, :, iBlock)) > 45.0) then
-    PotentialMax_North = maxval(Potential(:, :, :, iBlock))/1000.0
-    PotentialMin_North = minval(Potential(:, :, :, iBlock))/1000.0
-  else
-    PotentialMax_North = 0.0
-    PotentialMin_North = 0.0
+    PotentialMax_North = maxval(MagnetosphericPotential(:, :, :))/1000.0
+    PotentialMin_North = minval(MagnetosphericPotential(:, :, :))/1000.0
   endif
-  if (maxval(Mlatitude(:, :, :, iBlock)) < -45.0) then
-    PotentialMax_South = maxval(Potential(:, :, :, iBlock))/1000.0
-    PotentialMin_South = minval(Potential(:, :, :, iBlock))/1000.0
-  else
-    PotentialMax_South = 0.0
-    PotentialMin_South = 0.0
+  if (minval(Mlatitude(:, :, :, iBlock)) < -45.0) then
+    PotentialMax_South = maxval(MagnetosphericPotential(:, :, :))/1000.0
+    PotentialMin_South = minval(MagnetosphericPotential(:, :, :))/1000.0
   endif
 
+  call get_min_value_across_pes(PotentialMin_North)
+  call get_max_value_across_pes(PotentialMax_North)
+  call get_min_value_across_pes(PotentialMin_South)
+  call get_max_value_across_pes(PotentialMax_South)
+
+  ! Volt -> kV
+  CPCPn = (PotentialMax_North - PotentialMin_North)
+  CPCPs = (PotentialMax_South - PotentialMin_South)
+
   if (iDebugLevel >= 1) &
-    write(*, *) "==> Min, Max, CPC Potential : ", &
-    int(minval(Potential(:, :, :, iBlock))/1000.0), &
-    int(maxval(Potential(:, :, :, iBlock))/1000.0), &
-    int((maxval(Potential(:, :, :, iBlock)) - minval(Potential(:, :, :, iBlock)))/1000.0)
+    write(*, *) "==> CPC Potential (North, South): ", CPCPn, CPCPs
+
+  if ((CPCPn == 0) .and. (CPCPs == 0)) then
+    if (doStopIfNoPotential) then
+      call set_error("CPCP is zero and model is not zero! Must Stop!")
+      call report_errors
+      call stop_gitm("Stopping in get_potential")
+    endif
+  endif
 
   ! -----------------------------------------------------
   ! Now get the aurora.
@@ -332,6 +349,15 @@ subroutine get_potential(iBlock)
       enddo
     endif
 
+    ! Check to see if there is any Diffuse aurora and stop if there is none:
+    maxEnergyFlux = maxval(ElectronEnergyFluxDiffuse)
+    call get_max_value_across_pes(maxEnergyFlux)
+    if ((maxEnergyFlux == 0) .and. (doStopIfNoAurora)) then
+      call set_error("Wave Aurora is zero and it was requested! Must Stop!")
+      call report_errors
+      call stop_gitm("Stopping in get_potential")
+    endif
+
     ! Adjust the Average Energy of the Diffuse Aurora, if desired:
     if (iDebugLevel > 1) write(*, *) '=> Adjusting average energy of the aurora : ', AveEFactor
     ElectronAverageEnergyDiffuse = ElectronAverageEnergyDiffuse*AveEFactor
@@ -340,14 +366,41 @@ subroutine get_potential(iBlock)
     ! Ion, Wave- & Mono- aurora
     ! -----------------------------
 
-    if (UseWaveAurora) &
+    if (UseWaveAurora) then
       call IEModel_%get_electron_wave_aurora(ElectronEnergyFluxWave, ElectronAverageEnergyWave)
+      ! Check to see if there is any aurora:
+      maxEnergyFlux = maxval(ElectronEnergyFluxWave)
+      call get_max_value_across_pes(maxEnergyFlux)
+      if (maxEnergyFlux == 0) then
+        call set_error("Wave Aurora is zero and it was requested! Must Stop!")
+        call report_errors
+        call stop_gitm("Stopping in get_potential")
+      endif
+    endif
 
-    if (UseMonoAurora) &
+    if (UseMonoAurora) then
       call IEModel_%get_electron_mono_aurora(ElectronEnergyFluxMono, ElectronAverageEnergyMono)
+      ! Check to see if there is any aurora:
+      maxEnergyFlux = maxval(ElectronEnergyFluxMono)
+      call get_max_value_across_pes(maxEnergyFlux)
+      if (maxEnergyFlux == 0) then
+        call set_error("Mono Aurora is zero and it was requested! Must Stop!")
+        call report_errors
+        call stop_gitm("Stopping in get_potential")
+      endif
+    endif
 
-    if (UseIonAurora) &
+    if (UseIonAurora) then
       call IEModel_%get_ion_diffuse_aurora(IonEnergyFlux, IonAverageEnergy)
+      ! Check to see if there is any aurora:
+      maxEnergyFlux = maxval(IonEnergyFlux)
+      call get_max_value_across_pes(maxEnergyFlux)
+      if (maxEnergyFlux == 0) then
+        call set_error("Ion Aurora is zero and it was requested! Must Stop!")
+        call report_errors
+        call stop_gitm("Stopping in get_potential")
+      endif
+    endif
 
     ! -----------------------------
     ! Cusp, if desired

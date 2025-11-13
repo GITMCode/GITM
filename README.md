@@ -7,27 +7,7 @@ on Linux and MacOS as well as ifort on NASA's Pleiades computer.
 
 For the complete documentation, see [GITM's Read the Docs Page](https://gitm.readthedocs.io).
 
----
-
-<details>
-<summary><b>GITM's default branch recently changed names. To access the latest features, please update your local refs.</b></summary>
-
-From your local clone of this repository, run the following commands to update the name of the default branch.
-
-```sh
-git branch -m master main
-git fetch origin
-git branch -u origin/main main
-git remote set-head origin -a
-```
-
-Optionally, run the following command to remove tracking references to the old branch name.
-
-```sh
-git remote prune origin
-```
-
-</details>
+GITM's stable version is the main branch, which is downloaded by default.  If you want the latest changes, but are ok with possibly unstable code, you can use the 'develop' version, which is described below.  If you don't know what you are doing, please just use the main version (i.e., don't checkout a different branch).
 
 ## Quick Start
 
@@ -48,7 +28,13 @@ Substitute the URL with the `https` link from the "Code" button above if you do 
 cd GITM
 ```
 
-3\. Configure the Fortran compiler and download external electrodynamics library
+(if you want/need to change to a different branch, do that here with the command:
+```shell
+git checkout develop
+```
+but, again, we don't recommend this unless you know what you are doing!)
+
+3\. Configure the Fortran compiler and download the external electrodynamics library (the install should do this automagically):
 
 ```shell
 ./Config.pl -install -earth -compiler=gfortran
@@ -58,16 +44,16 @@ The above command is that it assumes that you have a working gfortran compiler a
 things like mpif90 work ok.  If you don't have gfortran and mpif90, then you need
 to get these things for your computer. 
 
-> `Config.pl` should automatically your gfortran version since gfortran>=10 needs
+> `Config.pl` should automatically determine your gfortran version since gfortran>=10 needs
 > to use different compilation commands than versions 9 and below.
-> If you notice that `Config.pl` does not detect the correct gfoetran version, set
+> If you notice that `Config.pl` does not detect the correct gfortran version, set
 > `-compiler=gfortran` if you have gfortran <10 or `-compiler=gfortran10` for 
 > gfortran>=10
 
-
 In theory, Mars, Venus, Titan, and LV-426 should work.  These are in
 various states of completion, so I wouldn't count on them being
-perfect.
+perfect. To configure with one of these, simple use the planet as
+an option (like '-venus', instead of '-earth)'.
 
 If running on Pleiades, you need to have these
 in your start-up script (.cshrc, .bashrc, etc):
@@ -130,13 +116,13 @@ lon. See below for how to set the resolution.
 9\. Go into the output directory:
 
 ```shell
-cd data
+cd UA/data
 ```
 
 10\. Make some plots with an old plotter:
 
 ```shell
-../../../srcPython/plot_model_results.py -var=3 -alt=120 3DALL_t021221_000500.bin
+../../../srcPython/plot_model_results.py -var=3 -alt=300 3DALL_t021221_000500.bin
 ```
 
 Then look at the png file that is created.  You can use a `-h` to see

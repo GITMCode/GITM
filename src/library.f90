@@ -5,6 +5,48 @@
 !
 !---------------------------------------------------------------------------
 
+subroutine get_min_value_across_pes(value)
+
+  use ModGITM, only: iCommGITM
+  use ModMpi
+
+  implicit none
+  real, intent(inout) :: value
+  real :: localVar
+  integer :: iError
+
+  LocalVar = value
+  call MPI_REDUCE(LocalVar, value, 1, MPI_REAL, MPI_MIN, &
+                  0, iCommGITM, iError)
+  call MPI_BCAST(value, 1, MPI_Real, 0, iCommGITM, iError)
+
+end subroutine get_min_value_across_pes
+
+!---------------------------------------------------------------------------
+!
+!---------------------------------------------------------------------------
+
+subroutine get_max_value_across_pes(value)
+
+  use ModGITM, only: iCommGITM
+  use ModMpi
+
+  implicit none
+  real, intent(inout) :: value
+  real :: localVar
+  integer :: iError
+
+  LocalVar = value
+  call MPI_REDUCE(LocalVar, value, 1, MPI_REAL, MPI_MAX, &
+                  0, iCommGITM, iError)
+  call MPI_BCAST(value, 1, MPI_Real, 0, iCommGITM, iError)
+
+end subroutine get_max_value_across_pes
+
+!---------------------------------------------------------------------------
+!
+!---------------------------------------------------------------------------
+
 subroutine report(str, iLevel)
 
   use ModInputs, only: iDebugLevel

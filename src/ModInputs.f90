@@ -75,6 +75,9 @@ module ModInputs
   logical :: UseWaveAurora = .false.
   logical :: UseIonAurora = .false.
 
+  logical :: doStopIfNoAurora = .false.
+  logical :: doStopIfNoPotential = .false.
+
   ! logical :: UseOvationSMEMono = .false.
   ! logical :: UseOvationSMEWave = .false.
   ! logical :: UseOvationSMEIon = .false.

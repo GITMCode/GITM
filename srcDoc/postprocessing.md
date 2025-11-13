@@ -41,9 +41,8 @@ The help message for `post_process.py`:
 
 ```
 ./post_process.py -h
-    usage: post_process.py [-h] [-remotefile REMOTEFILE] [-user USER] [-server SERVER]
-                        [-dir DIR] [-sleep SLEEP] [-totaltime TOTALTIME] [-q] [-v]
-                        [-norm] [-tgz]
+    usage: post_process.py [-h] [-remotefile REMOTEFILE] [-user USER] [-server SERVER] [-dir DIR] [-sleep SLEEP]
+                        [-totaltime TOTALTIME] [-v] [-norm] [-tgz] [-nc] [--combine] [--runname RUNNAME]
 
     Post process and (optionally) move model results.
     - This functions similar to pGITM.py, but can copy files to
@@ -57,12 +56,17 @@ The help message for `post_process.py`:
     -server SERVER        remote system name (default none)
     -dir DIR              remote directory to use (default none)
     -sleep SLEEP          how long to sleep between loops in seconds, (default 300)
-    -totaltime TOTALTIME  specify how long to run in total in hours, (default 0 - only run
-    once)
-    -q                    Run with verbose turned off
-    -v                    Run with verbose
+    -totaltime TOTALTIME  specify how long to run in total in hours, (default 0 - only run once)
+    -v, --verbose         Run with verbose
     -norm                 don't remove any files
     -tgz                  tar and zip raw GITM file instead of process
+    -nc                   Postprocess to netCDF files instead on '.bin'?
+    --combine             If processing to netCDF, we can combine each timestep to a 
+                          single file per output type. (ex: 3DALL.nc, etc.). 
+                          Will not work without -nc or if using remote.
+    --runname RUNNAME     When combining, this is prepended to the output type in the
+                          resulting files: '[runname]_3DALL.nc'. 
+                          Default is no descriptor.
 ```
 
 !!! note "Post-processing Speed" 
@@ -136,6 +140,19 @@ raw outputs.
 #### tgz
 
 `-tgz` tells the script to not post process the files at all, but to tar and zip them together. They can then be post-processed on a different machine. This is somewhat CPU intensive and slow. The remote feature will work with these files, so that they can be automatically pushed to another system. (This was created when Pleiades would not allow post processing on head nodes. After using this for a while, we made the post processor code do what the fortran code does, so that this option is mostly moot now.)
+
+#### nc
+
+`-nc` creates NetCDF files as outputs, instead of `.bin`. 
+This requires [PyITMN](https://github.com/GITMCode/PyITM) be installed.
+
+#### combine
+
+`--combine` will append subsequent times to the first NetCDF file rather than creating a new file for each time. Some caveats: this can only be used with NetCDF, each output *type* is in a different file (3DALL.nc and 2DANC.nc are both created), and the Python routines in PyITM/GITM do not (yet) support this. This was designed for users of xarray who want to make a lot of custon plots quickly, as it works very well with Dask.
+
+#### runname
+
+`--runname` tells the post-processor to pre-pend the given name to the merged output files when using `--combine`. For example, `--runname example_run01` will create a file called `example_run01_3DALL.nc`. It can only be used when combining, and thus also only when making NetCDF file(s). 
 
 ---
 
