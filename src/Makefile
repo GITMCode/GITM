@@ -167,7 +167,6 @@ ${SAMIEXE}:	${OBJECTS_SAMI}
 		-L${SAMIDIR}/src -lSAMI3 \
 		${Lflag1}
 
-
 POST:	PostProcess.o
 	${LINK.f90} ${Lflag2} -o PostGITM.exe PostProcess.o
 
