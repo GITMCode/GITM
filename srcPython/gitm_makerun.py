@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 from gitm_routines import *
 from omniweb import *
@@ -527,6 +527,14 @@ if (args.imf):
 # ----------------------------------------
 # Deal with F107 stuff:
 
+needF107 = True
+if '#NGDC_INDICES' in uam:
+    f107file = uam['#NGDC_INDICES'][0][0]
+    if (f107file == 'UA/DataIn/f107.txt'):
+        needF107 = False
+    print('--> F107 file was specified in UAM.in file.')
+    print('    will not write out F107 values.')
+
 diff = (end - start).total_seconds()
 mid = start + timedelta(seconds = diff/2)
 
@@ -560,11 +568,15 @@ f107a = find_ave_between_times(f107data, 'f107', mid, 81.0*86400.0)
 
 f107s = ('%5.1f' % f107).strip()
 f107as = ('%5.1f' % f107a).strip()
-uam['#F107'] = {
-    0: [f107s, ' data from '+f107file],
-    1: [f107as, ' 81 day average of f107'] }
 
-print('--> Setting F107, F107a : ' + f107s + ', ' + f107as)
+if (needF107):
+    uam['#F107'] = {
+        0: [f107s, ' data from '+f107file],
+        1: [f107as, ' 81 day average of f107'] }
+    print('--> Setting F107, F107a : ' + f107s + ', ' + f107as)
+else:
+    print(' --> Read F107, F107a : ' + f107s + ', ' + f107as)
+    print('     BUT NOT USING THESE, since there is a file found.\n')
 
 # ----------------------------------------
 # FISM
@@ -574,7 +586,7 @@ if (args.fism):
     fromRunDir = 'UA/DataIn/FISM/'
     fismFound = False
     
-    if (os.path.exists(fismFile)):
+    if (os.path.exists(fromRunDir + fismFile)):
         fismFound = True
     else:
         if (useGitmDir):
@@ -699,9 +711,12 @@ if (args.fang):
 # FTA model of the aurora
 
 if (args.fta):
-    # turn on fang auroral energy deposition
+    # turn on fta auroral precip model
     uam['#FTAMODEL'] = {
         0 : ['T', ' Use FTA model of the aurora'] }
+    uam['#IEMODELS'] = {
+        0 : ['FTA', ' Use FTA model of the aurora'],
+        1 : ['Weimer', ' Use Weimer potential model'] }
     print('--> Turning on FTA Model')
 
     # Turn off other aurora
@@ -726,6 +741,10 @@ if (args.newell):
         5 : ['T', ' Average patterns'] }   
     print('--> Turning on Newell Ovation Model')
 
+    uam['#IEMODELS'] = {
+        0 : ['OVATION', ' Use OVATION model of the aurora'],
+        1 : ['Weimer', ' Use Weimer potential model'] }
+    
     uam['#FTAMODEL'] = {
         0 : ['F', ' Use FTA model of the aurora'] }
     print(' --> Turning off FTA Model')

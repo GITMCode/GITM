@@ -46,19 +46,21 @@ module ModInputs
   character(len=iCharLen_) :: cAMIEFileSouth = "none"
   character(len=iCharLen_) :: cAMIEFileNorth = "none"
 
-  character(len=iCharLen_) :: cAuroralModel = "FRE"
+  character(len=iCharLen_), allocatable :: cAMIEListSouth(:)
+  character(len=iCharLen_), allocatable :: cAMIEListNorth(:)
+  integer :: nAMIENorth = 0
+  integer :: nAMIESouth = 0
 
-  character(len=iCharLen_) :: PotentialModel
-  character(len=iCharLen_) :: AuroralModel
+  ! Set to zero because planets other than earth exist.
+  character(len=iCharLen_) :: cAuroralModel = "zero"
+  character(len=iCharLen_) :: cPotentialModel = "zero"
 
   logical :: UseCCMCFileName = .false.
 
   logical :: UseSecondsInFilename = .true.    !xianjing
 
-  logical :: UseIMF = .true.
-  logical :: UseHpi = .true.
-
   !!! Xing Meng Nov 2018 to use ISR E field in a local region + Weimer elsewhere
+  ! This is currently not working with the new Electrodynamics setup.
   logical :: UseRegionalAMIE = .false.
   logical :: UseTwoAMIEPotentials = .false.
   real(Real8_) :: AMIETimeStart, AMIETimeEnd
@@ -68,34 +70,36 @@ module ModInputs
   real    :: AMIELatEnd = 70.0
   real    :: AMIEBoundaryWidth = 4.0  ! lat and lon width to transit to Weimer solution
 
-  logical :: UseNewellAurora = .false.
-  logical :: UseNewellAveraged = .true.
-  logical :: UseNewellMono = .false.
-  logical :: UseNewellWave = .false.
-  logical :: DoNewellRemoveSpikes = .true.
-  logical :: DoNewellAverage = .true.
+  logical :: UseDiffuseAurora = .true.
+  logical :: UseMonoAurora = .false.
+  logical :: UseWaveAurora = .false.
+  logical :: UseIonAurora = .false.
 
-  logical :: UseOvationSME = .false.
-  logical :: UseOvationSMEMono = .false.
-  logical :: UseOvationSMEWave = .false.
-  logical :: UseOvationSMEIon = .false.
+  logical :: doStopIfNoAurora = .false.
+  logical :: doStopIfNoPotential = .false.
 
-  logical :: UseAeModel = .false.
-  logical :: UseFtaModel = .false.
-
-  logical :: UseFangEnergyDeposition = .true.
+  ! logical :: UseOvationSMEMono = .false.
+  ! logical :: UseOvationSMEWave = .false.
+  ! logical :: UseOvationSMEIon = .false.
 
   logical :: IsKappaAurora = .false.
   real :: AuroraKappa = 3
   real :: AveEFactor = 1.0
-  ! This is true because FR&E is default.
-  logical :: NormalizeAuroraToHP = .true.
+  ! This is False because FR&E is not default.
+  logical :: NormalizeAuroraToHP = .false.
+  logical :: DoSeparateHPI = .false.
+  logical::AllowAurWODiffuse = .false.
+  real :: MaxAveEAurora = 80.0
 
   logical :: UseCusp = .false.
   real :: CuspAveE = 0.1
   real :: CuspEFlux = 2.0
   real :: CuspMltHalfWidth = 1.5
   real :: CuspLatHalfWidth = 1.0
+
+  logical :: UsePolarRain = .false.
+  real :: polarRainEFlux = 0.1 ! 0.1 ergs/cm2/s is a small value
+  real :: polarRainAveE = 0.3 ! 300 eV is a nominal polar rain value
 
   logical :: DoOverwriteIonosphere = .false.
   logical :: DoOverwriteWithIRI = .true.
@@ -132,7 +136,7 @@ module ModInputs
   real :: DtPlot(nMaxOutputTypes)
   real :: DtPlotSave(nMaxOutputTypes)
   real :: PlotTimeChangeDt(nMaxOutputTypes)
-  real(Real8_) :: PlotTimeChangeStart, PlotTimeChangeEnd
+  real(Real8_) :: PlotTimeChangeStart = 0.0, PlotTimeChangeEnd = 0.0
 
   logical :: DoAppendFiles = .false.
 
@@ -190,6 +194,7 @@ module ModInputs
 
   logical :: UseApex = .true.
   logical :: UseMSIS = .true.
+  logical :: UseMsis21 = .false.
   real, dimension(25) :: sw_msis = 1.0
   logical :: UseIRI = .true.
   logical :: UseMSISTides = .true.
@@ -219,7 +224,7 @@ module ModInputs
   ! These are things for the ion precipitation
   !/
 
-  logical :: UseIonPrecipitation = .false.
+  ! logical :: UseIonAurora = .false.
 
   logical :: UseDamping = .false.
 
@@ -270,7 +275,6 @@ module ModInputs
 
   logical :: UseSolarHeating = .true.
   logical :: UseJouleHeating = .true.
-  logical :: UseAuroralHeating = .true.
   logical :: UseNOCooling = .true.
   logical :: UseOCooling = .true.
   logical :: UseConduction = .true.
@@ -282,6 +286,8 @@ module ModInputs
 
   logical :: UseCO2Cooling = .true.
   real    :: CO2ppm = 225.0
+
+  logical :: DoN4SHack = .false.
 
   ! Allow the user to change the planet's characteristics:
   real :: RotationPeriodInput = Rotation_Period
@@ -317,6 +323,12 @@ module ModInputs
   ! AGB: Setting physical limits for ionospheric dynamics
   real :: MaxVParallel = 100.0
   real :: MaxEField = 0.1
+  ! Lower limit on ion density
+  real :: MinIonDensity = 100.0
+  real :: MinIonDensityAdvect = 1e5
+  !Lower limits on neutral density
+  real :: MinNeutralDensity = 200.0
+  real :: MinNeutralDensityAdvect = 1e5
 
   !\
   ! Methods for completing chemistry
@@ -447,9 +459,6 @@ contains
     sInputNeutralChemType = sChemType(cSubCycleChemType_)
     iInputIonChemType = cSubCycleChemType_
     iInputNeutralChemType = cSubCycleChemType_
-
-    PotentialModel = "Weimer05"
-    AuroralModel = "ihp"
 
     dTAurora = 120.0
 

@@ -309,7 +309,7 @@ subroutine output(dir, iBlock, iOutputType)
 
   case ('3DTHM')
 
-    nvars_to_write = 14 + 4
+    nvars_to_write = 16 + 4
     call output_3dthm(iBlock)
 
   case ('1DCHM')
@@ -341,14 +341,14 @@ subroutine output(dir, iBlock, iOutputType)
 
   case ('3DHME')
 
-    nvars_to_write = 28 + nSpeciesTotal + nSpecies + nIons
+    nvars_to_write = 27 + nSpeciesTotal + nSpecies + nIons
     ! The following if statement is to not write output if DoSaveHIMEPlot=F
     ! for iProc=0. Header files are always written by iProc=0.
     if (DoSaveHIMEPlot) call output_3dhme(iBlock)
 
   case ('2DGEL')
 
-    nvars_to_write = 13
+    nvars_to_write = 19
     call output_2dgel(iBlock)
 
   case ('2DMEL')
@@ -603,14 +603,19 @@ contains
       write(iOutputUnit_, "(I7,A1,a)") 4, " ", "Potential"
       write(iOutputUnit_, "(I7,A1,a)") 5, " ", "Pedersen Conductance"
       write(iOutputUnit_, "(I7,A1,a)") 6, " ", "Hall Conductance"
-      write(iOutputUnit_, "(I7,A1,a)") 7, " ", "Electron_Average_Energy"
-      write(iOutputUnit_, "(I7,A1,a)") 8, " ", "Electron_Energy_Flux"
-      write(iOutputUnit_, "(I7,A1,a)") 9, " ", "DivJuAlt"
-      write(iOutputUnit_, "(I7,A1,a)") 10, " ", "Pedersen FL Conductance"
-      write(iOutputUnit_, "(I7,A1,a)") 11, " ", "Hall FL Conductance"
-      write(iOutputUnit_, "(I7,A1,a)") 12, " ", "DivJu FL"
-      write(iOutputUnit_, "(I7,A1,a)") 13, " ", "FL Length"
-
+      write(iOutputUnit_, "(I7,A1,a)") 7, " ", "Electron_Average_Energy_Diffuse"
+      write(iOutputUnit_, "(I7,A1,a)") 8, " ", "Electron_Energy_Flux_Diffuse"
+      write(iOutputUnit_, "(I7,A1,a)") 9, " ", "Electron_Average_Energy_Wave"
+      write(iOutputUnit_, "(I7,A1,a)") 10, " ", "Electron_Energy_Flux_Wave"
+      write(iOutputUnit_, "(I7,A1,a)") 11, " ", "Electron_Average_Energy_Mono"
+      write(iOutputUnit_, "(I7,A1,a)") 12, " ", "Electron_Energy_Flux_Mono"
+      write(iOutputUnit_, "(I7,A1,a)") 13, " ", "Ion_Average_Energy"
+      write(iOutputUnit_, "(I7,A1,a)") 14, " ", "Ion_Energy_Flux"
+      write(iOutputUnit_, "(I7,A1,a)") 15, " ", "DivJuAlt"
+      write(iOutputUnit_, "(I7,A1,a)") 16, " ", "Pedersen FL Conductance"
+      write(iOutputUnit_, "(I7,A1,a)") 17, " ", "Hall FL Conductance"
+      write(iOutputUnit_, "(I7,A1,a)") 18, " ", "DivJu FL"
+      write(iOutputUnit_, "(I7,A1,a)") 19, " ", "FL Length"
     endif
 
     if (cType(1:5) == "2DANC") then
@@ -639,16 +644,15 @@ contains
 
     if (cType(3:5) == "THM") then
 
-      write(iOutputUnit_, "(I7,A1,a)") 4, " ", "EUV Heating"
-      write(iOutputUnit_, "(I7,A1,a)") 5, " ", "Conduction"
-      write(iOutputUnit_, "(I7,A1,a)") 6, " ", "Molecular Conduction"
-      write(iOutputUnit_, "(I7,A1,a)") 7, " ", "Eddy Conduction"
-      write(iOutputUnit_, "(I7,A1,a)") 8, " ", "Eddy Adiabatic Conduction"
-      write(iOutputUnit_, "(I7,A1,a)") 9, " ", "Chemical Heating"
-      write(iOutputUnit_, "(I7,A1,a)") 10, " ", "Auroral Heating"
-      write(iOutputUnit_, "(I7,A1,a)") 11, " ", "Joule Heating"
-      write(iOutputUnit_, "(I7,A1,a)") 12, " ", "NO Cooling"
-      write(iOutputUnit_, "(I7,A1,a)") 13, " ", "O Cooling"
+      write(iOutputUnit_, "(I7,A1,a)") 4, " ", "EUV Heating (K/s)"
+      write(iOutputUnit_, "(I7,A1,a)") 5, " ", "Conduction (K/s)"
+      write(iOutputUnit_, "(I7,A1,a)") 6, " ", "Molecular Conduction (K/s)"
+      write(iOutputUnit_, "(I7,A1,a)") 7, " ", "Eddy Conduction (K/s)"
+      write(iOutputUnit_, "(I7,A1,a)") 8, " ", "Eddy Adiabatic Conduction (K/s)"
+      write(iOutputUnit_, "(I7,A1,a)") 9, " ", "Chemical Heating (K/s)"
+      write(iOutputUnit_, "(I7,A1,a)") 11, " ", "Joule Heating (K/s)"
+      write(iOutputUnit_, "(I7,A1,a)") 12, " ", "NO Cooling (K/s)"
+      write(iOutputUnit_, "(I7,A1,a)") 13, " ", "O Cooling (K/s)"
       write(iOutputUnit_, "(I7,A1,a)") 14, " ", "Total Abs EUV"
       if (cType(1:2) == "1D") then
         do iSpecies = 1, nSpeciesTotal
@@ -665,6 +669,9 @@ contains
         write(iOutputUnit_, "(I7,A1,a)") 16, " ", "Rho"
         write(iOutputUnit_, "(I7,A1,a)") 17, " ", "E-Field Mag"
         write(iOutputUnit_, "(I7,A1,a)") 18, " ", "Sigma Ped"
+        write(iOutputUnit_, "(I7,A1,a)") 18, " ", "Ionization Rate O_3P"
+        write(iOutputUnit_, "(I7,A1,a)") 18, " ", "Ionization Rate O2"
+        write(iOutputUnit_, "(I7,A1,a)") 18, " ", "Ionization Rate N2"
       endif
 
     endif
@@ -996,8 +1003,10 @@ contains
 
   subroutine write_head_version
 
+    use ModGITMVersion
+
     write(iOutputUnit_, *) "VERSION"
-    write(iOutputUnit_, *) GitmVersion + PlanetNum
+    write(iOutputUnit_, *) trim(GitmVersion)
     write(iOutputUnit_, *) ""
 
   end subroutine write_head_version
@@ -1337,21 +1346,23 @@ subroutine output_3dthm(iBlock)
           Longitude(iLon, iBlock), &
           Latitude(iLat, iBlock), &
           Altitude_GB(iLon, iLat, iAlt, iBlock), &
-          EuvHeating(iiLon, iiLat, iiAlt, iBlock)*dt*TempUnit(iiLon, iiLat, iiAlt), &
-          Conduction(iiLon, iiLat, iiAlt)*TempUnit(iiLon, iiLat, iiAlt), &
+          EuvHeating(iiLon, iiLat, iiAlt, iBlock)*TempUnit(iiLon, iiLat, iiAlt), &
+          Conduction(iiLon, iiLat, iiAlt)*TempUnit(iiLon, iiLat, iiAlt)/dt, &
           MoleConduction(iiLon, iiLat, iiAlt), &
           EddyCond(iiLon, iiLat, iiAlt), &
           EddyCondAdia(iiLon, iiLat, iiAlt), &
-          ChemicalHeatingRate(iiLon, iiLat, iiAlt)*TempUnit(iiLon, iiLat, iiAlt), &
-          AuroralHeating(iiLon, iiLat, iiAlt)*dt*TempUnit(iiLon, iiLat, iiAlt), &
-          JouleHeating(iiLon, iiLat, iiAlt)*dt*TempUnit(iiLon, iiLat, iiAlt), &
-          -NOCooling(iiLon, iiLat, iiAlt)*dt*TempUnit(iiLon, iiLat, iiAlt), &
-          -OCooling(iiLon, iiLat, iiAlt)*dt*TempUnit(iiLon, iiLat, iiAlt), &
-          EuvTotal(iiLon, iiLat, iiAlt, iBlock)*dt, &
+          ChemicalHeatingRate(iiLon, iiLat, iiAlt)*TempUnit(iiLon, iiLat, iiAlt)/dt, &
+          JouleHeating(iiLon, iiLat, iiAlt)*TempUnit(iiLon, iiLat, iiAlt), &
+          -NOCooling(iiLon, iiLat, iiAlt)*TempUnit(iiLon, iiLat, iiAlt), &
+          -OCooling(iiLon, iiLat, iiAlt)*TempUnit(iiLon, iiLat, iiAlt), &
+          EuvTotal(iiLon, iiLat, iiAlt, iBlock), &
           cp(iiLon, iiLat, iiAlt, iBlock), &
           rho(iiLon, iiLat, iiAlt, iBlock), &
           sqrt(sum(EField(iLon, iLat, iAlt, :)**2)), & ! magnitude of E.F.
-          Sigma_Pedersen(iLon, iLat, iAlt)
+          Sigma_Pedersen(iLon, iLat, iAlt), &
+          AuroralIonRateS(iiLon, iiLat, iiAlt, iO_3P_, iBlock), &
+          AuroralIonRateS(iiLon, iiLat, iiAlt, iO2_, iBlock), &
+          AuroralIonRateS(iiLon, iiLat, iiAlt, iN2_, iBlock)
 
       enddo
     enddo
@@ -1394,7 +1405,6 @@ subroutine output_3dhme(iBlock)
           (Ivelocity(iLon, iLat, iAlt, i, iBlock), i=1, 3), &
           PhotoElectronHeating(iLon, iLat, iiAlt, iBlock)*dt*TempUnit(iLon, iLat, iiAlt), &
           JouleHeating(iLon, iLat, iiAlt)*dt*TempUnit(iLon, iLat, iiAlt), &
-          AuroralHeating(iLon, iLat, iiAlt)*dt*TempUnit(iLon, iLat, iiAlt), &
           cp(iLon, iLat, iiAlt, iBlock), &
           mLatitude(iLon, iLat, iAlt, iBlock), &
           mLongitude(iLon, iLat, iAlt, iBlock), &
@@ -1440,7 +1450,6 @@ subroutine output_1dthm
       EddyCond(1, 1, iiAlt), &
       EddyCondAdia(1, 1, iiAlt), &
       ChemicalHeatingRate(1, 1, iiAlt)*TempUnit(1, 1, iiAlt), &
-      AuroralHeating(1, 1, iiAlt)*dt*TempUnit(1, 1, iiAlt), &
       JouleHeating(1, 1, iiAlt)*dt*TempUnit(1, 1, iiAlt), &
       -RadCooling(1, 1, iiAlt, 1)*dt*TempUnit(1, 1, iiAlt), &
       -OCooling(1, 1, iiAlt)*dt*TempUnit(1, 1, iiAlt), &
@@ -1620,8 +1629,14 @@ subroutine output_2dgel(iBlock)
         Potential(iLon, iLat, iAlt, iBlock), &
         PedersenConductance(iLon, iLat, iBlock), &
         HallConductance(iLon, iLat, iBlock), &
-        ElectronAverageEnergy(iLon, iLat), &
-        ElectronEnergyFlux(iLon, iLat), &
+        ElectronAverageEnergyDiffuse(iLon, iLat), &
+        ElectronEnergyFluxDiffuse(iLon, iLat), &
+        ElectronAverageEnergyWave(iLon, iLat), &
+        ElectronEnergyFluxWave(iLon, iLat), &
+        ElectronAverageEnergyMono(iLon, iLat), &
+        ElectronEnergyFluxMono(iLon, iLat), &
+        IonAverageEnergy(iLon, iLat), &
+        IonEnergyFlux(iLon, iLat), &
         DivJuAlt(iLon, iLat), &
         PedersenFieldLine(iLon, iLat), &
         HallFieldLine(iLon, iLat), &

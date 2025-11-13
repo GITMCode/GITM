@@ -5,41 +5,22 @@ This is the home of the Global Ionosphere/Thermosphere Model (GITM).
 GITM has been developed in fortran-90. It has been tested with gfortran
 on Linux and MacOS as well as ifort on NASA's Pleiades computer.
 
-The latest version of the documentation can be accessed at:
+For the complete documentation, see [GITM's Read the Docs Page](https://gitm.readthedocs.io).
 
-[![Build Documentation](https://github.com/GITMCode/GITM/actions/workflows/build-docs.yml/badge.svg)](https://github.com/GITMCode/GITM/actions/workflows/build-docs.yml)
-
-<details>
-<summary><b>GITM's default branch recently changed names. To access the latest features, please update your local refs.</b></summary>
-
-From your local clone of this repository, run the following commands to update the name of the default branch.
-
-```sh
-git branch -m master main
-git fetch origin
-git branch -u origin/main main
-git remote set-head origin -a
-```
-
-Optionally, run the following command to remove tracking references to the old branch name.
-
-```sh
-git remote prune origin
-```
-
-</details>
-
-## Dependencies
-
-1. GITM needs MPI to work.
+GITM's stable version is the main branch, which is downloaded by default.  If you want the latest changes, but are ok with possibly unstable code, you can use the 'develop' version, which is described below.  If you don't know what you are doing, please just use the main version (i.e., don't checkout a different branch).
 
 ## Quick Start
+
+> GITM needs MPI to work properly. This can be installed with your system's package manager, or loaded as a `module` on an HPC system.
+> See [the installation guide](https://gitm.readthedocs.io/en/latest/quick_start/#requirements) for more information.
 
 1\. Clone the repository and cd into the repo folder
 
 ```shell
-git clone https://github.com/GITMCode/GITM
+git clone git@github.com:GITMCode/GITM.git
 ```
+
+Substitute the URL with the `https` link from the "Code" button above if you do not have SSH keys set up.
 
 2\. Go into the repo directory
 
@@ -47,39 +28,42 @@ git clone https://github.com/GITMCode/GITM
 cd GITM
 ```
 
-3\. Configure the Fortran compiler (version 10)
-
+(if you want/need to change to a different branch, do that here with the command:
 ```shell
-./Config.pl -install -earth -compiler=gfortran10
+git checkout develop
 ```
+but, again, we don't recommend this unless you know what you are doing!)
 
-The biggest issue with the above command is that it assumes that you
-have the gfortran (version 10) compiler and things like mpif90 work
-ok.  If you don't have gfortran and mpif90, then you need to get these
-things for your computer.  If you have version 9 or before for gfortran,
-you can do:
-
-3b\. Configure the Fortran compiler (version 9 or below)
+3\. Configure the Fortran compiler and download the external electrodynamics library (the install should do this automagically):
 
 ```shell
 ./Config.pl -install -earth -compiler=gfortran
 ```
 
+The above command is that it assumes that you have a working gfortran compiler and
+things like mpif90 work ok.  If you don't have gfortran and mpif90, then you need
+to get these things for your computer. 
+
+> `Config.pl` should automatically determine your gfortran version since gfortran>=10 needs
+> to use different compilation commands than versions 9 and below.
+> If you notice that `Config.pl` does not detect the correct gfortran version, set
+> `-compiler=gfortran` if you have gfortran <10 or `-compiler=gfortran10` for 
+> gfortran>=10
+
 In theory, Mars, Venus, Titan, and LV-426 should work.  These are in
 various states of completion, so I wouldn't count on them being
-perfect.
+perfect. To configure with one of these, simple use the planet as
+an option (like '-venus', instead of '-earth)'.
 
-If running on Pleiades (as of March 3, 2022), you need to have these
+If running on Pleiades, you need to have these
 in your start-up script (.cshrc, .bashrc, etc):
 
 ```
-module load comp-intel/2016.2.181
-module load mpi-hpe/mpt
+module load comp-intel
+module load mpi-hpe
 ```
 
-And you can use 3c below to configure the code.
-
-3c\. Configure for Pleiades
+And you can use the below line below to configure the code:
 
 ```shell
 ./Config.pl -install -earth -compiler=ifort
@@ -115,34 +99,36 @@ blocks with 9 x 9 cells each, so the default resolution is 180 (deg
 lat) / (2 \* 9) = 10 deg lat, by 360 (deg lon) / (2 \* 9) = 20 deg
 lon. See below for how to set the resolution.
 
-8\. Go into the directory which contains many of the outputs:
+8\. Post process the output files by running:
 
 ```shell
-cd UA
+./post_process.py
 ```
 
-9\. Post process the output files by running:
+> This can be called from `run/` and will postprocess the files in UA/output.
+> It has functionality to copy files to a remote location, monitor the
+> output folder throughout a run, and more. Run `./post_process.py --help` to
+> see available options.
+
+> The legacy postprocessors are still available, but are not built by default. To build
+> PostProcess.exe, run `make POST`. The csh script can be found at `src/pGITM`.
+
+9\. Go into the output directory:
 
 ```shell
-./pGITM
+cd UA/data
 ```
 
-10\. Go into the output directory:
+10\. Make some plots with an old plotter:
 
 ```shell
-cd data
-```
-
-11\. Make some plots with an old plotter:
-
-```shell
-../../../srcPython/plot_model_results.py -var=3 -alt=120 3DALL_t021221_000500.bin
+../../../srcPython/plot_model_results.py -var=3 -alt=300 3DALL_t021221_000500.bin
 ```
 
 Then look at the png file that is created.  You can use a `-h` to see
 how to run this code.
 
-11b\. A more advanced plotter is available through aetherpy. This is a bit more
+10b\. A more advanced plotter is available through aetherpy. This is a bit more
 complicated, since you need to install aetherpy. If you don't use python
 much, this is harder. Here is how to do this:
 
@@ -165,7 +151,7 @@ git checkout develop
 python setup.py develop --user
 ```
 
-11c\. Test out the new plotter:
+10c\. Test out the new plotter:
 
 ```shell
 cd <directory where you started from>
@@ -198,7 +184,9 @@ team.  For example:
 NCAR. The IGRF code that comes with it is also not developed at UM.
 
 2. Many electrodynamics models (Weimer, Newell's Ovation Prime,
-Mitchell's Ovation SME, others in the util/EMPIRICAL/srcIE directory).
+Mitchell's Ovation SME, others in the 
+[GITMCode/Electrodynamics](https://github.com/GITMCode/Electrodynamics)
+repository).
 
 3. MSIS and IRI, which are in util/EMPIRICAL/srcUA. MSIS is used as a
 lower BC at Earth and was developed at NRL. IRI is used to initialize
@@ -226,3 +214,7 @@ processors, you can change the parameters in `src/ModSize.f90` and adjust the
 number of cells in each block to compensate. For example, you have 8
 processors, so you can adjust `src/ModSize.f90` to have 18 cells in lat and
 lon, then ask for 2 (lat) x 4 (lon) blocks to get 5 deg x 5 deg resolution.
+
+See the 
+[grid page](https://gitm.readthedocs.io/en/latest/grid/#horizontal-resolution)
+in the documentation for more details and some examples.

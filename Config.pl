@@ -45,7 +45,7 @@ my ($nLon, $nLat, $nAlt, $MaxBlock);
 
 # Planet variables
 my $ModPlanet = "ModPlanet.f90";
-my $Planet;
+my $Planet = "Earth"; #set earth to default
 my $PlanetOrig;
 
 my $NoFlush;
@@ -67,6 +67,40 @@ foreach (@Arguments){
     warn "WARNING: Unknown flag $_\n" if $Remaining{$_};
 }
 
+# Git clone electrodynamics first!
+# (this section will be replaced when GITM switches to the SWMF's share/)
+if ($Install and not $IsCompGitm){
+    # Get the new electrodynamics library!
+
+    # Check if the above ran successfully
+    if( not -d "ext/Electrodynamics"){
+
+        my $command = "git clone git\@github.com:GITMCode/Electrodynamics.git ext/Electrodynamics";
+        print "Attempting to clone GITMCode/Electrodynamics with ssh:\n\t> $command\n";
+        my $exit_status = `$command`;
+        # If this fails, the script will *not* crash. Check if it was successful:
+        if ( -d "ext/Electrodynamics" ) {
+            print "Electrodynamics was cloned successfully!\n";
+        } else {
+            warn "git clone with SSH failed. Trying HTTPS...\n";
+            &shell_command("git clone https://github.com/GITMCode/Electrodynamics.git ext/Electrodynamics");
+            # If this fails, the script will exit with an error message
+        }
+    } else {
+        print "ext/Electrodynamics already exists.\n";
+        my $command = "git -C ext/Electrodynamics pull";
+        my $exit_status = `$command`;
+        if (!$exit_status){
+             print "\next/Electrodynamics could not be updated.\n";
+             print "==> You may wish to 'git pull' from ext/Electrodynamics manually\n";
+             print "Continuing config...\n"
+        }
+    }
+    my $command = "touch ext/Electrodynamics/src/Makefile.DEPEND";
+    print "creating DEPEND file in electrodynamics:\n\t $command\n";
+    my $exit_status = `$command`;
+}
+
 &modify_utilities if $NoFlush;
 
 &install_code if $Install;
@@ -75,7 +109,7 @@ foreach (@Arguments){
 
 &set_planet if $Planet and $Planet ne $PlanetOrig;
 
-&show_settings if $Show; 
+&show_settings_ if $Show; 
 
 print "Config.pl -g=$GridSize\n" if $ShowGridSize and not $Show;
 
@@ -156,12 +190,6 @@ sub install_code{
 
     # Import the file copy function to avoid calls to system.
     use File::Copy;
-
-    # if($IsCompGitm){
-	# Move Util and Share:
-	# move('share', 'component_share');
-	# move('util',  'component_util');
-    # }
     
     return unless $Compiler =~ /ifort/ and $OS =~ /Linux/;
     # Unfix object list for Linux/ifort compiler (this is not kosher)
@@ -226,7 +254,7 @@ sub set_planet{
 
     chdir "..";
 
-    &shell_command("cd srcData ; cp UAM.in.$Planet UAM.in");
+    &shell_command("cd srcData ; cp $Planet/UAM.in.$Planet UAM.in");
 
     if($Planet eq 'Earth'){
           $nLon = 9;

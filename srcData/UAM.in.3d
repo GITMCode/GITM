@@ -85,7 +85,7 @@ or
 
 #EUV_DATA
 F						Use FISM solar flux data
-srcData/FISM/fismflux_daily_2002.dat		Filename
+UA/DataIn/FISM/fismflux_daily_2002.dat		Filename
 
 ------------ Auroral Drivers ------------
 
@@ -99,9 +99,11 @@ or
 NOAAHPI_INDICES
 power file
 
-New auroral model from Wu and Ridley, which is driven by AU/AL/AE
-#FTAMODEL
-F                 Use FTA model of the aurora
+#ELECTRODYNAMICS
+FTA			Use FTA model of the aurora
+60.0			Update FTA every 60 seconds
+Weimer			Use Weimer model of the potential
+60.0			Update Weimer every 60 seconds
 
 Can download AU/AL/AE indices from SuperMAG and use them here:
 SME_INDICES
@@ -121,6 +123,13 @@ Can add a cusp:
 F		Add a cusp to the electron precipitation
 0.2             Average Energy
 2.0             Energy Flux
+
+In order to use polar rain, the polar cap must be defined.  This is done
+with FTA and SWMF aurora only at this time.
+#USEPOLARRAIN
+F
+0.1			avee
+0.25			eflux
 
 This will modify the auroral inputs, experimental:
 #AURORAMODS

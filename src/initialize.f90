@@ -12,6 +12,9 @@ subroutine initialize_gitm(TimeIn)
   use ModTime
   use ModEUV
   use ModIndicesInterfaces
+  use ModReadGitm3d
+  use ModKind, ONLY: Real8_
+
   implicit none
 
   type(UAM_ITER) :: r_iter
@@ -31,6 +34,12 @@ subroutine initialize_gitm(TimeIn)
   logical :: IsThere, IsOk, IsDone, IsFirstTime = .true.
 
   real :: DistM, DistP, Ratio2, InvDenom
+
+  ! These are for setting initial conditions from a GITM run:
+  character(len=nGitmVarCharLength), allocatable :: vars(:)
+  real, allocatable :: lonsICs(:), latsICs(:), altsICs(:)
+  integer :: nPoints, iPoint, nVars
+
   !----------------------------------------------------------------------------
 
 !! Sorry but this is a double-negative
@@ -313,6 +322,7 @@ subroutine initialize_gitm(TimeIn)
     call init_isochem
   endif
 
+  !if (.not. DoRestart .and. .not. UseGitmBCs) then
   if (.not. DoRestart) then
 
     Potential = 0.0
@@ -411,6 +421,82 @@ subroutine initialize_gitm(TimeIn)
 
   endif
 
+  if (UseGitmBCs) then
+
+    iError = 0
+
+    call GitmSetDir(GitmBCsDir)
+    call GetGitmFileList(iError)
+    if (iError /= 0) then
+      call stop_gitm("Error in trying to read GITM 3D Filelist in horizontal bcs")
+    endif
+
+    call GetGitmGeneralHeaderInfo(iError)
+    if (iError /= 0) then
+      call stop_gitm("Error in reading gitm header information in horizontal bcs")
+    endif
+
+    call GitmGetnVars(nVars)
+    if (iError /= 0) then
+      call stop_gitm("Error in getting number of variables in horizontal bcs")
+    endif
+
+    allocate(vars(nVars))
+    call GitmGetVars(vars)
+
+    ! Need to calculate the number of boundary points.
+
+    nPoints = (nAlts + 4)*(nLats + 4)*(nLons + 4)
+    call GitmSetnPointsToGet(nPoints)
+
+    allocate(GitmFileData(nPoints, nVars))
+    allocate(lonsICs(nPoints))
+    allocate(latsICs(nPoints))
+    allocate(altsICs(nPoints))
+
+    iPoint = 1
+    iBlock = 1
+    do iAlt = -1, nAlts + 2
+      do iLat = -1, nLats + 2
+        do iLon = -1, nLons + 2
+          lonsICs(iPoint) = longitude(iLon, iBlock)
+          latsICs(iPoint) = latitude(iLat, iBlock)
+          altsICs(iPoint) = Altitude_GB(iLon, iLat, iAlt, iBlock)
+          iPoint = iPoint + 1
+        enddo
+      enddo
+    enddo
+
+    ! Convert to degrees and km
+    lonsICs = lonsICs*360.0/twopi
+    latsICs = latsICs*360.0/twopi
+    altsICs = altsICs/1000.0
+
+    call GitmSetGrid(lonsICs, latsICs, altsICs)
+
+    call GitmUpdateTime(TimeIn, iError)
+    if (iError == 0) then
+      call GitmGetData(GitmFileData)
+    else
+      write(*, *) 'Error in getting GITM data in initialize!'
+      call stop_gitm('Must Stop!')
+    endif
+
+    iPoint = 1
+    do iAlt = -1, nAlts + 2
+      do iLat = -1, nLats + 2
+        do iLon = -1, nLons + 2
+          call set_horizontal_bcs_1point(iLon, iLat, iAlt, iBlock, iPoint)
+          iPoint = iPoint + 1
+        enddo
+      enddo
+    enddo
+
+    deallocate(vars, GitmFileData, lonsICs, latsICs, altsICs)
+    call GitmShutDown
+
+  endif
+
   if (UseWACCMTides) then
     call read_waccm_tides
     call update_waccm_tides
@@ -428,8 +514,6 @@ subroutine initialize_gitm(TimeIn)
   endif
 
   call init_b0
-  if (IsEarth) call init_energy_deposition
-
   if (UseApex .and. IsEarth) then
     call report("subsolr", 2)
     call SUBSOLR(iTimeArray(1), iJulianDay, iTimeArray(4), &
@@ -437,13 +521,28 @@ subroutine initialize_gitm(TimeIn)
                  SubsolarLongitude)
   endif
 
+  call init_get_potential
+
+  do iBlock = 1, nBlocks
+    call calc_physics(iBlock)
+    call calc_rates(iBlock)
+    call calc_collisions(iBlock)
+  enddo
+
+  if (UseDynamo .and. .not. Is1D) then
+    call UA_calc_electrodynamics(iLon, iLat)
+  else
+    call UA_calc_electrodynamics_1d
+  endif
+  call get_potential(1)
+
   if (.not. Is1D) call exchange_messages_sphere
 
   call calc_pressure
 
   ! The iLon and iLat are dummy variables...
   ! Do not initialize GITM's electrodynamics yet within SWMF
-  if (.not. IsFramework) call UA_calc_electrodynamics(iLon, iLat)
+  ! if (.not. IsFramework) call UA_calc_electrodynamics(iLon, iLat)
 
   do iBlock = 1, nBlocks
     call calc_eddy_diffusion_coefficient(iBlock)

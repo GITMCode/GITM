@@ -4,6 +4,7 @@
 module ModElectrodynamics
 
   use ModSizeGitm
+  use ModIE
 
   ! This is the divergence of the Neutral wind current
   real, dimension(-1:nLons + 2, -1:nLats + 2, 1:nAlts) :: DivJu
@@ -89,5 +90,12 @@ module ModElectrodynamics
     UxB, Ju
 
   real :: SigmaR(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, 3, 3)
+
+  ! --------------------------------------------------------------------
+  ! For ext/Electrodynamics
+  ! --------------------------------------------------------------------
+
+  logical :: didInitGetPotential = .false.
+  type(ieModel), allocatable :: IEModel_
 
 end module ModElectrodynamics

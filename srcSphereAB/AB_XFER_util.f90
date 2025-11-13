@@ -34,7 +34,7 @@
      logical, intent(in) :: pole
      integer, intent(inout) :: p
      real, dimension(1 - gcn:, 1 - gcn:, 1:), intent(in) :: v_in
-     real, dimension(:), intent(out) :: out_array
+     real, dimension(:), intent(inout) :: out_array
      integer :: i, j, a
 
      select case (dir)
@@ -306,7 +306,7 @@
      logical, intent(in) :: pole
      integer, intent(inout) :: p
      real, dimension(1 - gcn:, 1 - gcn:, 1:), intent(in) :: v_in
-     real, dimension(:), intent(out) :: out_array
+     real, dimension(:), intent(inout) :: out_array
      integer :: i, j, a, shifted_j, half_long
 
      half_long = long/2
@@ -584,7 +584,7 @@
      logical, intent(in) :: pole
      integer, intent(inout) :: p
      real, dimension(1 - gcn:, 1 - gcn:, 1:, 1:), intent(in) :: v_in
-     real, dimension(:), intent(out) :: out_array
+     real, dimension(:), intent(inout) :: out_array
      integer :: i, j, a, e
 
      select case (dir)
@@ -899,7 +899,7 @@
      logical, intent(in) :: pole
      integer, intent(inout) :: p
      real, dimension(1 - gcn:, 1 - gcn:, 1:, 1:), intent(in) :: v_in
-     real, dimension(:), intent(out) :: out_array
+     real, dimension(:), intent(inout) :: out_array
      integer :: i, j, a, e, shifted_j, half_long
 
      half_long = long/2

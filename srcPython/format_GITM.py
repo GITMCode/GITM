@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 
 import io
 import glob
@@ -56,11 +57,16 @@ def check_line_lengths(input_args=None):
 
                         is_commented = (comment_idx != -1) and (comment_idx < subrout_idx)
                         is_ended = (end_idx != -1) and (end_idx < subrout_idx)
-                        if is_ended:
-                            tmp_subroutine_lengths[-1] = n - tmp_subroutine_lengths[-1]
-                        elif not is_commented:
-                            tmp_subroutine_lengths.append(n)
-                            subrout_info.append([n, l])
+                        if is_commented:
+                            continue
+                        try:
+                            if is_ended:
+                                tmp_subroutine_lengths[-1] = n - tmp_subroutine_lengths[-1]
+                            elif not is_commented:
+                                tmp_subroutine_lengths.append(n)
+                                subrout_info.append([n, l])
+                        except IndexError:
+                            print(f, "\nCould not be formatted!")
 
         except:
             

@@ -111,7 +111,8 @@ subroutine logfile(dir)
 
   real    :: minTemp, maxTemp, localVar, minVertVel, maxVertVel
   real    :: AverageTemp, AverageVertVel, TotalVolume, Bx, By, Bz, Vx, Hpi
-  real    :: HPn, HPs, SSLon, SSLat, SSVTEC
+  real    :: HPn, HPs, HPn_d, HPs_d, HPn_w, HPs_w, HPn_m, HPs_m
+  real    :: SSLon, SSLat, SSVTEC
   integer :: iError
 
   if (.not. IsOpenLogFile .and. iProc == 0) then
@@ -140,10 +141,11 @@ subroutine logfile(dir)
     else
       write(iLogFileUnit_, '(a,L2)') "# EUV Data: ", useEUVdata
     endif
+    write(iLogFileUnit_, '(4(a))') "# E-Field Model: ", trim(cPotentialModel), &
+      " Auroral Model: ", trim(cAuroralModel)
     write(iLogFileUnit_, '(a,a15)') "# AMIE: ", cAmieFileNorth, cAmieFileSouth
     write(iLogFileUnit_, '(3(a,L2))') "# Solar Heating: ", useSolarHeating, &
-      " Joule Heating: ", useJouleHeating, &
-      " Auroral Heating: ", useAuroralHeating
+      " Joule Heating: ", useJouleHeating
     write(iLogFileUnit_, '(2(a,L2))') "# NO Cooling: ", useNOCooling, &
       " O Cooling: ", useOCooling
     write(iLogFileUnit_, '(3(a,L2))') "# Conduction: ", useConduction, &
@@ -160,9 +162,11 @@ subroutine logfile(dir)
     write(iLogFileUnit_, '(a)') " "
     write(iLogFileUnit_, '(a)') "#START"
     write(iLogFileUnit_, '(a)') &
-      "   iStep yyyy mm dd hh mm ss  ms      dt "// &
+      "   iStep year month day hour min sec  ms      dt "// &
       "min(T) max(T) mean(T) min(VV) max(VV) mean(VV) F107 F107A "// &
-      "By Bz Vx HP HPn HPs SubsolarLon SubsolarLat SubsolarVTEC"
+      "By Bz Vx HP HPn HPs HPn_diff HPs_diff HPn_w HPs_w HPn_m HPs_m "// &
+      "CPCPn CPCPs "// &
+      "SubsolarLon SubsolarLat SubsolarVTEC"
   endif
 
   call get_subsolar(CurrentTime, VernalTime, SSLon, SSLat)
@@ -205,6 +209,30 @@ subroutine logfile(dir)
   call MPI_REDUCE(LocalVar, HPs, 1, MPI_REAL, MPI_SUM, &
                   0, iCommGITM, iError)
 
+  LocalVar = HemisphericPowerNorth_diffuse
+  call MPI_REDUCE(LocalVar, HPn_d, 1, MPI_REAL, MPI_SUM, &
+                  0, iCommGITM, iError)
+
+  LocalVar = HemisphericPowerSouth_diffuse
+  call MPI_REDUCE(LocalVar, HPs_d, 1, MPI_REAL, MPI_SUM, &
+                  0, iCommGITM, iError)
+
+  LocalVar = HemisphericPowerNorth_wave
+  call MPI_REDUCE(LocalVar, HPn_w, 1, MPI_REAL, MPI_SUM, &
+                  0, iCommGITM, iError)
+
+  LocalVar = HemisphericPowerSouth_wave
+  call MPI_REDUCE(LocalVar, HPs_w, 1, MPI_REAL, MPI_SUM, &
+                  0, iCommGITM, iError)
+
+  LocalVar = HemisphericPowerNorth_mono
+  call MPI_REDUCE(LocalVar, HPn_m, 1, MPI_REAL, MPI_SUM, &
+                  0, iCommGITM, iError)
+
+  LocalVar = HemisphericPowerSouth_mono
+  call MPI_REDUCE(LocalVar, HPs_m, 1, MPI_REAL, MPI_SUM, &
+                  0, iCommGITM, iError)
+
   LocalVar = SSVTEC
   call MPI_REDUCE(LocalVar, SSVTEC, 1, MPI_REAL, MPI_MAX, &
                   0, iCommGITM, iError)
@@ -223,11 +251,15 @@ subroutine logfile(dir)
 
     if (Is1D) SSVTEC = -1.0
 
-    write(iLogFileUnit_, "(i8,i5,5i3,i4,f8.4,6f13.5,8f9.1,10f10.5,10f10.5,10f8.3)") &
-      iStep, iTimeArray, dt, minTemp, maxTemp, AverageTemp, &
-      minVertVel, maxVertVel, AverageVertVel, &
-      f107, f107A, By, Bz, Vx, Hpi, HPn/1.0e9, &
-      HPs/1.0e9, SSLon, SSLat, SSVTEC
+    write(iLogFileUnit_, "(i8,i5,5i3,i4,f8.4,6f9.1,5f7.1,9f8.1,2f7.1,3f8.3)") &
+      iStep, iTimeArray, &  ! i8, i5, 5i3, i4
+      dt, &  ! f8.4
+      minTemp, maxTemp, AverageTemp, minVertVel, maxVertVel, AverageVertVel, & ! 6f9.1
+      f107, f107A, By, Bz, Vx, &  ! 5f7.1
+      Hpi, HPn/1.0e9, HPs/1.0e9, &
+      HPn_d/1.0e9, HPs_d/1.0e9, HPn_w/1.0e9, HPs_w/1.0e9, HPn_m/1.0e9, HPs_m/1.0e9, & ! 9f8.1
+      CPCPn, CPCPs, & ! 2f7.1
+      SSLon, SSLat, SSVTEC   ! 3f8.3
 
     call flush_unit(iLogFileUnit_)
   endif
@@ -245,6 +277,7 @@ subroutine write_code_information(dir)
   use ModIoUnit, ONLY: io_unit_new
   use ModUtilities, ONLY: flush_unit
   use ModRCMR
+  use ModGITMVersion
 
   implicit none
 
@@ -261,6 +294,10 @@ subroutine write_code_information(dir)
          file=trim(dir)//"/run_information.txt", status="replace")
 
     write(iCodeInfoFileUnit_, *) "GITM2 Run Information"
+    write(iCodeInfoFileUnit_, *) "---------------------"
+    write(iCodeInfoFileUnit_, *) "GITM Version ", trim(GitmVersion)
+    write(iCodeInfoFileUnit_, *) "GITM Full Version ", trim(GitmVersionFull)
+    write(iCodeInfoFileUnit_, *) "Electrodynamics Version ", trim(ElectrodynamicsVersionFull)
     write(iCodeInfoFileUnit_, *) "---------------------"
     write(iCodeInfoFileUnit_, *) ""
 
@@ -354,7 +391,6 @@ subroutine write_code_information(dir)
     write(iCodeInfoFileUnit_, *) "#THERMO"
     write(iCodeInfoFileUnit_, *) UseSolarHeating
     write(iCodeInfoFileUnit_, *) UseJouleHeating
-    write(iCodeInfoFileUnit_, *) UseAuroralHeating
     write(iCodeInfoFileUnit_, *) UseNOCooling
     write(iCodeInfoFileUnit_, *) UseOCooling
     write(iCodeInfoFileUnit_, *) UseConduction
@@ -372,6 +408,11 @@ subroutine write_code_information(dir)
 
     write(iCodeInfoFileUnit_, *) "#APEX"
     write(iCodeInfoFileUnit_, *) UseApex
+    write(iCodeInfoFileUnit_, *) ""
+
+    write(iCodeInfoFileUnit_, *) "#IEModels"
+    write(iCodeInfoFileUnit_, *) trim(cAuroralModel)
+    write(iCodeInfoFileUnit_, *) trim(cPotentialModel)
     write(iCodeInfoFileUnit_, *) ""
 
     write(iCodeInfoFileUnit_, *) "#AMIEFILES"
@@ -426,25 +467,18 @@ subroutine write_code_information(dir)
     write(iCodeInfoFileUnit_, *) AuroraKappa
     write(iCodeInfoFileUnit_, *) ""
 
-    write(iCodeInfoFileUnit_, *) "#NEWELLAURORA"
-    write(iCodeInfoFileUnit_, *) UseNewellAurora
-    write(iCodeInfoFileUnit_, *) UseNewellAveraged
-    write(iCodeInfoFileUnit_, *) UseNewellMono
-    write(iCodeInfoFileUnit_, *) UseNewellWave
-    write(iCodeInfoFileUnit_, *) DoNewellRemoveSpikes
-    write(iCodeInfoFileUnit_, *) DoNewellAverage
-    write(iCodeInfoFileUnit_, *) ""
-
-    write(iCodeInfoFileUnit_, *) "#OVATIONSME"
-    write(iCodeInfoFileUnit_, *) UseOvationSME
-    write(iCodeInfoFileUnit_, *) UseOvationSMEMono
-    write(iCodeInfoFileUnit_, *) UseOvationSMEWave
-    write(iCodeInfoFileUnit_, *) UseOvationSMEIon
+    write(iCodeInfoFileUnit_, *) "#AURORATYPES"
+    write(iCodeInfoFileUnit_, *) UseDiffuseAurora
+    write(iCodeInfoFileUnit_, *) UseMonoAurora
+    write(iCodeInfoFileUnit_, *) UseWaveAurora
+    write(iCodeInfoFileUnit_, *) UseIonAurora
     write(iCodeInfoFileUnit_, *) ""
 
     write(iCodeInfoFileUnit_, *) "#IONLIMITS"
     write(iCodeInfoFileUnit_, *) MaxVParallel
     write(iCodeInfoFileUnit_, *) MaxEField
+    write(iCodeInfoFileUnit_, *) MinIonDensity
+    write(iCodeInfoFileUnit_, *) MinIonDensityAdvect
     write(iCodeInfoFileUnit_, *) ""
 
     write(iCodeInfoFileUnit_, *) "#VERTICALSOURCES"

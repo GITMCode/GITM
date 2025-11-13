@@ -38,13 +38,14 @@ subroutine add_sources
 
     call calc_GITM_sources(iBlock)
 
+    call calc_electron_ion_sources(iBlock)
+
     !-------------------------------------------------------------------------
     ! Neutral Temperature Source Terms
     !-------------------------------------------------------------------------
 
      !! To turn off EuvHeating, turn UseSolarHeating=.false. in UAM.in
      !! To turn off JouleHeating, turn UseJouleHeating=.false. in UAM.in
-     !! To turn off AuroralHeating, turn Use=AuroralHeating.false. in UAM.in
      !! To turn off Conduction, turn UseConduction=.false. in UAM.in
 
     ! JMB:  07/13/2017.
@@ -57,7 +58,6 @@ subroutine add_sources
           - RadCooling(1:nLons, 1:nLats, 1:nAlts, iBlock) &
           + EuvHeating(1:nLons, 1:nLats, 1:nAlts, iBlock) &
           + PhotoElectronHeating(1:nLons, 1:nLats, 1:nAlts, iBlock) &
-          + AuroralHeating &
           + JouleHeating &
           + ElectronHeating &
           + QnirTOT(1:nLons, 1:nLats, 1:nAlts, iBlock)) &
@@ -98,8 +98,7 @@ subroutine add_sources
       ! Ion drag + neutral friction are defined 1 - nAlts:
       VerticalVelocity(1:nLons, 1:nLats, 1:nAlts, iSpecies, iBlock) = &
         VerticalVelocity(1:nLons, 1:nLats, 1:nAlts, iSpecies, iBlock) + &
-        Dt*(VerticalIonDrag(:, :, :, iSpecies)) + &
-        NeutralFriction(:, :, :, iSpecies)
+        Dt*(VerticalIonDrag(:, :, :, iSpecies))
       ! Viscosity is defined 0 - nAlts + 1
       VerticalVelocity(1:nLons, 1:nLats, 0:nAlts + 1, iSpecies, iBlock) = &
         VerticalVelocity(1:nLons, 1:nLats, 0:nAlts + 1, iSpecies, iBlock) + &
@@ -112,7 +111,7 @@ subroutine add_sources
 
     if (DoCheckForNans) call check_for_nans_ions('before e-temp')
 
-    call calc_electron_temperature(iBlock)
+    call calc_electron_ion_temperature(iBlock)
 
     !-------------------------------------------------------------------------
     ! Bulk Quantities (rho, number den, vertical velocity, electron den)
@@ -156,5 +155,7 @@ subroutine add_sources
     call check_for_nans_neutrals("After Sources")
     call check_for_nans_temps("After Sources")
   endif
+
+  call correct_min_ion_density
 
 end subroutine add_sources

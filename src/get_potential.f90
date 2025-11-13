@@ -5,278 +5,107 @@ subroutine init_get_potential
 
   use ModGITM
   use ModTime
-  use ModIndicesInterfaces
   use ModInputs
-  use ModUserGITM
-  use ModNewell
-  use ModOvationSME
-  use ModAeAuroralModel
-  use ModFtaModel
-  use ModEIE_Interface, only: EIEr3_HaveLats, EIEr3_HaveMLTs
+  use ModIE
+  use ModErrors
+  use ModElectrodynamics, only: IEModel_
 
   implicit none
 
-  character(len=iCharLen_), dimension(100) :: Lines
-  character(len=iCharLen_) :: TimeLine
-  real    :: bz
-  character(len=2) :: cDebugLevel
+  integer :: iError = 0, iFile
 
-  logical :: IsFirstTime = .true.
-  integer :: iError
-
-  integer :: nAmieLats, nAmieMlts, nAmieBlocks
-
-  iError = 0
-
-  if (.not. IsFirstTime .or. IsFramework) return
   call report("init_get_potential", 2)
 
-  IsFirstTime = .false.
+  allocate(IEModel_)
+  IEModel_ = ieModel()
 
-  if (UseNewellAurora) then
-    call init_newell
-    UseIMF = .true.
+  call IEModel_%verbose(iDebugLevel)
+
+  call IEModel_%efield_model(cPotentialModel)
+  call IEModel_%aurora_model(cAuroralModel)
+
+  ! Most likely do not need to change, use the default.
+  call IEModel_%model_dir("extIE/")
+
+  ! If we are using AMIE files, set north and south files:
+  call IEModel_%filename_north(cAMIEFileNorth)
+  call IEModel_%filename_south(cAMIEFileSouth)
+
+  ! If we have a list of files, then set them this way:
+  if (nAMIENorth > 0) then
+    call IEModel_%nfiles_north(nAMIENorth)
+    do iFile = 1, nAMIENorth
+      call IEModel_%filename_list_north(iFile, cAMIEListNorth(iFile))
+    enddo
   endif
 
-  if (UseOvationSME) then
-    call read_ovationsm_files
+  ! If we have a list of files, then set them this way:
+  if (nAMIESouth > 0) then
+    call IEModel_%nfiles_south(nAMIESouth)
+    do iFile = 1, nAMIESouth
+      call IEModel_%filename_list_south(iFile, cAMIEListSouth(iFile))
+    enddo
   endif
 
-  if (UseAeModel) then
-    call read_ae_model_files(iError)
+  ! If there were errors picking settings, stop before initializing
+  if (.not. isOk) then
+    call set_error("Failed to initialize ieModel! Exiting!")
+    call report_errors
+    call stop_gitm("Error setting requested IEModel parameters, did not initialize.")
   endif
 
-  if (UseFtaModel) then
-    call initialize_fta
+  ! Initialize the IE library after setting it up:
+  call IEModel_%init()
+
+  ! Set the time!
+  call IEModel_%time_real(CurrentTime)
+
+  ! Load in indices for the 0th time-step
+  call set_ie_indices(IEModel_, CurrentTime)
+
+  ! Check that correct indices are present:
+  call IEModel_%check_indices
+
+  call report("ieModel indices were checked", 5)
+
+  ! If there were errors initializing, stop here
+  if (.not. isOk) then
+    call set_error("Failed to initialize ieModel! Exiting!")
+    call report_errors
+    call stop_gitm("Failed to initialize ieModel in get_potential. Check indices, probably.")
   endif
 
-  call report("AMIE vs Weimer", 4)
+  ! Now run some checks on user's settings:
+  if (iProc == 0) then
+    if (IEModel_%iAurora_ == iOvationPrime_) then
+      if (NormalizeAuroraToHP) &
+        call raise_warning("You probably should not use NormalizeAuroraToHP and Ovation")
 
-  !!! Xing Meng Nov 2018 added UseRegionalAMIE to set up a local region
-  !!! with the potential from AMIE files and Weimer potential elsewhere
-  if (index(cAMIEFileNorth, "none") > 0 .or. UseRegionalAMIE) then
-
-    Lines(1) = "#BACKGROUND"
-    Lines(2) = "EIE/"
-
-    UseHPI = .true.
-    if (UseNewellAurora .or. UseOvationSME .or. UseAeModel) UseHPI = .false.
-    if (UseFTAModel) UseHPI = .false.
-
-    call get_IMF_Bz(CurrentTime + TimeDelayHighLat, bz, iError)
-
-    call IO_SetIMFBz(bz)
-    if (iError /= 0) then
-      write(*, *) "Can not find IMF Bz."
-      !write(*,*) "Setting potential to Millstone HPI."
-      !Lines(3) = "millstone_hpi"    ! Change to "zero" if you want
-      call stop_gitm("must stop! Check your IMF file!!!")
-    else
-      Lines(3) = PotentialModel    ! Change to "zero" if you want
-      UseIMF = .true.
+      if (UseIonAurora .and. IsKappaAurora) &
+        call raise_warning("Kappa aurora & ion precipitation cannot be used simultaneously, yet.")
     endif
-    Lines(4) = AuroralModel
-    Lines(5) = "idontknow"
-    Lines(6) = ""
-
-  else
-
-    if (index(cAMIEFileNorth, "mhd") > 0) then
-
-      Lines(1) = "#MHDFILE"
-      Lines(2) = cAMIEFileSouth
-      write(TimeLine, '(i4)') iTimeArray(1)
-      Lines(3) = TimeLine
-      write(TimeLine, '(i2)') iTimeArray(2)
-      Lines(4) = TimeLine
-      write(TimeLine, '(i2)') iTimeArray(3)
-      Lines(5) = TimeLine
-      Lines(6) = ""
-
-      UseIMF = .false.
-
-    else
-
-      Lines(1) = "#AMIEFILES"
-      Lines(2) = cAMIEFileNorth
-      Lines(3) = cAMIEFileSouth
-      Lines(4) = ""
-      Lines(5) = ""
-      Lines(6) = ""
-
-      UseIMF = .false.
-
-    endif
-
   endif
 
-  Lines(7) = "#DEBUG"
-  call i2s(iDebugLevel, cDebugLevel, 2)
-  Lines(8) = cDebugLevel
-  Lines(9) = "0"
-  Lines(10) = ""
+  if (IEModel_%iAurora_ /= iFRE_ .and. NormalizeAuroraToHP) &
+    call raise_warning("You probably should not be normalizing aurora with non-FRE models")
 
-  if (IsFixedTilt) then
-    Lines(11) = "#FIXTILT"
-    Lines(12) = "T"
-    Lines(13) = ""
-    Lines(14) = "#END"
-  else
-    Lines(11) = "#END"
+  if (cPlanet == "Earth") then
+    if (IEModel_%iAurora_ == iZero_) &
+      call raise_warning("!!!! Warning!!!! Running on Earth with no aurora!!! ")
+    if (IEModel_%iEfield_ == iZero_) &
+      call raise_warning("!!!! Warning!!!! Running on Earth with no high latitude potential!!! ")
   endif
 
-  call report("EIE_stuff", 4)
+  ! Initialize the grid:
+  call IEModel_%nMlts(nLons + 4)
+  call IEModel_%nLats(nLats + 4)
 
-  call EIE_set_inputs(Lines)
+  call report("done with init_get_potential", 2)
 
   if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
-  call EIE_Initialize(iError)
-  if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
-  if (iError /= 0) then
-    write(*, *) &
-      "Code Error in IE_Initialize called from get_potential.f90"
-    write(*, *) "Error : ", iError
-    call stop_gitm("Stopping in get_potential")
-  endif
-
-  if (UseRegionalAMIE) then
-     !!! read AMIE files
-    call AMIE_SetFileName(cAMIEFileNorth)
-    call readAMIEOutput(2, .false., iDebugLevel, iError)
-    if (iError /= 0) then
-      write(*, *) &
-        "Code Error in readAMIEOutput called from get_potential.f90"
-      write(*, *) "Error : ", iError
-      call stop_gitm("Stopping in get_potential")
-    endif
-
-    write(*, *) 'done with reading amie north!'
-
-    if (index(cAMIEFileSouth, 'mirror') > 0) then
-      call AMIE_SetFileName(cAMIEFileNorth)
-      call readAMIEOutput(1, .true., iDebugLevel, iError)
-    else
-      call AMIE_SetFileName(cAMIEFileSouth)
-      call readAMIEOutput(1, .false., iDebugLevel, iError)
-    endif
-
-    call AMIE_GetnLats(nAmieLats)
-    call AMIE_GetnMLTs(nAmieMlts)
-    nAmieBlocks = 2
-
-    call EIE_InitGrid(nAmieLats, nAmieMlts, nAmieBlocks, iError)
-    if (iError /= 0) then
-      write(*, *) &
-        "Code Error in EIE_InitGrid called from get_potential.f90"
-      write(*, *) "Error : ", iError
-      call stop_gitm("Stopping in get_potential")
-    endif
-
-    call AMIE_GetLats(EIEr3_HaveLats)
-    call AMIE_GetMLTs(EIEr3_HaveMLTs)
-
-  endif
+  if (iError /= 0) call set_error("MPI Barrier falied in init_get_potential")
 
 end subroutine init_get_potential
-
-!--------------------------------------------------------------------
-! set_indices
-!--------------------------------------------------------------------
-
-subroutine set_indices
-
-  use ModGITM
-  use ModTime
-  use ModIndicesInterfaces
-  use ModInputs
-  use ModUserGITM
-  use ModNewell
-
-  implicit none
-
-  real :: temp, by, bz, vx, den
-  integer :: iError
-  iError = 0
-
-  if (UseIMF) then
-
-    call read_NOAAHPI_Indices_new( &
-      iError, &
-      CurrentTime + TimeDelayHighLat, &
-      EndTime + TimeDelayHighLat)
-    call read_MHDIMF_Indices_new( &
-      iError, &
-      CurrentTime + TimeDelayHighLat, &
-      EndTime + TimeDelayHighLat)
-    call get_IMF_Bz(CurrentTime + TimeDelayHighLat, bz, iError)
-    if (bz < -50.0) bz = -50.0
-    if (bz > 50.0) bz = 50.0
-    call IO_SetIMFBz(bz)
-
-    if (iError /= 0) then
-      write(*, *) &
-        "Code Error in get_IMF_Bz called from get_potential.f90"
-      write(*, *) "Code : ", iError
-      call stop_gitm("Stopping in get_potential")
-    endif
-
-    if (iDebugLevel > 1) write(*, *) "==> IMF Bz : ", bz
-
-    call get_IMF_By(CurrentTime + TimeDelayHighLat, by, iError)
-    if (by < -50.0) by = -50.0
-    if (by > 50.0) by = 50.0
-    call IO_SetIMFBy(by)
-
-    if (iError /= 0) then
-      write(*, *) &
-        "Code Error in get_IMF_By called from get_potential.f90"
-      call stop_gitm("Stopping in get_potential")
-    endif
-
-    if (iDebugLevel > 1) write(*, *) "==> IMF By : ", by
-
-    call get_SW_V(CurrentTime + TimeDelayHighLat, vx, iError)
-    if (vx < -2000.0) vx = -2000.0
-    if (vx > 2000.0) vx = 2000.0
-    call IO_SetSWV(vx)
-
-    if (iError /= 0) then
-      write(*, *) "Code Error in get_sw_v called from get_potential.f90"
-      call stop_gitm("Stopping in get_potential")
-    endif
-
-    if (iDebugLevel > 1) write(*, *) "==> Solar Wind Velocity : ", vx
-
-    call get_SW_N(CurrentTime + TimeDelayHighLat, den, iError)
-    if (iError /= 0) den = 5.0
-    call IO_SetSWN(den)
-
-    if (UseNewellAurora) call calc_dfdt(by, bz, vx)
-
-  endif
-
-  if (UseHPI) then
-
-    call get_HPI(CurrentTime + TimeDelayHighLat, temp, iError)
-    call IO_SetHPI(temp)
-
-    if (iError /= 0) then
-      write(*, *) "Code Error in get_hpi called from get_potential.f90"
-      call stop_gitm("Stopping in get_potential")
-    endif
-
-  endif
-
-  if (index(cAMIEFileNorth, "none") <= 0 .and. &
-      index(cAMIEFileNorth, "SPS") <= 0 .and. (.not. UseRegionalAMIE)) then
-    ! when UseRegionalAMIE, only get AMIE values during the specified
-    ! time interval.
-    if (iDebugLevel > 1) &
-      write(*, *) "==> Reading AMIE values for time :", CurrentTime
-    call get_AMIE_values(CurrentTime + TimeDelayHighLat)
-  endif
-
-end subroutine set_indices
 
 !--------------------------------------------------------------------
 ! get_potential
@@ -286,14 +115,11 @@ subroutine get_potential(iBlock)
 
   use ModGITM
   use ModTime
-  use ModIndicesInterfaces
   use ModInputs
   use ModUserGITM
-  use ModNewell
-  use ModOvationSME, only: run_ovationsme
-  use ModAeAuroralModel, only: run_ae_model
-  use ModFtaModel, only: run_fta_model
-  use ModEIE_Interface, only: UAl_UseGridBasedEIE
+  use ModErrors
+  use ModElectrodynamics, only: IEModel_
+  use ModIndicesInterfaces
   use ModMpi
 
   implicit none
@@ -304,14 +130,20 @@ subroutine get_potential(iBlock)
   logical :: IsFirstTime = .true.
   logical :: IsFirstPotential(nBlocksMax) = .true.
   logical :: IsFirstAurora(nBlocksMax) = .true.
-  real    :: mP, dis, TempWeight
-  real    ::  LocalSumDiffPot, MeanDiffPot, LatBoundNow
+  real :: mP, dis, TempWeight
+  real :: LocalSumDiffPot, MeanDiffPot, LatBoundNow
+  real :: PotentialMin_North, PotentialMin_South
+  real :: PotentialMax_North, PotentialMax_South
+  real :: maxEnergyFlux
 
   real, dimension(-1:nLons + 2, -1:nLats + 2) :: TempPotential2d
   real, dimension(-1:nLons + 2, -1:nLats + 2, 2) :: TempPotential, AMIEPotential
   real, dimension(-1:nLons + 2, -1:nLats + 2) :: Grid, dynamo, SubMLats, SubMLons
   real, dimension(-1:nLons + 2, -1:nLats + 2) :: lats, mlts, EFlux
+  real, dimension(-1:nLons + 2, -1:nLats + 2) :: polarCap
   real :: by, bz, CuspLat, CuspMlt
+
+  logical :: UAl_UseGridBasedEIE
 
   call start_timing("get_potential")
   call report("get_potential", 2)
@@ -321,37 +153,34 @@ subroutine get_potential(iBlock)
   if (index(cPlanet, "Earth") == 0) then
 
     potential = 0.0
-    ElectronAverageEnergy = 0.1
-    ElectronEnergyFlux = 0.0001
+    ElectronEnergyFluxDiffuse = 0.0001
     return
 
   endif
 
+  ! Grid might be reset by calc_electrodynamics
+  call IEModel_%nMlts(nLons + 4)
+  call IEModel_%nLats(nLats + 4)
+
   if (floor((tSimulation - dt)/DtPotential) /= &
       floor((tsimulation)/DtPotential) .or. IsFirstPotential(iBlock)) then
 
-    call report("Setting up IE Grid", 1)
-
-    call init_get_potential
-    call UA_SetnMLTs(nLons + 4)
-    call UA_SetnLats(nLats + 4)
-    call IO_SetTime(CurrentTime)
-    call set_indices
-    call UA_SetNorth
+    call IEModel_%time_real(CurrentTime)
 
     call report("Getting Potential", 1)
+    call set_ie_indices(IEModel_, CurrentTime)
 
     Potential(:, :, :, iBlock) = 0.0
-
+    DynamoPotential = 0.0
     do iAlt = -1, nAlts + 2
 
-      call UA_SetGrid( &
+      call iemodel_%grid( &
         MLT(-1:nLons + 2, -1:nLats + 2, iAlt), &
-        MLatitude(-1:nLons + 2, -1:nLats + 2, iAlt, iBlock), iError)
+        MLatitude(-1:nLons + 2, -1:nLats + 2, iAlt, iBlock))
 
-      if (iError /= 0) then
-        write(*, *) "Error in routine get_potential (UA_SetGrid):"
-        write(*, *) iError
+      if (.not. isOk) then
+        call set_error("Error in routine get_potential (SetGrid):")
+        call report_errors
         call stop_gitm("Stopping in get_potential")
       endif
 
@@ -361,154 +190,24 @@ subroutine get_potential(iBlock)
       TempPotential = 0.0
       TempPotential2d = 0.0
 
-      call UA_GetPotential(TempPotential2d, iError)
+      call iemodel_%get_potential(TempPotential2d)
       TempPotential(:, :, 1) = TempPotential2d
+      MagnetosphericPotential(:, :, iAlt) = TempPotential2d
 
-      if (iError /= 0) then
-        !write(*,*) "Error in get_potential (UA_GetPotential):"
-        !write(*,*) iError
-        TempPotential = 0.0
-!           call stop_gitm("Stopping in get_potential")
+      if (.not. isOk) then
+        call set_error("Error in routine get_potential (getting potential):")
+        call report_errors
+        call stop_gitm("Stopping in get_potential")
       endif
 
       nDir = 1
-      if (UseRegionalAMIE .and. &
-          CurrentTime >= AMIETimeStart .and. CurrentTime <= AMIETimeEnd) then
-
-        if (iDebugLevel > 1) &
-          write(*, *) "==> Reading AMIE values for time :", CurrentTime
-        call get_AMIE_values(CurrentTime + TimeDelayHighLat)
-
-        if (iDebugLevel > 1) write(*, *) "==> Getting AMIE Potential"
-
-        AMIEPotential = 0.0
-        UAl_UseGridBasedEIE = .true.
-
-        call UA_SetGrid( &
-          MLT(-1:nLons + 2, -1:nLats + 2, iAlt), &
-          MLatitude(-1:nLons + 2, -1:nLats + 2, iAlt, iBlock), iError)
-
-        call UA_GetPotential(AMIEPotential(:, :, 1), iError)
-        if (iError /= 0) then
-          write(*, *) "Error in get_potential (UA_GetPotential) for AMIE:"
-          write(*, *) iError
-          call stop_gitm("Stopping in get_potential")
-        endif
-
-        if (UseTwoAMIEPotentials) then
-          if (iDebugLevel > 1) &
-            write(*, *) "==> Reading AMIE PotentialY for time :", CurrentTime
-          call get_AMIE_PotentialY(CurrentTime + TimeDelayHighLat)
-!              the following setgrid seems unnecessary
-!              call UA_SetGrid(                    &
-!                   MLT(-1:nLons+2,-1:nLats+2,iAlt), &
-!                   MLatitude(-1:nLons+2,-1:nLats+2,iAlt,iBlock), iError)
-          call UA_GetPotential(AMIEPotential(:, :, 2), iError)
-          if (iError /= 0) then
-            write(*, *) "Error in get_potential (UA_GetPotential) for AMIE PotentialY:"
-            write(*, *) iError
-            call stop_gitm("Stopping in get_potential")
-          endif
-          TempPotential(:, :, 2) = TempPotential(:, :, 1)
-          ! two directions for two-potentials
-          nDir = 2
-        else
-          nDir = 1
-        endif
-
-        ! Two iterations for two-potentials, one iteration for one-potential
-        do iDir = 1, nDir
-
-          ! AMIE potential inside a geographic rectangular; Weimer potential outside.
-          ! Spatially weighted AMIE and Weimer potentials at
-          ! the rectangular boundaries, within AMIEBoundaryWidth.
-          LocalSumDiffPot = 0.0
-          iPot = 0
-          do iLat = -1, nLats + 2
-            do iLon = -1, nLons + 2
-
-              ! find the mean of the difference between AMIE potential and
-              ! Weimer potential within the region
-              if (MLatitude(iLon, iLat, iAlt, iBlock) >= AMIELatStart &
-                  .and. MLatitude(iLon, iLat, iAlt, iBlock) <= AMIELatEnd &
-                  .and. MLongitude(iLon, iLat, iAlt, iBlock) >= AMIELonStart &
-                  .and. MLongitude(iLon, iLat, iAlt, iBlock) <= AMIELonEnd) then
-                LocalSumDiffPot = LocalSumDiffPot + &
-                                  AMIEPotential(iLon, iLat, iDir) - TempPotential(iLon, iLat, iDir)
-                iPot = iPot + 1
-              endif
-            enddo
-          enddo
-          call MPI_ALLREDUCE(LocalSumDiffPot, MeanDiffPot, 1, &
-                             MPI_REAL, MPI_SUM, iCommGITM, iError)
-          call MPI_ALLREDUCE(iPot, nPot, 1, &
-                             MPI_INTEGER, MPI_SUM, iCommGITM, iError)
-          MeanDiffPot = MeanDiffPot/nPot
-          if (iDebugLevel > 1 .and. iProc == 0 .and. iAlt == 10) &
-            write(*, *) 'iDir, nPot, MeanDiffPot = ', iDir, nPot, MeanDiffPot
-
-          do iLat = -1, nLats + 2
-            do iLon = -1, nLons + 2
-
-              ! adjust AMIE potential according to the mean of potential difference
-              AMIEPotential(iLon, iLat, iDir) = AMIEPotential(iLon, iLat, iDir) - MeanDiffPot
-
-              ! fill in the rectangular with AMIE potential
-              if (MLatitude(iLon, iLat, iAlt, iBlock) >= AMIELatStart &
-                  .and. MLatitude(iLon, iLat, iAlt, iBlock) <= AMIELatEnd &
-                  .and. MLongitude(iLon, iLat, iAlt, iBlock) >= AMIELonStart &
-                  .and. MLongitude(iLon, iLat, iAlt, iBlock) <= AMIELonEnd) &
-                TempPotential(iLon, iLat, iDir) = AMIEPotential(iLon, iLat, iDir)
-
-              ! left and right boundaries, excluding corners
-              if (MLatitude(iLon, iLat, iAlt, iBlock) > AMIELatStart &
-                  .and. MLatitude(iLon, iLat, iAlt, iBlock) < AMIELatEnd &
-                  .and. MLongitude(iLon, iLat, iAlt, iBlock) > AMIELonStart - AMIEBoundaryWidth &
-                  .and. MLongitude(iLon, iLat, iAlt, iBlock) < AMIELonStart) then
-                TempWeight = (AMIELonStart - MLongitude(iLon, iLat, iAlt, iBlock))/AMIEBoundaryWidth
-                TempPotential(iLon, iLat, iDir) = TempWeight*TempPotential(iLon, iLat, iDir) + &
-                                                  (1 - TempWeight)*AMIEPotential(iLon, iLat, iDir)
-              endif
-
-              if (MLatitude(iLon, iLat, iAlt, iBlock) > AMIELatStart &
-                  .and. MLatitude(iLon, iLat, iAlt, iBlock) < AMIELatEnd &
-                  .and. MLongitude(iLon, iLat, iAlt, iBlock) > AMIELonEnd &
-                  .and. MLongitude(iLon, iLat, iAlt, iBlock) < AMIELonEnd + AMIEBoundaryWidth) then
-                TempWeight = (MLongitude(iLon, iLat, iAlt, iBlock) - AMIELonEnd)/AMIEBoundaryWidth
-                TempPotential(iLon, iLat, iDir) = TempWeight*TempPotential(iLon, iLat, iDir) + &
-                                                  (1 - TempWeight)*AMIEPotential(iLon, iLat, iDir)
-              endif
-
-              ! low and high lat boundaries
-              if (MLongitude(iLon, iLat, iAlt, iBlock) > AMIELonStart - AMIEBoundaryWidth &
-                  .and. MLongitude(iLon, iLat, iAlt, iBlock) < AMIELonEnd + AMIEBoundaryWidth &
-                  .and. MLatitude(iLon, iLat, iAlt, iBlock) > AMIELatStart - AMIEBoundaryWidth &
-                  .and. MLatitude(iLon, iLat, iAlt, iBlock) < AMIELatStart) then
-                TempWeight = (AMIELatStart - MLatitude(iLon, iLat, iAlt, iBlock))/AMIEBoundaryWidth
-                TempPotential(iLon, iLat, iDir) = TempWeight*TempPotential(iLon, iLat, iDir) + &
-                                                  (1 - TempWeight)*AMIEPotential(iLon, iLat, iDir)
-              endif
-              if (MLongitude(iLon, iLat, iAlt, iBlock) > AMIELonStart - AMIEBoundaryWidth &
-                  .and. MLongitude(iLon, iLat, iAlt, iBlock) < AMIELonEnd + AMIEBoundaryWidth &
-                  .and. MLatitude(iLon, iLat, iAlt, iBlock) > AMIELatEnd &
-                  .and. MLatitude(iLon, iLat, iAlt, iBlock) < AMIELatEnd + AMIEBoundaryWidth) then
-                TempWeight = (MLatitude(iLon, iLat, iAlt, iBlock) - AMIELatEnd)/AMIEBoundaryWidth
-                TempPotential(iLon, iLat, iDir) = TempWeight*TempPotential(iLon, iLat, iDir) + &
-                                                  (1 - TempWeight)*AMIEPotential(iLon, iLat, iDir)
-              endif
-            enddo
-          enddo
-
-        enddo
-        ! set back to false for getting Weimer potential at the next iteration
-        UAl_UseGridBasedEIE = .false.
-      endif
 
       if (UseDynamo .and. .not. Is1D) then
         dynamo = 0.0
         call get_dynamo_potential( &
           MLongitude(-1:nLons + 2, -1:nLats + 2, iAlt, iBlock), &
           MLatitude(-1:nLons + 2, -1:nLats + 2, iAlt, iBlock), dynamo)
+        DynamoPotential(:, :, iAlt) = dynamo
 
         ! Set latitude boundary between region of high lat convection
         ! and region of neutral wind dyanmo based on if SWMF potential
@@ -561,10 +260,44 @@ subroutine get_potential(iBlock)
 
   endif
 
+  PotentialMax_North = 0.0
+  PotentialMin_North = 0.0
+  PotentialMax_South = 0.0
+  PotentialMin_South = 0.0
+
+  if (maxval(Mlatitude(:, :, :, iBlock)) > 45.0) then
+    PotentialMax_North = maxval(MagnetosphericPotential(:, :, :))/1000.0
+    PotentialMin_North = minval(MagnetosphericPotential(:, :, :))/1000.0
+  endif
+  if (minval(Mlatitude(:, :, :, iBlock)) < -45.0) then
+    PotentialMax_South = maxval(MagnetosphericPotential(:, :, :))/1000.0
+    PotentialMin_South = minval(MagnetosphericPotential(:, :, :))/1000.0
+  endif
+
+  call get_min_value_across_pes(PotentialMin_North)
+  call get_max_value_across_pes(PotentialMax_North)
+  call get_min_value_across_pes(PotentialMin_South)
+  call get_max_value_across_pes(PotentialMax_South)
+
+  ! Volt -> kV
+  CPCPn = (PotentialMax_North - PotentialMin_North)
+  CPCPs = (PotentialMax_South - PotentialMin_South)
+
+  if (iDebugLevel >= 1) &
+    write(*, *) "==> CPC Potential (North, South): ", CPCPn, CPCPs
+
+  if ((CPCPn == 0) .and. (CPCPs == 0)) then
+    if (doStopIfNoPotential) then
+      call set_error("CPCP is zero and model is not zero! Must Stop!")
+      call report_errors
+      call stop_gitm("Stopping in get_potential")
+    endif
+  endif
+
   ! -----------------------------------------------------
   ! Now get the aurora.
   ! This assumes that the field lines are basically
-  ! vertical starting at the top of the model.
+  ! vertical starting at the bottom of the model.
   ! -----------------------------------------------------
 
   if (floor((tSimulation - dt)/DtAurora) /= &
@@ -572,83 +305,106 @@ subroutine get_potential(iBlock)
 
     call report("Getting Aurora", 1)
 
-    iAlt = nAlts + 1
+    iAlt = 2
 
-    if (UseNewellAurora) then
-      call run_newell(iBlock)
-    elseif (UseOvationSME) then
-      call run_ovationsme(StartTime, CurrentTime, iBlock)
-    elseif (UseAeModel) then
-      call run_ae_model(CurrentTime, iBlock)
-    elseif (UseFtaModel) then
-      call run_fta_model(CurrentTime, iBlock)
-    else
+    call iemodel_%grid( &
+      MLT(-1:nLons + 2, -1:nLats + 2, iAlt), &
+      MLatitude(-1:nLons + 2, -1:nLats + 2, iAlt, iBlock))
 
-      call UA_SetGrid( &
-        MLT(-1:nLons + 2, -1:nLats + 2, iAlt), &
-        MLatitude(-1:nLons + 2, -1:nLats + 2, iAlt, iBlock), iError)
+    ElectronEnergyFluxDiffuse = 0.0
+    ElectronEnergyFluxWave = 0.0
+    ElectronEnergyFluxMono = 0.0
+    IonEnergyFlux = 0.0
+    ElectronAverageEnergyWave = 3.0
+    ElectronAverageEnergyDiffuse = 3.0
+    ElectronAverageEnergyMono = 10.0
+    IonAverageEnergy = 10.0
 
-      if (iError /= 0) then
-        write(*, *) "Error in routine get_potential (UA_SetGrid):"
-        write(*, *) iError
-        call stop_gitm("Stopping in get_potential")
-      endif
+    ! We get the diffuse aurora always, since it *should* always be done.
+    ! Inside the aurora subroutine we check if the user wants to use it or not.
+    call ieModel_%get_aurora(ElectronEnergyFluxDiffuse, ElectronAverageEnergyDiffuse)
 
-      call UA_GetAveE(ElectronAverageEnergy, iError)
-      if (iError /= 0) then
-        write(*, *) "Error in get_potential (UA_GetAveE):"
-        write(*, *) iError
-        ElectronAverageEnergy = 1.0
-      endif
+    if (.not. isOk) then
+      call set_error("Error in routine get_potential (getting aurora):")
+      call report_errors
+      call stop_gitm("Stopping in get_potential")
+    endif
 
-      ! Sometimes, in AMIE, things get messed up in the
-      ! Average energy, so go through and fix some of these.
-
+    ! Sometimes, in AMIE, things get messed up in the Average energy,
+    ! so go through and fix some of these (Also checked in aurora.f90.)
+    if (iDebugLevel > 1) then
       do iLat = -1, nLats + 2
         do iLon = -1, nLons + 2
-          if (ElectronAverageEnergy(iLon, iLat) < 0.0) then
-            ElectronAverageEnergy(iLon, iLat) = 0.1
+          if (ElectronAverageEnergyDiffuse(iLon, iLat) < 0.0) then
+            ElectronAverageEnergyDiffuse(iLon, iLat) = 0.1
             write(*, *) "ave e i,j Negative : ", iLon, iLat, &
-              ElectronAverageEnergy(iLon, iLat)
+              ElectronAverageEnergyDiffuse(iLon, iLat)
           endif
-          if (ElectronAverageEnergy(iLon, iLat) > 100.0) then
+          if (ElectronAverageEnergyDiffuse(iLon, iLat) > 100.0) then
             write(*, *) "ave e i,j Positive : ", iLon, iLat, &
-              ElectronAverageEnergy(iLon, iLat)
-            ElectronAverageEnergy(iLon, iLat) = 0.1
+              ElectronAverageEnergyDiffuse(iLon, iLat)
+            ElectronAverageEnergyDiffuse(iLon, iLat) = 0.1
           endif
         enddo
       enddo
-
-      call UA_GetEFlux(ElectronEnergyFlux, iError)
-      if (iError /= 0) then
-        write(*, *) "Error in get_potential (UA_GetEFlux):"
-        write(*, *) iError
-        ElectronEnergyFlux = 0.1
-      endif
-
-      ! -----------------------------------------------------
-      ! Get Ion Precipitation if desired
-      ! -----------------------------------------------------
-
-      if (UseIonPrecipitation) then
-
-        call UA_GetIonAveE(IonAverageEnergy, iError)
-        if (iError /= 0) then
-          write(*, *) "Error in get_potential (UA_GetAveE):"
-          write(*, *) iError
-          IonAverageEnergy = 1.0
-        endif
-
-        call UA_GetIonEFlux(IonEnergyFlux, iError)
-        if (iError /= 0) then
-          write(*, *) "Error in get_potential (UA_GetEFlux):"
-          write(*, *) iError
-          IonEnergyFlux = 0.1
-        endif
-
-      endif
-
     endif
+
+    ! Check to see if there is any Diffuse aurora and stop if there is none:
+    maxEnergyFlux = maxval(ElectronEnergyFluxDiffuse)
+    call get_max_value_across_pes(maxEnergyFlux)
+    if ((maxEnergyFlux == 0) .and. (doStopIfNoAurora)) then
+      call set_error("Wave Aurora is zero and it was requested! Must Stop!")
+      call report_errors
+      call stop_gitm("Stopping in get_potential")
+    endif
+
+    ! Adjust the Average Energy of the Diffuse Aurora, if desired:
+    if (iDebugLevel > 1) write(*, *) '=> Adjusting average energy of the aurora : ', AveEFactor
+    ElectronAverageEnergyDiffuse = ElectronAverageEnergyDiffuse*AveEFactor
+
+    ! -----------------------------
+    ! Ion, Wave- & Mono- aurora
+    ! -----------------------------
+
+    if (UseWaveAurora) then
+      call IEModel_%get_electron_wave_aurora(ElectronEnergyFluxWave, ElectronAverageEnergyWave)
+      ! Check to see if there is any aurora:
+      maxEnergyFlux = maxval(ElectronEnergyFluxWave)
+      call get_max_value_across_pes(maxEnergyFlux)
+      if (maxEnergyFlux == 0) then
+        call set_error("Wave Aurora is zero and it was requested! Must Stop!")
+        call report_errors
+        call stop_gitm("Stopping in get_potential")
+      endif
+    endif
+
+    if (UseMonoAurora) then
+      call IEModel_%get_electron_mono_aurora(ElectronEnergyFluxMono, ElectronAverageEnergyMono)
+      ! Check to see if there is any aurora:
+      maxEnergyFlux = maxval(ElectronEnergyFluxMono)
+      call get_max_value_across_pes(maxEnergyFlux)
+      if (maxEnergyFlux == 0) then
+        call set_error("Mono Aurora is zero and it was requested! Must Stop!")
+        call report_errors
+        call stop_gitm("Stopping in get_potential")
+      endif
+    endif
+
+    if (UseIonAurora) then
+      call IEModel_%get_ion_diffuse_aurora(IonEnergyFlux, IonAverageEnergy)
+      ! Check to see if there is any aurora:
+      maxEnergyFlux = maxval(IonEnergyFlux)
+      call get_max_value_across_pes(maxEnergyFlux)
+      if (maxEnergyFlux == 0) then
+        call set_error("Ion Aurora is zero and it was requested! Must Stop!")
+        call report_errors
+        call stop_gitm("Stopping in get_potential")
+      endif
+    endif
+
+    ! -----------------------------
+    ! Cusp, if desired
+    ! -----------------------------
 
     if (UseCusp) then
 
@@ -658,8 +414,8 @@ subroutine get_potential(iBlock)
 
         mlts = mod(MLT(-1:nLons + 2, -1:nLats + 2, iAlt) + 24.0, 24.0)
 
-        call get_IMF_Bz(CurrentTime + TimeDelayHighLat, bz, iError)
-        call get_IMF_By(CurrentTime + TimeDelayHighLat, by, iError)
+        by = iemodel_%needImfBy
+        bz = iemodel_%needImfBz
 
         ! If we are in the southern hemisphere, reverse by:
         if (lats(nLons/2, nLats/2) < 0.0) by = -by
@@ -680,6 +436,12 @@ subroutine get_potential(iBlock)
           endif
         endif
 
+        ! Typical values are:
+        !   - electron average energy = 30-100 eV (< 220 eV)
+        !   - electron energy flux = 1-2 ergs/cm2/s
+        !   - ion average energy = 300 - 3000 keV
+        !   - ion energy flux = ~ 6x less than electrons
+
         EFlux = CuspEFlux* &
                 exp(-abs(lats - CuspLat)/CuspLatHalfWidth)* &
                 exp(-abs(mlts - CuspMlt)/CuspMltHalfWidth)
@@ -687,8 +449,8 @@ subroutine get_potential(iBlock)
         do iLat = -1, nLats + 2
           do iLon = -1, nLons + 2
             if (EFlux(iLon, iLat) > 0.1) then
-              ElectronEnergyFlux(iLon, iLat) = EFlux(iLon, iLat)
-              ElectronAverageEnergy(iLon, iLat) = CuspAveE
+              ElectronEnergyFluxDiffuse(iLon, iLat) = EFlux(iLon, iLat)
+              ElectronAverageEnergyDiffuse(iLon, iLat) = CuspAveE
             endif
           enddo
         enddo
@@ -697,20 +459,40 @@ subroutine get_potential(iBlock)
 
     endif
 
-    if (iDebugLevel > 2) &
+    if (iDebugLevel > 0) &
       write(*, *) "==> Max, electron_ave_ene : ", &
-      maxval(ElectronAverageEnergy), &
-      maxval(ElectronEnergyFlux)
+      maxval(ElectronAverageEnergyDiffuse), &
+      maxval(ElectronEnergyFluxDiffuse)
 
     IsFirstAurora(iBlock) = .false.
 
   endif
 
-  if (iDebugLevel > 1) &
-    write(*, *) "==> Min, Max, CPC Potential : ", &
-    minval(Potential(:, :, :, iBlock))/1000.0, &
-    maxval(Potential(:, :, :, iBlock))/1000.0, &
-    (maxval(Potential(:, :, :, iBlock)) - minval(Potential(:, :, :, iBlock)))/1000.0
+  ! -----------------------------
+  ! Polar Rain, if desired
+  ! -----------------------------
+
+  if (UsePolarRain) then
+
+    ! Get the polar cap - this variable is 1 if it is the polar cap and 0 is not
+    call IEModel_%get_polarcap(polarCap)
+
+    ! Then, if we are in the polar cap, fill in the energy flux with values
+    ! entered by the user in the UAM.in file
+    ! Typical values of polar rain are [Newell et al., 1990]:
+    ! aveE ~ 80 - 110 eV
+    ! eflux ~ 0.01 - 0.1 ergs/cm2/s for nominal events; 1.0 for extreme events
+    do iLat = -1, nLats + 2
+      do iLon = -1, nLons + 2
+        if (polarCap(iLon, iLat) > 0 .and. &
+            ElectronEnergyFluxDiffuse(iLon, iLat) < 0.1) then
+          ElectronEnergyFluxDiffuse(iLon, iLat) = polarRainEFlux
+          ElectronAverageEnergyDiffuse(iLon, iLat) = polarRainAveE
+        endif
+      enddo
+    enddo
+
+  endif
 
   call end_timing("get_potential")
 
@@ -821,3 +603,113 @@ subroutine get_dynamo_potential(lons, lats, pot)
   enddo
 
 end subroutine get_dynamo_potential
+
+! Subroutine to automatically set indices for the given IEModel
+! Will need updateing when HPn/s are introduced
+subroutine set_ie_indices(IEModel_, TimeIn)
+
+  use ModKind
+  use ModIndicesInterfaces
+  use ModIE, only: ieModel
+  ! use ModElectrodynamics, only: ieModel_
+  use ModErrors
+  use ModTime, only: EndTime !could pull current time too, but better to be explicit
+  use ModInputs, only: TimeDelayHighLat, DoSeparateHPI
+
+  implicit none
+
+  type(ieModel), intent(inout) :: IEModel_
+  real, intent(in) :: TimeIn
+
+  integer :: iError = 0
+  real    :: val
+
+  if (IEModel_%doReadMHD) then
+
+    call read_MHDIMF_Indices_new( &
+      iError, &
+      TimeIn + TimeDelayHighLat, &
+      EndTime + TimeDelayHighLat)
+
+    if (iError /= 0) call set_error("Issue reading IMF file in get_potential")
+
+    call get_IMF_Bz(TimeIn + TimeDelayHighLat, val, iError)
+    if (val < -40.0) val = -40.0
+    if (val > 40.0) val = 40.0
+    call IEModel_%imfBz(val)
+
+    call get_IMF_By(TimeIn, val, iError)
+    if (val < -40.0) val = -40.0
+    if (val > 40.0) val = 40.0
+    call IEModel_%imfBy(val)
+
+    call get_SW_V(TimeIn, val, iError)
+    if (val < -1500.0) val = -1500.0
+    if (val > 1500.0) val = 1500.0
+    call IEModel_%swV(val)
+
+    call get_SW_N(TimeIn, val, iError)
+    if (val > 80) val = 50
+    call IEModel_%swN(val)
+
+    if (iError /= 0 .or. .not. isOk) then
+      call set_error("IMF values could not be set!")
+      return
+    endif
+  endif
+
+  if (IEModel_%doReadSME) then
+    ! read_sme works differently, it reads the entire file, always. So does not
+    ! need to be called again.
+
+    call get_AU(TimeIn, val, iError)
+    call IEModel_%au(val)
+    call get_AL(TimeIn, val, iError)
+    call IEModel_%al(val)
+
+    if (iError /= 0 .or. .not. isOk) then
+      call set_error("In set_ie_indices SME values could not be set!")
+      return
+    endif
+  endif
+
+  if (IEModel_%doReadHPI) then
+
+    if (.not. ieModel_%useAeForHp) then
+      call read_NOAAHPI_Indices_new(iError, &
+                                    TimeIn + TimeDelayHighLat, &
+                                    EndTime + TimeDelayHighLat, &
+                                    DoSeparateHPI)
+
+      if (iError /= 0) call set_error("HPI values could not be read.")
+
+    endif
+
+    if (DoSeparateHPI) then
+      call get_HPI_N(TimeIn, val, iError)
+      call IEModel_%hpN(val)
+      call get_hpi_S(TimeIn, val, iError)
+      call IEModel_%hpS(val)
+    endif
+
+    call get_HPI(TimeIn, val, iError)
+    call IEModel_%hp(val)
+
+    if (iError /= 0 .or. .not. isOk) then
+      call set_error("HPI values could not be set!")
+      return
+    endif
+  endif
+
+  if (IEModel_%doReadKP) then
+    ! I don't think there's a way to set KP unless you use a single value. No time:
+    call get_KP(val, iError)
+    call IEModel_%kp(val)
+
+    if (iError /= 0 .or. .not. isOk) then
+      call set_error("KP values could not be set!")
+      return
+    endif
+  endif
+
+end subroutine set_ie_indices

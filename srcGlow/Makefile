@@ -30,32 +30,27 @@ DEPEND:
 
 EXE = ${BINDIR}/GLOW.exe
 
-MYLIB = libGLOW.a
+MYLIB = ${LIBDIR}/libGLOW.a
 
 LIB:	DEPEND
-	${MAKE} ${MYLIB}
-	@echo
-	@echo ${MYLIB} has been brought up to date.
+	@make ${MYLIB}
 	@echo
 
 ${MYLIB}: ${MODULES} ${OBJECTS}
 	@echo 'Creating GLOW library'
+	@rm -f ${MYLIB}
 	${AR} ${MYLIB} ${MODULES} ${OBJECTS}
 
 MY_LIB=libUPTOGL.a
 
 LIBADD: DEPEND
-	make ${MY_LIB}
-	@echo
-	@echo ${MY_LIB} has been brought up to date.
+	@make ${MY_LIB}
 	@echo
 
 ${MY_LIB}: ${MF} ${MODULES} ${OBJECTS}
-	${MAKE} ${MYLIB}
-	cp -f ${LIBPREV} ${MY_LIB}
+	@make ${MYLIB}
+	@cp -f ${LIBPREV} ${MY_LIB}
 	${AR} ${MY_LIB} ${OBJECTS} ${MODULES}
-
-
 
 GLOW: DEPEND
 	 @make ${EXE}
@@ -63,5 +58,3 @@ GLOW: DEPEND
 glow: 	${OBJECTS} ${MODULES} 
 	${COMPILE.f77} ${Cflag3} -o ${EXE} main.o ${OBJECTS} ${MODULES}
 
-clean:
-	rm -f *~ core *.o *.mod fort.* a.out *.exe *.a *.so *.protex

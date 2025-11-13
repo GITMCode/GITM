@@ -25,6 +25,12 @@ subroutine check_for_nans_ions(cMarker)
             write(*, *) iLon, iLat, iAlt, iProc, iIon
             IsFound = .true.
           endif
+          if (ieee_is_nan(IVelocity(iLon, iLat, iAlt, 1, 1))) then
+            write(*, *) 'Nan found in iVelocity!! : '
+            write(*, *) cMarker
+            write(*, *) iLon, iLat, iAlt, iProc, iIon
+            IsFound = .true.
+          endif
           if (iDensityS(iLon, iLat, iAlt, iIon, 1) < 0.0) then
             write(*, *) 'Negative density found in iDensityS : '
             write(*, *) cMarker
@@ -140,3 +146,56 @@ subroutine check_for_nans_temps(cMarker)
   if (IsFound) call stop_gitm("Stopping...")
 
 end subroutine check_for_nans_temps
+
+subroutine correct_min_ion_density
+  ! Corrects for ion densities below MinIonDensity
+
+  use ModSizeGitm
+  use ModGitm
+  use ModInputs, only: minIonDensity, minIonDensityAdvect, iDebugLevel
+  implicit none
+  integer :: iLon, iLat, iAlt, iIon
+
+  if (minval(IDensityS) < MinIonDensity) then
+    if (iDebugLevel > 5) &
+      write(*, *) "low ion density found... replacing with min ion density"
+    do iIon = 1, nIons
+      if (iIon > nIonsAdvect) then
+        if (minval(IDensityS(:, :, :, iIon, 1)) < MinIonDensity) then
+          do iLon = -1, nLons + 2
+            do iLat = -1, nLats + 2
+              do iAlt = -1, nAlts + 2
+                if (iDensityS(iLon, iLat, iAlt, iIon, 1) < MinIonDensity) then
+                  if (iDebugLevel > 7) &
+                    write(*, *) ' -> low density found in iDensityS : ', &
+                    iLon, iLat, iAlt, iProc, iIon, iDensityS(iLon, iLat, iAlt, iIon, 1), &
+                    MinIonDensity
+                  iDensityS(iLon, iLat, iAlt, iIon, 1) = MinIonDensity
+                endif
+              enddo
+            enddo
+          enddo
+        endif
+      else
+        if (minval(IDensityS(:, :, :, iIon, 1)) < MinIonDensityAdvect) then
+          do iLon = -1, nLons + 2
+            do iLat = -1, nLats + 2
+              do iAlt = -1, nAlts + 2
+                if (iDensityS(iLon, iLat, iAlt, iIon, 1) < MinIonDensityAdvect) then
+                  if (iDebugLevel > 7) &
+                    write(*, *) ' -> low density found in iDensityS : ', &
+                    iLon, iLat, iAlt, iProc, iIon, iDensityS(iLon, iLat, iAlt, iIon, 1), &
+                    MinIonDensity
+                  iDensityS(iLon, iLat, iAlt, iIon, 1) = MinIonDensityAdvect
+                endif
+              enddo
+            enddo
+          enddo
+        endif
+      endif
+    enddo
+  endif
+
+  return
+
+end subroutine correct_min_ion_density

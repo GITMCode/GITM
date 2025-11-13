@@ -2,11 +2,7 @@ ABDIR   = ${UADIR}/srcSphereAB
 IODIR   = ${DATAREADINDICESDIR}
 GLDIR   = ${UADIR}/srcGlow
 SAMIDIR = ${UADIR}/srcSAMI
-
-SEARCH_EXTRA =  -I${ABDIR} \
-	 	-I${IODIR} \
-		-I${EMPIRICALUADIR} \
-		-I${EMPIRICALIEDIR}
+EIEDIR   = ${IEDIR}/lib
 
 include ../Makefile.conf
 include ../Makefile.def
@@ -14,24 +10,25 @@ include ../Makefile.def
 include Makefile.DEPEND
 include Makefile.RULES
 
+SEARCH_EXTRA =  -I${ABDIR} \
+	 	-I${IODIR} \
+		-I${EMPIRICALUADIR} \
+		-I${EIEDIR}
+
 MODULES = \
 	apexsh.o\
-	ModAeAuroralModel.o\
 	ModApex.o\
 	ModChemistry.o\
 	ModConstants.o\
 	ModEUV.o\
 	ModElectrodynamics.o\
-	ModFtaModel.o\
 	ModGITM.o\
 	ModGITMImplicit.o\
 	ModHwm14.o\
 	ModInputs.o\
 	ModLimiter.o\
 	ModMagTrace.o\
-	ModNewell.o\
 	ModOrbital.o\
-	ModOvationSME.o\
 	ModPlanet.o\
 	ModRates.o\
 	ModRCMR.o \
@@ -46,7 +43,8 @@ MODULES = \
 	ModTimingGITM.o\
 	ModUser.o \
 	ModVertical.o\
-	ModHmeModel.o
+	ModHmeModel.o\
+	ModGITMVersion.o
 
 
 OBJECTS = \
@@ -75,7 +73,7 @@ OBJECTS = \
 	calc_tec.o \
 	calc_timestep.o\
 	calc_viscosity.o\
-	chapman_new.o\
+	chapman.o\
 	check_for_nans.o\
 	divergence.o\
 	exchange_messages_sphere.o\
@@ -87,7 +85,6 @@ OBJECTS = \
 	initialize.o\
 	init_altitude.o\
 	init_b0.o\
-	init_energy_deposition.o\
 	init_grid.o\
 	init_iri.o\
 	init_mpi.o\
@@ -120,7 +117,6 @@ OBJECTS = \
 	time_routines.o\
 	timing.o\
 	user.o \
-	vertical_solver.o\
 	vertical_solver_ausm.o\
 	vertical_solver_rusanov.o\
 	write_output.o
@@ -145,34 +141,34 @@ EXE = ${BINDIR}/GITM.exe
 SAMIEXE = ${BINDIR}/GITMSAMI.exe
 
 GITM:	DEPEND
+	@rm -f GITM.exe
 	@make ${EXE}
-	@make POST
+	@echo
 	@echo "${EXE} has been created"
+	@echo
+
+${EXE}:	${OBJECTS_EXE}
+	${LINK.f90} -o ${EXE} ${OBJECTS_EXE} \
+		-L${ABDIR} -lSphere \
+		-L${LIBDIR} -lEMPIRICALUA -lINDICES -lSHARE \
+		-L${EIEDIR} -lIE \
+		-L${GLDIR} -lGLOW ${LBLAS} ${Lflag1}
 
 SAMI:	DEPENDSAMI
 	@make ${SAMIEXE}
-	@make POST
 	@echo "${SAMIEXE} has been created"
 
 ${SAMIEXE}:	${OBJECTS_SAMI}
 		${LINK.f90} -o ${SAMIEXE} ${OBJECTS_SAMI} \
-		-L${LIBDIR} -lSphere \
-		-L${LIBDIR} -lEMPIRICALIE -lEMPIRICALUA -lINDICES -lSHARE \
+		-L${ABDIR} -lSphere \
+		-L${IEDIR} -lIE \
+		-L${LIBDIR} -lEMPIRICALUA -lINDICES -lSHARE \
 		-L${GLDIR} -lGLOW ${LBLAS} \
 		-L${SAMIDIR}/src -lSAMI3 \
 		${Lflag1}
 
-${EXE}:	${OBJECTS_EXE}
-	make GITM_general
-
-GITM_general:
-	${LINK.f90} -o ${EXE} ${OBJECTS_EXE} \
-		-L${LIBDIR} -lSphere \
-		-L${LIBDIR} -lEMPIRICALIE -lEMPIRICALUA -lINDICES -lSHARE \
-		-L${GLDIR} -lGLOW ${LBLAS} ${Lflag1}
-
 POST:	PostProcess.o
-	${LINK.f90} ${Lflag2} -o PostProcess.exe PostProcess.o
+	${LINK.f90} ${Lflag2} -o PostGITM.exe PostProcess.o
 
 MY_LIB = libGITM.a
 
@@ -183,12 +179,9 @@ LIB:	DEPEND
 	@echo
 
 ${MY_LIB}: ${LIBPREV} ${MF} ${MODULES} ${OBJECTS}
-	cp -f ${LIBPREV} ${MY_LIB}
+	mv -f ${LIBPREV} ${MY_LIB}
 	${AR} ${MY_LIB} ${OBJECTS} ${MODULES}
 
-
-clean:
-	rm -f *~ core *.o *.mod fort.* a.out *.exe *.a *.so *.protex
 
 distclean: clean
 	rm -f 	ModSize.f90 \

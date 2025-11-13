@@ -8,8 +8,6 @@ module ModGITM
 
   implicit none
 
-  real :: GitmVersion = 21.11
-
   real :: dt = 0.0
 
   integer :: iCommGITM, iProc, nProcs
@@ -137,15 +135,17 @@ module ModGITM
     VerticalIonDrag
 
   real, allocatable :: Potential(:, :, :, :), PotentialY(:, :, :, :)
+  ! Separate potentials, leaving nBlocks out:
+  real, allocatable :: MagnetosphericPotential(:, :, :), DynamoPotential(:, :, :)
 
   real, dimension(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, 3) :: &
     ExB, EField
 
   real, dimension(-1:nLons + 2, -1:nLats + 2) :: &
-    ElectronEnergyFlux, ElectronAverageEnergy, &
-    IonEnergyFlux, IonAverageEnergy, &
-    ElectronEnergyFluxMono, ElectronNumberFluxMono, &
-    ElectronEnergyFluxWave, ElectronNumberFluxWave
+    ElectronEnergyFluxDiffuse, ElectronAverageEnergyDiffuse, &
+    ElectronEnergyFluxMono, ElectronAverageEnergyMono, &
+    ElectronEnergyFluxWave, ElectronAverageEnergyWave, &
+    IonEnergyFlux, IonAverageEnergy
 
   real, allocatable :: Velocity(:, :, :, :, :)
   real, allocatable :: IVelocity(:, :, :, :, :)
@@ -173,7 +173,12 @@ module ModGITM
 
   real :: SubsolarLatitude, SubsolarLongitude
   real :: MagneticPoleColat, MagneticPoleLon
+  real :: CPCPn, CPCPs
   real :: HemisphericPowerNorth, HemisphericPowerSouth
+  real :: HemisphericPowerNorth_diffuse, HemisphericPowerSouth_diffuse
+  real :: HemisphericPowerNorth_wave, HemisphericPowerSouth_wave
+  real :: HemisphericPowerNorth_mono, HemisphericPowerSouth_mono
+  real :: HemisphericPowerNorth_ion, HemisphericPowerSouth_ion
   real :: SunDeclination
 
   ! For WP-GITM: horizontal mean values at GITM's lower boundary
@@ -233,6 +238,7 @@ contains
     allocate(dKe(nLons, nLats, 0:nAlts + 1, nBlocks))
     allocate(cp(nLons, nLats, -1:nAlts + 2, nBlocks))
     allocate(B0(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, 4, nBlocks))
+    B0 = 0.0
     allocate(MLatitude(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, nBlocks))
     allocate(MLongitude(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, nBlocks))
     allocate(DipAngle(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, nBlocks))
@@ -249,11 +255,15 @@ contains
     allocate(cMax_GDB(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1, 3, nBlocks))
     allocate(IonPressureGradient(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, 3, nBlocks))
     allocate(Potential(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, nBlocks))
+    allocate(MagnetosphericPotential(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2))
+    allocate(DynamoPotential(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2))
     allocate(PotentialY(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, nBlocks))
+    PotentialY = 0.0
     allocate(Velocity(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, 3, nBlocks))
     allocate(IVelocity(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, 3, nBlocks))
     allocate(DivIVelocity(1:nLons, 1:nLats, 1:nAlts, nBlocks))
     allocate(IVelocityPar(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, 3, nBlocks))
+    IVelocityPar = 0.0
     allocate(IVelocityPerp(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, 3, nBlocks))
     allocate(Emissions(nLons, nLats, nAlts, nEmissions, nBlocks))
     allocate(vEmissionRate(nLons, nLats, nAlts, nEmissionWavelengths, nBlocks))
@@ -284,6 +294,7 @@ contains
     deallocate(dAltDLon_CB)
     deallocate(dAltDLat_CB)
     deallocate(Rho)
+    deallocate(ColumnIntegralRho)
     deallocate(Temperature)
     deallocate(Pressure)
     deallocate(NDensity)

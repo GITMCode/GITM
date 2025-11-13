@@ -24,6 +24,8 @@ subroutine set_inputs
   use ModPlanet
   use ModSatellites
   use ModRCMR
+  use ModIE
+  use ModErrors
   use ModIoUnit, only: UnitTmp_
 
   implicit none
@@ -31,11 +33,11 @@ subroutine set_inputs
   integer, external :: bad_outputtype
   integer, external :: jday
 
-  logical :: IsDone, IsStartFound, doUseAeForHp
+  logical :: IsDone, IsStartFound, doUseAeForHp, didDeclareHP = .false.
   integer :: iDebugProc = 0
   character(len=iCharLen_) :: cLine
   integer :: iLine, iSpecies, iSat
-  integer :: i, iError, iOutputTypes, iErrorFile, iFreq
+  integer :: i, iError, iOutputTypes, iErrorFile, iFreq, iFile
   integer, dimension(7) :: iTimeEnd
   integer :: iUnitFile = UnitTmp_
 
@@ -200,15 +202,18 @@ subroutine set_inputs
           call read_in_real(DtStatisticalModels, iError)
         if (iError /= 0) then
           write(*, *) 'Incorrect format for #STATISTICALMODELSONLY:'
-          write(*, *) 'This command will skip all pretty much all of the '
+          write(*, *) 'This command will skip pretty much all of the '
           write(*, *) 'physics of GITM, and will reinitialize the model '
-          write(*, *) 'with the MSIS and IRI values at the interval set in '
-          write(*, *) 'the second variable. If you want to compare a run to'
-          write(*, *) 'MSIS and IRI, you can run GITM with this command and'
-          write(*, *) 'get output at exactly the same cadence and locations,'
-          write(*, *) 'thereby allowing easier comparisons. The dt can be '
-          write(*, *) 'set as low as needed, so you can run satellites '
-          write(*, *) 'through MSIS and IRI.'
+          write(*, *) 'with MSIS, IRI & ELECTRODYNAMICS values at the interval set in '
+          write(*, *) 'the second variable. '
+          write(*, *) ' > If you want to compare a run to MSIS and IRI, you can run '
+          write(*, *) '   GITM with this command and get output at exactly the same '
+          write(*, *) '   cadence and locations, thereby allowing easier comparisons. '
+          write(*, *) ' > For running electrodynamics, the outputs will, by default, be'
+          write(*, *) '   on a geographic grid. To get the outputs on a magnetic grid,'
+          write(*, *) '   use #DIPOLE and set all the values to zero, forcing the '
+          write(*, *) '   magnetic & geographics grid to align. Use 2DGEL outputs.'
+          write(*, *) ''
           write(*, *) '#STATISTICALMODELSONLY'
           write(*, *) 'UseStatisticalModelsOnly    (logical)'
           write(*, *) 'DtStatisticalModels         (real)'
@@ -368,10 +373,21 @@ subroutine set_inputs
         if (iError /= 0) then
           write(*, *) 'Incorrect format for #MSISOBC:'
           write(*, *) 'UseOBCExperiment - use MSIS [O] BC shifted by 6 months'
+          write(*, *) '                   Only applicable for MSIS00!'
           write(*, *) 'MsisOblateFactor - alt = alt * (1.0-f/2 + f*cos(lat))'
+          write(*, *) '                 - seems like -0.1 works well'
           write(*, *) '#MSISOBC'
           write(*, *) 'UseOBCExperiment        (logical)'
           write(*, *) 'MsisOblateFactor           (real)'
+        endif
+
+      case ("#MSIS21")
+        call read_in_logical(UseMsis21, iError)
+        if (iError /= 0) then
+          write(*, *) 'Incorrect format for #MSIS21:'
+          write(*, *) 'This toggles between using MSIS00 (false) and MSIS-2.1 (true)'
+          write(*, *) '#MSISOBC'
+          write(*, *) 'UseMsis21       (logical)'
         endif
 
         !xianjing
@@ -681,8 +697,94 @@ subroutine set_inputs
 
         endif
 
-      case ("#AURORA")
+      case ("#ELECTRODYNAMICS")
         call read_in_string(cAuroralModel, iError)
+        call read_in_real(dTAurora, iError)
+        call read_in_string(cPotentialModel, iError)
+        call read_in_real(dTPotential, iError)
+
+        if (iError /= 0) then
+          write(*, *) 'Incorrect format for #ELECTRODYNAMICS'
+          write(*, *) 'Sets the time for updating the high-latitude'
+          write(*, *) '(and low-latitude) electrodynamic drivers, such as'
+          write(*, *) 'the potential and the aurora.'
+          write(*, *) '#ELECTRODYNAMICS'
+          write(*, *) 'AuroralModel     [fta], fre, pem, ovation, hpi/ihp, amie, zero, etc.'
+          write(*, *) 'DtAurora    (real, seconds [60.0])'
+          write(*, *) 'PotentialModel   [weimer05], hepmay, amie, zero, etc.'
+          write(*, *) 'DtPotential (real, seconds [60.0])'
+          IsDone = .true.
+        endif
+
+        call lower_case(cAuroralModel)
+        call lower_case(cPotentialModel)
+
+        ! This is saying if auroral model is NOT zero, then stop if there is no aurora
+        if (index(cAuroralModel, 'zero') == 0) &
+          doStopIfNoAurora = .true.
+        ! This is saying if potential model is NOT zero, then stop if there is no potential
+        if (index(cPotentialModel, 'zero') == 0) &
+          doStopIfNoPotential = .true.
+
+      case ("#AMIEFILES")
+        call read_in_string(cAMIEFileNorth, iError)
+        call read_in_string(cAMIEFileSouth, iError)
+        if (iError /= 0) then
+          write(*, *) 'Incorrect format for #AMIEFILES:'
+          write(*, *) ''
+          write(*, *) '#AMIEFILES'
+          write(*, *) 'cAMIEFileNorth  (string)'
+          write(*, *) 'cAMIEFileSouth  (string)'
+          IsDone = .true.
+        else
+          if (index(cAMIEFileNorth, "none") == 0 .and. &
+              .not. HasSetAuroraMods) &
+            NormalizeAuroraToHP = .false.
+        endif
+
+      case ("#AMIENORTH")
+        nAMIENorth = 0
+        call read_in_int(nAMIENorth, iError)
+        if (iError == 0 .and. nAMIENorth > 0) then
+          allocate(cAMIEListNorth(nAMIENorth))
+          do iFile = 1, nAMIENorth
+            call read_in_string(cAMIEListNorth(iFile), iError)
+          enddo
+        else
+          iError = 1
+        endif
+        if (iError /= 0) then
+          write(*, *) 'Incorrect format for #AMIENORTH:'
+          write(*, *) ''
+          write(*, *) '#AMIENORTH'
+          write(*, *) 'nAMIENorth       (int)'
+          write(*, *) 'cAMIEFileNorth1  (string)'
+          write(*, *) '...              (string)s'
+          write(*, *) 'cAMIEFileNorth(n)  (string)'
+          IsDone = .true.
+        endif
+
+      case ("#AMIESOUTH")
+        nAMIESouth = 0
+        call read_in_int(nAMIESouth, iError)
+        if (iError == 0 .and. nAMIESouth > 0) then
+          allocate(cAMIEListSouth(nAMIESouth))
+          do iFile = 1, nAMIESouth
+            call read_in_string(cAMIEListSouth(iFile), iError)
+          enddo
+        else
+          iError = 1
+        endif
+        if (iError /= 0) then
+          write(*, *) 'Incorrect format for #AMIESOUTH:'
+          write(*, *) ''
+          write(*, *) '#AMIESOUTH'
+          write(*, *) 'nAMIESouth       (int)'
+          write(*, *) 'cAMIEFileSouth1  (string)'
+          write(*, *) '...              (string)s'
+          write(*, *) 'cAMIEFileSouth(n)  (string)'
+          IsDone = .true.
+        endif
 
       case ("#AURORAMODS")
         HasSetAuroraMods = .true.
@@ -690,6 +792,8 @@ subroutine set_inputs
         call read_in_real(AveEFactor, iError)
         call read_in_logical(IsKappaAurora, iError)
         call read_in_real(AuroraKappa, iError)
+        call read_in_logical(AllowAurWODiffuse, iError)
+        call read_in_real(MaxAveEAurora, iError)
         if (iError /= 0) then
           write(*, *) 'Incorrect format for #AURORAMODS'
           write(*, *) 'This is for modifying the aurora a bit.  The'
@@ -699,96 +803,35 @@ subroutine set_inputs
           write(*, *) 'AveEFactor - changes the aveE of the aurora by factor'
           write(*, *) 'IsKappaAurora - use a kappa instead of Maxwellian'
           write(*, *) 'AuroraKappa - kappa to use in the distribution'
+          write(*, *) 'AllowAurWODiffuse: allow other aurora if diffuse is zero? [F]'
+          write(*, *) 'MaxAveEAurora - Maximum allowed value of AvgE'
           write(*, *) ''
           write(*, *) '#AURORAMODS'
           write(*, *) 'NormalizeAuroraToHP     (logical)'
           write(*, *) 'AveEFactor    (real)'
           write(*, *) 'IsKappaAurora     (logical)'
           write(*, *) 'AuroraKappa    (real)'
+          write(*, *) 'AllowAurWODiffuse (logical)'
+          write(*, *) 'MaxAveEAurora    (real)'
         endif
 
-      case ("#NEWELLAURORA")
-        call read_in_logical(UseNewellAurora, iError)
-        if (UseNewellAurora) then
-          call read_in_logical(UseNewellAveraged, iError)
-          call read_in_logical(UseNewellMono, iError)
-          call read_in_logical(UseNewellWave, iError)
-          call read_in_logical(DoNewellRemoveSpikes, iError)
-          call read_in_logical(DoNewellAverage, iError)
-        endif
-        if (iError /= 0) then
-          write(*, *) 'Incorrect format for #NEWELLAURORA'
-          write(*, *) 'This is for using Pat Newells aurora (Ovation).'
-          write(*, *) ''
-          write(*, *) '#NEWELLAURORA'
-          write(*, *) 'UseNewellAurora   (logical)'
-          write(*, *) 'UseNewellAveraged (logical)'
-          write(*, *) 'UseNewellMono (logical)'
-          write(*, *) 'UseNewellWave (logical)'
-          write(*, *) 'UseNewellRemoveSpikes (logical)'
-          write(*, *) 'UseNewellAverage      (logical)'
-          IsDone = .true.
-        else
-          if (UseNewellAurora .and. .not. HasSetAuroraMods) &
-            NormalizeAuroraToHP = .false.
-        endif
+      case ("#AURORATYPES") !"auroratypes? diffuse=true, rest=false
+        call read_in_logical(UseDiffuseAurora, iError)
+        call read_in_logical(UseMonoAurora, iError)
+        call read_in_logical(UseWaveAurora, iError)
+        call read_in_logical(UseIonAurora, iError)
 
-      case ("#OVATIONSME")
-        call read_in_logical(UseOvationSME, iError)
-        call read_in_logical(UseOvationSMEMono, iError)
-        call read_in_logical(UseOvationSMEWave, iError)
-        call read_in_logical(UseOvationSMEIon, iError)
         if (iError /= 0) then
-          write(*, *) 'Incorrect format for #OVATIONSME'
-          write(*, *) 'This is for using Betsy Michells aurora (OvationSME).'
+          write(*, *) 'Incorrect format for #AURORATYPES'
+          write(*, *) 'This is for setting aurora types from Electrodynamics.'
+          write(*, *) 'At time of writing, this only works for Newell/OvationPrime.'
+          write(*, *) 'These are all False by default, using only diffuse:'
           write(*, *) ''
-          write(*, *) '#OVATIONSME'
-          write(*, *) 'UseOvationSME     (logical)'
-          write(*, *) 'UseOvationSMEMono (logical)'
-          write(*, *) 'UseOvationSMEWave (logical)'
-          write(*, *) 'UseOvationSMEIon  (logical)'
-          IsDone = .true.
-        else
-          if (UseOvationSME .and. .not. HasSetAuroraMods) &
-            NormalizeAuroraToHP = .false.
-        endif
-
-      case ("#AEMODEL")
-        call read_in_logical(UseAeModel, iError)
-        if (iError /= 0) then
-          write(*, *) 'Incorrect format for #AEMODEL'
-          write(*, *) 'This is for using Dongjies aurora.'
-          write(*, *) ''
-          write(*, *) '#AEMODEL'
-          write(*, *) 'UseAeModel        (logical)'
-          IsDone = .true.
-        else
-          if (UseAeModel .and. .not. HasSetAuroraMods) &
-            NormalizeAuroraToHP = .false.
-        endif
-
-      case ("#FTAMODEL")
-        call read_in_logical(UseFtaModel, iError)
-        if (iError /= 0) then
-          write(*, *) 'Incorrect format for #FTAMODEL'
-          write(*, *) 'This is for using the FTA Model of the aurora.'
-          write(*, *) ''
-          write(*, *) '#FTAMODEL'
-          write(*, *) 'UseFtaModel        (logical)'
-          IsDone = .true.
-        else
-          if (UseFtaModel .and. .not. HasSetAuroraMods) &
-            NormalizeAuroraToHP = .false.
-        endif
-
-      case ("#FANGENERGY")
-        call read_in_logical(UseFangEnergyDeposition, iError)
-        if (iError /= 0) then
-          write(*, *) 'Incorrect format for #FANGENERGY'
-          write(*, *) 'This is for using Dongjies aurora.'
-          write(*, *) ''
-          write(*, *) '#FANGENERGY'
-          write(*, *) 'UseFangEnergyDeposition        (logical)'
+          write(*, *) '#AURORATYPES'
+          write(*, *) 'UseDiffuseAurora (logical) - True by default'
+          write(*, *) 'UseMonoAurora (logical)'
+          write(*, *) 'UseWaveAurora (logical)'
+          write(*, *) 'UseIonAurora (logical)'
           IsDone = .true.
         endif
 
@@ -807,20 +850,19 @@ subroutine set_inputs
           IsDone = .true.
         endif
 
-      case ("#AMIEFILES")
-        call read_in_string(cAMIEFileNorth, iError)
-        call read_in_string(cAMIEFileSouth, iError)
+      case ("#USEPOLARRAIN")
+        call read_in_logical(UsePolarRain, iError)
+        call read_in_real(polarRainAveE, iError)
+        call read_in_real(polarRainEFlux, iError)
         if (iError /= 0) then
-          write(*, *) 'Incorrect format for #AMIEFILES:'
+          write(*, *) 'Incorrect format for #USECUSP'
+          write(*, *) 'This is for specifying a cusp.'
           write(*, *) ''
-          write(*, *) '#AMIEFILES'
-          write(*, *) 'cAMIEFileNorth  (string)'
-          write(*, *) 'cAMIEFileSouth  (string)'
+          write(*, *) '#USEPOLARRAIN'
+          write(*, *) 'UsePolarRain        (logical)'
+          write(*, *) 'PolarRainAveE       (real)'
+          write(*, *) 'PolarRainEFlux      (real)'
           IsDone = .true.
-        else
-          if (index(cAMIEFileNorth, "none") == 0 .and. &
-              .not. HasSetAuroraMods) &
-            NormalizeAuroraToHP = .false.
         endif
 
       case ("#USEREGIONALAMIE")
@@ -921,14 +963,28 @@ subroutine set_inputs
       case ("#IONLIMITS")
         call read_in_real(MaxVParallel, iError)
         call read_in_real(MaxEField, iError)
+        call read_in_real(MinIonDensity, iError)
+        call read_in_real(MinIonDensityAdvect, iError)
         if (iError /= 0) then
           write(*, *) 'Incorrect format for #IONLIMITS:'
           write(*, *) ''
           write(*, *) '#IONLIMITS'
-          write(*, *) "MaxVParallel   (real, default=100 m/s)"
-          write(*, *) "MaxEField      (real, default=0.1 V/m)"
-          MaxVParallel = 100.0
-          MaxEField = 0.1
+          write(*, *) "MaxVParallel     (real, default=100 m/s)"
+          write(*, *) "MaxEField        (real, default=0.1 V/m)"
+          write(*, *) "MinIonDensity    (real, default=100 m^-3)"
+          write(*, *) "MinIonDensityAdvect    (real, default=1e5 m^-3)"
+          IsDone = .true.
+        endif
+
+      case ("#NEUTRALLIMITS")
+        call read_in_real(MinNeutralDensity, iError)
+        call read_in_real(MinNeutralDensityAdvect, iError)
+        if (iError /= 0) then
+          write(*, *) 'Incorrect format for #NEUTRALLIMITS:'
+          write(*, *) ''
+          write(*, *) '#IONLIMITS'
+          write(*, *) "MinNeutralDensity    (real, default=100 m^-3)"
+          write(*, *) "MinNeutralDensityAdvect    (real, default=1e5 m^-3)"
           IsDone = .true.
         endif
 
@@ -954,10 +1010,19 @@ subroutine set_inputs
           IsDone = .true.
         endif
 
+      case ("#DON4SHACK")
+        call read_in_logical(DoN4SHack, iError)
+        if (iError /= 0) then
+          write(*, *) 'Incorrect format for #DON4SHACK:'
+          write(*, *) ''
+          write(*, *) '#DON4SHACK'
+          write(*, *) "DoN4SHack       (logical)"
+          IsDone = .true.
+        endif
+
       case ("#THERMO")
         call read_in_logical(UseSolarHeating, iError)
         call read_in_logical(UseJouleHeating, iError)
-        call read_in_logical(UseAuroralHeating, iError)
         call read_in_logical(UseNOCooling, iError)
         call read_in_logical(UseOCooling, iError)
         call read_in_logical(UseConduction, iError)
@@ -969,7 +1034,6 @@ subroutine set_inputs
           write(*, *) '#THERMO'
           write(*, *) "UseSolarHeating   (logical)"
           write(*, *) "UseJouleHeating   (logical)"
-          write(*, *) "UseAuroralHeating (logical)"
           write(*, *) "UseNOCooling      (logical)"
           write(*, *) "UseOCooling       (logical)"
           write(*, *) "UseConduction     (logical)"
@@ -1064,7 +1128,7 @@ subroutine set_inputs
           IsDone = .true.
         endif
 
-      case ("#MODIFIYPLANET")
+      case ("#MODIFYPLANET")
         call read_in_real(RotationPeriodInput, iError)
         call read_in_real(DaysPerYearInput, iError)
         call read_in_real(PlanetTiltInput, iError)
@@ -1098,6 +1162,7 @@ subroutine set_inputs
           write(*, *) '#USEIMPROVEDIONADVECTION'
           write(*, *) "UseImprovedIonAdvection      (logical)"
           write(*, *) "UseNighttimeIonBCs           (logical)"
+          write(*, *) "MinTEC                       (real)"
         endif
 
       case ("#USETESTVISCOSITY")
@@ -1174,6 +1239,8 @@ subroutine set_inputs
 
         if (iError /= 0) then
           write(*, *) 'Incorrect format for #DIPOLE:'
+          write(*, *) "For #USESTATISTICALMODELSONLY's electrodynamics outputs (2DGEL),"
+          write(*, *) ' set all 5 values to zero to align magnetic & geographic grids.'
           write(*, *) ''
           write(*, *) '#DIPOLE'
           write(*, *) 'MagneticPoleRotation   (real)'
@@ -1601,20 +1668,6 @@ subroutine set_inputs
           write(*, *) "useDART (integer, {default 0=no}, 1=master ensemble member, 2=slave ens.)"
         endif
 
-      case ("#ELECTRODYNAMICS")
-        call read_in_real(dTPotential, iError)
-        call read_in_real(dTAurora, iError)
-        if (iError /= 0) then
-          write(*, *) 'Incorrect format for #ELECTRODYNAMICS'
-          write(*, *) 'Sets the time for updating the high-latitude'
-          write(*, *) '(and low-latitude) electrodynamic drivers, such as'
-          write(*, *) 'the potential and the aurora.'
-          write(*, *) '#ELECTRODYNAMICS'
-          write(*, *) 'DtPotential (real, seconds)'
-          write(*, *) 'DtAurora    (real, seconds)'
-          IsDone = .true.
-        endif
-
       case ("#INPUTTIMEDELAY")
         call read_in_real(TimeDelayHighLat, iError)
         call read_in_real(TimeDelayEUV, iError)
@@ -1635,17 +1688,6 @@ subroutine set_inputs
           write(*, *) ''
           write(*, *) '#LTERadiation'
           write(*, *) 'DtLTERadiation (real)'
-          IsDone = .true.
-        endif
-
-      case ("#IONPRECIPITATION")
-        call read_in_logical(UseIonPrecipitation, iError)
-        if (iError /= 0) then
-          write(*, *) 'Incorrect format for #IONPRECIPITATION'
-          write(*, *) 'You can only have an AMIE input file for this now.'
-          write(*, *) 'Make sure you put the ions in the AMIE file!!!'
-          write(*, *) '#IONPRECIPITATION'
-          write(*, *) 'UseIonPrecipitation     (logical)'
           IsDone = .true.
         endif
 
@@ -1821,6 +1863,24 @@ subroutine set_inputs
           write(*, *) "----------------------------------------------"
           iError = 0
         endif
+
+        call read_in_logical(doSeparateHPI, iError)
+        if ((iError /= 0) .and. (iDebugProc == iProc) .and. doUseAeForHp) then
+          write(*, *) "----------------------------------------------"
+          write(*, *) "GITM allows the use of a 10% seasonal "
+          write(*, *) "correction factor in the conversion of AE to HP"
+          write(*, *) "Put another T after convert to HP if you want this,"
+          write(*, *) "or put an F to silence this message."
+          write(*, *) "----------------------------------------------"
+          iError = 0
+        endif
+
+        ! Check if HPI was read with SME, print warning if so:
+        if (didDeclareHP .and. doUseAeForHp .and. (iDebugProc == iProc)) then
+          call set_error("HPI defined twice. Using only one is supported.")
+        endif
+        if (doUseAeForHp) didDeclareHP = .true.
+
         cTempLines(4) = " "
         cTempLines(5) = "#END"
 
@@ -1830,7 +1890,8 @@ subroutine set_inputs
         else
           call read_sme(iError, &
                         CurrentTime + TimeDelayHighLat, &
-                        EndTime + TimeDelayHighLat, doUseAeForHp)
+                        EndTime + TimeDelayHighLat, &
+                        doUseAeForHp, DoSeparateHPI)
         endif
 
         if (iError /= 0) then
@@ -1841,7 +1902,7 @@ subroutine set_inputs
           ! If the onset file is called "none", then it will
           ! automatically ignore this:
 
-          call read_al_onset_list(iError, &
+          call read_al_onset_list(iError, & !TODO: Get this working in ieModel
                                   CurrentTime + TimeDelayHighLat, &
                                   EndTime + TimeDelayHighLat)
 
@@ -1893,7 +1954,19 @@ subroutine set_inputs
       case ("#NOAAHPI_INDICES")
         cTempLines(1) = cLine
         call read_in_string(cTempLine, iError)
+
         cTempLines(2) = cTempLine
+
+        call read_in_logical(doSeparateHPI, iError)
+        if ((iError /= 0) .and. (iDebugProc == iProc)) then
+          write(*, *) "----------------------------------------------"
+          write(*, *) "GITM now allows you to scale the aurora by hemispheric"
+          write(*, *) "power independently in each hemisphere. To enable this,"
+          write(*, *) "put a T after your HPI file, or put a F to silence."
+          write(*, *) "----------------------------------------------"
+          iError = 0
+        endif
+
         cTempLines(3) = " "
         cTempLines(4) = "#END"
 
@@ -1901,7 +1974,7 @@ subroutine set_inputs
         if (IsFramework) then
           call read_NOAAHPI_Indices(iError)
         else
-          call read_NOAAHPI_Indices_new(iError, StartTime, EndTime)
+          call read_NOAAHPI_Indices_new(iError, StartTime, EndTime, DoSeparateHPI)
         endif
 
         if (iError /= 0) then
@@ -1911,8 +1984,18 @@ subroutine set_inputs
           UseVariableInputs = .true.
         endif
 
+        ! Check if HPI was made from SME, print warning if so:
+        if (didDeclareHP) call set_error("HPI defined twice. Using only one is supported.")
+        didDeclareHP = .true.
+
       case ("#END")
         IsDone = .true.
+
+      case default
+        if (iDebugProc == iProc) then
+          call raise_warning("Option found in UAM.in file without a matching key:")
+          call raise_warning(cLine)
+        endif
 
       end select
 
@@ -1937,6 +2020,7 @@ subroutine set_inputs
   ! We need to check to see if the current time and end time are
   ! larger than the last F107 time.  If that is the case, the code
   ! should stop
+
   ! NOTE: In component mode, start/end times are not passed in yet.
   ! -> So we cannot check these. A fix is in the works...
   if (.not. IsFramework) then !SWMF_TIME_NOT_AVAILABLE
@@ -1944,6 +2028,10 @@ subroutine set_inputs
     call check_all_indices(CurrentTime, iError)
     if (iError == 0) then
       call check_all_indices(EndTime, iError)
+      if (iError /= 0) &
+        write(*, *) 'Error with End Time and check_all_indices'
+    else
+      write(*, *) 'Error with Current Time and check_all_indices'
     endif
     if (iError /= 0) then
       call stop_gitm("Issue with Indices! Check the file(s) times!")

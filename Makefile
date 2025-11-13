@@ -3,21 +3,25 @@ default : GITM
 
 include Makefile.def
 
-ABDIR   = srcSphereAB
-EIEDIR  = ${EMPIRICALIEDIR}
-EUADIR  = ${EMPIRICALUADIR}
-IODIR   = ${DATAREADINDICESDIR}
-MAINDIR = src
-GLDIR   = srcGlow
-SAMIDIR = srcSAMI
+ABDIR = ${UADIR}/srcSphereAB
+EIEDIR = ${IEDIR}
+EUADIR = ${EMPIRICALUADIR}
+IODIR = ${DATAREADINDICESDIR}
+MAINDIR = ${UADIR}/src
+GLDIR = ${UADIR}/srcGlow
+SAMIDIR = ${UADIR}/srcSAMI
 
 PLANET=earth
+
+help:
+	@echo "GITM    - make GITM.exe"
 
 src/ModSize.f90:
 	cp src/ModSize.f90.orig src/ModSize.f90
 
 INSTALLFILES =  src/Makefile.DEPEND \
 		src/Makefile.RULES  \
+		${ABDIR}/Makefile.DEPEND \
 		srcInterface/Makefile.DEPEND
 
 install: src/ModSize.f90
@@ -32,14 +36,19 @@ NOMPI:
 	@echo ${NOMPIDIR}
 	@cd ${NOMPIDIR}; make LIB
 
+VERSION:
+	./share/Scripts/Makeversion.sh
+	@echo
+
 GITM:
-	@cd ${SHAREDIR}; make LIB
-	@cd $(ABDIR);    make LIB
-	@cd $(EIEDIR);   make LIB
-	@cd ${EUADIR};   make LIB
-	@cd $(IODIR);    make LIB
-	@cd $(GLDIR);	 make LIB
-	@cd $(MAINDIR);  make GITM
+	@cd ${SHAREDIR}; echo "Entering ${SHAREDIR}"; make --no-print-directory LIB
+	@cd $(ABDIR); echo "Entering ${ABDIR}" ; make --no-print-directory LIB
+	@cd $(EIEDIR)/src; echo "Entering ${EIEDIR}/src"; make --no-print-directory SHARELIB
+	@cd ${EUADIR}; echo "Entering ${EUADIR}"; make --no-print-directory LIB
+	@cd $(IODIR); echo "Entering ${IODIR}"; make --no-print-directory LIB
+	@cd $(GLDIR); echo "Entering ${GLDIR}";	make --no-print-directory LIB
+	@echo "Creating version file:"; make --no-print-directory VERSION
+	@cd $(MAINDIR); make --no-print-directory GITM
 
 SAMI:
 	@cd ${SHAREDIR}; make LIB MEM=-mcmodel=large
@@ -61,7 +70,6 @@ LIB:
 	cd $(GLDIR)     ; make LIBPREV=${LIBDIR}/libSphere.a   LIBADD
 	cd $(MAINDIR)   ; make LIBPREV=${GITM}/${GLDIR}/libUPTOGL.a   LIB
 	cd srcInterface ; make LIBPREV=${GITM}/${MAINDIR}/libUA.a     LIB
-	make POST
 
 nompirun:
 	make GITM
@@ -69,28 +77,29 @@ nompirun:
 
 clean:
 	@touch ${INSTALLFILES}
-	cd $(ABDIR); make clean
-	cd $(MAINDIR); make clean
-	cd $(GLDIR); make clean
-	cd srcInterface; make clean
-	if [ -d share ]; then cd share; make cleanall; fi;
-	if [ -d util ];  then cd util;  make cleanall; fi;
-	if [ -d srcSAMI ]; then cd srcSAMI; make clean; fi;
+	cd $(ABDIR); make --no-print-directory clean
+	cd $(MAINDIR); make --no-print-directory clean
+	cd $(GLDIR); make --no-print-directory clean
+	cd srcInterface; make --no-print-directory clean
+	if [ -d share ]; then cd share; make --no-print-directory cleanall; fi;
+	if [ -d util ]; then cd util; make --no-print-directory cleanall; fi;
+	if [ -d srcSAMI ]; then cd srcSAMI; make --no-print-directory clean; fi;
+	if [ -d $(EIEDIR) ]; then cd $(EIEDIR); make --no-print-directory cleanall; fi;
+	if [ -f src/.version ]; then rm src/.version; fi
 
 
 distclean: 
+	make clean
 	./Config.pl -uninstall
 
 allclean:
 	@touch ${INSTALLFILES}
-	@cd $(ABDIR);    make clean
-	@cd $(MAINDIR);  make distclean
-	@cd srcInterface;make distclean
+	@cd $(ABDIR); make clean
+	@cd $(MAINDIR); make distclean
+	@cd srcInterface; make distclean
 	rm -f *~ srcData/UAM.in
 	# If util and share were moved because of GITM being
 	# used in SWMF component mode, put them back.
-	if [ -d component_util ]; then mv component_util util; fi
-	if [ -d component_share ]; then mv component_share share; fi
 
 #
 #       Create run directories
@@ -105,18 +114,19 @@ rundir:
                 ln -s restartOUT restartIN; \
                 ln -s ${UADIR}/srcSAMI/srcInputs ./input; \
 	fi
-	cd ${RUNDIR}; \
-		if [ ! -e "EIE/README" ]; then \
-			ln -s ${EMPIRICALIEDIR}/data EIE;\
-		fi;
-	cd ${RUNDIR}; rm -f ./PostGITM.exe ; ln -s ${UADIR}/src/PostProcess.exe ./PostGITM.exe
 	cd ${RUNDIR}/UA; \
-		mkdir restartOUT data DataIn; \
-		ln -s restartOUT restartIN; \
-		ln -s ${UADIR}/src/pGITM .; \
-		ln -s ${UADIR}/srcPython/pGITM.py .; \
-		ln -s ${UADIR}/srcData/* DataIn; rm -f DataIn/CVS; \
-		ln -s ${UADIR}/data/* DataIn;    rm -f DataIn/CVS
+			mkdir -p restartOUT data  DataIn; \
+			ln -s restartOUT restartIN; \
+			ln -s ${UADIR}/srcPython/post_process.py .; \
+			ln -s ${UADIR}/srcData/* DataIn; rm -f DataIn/CVS; \
+			ln -s ${UADIR}/data/* DataIn;    rm -f DataIn/CVS; \
+			ln -s ${EIEDIR}/data/ext extIE; \
+	# For legacy postprocessor. If user has already run make POST, take those files:
+	cd ${RUNDIR} ; \
+		if [ -e ${UADIR}/src/PostGITM.exe ]; then \
+			ln -s ${UADIR}/src/PostGITM.exe .; \
+			ln -s ${UADIR}/src/pGITM .; \
+		fi
 	cd ${RUNDIR} ;                                   \
 		if [ -e ${BINDIR}/GITM.exe ]; then       \
 			ln -s ${BINDIR}/GITM.exe . ;     \

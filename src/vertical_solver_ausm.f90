@@ -7,22 +7,6 @@
 ! ------------------------------------------------------------
 !/
 
-subroutine check_ion_densities(iDen)
-
-  use ModSizeGitm
-  use ModPlanet, only: nIonsAdvect, nIons
-  real, intent(inout) :: iDen(-1:nAlts + 2, nIons)
-
-  do iIon = 1, nIonsAdvect
-    do iAlt = 1, nAlts + 2
-      if (iDen(iAlt, iIon) < 0.0) then
-        iDen(iAlt, iIon) = max(iDen(iAlt - 1, iIon)*0.99, 10.0)
-      endif
-    enddo
-  enddo
-
-end subroutine check_ion_densities
-
 subroutine advance_vertical_1d_ausm
 
   use ModVertical
@@ -158,9 +142,9 @@ subroutine advance_vertical_1d_ausm
   NewVertVel = VertVel
 
   DtIn = 0.5*Dt  !!! Store this so that it doesn't change
-  call advance_vertical_1stage_ausm(DtIn, &
-                                    LogRho, LogNS, Vel_GD, Temp, NewLogRho, NewLogNS, NewVel_GD, NewTemp, &
-                                    LogINS, NewLogINS, IVel, VertVel, NewVertVel)
+  call advance_vertical_1stage_ausm(DtIn, LogRho, LogNS, Vel_GD, Temp, NewLogRho, &
+                                    NewLogNS, NewVel_GD, NewTemp, LogINS, NewLogINS, &
+                                    IVel, VertVel, NewVertVel)
 
 !!! note that Stage 1 -> updated by a 1/2 step
 !!! (NewLogNS - LogNS) = f(tn + Dt/2, yn + dt/2)
@@ -432,14 +416,14 @@ subroutine advance_vertical_1d_ausm
 end subroutine advance_vertical_1d_ausm
 
 !=============================================================================
-subroutine advance_vertical_1stage_ausm(DtIn, &
-                                        LogRho, LogNS, Vel_GD, Temp, NewLogRho, NewLogNS, NewVel_GD, NewTemp, &
-                                        LogINS, NewLogINS, IVel, VertVel, NewVertVel)
+subroutine advance_vertical_1stage_ausm(DtIn, LogRho, LogNS, Vel_GD, Temp, NewLogRho, &
+                                        NewLogNS, NewVel_GD, NewTemp, LogINS, &
+                                        NewLogINS, IVel, VertVel, NewVertVel)
 
   ! With fluxes and sources based on LogRho..Temp, update NewLogRho..NewTemp
 
   use ModGITM, only: &
-    Dt, iEast_, iNorth_, iUp_, ThermalDiffCoefS
+    iEast_, iNorth_, iUp_, ThermalDiffCoefS
   use ModPlanet
   use ModSizeGitm
   use ModVertical, only: &
@@ -468,10 +452,9 @@ subroutine advance_vertical_1stage_ausm(DtIn, &
   real, intent(inout) :: NewLogNS(-1:nAlts + 2, nSpecies)
   real, intent(inout) :: NewLogINS(-1:nAlts + 2, nIons)
   real, intent(inout) :: NewVel_GD(-1:nAlts + 2, 3)
-  real :: NewVel2_G(-1:nAlts + 2)
   real, intent(inout) :: NewTemp(-1:nAlts + 2)
-  real, intent(out) :: NewVertVel(-1:nAlts + 2, nSpecies)
-  real :: NS(-1:nAlts + 2, nSpecies), Pressure1D(-1:nAlts + 2)
+  real, intent(inout) :: NewVertVel(-1:nAlts + 2, nSpecies)
+  real :: NS(-1:nAlts + 2, nSpecies)
   real :: Rho(-1:nAlts + 2)
 
   real :: LogNum(-1:nAlts + 2)
@@ -905,7 +888,7 @@ subroutine advance_vertical_1stage_ausm(DtIn, &
                                NewNT(1:nAlts), &
                                NS_small, &
                                GradLogConS(1:nAlts, 1:nSpecies), &
-                               Temp(1:nAlts))
+                               NewTemp(1:nAlts))
     NewVertVel(1:nAlts, 1:nSpecies) = nVel(1:nAlts, 1:nSpecies)
   endif
 

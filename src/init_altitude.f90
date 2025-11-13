@@ -16,6 +16,7 @@ subroutine get_temperature(lon, lat, alt, t, h)
   !---------------------------------------------------------------------------
   if (UseMsis) then
 
+    call initialize_msis_routines
     call get_msis_temperature(lon, lat, alt, t, h)
 
   else

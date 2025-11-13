@@ -85,7 +85,7 @@ or
 
 #EUV_DATA
 F						Use FISM solar flux data
-srcData/FISM/fismflux_daily_2002.dat		Filename
+UA/DataIn/FISM/fismflux_daily_2002.dat		Filename
 
 ------------ Auroral Drivers ------------
 
@@ -99,21 +99,37 @@ or
 NOAAHPI_INDICES
 power file
 
-New auroral model from Wu and Ridley, which is driven by AU/AL/AE
-#FTAMODEL
-T                 Use FTA model of the aurora
-
 Can download AU/AL/AE indices from SuperMAG and use them here:
 SME_INDICES
-sme_2010.txt      SME Filename
+sme_2002.txt      SME Filename
 none              onset time delay file
+T		  Use AE to derive Hemispheric Power
 
-This is for OVATION-PRIME:
-#NEWELLAURORA
-F                 Use Newell Ovation model of the aurora
+#ELECTRODYNAMICS
+FTA
+60.0
+Weimer
+60.0
+
+In order to use Mono, Wave, and Ion, you need to have a source of this
+such as ovation, swmf, or something else.
+
+#AURORATYPES
+T			Diffuse
+F			Mono
+F			Wave
+F			Ion
 
 #FANGENERGY
 T		Use Fang 2010 and 2013 energy deposition
+
+In order to use polar rain, the polar cap must be defined.  This is done
+with FTA and SWMF aurora only at this time.
+
+#USEPOLARRAIN
+F
+0.1			avee
+0.25			eflux
 
 Can add a cusp:
 #USECUSP
@@ -127,9 +143,6 @@ F		normalize to hemispheric power
 1.0		avee factor (1 is no mod)
 F		iskappa
 4.0		kappa (3 min; higher is maxwellian)
-
-#IONPRECIPITATION
-F		If ions are included in the AMIE file, use them. FangEnergy=T!
 
 ------------ E-Field Drivers ------------
 
@@ -150,11 +163,6 @@ SWPC_INDICES
 imf file
 solar wind file
 
-This is for amie-like inputs:
-#AMIEFILES
-none		northern hemisphere amie file
-none		southern hemisphere amie file
-
 Low-latitude dynamo (only run with higher res). Turn on for higher res sims:
 #DYNAMO
 F		UseDynamo
@@ -171,6 +179,8 @@ Some new features:
 #MSISOBC
 T		Shift the [O] density at the lower boundary by 6 months 
 0.0		change the obateness of the Earth by this percent (0 = none)
+
+A good value for the oblateness is -0.1 for Earth
 
 --------------------------------------------------------------------------
 These set the thermal balance of the code:

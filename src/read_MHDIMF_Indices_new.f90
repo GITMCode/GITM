@@ -108,7 +108,6 @@ subroutine read_MHDIMF_Indices_new(iOutputError, StartTime, EndTime)
         else
 
           call time_int_to_real(iTime, IndexTimes_TV(iIMF, imf_bx_))
-
           if (IsFirstLine) then
             FirstTime = IndexTimes_TV(iIMF, imf_bx_)
             IsFirstLine = .false.
@@ -144,15 +143,12 @@ subroutine read_MHDIMF_Indices_new(iOutputError, StartTime, EndTime)
 
           ! This makes sure that we only store the values that we
           ! are really interested in
-
           if (IndexTimes_TV(iIMF, imf_bx_) >= StartTime - BufferTime .and. &
               IndexTimes_TV(iIMF, imf_bx_) <= EndTime + BufferTime .and. &
               iIMF < MaxIndicesEntries) then
-
-            if (abs(Indices_TV(iSW, imf_bz_)) < 200.0) iIMF = iIMF + 1
+            if (abs(Indices_TV(iIMF, imf_bz_)) < 200.0) iIMF = iIMF + 1
             if ((abs(Indices_TV(iSW, sw_n_)) < 900.0) .and. &
                 (abs(Indices_TV(iSW, sw_v_)) < 3000.0)) iSW = iSW + 1
-
           else
 
             ! This means that the GITM time is all BEFORE the first
@@ -178,15 +174,48 @@ subroutine read_MHDIMF_Indices_new(iOutputError, StartTime, EndTime)
 
   if (iIMF >= MaxIndicesEntries) ReReadIMFFile = .true.
 
-  nIndices_V(imf_bx_) = iIMF - 2
-  nIndices_V(imf_by_) = iIMF - 2
-  nIndices_V(imf_bz_) = iIMF - 2
-  nIndices_V(sw_vx_) = iSW - 2
-  nIndices_V(sw_vy_) = iSW - 2
-  nIndices_V(sw_vz_) = iSW - 2
-  nIndices_V(sw_v_) = iSW - 2
-  nIndices_V(sw_n_) = iSW - 2
-  nIndices_V(sw_t_) = iSW - 2
+  iIMF = iIMF - 2
+  iSW = iSW - 2
+
+  ! There is sometimes a problem where the end time is in the middle of
+  ! a data gap. Let's check this:
+  if (iIMF > 2) then
+    if (IndexTimes_TV(iIMF, imf_bx_) < EndTime) then
+      ! Copy the last index into the next index and assign times
+      iIMF = iIMF + 1
+      IndexTimes_TV(iIMF, imf_bx_) = EndTime
+      IndexTimes_TV(iIMF, imf_by_) = EndTime
+      IndexTimes_TV(iIMF, imf_bz_) = EndTime
+      Indices_TV(iIMF, imf_bx_) = Indices_TV(iIMF - 1, imf_bx_)
+      Indices_TV(iIMF, imf_by_) = Indices_TV(iIMF - 1, imf_by_)
+      Indices_TV(iIMF, imf_bz_) = Indices_TV(iIMF - 1, imf_bz_)
+
+      IndexTimes_TV(iSW, sw_vx_) = EndTime
+      IndexTimes_TV(iSW, sw_vy_) = EndTime
+      IndexTimes_TV(iSW, sw_vz_) = EndTime
+      IndexTimes_TV(iSW, sw_v_) = EndTime
+      IndexTimes_TV(iSW, sw_n_) = EndTime
+      IndexTimes_TV(iSW, sw_t_) = EndTime
+
+      Indices_TV(iSW, sw_vx_) = Indices_TV(iSW - 1, sw_vx_)
+      Indices_TV(iSW, sw_vy_) = Indices_TV(iSW - 1, sw_vy_)
+      Indices_TV(iSW, sw_vz_) = Indices_TV(iSW - 1, sw_vz_)
+      Indices_TV(iSW, sw_v_) = Indices_TV(iSW - 1, sw_v_)
+      Indices_TV(iSW, sw_n_) = Indices_TV(iSW - 1, sw_n_)
+      Indices_TV(iSW, sw_t_) = Indices_TV(iSW - 1, sw_t_)
+
+    endif
+  endif
+
+  nIndices_V(imf_bx_) = iIMF
+  nIndices_V(imf_by_) = iIMF
+  nIndices_V(imf_bz_) = iIMF
+  nIndices_V(sw_vx_) = iSW
+  nIndices_V(sw_vy_) = iSW
+  nIndices_V(sw_vz_) = iSW
+  nIndices_V(sw_v_) = iSW
+  nIndices_V(sw_n_) = iSW
+  nIndices_V(sw_t_) = iSW
 
   ! If we have gotten to this point and we have no data,
   ! there is something wrong!

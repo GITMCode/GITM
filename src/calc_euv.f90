@@ -610,15 +610,15 @@ subroutine calc_scaled_euv
       hlya = 3.E+11 + 0.4E+10*(f107 - 70.)
       heiew = 0.
 
-      xuvfac = 4.0 - f107_ratio
-      if (xuvfac < 1.0) xuvfac = 1.0
-
       ! I think that this is the Hinteregger stuff, which goes from
       ! 2A - 1750A, so it is used to fill in the Above and Below spectrum
       f107_ratio = (f107 - 68.0)/(243.0 - 68.0)
       do N = 1, Num_WaveLengths_High
         Solar_Flux(N) = RFLUX(N) + (XFLUX(N) - RFLUX(N))*f107_Ratio
       enddo
+
+      xuvfac = 4.0 - f107_ratio
+      if (xuvfac < 1.0) xuvfac = 1.0
 
       ! This is a total hack, just comparing FISM to these fluxes:
       Solar_flux(Num_WaveLengths_High - 4) = Solar_flux(Num_WaveLengths_High - 4)*3.0

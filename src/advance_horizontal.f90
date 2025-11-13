@@ -44,6 +44,8 @@ subroutine advance_horizontal_all
     call check_for_nans_temps("After Horizontal")
   endif
 
+  call correct_min_ion_density
+
   call end_timing("horizontal_all")
 
 end subroutine advance_horizontal_all
@@ -358,9 +360,14 @@ subroutine advance_horizontal(iBlock)
           IsFound = .false.
           do iSpecies = 1, nSpecies
             if (NewNum_CV(iLon, iLat, iSpecies) < 0.0) then
-              write(*, *) "Species : ", iSpecies, iLon, iLat, iBlock
-              stop
-              NewNum_CV(iLon, iLat, iSpecies) = 1.0
+              write(*, *) "Species : ", iLon, iLat, iAlt, iSpecies, iBlock
+              ! call stop_gitm("neg ion density! stopping in advance_horizontal")
+              if (iSpecies <= nSpecies) then
+                NewNum_CV(iLon, iLat, iSpecies) = MinNeutralDensityAdvect
+              else
+                NewNum_CV(iLon, iLat, iSpecies) = MinNeutralDensity
+              endif
+
               IsFound = .true.
             endif
           enddo
