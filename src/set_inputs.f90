@@ -1020,6 +1020,16 @@ subroutine set_inputs
           IsDone = .true.
         endif
 
+      case ("#CO2FOMICHEV")
+        call read_in_logical(UseCO2FomichevCooling, iError)
+        if (iError /= 0) then
+           write(*, *) 'Incorrect format for #CO2FOMICHEV:'
+           write(*, *) ''
+           write(*, *) '#CO2FOMICHEV'
+           write(*, *) "UseCO2FomichevCooling   (logical)"
+          IsDone = .true.
+        endif
+        
       case ("#THERMO")
         call read_in_logical(UseSolarHeating, iError)
         call read_in_logical(UseJouleHeating, iError)
