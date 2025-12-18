@@ -309,7 +309,7 @@ subroutine output(dir, iBlock, iOutputType)
 
   case ('3DTHM')
 
-    nvars_to_write = 16 + 4
+    nvars_to_write = 21
     call output_3dthm(iBlock)
 
   case ('1DCHM')
@@ -392,7 +392,7 @@ subroutine output(dir, iBlock, iOutputType)
   case ('1DTHM')
 
     nGCs = 0
-    nvars_to_write = 14 + (nspeciestotal*2)
+    nvars_to_write = 15 + (nspeciestotal*2)
     call output_1dthm
 
   case ('1DNEW')
@@ -650,17 +650,18 @@ contains
       write(iOutputUnit_, "(I7,A1,a)") 7, " ", "Eddy Conduction (K/s)"
       write(iOutputUnit_, "(I7,A1,a)") 8, " ", "Eddy Adiabatic Conduction (K/s)"
       write(iOutputUnit_, "(I7,A1,a)") 9, " ", "Chemical Heating (K/s)"
-      write(iOutputUnit_, "(I7,A1,a)") 11, " ", "Joule Heating (K/s)"
+      write(iOutputUnit_, "(I7,A1,a)") 10, " ", "Joule Heating (K/s)"
+      write(iOutputUnit_, "(I7,A1,a)") 11, " ", "CO2 Cooling (K/s)"
       write(iOutputUnit_, "(I7,A1,a)") 12, " ", "NO Cooling (K/s)"
       write(iOutputUnit_, "(I7,A1,a)") 13, " ", "O Cooling (K/s)"
       write(iOutputUnit_, "(I7,A1,a)") 14, " ", "Total Abs EUV"
       if (cType(1:2) == "1D") then
         do iSpecies = 1, nSpeciesTotal
-          write(iOutputUnit_, "(I7,A1,a,a)") 11 + iSpecies, " ", &
+          write(iOutputUnit_, "(I7,A1,a,a)") 14 + iSpecies, " ", &
             "Production Rate ", cSpecies(iSpecies)
         enddo
         do iSpecies = 1, nSpeciesTotal
-          write(iOutputUnit_, "(I7,A1,a,a)") 11 + nSpeciesTotal + iSpecies, " ", &
+          write(iOutputUnit_, "(I7,A1,a,a)") 14 + nSpeciesTotal + iSpecies, " ", &
             "Loss Rate ", cSpecies(iSpecies)
 
         enddo
@@ -669,9 +670,9 @@ contains
         write(iOutputUnit_, "(I7,A1,a)") 16, " ", "Rho"
         write(iOutputUnit_, "(I7,A1,a)") 17, " ", "E-Field Mag"
         write(iOutputUnit_, "(I7,A1,a)") 18, " ", "Sigma Ped"
-        write(iOutputUnit_, "(I7,A1,a)") 18, " ", "Ionization Rate O_3P"
-        write(iOutputUnit_, "(I7,A1,a)") 18, " ", "Ionization Rate O2"
-        write(iOutputUnit_, "(I7,A1,a)") 18, " ", "Ionization Rate N2"
+        write(iOutputUnit_, "(I7,A1,a)") 19, " ", "Ionization Rate O_3P"
+        write(iOutputUnit_, "(I7,A1,a)") 20, " ", "Ionization Rate O2"
+        write(iOutputUnit_, "(I7,A1,a)") 21, " ", "Ionization Rate N2"
       endif
 
     endif
@@ -1353,6 +1354,7 @@ subroutine output_3dthm(iBlock)
           EddyCondAdia(iiLon, iiLat, iiAlt), &
           ChemicalHeatingRate(iiLon, iiLat, iiAlt)*TempUnit(iiLon, iiLat, iiAlt)/dt, &
           JouleHeating(iiLon, iiLat, iiAlt)*TempUnit(iiLon, iiLat, iiAlt), &
+          -CO2Cooling(iiLon, iiLat, iiAlt)*TempUnit(iiLon, iiLat, iiAlt), &
           -NOCooling(iiLon, iiLat, iiAlt)*TempUnit(iiLon, iiLat, iiAlt), &
           -OCooling(iiLon, iiLat, iiAlt)*TempUnit(iiLon, iiLat, iiAlt), &
           EuvTotal(iiLon, iiLat, iiAlt, iBlock), &
