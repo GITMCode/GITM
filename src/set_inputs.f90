@@ -1022,11 +1022,13 @@ subroutine set_inputs
 
       case ("#CO2FOMICHEV")
         call read_in_logical(UseCO2FomichevCooling, iError)
+        call read_in_real(CO2ppm, iError)
         if (iError /= 0) then
            write(*, *) 'Incorrect format for #CO2FOMICHEV:'
            write(*, *) ''
            write(*, *) '#CO2FOMICHEV'
            write(*, *) "UseCO2FomichevCooling   (logical)"
+           write(*, *) "CO2ppm   (real)"
           IsDone = .true.
         endif
         
