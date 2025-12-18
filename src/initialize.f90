@@ -14,7 +14,8 @@ subroutine initialize_gitm(TimeIn)
   use ModIndicesInterfaces
   use ModReadGitm3d
   use ModKind, ONLY: Real8_
-
+  use ModCO2Fomichev, only: initialize_fomichev_cooling
+  
   implicit none
 
   type(UAM_ITER) :: r_iter
@@ -549,6 +550,10 @@ subroutine initialize_gitm(TimeIn)
     call calc_rates(iBlock)
   enddo
 
+  if (UseCO2FomichevCooling) then
+     call initialize_fomichev_cooling()
+  endif
+  
   call end_timing("initialize")
 
 end subroutine initialize_gitm
