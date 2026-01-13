@@ -392,7 +392,7 @@ subroutine output(dir, iBlock, iOutputType)
   case ('1DTHM')
 
     nGCs = 0
-    nvars_to_write = 15 + (nspeciestotal*2)
+    nvars_to_write = 3 + 11 + (nspeciestotal*2)
     call output_1dthm
 
   case ('1DNEW')
@@ -643,7 +643,6 @@ contains
     endif
 
     if (cType(3:5) == "THM") then
-
       write(iOutputUnit_, "(I7,A1,a)") 4, " ", "EUV Heating (K/s)"
       write(iOutputUnit_, "(I7,A1,a)") 5, " ", "Conduction (K/s)"
       write(iOutputUnit_, "(I7,A1,a)") 6, " ", "Molecular Conduction (K/s)"
@@ -1442,20 +1441,22 @@ subroutine output_1dthm
       varsL(iSpecies) = NeutralLossesTotal(iialt, iSpecies)
     enddo
 
+    ! 3 + 10 + nSpeciesTotal * 2
     write(iOutputUnit_) &
       Longitude(1, 1), &
       Latitude(1, 1), &
       Altitude_GB(1, 1, iAlt, 1), &
-      EuvHeating(1, 1, iiAlt, 1)*dt*TempUnit(1, 1, iiAlt), &
+      EuvHeating(1, 1, iiAlt, 1)*TempUnit(1, 1, iiAlt), &
       Conduction(1, 1, iiAlt)*TempUnit(1, 1, iiAlt), &
       MoleConduction(1, 1, iiAlt), &
       EddyCond(1, 1, iiAlt), &
       EddyCondAdia(1, 1, iiAlt), &
       ChemicalHeatingRate(1, 1, iiAlt)*TempUnit(1, 1, iiAlt), &
-      JouleHeating(1, 1, iiAlt)*dt*TempUnit(1, 1, iiAlt), &
-      -RadCooling(1, 1, iiAlt, 1)*dt*TempUnit(1, 1, iiAlt), &
-      -OCooling(1, 1, iiAlt)*dt*TempUnit(1, 1, iiAlt), &
-      EuvTotal(1, 1, iiAlt, 1)*dt, &
+      JouleHeating(1, 1, iiAlt)*TempUnit(1, 1, iiAlt), &
+      -CO2Cooling(1, 1, iiAlt)*TempUnit(1, 1, iiAlt), &
+      -NOCooling(1, 1, iiAlt)*TempUnit(1, 1, iiAlt), &
+      -OCooling(1, 1, iiAlt)*TempUnit(1, 1, iiAlt), &
+      EuvTotal(1, 1, iiAlt, 1), &
       varsS, varsL
 
   enddo
@@ -1855,7 +1856,9 @@ subroutine output_1dall(iiLon, iiLat, iBlock, rLon, rLat, iUnit)
   integer, intent(in) :: iiLat, iiLon, iBlock, iUnit
   real, intent(in)    :: rLon, rLat
 
-  integer, parameter :: nVars = 13 + nSpeciesTotal + nSpecies + nIons + nSpecies + 5
+  integer, parameter :: nVars = 13 + nSpeciesTotal + nSpecies + nIons
+  ! this is old: + nSpecies + 5
+  
   real :: Vars(nVars)
   real :: Tmp(0:nLons + 1, 0:nLats + 1)
   integer :: iAlt, iiAlt, iOff, iIon, iSpecies, iDir
