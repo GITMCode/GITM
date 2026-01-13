@@ -350,6 +350,10 @@ def read_header(headerFile, isVerbose = False):
             nLats = get_int(lines[iLine + 3])
             nLons = get_int(lines[iLine + 4])
             iLine += 4
+            if (nLons == 1):
+                nGhostsLon = 0
+            if (nLats == 1):
+                nGhostsLat = 0
 
         m = re.match(r'VARIABLE', smashed)
         if m:
