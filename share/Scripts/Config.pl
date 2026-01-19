@@ -6,7 +6,7 @@ use strict;
 
 # Default compiler per machine or OS
 my %Compiler = (
-		"Linux"               => "nagfor",
+		"Linux"               => "gfortran",
 		"Darwin"              => "nagfor",
 		"OSF1"                => "f90",
 		"IRIX64"              => "f90",
@@ -35,10 +35,15 @@ my $IsStrict=1;  # If true, shell_command will stop on error
 # Obtain $OS, $DIR, and the machine name and provide it to caller script
 our $OS  = `uname`    or die "$ERROR_ could not obtain OS\n"; chop $OS;
 our $DIR = `/bin/pwd` or die "$ERROR_ could not obtain DIR\n"; chop $DIR;
-our $Machine = `hostname`; chop($Machine); $Machine =~ s/\..*//;
+our $Machine = `hostname -f`; chop($Machine); 
 
+$Machine =~ s/^login\d*\.//; # remove "login\d+." from beginning
+$Machine =~ s/\..*//;        # keep the first word
+$Machine =~ s/[\-\d\.]+$//;  # remove numbers from the machine name
+$Machine =~ s/login$//;      # remove trailing login
+$Machine =~ s/\-//;          # remove trailing "-"
 # remove numbers from the machine name
-$Machine =~ s/\d+$//; 
+$Machine =~ s/\d+$//;
 
 # These are either obtained from the calling script or set here
 our $Component;             # The SWMF component the code is representing
@@ -54,6 +59,19 @@ our $WARNING = "$Code/Config.pl WARNING:";
 our $Compiler;
 $Compiler = $Compiler{$Machine} or $Compiler = $Compiler{$OS} or
     die "$ERROR_ default compiler is not known for OS=$OS\n";
+
+
+
+if ($Machine='athfe' and $Compiler='crayftn'){
+    print "
+====================================================
+On athena we recommend using -compiler=ifortmpif90
+and running 'module switch PrgEnv-cray PrgEnv-intel'
+If you need to use crayftn, please use -O1
+====================================================
+";
+}
+
 
 # Default C compiler part of Makefile.conf
 our $CompilerC = "gcc_mpicc";
