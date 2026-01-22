@@ -1,6 +1,6 @@
 include ../srcMake/Makefile.conf
 include ../Makefile.def
-include ./Makefile.DEPEND
+-include ./Makefile.DEPEND
 
 #
 #  Makefile for AB2D code:
