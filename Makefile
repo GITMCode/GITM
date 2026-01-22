@@ -3,13 +3,13 @@ default : GITM
 
 include Makefile.def
 
-ABDIR = ${UADIR}/srcSphereAB
+ABDIR = srcSphereAB
 EIEDIR = ${IEDIR}
 EUADIR = ${EMPIRICALUADIR}
 IODIR = ${DATAREADINDICESDIR}
-MAINDIR = ${UADIR}/src
-GLDIR = ${UADIR}/srcGlow
-SAMIDIR = ${UADIR}/srcSAMI
+MAINDIR = src
+GLDIR = srcGlow
+SAMIDIR = srcSAMI
 
 PLANET=earth
 
