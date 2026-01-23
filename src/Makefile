@@ -35,7 +35,7 @@ MODULES = \
 	ModReadGitm3d.o\
 	ModSami.o\
 	ModSatellites.o\
-	ModSize.o\
+	ModSizeGITM.o\
 	ModSources.o\
 	ModSphereInterface.o\
 	ModTides.o\
@@ -184,7 +184,7 @@ ${MY_LIB}: ${LIBPREV} ${MF} ${MODULES} ${OBJECTS}
 
 
 distclean: clean
-	rm -f 	ModSize.f90 \
+	rm -f 	ModSizeGITM.f90 \
 		ModPlanet.f90 \
 		ModChemistry.f90 \
 		ModRates.f90 \

@@ -16,15 +16,15 @@ PLANET=earth
 help:
 	@echo "GITM    - make GITM.exe"
 
-src/ModSize.f90:
-	cp src/ModSize.f90.orig src/ModSize.f90
+src/ModSizeGITM.f90:
+	cp src/ModSizeGITM.f90.orig src/ModSizeGITM.f90
 
 INSTALLFILES =  src/Makefile.DEPEND \
 		src/Makefile.RULES  \
 		${ABDIR}/Makefile.DEPEND \
 		srcInterface/Makefile.DEPEND
 
-install: src/ModSize.f90
+install: src/ModSizeGITM.f90
 	touch ${INSTALLFILES}
 #	cd src; make DYNAMIC
 #

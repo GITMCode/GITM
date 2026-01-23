@@ -39,7 +39,7 @@ our $OS;
 my $SrcMakefile     = "src/Makefile";
 
 # Grid size variables
-my $NameGridFile="src/ModSize.f90";          # File with actual grid size
+my $NameGridFile="src/ModSizeGITM.f90";          # File with actual grid size
 my $GridSize;
 my ($nLon, $nLat, $nAlt, $MaxBlock);
 
