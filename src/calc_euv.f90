@@ -37,8 +37,8 @@ subroutine euv_ionization_heat(iBlock)
     call fill_photo
 
   else
-    if (floor((tSimulation - dT)/dTAurora) == &
-        floor(tSimulation/dTAurora)) return
+    if (floor((tSimulation - dT)/dTEUV) == &
+        floor(tSimulation/dTEUV)) return
   endif
 
   call report("euv_ionization_heat", 2)
