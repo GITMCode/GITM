@@ -697,7 +697,18 @@ subroutine set_inputs
 
         endif
 
-      case ("#ELECTRODYNAMICS")
+      case ("#DTEUV")
+        call read_in_real(dTEUV, iError)
+
+        if (iError /= 0) then
+          write(*, *) 'Incorrect format for #DTEUV'
+          write(*, *) 'Sets the time for updating the EUV drivers'
+          write(*, *) '#DTEUV'
+          write(*, *) 'dtEUV      (real, seconds, 60 default)'
+          IsDone = .true.
+       endif
+       
+       case ("#ELECTRODYNAMICS")
         call read_in_string(cAuroralModel, iError)
         call read_in_real(dTAurora, iError)
         call read_in_string(cPotentialModel, iError)
