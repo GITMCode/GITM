@@ -149,6 +149,7 @@ module ModInputs
   real :: DtRestart = 60.0*60.0
   real :: DtReport = 1.0*60.0
   real :: DtAurora = 60.0*1.0
+  real :: DtEUV = 60.0*1.0
   real :: DtPotential = 60.0*1.0
   real :: DtGlow = 60.0
   real :: TimeDelayHighLat = 0.0
