@@ -513,7 +513,7 @@ subroutine msis_bcs(iJulianDay, UTime, Alt, LatIn, LonIn, Lst, &
 
   use ModTime, only: iTimeArray
   use ModPlanet
-  use ModInputs, only: UseMSISTides, sw_msis, UseOBCExperiment
+  use ModInputs, only: UseMSISTides, sw_msis, UseOBCExperiment, co2ppm
   use EUA_ModMsis00, ONLY: gtd7, tselec
 
   implicit none
@@ -565,6 +565,10 @@ subroutine msis_bcs(iJulianDay, UTime, Alt, LatIn, LonIn, Lst, &
   LogNS(iO_3P_) = alog(max(msis_dens(2), 1.0))
   LogNS(iO2_) = alog(max(msis_dens(4), 1.0))
   LogNS(iN2_) = alog(max(msis_dens(3), 1.0))
+
+  logNS(iCO2_) = alog(CO2ppm*1e-6/(1.0 - CO2ppm*1e-6) * &
+     (msis_dens(1) + msis_dens(2) + msis_dens(3)))
+
   if (nSpecies >= iN_4S_) &
     LogNS(min(nSpecies, iN_4S_)) = alog(max(msis_dens(8), 1.0))
   if (nSpecies >= iHe_) &
@@ -677,7 +681,7 @@ subroutine calc_co2(iBlock)
 
   r = (Ho - Have)/(Ho - Hn2)
   where (r > 1.0) r = 1.0
-  where (r < 0.0) r = 0.0
+  where (r < 0.9) r = 0.0
 
   Hco2 = (1.0 - r)*Hco2t + r*Have
 
