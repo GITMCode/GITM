@@ -1,5 +1,5 @@
 #!/usr/bin/perl -i
-#  Copyright (C) 2002 Regents of the University of Michigan, portions used with permission 
+#  Copyright (C) 2002 Regents of the University of Michigan, portions used with permission
 #  For more information, see http://csem.engin.umich.edu/tools/swmf
 use strict;
 
@@ -14,7 +14,7 @@ if(-f "../../$config"){
     # This is an indication of component mode:
     require "../../$config";
     $IsCompGitm = 1;
-}elsif(-f $config){    
+}elsif(-f $config){
     # This is an indication of stand-alone mode:
     require $config;
 }else{
@@ -39,7 +39,7 @@ our $OS;
 my $SrcMakefile     = "src/Makefile";
 
 # Grid size variables
-my $NameGridFile="src/ModSizeGITM.f90";          # File with actual grid size
+my $NameGridFile="src/ModSize.f90";          # File with actual grid size
 my $GridSize;
 my ($nLon, $nLat, $nAlt, $MaxBlock);
 
@@ -109,7 +109,7 @@ if ($Install and not $IsCompGitm){
 
 &set_planet if $Planet and $Planet ne $PlanetOrig;
 
-&show_settings_ if $Show; 
+&show_settings_ if $Show;
 
 print "Config.pl -g=$GridSize\n" if $ShowGridSize and not $Show;
 
@@ -170,7 +170,7 @@ sub get_settings{
     die "$ERROR could not read nLon from $NameGridFile\n" unless length($nLon);
     die "$ERROR could not read nLat from $NameGridFile\n" unless length($nLat);
     die "$ERROR could not read nAlt from $NameGridFile\n" unless length($nAlt);
-    die "$ERROR could not read MaxBlock from $NameGridFile\n" 
+    die "$ERROR could not read MaxBlock from $NameGridFile\n"
 	unless length($MaxBlock);
 
     $GridSize = "$nLon,$nLat,$nAlt,$MaxBlock";
@@ -178,7 +178,7 @@ sub get_settings{
     # Get the current planet
     if(-l "src/$ModPlanet"){
         my $link = `ls -l src/$ModPlanet`;
-	$link =~ /Mod(\w+)\.f90$/ or 
+	$link =~ /Mod(\w+)\.f90$/ or
 	    warn "GITM2/config: Could not find planet in $link";
         $PlanetOrig = $1;
     }
@@ -190,7 +190,7 @@ sub install_code{
 
     # Import the file copy function to avoid calls to system.
     use File::Copy;
-    
+
     return unless $Compiler =~ /ifort/ and $OS =~ /Linux/;
     # Unfix object list for Linux/ifort compiler (this is not kosher)
     @ARGV = ($SrcMakefile);
@@ -238,7 +238,7 @@ sub set_planet{
 
     chdir "src" or die "Could not change directory to src\n";
 
-    print "Configuring GITM for $Planet!!\n"; 
+    print "Configuring GITM for $Planet!!\n";
 
     &shell_command("rm -f ModPlanet.f90 ModPlanet.o planet.f90");
     &shell_command("ln -s Mod$Planet.f90 ModPlanet.f90");

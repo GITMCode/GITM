@@ -23,7 +23,8 @@ INSTALLFILES =  src/Makefile.DEPEND \
 		src/Makefile.RULES  \
 		srcInterface/Makefile.DEPEND \
 		srcGlow/Makefile.DEPEND \
-		${EIEDIR}/Makefile.DEPEND
+		${EIEDIR}/Makefile.DEPEND \
+		${ABDIR}/Makefile.DEPEND
 
 install: src/ModSize.f90
 	touch ${INSTALLFILES}
