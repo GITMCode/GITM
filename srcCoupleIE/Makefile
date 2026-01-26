@@ -5,7 +5,7 @@ SHELL =/bin/sh
 
 include ../Makefile.def
 include ../Makefile.conf
--include Makefile.DEPEND
+include Makefile.DEPEND
 
 MODULES = \
 	ModCharSize.o\
@@ -35,6 +35,7 @@ ${MY_LIB}: ${LIBPREV} ${MF} ${MODULES} ${OBJECTS}
 	${AR} ${MY_LIB} ${MODULES} ${OBJECTS}
 
 clean: cleanfiles
+	rm -f ${DIR}/share/include/*.sub
 
 distclean: clean
 	rm -f Makefile.DEPEND
