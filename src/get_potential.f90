@@ -6,7 +6,7 @@ subroutine init_get_potential
   use ModGITM
   use ModTime
   use ModInputs
-  use ModIE
+  use ModIEGITM
   use ModErrors
   use ModElectrodynamics, only: IEModel_
 
@@ -610,7 +610,7 @@ subroutine set_ie_indices(IEModel_, TimeIn)
 
   use ModKind
   use ModIndicesInterfaces
-  use ModIE, only: ieModel
+  use ModIEGITM, only: ieModel
   ! use ModElectrodynamics, only: ieModel_
   use ModErrors
   use ModTime, only: EndTime !could pull current time too, but better to be explicit

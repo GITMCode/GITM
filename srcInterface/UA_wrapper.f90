@@ -176,6 +176,7 @@ contains
 
     logical :: DoTest, DoTestMe, Done
 
+    real, parameter :: cHalf = 0.5
     !------------------------------------------------------
     call CON_set_do_test(NameSub, DoTest, DoTestMe)
     if (DoTest) write(*, *) NameSub, ' IsInitialized=', IsInitialized
@@ -432,7 +433,8 @@ contains
     use ModNumConst, only: cPi
     use CON_coupler, ONLY: Grid_C, IE_, ncell_id
     use ModGITM, ONLY: iProcGITM => iProc
-    use ModIE
+    use ModIEGITM
+    use ModEIE_Interface
     use ModElectrodynamics, only: IEModel_
 
     ! This gets called for each variable- external loop over all variable names.

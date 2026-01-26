@@ -7,22 +7,22 @@ include ../Makefile.def
 include ../Makefile.conf
 -include Makefile.DEPEND
 
-# Configurable objects
+MODULES = \
+	ModCharSize.o\
+	ModIE.o\
+	ModIEDummy.o\
+	ModIECoupling.o\
 
 OBJECTS = \
-	ModProcUA.o\
-	UA_wrapper.o\
-	UA_extras.o
-
-SEARCH_EXTRA = -I${COUPLERDIR} -I${LIBRARYDIR} -I../src -I../srcSphereAB
+	tools.o
 
 DEPEND:
-	@perl ${SCRIPTDIR}/depend.pl ${SEARCH} ${OBJECTS}
+	@perl ${SCRIPTDIR}/depend.pl ${SEARCH} ${MODULES}
 
 #
 #	Making executables and libraries
 #
-MY_LIB = ${LIBDIR}/libUA.a
+MY_LIB = libUAIE.a
 
 LIB:	DEPEND
 	make ${MY_LIB}
@@ -30,11 +30,9 @@ LIB:	DEPEND
 	@echo ${MY_LIB} has been brought up to date.
 	@echo
 
-GITM_LIB = ../src/libGITM.a
-
-${MY_LIB}: ${GITM_LIB} ${OBJECTS}
-	cp -f ${GITM_LIB} ${MY_LIB}
-	${AR} ${MY_LIB} ${OBJECTS}
+${MY_LIB}: ${LIBPREV} ${MF} ${MODULES} ${OBJECTS}
+	cp -f ${LIBPREV} ${MY_LIB}
+	${AR} ${MY_LIB} ${MODULES} ${OBJECTS}
 
 clean: cleanfiles
 

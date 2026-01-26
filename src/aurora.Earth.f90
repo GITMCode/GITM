@@ -10,7 +10,7 @@ subroutine aurora(iBlock)
   use ModConstants
   use ModUserGITM
   use ModErrors
-  use ModIE
+  use ModIEGITM
   use ModMpi
   use ModIndicesInterfaces
   use ModElectrodynamics, only: IEModel_

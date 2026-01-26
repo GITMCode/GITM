@@ -1,6 +1,6 @@
 include ../srcMake/Makefile.conf
 include ../Makefile.def
--include ./Makefile.DEPEND
+include ./Makefile.DEPEND
 
 #
 #  Makefile for AB2D code:
@@ -25,11 +25,13 @@ DEPEND:
 MY_LIB = ${LIBDIR}/libSphere.a
 
 LIB:	DEPEND
-	@make ${MY_LIB}
+	${MAKE} ${MY_LIB}
 	@echo
 
 ${MY_LIB}: ${MF} ${MODULES} ${OBJECTS}
 	@echo 'Creating libSphere library'
 	@rm -f ${MY_LIB}
 	${AR} ${MY_LIB} ${MODULES} ${OBJECTS}
+
+clean: cleanfiles
 

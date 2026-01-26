@@ -2,7 +2,7 @@ ABDIR   = ${UADIR}/srcSphereAB
 IODIR   = ${DATAREADINDICESDIR}
 GLDIR   = ${UADIR}/srcGlow
 SAMIDIR = ${UADIR}/srcSAMI
-EIEDIR   = ${IEDIR}/lib
+EIEDIR   = ${UADIR}/srcCoupleIE
 
 include ../Makefile.conf
 include ../Makefile.def
@@ -35,7 +35,7 @@ MODULES = \
 	ModReadGitm3d.o\
 	ModSami.o\
 	ModSatellites.o\
-	ModSizeGITM.o\
+	ModSize.o\
 	ModSources.o\
 	ModSphereInterface.o\
 	ModTides.o\
@@ -125,7 +125,7 @@ SAMI_EXTRAS = \
 	ModSamiInterp.o \
 	ModCoupSAMI3.o \
 	init_mpi_w_sami.o \
-	main_w_sami.o 
+	main_w_sami.o
 
 OBJECTS_EXE  = main.o ${OBJECTS} ${MODULES}
 OBJECTS_SAMI = ${OBJECTS} ${MODULES} ${SAMI_EXTRAS}
@@ -199,3 +199,5 @@ distclean: clean
 		output.f90 \
 		planet.f90 \
 		set_vertical_bcs.f90
+
+clean: cleanfiles

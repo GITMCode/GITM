@@ -4,7 +4,7 @@ default : GITM
 include Makefile.def
 
 ABDIR = srcSphereAB
-EIEDIR = ${IEDIR}
+EIEDIR = srcCoupleIE
 EUADIR = ${EMPIRICALUADIR}
 IODIR = ${DATAREADINDICESDIR}
 MAINDIR = src
@@ -16,15 +16,16 @@ PLANET=earth
 help:
 	@echo "GITM    - make GITM.exe"
 
-src/ModSizeGITM.f90:
-	cp src/ModSizeGITM.f90.orig src/ModSizeGITM.f90
+src/ModSize.f90:
+	cp src/ModSize.f90.orig src/ModSize.f90
 
 INSTALLFILES =  src/Makefile.DEPEND \
 		src/Makefile.RULES  \
-		${ABDIR}/Makefile.DEPEND \
-		srcInterface/Makefile.DEPEND
+		srcInterface/Makefile.DEPEND \
+		srcGlow/Makefile.DEPEND \
+		${EIEDIR}/Makefile.DEPEND
 
-install: src/ModSizeGITM.f90
+install: src/ModSize.f90
 	touch ${INSTALLFILES}
 #	cd src; make DYNAMIC
 #
@@ -43,7 +44,7 @@ VERSION:
 GITM:
 	@cd ${SHAREDIR}; echo "Entering ${SHAREDIR}"; make --no-print-directory LIB
 	@cd $(ABDIR); echo "Entering ${ABDIR}" ; make --no-print-directory LIB
-	@cd $(EIEDIR)/src; echo "Entering ${EIEDIR}/src"; make --no-print-directory SHARELIB
+	@cd $(EIEDIR)/src; echo "Entering ${EIEDIR}/src"; make --no-print-directory LIB
 	@cd ${EUADIR}; echo "Entering ${EUADIR}"; make --no-print-directory LIB
 	@cd $(IODIR); echo "Entering ${IODIR}"; make --no-print-directory LIB
 	@cd $(GLDIR); echo "Entering ${GLDIR}";	make --no-print-directory LIB
@@ -65,10 +66,12 @@ POST:
 
 GITM = ${DIR}/UA/GITM
 
+
 LIB:
 	cd $(ABDIR)     ; make                                         LIB
 	cd $(GLDIR)     ; make LIBPREV=${LIBDIR}/libSphere.a   LIBADD
-	cd $(MAINDIR)   ; make LIBPREV=${GITM}/${GLDIR}/libUPTOGL.a   LIB
+	cd $(EIEDIR)    ; make LIBPREV=${GITM}/${GLDIR}/libUPTOGL.a      LIB
+	cd $(MAINDIR)   ; make LIBPREV=${GITM}/${EIEDIR}/libUAIE.a   LIB
 	cd srcInterface ; make LIBPREV=${GITM}/${MAINDIR}/libUA.a     LIB
 
 nompirun:
@@ -80,15 +83,16 @@ clean:
 	cd $(ABDIR); make --no-print-directory clean
 	cd $(MAINDIR); make --no-print-directory clean
 	cd $(GLDIR); make --no-print-directory clean
+	cd $(EIEDIR); make --no-print-directory clean
 	cd srcInterface; make --no-print-directory clean
-	if [ -d share ]; then cd share; make --no-print-directory cleanall; fi;
-	if [ -d util ]; then cd util; make --no-print-directory cleanall; fi;
+#	if [ -d share ]; then cd share; make --no-print-directory cleanall; fi;
+#	if [ -d util ]; then cd util; make --no-print-directory cleanall; fi;
 	if [ -d srcSAMI ]; then cd srcSAMI; make --no-print-directory clean; fi;
-	if [ -d $(EIEDIR) ]; then cd $(EIEDIR); make --no-print-directory cleanall; fi;
-	if [ -f src/.version ]; then rm src/.version; fi
+#	if [ -d $(EIEDIR) ]; then cd $(EIEDIR); make --no-print-directory cleanall; fi;
+#	if [ -f src/.version ]; then rm src/.version; fi
 
 
-distclean: 
+distclean:
 	make clean
 	./Config.pl -uninstall
 

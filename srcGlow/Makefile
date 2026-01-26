@@ -55,6 +55,8 @@ ${MY_LIB}: ${MF} ${MODULES} ${OBJECTS}
 GLOW: DEPEND
 	 @make ${EXE}
 
-glow: 	${OBJECTS} ${MODULES} 
+glow: 	${OBJECTS} ${MODULES}
 	${COMPILE.f77} ${Cflag3} -o ${EXE} main.o ${OBJECTS} ${MODULES}
+
+clean: cleanfiles
 

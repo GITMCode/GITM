@@ -24,7 +24,7 @@ subroutine set_inputs
   use ModPlanet
   use ModSatellites
   use ModRCMR
-  use ModIE
+  use ModIEGITM
   use ModErrors
   use ModIoUnit, only: UnitTmp_
 
