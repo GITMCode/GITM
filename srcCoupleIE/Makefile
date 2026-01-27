@@ -10,8 +10,6 @@ include Makefile.DEPEND
 MODULES = \
 	ModCharSize.o\
 	ModIE.o\
-	ModIEDummy.o\
-	ModIECoupling.o\
 
 OBJECTS = \
 	tools.o
