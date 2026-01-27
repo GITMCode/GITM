@@ -115,6 +115,9 @@ module ModInputs
 
   logical :: UseVariableInputs = .false.
   logical :: IsFramework = .false.
+  logical :: UseSeparateAurora = .false.
+  logical :: UseSpectrumAurora = .true.
+  integer :: nAuroraEng = 1
 
   logical :: DoRestart = .false.
 

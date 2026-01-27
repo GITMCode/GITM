@@ -726,6 +726,21 @@ subroutine set_inputs
         if (index(cPotentialModel, 'zero') == 0) &
           doStopIfNoPotential = .true.
 
+        ! Is this necessary?? Idk
+      case("SWMFAURORA")
+        call read_in_logical(UseSeparateAurora, iError)
+        call read_in_logical(UseSpectrumAurora, iError)
+
+        if (UseSeparateAurora) then
+          if (UseSpectrumAurora) then
+            call read_in_int(nAuroraEng, iError)
+          end if
+          UseDiffuseAurora = .true.
+          UseMonoAurora = .true.
+          UseWaveAurora = .true.
+          UseIonAurora = .true.
+        end if
+
       case ("#AMIEFILES")
         call read_in_string(cAMIEFileNorth, iError)
         call read_in_string(cAMIEFileSouth, iError)
