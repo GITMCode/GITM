@@ -176,7 +176,6 @@ contains
 
     logical :: DoTest, DoTestMe, Done
 
-    real, parameter :: cHalf = 0.5
     !------------------------------------------------------
     call CON_set_do_test(NameSub, DoTest, DoTestMe)
     if (DoTest) write(*, *) NameSub, ' IsInitialized=', IsInitialized
@@ -392,21 +391,55 @@ contains
     ! IE will use this info to fill buffers appropriately.
 
     use ModElectrodynamics, ONLY: MagLatRes, MagLonRes
+    use ModInputs, only: DynamoHighLatBoundary, nAuroraEng, UseDiffuseAurora, &
+            UseMonoAurora, UseWaveAurora, UseIonAurora, UseSpectrumAurora
 
     integer, intent(out) :: nVar
     integer, intent(out), optional :: nMagLat, nMagLon
     character(len=*), intent(out), optional :: NameVar_V(:)
 
+    integer :: i
     logical :: DoTest, DoTestMe
     character(len=*), parameter :: NameSub = 'UA_get_info_for_ie'
     !-------------------------------------------------------------------------
 
     call CON_set_do_test(NameSub, DoTest, DoTestMe)
 
-    ! Right now, only 3 variables are needed for UA-IE coupling:
-    ! potential, average energy, and energy flux.
-    nVar = 3
-    if (present(NameVar_V)) NameVar_V(1:3) = (/'pot', 'ave', 'tot'/)
+    ! Right now, nVar = pot + 2 vars for each type of aurora that is enabled
+    nVar = 1 + 2 * COUNT((/UseDiffuseAurora, UseMonoAurora, UseWaveAurora, &
+            UseIonAurora/))
+    ! When using full spectrum precipitation, no need to get diffuse precip
+    ! if mono is enabled, then multiply by nEng
+    ! nVar = 1 + 2 * nAuroraEng * COUNT((/UseMonoAurora, UseIonAurora/) + &
+    !               2 * COUNT((/UseWaveAurora/))
+    ! This isn't actually correct because you could have mono turned off and
+    ! Diffuse turned on
+    ! Also will want a separate nVar and NameVar Length???
+
+    i = 2
+    if (present(NameVar_V)) then
+      NameVar_V(1) = 'pot'
+      if (UseDiffuseAurora) then
+!        NameVar_V(i:i+1) = (/'DiffEeFlux', 'DiffEaveE'/)
+        NameVar_V(i:i+1) = (/'def', 'dae'/)
+        i = i + 2
+      end if
+      if (UseMonoAurora) then
+!        NameVar_V(i:i+1) = (/'MonoeFlux', 'MonoaveE'/)
+        NameVar_V(i:i+1) = (/'mef', 'mae'/)
+        i = i + 2
+      end if
+      if (UseWaveAurora) then
+!        NameVar_V(i:i+1) = (/'WaveeFlux', 'WaveaveE'/)
+        NameVar_V(i:i+1) = (/'wef', 'wae'/)
+        i = i + 2
+      end if
+      if (UseIonAurora) then
+!        NameVar_V(i:i+1) = (/'DiffIeFlux', 'DiffIaveE'/)
+        NameVar_V(i:i+1) = (/'ief', 'iae'/)
+        i = i + 2
+      end if
+    end if
 
     ! If more information is needed, PARAMs should be set to configure this
     ! behavior and changes made here, e.g.,
@@ -416,7 +449,8 @@ contains
     ! Pass information on size of GITM's electrodynamic grid.
     ! Set following src/calc_electrodynamcs.f90::calc_electrodynamics
     ! Lines ~101-102 and 341-342 (approx.; see source for more details).
-    if (present(nMagLat)) nMagLat = 88.0/MagLatRes ! 1 hemi ONLY, no equator.
+    if (present(nMagLat)) nMagLat = DynamoHighLatBoundary/MagLatRes
+    ! 1 hemi ONLY, no equator.
     if (present(nMagLon)) nMagLon = 360.0/MagLonRes + 1
 
     if (DoTestMe) then
@@ -434,16 +468,14 @@ contains
     use CON_coupler, ONLY: Grid_C, IE_, ncell_id
     use ModGITM, ONLY: iProcGITM => iProc
     use ModIEGITM
-    use ModEIE_Interface
     use ModElectrodynamics, only: IEModel_
+    use ModInputs, only: UseDiffuseAurora, &
+            UseMonoAurora, UseWaveAurora, UseIonAurora, UseSpectrumAurora
+    use ModInputs, only: iDebugLevel
 
     ! This gets called for each variable- external loop over all variable names.
     ! Namevar = Pot, Ave, and Tot.
     ! iBlock = 1:North, 2:South.
-
-    ! Variables and what they do:
-    ! EIEi_HavenLats = nLatsIE
-    ! EIEi_HavenMlt  = nMltIE
 
     implicit none
 
@@ -461,89 +493,191 @@ contains
     !--------------------------------------------------------------------------
     call CON_set_do_test(NameSub, DoTest, DoTestMe)
 
-    if (.not. IsInitialized) then
+    if (.not. IEModel_%isCoupleInitalized) then
       ! Gather information on size/shape of IE grid.
       ! Note that this is built for Ridley Serial, which stores its grid
       ! using "iSize - 1".  The +1 here compensates for that.
       nCells_D = ncell_id(IE_)
-      iSizeIeHemi = nCells_D(1) + 1 ! Number of IE colats per hemisphere
-      jSizeIeHemi = nCells_D(2) + 1 ! Number of IE mlts
-
       ! Build IE grid within UA infrastructure:
-      call EIE_InitGrid(iSizeIeHemi, jSizeIeHemi, 2, iError)
-      call EIE_FillLats(90.0 - (Grid_C(IE_)%Coord1_I)*180.0/cPi, iError)
-      call EIE_FillMltsOffset((Grid_C(IE_)%Coord2_I)*180.0/cPi, iError)
-      IsInitialized = .true.
+      call IEModel_%nIeLats(nCells_D(1) + 1)
+      call IEModel_%nIeMlts(nCells_D(2) + 1)
+      call IEModel_%nIeBlks(2)
 
-      ! Initial values for coupling:
-      EIEr3_HavePotential = 0.0
-      EIEr3_HaveAveE = 0.0
-      EIEr3_HaveEFlux = 0.0
+      call IEModel_%ielats(90.0 - (Grid_C(IE_)%Coord1_I)*180.0/cPi)
+      call IEModel_%iemlts((Grid_C(IE_)%Coord2_I)*180.0/cPi)
+
+      call IEModel_%initCouple(UseDiffuseAurora, UseMonoAurora, &
+                               UseWaveAurora, UseIonAurora)
+
     endif
 
     ! Debug: print basic coupling info:
     if ((DoTest .or. iDebugLevel > 3) .and. (iProcGITM == 0)) then
       write(*, *) NameSub//' coupling info:'
-      write(*, *) 'UA/GITM: IE grid set to nLats x nLons = ', &
-        iSizeIeHemi, jSizeIeHemi
-      write(*, '(a, 2i5)') ' UA EIE nLats, nLons = ', EIEi_HavenLats, EIEi_HavenMlts
+!      write(*, *) 'UA/GITM: IE grid set to nLats x nLons = ', &
+!        iSizeIeHemi, jSizeIeHemi
+      write(*, '(a, 2i5)') ' UA EIE nLats, nLons = ', IEModel_%havenLats, &
+              IEModel_%havenLats
       write(*, *) 'Buffer shape information:'
-      write(*, '(a, 3i5)') ' iSizeIn, jSizeIn, nVarIn = ', iSizeIn, jSizeIn, nVarIn
+      write(*, '(a, 3i5)') ' iSizeIn, jSizeIn, nVarIn = ', iSizeIn, jSizeIn, &
+              nVarIn
       write(*, *) 'Shape of Buffer_IIV = ', shape(Buffer_IIV)
       write(*, *) 'ncell_id(IE_) = ', ncell_id(IE_)
-      write(*, *) 'iSizeIeHemi, jSizeIeHemi = ', iSizeIeHemi, jSizeIeHemi
+!      write(*, *) 'iSizeIeHemi, jSizeIeHemi = ', iSizeIeHemi, jSizeIeHemi
     endif
 
     ! Debug statement: print max/mins of transferred variables.
     if (DoTest .and. (iProcGITM == 0)) write(*, *) &
       'UA WRAPPER: Max/min of received variables (iBlock=', iBlock, '):'
 
-    ! Put each variable where it belongs based on the name.x
+    ! Put each variable where it belongs based on the name.
+    ! Currently will not work for RLM because gitm thinks that diffuse precip
+    ! is the default, while IE thinks mono precip is the default
     do iVar = 1, nVarIn
       select case (NameVarIn_V(iVar))
-
+      ! There has got to be a better way to do this
         ! Electric Potential:
       case ('pot')
-        do i = 1, EIEi_HavenLats
+        do i = 1, IEModel_%havenLats
           ii = i
           ! Flip southern hemisphere
-          if (iBlock == 2) ii = EIEi_HavenLats - i + 1
-          do j = 1, EIEi_HavenMlts
-            EIEr3_HavePotential(j, i, iBlock) = Buffer_IIV(ii, j, iVar)
+          if (iBlock == 2) ii = IEModel_%havenLats - i + 1
+          do j = 1, IEModel_%havenMLTs
+            IEModel_%havePotential(j, i, iBlock) = Buffer_IIV(ii, j, iVar)
           enddo
         enddo
-        if (DoTest .and. (iProcGITM == 0)) write(*, '(a, 2(e12.5,1x))') 'UA pot: ', &
-          maxval(EIEr3_HavePotential(:, :, iBlock)), &
-          minval(EIEr3_HavePotential(:, :, iBlock))
+        if (DoTest .and. (iProcGITM == 0)) write(*, '(a, 2(e12.5,1x))') '&
+                UA pot: ', &
+          maxval(IEModel_%havePotential(:, :, iBlock)), &
+          minval(IEModel_%havePotential(:, :, iBlock))
 
-        ! Precipitation/average energy:
-      case ('ave')
-        do i = 1, EIEi_HavenLats
+        ! Diffuse Precipitation/Total energy flux:
+      case ('def')
+        do i = 1, IEModel_%havenLats
           ii = i
           ! Flip southern hemisphere
-          if (iBlock == 2) ii = EIEi_HavenLats - i + 1
-          do j = 1, EIEi_HavenMlts
-            EIEr3_HaveAveE(j, i, iBlock) = Buffer_IIV(ii, j, iVar)
+          if (iBlock == 2) ii = IEModel_%havenLats - i + 1
+          do j = 1, IEModel_%havenMLTs
+            ! Convert from W/m^2 to erg/cm^2?
+            IEModel_%haveDiffuseEeFlux(j, i, iBlock) = &
+                    Buffer_IIV(ii, j, iVar)/(1.0e-7*100.0*100.0)
           enddo
         enddo
-        if (DoTest .and. (iProcGITM == 0)) write(*, '(a, 2(e12.5,1x))') 'UA ave: ', &
-          maxval(EIEr3_HaveAveE(:, :, iBlock)), &
-          minval(EIEr3_HaveAveE(:, :, iBlock))
+        if (DoTest .and. (iProcGITM == 0)) write(*, '(a, 2(e12.5,1x))') &
+                'UA tot: ', &
+                maxval(IEModel_%haveDiffuseEeFlux(:, :, iBlock)), &
+                minval(IEModel_%haveDiffuseEeFlux(:, :, iBlock))
 
-        ! Precipitation/Total energy flux:
-      case ('tot')
-        do i = 1, EIEi_HavenLats
+        ! Diffuse Precipitation/average energy:
+      case ('dae')
+        do i = 1, IEModel_%havenLats
           ii = i
           ! Flip southern hemisphere
-          if (iBlock == 2) ii = EIEi_HavenLats - i + 1
-          do j = 1, EIEi_HavenMlts
-            EIEr3_HaveEFlux(j, i, iBlock) = &
-              Buffer_IIV(ii, j, iVar)/(1.0e-7*100.0*100.0)
+          if (iBlock == 2) ii = IEModel_%havenLats - i + 1
+          do j = 1, IEModel_%havenMLTs
+            IEModel_%haveDiffuseEaveE(j, i, iBlock) = Buffer_IIV(ii, j, iVar)
           enddo
         enddo
-        if (DoTest .and. (iProcGITM == 0)) write(*, '(a, 2(e12.5,1x))') 'UA tot: ', &
-          maxval(EIEr3_HaveEFlux(:, :, iBlock)), &
-          minval(EIEr3_HaveEFlux(:, :, iBlock))
+        if (DoTest .and. (iProcGITM == 0)) write(*, '(a, 2(e12.5,1x))') &
+                'UA ave: ', &
+          maxval(IEModel_%haveDiffuseEaveE(:, :, iBlock)), &
+          minval(IEModel_%haveDiffuseEaveE(:, :, iBlock))
+
+        ! Monoenergetic Precipitation/Total energy flux:
+      case ('mef')
+        do i = 1, IEModel_%havenLats
+          ii = i
+          ! Flip southern hemisphere
+          if (iBlock == 2) ii = IEModel_%havenLats - i + 1
+          do j = 1, IEModel_%havenMLTs
+            ! Convert from W/m^2 to erg/cm^2?
+            IEModel_%haveMonoEeFlux(j, i, iBlock) = &
+                    Buffer_IIV(ii, j, iVar)/(1.0e-7*100.0*100.0)
+          enddo
+        enddo
+        if (DoTest .and. (iProcGITM == 0)) write(*, '(a, 2(e12.5,1x))') &
+                'UA tot: ', &
+                maxval(IEModel_%haveMonoEeFlux(:, :, iBlock)), &
+                minval(IEModel_%haveMonoEeFlux(:, :, iBlock))
+
+        ! Monoenergetic Precipitation/average energy:
+      case ('mae')
+        do i = 1, IEModel_%havenLats
+          ii = i
+          ! Flip southern hemisphere
+          if (iBlock == 2) ii = IEModel_%havenLats - i + 1
+          do j = 1, IEModel_%havenMLTs
+            IEModel_%haveMonoEaveE(j, i, iBlock) = Buffer_IIV(ii, j, iVar)
+          enddo
+        enddo
+        if (DoTest .and. (iProcGITM == 0)) write(*, '(a, 2(e12.5,1x))') &
+                'UA ave: ', &
+                maxval(IEModel_%haveMonoEaveE(:, :, iBlock)), &
+                minval(IEModel_%haveMonoeaveE(:, :, iBlock))
+
+        ! Wave Precipitation/Total energy flux:
+      case ('wef')
+        do i = 1, IEModel_%havenLats
+          ii = i
+          ! Flip southern hemisphere
+          if (iBlock == 2) ii = IEModel_%havenLats - i + 1
+          do j = 1, IEModel_%havenMLTs
+            ! Convert from W/m^2 to erg/cm^2?
+            IEModel_%haveWaveEeFlux(j, i, iBlock) = &
+                    Buffer_IIV(ii, j, iVar)/(1.0e-7*100.0*100.0)
+          enddo
+        enddo
+        if (DoTest .and. (iProcGITM == 0)) write(*, '(a, 2(e12.5,1x))') &
+                'UA tot: ', &
+                maxval(IEModel_%haveWaveEeFlux(:, :, iBlock)), &
+                minval(IEModel_%haveWaveEeFlux(:, :, iBlock))
+
+        ! Wave Precipitation/average energy:
+      case ('wae')
+        do i = 1, IEModel_%havenLats
+          ii = i
+          ! Flip southern hemisphere
+          if (iBlock == 2) ii = IEModel_%havenLats - i + 1
+          do j = 1, IEModel_%havenMLTs
+            IEModel_%haveWaveEaveE(j, i, iBlock) = Buffer_IIV(ii, j, iVar)
+          enddo
+        enddo
+        if (DoTest .and. (iProcGITM == 0)) write(*, '(a, 2(e12.5,1x))') &
+                'UA ave: ', &
+                maxval(IEModel_%haveWaveEaveE(:, :, iBlock)), &
+                minval(IEModel_%haveWaveEaveE(:, :, iBlock))
+
+        ! Ion Precipitation/Total energy flux:
+      case ('ief')
+        do i = 1, IEModel_%havenLats
+          ii = i
+          ! Flip southern hemisphere
+          if (iBlock == 2) ii = IEModel_%havenLats - i + 1
+          do j = 1, IEModel_%havenMLTs
+            ! Convert from W/m^2 to erg/cm^2?
+            IEModel_%haveDiffuseIeFlux(j, i, iBlock) = &
+                    Buffer_IIV(ii, j, iVar)/(1.0e-7*100.0*100.0)
+          enddo
+        enddo
+        if (DoTest .and. (iProcGITM == 0)) write(*, '(a, 2(e12.5,1x))') &
+                'UA tot: ', &
+                maxval(IEModel_%haveDiffuseIeFlux(:, :, iBlock)), &
+                minval(IEModel_%haveDiffuseIeFlux(:, :, iBlock))
+
+        ! Ion Precipitation/average energy:
+      case ('iae')
+        do i = 1, IEModel_%havenLats
+          ii = i
+          ! Flip southern hemisphere
+          if (iBlock == 2) ii = IEModel_%havenLats - i + 1
+          do j = 1, IEModel_%havenMLTs
+            IEModel_%haveDiffuseIaveE(j, i, iBlock) = Buffer_IIV(ii, j, iVar)
+          enddo
+        enddo
+        if (DoTest .and. (iProcGITM == 0)) write(*, '(a, 2(e12.5,1x))') &
+                'UA ave: ', &
+                maxval(IEModel_%haveDiffuseIaveE(:, :, iBlock)), &
+                minval(IEModel_%haveDiffuseIaveE(:, :, iBlock))
 
       case default
         call CON_stop(NameSub//' invalid NameVarIn='//NameVarIn_V(iVar))
@@ -551,8 +685,6 @@ contains
       end select
     enddo
 
-    ! This bypasses some internal GITM issues.
-    UAl_UseGridBasedEIE = .true.
 
   end subroutine UA_put_from_ie
 
