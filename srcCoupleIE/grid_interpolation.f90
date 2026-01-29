@@ -101,7 +101,7 @@ subroutine set_ie_ua_interpolation_indices(this, mltsIn, latsIn)
             latsIn(this%neednMlts, this%neednLats)
     real, dimension(2) :: mlt_and_lat
     real, dimension(4) :: interpolation_info
-    integer :: iError, iLat, iMlt
+    integer :: iError, iLat, iMlt, im, il
 
     if (this%iDebugLevel > 2) &
             write(*, *) "=> Getting IE->UA interpolation indices", &
@@ -135,6 +135,9 @@ subroutine set_ie_ua_interpolation_indices(this, mltsIn, latsIn)
                         interpolation_info(1:2)
                 this%IeUaInterpolationRatios(iMlt, iLat, 1:2) = &
                         interpolation_info(3:4)
+
+                iM = this%IeUaInterpolationIndices(iMLT, iLat, 1)
+                iL = this%IeUaInterpolationIndices(iMLT, iLat, 2)   
             else
                 this%IeUaInterpolationIndices(iMlt, iLat, 1:2) = -1
             endif

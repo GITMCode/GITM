@@ -498,7 +498,7 @@ contains
       ! using "iSize - 1".  The +1 here compensates for that.
       nCells_D = ncell_id(IE_)
       ! Build IE grid within UA infrastructure:
-      call IEModel_%nIeLats(nCells_D(1) + 1)
+      call IEModel_%nIeLats(nCells_D(1) * 2 + 1)
       call IEModel_%nIeMlts(nCells_D(2) + 1)
       call IEModel_%nIeBlks(2)
 
