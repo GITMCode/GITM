@@ -9,7 +9,7 @@ include Makefile.DEPEND
 
 MODULES = \
 	ModCharSize.o\
-	ModIE.o\
+	ModIEGITM.o
 
 OBJECTS = \
 	tools.o
