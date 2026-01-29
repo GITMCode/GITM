@@ -7,14 +7,95 @@ subroutine run_potential_model(ie, potential)
   real :: potVal
 
   integer :: iMLT, iLat
+  !-----------------------------------------------------------------------------
+  if (ie%iDebugLevel > 2) &
+          write(*, *) "=> Getting Potential"
   potential = 0.0
 
-  ! call put_from_buffer
-  ! call interpolate_to_ua_2d
+  if (ie%isCoupleInitialized) then
+    call ie%get_ie_to_ua('pot', potential)
+  else
+    if (ie%iDebugLevel > 0) &
+            write(*, *) "No potential to get before coupling has been "// &
+                        "performed with IE for the first time."
+  end if
 
-
-  return
 end subroutine run_potential_model
+!============================================================================
+subroutine run_aurora_model_electron_diffuse(ie, eflux, avee)
+  class(ieModel) :: ie
+  real, dimension(ie%neednMlts, &
+          ie%neednLats), intent(out) :: eFlux
+  real, dimension(ie%neednMlts, &
+          ie%neednLats), intent(out) :: AveE
+  integer :: iError = 0
+  !-----------------------------------------------------------------------------
+  if (ie%isCoupleInitialized) then
+    call ie%get_ie_to_ua('def', eflux)
+    call ie%get_ie_to_ua('dae', avee)
+  else
+    if (ie%iDebugLevel > 0) &
+            write(*, *) "No diffuse auroras to get before coupling has been "//&
+                        "performed with IE for the first time."
+  endif
+end subroutine run_aurora_model_electron_diffuse
+!============================================================================
+subroutine run_aurora_model_electron_mono(ie, eflux, avee)
+  ! At the moment, this only works for ovation & AMIE Files...
+  class(ieModel) :: ie
+  real, dimension(ie%neednMlts, &
+          ie%neednLats), intent(out) :: eFlux
+  real, dimension(ie%neednMlts, &
+          ie%neednLats), intent(out) :: AveE
+  integer :: iError = 0
+  !-----------------------------------------------------------------------------
+  if (ie%isCoupleInitialized) then
+    call ie%get_ie_to_ua('mef', eflux)
+    call ie%get_ie_to_ua('mae', avee)
+  else
+    if (ie%iDebugLevel > 0) &
+            write(*, *) "No mono auroras to get before coupling has been "// &
+                        "performed with IE for the first time."
+  endif
+end subroutine run_aurora_model_electron_mono
+!============================================================================
+subroutine run_aurora_model_electron_wave(ie, eflux, avee)
+  ! At the moment, this only works for ovation & AMIE files...
+  class(ieModel) :: ie
+  real, dimension(ie%neednMlts, &
+          ie%neednLats), intent(out) :: eFlux
+  real, dimension(ie%neednMlts, &
+          ie%neednLats), intent(out) :: AveE
+  integer :: iError = 0
+  !-----------------------------------------------------------------------------
+  if (ie%isCoupleInitialized) then
+    call ie%get_ie_to_ua('wef', eflux)
+    call ie%get_ie_to_ua('wae', avee)
+  else
+    if (ie%iDebugLevel > 0) &
+            write(*, *) "No wave auroras to get before coupling has been "// &
+                        "performed with IE for the first time."
+  endif
+end subroutine run_aurora_model_electron_wave
+!============================================================================
+subroutine run_aurora_model_ion_diffuse(ie, eflux, avee)
+  ! At the moment, this only works for ovation and AMIE files...
+  class(ieModel) :: ie
+  real, dimension(ie%neednMlts, &
+          ie%neednLats), intent(out) :: eFlux
+  real, dimension(ie%neednMlts, &
+          ie%neednLats), intent(out) :: AveE
+  integer :: iError = 0
+  !-----------------------------------------------------------------------------
+  if (ie%isCoupleInitialized) then
+    call ie%get_ie_to_ua('ief', eflux)
+    call ie%get_ie_to_ua('iae', avee)
+  else
+    if (ie%iDebugLevel > 0) &
+            write(*, *) "No ion auroras to get before coupling has been "// &
+                        "performed with IE for the first time."
+  endif
+end subroutine run_aurora_model_ion_diffuse
 !============================================================================
 !! Set model name and interpret. It needs to be swmf though...
 subroutine set_efield_model(this, efield_model)

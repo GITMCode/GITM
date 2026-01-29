@@ -21,8 +21,14 @@ subroutine set_grid(this, MltsIn, LatsIn)
     real, dimension(this%neednMlts, this%neednLats), intent(in) :: LatsIn
     if (this%iDebugLevel > 2) &
             write(*, *) "=> Setting Grid"
+
     call this%mlts(MltsIn)
     call this%lats(LatsIn)
+
+    ! Need to make sure that this is being done after IE has been coupled?
+    if(this%isCoupleInitialized) &
+        call this%ie_ua_interp_indices(this%needMlts, this%needLats)
+
 end subroutine set_grid
 !============================================================================
 subroutine set_mlts(this, MltsIn)
@@ -50,6 +56,7 @@ subroutine set_lats(this, LatsIn)
     class(ieModel) :: this
     real, dimension(this%neednMlts, this%neednLats), intent(in) :: LatsIn
     integer :: iError = 0, iMlt, iLat
+
     if (this%iDebugLevel > 2) &
             write(*, *) "=> Setting Lats"
     if (allocated(this%needLats)) deallocate(this%needLats)
@@ -86,7 +93,7 @@ subroutine set_ie_nBlks(this, iValue)
     class(ieModel) :: this
     integer, intent(in) :: iValue
     if (this%iDebugLevel > 3) &
-            write(*, *) "=> Setting havenMlats to : ", iValue
+            write(*, *) "=> Setting havenBlks to : ", iValue
     this%havenBlks = iValue
 end subroutine set_ie_nBlks
 !============================================================================
@@ -95,15 +102,18 @@ subroutine set_ie_mlts(this, MltsIn)
     real, dimension(this%havenMlts - 1), intent(in) :: MltsIn
     integer :: iError = 0, iLat
 
+    if (this%iDebugLevel > 2) &
+            write(*, *) "=> Setting haveMlts"
+
     if(allocated(this%haveMlts)) deallocate(this%haveMlts)
-    allocate(this%haveMlts(this%havenMlts, this%havenLats, this%havenBlks))
+    allocate(this%haveMlts(this%havenMlts, this%havenLats))
 
     ! Set MLT for both hemispheres:
     do iLat=1,this%havenLats
-        this%haveMlts(1,iLat,1) = mod(MltsIn(this%havenMLTs-2) - 180.0, 360.0)
-        this%HaveMlts(2:this%havenMLTs,iLat,1) = mod(MltsIn + 180.0, 360.0)
-        this%HaveMlts(1,iLat,2) = mod(MltsIn(this%havenMLTs-2) - 180.0, 360.0)
-        this%HaveMlts(2:this%havenMLTs,iLat,2) = mod(MltsIn + 180.0, 360.0)
+        this%HaveMlts(1:this%havenMLTs-1,iLat) = mod(MltsIn, 360.0)/15
+        this%HaveMlts(this%havenMLTs,iLat) = 0.0
+        this%HaveMlts(1:this%havenMLTs-1,iLat) = mod(MltsIn, 360.0)/15
+        this%HaveMlts(this%havenMLTs,iLat) = 0.0
     enddo
 
 end subroutine set_ie_mlts
@@ -113,16 +123,19 @@ subroutine set_ie_lats(this, LatsIn)
     real, dimension(this%havenLats), intent(in) :: LatsIn
     integer :: iError = 0, iMlt, iLat, ii
 
+    if (this%iDebugLevel > 2) &
+            write(*, *) "=> Setting haveLats"
+
     if(allocated(this%haveLats)) deallocate(this%haveLats)
-    allocate(this%haveLats(this%havenMlts, this%havenLats, this%havenBlks))
+    allocate(this%haveLats(this%havenMlts, this%havenLats))
 
     do iMlt=1,this%havenMLTs
         ! Northern hemisphere lats:
-        this%haveLats(iMlt,:,1) = LatsIn
+        this%haveLats(iMlt,1:this%havenLats/2) = LatsIn
         ! Southern hemisphere lats (flipped):
-        do iLat=1, this%havenLats
+        do iLat=this%havenLats/2 + 1, this%havenLats
             ii = this%havenLats - iLat + 1
-            this%haveLats(iMlt,iLat,2) = 0 - LatsIn(ii)
+            this%haveLats(iMlt,iLat) = 0 - LatsIn(ii)
         enddo
     end do
 
@@ -134,20 +147,20 @@ subroutine initializeCouple(this, UseDiffuse, UseMono, UseWave, UseIon)
     ! Resizes all input arrays from IE to be correct
     ! Field-aligned Currents:
     if(allocated(this%haveFac)) deallocate(this%haveFac)
-    allocate(this%haveFac(this%havenMlts, this%havenLats, this%havenBlks))
+    allocate(this%haveFac(this%havenMlts, this%havenLats))
     this%haveFac = 0
     ! Potentials:
     if(allocated(this%havePotential)) deallocate(this%havePotential)
-    allocate(this%havePotential(this%havenMlts, this%havenLats, this%havenBlks))
+    allocate(this%havePotential(this%havenMlts, this%havenLats))
     this%havePotential = 0
     ! Electron diffuse:
     if(allocated(this%haveDiffuseEeFlux)) deallocate(this%haveDiffuseEeFlux)
     if(allocated(this%haveDiffuseEAveE)) deallocate(this%haveDiffuseEAveE)
     if(UseDiffuse) then
         allocate(this%haveDiffuseEeFlux(this%havenMlts, &
-                this%havenLats, this%havenBlks))
+                this%havenLats))
         allocate(this%haveDiffuseEAveE(this%havenMlts, &
-                this%havenLats, this%havenBlks))
+                this%havenLats))
         this%haveDiffuseEeFlux = 0
         this%haveDiffuseEAveE = 0
     end if
@@ -156,9 +169,9 @@ subroutine initializeCouple(this, UseDiffuse, UseMono, UseWave, UseIon)
     if(allocated(this%haveDiffuseIAveE)) deallocate(this%haveDiffuseIAveE)
     if(UseIon) then
         allocate(this%haveDiffuseIeFlux(this%havenMlts, &
-                this%havenLats, this%havenBlks))
+                this%havenLats))
         allocate(this%haveDiffuseIAveE(this%havenMlts, &
-                this%havenLats, this%havenBlks))
+                this%havenLats))
         this%haveDiffuseIeFlux = 0
         this%haveDiffuseIAveE = 0
     end if
@@ -167,9 +180,9 @@ subroutine initializeCouple(this, UseDiffuse, UseMono, UseWave, UseIon)
     if(allocated(this%haveMonoEAveE)) deallocate(this%haveMonoEAveE)
     if(UseMono) then
         allocate(this%haveMonoEeFlux(this%havenMlts, &
-                this%havenLats, this%havenBlks))
+                this%havenLats))
         allocate(this%haveMonoEAveE(this%havenMlts, &
-                this%havenLats, this%havenBlks))
+                this%havenLats))
         this%haveMonoEeFlux = 0
         this%haveMonoEAveE = 0
     end if
@@ -178,17 +191,17 @@ subroutine initializeCouple(this, UseDiffuse, UseMono, UseWave, UseIon)
     if(allocated(this%haveWaveEAveE)) deallocate(this%haveWaveEAveE)
     if(UseWave) then
         allocate(this%haveWaveEeFlux(this%havenMlts, &
-                this%havenLats, this%havenBlks))
+                this%havenLats))
         allocate(this%haveWaveEAveE(this%havenMlts, &
-                this%havenLats, this%havenBlks))
+                this%havenLats))
         this%haveWaveEeFlux = 0
         this%haveWaveEAveE = 0
     end if
     ! Is Polar Cap (1 if is polar cap, 0 otherwise):
     if(allocated(this%havePolarCap)) deallocate(this%havePolarCap)
-    allocate(this%havePolarCap(this%havenMlts, this%havenLats, this%havenBlks))
+    allocate(this%havePolarCap(this%havenMlts, this%havenLats))
     this%havePolarCap = 0
 
-    this%isCoupleInitalized = .true.
+    this%isCoupleInitialized = .true.
 
 end subroutine initializeCouple

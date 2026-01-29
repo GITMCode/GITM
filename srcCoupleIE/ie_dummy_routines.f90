@@ -41,54 +41,6 @@ subroutine set_model_dir(this, dir)
   character(len=*), intent(in) :: dir
 end subroutine set_model_dir
 ! ------------------------------------------------------------
-subroutine run_aurora_model(ie)
-  class(ieModel) :: ie
-  integer :: iError = 0
-  return
-end subroutine run_aurora_model
-! ------------------------------------------------------------
-subroutine run_aurora_model_electron_diffuse(ie, eflux, avee)
-  class(ieModel) :: ie
-  real, dimension(ie%neednMlts, &
-          ie%neednLats), intent(out) :: eFlux
-  real, dimension(ie%neednMlts, &
-          ie%neednLats), intent(out) :: AveE
-  integer :: iError = 0
-  return
-end subroutine run_aurora_model_electron_diffuse
-! ------------------------------------------------------------
-subroutine run_aurora_model_electron_mono(ie, eflux, avee)
-  ! At the moment, this only works for ovation & AMIE Files...
-  class(ieModel) :: ie
-  real, dimension(ie%neednMlts, &
-          ie%neednLats), intent(out) :: eFlux
-  real, dimension(ie%neednMlts, &
-          ie%neednLats), intent(out) :: AveE
-  integer :: iError = 0
-  return
-end subroutine run_aurora_model_electron_mono
-! ------------------------------------------------------------
-subroutine run_aurora_model_electron_wave(ie, eflux, avee)
-  ! At the moment, this only works for ovation & AMIE files...
-  class(ieModel) :: ie
-  real, dimension(ie%neednMlts, &
-          ie%neednLats), intent(out) :: eFlux
-  real, dimension(ie%neednMlts, &
-          ie%neednLats), intent(out) :: AveE
-  integer :: iError = 0
-  return
-end subroutine run_aurora_model_electron_wave
-! ------------------------------------------------------------
-subroutine run_aurora_model_ion_diffuse(ie, eflux, avee)
-  ! At the moment, this only works for ovation and AMIE files...
-  class(ieModel) :: ie
-  real, dimension(ie%neednMlts, &
-          ie%neednLats), intent(out) :: eFlux
-  real, dimension(ie%neednMlts, &
-          ie%neednLats), intent(out) :: AveE
-  integer :: iError = 0
-  return
-end subroutine run_aurora_model_ion_diffuse
 
 ! ------------------------------------------------------------
 ! These functions are for getting information that was

@@ -30,7 +30,7 @@ module ModIEGITM
   type, public :: ieModel
 
     logical :: isOk = .true.
-    logical :: isCoupleInitalized = .false.
+    logical :: isCoupleInitialized = .false.
 
     integer :: iDebugLevel = 0
     integer :: iEfield_ = -1
@@ -44,6 +44,11 @@ module ModIEGITM
     integer :: nFilesNorth = 0
     integer :: nFilesSouth = 0
 
+    integer, allocatable, dimension(:, :, :) :: IeUaInterpolationIndices
+    real, allocatable, dimension(:, :, :) :: IeUaInterpolationRatios
+!    integer, allocatable, dimension(:, :, :) :: IeUaInterpolationIndices
+!    real, allocatable, dimension(:, :, :) :: IeUaInterpolationRatios
+
     ! ----------------------------------------------------------------
     ! These are the states that the models has, if we either read in
     ! a file or we are coupling to some other model.
@@ -53,26 +58,26 @@ module ModIEGITM
     integer :: havenLats = 0
     integer :: havenMLTs = 0
     integer :: havenBLKs = 0
-    real, allocatable, dimension(:, :, :) :: haveLats
-    real, allocatable, dimension(:, :, :) :: haveMLTs
+    real, allocatable, dimension(:, :) :: haveLats
+    real, allocatable, dimension(:, :) :: haveMLTs
     ! Field-aligned Currents:
-    real, allocatable, dimension(:, :, :) :: haveFac
+    real, allocatable, dimension(:, :) :: haveFac
     ! Potentials:
-    real, allocatable, dimension(:, :, :) :: havePotential
+    real, allocatable, dimension(:, :) :: havePotential
     ! Electron diffuse:
-    real, allocatable, dimension(:, :, :) :: haveDiffuseEeFlux
-    real, allocatable, dimension(:, :, :) :: haveDiffuseEAveE
+    real, allocatable, dimension(:, :) :: haveDiffuseEeFlux
+    real, allocatable, dimension(:, :) :: haveDiffuseEAveE
     ! Ion diffuse:
-    real, allocatable, dimension(:, :, :) :: haveDiffuseIeFlux
-    real, allocatable, dimension(:, :, :) :: haveDiffuseIAveE
+    real, allocatable, dimension(:, :) :: haveDiffuseIeFlux
+    real, allocatable, dimension(:, :) :: haveDiffuseIAveE
     ! Discrete or Monoenergetic:
-    real, allocatable, dimension(:, :, :) :: haveMonoEeFlux
-    real, allocatable, dimension(:, :, :) :: haveMonoEAveE
+    real, allocatable, dimension(:, :) :: haveMonoEeFlux
+    real, allocatable, dimension(:, :) :: haveMonoEAveE
     ! Broadband or Wave-drive:
-    real, allocatable, dimension(:, :, :) :: haveWaveEeFlux
-    real, allocatable, dimension(:, :, :) :: haveWaveEAveE
+    real, allocatable, dimension(:, :) :: haveWaveEeFlux
+    real, allocatable, dimension(:, :) :: haveWaveEAveE
     ! Is Polar Cap (1 if is polar cap, 0 otherwise):
-    real, allocatable, dimension(:, :, :) :: havePolarCap
+    real, allocatable, dimension(:, :) :: havePolarCap
 
     ! ----------------------------------------------------------------
     ! These are what the code that is calling this library needs
@@ -100,9 +105,6 @@ module ModIEGITM
     logical :: isPotentialUpdated = .false.
 
   contains
-
-
-
     ! Set verbose level:
     procedure :: verbose => set_verbose
 
@@ -123,6 +125,7 @@ module ModIEGITM
     ! ! Initialize the library:
     procedure :: init => initialize
     ! ! Initalize coupling storage
+    ! ! SWMF only, Only call from wrapper and srcCoupleIE
     procedure :: initCouple => initializeCouple
 
     ! ! set indices to run empirical models:
@@ -148,6 +151,7 @@ module ModIEGITM
     procedure :: grid => set_grid
     procedure :: mlts => set_mlts
     procedure :: lats => set_lats
+    ! ! SWMF only, Only call from wrapper and srcCoupleIE
     procedure :: nIeMlts => set_ie_nMlts
     procedure :: nIeLats => set_ie_nLats
     procedure :: nIeBlks => set_ie_nBlks
@@ -157,6 +161,15 @@ module ModIEGITM
     procedure :: time_real => set_time_real
     ! procedure :: time_ymdhms => set_time_ymdhms
     ! procedure :: check_time => run_check_time
+
+    ! ! interpolate between IE and UA grids
+    ! ! SWMF only, Only call from wrapper and srcCoupleIE
+    procedure :: find_ua_point => find_ua_point
+!    procedure :: find_ie_point => find_ie_point
+    procedure :: ie_ua_interp_indices => set_ie_ua_interpolation_indices
+!    procedure :: ua_ie_interp => set_ua_ie_interpolation_indices
+    procedure :: get_ie_to_ua => get_ie_values_for_ua
+!    procedure :: get_ua_to_ie => get_ua_values_for_ie
 
     ! ! Get model results:
     procedure :: get_potential => run_potential_model
@@ -179,6 +192,8 @@ module ModIEGITM
       end subroutine set_verbose
 
   INCLUDE "grid_routines.f90"
+
+  INCLUDE "grid_interpolation.f90"
 
   INCLUDE "ie_coupling_routines.f90"
 

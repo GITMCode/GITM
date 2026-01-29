@@ -240,8 +240,8 @@ contains
       nDim=3, &! dimensionality
       nRootBlock_D=(/nBlocksLat, nBlocksLon, 1/), &! blocks
       nCell_D=(/nLats, nLons, nAlts/), &! size of node based grid
-      XyzMin_D=(/cHalf, cHalf, cHalf/), &! generalize coord
-      XyzMax_D=(/nLats - cHalf, nLons - cHalf, nAlts - cHalf/), &! generalize coord
+      XyzMin_D=(/0.5, 0.5, 0.5/), &! generalize coord
+      XyzMax_D=(/nLats - 0.5, nLons - 0.5, nAlts - 0.5/), &! generalize coord
       TypeCoord='GEO', &! magnetic coordinates
       !Coord1_I= CoLat_I,                          &! colatitudes
       !Coord2_I= Lon_I,                            &! longitudes
@@ -462,7 +462,7 @@ contains
 
   !============================================================================
   subroutine UA_put_from_ie(Buffer_IIV, iSizeIn, jSizeIn, nVarIn, &
-                            NameVarIn_V, iBlock)
+                            NameVarIn_V)
 
     use ModNumConst, only: cPi
     use CON_coupler, ONLY: Grid_C, IE_, ncell_id
@@ -475,25 +475,24 @@ contains
 
     ! This gets called for each variable- external loop over all variable names.
     ! Namevar = Pot, Ave, and Tot.
-    ! iBlock = 1:North, 2:South.
 
     implicit none
 
     integer, intent(in)           :: iSizeIn, jSizeIn, nVarIn
     real, intent(in)              :: Buffer_IIV(iSizeIn, jSizeIn, nVarIn)
     character(len=*), intent(in)  :: NameVarIn_V(nVarIn)
-    integer, intent(in)            :: iBlock
 
     logical :: IsInitialized = .false.
 
     integer :: i, j, ii, iVar, iError, nCells_D(2)
+    real, allocatable :: current_var(:, :)
 
     logical :: DoTest, DoTestMe
     character(len=*), parameter :: NameSub = 'UA_put_from_ie'
     !--------------------------------------------------------------------------
     call CON_set_do_test(NameSub, DoTest, DoTestMe)
 
-    if (.not. IEModel_%isCoupleInitalized) then
+    if (.not. IEModel_%isCoupleInitialized) then
       ! Gather information on size/shape of IE grid.
       ! Note that this is built for Ridley Serial, which stores its grid
       ! using "iSize - 1".  The +1 here compensates for that.
@@ -511,6 +510,8 @@ contains
 
     endif
 
+    allocate(current_var(IEModel_%havenMlts, IEModel_%havenLats))
+
     ! Debug: print basic coupling info:
     if ((DoTest .or. iDebugLevel > 3) .and. (iProcGITM == 0)) then
       write(*, *) NameSub//' coupling info:'
@@ -526,165 +527,55 @@ contains
 !      write(*, *) 'iSizeIeHemi, jSizeIeHemi = ', iSizeIeHemi, jSizeIeHemi
     endif
 
-    ! Debug statement: print max/mins of transferred variables.
-    if (DoTest .and. (iProcGITM == 0)) write(*, *) &
-      'UA WRAPPER: Max/min of received variables (iBlock=', iBlock, '):'
-
     ! Put each variable where it belongs based on the name.
     ! Currently will not work for RLM because gitm thinks that diffuse precip
     ! is the default, while IE thinks mono precip is the default
+
+    ! this should really be handled as a shallow copy, but I couldn't for the 
+    ! life of me figure out how to actually do one of those in Fortran
     do iVar = 1, nVarIn
+      current_var = Buffer_IIV(:, :, iVar)
+      if (DoTest .and. (iProcGITM == 0)) write(*, '(a, 2(e12.5,1x))') '&
+              UA '//NameVarIn_V(iVar)// " : ", &
+        maxval(current_var(:, :)), &
+        minval(current_var(:, :))
+
       select case (NameVarIn_V(iVar))
       ! There has got to be a better way to do this
         ! Electric Potential:
       case ('pot')
-        do i = 1, IEModel_%havenLats
-          ii = i
-          ! Flip southern hemisphere
-          if (iBlock == 2) ii = IEModel_%havenLats - i + 1
-          do j = 1, IEModel_%havenMLTs
-            IEModel_%havePotential(j, i, iBlock) = Buffer_IIV(ii, j, iVar)
-          enddo
-        enddo
-        if (DoTest .and. (iProcGITM == 0)) write(*, '(a, 2(e12.5,1x))') '&
-                UA pot: ', &
-          maxval(IEModel_%havePotential(:, :, iBlock)), &
-          minval(IEModel_%havePotential(:, :, iBlock))
-
+         IEModel_%havePotential = current_var
         ! Diffuse Precipitation/Total energy flux:
       case ('def')
-        do i = 1, IEModel_%havenLats
-          ii = i
-          ! Flip southern hemisphere
-          if (iBlock == 2) ii = IEModel_%havenLats - i + 1
-          do j = 1, IEModel_%havenMLTs
-            ! Convert from W/m^2 to erg/cm^2?
-            IEModel_%haveDiffuseEeFlux(j, i, iBlock) = &
-                    Buffer_IIV(ii, j, iVar)/(1.0e-7*100.0*100.0)
-          enddo
-        enddo
-        if (DoTest .and. (iProcGITM == 0)) write(*, '(a, 2(e12.5,1x))') &
-                'UA tot: ', &
-                maxval(IEModel_%haveDiffuseEeFlux(:, :, iBlock)), &
-                minval(IEModel_%haveDiffuseEeFlux(:, :, iBlock))
-
+         IEModel_%haveDiffuseEeFlux = current_var * 1000 !W/m^2 to ergs/cm^2
         ! Diffuse Precipitation/average energy:
       case ('dae')
-        do i = 1, IEModel_%havenLats
-          ii = i
-          ! Flip southern hemisphere
-          if (iBlock == 2) ii = IEModel_%havenLats - i + 1
-          do j = 1, IEModel_%havenMLTs
-            IEModel_%haveDiffuseEaveE(j, i, iBlock) = Buffer_IIV(ii, j, iVar)
-          enddo
-        enddo
-        if (DoTest .and. (iProcGITM == 0)) write(*, '(a, 2(e12.5,1x))') &
-                'UA ave: ', &
-          maxval(IEModel_%haveDiffuseEaveE(:, :, iBlock)), &
-          minval(IEModel_%haveDiffuseEaveE(:, :, iBlock))
-
+         IEModel_%haveDiffuseEaveE = current_var
         ! Monoenergetic Precipitation/Total energy flux:
       case ('mef')
-        do i = 1, IEModel_%havenLats
-          ii = i
-          ! Flip southern hemisphere
-          if (iBlock == 2) ii = IEModel_%havenLats - i + 1
-          do j = 1, IEModel_%havenMLTs
-            ! Convert from W/m^2 to erg/cm^2?
-            IEModel_%haveMonoEeFlux(j, i, iBlock) = &
-                    Buffer_IIV(ii, j, iVar)/(1.0e-7*100.0*100.0)
-          enddo
-        enddo
-        if (DoTest .and. (iProcGITM == 0)) write(*, '(a, 2(e12.5,1x))') &
-                'UA tot: ', &
-                maxval(IEModel_%haveMonoEeFlux(:, :, iBlock)), &
-                minval(IEModel_%haveMonoEeFlux(:, :, iBlock))
-
+         IEModel_%haveMonoEeFlux = current_var * 1000 !W/m^2 to ergs/cm^2
         ! Monoenergetic Precipitation/average energy:
       case ('mae')
-        do i = 1, IEModel_%havenLats
-          ii = i
-          ! Flip southern hemisphere
-          if (iBlock == 2) ii = IEModel_%havenLats - i + 1
-          do j = 1, IEModel_%havenMLTs
-            IEModel_%haveMonoEaveE(j, i, iBlock) = Buffer_IIV(ii, j, iVar)
-          enddo
-        enddo
-        if (DoTest .and. (iProcGITM == 0)) write(*, '(a, 2(e12.5,1x))') &
-                'UA ave: ', &
-                maxval(IEModel_%haveMonoEaveE(:, :, iBlock)), &
-                minval(IEModel_%haveMonoeaveE(:, :, iBlock))
-
+         IEModel_%haveMonoEaveE = current_var
         ! Wave Precipitation/Total energy flux:
       case ('wef')
-        do i = 1, IEModel_%havenLats
-          ii = i
-          ! Flip southern hemisphere
-          if (iBlock == 2) ii = IEModel_%havenLats - i + 1
-          do j = 1, IEModel_%havenMLTs
-            ! Convert from W/m^2 to erg/cm^2?
-            IEModel_%haveWaveEeFlux(j, i, iBlock) = &
-                    Buffer_IIV(ii, j, iVar)/(1.0e-7*100.0*100.0)
-          enddo
-        enddo
-        if (DoTest .and. (iProcGITM == 0)) write(*, '(a, 2(e12.5,1x))') &
-                'UA tot: ', &
-                maxval(IEModel_%haveWaveEeFlux(:, :, iBlock)), &
-                minval(IEModel_%haveWaveEeFlux(:, :, iBlock))
-
+         IEModel_%haveWaveEeFlux = current_var * 1000 !W/m^2 to ergs/cm^2
         ! Wave Precipitation/average energy:
       case ('wae')
-        do i = 1, IEModel_%havenLats
-          ii = i
-          ! Flip southern hemisphere
-          if (iBlock == 2) ii = IEModel_%havenLats - i + 1
-          do j = 1, IEModel_%havenMLTs
-            IEModel_%haveWaveEaveE(j, i, iBlock) = Buffer_IIV(ii, j, iVar)
-          enddo
-        enddo
-        if (DoTest .and. (iProcGITM == 0)) write(*, '(a, 2(e12.5,1x))') &
-                'UA ave: ', &
-                maxval(IEModel_%haveWaveEaveE(:, :, iBlock)), &
-                minval(IEModel_%haveWaveEaveE(:, :, iBlock))
-
+         IEModel_%haveWaveEaveE = current_var
         ! Ion Precipitation/Total energy flux:
       case ('ief')
-        do i = 1, IEModel_%havenLats
-          ii = i
-          ! Flip southern hemisphere
-          if (iBlock == 2) ii = IEModel_%havenLats - i + 1
-          do j = 1, IEModel_%havenMLTs
-            ! Convert from W/m^2 to erg/cm^2?
-            IEModel_%haveDiffuseIeFlux(j, i, iBlock) = &
-                    Buffer_IIV(ii, j, iVar)/(1.0e-7*100.0*100.0)
-          enddo
-        enddo
-        if (DoTest .and. (iProcGITM == 0)) write(*, '(a, 2(e12.5,1x))') &
-                'UA tot: ', &
-                maxval(IEModel_%haveDiffuseIeFlux(:, :, iBlock)), &
-                minval(IEModel_%haveDiffuseIeFlux(:, :, iBlock))
-
+         IEModel_%haveDiffuseIeFlux = current_var * 1000 !W/m^2 to ergs/cm^2
         ! Ion Precipitation/average energy:
       case ('iae')
-        do i = 1, IEModel_%havenLats
-          ii = i
-          ! Flip southern hemisphere
-          if (iBlock == 2) ii = IEModel_%havenLats - i + 1
-          do j = 1, IEModel_%havenMLTs
-            IEModel_%haveDiffuseIaveE(j, i, iBlock) = Buffer_IIV(ii, j, iVar)
-          enddo
-        enddo
-        if (DoTest .and. (iProcGITM == 0)) write(*, '(a, 2(e12.5,1x))') &
-                'UA ave: ', &
-                maxval(IEModel_%haveDiffuseIaveE(:, :, iBlock)), &
-                minval(IEModel_%haveDiffuseIaveE(:, :, iBlock))
-
+         IEModel_%haveDiffuseIaveE = current_var
       case default
         call CON_stop(NameSub//' invalid NameVarIn='//NameVarIn_V(iVar))
 
       end select
     enddo
-
+    ! Insert call here to convert w/m^2 to ergs/cm^2 (multiply by 1000)
+    deallocate(current_var)
 
   end subroutine UA_put_from_ie
 
