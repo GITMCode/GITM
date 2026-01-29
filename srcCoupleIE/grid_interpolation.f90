@@ -22,8 +22,8 @@ subroutine find_ua_point(this, LocIn, LocOut)
     real, dimension(2), intent(in)  :: LocIn
     real, dimension(4), intent(out) :: LocOut
     real :: MLTIn, LatIn, MLTUp, MLTDown
-    integer :: j, i
-    real :: sig = 1.0
+    integer :: LatIndex, MltIndex
+    real :: MLTMin=0, MLTMax=24.0, MLThalf=12.0, LatMin=-90.0, LatMax=90.0
 
     logical :: IsFound
 
@@ -37,60 +37,57 @@ subroutine find_ua_point(this, LocIn, LocOut)
     ! Check to see if the point is even on the grid.
     !/
 
-    MLTIn = mod(LocIn(1) + 24.0, 24.0)
+    MLTIn = mod(LocIn(1) + MLTMax, MLTMax)
 
     LatIn = LocIn(2)
-    if (LatIn > 90.0) then
-        LatIn = 180.0 - LatIn
-        MLTIn = mod(MLTIn + 12.0, 24.0)
+    if (LatIn > LatMax) then
+        LatIn = 2 * LatMax - LatIn
+        MLTIn = mod(MLTIn + MLThalf, MLTMax)
     endif
-    if (LatIn < -90.0) then
-        LatIn = -180.0 - LatIn
-        MLTIn = mod(MLTIn + 12.0, 24.0)
+    if (LatIn < LatMin) then
+        LatIn = 2 * LatMin - LatIn
+        MLTIn = mod(MLTIn + MLThalf, MLTMax)
     endif
 
-    if (MLTIn > 24.0 .or. MLTIn < 0 .or. LatIn > 90.0 .or. LatIn < -90.0) then
+    if (MLTIn > MLTMax .or. MLTIn < MLTMin .or. &
+        LatIn > LatMax .or. LatIn < LatMin) then
+            ! should update to be var based
         call set_error("Input lat / mlt is outside of -90-90 and 0-24 range! " &
                 // NameSub)
         return
     endif
 
+    ! only works for regular grid, should eventually check in case IE uses
+    ! something else
+    LatIndex = FLOOR((-LatIn - LatMin) * (this%havenLats - 1) &
+                    / (LatMax - LatMin))+1
+    MltIndex = FLOOR(MltIn * (this%havenMlts - 1) / (MLTMax - MltMin))+1
 
-    MLTs: do j=1, this%havenMLTs - 1
-        LATS: do i = 1, this%havenLats
-            !\
-            ! Check to see if the point is within the current cell
-            !/
-            MLTUp = this%haveMLTs(j+1, i)
-            MLTDown = this%haveMLTs(j, i)
-            if (MLTUp == 0.0 .and. MLTDown >= 23.0) MLTUp = 24.0
-            ! This assume that we start at the pole and go to lower latitudes:
-            ! Is this still true for IE? The world may never know!
-            if (sig*LatIn <= this%haveLats(j,i) .and. &
-                    sig*LatIn > this%haveLats(j,i+1) .and. &
-                    MLTIn < MLTUp .and. &
-                    MLTIn >= MLTDown) then
-                !\
-                ! If it is, then store the cell number and calculate
-                ! the interpolation coefficients.
-                !/
-                LocOut(1) = j
-                LocOut(2) = i
-                
-                LocOut(3) = (MLTIn - MLTDown)/(MLTUp - MLTDown)
-                ! To keep the MLT and LAT ratios uses consistent, we need to calculate
-                ! the ratios backward, since lat shrinks with increasing index:
-                LocOut(4) = (this%haveLats(j,i) - sig*LatIn)/ &
-                        (this%haveLats(j,i) - this%haveLats(j,i+1))
-                ! Once we find the point, leave
-                exit MLTs
-
-            endif
-        enddo Lats
-    enddo MLTs
+    ! check my work to be sure!
+    MLTUp = this%haveMLTs(MltIndex+1, LatIndex)
+    MLTDown = this%haveMLTs(MltIndex, LatIndex)
+ 
+    ! store needed values
+    LocOut(1) = MltIndex
+    LocOut(2) = LatIndex
+    
+    LocOut(3) = (MLTIn - MLTDown)/(MLTUp - MLTDown)
+    ! To keep the MLT and LAT ratios uses consistent, we need to calculate
+    ! the ratios backward, since lat shrinks with increasing index:
+    LocOut(4) = (this%haveLats(MltIndex,LatIndex) - LatIn)/ &
+            (this%haveLats(MltIndex,LatIndex) - &
+            this%haveLats(MltIndex,LatIndex+1))
 
     if (this%iDebugLevel > 4) &
-            write(*, *) 'file point!', LatIn, MltIn, LocOut
+        write(*, *) 'file point!', LatIn, MltIn, LocOut
+    if (this%iDebugLevel > 7) then
+        if (LatIn > this%haveLats(MltIndex,LatIndex)) &
+        write(*,*) "LatIn, LatUp", LatIn, this%haveLats(MltIndex,LatIndex)
+        if (LatIn <= this%haveLats(MltIndex,LatIndex+1)) &
+        write(*,*) "LatIn, LatDown", LatIn, this%haveLats(MltIndex,LatIndex+1)
+        if (MLTIn >= MLTUp) write(*,*) "MLTIn, MLTUp", MltIn, MltUP
+        if (MltIn < MltDown) write(*,*) "MltIn, MltDown", MltIn, MltDown
+    endif
 
 end subroutine find_ua_point
 !==============================================================================
@@ -110,7 +107,7 @@ subroutine set_ie_ua_interpolation_indices(this, mltsIn, latsIn)
         deallocate(this%IeUaInterpolationIndices)
         deallocate(this%IeUaInterpolationRatios)
     endif
-    allocate(this%IeUaInterpolationIndices(this%neednMlts, this%neednLats, 3), &
+    allocate(this%IeUaInterpolationIndices(this%neednMlts, this%neednLats, 2), &
             stat=iError)
     if (iError /= 0) then
         call set_error("Error allocating IeUaInterpolationIndices!")
