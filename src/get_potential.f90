@@ -353,7 +353,7 @@ subroutine get_potential(iBlock)
     maxEnergyFlux = maxval(ElectronEnergyFluxDiffuse)
     call get_max_value_across_pes(maxEnergyFlux)
     if ((maxEnergyFlux == 0) .and. (doStopIfNoAurora)) then
-      call set_error("Wave Aurora is zero and it was requested! Must Stop!")
+      call set_error("Diffuse Aurora is zero and it was requested! Must Stop!")
       call report_errors
       call stop_gitm("Stopping in get_potential")
     endif
@@ -371,7 +371,7 @@ subroutine get_potential(iBlock)
       ! Check to see if there is any aurora:
       maxEnergyFlux = maxval(ElectronEnergyFluxWave)
       call get_max_value_across_pes(maxEnergyFlux)
-      if (maxEnergyFlux == 0) then
+      if (maxEnergyFlux == 0 .and. .not. IsFramework) then
         call set_error("Wave Aurora is zero and it was requested! Must Stop!")
         call report_errors
         call stop_gitm("Stopping in get_potential")
@@ -383,7 +383,7 @@ subroutine get_potential(iBlock)
       ! Check to see if there is any aurora:
       maxEnergyFlux = maxval(ElectronEnergyFluxMono)
       call get_max_value_across_pes(maxEnergyFlux)
-      if (maxEnergyFlux == 0) then
+      if (maxEnergyFlux == 0 .and. .not. IsFramework) then
         call set_error("Mono Aurora is zero and it was requested! Must Stop!")
         call report_errors
         call stop_gitm("Stopping in get_potential")
@@ -395,7 +395,7 @@ subroutine get_potential(iBlock)
       ! Check to see if there is any aurora:
       maxEnergyFlux = maxval(IonEnergyFlux)
       call get_max_value_across_pes(maxEnergyFlux)
-      if (maxEnergyFlux == 0) then
+      if (maxEnergyFlux == 0 .and. .not. IsFramework) then
         call set_error("Ion Aurora is zero and it was requested! Must Stop!")
         call report_errors
         call stop_gitm("Stopping in get_potential")
