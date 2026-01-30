@@ -165,11 +165,8 @@ module ModIEGITM
     ! ! interpolate between IE and UA grids
     ! ! SWMF only, Only call from wrapper and srcCoupleIE
     procedure :: find_ua_point => find_ua_point
-!    procedure :: find_ie_point => find_ie_point
     procedure :: ie_ua_interp_indices => set_ie_ua_interpolation_indices
-!    procedure :: ua_ie_interp => set_ua_ie_interpolation_indices
     procedure :: get_ie_to_ua => get_ie_values_for_ua
-!    procedure :: get_ua_to_ie => get_ua_values_for_ie
 
     ! ! Get model results:
     procedure :: get_potential => run_potential_model
