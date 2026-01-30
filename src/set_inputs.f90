@@ -1751,7 +1751,8 @@ subroutine set_inputs
           write(*, *) 'UseEUVData            (logical)'
           write(*, *) 'cEUVFile              (string)'
         else
-          if (UseEUVData) call Set_Euv(iError, CurrentTime, EndTime)
+          ! Framework runs don't have endtime yet. Just set EUV later when it's needed.
+          if (UseEUVData .and. .not. IsFramework) call Set_Euv(iError, CurrentTime, EndTime)
           if (iError /= 0) then
             call stop_gitm("Stopping after set_euv in set_inputs. Error in EUV data. Check times!")
           endif

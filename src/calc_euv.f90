@@ -480,7 +480,8 @@ subroutine calc_scaled_euv
   integer, dimension(7) :: Time_Array
 
   !DAVES:
-  real :: wvavg(Num_WaveLengths_High), SeeTime(nSeeTimes), tDiff(nSeeTimes)
+  real :: wvavg(Num_WaveLengths_High)
+  real, allocatable :: SeeTime(:), tDiff(:)
   real :: y1(Num_WaveLengths_High), y2(Num_WaveLengths_High), x1, x2, x
   real :: m(Num_WaveLengths_High), k(Num_WaveLengths_High)
   character(len=2) :: dday, dhour, dminute
@@ -517,6 +518,11 @@ subroutine calc_scaled_euv
   if (UseEUVData) then
 
     call Set_Euv(iError, CurrentTime, EndTime)
+
+    if (allocated(SeeTime)) deallocate(SeeTime)
+    if (allocated(tDiff)) deallocate(tdiff)
+    allocate(SeeTime(nSeeTimes))
+    allocate(tDiff(nSeeTimes))
 
     if (iError /= 0) then
       call stop_gitm("Stopping in euv_ionization_heat. Error in EUV data. Check times!")
