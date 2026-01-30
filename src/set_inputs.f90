@@ -1276,21 +1276,10 @@ subroutine set_inputs
         endif
 
       case ("#APEX")
-
-        if (IsFramework .and. UseApex) then
-          if (iDebugLevel >= 0) then
-            write(*, *) "---------------------------------------"
-            write(*, *) "-  While using Framework, you can not -"
-            write(*, *) "-   use APEX coordinates, sorry.      -"
-            write(*, *) "-          Ignoring                   -"
-            write(*, *) "---------------------------------------"
-          endif
-          UseApex = .false.
-        else
-
-          call read_in_logical(UseApex, iError)
-
-          if (iError /= 0) then
+        
+        call read_in_logical(UseApex, iError)
+        
+        if (iError /= 0) then
             write(*, *) 'Incorrect format for #APEX:'
             write(*, *) ''
             write(*, *) '#APEX'
@@ -1298,8 +1287,15 @@ subroutine set_inputs
             write(*, *) '        Sets whether to use a realistic magnetic'
             write(*, *) '        field (T) or a dipole (F)'
             IsDone = .true.
-          endif
+        endif
 
+        if (IsFramework .and. UseApex) then
+            write(*, *) "---------------------------------------"
+            write(*, *) "-  While using Framework, you can not -"
+            write(*, *) "-   use APEX coordinates, sorry.      -"
+            write(*, *) "-          Ignoring                   -"
+            write(*, *) "---------------------------------------"
+          UseApex = .false.
         endif
 
       case ("#ALTITUDE")
