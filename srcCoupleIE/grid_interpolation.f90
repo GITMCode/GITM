@@ -208,10 +208,10 @@ subroutine get_ie_values_for_ua(this, iVarToGetIn, valueOut)
 
         end select
         ValueOut(iMLT, iLat) = &
-                    (1.0 - dM)*(1.0 - dL)*current_var(iM, iL) + &
-                    (1.0 - dM)*(dL)*current_var(iM, IL + 1) + &
-                    (dM)*(dL)*current_var(iM + 1, IL + 1) + &
-                    (dM)*(1.0 - dL)*current_var(iM + 1, IL)
+                    (1.0 - dM)*(1.0 - dL)*current_var(iL, iM) + &
+                    (1.0 - dM)*(dL)*current_var(iL + 1, iM) + &
+                    (dM)*(dL)*current_var(iL + 1, iM + 1) + &
+                    (dM)*(1.0 - dL)*current_var(iL, iM + 1)
     enddo; enddo
     return
 end subroutine get_ie_values_for_ua
