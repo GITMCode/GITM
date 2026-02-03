@@ -518,7 +518,7 @@ contains
 !      write(*, *) 'UA/GITM: IE grid set to nLats x nLons = ', &
 !        iSizeIeHemi, jSizeIeHemi
       write(*, '(a, 2i5)') ' UA IE nLats, nLons = ', IEModel_%havenLats, &
-              IEModel_%havenLats
+              IEModel_%havenMLTs
       write(*, *) 'Buffer shape information:'
       write(*, '(a, 3i5)') ' iSizeIn, jSizeIn, nVarIn = ', iSizeIn, jSizeIn, &
               nVarIn
