@@ -1208,7 +1208,10 @@ subroutine set_inputs
           write(*, *) "MaxResidual            (V,real)"
           write(*, *) "IncludeCowling         (logical)"
           write(*, *) "DynamoLonAverage       (real)"
+          write(*, *) "SimplyAddPotentials      (logical, optional. default=False)"
         endif
+        call read_in_logical(SimplyAddPotentials, iError)
+        if (iError /= 0) iError = 0
 
       case ("#IONFORCING")
         call read_in_logical(UseExB, iError)

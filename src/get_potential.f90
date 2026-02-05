@@ -222,14 +222,19 @@ subroutine get_potential(iBlock)
           do iLon = -1, nLons + 2
             do iLat = -1, nLats + 2
               if (abs(MLatitude(iLon, iLat, iAlt, iBlock)) < LatBoundNow) then
-                dis = (LatBoundNow - &
-                       abs(MLatitude(iLon, iLat, iAlt, iBlock)))/20.0
-                if (dis > 1.0) then
-                  TempPotential(iLon, iLat, iDir) = dynamo(iLon, iLat)
-                else
+                if (SimplyAddPotentials) then
                   TempPotential(iLon, iLat, iDir) = &
-                    (1.0 - dis)*TempPotential(iLon, iLat, iDir) + &
-                    dis*dynamo(iLon, iLat)
+                   dynamo(iLon, iLat) + MagnetosphericPotential(iLon, iLat, iAlt)
+                else
+                  dis = (LatBoundNow - &
+                        abs(MLatitude(iLon, iLat, iAlt, iBlock)))/20.0
+                  if (dis > 1.0) then
+                    TempPotential(iLon, iLat, iDir) = dynamo(iLon, iLat)
+                  else
+                    TempPotential(iLon, iLat, iDir) = &
+                      (1.0 - dis)*TempPotential(iLon, iLat, iDir) + &
+                      dis*dynamo(iLon, iLat)
+                  endif
                 endif
               endif
             enddo
