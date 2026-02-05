@@ -110,10 +110,8 @@ subroutine set_ie_mlts(this, MltsIn)
 
     ! Set MLT for both hemispheres:
     do iLat=1,this%havenLats
-        this%HaveMlts(1:this%havenMLTs-1,iLat) = mod(MltsIn, 360.0)/15
-        this%HaveMlts(this%havenMLTs,iLat) = 0.0
-        this%HaveMlts(1:this%havenMLTs-1,iLat) = mod(MltsIn, 360.0)/15
-        this%HaveMlts(this%havenMLTs,iLat) = 0.0
+        this%HaveMlts(1:this%havenMLTs-1,iLat) = mod(MltsIn + 180.0, 360.0)/15
+        this%HaveMlts(this%havenMLTs,iLat) = 180.0
     enddo
 
 end subroutine set_ie_mlts
