@@ -209,15 +209,6 @@ subroutine get_potential(iBlock)
           MLatitude(-1:nLons + 2, -1:nLats + 2, iAlt, iBlock), dynamo)
         DynamoPotential(:, :, iAlt) = dynamo
 
-        ! Set latitude boundary between region of high lat convection
-        ! and region of neutral wind dyanmo based on if SWMF potential
-        ! is being used:
-        if (IsFramework) then
-          LatBoundNow = 45.
-        else
-          LatBoundNow = DynamoHighLatBoundary
-        endif
-
         do iDir = 1, nDir
           do iLon = -1, nLons + 2
             do iLat = -1, nLats + 2
