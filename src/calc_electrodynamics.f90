@@ -303,6 +303,10 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
 
   endif
 
+  call MPI_Bcast(SubsolarLatitude, 1, MPI_Real, 1, iCommGITM, ierror)
+  call MPI_Bcast(SubsolarLongitude, 1, MPI_Real, 1, iCommGITM, ierror)
+  call MPI_Bcast(MagneticPoleColat, 1, MPI_Real, 1, iCommGITM, ierror)
+  call MPI_Bcast(MagneticPoleLon, 1, MPI_Real, 1, iCommGITM, ierror)
   if ((UseApex .and. IsEarth) .or. IsFramework) then
 
     do i = 1, nMagLons + 1
