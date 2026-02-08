@@ -32,9 +32,10 @@ integer function bad_outputtype()
 
   ! Set up all possible/valid plot types:
   NameValidTypes = (/'3DALL', '3DLST', '3DNEU', '3DION', '3DTHM', '3DCHM', &
-                     '3DUSR', '3DGLO', '3DMAG', '3DHME', '2DGEL', '2DMEL', '2DUSR', &
-                     '2DTEC', '2DANC', '2DHME', '1DALL', '0DALL', '1DGLO', '1DTHM', '1DNEW', &
-                     '1DCHM', '1DCMS', '1DUSR', '0DUSR'/)
+                     '3DUSR', '3DGLO', '3DMAG', '3DHME', &
+                     '2DGEL', '2DMEL', '2DUSR', '2DTEC', '2DANC', '2DHME',&
+                     '1DALL', '1DGLO', '1DTHM', '1DNEW', '1DCHM', '1DCMS', '1DUSR', &
+                     '0DUSR', '0DALL',/)
 
   ! Loop over all requested output types:
   do iOutputType = 1, nOutputTypes
