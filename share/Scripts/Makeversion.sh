@@ -36,7 +36,7 @@ writegitversion(){
     done
     echo '"'>> src/.version
 
-    printf 'character(*), parameter :: DifferentFilesElectrodyunamics = &\n"' >> src/.version
+    printf 'character(*), parameter :: DifferentFilesElectrodynamics = &\n"' >> src/.version
 
     files=$(git -C ext/Electrodynamics status --porcelain | awk '{print $NF}')
     for file in $files; do
