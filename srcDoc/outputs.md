@@ -519,6 +519,17 @@ Currently the following output files are available:
     24 V!Dn!N (up,NO                  )
     25 V!Dn!N (up,He                  )
 
+## 3DPOT
+    1 Longitude
+    2 Latitude
+    3 Altitude
+    4 Magnetic Latitude
+    5 Magnetic Longitude
+    6 Magnetospheric Potential
+    7 Dynamo Potential
+    8 Total Potential
+    9 PotentialY (Potential from 2nd AMIE files if UseTwoAmiePotentials. Otherwise 0)
+
 ## 3DTHM
 
     1 Longitude
