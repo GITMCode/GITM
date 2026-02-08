@@ -28,21 +28,23 @@ writegitversion(){
 
 
     # Here, for completeness, all of the changes files are listed.
-    printf 'character(*), parameter :: DifferentFilesGitm = &\n"' >> src/.version
+    printf 'character(*), parameter :: DifferentFilesGitm = "&\n' >> src/.version
 
     files=$(git status --porcelain | awk '{print $NF}')
     for file in $files; do
-        echo "$file,&" >> src/.version
+        echo "&$file,&" >> src/.version
     done
-    echo '"'>> src/.version
+    printf '&"\n\n' >> src/.version
 
-    printf 'character(*), parameter :: DifferentFilesElectrodynamics = &\n"' >> src/.version
+    printf 'character(*), parameter :: DifferentFilesElectrodynamics = "&\n' >> src/.version
 
-    files=$(git -C ext/Electrodynamics status --porcelain | awk '{print $NF}')
-    for file in $files; do
-        echo  "$file,&" >> src/.version
-    done
-    echo '"'>> src/.version
+    if [ -d ext/Electrodynamics ]; then
+        files=$(git -C ext/Electrodynamics status --porcelain | awk '{print $NF}')
+        for file in $files; do
+            echo  "&$file,&" >> src/.version
+        done
+    fi
+    printf '&"'>> src/.version
 }
 
 ################
