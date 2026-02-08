@@ -69,6 +69,7 @@ GITM = ${DIR}/UA/GITM
 
 
 LIB:
+	make --no-print-directory VERSION
 	cd $(ABDIR)     ; make                                         LIB
 	cd $(GLDIR)     ; make LIBPREV=${LIBDIR}/libSphere.a   LIBADD
 	cd $(EIEDIR)    ; make LIBPREV=${GITM}/${GLDIR}/libUPTOGL.a      LIB
