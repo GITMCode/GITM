@@ -359,7 +359,7 @@ subroutine output(dir, iBlock, iOutputType)
 
   case ('2DMEL')
 
-    nvars_to_write = 29
+    nvars_to_write = 31
     if (iBLK == 1) call output_2dmel(iBlock)
 
   case ('2DUSR')
@@ -740,6 +740,8 @@ contains
       write(iOutputUnit_, "(I7,A1,a)") 6, " ", "GeoLon"
       write(iOutputUnit_, "(I7,A1,a)") 7, " ", "Pedersen Conductance"
       write(iOutputUnit_, "(I7,A1,a)") 8, " ", "Hall Conductance"
+      write(iOutputUnit_, "(I7,A1,a)") 7, " ", "AltIntPedersen Conductance"
+      write(iOutputUnit_, "(I7,A1,a)") 8, " ", "AltIntHall Conductance"
       write(iOutputUnit_, "(I7,A1,a)") 9, " ", "DivJuAlt"
       write(iOutputUnit_, "(I7,A1,a)") 10, " ", "Field Line Length"
       write(iOutputUnit_, "(I7,A1,a)") 11, " ", "Sigma PP"
@@ -1830,6 +1832,8 @@ subroutine output_2dmel(iBlock)
         GeoLonMC(iLon, iLat), &
         SigmaPedersenMC(iLon, iLat), &
         SigmaHallMC(iLon, iLat), &
+        SigmaPedersenAltIntMC(iLon, iLat), &
+        SigmaHallAltIntMC(iLon, iLat), &
         DivJuAltMC(iLon, iLat), &
         LengthMC(iLon, iLat), &
         SigmaPPMC(iLon, iLat), &
