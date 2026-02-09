@@ -22,7 +22,7 @@ subroutine find_ua_point(this, LocIn, LocOut)
     real, dimension(2), intent(in)  :: LocIn
     real, dimension(4), intent(out) :: LocOut
     real :: MLTIn, LatIn, MLTUp, MLTDown
-    integer :: LatIndex, MltIndex
+    integer :: LatIndex, MltIndex, iPt=0
     real :: MLTMin=0, MLTMax=24.0, MLThalf=12.0, LatMin=-90.0, LatMax=90.0
 
     logical :: IsFound
@@ -59,10 +59,17 @@ subroutine find_ua_point(this, LocIn, LocOut)
 
     ! only works for regular grid, should eventually check in case IE uses
     ! something else
-    LatIndex = FLOOR((-LatIn - LatMin) * (this%havenLats - 1) &
-                    / (LatMax - LatMin))+1
-    MltIndex = FLOOR(MltIn * (this%havenMlts - 1) / (MLTMax - MltMin))+1
 
+    do iPt=1, this%havenMlts
+        if ((this%haveMLTs(iPt+1, 2) > MLTIn) .and. (this%haveMLTs(iPt, 2) <= MLTIn)) &
+        MltIndex=iPt
+    enddo
+
+    do iPt=1, this%havenLats
+        if ((this%haveLats(2, iPt+1) < LatIn) .and. (this%haveLats(2, iPt) >= LatIn)) &
+        LatIndex=iPt
+    enddo
+    
     ! check my work to be sure!
     MLTUp = this%haveMLTs(MltIndex+1, LatIndex)
     MLTDown = this%haveMLTs(MltIndex, LatIndex)
