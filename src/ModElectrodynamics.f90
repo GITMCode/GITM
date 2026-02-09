@@ -27,7 +27,9 @@ module ModElectrodynamics
 
   ! These are the conductances in magnetic coordinates
   real, dimension(:, :), allocatable :: SigmaHallMC
+  real, dimension(:, :), allocatable :: SigmaHallAltIntMC
   real, dimension(:, :), allocatable :: SigmaPedersenMC
+  real, dimension(:, :), allocatable :: SigmaPedersenAltIntMC
 
   real, dimension(:, :), allocatable :: SigmaPPMC
   real, dimension(:, :), allocatable :: SigmaLLMC
