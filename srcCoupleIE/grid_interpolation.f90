@@ -60,10 +60,15 @@ subroutine find_ua_point(this, LocIn, LocOut)
     ! only works for regular grid, should eventually check in case IE uses
     ! something else
 
-    do iPt=1, this%havenMlts
-        if ((this%haveMLTs(iPt+1, 2) > MLTIn) .and. (this%haveMLTs(iPt, 2) <= MLTIn)) &
-        MltIndex=iPt
-    enddo
+    MLTs: do iPt=1, this%havenMlts
+       MLTUp = this%haveMLTs(iPt+1, 2)
+       MLTDown = this%haveMLTs(iPt, 2)
+       if (MLTUp == 0.0 .and. MLTDown >= 23.0) MLTUp = 24.0
+       if ((MltUp > MLTIn) .and. (MltDown <= MLTIn)) then
+          MltIndex = iPt
+          exit MLTs
+       endif
+    enddo MLTs
 
     do iPt=1, this%havenLats
         if ((this%haveLats(2, iPt+1) < LatIn) .and. (this%haveLats(2, iPt) >= LatIn)) &
@@ -71,9 +76,10 @@ subroutine find_ua_point(this, LocIn, LocOut)
     enddo
     
     ! check my work to be sure!
-    MLTUp = this%haveMLTs(MltIndex+1, LatIndex)
-    MLTDown = this%haveMLTs(MltIndex, LatIndex)
- 
+    !MLTUp = this%haveMLTs(MltIndex+1, LatIndex)
+    !MLTDown = this%haveMLTs(MltIndex, LatIndex)
+
+  
     ! store needed values
     LocOut(1) = MltIndex
     LocOut(2) = LatIndex
