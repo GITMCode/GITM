@@ -1292,17 +1292,6 @@ subroutine set_inputs
             IsDone = .true.
         endif
 
-        if (IsFramework .and. UseApex) then
-          if (iProc == iDebugProc) then
-            write(*, *) "---------------------------------------"
-            write(*, *) "-  While using Framework, you can not -"
-            write(*, *) "-   use APEX coordinates, sorry.      -"
-            write(*, *) "-          Ignoring                   -"
-            write(*, *) "---------------------------------------"
-          endif
-          UseApex = .false.
-        endif
-
       case ("#ALTITUDE")
         call read_in_real(AltMin, iError)
         call read_in_real(AltMax, iError)
