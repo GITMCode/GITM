@@ -127,7 +127,7 @@ subroutine calc_physics(iBlock)
     ! Compute Magnetic Local Time
     !
 
-    if (UseApex .and. IsEarth) then
+    if ((UseApex .or. isFrameWork) .and. IsEarth) then
       do iLat = -1, nLats + 2
         do iLon = -1, nLons + 2
           call magloctm( &
