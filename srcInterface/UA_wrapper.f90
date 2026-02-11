@@ -385,7 +385,8 @@ contains
   end subroutine UA_finalize
 
   !============================================================================
-  subroutine UA_get_info_for_ie(nVar, NameVar_V, nMagLat, nMagLon)
+  subroutine UA_get_info_for_ie(nVar, nEngUA, NameVar_V, nMagLat, nMagLon, &
+                                EngUA)
     ! Get number and names of variables for IE to UA coupling.
     ! UA reports what variables it needs here.
     ! IE will use this info to fill buffers appropriately.
@@ -393,10 +394,13 @@ contains
     use ModElectrodynamics, ONLY: MagLatRes, MagLonRes
     use ModInputs, only: DynamoHighLatBoundary, nAuroraEng, UseDiffuseAurora, &
             UseMonoAurora, UseWaveAurora, UseIonAurora, UseSpectrumAurora
+    use ModSources, only: ED_N_Energies, ED_Energies
 
-    integer, intent(out) :: nVar
+    integer, intent(out) :: nVar, nEngUA
     integer, intent(out), optional :: nMagLat, nMagLon
+    real, intent(out), optional :: EngUA(:)
     character(len=*), intent(out), optional :: NameVar_V(:)
+    
 
     integer :: i
     logical :: DoTest, DoTestMe
@@ -415,7 +419,6 @@ contains
     ! This isn't actually correct because you could have mono turned off and
     ! Diffuse turned on
     ! Also will want a separate nVar and NameVar Length???
-
     i = 2
     if (present(NameVar_V)) then
       NameVar_V(1) = 'pot'
@@ -441,6 +444,8 @@ contains
       end if
     end if
 
+    nEngUA = ED_N_Energies
+    if(present(EngUA)) EngUA = ED_Energies
     ! If more information is needed, PARAMs should be set to configure this
     ! behavior and changes made here, e.g.,
     ! if(DoCoupleThing) nVar=nVar+1
