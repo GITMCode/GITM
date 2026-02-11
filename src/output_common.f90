@@ -1827,7 +1827,7 @@ subroutine output_2dmel(iBlock)
         MagLonMC(iLon, iLat)*Pi/180.0, &
         MagLatMC(iLon, iLat)*Pi/180.0, &
         Altitude_GB(iLon, iLat, iAlt, iBlock), &
-        MagLocTimeMC(iLon, iLat)*Pi/180.0, &
+        MagLocTimeMC(iLon, iLat), &
         GeoLatMC(iLon, iLat), &
         GeoLonMC(iLon, iLat), &
         SigmaPedersenMC(iLon, iLat), &
