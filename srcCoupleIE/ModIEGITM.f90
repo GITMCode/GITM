@@ -76,6 +76,10 @@ module ModIEGITM
     ! Broadband or Wave-drive:
     real, allocatable, dimension(:, :) :: haveWaveEeFlux
     real, allocatable, dimension(:, :) :: haveWaveEAveE
+    ! Spectrums
+    real, allocatable, dimension(:, :, :) :: haveHydrNflux
+    real, allocatable, dimension(:, :, :) :: haveElecNflux
+    
     ! Is Polar Cap (1 if is polar cap, 0 otherwise):
     real, allocatable, dimension(:, :) :: havePolarCap
 

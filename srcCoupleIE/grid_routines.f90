@@ -139,9 +139,11 @@ subroutine set_ie_lats(this, LatsIn)
 
 end subroutine set_ie_lats
 !============================================================================
-subroutine initializeCouple(this, UseDiffuse, UseMono, UseWave, UseIon)
+subroutine initializeCouple(this, UseDiffuse, UseMono, UseWave, UseIon, &
+                            UseSpectrum, nEngIn)
     class(ieModel) :: this
-    logical, intent(in) :: UseDiffuse, UseMono, UseWave, UseIon
+    logical, intent(in) :: UseDiffuse, UseMono, UseWave, UseIon, UseSpectrum
+    integer, intent(in), optional :: nEngIn
     ! Resizes all input arrays from IE to be correct
     ! Field-aligned Currents:
     if(allocated(this%haveFac)) deallocate(this%haveFac)
@@ -195,6 +197,15 @@ subroutine initializeCouple(this, UseDiffuse, UseMono, UseWave, UseIon)
         this%haveWaveEeFlux = 0
         this%haveWaveEAveE = 0
     end if
+
+    if(allocated(this%haveHydrNflux)) deallocate(this%haveHydrNflux)
+    if(allocated(this%haveElecNflux)) deallocate(this%haveElecNflux)
+    if(UseSpectrum) then
+        allocate(this%haveHydrNflux(this%havenMlts, this%havenLats, nEngIn))
+        allocate(this%haveElecNflux(this%havenMlts, this%havenLats, nEngIn))
+        this%haveHydrNflux = 0
+        this%haveElecNflux = 0
+    endif
     ! Is Polar Cap (1 if is polar cap, 0 otherwise):
     if(allocated(this%havePolarCap)) deallocate(this%havePolarCap)
     allocate(this%havePolarCap(this%havenMlts, this%havenLats))

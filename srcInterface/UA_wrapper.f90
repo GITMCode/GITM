@@ -385,8 +385,8 @@ contains
   end subroutine UA_finalize
 
   !============================================================================
-  subroutine UA_get_info_for_ie(nVar, nEngUA, NameVar_V, nMagLat, nMagLon, &
-                                EngUA)
+  subroutine UA_get_info_for_ie(nVar, nVarSpec, nEngUA, NameVar_V, &
+                                NameVarSpec_V,nMagLat, nMagLon, EngUA)
     ! Get number and names of variables for IE to UA coupling.
     ! UA reports what variables it needs here.
     ! IE will use this info to fill buffers appropriately.
@@ -396,10 +396,10 @@ contains
             UseMonoAurora, UseWaveAurora, UseIonAurora, UseSpectrumAurora
     use ModSources, only: ED_N_Energies, ED_Energies
 
-    integer, intent(out) :: nVar, nEngUA
+    integer, intent(out) :: nVar, nVarSpec, nEngUA
     integer, intent(out), optional :: nMagLat, nMagLon
     real, intent(out), optional :: EngUA(:)
-    character(len=*), intent(out), optional :: NameVar_V(:)
+    character(len=*), intent(out), optional :: NameVar_V(:), NameVarSpec_V(:)
     
 
     integer :: i
@@ -444,6 +444,10 @@ contains
       end if
     end if
 
+    nVarSpec = 0
+    if(UseSpectrumAurora) nVarSpec = 2
+    if(present(NameVarSpec_V)) NameVarSpec_V = (/'hyd', 'ele'/)
+
     nEngUA = ED_N_Energies
     if(present(EngUA)) EngUA = ED_Energies
     ! If more information is needed, PARAMs should be set to configure this
@@ -467,7 +471,8 @@ contains
 
   !============================================================================
   subroutine UA_put_from_ie(Buffer_IIV, iSizeIn, jSizeIn, nVarIn, &
-                            NameVarIn_V)
+                            NameVarIn_V, nVarSpecIn, Buffer_IIIV, &
+                            NameVarSpecIn_V)
 
     use ModNumConst, only: cPi
     use CON_coupler, ONLY: Grid_C, IE_, ncell_id
@@ -477,6 +482,7 @@ contains
     use ModInputs, only: UseDiffuseAurora, &
             UseMonoAurora, UseWaveAurora, UseIonAurora, UseSpectrumAurora
     use ModInputs, only: iDebugLevel
+    use ModSources, only: ED_N_Energies
 
     ! This gets called for each variable- external loop over all variable names.
     ! Namevar = Pot, Ave, and Tot.
@@ -486,11 +492,16 @@ contains
     integer, intent(in)           :: iSizeIn, jSizeIn, nVarIn
     real, intent(in)              :: Buffer_IIV(iSizeIn, jSizeIn, nVarIn)
     character(len=*), intent(in)  :: NameVarIn_V(nVarIn)
+    integer, intent(in) :: nVarSpecIn
+    real, intent(in), optional    :: Buffer_IIIV(iSizeIn,jSizeIn,ED_N_Energies, &
+                                                nVarSpecIn)
+    character (len=*), intent(in), optional :: NameVarSpecIn_V(nVarSpecIn)
+
 
     logical :: IsInitialized = .false.
 
     integer :: i, j, ii, iVar, iError, nCells_D(2)
-    real, allocatable :: current_var(:, :)
+    real, allocatable :: current_var(:, :), current_var_spec(:,:,:)
 
     logical :: DoTest, DoTestMe
     character(len=*), parameter :: NameSub = 'UA_put_from_ie'
@@ -511,7 +522,8 @@ contains
       call IEModel_%iemlts((Grid_C(IE_)%Coord2_I)*180.0/cPi)
 
       call IEModel_%initCouple(UseDiffuseAurora, UseMonoAurora, &
-                               UseWaveAurora, UseIonAurora)
+                              UseWaveAurora, UseIonAurora, UseSpectrumAurora,&
+                              ED_N_Energies)
 
     endif
 
@@ -579,6 +591,33 @@ contains
 
       end select
     enddo
+
+    if(present(Buffer_IIIV)) then
+        allocate(current_var_spec(IEModel_%havenMlts, IEModel_%havenLats, &
+                                  ED_N_Energies))
+        do iVar = 1, nVarSpecIn
+          current_var_spec = Buffer_IIIV(:, :, :, iVar)
+          if (DoTest .and. (iProcGITM == 0)) write(*, '(a, 2(e12.5,1x))') '&
+                  UA '//NameVarSpecIn_V(iVar)// " : ", &
+            maxval(current_var), &
+            minval(current_var)
+
+          ! I HAVE NO CLUE ABOUT UNITS
+          select case (NameVarSpecIn_V(iVar))
+            ! Hydrogen nflux spectrum:
+          case ('hyd')
+            IEModel_%haveHydrNflux = current_var_spec
+            ! Electron nflux spectrum:
+          case ('ele')
+            IEModel_%haveElecNflux = current_var_spec
+          case default             
+            call CON_stop(NameSub//' invalid NameVarIn='//NameVarSpecIn_V(iVar))
+          end select
+        end do       
+        deallocate(current_var_spec)
+      end if
+        
+
     ! Insert call here to convert w/m^2 to ergs/cm^2 (multiply by 1000)
     deallocate(current_var)
 
