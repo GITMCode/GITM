@@ -848,9 +848,9 @@ contains
         ! to output
 
         write(iOutputUnit_, "(I7,A1,a)") iOff + 16, " ", "IN Collision Freq"
-        write(iOutputUnit_, "(I7,A1,a)") iOff + 17, " ", "PressGrad (east)"
-        write(iOutputUnit_, "(I7,A1,a)") iOff + 18, " ", "PressGrad (north)"
-        write(iOutputUnit_, "(I7,A1,a)") iOff + 19, " ", "PressGrad (up)"
+        write(iOutputUnit_, "(I7,A1,a)") iOff + 17, " ", "PressGradEast"
+        write(iOutputUnit_, "(I7,A1,a)") iOff + 18, " ", "PressGradNorth"
+        write(iOutputUnit_, "(I7,A1,a)") iOff + 19, " ", "PressGradVertical"
       endif
 
     endif
