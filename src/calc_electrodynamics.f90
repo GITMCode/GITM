@@ -628,7 +628,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
           GeoLon = mod(GeoLon, twopi)
           if (GeoLon < 0.) GeoLon = GeoLon + twopi
 
-          GeoAlt = Altitude_GB(iLon, iLat, 1, iBlock)
+          GeoAlt = Altitude_GB(iLon, iLat, 1, iBlock)/1000.0
           IsDone = .false.
           len = 200.0
           xAlt = 1.0
@@ -637,7 +637,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
           if (iDebugLevel > 9) write(*, *) "=========> Integrals iLon, iLat: ", iLon, iLat
           if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
 
-          CALL get_magfield(GeoLat*180.0/pi, GeoLon*180.0/pi, GeoALT/1000.0, &
+          CALL get_magfield(GeoLat*180.0/pi, GeoLon*180.0/pi, GeoALT, &
                             XMAG, YMAG, ZMAG)
           signz = sign(1.0, zmag)
 
@@ -714,7 +714,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
             LengthFieldLine(iLon, iLat) = &
               LengthFieldLine(iLon, iLat) + len
 
-            CALL get_magfield(GeoLat*180.0/pi, GeoLon*180.0/pi, GeoALT/1000.0, &
+            CALL get_magfield(GeoLat*180.0/pi, GeoLon*180.0/pi, GeoALT, &
                               XMAG, YMAG, ZMAG)
 
             if (sign(1.0, zmag)*signz < 0) then
