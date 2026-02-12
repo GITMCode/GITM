@@ -449,7 +449,12 @@ contains
     if(present(NameVarSpec_V)) NameVarSpec_V = (/'hyd', 'ele'/)
 
     nEngUA = ED_N_Energies
-    if(present(EngUA)) EngUA = ED_Energies
+    if (present(EngUA)) then
+       if (.not. allocated(ED_Energies)) &
+         call init_energy_deposition()
+       EngUA = ED_Energies
+    endif
+
     ! If more information is needed, PARAMs should be set to configure this
     ! behavior and changes made here, e.g.,
     ! if(DoCoupleThing) nVar=nVar+1
