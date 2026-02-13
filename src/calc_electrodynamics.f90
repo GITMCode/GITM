@@ -334,6 +334,8 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
   DivJuAltMC = -1.0e32
   SigmaHallMC = 0.0
   SigmaPedersenMC = 0.0
+  SigmaHallAltIntMC = -1.0e-32
+  SigmaPedersenAltIntMC = -1.0e-32
   LengthMC = -1.0e32
   KDlmMC = -1.0e32
   KDpmMC = -1.0e32
