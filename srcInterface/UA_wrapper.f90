@@ -604,8 +604,8 @@ contains
           current_var_spec = Buffer_IIIV(:, :, :, iVar)
           if (DoTest .and. (iProcGITM == 0)) write(*, '(a, 2(e12.5,1x))') '&
                   UA '//NameVarSpecIn_V(iVar)// " : ", &
-            maxval(current_var), &
-            minval(current_var)
+            maxval(current_var_spec), &
+            minval(current_var_spec)
 
           ! I HAVE NO CLUE ABOUT UNITS
           select case (NameVarSpecIn_V(iVar))
