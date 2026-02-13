@@ -74,10 +74,10 @@ module ModElectrodynamics
   real, dimension(:, :), allocatable :: &
     SmallMagLocTimeMC, SmallMagLatMC, SmallPotentialMC
 
-  integer :: nMagLats = 140  ! 1 degrees
-  integer :: nMagLons = 90  ! 4 degrees
   real :: MagLatRes = 0.5
   real :: MagLonRes = 4.0
+  ! These are set dynamically from the resolution above & dynamo limits
+  integer :: nMagLats, nMagLons
 
   !----------------------------------------------------------------------
   ! These are in geographic coordinates :
