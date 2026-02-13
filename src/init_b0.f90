@@ -105,9 +105,12 @@ subroutine init_b0
     enddo
   enddo
 
-  if (UseApex .and. IsEarth) &
-    call dypol( &
-    MagneticPoleColat, MagneticPoleLon, MagneticPoleStrength)
+  if (UseApex .and. IsEarth) then
+    call dypol(MagneticPoleColat, MagneticPoleLon, MagneticPoleStrength)
+  else
+    MagneticPoleColat = pi/2 - MagneticPoleTilt
+    MagneticPoleLon = MagneticPoleRotation
+  endif
 
   !    GyroFrequency_Electron(:,:,:,iBlock) = &
   !         Element_Charge * B0(:,:,:,Magnitude,iBlock) /  Mass_Electron

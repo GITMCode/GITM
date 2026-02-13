@@ -519,6 +519,9 @@ subroutine initialize_gitm(TimeIn)
     call SUBSOLR(iTimeArray(1), iJulianDay, iTimeArray(4), &
                  iTimeArray(5), iTimeArray(6), SubsolarLatitude, &
                  SubsolarLongitude)
+  else
+    call get_subsolar(CurrentTime, VernalTime, &
+                      SubsolarLongitude, SubsolarLatitude)
   endif
 
   call init_get_potential
