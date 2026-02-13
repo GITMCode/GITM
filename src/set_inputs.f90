@@ -727,14 +727,11 @@ subroutine set_inputs
           doStopIfNoPotential = .true.
 
         ! Is this necessary?? Idk
-      case("SWMFAURORA")
+      case("#SWMFAURORA")
         call read_in_logical(UseSeparateAurora, iError)
         call read_in_logical(UseSpectrumAurora, iError)
 
         if (UseSeparateAurora) then
-          if (UseSpectrumAurora) then
-            call read_in_int(nAuroraEng, iError)
-          end if
           UseDiffuseAurora = .true.
           UseMonoAurora = .true.
           UseWaveAurora = .true.

@@ -392,7 +392,7 @@ contains
     ! IE will use this info to fill buffers appropriately.
 
     use ModElectrodynamics, ONLY: MagLatRes, MagLonRes
-    use ModInputs, only: DynamoHighLatBoundary, nAuroraEng, UseDiffuseAurora, &
+    use ModInputs, only: DynamoHighLatBoundary, UseDiffuseAurora, &
             UseMonoAurora, UseWaveAurora, UseIonAurora, UseSpectrumAurora
     use ModSources, only: ED_N_Energies, ED_Energies
 
