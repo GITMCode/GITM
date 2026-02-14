@@ -537,7 +537,7 @@ subroutine initialize_gitm(TimeIn)
   else
     call UA_calc_electrodynamics_1d
   endif
-  call get_potential(1)
+  ! call get_potential(1)
 
   if (.not. Is1D) call exchange_messages_sphere
 
