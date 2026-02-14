@@ -121,7 +121,8 @@ subroutine get_potential(iBlock)
   use ModElectrodynamics, only: IEModel_
   use ModIndicesInterfaces
   use ModMpi
-
+  use ModSources, only: eSpectralFlux, iSpectralFlux
+  
   implicit none
 
   integer, intent(in) :: iBlock
@@ -316,6 +317,18 @@ subroutine get_potential(iBlock)
     ElectronAverageEnergyMono = 10.0
     IonAverageEnergy = 10.0
 
+    ! We will get full spectra precip in aurora
+    if (UseSpectrumAurora) then
+      call IEModel_%get_aurora_spectrum(eSpectralFlux, iSpectralFlux)
+      maxEnergyFlux = maxval(eSpectralFlux)
+      call get_max_value_across_pes(maxEnergyFlux)
+      if (maxEnergyFlux == 0) then
+      call set_error("Aurora spectrum is all zero. Must Stop!")
+      call report_errors
+      call stop_gitm("Stopping in get_potential")
+    endif
+  else
+
     ! We get the diffuse aurora always, since it *should* always be done.
     ! Inside the aurora subroutine we check if the user wants to use it or not.
     call ieModel_%get_aurora(ElectronEnergyFluxDiffuse, ElectronAverageEnergyDiffuse)
@@ -397,6 +410,7 @@ subroutine get_potential(iBlock)
         call stop_gitm("Stopping in get_potential")
       endif
     endif
+  endif
 
     ! -----------------------------
     ! Cusp, if desired

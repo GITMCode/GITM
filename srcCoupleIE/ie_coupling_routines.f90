@@ -97,6 +97,24 @@ subroutine run_aurora_model_ion_diffuse(ie, eflux, avee)
   endif
 end subroutine run_aurora_model_ion_diffuse
 !============================================================================
+subroutine run_aurora_model_full_spectrum(ie, eSpec, iSpec)
+  class(ieModel) :: ie
+  real, dimension(ie%neednMlts, ie%neednLats, &
+                  ie%needNEnergyBins), intent(out) :: eSpec
+  real, dimension(ie%neednMlts, ie%neednLats, &
+                  ie%needNEnergyBins), intent(out) :: iSpec
+  integer :: iError = 0
+  !-----------------------------------------------------------------------------
+  if (ie%isCoupleInitialized) then
+    call ie%get_ie_spec_to_ua('ele', eSpec)
+    call ie%get_ie_spec_to_ua('hyd', iSpec)
+  else
+    if (ie%iDebugLevel > 0) &
+            write(*, *) "Can't get auroras before coupling has been "//&
+                        "performed with IE for the first time."
+  endif
+end subroutine run_aurora_model_full_spectrum
+!============================================================================
 !! Set model name and interpret. It needs to be swmf though...
 subroutine set_efield_model(this, efield_model)
   class(ieModel) :: this
@@ -155,9 +173,11 @@ integer function aurora_interpret_name(auroraString)
   ! why even do this when it has to be the same no matter what
   if (trim(auroraLower) == "swmf") then
     aurora_interpret_name = 1
+  else if (trim(auroraLower) == "spectrum") then
+    aurora_interpret_name = 2
   else
-    call CON_stop(NameSub//" GITM can only use the SWMF IE auroras when"//&
-            " a component of the SWMF.")
+    call CON_stop(NameSub//" Aurora name not understood! Must use SWMF IE"//&
+            " aurora when a component of the SWMF.")
   endif
   return
 end function aurora_interpret_name

@@ -228,3 +228,47 @@ subroutine get_ie_values_for_ua(this, iVarToGetIn, valueOut)
     enddo; enddo
     return
 end subroutine get_ie_values_for_ua
+
+!==============================================================================
+subroutine get_ie_spec_for_ua(this, iVarToGetIn, valueOut)
+
+    class(ieModel) :: this
+    character(len=*), intent(in) :: iVarToGetIn
+    real, intent(inout) ::  valueOut(this%neednMlts, this%neednLats, this%needNEnergyBins)
+    integer :: iMlt, iLat, iM, iL, iFile, iBin
+    real :: dM, dL
+    logical :: isNorth
+    real :: current_var(this%havenMlts, this%havenLats, this%havenEnergyBins)
+    character(len=*), parameter :: NameSub = "get_ie_values_for_ua"
+
+    valueOut = 0.0
+
+    do iMlt = 1, this%neednMlts; do iLat = 1, this%neednLats
+
+        iM = this%IeUaInterpolationIndices(iMLT, iLat, 1)
+        iL = this%IeUaInterpolationIndices(iMLT, iLat, 2)
+        dM = this%IeUaInterpolationRatios(iMLT, iLat, 1)
+        dL = this%IeUaInterpolationRatios(iMLT, iLat, 2)
+        
+        if(iM < 0) cycle
+
+        select case (iVarToGetIn)
+            case("ele")
+                current_var = this%haveElecNflux
+            case("hyd")
+                current_var = this%haveHydrNflux
+            case default
+                call CON_stop(NameSub//": "//iVarToGetIn//&
+                        "is not a valid variable to get")
+
+        end select
+        do iBin=1, this%needNEnergyBins
+            ValueOut(iMLT, iLat, iBin) = &
+                        (1.0 - dM)*(1.0 - dL)*current_var(iL, iM, iBin) + &
+                        (1.0 - dM)*(dL)*current_var(iL + 1, iM, iBin) + &
+                        (dM)*(dL)*current_var(iL + 1, iM + 1, iBin) + &
+                        (dM)*(1.0 - dL)*current_var(iL, iM + 1, iBin)
+        enddo
+    enddo; enddo
+    return
+end subroutine get_ie_spec_for_ua

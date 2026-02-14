@@ -12,6 +12,7 @@ module ModIEGITM
   integer, parameter, public :: iSwmfPot_ = 1
   ! Auroral Types:
   integer, parameter, public :: iSwmfAur_ = 1
+  integer, parameter, public :: iSwmfSpec_ = 2
 
   ! These can't actually be used when coupled, but need to be set
   integer, parameter, public :: iFTA_ = -1
@@ -58,6 +59,7 @@ module ModIEGITM
     ! ----------------------------------------------------------------
     integer :: havenLats = 0
     integer :: havenMLTs = 0
+    integer :: havenEnergyBins = 0
     integer :: havenBLKs = 0
     real, allocatable, dimension(:, :) :: haveLats
     real, allocatable, dimension(:, :) :: haveMLTs
@@ -90,6 +92,7 @@ module ModIEGITM
 
     integer :: neednLats = 0
     integer :: neednMLTs = 0
+    integer :: needNEnergyBins = 0
     real, allocatable, dimension(:, :) :: needLats
     real, allocatable, dimension(:, :) :: needMLTs
 
@@ -159,6 +162,7 @@ module ModIEGITM
     ! ! SWMF only, Only call from wrapper and srcCoupleIE
     procedure :: nIeMlts => set_ie_nMlts
     procedure :: nIeLats => set_ie_nLats
+    procedure :: nIeEBins => set_ie_nEnergies
     procedure :: nIeBlks => set_ie_nBlks
     procedure :: ielats => set_ie_lats
     procedure :: iemlts => set_ie_mlts
@@ -172,10 +176,12 @@ module ModIEGITM
     procedure :: find_ua_point => find_ua_point
     procedure :: ie_ua_interp_indices => set_ie_ua_interpolation_indices
     procedure :: get_ie_to_ua => get_ie_values_for_ua
+    procedure :: get_ie_spec_to_ua => get_ie_spec_for_ua
 
     ! ! Get model results:
     procedure :: get_potential => run_potential_model
     procedure :: get_aurora => run_aurora_model_electron_diffuse
+    procedure :: get_aurora_spectrum => run_aurora_model_full_spectrum
     procedure :: get_electron_diffuse_aurora => run_aurora_model_electron_diffuse
     procedure :: get_electron_mono_aurora => run_aurora_model_electron_mono
     procedure :: get_electron_wave_aurora => run_aurora_model_electron_wave

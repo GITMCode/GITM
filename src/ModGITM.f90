@@ -192,6 +192,7 @@ module ModGITM
 contains
   !=========================================================================
   subroutine init_mod_gitm
+    use ModSources, only: eSpectralFlux, iSpectralFlux, ED_N_Energies
 
     if (allocated(dLonDist_GB)) RETURN
     allocate(dLonDist_GB(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, nBlocks))
@@ -257,6 +258,8 @@ contains
     allocate(IonPressureGradient(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, 3, nBlocks))
     allocate(Potential(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, nBlocks))
     allocate(MagnetosphericPotential(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2))
+    allocate(eSpectralFlux(-1:nLons + 2, -1:nLats + 2, ED_N_Energies))
+    allocate(iSpectralFlux(-1:nLons + 2, -1:nLats + 2, ED_N_Energies))
     allocate(DynamoPotential(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2))
     allocate(PotentialY(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, nBlocks))
     PotentialY = 0.0

@@ -102,6 +102,8 @@ module ModSources
     ED_Energies, ED_delta_energy, ED_EnergyFlux, &
     ED_Ion_EnergyFlux
   integer :: ED_N_Energies = 50
+  ! These are only used if we are getting full precip spectra
+  real, dimension(:, :, :), allocatable :: eSpectralFlux, iSpectralFlux
 
   real, allocatable :: AuroralIonRateS(:, :, :, :, :)
   real, allocatable :: IonPrecipIonRateS(:, :, :, :, :)

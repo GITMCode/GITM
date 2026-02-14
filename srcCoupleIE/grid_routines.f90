@@ -89,6 +89,14 @@ subroutine set_ie_nLats(this, iValue)
     this%havenLats = iValue
 end subroutine set_ie_nLats
 !============================================================================
+subroutine set_ie_nEnergies(this, iValue)
+    class(ieModel) :: this
+    integer, intent(in) :: iValue
+    if (this%iDebugLevel > 3) &
+            write(*, *) "=> Setting havenBlks to : ", iValue
+    this%havenEnergyBins = iValue
+end subroutine set_ie_nEnergies
+!============================================================================
 subroutine set_ie_nBlks(this, iValue)
     class(ieModel) :: this
     integer, intent(in) :: iValue

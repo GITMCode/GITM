@@ -151,6 +151,21 @@ subroutine aurora(iBlock)
         ED_Ion_EnergyFlux(n) = i_diffuse_ED_flux(n) ! for consistency
       enddo
 
+      if (UseSpectrumAurora) Then
+        ED_EnergyFlux(:) = eSpectralFlux(j, i, :)
+        if (UseIonAurora) &
+          ED_Ion_EnergyFlux(:) = iSpectralFlux(j, i, :)
+        if ((maxval(ED_EnergyFlux) > 0.) .or. (maxval(ED_Ion_EnergyFlux) > 0.)) &
+          HasSomeAurora = .true.
+        if (iProc == 0) then
+          write(*,*) '=====>>>>> SPECTRUM Aurora'
+        write(*,*) '=====>>>>> max/min e- ', maxval(ED_EnergyFlux), minval(ED_EnergyFlux)
+        write(*,*) '=====>>>>> max/min e- ', maxval(ED_ion_EnergyFlux), minval(ED_ION_EnergyFlux)
+        endif
+
+
+      endif
+
       if (HasSomeAurora) &
         call calc_fang_rates(j, i, iBlock, AuroralBulkIonRate)
 
