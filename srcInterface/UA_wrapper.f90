@@ -661,7 +661,7 @@ contains
     !call initialize_ie_ua_buffers(iError)
 
     ! Calculate electrodynamics; get size of UA grid.
-    call UA_calc_electrodynamics(UAi_nMlts, UAi_nLats)
+    call UA_calc_electrodynamics(UAi_nMlts, UAi_nLats, .true.)
 
     ! Ensure size of grid is same as buffer size for one hemisphere:
     if ((nMltIn /= UAi_nMlts) .or. (2*nLatIn + 1 /= UAi_nLats)) then

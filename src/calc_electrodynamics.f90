@@ -21,7 +21,7 @@ end subroutine UA_fill_electrodynamics
 
 !\
 
-subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
+subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats, isInitialize)
 
   use ModGITM
   use ModInputs
@@ -35,6 +35,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
   implicit none
 
   integer, intent(out) :: UAi_nMLTs, UAi_nLats
+  logical, intent(in), optional :: isInitialize
 
   integer, external :: jday
 
@@ -327,8 +328,6 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
 
   call calc_thermoelectric_current
 
-  if (.not. UseDynamo) return
-
   !\
   ! Magnetic grid is defined as:
   ! MLT is in hours = 0 - 24
@@ -354,6 +353,8 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
 
   UAi_nLats = nMagLats
   UAi_nMlts = nMagLons + 1
+
+  if ((.not. UseDynamo) .or. present(isInitialize)) return
 
   q2 = Element_Charge*Element_Charge
 
