@@ -13,12 +13,13 @@ module ModIEGITM
   ! Auroral Types:
   integer, parameter, public :: iSwmfAur_ = 1
 
-  integer, parameter, public :: iFTA_ = 1
-  integer, parameter, public :: iFRE_ = 2
-  integer, parameter, public :: iPEM_ = 3
-  integer, parameter, public :: iOvationPrime_ = 4
-  integer, parameter, public :: iOvationSme_ = 5
-  integer, parameter, public :: iAmieAur_ = 6
+  ! These can't actually be used when coupled, but need to be set
+  integer, parameter, public :: iFTA_ = -1
+  integer, parameter, public :: iFRE_ = -1
+  integer, parameter, public :: iPEM_ = -1
+  integer, parameter, public :: iOvationPrime_ = -1
+  integer, parameter, public :: iOvationSme_ = -1
+  integer, parameter, public :: iAmieAur_ = -1
 
   real, parameter, public :: rBadValue = -1.0e32
 
