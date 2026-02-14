@@ -84,16 +84,24 @@ subroutine init_get_potential
       if (UseIonAurora .and. IsKappaAurora) &
         call raise_warning("Kappa aurora & ion precipitation cannot be used simultaneously, yet.")
     endif
-  endif
 
-  if (IEModel_%iAurora_ /= iFRE_ .and. NormalizeAuroraToHP) &
-    call raise_warning("You probably should not be normalizing aurora with non-FRE models")
+    if (IEModel_%iAurora_ /= iFRE_ .and. NormalizeAuroraToHP) &
+      call raise_warning("You probably should not be normalizing aurora with non-FRE models")
 
-  if (cPlanet == "Earth") then
-    if (IEModel_%iAurora_ == iZero_) &
-      call raise_warning("!!!! Warning!!!! Running on Earth with no aurora!!! ")
-    if (IEModel_%iEfield_ == iZero_) &
-      call raise_warning("!!!! Warning!!!! Running on Earth with no high latitude potential!!! ")
+    if ((IEModel_%iAurora_ == iSwmfAur_) .and. (.not. (UseWaveAurora .or. UseMonoAurora))) &
+        call raise_warning(&
+        "Using SWMF-coupled aurora, but only e- diffuse! Maybe change #AURORATYPES?")
+
+    if ((IEModel_%iAurora_ == iSwmfSpec_) .and. (.not. UseIonAurora)) &
+      call raise_warning("Using SWMF spectrum precipitation without ion/hydrogen precipitation.")
+
+    if (cPlanet == "Earth") then
+      if (IEModel_%iAurora_ == iZero_) &
+        call raise_warning("!!!! Warning!!!! Running on Earth with no aurora!!! ")
+
+      if (IEModel_%iEfield_ == iZero_) &
+        call raise_warning("!!!! Warning!!!! Running on Earth with no high latitude potential!!! ")
+    endif
   endif
 
   ! Initialize the grid:
