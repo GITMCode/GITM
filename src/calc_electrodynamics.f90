@@ -11,7 +11,7 @@ subroutine UA_fill_electrodynamics(UAr2_fac, UAr2_ped, UAr2_hal, &
   real, dimension(nMagLons + 1, nMagLats), intent(out) :: &
     UAr2_fac, UAr2_ped, UAr2_hal, UAr2_lats, UAr2_mlts
 
-  UAr2_Fac = DivJuAltMC
+  UAr2_Fac = JParAltMC
   UAr2_Ped = SigmaPedersenAltIntMC
   UAr2_Hal = SigmaHallAltIntMC
   UAr2_lats = MagLatMC
@@ -45,7 +45,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
   real :: GeoLat, GeoLon, GeoAlt, xAlt, len, ped, hal
   real :: sp_d1d1_d, sp_d2d2_d, sp_d1d2_d, sh
   real :: xmag, ymag, zmag, bmag, signz, magpot, lShell
-  real :: mlatMC, mltMC, jul, shl, spl, length, kdpm_s, kdlm_s, je1_s, je2_s
+  real :: mlatMC, mltMC, jul, jpa, shl, spl, length, kdpm_s, kdlm_s, je1_s, je2_s
   real :: kpm_s, klm_s, xstretch, ystretch
   real :: sinIm, spp, sll, shh, scc, spa, sha, sccline, sppline, sllline, shhline, be3
 
@@ -105,6 +105,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
     nMagLons = 360.0/MagLonRes
 
     allocate(DivJuAltMC(nMagLons + 1, nMagLats), &
+             JParAltMC(nMagLons + 1, nMagLats), &
              SigmaHallMC(nMagLons + 1, nMagLats), &
              SigmaHallAltIntMC(nMagLons + 1, nMagLats), &
              SigmaPedersenMC(nMagLons + 1, nMagLats), &
@@ -151,6 +152,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
              stat=iError)
 
     DivJuAltMC = 0.0
+    JParAltMC = 0.0
     SigmaHallMC = 0.0
     SigmaPedersenMC = 0.0
     SigmaPedersenAltIntMC = 0.0
@@ -323,6 +325,8 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
     enddo
   endif
 
+  call calc_thermoelectric_current
+
   if (.not. UseDynamo) return
 
   !\
@@ -332,6 +336,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
   !/
 
   DivJuAltMC = -1.0e32
+  JParAltMC = -1.0e32
   SigmaHallMC = 0.0
   SigmaPedersenMC = 0.0
   SigmaHallAltIntMC = -1.0e-32
@@ -792,12 +797,13 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
         if (iDebugLevel > 9) write(*, *) "=========> Moving to mag grid: ", i, j, mLatMC, mltMC
         if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
 
-        call find_mag_point(jul, shl, spl, sha, spa, length, spp, sll, shh, scc, &
+        call find_mag_point(jul, jpa, shl, spl, sha, spa, length, spp, sll, shh, scc, &
                             kdpm_s, kdlm_s, be3, kpm_s, klm_s)
 
         if (length > 0) then
 
           DivJuAltMC(i, j) = jul
+          JParAltMC(i, j) = jpa
           SigmaHallMC(i, j) = shl
           SigmaPedersenMC(i, j) = spl
           SigmaHallAltIntMC(i, j) = sha
@@ -840,6 +846,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
   if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
 
   DivJuAltMC(nMagLons + 1, :) = DivJuAltMC(1, :)
+  JParAltMC(nMagLons + 1, :) = JParAltMC(1, :)
   SigmaHallMC(nMagLons + 1, :) = SigmaHallMC(1, :)
   SigmaPedersenMC(nMagLons + 1, :) = SigmaPedersenMC(1, :)
   SigmaHallAltIntMC(nMagLons + 1, :) = SigmaHallAltIntMC(1, :)
@@ -863,6 +870,10 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
 
   MagBufferMC = DivJuAltMC
   call MPI_AllREDUCE(MagBufferMC, DivJuAltMC, &
+                     bs, MPI_REAL, MPI_MAX, iCommGITM, iError)
+
+  MagBufferMC = JParAltMC
+  call MPI_AllREDUCE(MagBufferMC, JParAltMC, &
                      bs, MPI_REAL, MPI_MAX, iCommGITM, iError)
 
   MagBufferMC = SigmaHallMC
@@ -1626,11 +1637,11 @@ contains
   ! mlatMC or mltMC or iBlock.
   !/
 
-  subroutine find_mag_point(juline, shline, spline, shalt, spalt, length, &
+  subroutine find_mag_point(juline, jpalt, shline, spline, shalt, spalt, length, &
                             sppline, sllline, shhline, sccline, kdpline, kdlline, be3, &
                             kpline, klline)
 
-    real, intent(out) :: juline, shline, spline, shalt, spalt, &
+    real, intent(out) :: juline, jpalt, shline, spline, shalt, spalt, &
                          sppline, sllline, shhline, sccline, kdpline, kdlline, &
                          be3, kpline, klline
 
@@ -1690,6 +1701,7 @@ contains
     call interpolate_local(HallConductance, mfac, lfac, ii, jj, shalt)
     call interpolate_local(PedersenConductance, mfac, lfac, ii, jj, spalt)
     call interpolate_local(DivJuFieldLine, mfac, lfac, ii, jj, juline)
+    call interpolate_local(JParAlt, mfac, lfac, ii, jj, jpalt)
     call interpolate_local(LengthFieldLine, mfac, lfac, ii, jj, length)
 
     call interpolate_local(SigmaPP, mfac, lfac, ii, jj, sppline)

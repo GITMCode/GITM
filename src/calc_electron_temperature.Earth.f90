@@ -35,10 +35,6 @@ subroutine calc_electron_ion_temperature(iBlock)
   real, dimension(nLons, nLats, 0:nAlts + 1) :: alts
   real :: tipct = 1.1
 
-  ! calc thermoelectric currents
-  real, dimension(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2) :: PartialJPara
-  real, dimension(-1:nLons + 2, -1:nLats + 2) :: JParaAlt
-
 !!! For Electron Heat Flux
   real, dimension(nLons, nLats) :: eflux, mlats                    ! W/m2
 
@@ -140,12 +136,9 @@ subroutine calc_electron_ion_temperature(iBlock)
 
   lam_e = lame*sinI2
 
-  JParaAlt = 0.0
-  PartialJPara = 0.0
-
   call calc_thermoelectric_current
   UserData3D(:, :, :, 2, iBlock) = 0.0
-  UserData3D(1:nLons, 1:nLats, nAlts, 2, iBlock) = JParaAlt(1:nLons, 1:nLats)
+  UserData3D(1:nLons, 1:nLats, nAlts, 2, iBlock) = JParAlt(1:nLons, 1:nLats)
 
   NanFound = .false.
 
@@ -220,19 +213,19 @@ subroutine calc_electron_ion_temperature(iBlock)
           eThermo(iLon, iLat, iAlt) = &
             5./2.*Boltzmanns_Constant &
             /Element_Charge &
-            *JParaAlt(iLon, iLat) &
+            *JParAlt(iLon, iLat) &
             *((te(iLon, iLat, iAlt + 1) - te(iLon, iLat, iAlt))*zl**2 &
               + (te(iLon, iLat, iAlt) - te(iLon, iLat, iAlt - 1))*zu**2)/hcoef
 
           eHeatadv(iLon, iLat, iAlt) = eThermo(iLon, iLat, iAlt)/5.*3.
 
           eAdiab(iLon, iLat, iAlt) = &
-            -Boltzmanns_Constant*JParaAlt(iLon, iLat) &
+            -Boltzmanns_Constant*JParAlt(iLon, iLat) &
             /nne/Element_Charge*tte* &
             (zl**2*neu + zu**2*nel)/hcoef
 
           if (DoCheckForNans) then
-            if (ieee_is_nan(JParaAlt(iLon, iLat))) then
+            if (ieee_is_nan(JParAlt(iLon, iLat))) then
               write(*, *) "jpar : ", iLon, iLat, iAlt
               NanFound = .true.
             endif
@@ -242,7 +235,7 @@ subroutine calc_electron_ion_temperature(iBlock)
 
           a(iAlt) = a(iAlt) - 4*Boltzmanns_Constant &
                     /Element_Charge &
-                    *JParaAlt(iLon, iLat)*zu**2/hcoef
+                    *JParAlt(iLon, iLat)*zu**2/hcoef
           !     *sinI(iLon,iLat,iAlt)
 
           !     +1.5*nne*Boltzmanns_Constant* &
@@ -251,9 +244,9 @@ subroutine calc_electron_ion_temperature(iBlock)
 
           b(iAlt) = b(iAlt) + 4*Boltzmanns_Constant &
                     /Element_Charge* &
-                    JParaAlt(iLon, iLat)*(zu**2 - zl**2)/hcoef &
+                    JParAlt(iLon, iLat)*(zu**2 - zl**2)/hcoef &
                     !     *sinI(iLon,iLat,iAlt) &
-                    - Boltzmanns_Constant*JParaAlt(iLon, iLat) &
+                    - Boltzmanns_Constant*JParAlt(iLon, iLat) &
                     /nne/Element_Charge* &
                     (zl**2*neu + zu**2*nel)/hcoef
 
@@ -266,7 +259,7 @@ subroutine calc_electron_ion_temperature(iBlock)
 
           c(iAlt) = c(iAlt) + 4*Boltzmanns_Constant &
                     /Element_Charge &
-                    *JParaAlt(iLon, iLat)*zl**2/hcoef
+                    *JParAlt(iLon, iLat)*zl**2/hcoef
           !     *sinI(iLon,iLat,iAlt)
 
           !     -1.5*nne*Boltzmanns_Constant* &
@@ -401,17 +394,24 @@ contains
 
   end subroutine tridag
 
+end subroutine calc_electron_ion_temperature
+
 !--------- calculate thermoelectric FAC currents-------
 
-  Subroutine calc_thermoelectric_current
+Subroutine calc_thermoelectric_current
+
+  use ModSizeGitm
+  use ModGITM
+
+    ! calc thermoelectric currents
+  real, dimension(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2) :: PartialJPara
 
     real, dimension(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, 3) :: iVelo, eVelo
     real, dimension(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, 3) :: JuTotal, OverB0
     real, dimension(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2) :: DivJPerp, JuTotalDotB
-    real, dimension(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, 3) :: &
-      Gradient_GC
+    real, dimension(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, 3) ::  Gradient_GC
 
-    integer :: iDir
+    integer :: iDir, iBlock=1
 
     iVelo = IVelocity(:, :, :, :, iBlock)
     eVelo = ExB(:, :, :, :)
@@ -451,14 +451,12 @@ contains
 
     PartialJPara = -DivJPerp
 
-    JParaAlt = 0.0
+    JParAlt = 0.0
     do iAlt = 1, nAlts
-      JParaAlt(:, :) = JParaAlt(:, :) - DivJPerp(:, :, iAlt)*dAlt_GB(:, :, iAlt, iBlock)
+      JParAlt(:, :) = JParAlt(:, :) - DivJPerp(:, :, iAlt)*dAlt_GB(:, :, iAlt, iBlock)
     enddo
 
   end Subroutine calc_thermoelectric_current
-
-end subroutine calc_electron_ion_temperature
 
 !subroutine calc_electron_ion_sources(iBlock)
 subroutine calc_electron_ion_sources(iBlock) !,eHeatingp,iHeatingp,eHeatingm,iHeatingm, iHeating, lame, lami)
