@@ -23,6 +23,8 @@ subroutine check_for_nans_ions(cMarker)
             write(*, *) 'Nan found in iDensityS : '
             write(*, *) cMarker
             write(*, *) iLon, iLat, iAlt, iProc, iIon
+            write(*, *) 'Lon:', Longitude(iLon, 1), 'Lat:', Latitude(iLat, 1), &
+              'Alt:', Altitude_GB(iLon, iLat, iAlt, 1), 'ion:', cSpecies(iIon)
             IsFound = .true.
           endif
           if (ieee_is_nan(IVelocity(iLon, iLat, iAlt, 1, 1))) then
@@ -35,6 +37,9 @@ subroutine check_for_nans_ions(cMarker)
             write(*, *) 'Negative density found in iDensityS : '
             write(*, *) cMarker
             write(*, *) iLon, iLat, iAlt, iProc, iIon
+            write(*, *) '=>Lon:', Longitude(iLon, 1), 'Lat:', Latitude(iLat, 1), &
+                 'Alt:', Altitude_GB(iLon, iLat, iAlt, 1), 'ion:', cSpecies(iIon)
+            
             IsFound = .true.
           endif
         enddo
