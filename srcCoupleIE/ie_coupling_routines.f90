@@ -103,8 +103,8 @@ subroutine set_efield_model(this, efield_model)
   character(len=*), intent(in) :: efield_model
   ! --------------------------------------------------------------------------
   if (this%iDebugLevel > 0) &
-          write(*, *) "=> Setting efield model to : SWMF"
-  this%iEfield_ = 1
+          write(*, *) "=> Setting efield model to : ", efield_model
+  this%iEfield_ = efield_interpret_name(efield_model)
   if (this%iDebugLevel > 0) &
           write(*, *) "=> That is model : ", this%iEfield_
 end subroutine set_efield_model
@@ -115,7 +115,7 @@ subroutine set_aurora_model(this, aurora_model)
   ! --------------------------------------------------------------------------
   if (this%iDebugLevel > 0) &
           write(*, *) "=> Setting aurora model to : SWMF"
-  this%iAurora_ = 1
+  this%iAurora_ = aurora_interpret_name(aurora_model)
   if (this%iDebugLevel > 0) &
           write(*, *) "=> That is model : ", this%iAurora_
 end subroutine set_aurora_model
@@ -132,7 +132,7 @@ integer function efield_interpret_name(efieldString)
   efieldLower = efieldString
   call lower_case(efieldLower)
   ! why even do this when it has to be the same no matter what
-  if (trim(efieldLower) == "SWMF" .or. (trim(efieldLower) == "swmf")) then
+  if (trim(efieldLower) == "swmf") then
       efield_interpret_name = 1
   else
       call CON_stop(NameSub//" GITM can only use the SWMF IE potential "//&
@@ -153,7 +153,7 @@ integer function aurora_interpret_name(auroraString)
   auroraLower = auroraString
   call lower_case(auroraLower)
   ! why even do this when it has to be the same no matter what
-  if (trim(auroraLower) == "SWMF" .or. (trim(auroraLower) == "swmf")) then
+  if (trim(auroraLower) == "swmf") then
     aurora_interpret_name = 1
   else
     call CON_stop(NameSub//" GITM can only use the SWMF IE auroras when"//&

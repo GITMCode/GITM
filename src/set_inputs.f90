@@ -827,7 +827,7 @@ subroutine set_inputs
           write(*, *) 'MaxAveEAurora    (real)'
         endif
 
-      case ("#AURORATYPES") !"auroratypes? diffuse=true, rest=false
+      case ("#AURORATYPES") ! default is diffuse=true, rest=false
         call read_in_logical(UseDiffuseAurora, iError)
         call read_in_logical(UseMonoAurora, iError)
         call read_in_logical(UseWaveAurora, iError)
