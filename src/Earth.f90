@@ -151,7 +151,7 @@ subroutine calc_planet_sources(iBlock)
   if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
   if (iDebugLevel > 4) write(*, *) "=====> NO cooling", iproc, UseNOCooling
 
-  call calc_co2(iBlock)
+  !call calc_co2(iBlock)
 
   RadiativeCooling2d = 0.0
 

@@ -24,7 +24,7 @@ integer function bad_outputtype()
 
   implicit none
 
-  integer, parameter :: nValidTypes = 25
+  integer, parameter :: nValidTypes = 27
   integer :: j, iOutputType
   logical :: IsFound
 
@@ -32,9 +32,12 @@ integer function bad_outputtype()
 
   ! Set up all possible/valid plot types:
   NameValidTypes = (/'3DALL', '3DLST', '3DNEU', '3DION', '3DTHM', '3DCHM', &
-                     '3DUSR', '3DGLO', '3DMAG', '3DHME', '2DGEL', '2DMEL', '2DUSR', &
-                     '2DTEC', '2DANC', '2DHME', '1DALL', '0DALL', '1DGLO', '1DTHM', '1DNEW', &
-                     '1DCHM', '1DCMS', '1DUSR', '0DUSR'/)
+       '3DUSR', '3DGLO', '3DMAG', '3DHME', &
+       '2DGEL', '2DMEL', '2DUSR', &
+       '2DTEC', '2DANC', '2DHME', &
+       '1DALL', '0DALL', '1DGLO', '1DTHM', '1DNEW', &
+       '3DEMI', '1DEMI', &
+       '1DCHM', '1DCMS', '1DUSR', '0DUSR'/)
 
   ! Loop over all requested output types:
   do iOutputType = 1, nOutputTypes
@@ -339,6 +342,16 @@ subroutine output(dir, iBlock, iOutputType)
     nvars_to_write = 5 + 4
     call output_3dmag(iBlock)
 
+  case ('1DEMI')
+
+    nvars_to_write = 3 + nEmissions
+    call output_1demi(iBlock)
+
+  case ('3DEMI')
+
+    nvars_to_write = 3 + nEmissions
+    call output_3demi(iBlock)
+
   case ('3DHME')
 
     nvars_to_write = 27 + nSpeciesTotal + nSpecies + nIons
@@ -392,7 +405,7 @@ subroutine output(dir, iBlock, iOutputType)
   case ('1DTHM')
 
     nGCs = 0
-    nvars_to_write = 15 + (nspeciestotal*2)
+    nvars_to_write = 3 + 11 + (nspeciestotal*2)
     call output_1dthm
 
   case ('1DNEW')
@@ -486,7 +499,7 @@ contains
 
     use ModElectrodynamics, only: nMagLats, nMagLons
 
-    integer :: iOff, iSpecies, iIon
+    integer :: iOff, iSpecies, iIon, iEmission
 
     write(iOutputUnit_, *) "NUMERICAL VALUES"
 
@@ -642,8 +655,14 @@ contains
 
     endif
 
+    if (cType(3:5) == "EMI") then
+       do iEmission = 1, nEmissions
+          write(iOutputUnit_, "(I7,A1,a,a)") 3 + iEmission, " ", &
+               "Emission ", cEmissions(iEmission)
+       enddo
+    endif
+    
     if (cType(3:5) == "THM") then
-
       write(iOutputUnit_, "(I7,A1,a)") 4, " ", "EUV Heating (K/s)"
       write(iOutputUnit_, "(I7,A1,a)") 5, " ", "Conduction (K/s)"
       write(iOutputUnit_, "(I7,A1,a)") 6, " ", "Molecular Conduction (K/s)"
@@ -1280,6 +1299,65 @@ end subroutine output_3dneu
 !
 !----------------------------------------------------------------
 
+subroutine output_3demi(iBlock)
+
+  use ModGITM
+  use ModInputs
+
+  implicit none
+
+  integer, intent(in) :: iBlock
+  integer :: iAlt, iLat, iLon, iiAlt, iiLat, iiLon
+
+  do iAlt = -1, nAlts + 2
+    iiAlt = max(min(iAlt, nAlts), 1)
+    do iLat = -1, nLats + 2
+      iiLat = min(max(iLat, 1), nLats)
+      do iLon = -1, nLons + 2
+        iiLon = min(max(iLon, 1), nLons)
+        write(iOutputUnit_) &
+          Longitude(iLon, iBlock), &
+          Latitude(iLat, iBlock), &
+          Altitude_GB(iLon, iLat, iAlt, iBlock), &
+          Emissions(iLon, iLat, iAlt, :, iBlock)
+      enddo
+    enddo
+  enddo
+
+end subroutine output_3demi
+
+!----------------------------------------------------------------
+!
+!----------------------------------------------------------------
+
+subroutine output_1demi(iBlock)
+
+  use ModGITM
+  use ModInputs
+
+  implicit none
+
+  integer, intent(in) :: iBlock
+  integer :: iAlt, iLat, iLon, iiAlt, iiLat, iiLon
+
+  iLon = 1
+  iLat = 1
+  
+  do iAlt = -1, nAlts + 2
+    iiAlt = max(min(iAlt, nAlts), 1)
+    write(iOutputUnit_) &
+         Longitude(iLon, iBlock), &
+         Latitude(iLat, iBlock), &
+         Altitude_GB(iLon, iLat, iAlt, iBlock), &
+         Emissions(iLon, iLat, iAlt, :, iBlock)
+  enddo
+
+end subroutine output_1demi
+
+!----------------------------------------------------------------
+!
+!----------------------------------------------------------------
+
 subroutine output_3dion(iBlock)
 
   use ModGITM
@@ -1442,20 +1520,22 @@ subroutine output_1dthm
       varsL(iSpecies) = NeutralLossesTotal(iialt, iSpecies)
     enddo
 
+    ! 3 + 10 + nSpeciesTotal * 2
     write(iOutputUnit_) &
       Longitude(1, 1), &
       Latitude(1, 1), &
       Altitude_GB(1, 1, iAlt, 1), &
-      EuvHeating(1, 1, iiAlt, 1)*dt*TempUnit(1, 1, iiAlt), &
+      EuvHeating(1, 1, iiAlt, 1)*TempUnit(1, 1, iiAlt), &
       Conduction(1, 1, iiAlt)*TempUnit(1, 1, iiAlt), &
       MoleConduction(1, 1, iiAlt), &
       EddyCond(1, 1, iiAlt), &
       EddyCondAdia(1, 1, iiAlt), &
       ChemicalHeatingRate(1, 1, iiAlt)*TempUnit(1, 1, iiAlt), &
-      JouleHeating(1, 1, iiAlt)*dt*TempUnit(1, 1, iiAlt), &
-      -RadCooling(1, 1, iiAlt, 1)*dt*TempUnit(1, 1, iiAlt), &
-      -OCooling(1, 1, iiAlt)*dt*TempUnit(1, 1, iiAlt), &
-      EuvTotal(1, 1, iiAlt, 1)*dt, &
+      JouleHeating(1, 1, iiAlt)*TempUnit(1, 1, iiAlt), &
+      -CO2Cooling(1, 1, iiAlt)*TempUnit(1, 1, iiAlt), &
+      -NOCooling(1, 1, iiAlt)*TempUnit(1, 1, iiAlt), &
+      -OCooling(1, 1, iiAlt)*TempUnit(1, 1, iiAlt), &
+      EuvTotal(1, 1, iiAlt, 1), &
       varsS, varsL
 
   enddo
@@ -1855,7 +1935,9 @@ subroutine output_1dall(iiLon, iiLat, iBlock, rLon, rLat, iUnit)
   integer, intent(in) :: iiLat, iiLon, iBlock, iUnit
   real, intent(in)    :: rLon, rLat
 
-  integer, parameter :: nVars = 13 + nSpeciesTotal + nSpecies + nIons + nSpecies + 5
+  integer, parameter :: nVars = 13 + nSpeciesTotal + nSpecies + nIons
+  ! this is old: + nSpecies + 5
+  
   real :: Vars(nVars)
   real :: Tmp(0:nLons + 1, 0:nLats + 1)
   integer :: iAlt, iiAlt, iOff, iIon, iSpecies, iDir

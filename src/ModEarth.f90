@@ -15,13 +15,13 @@ module ModPlanet
   integer, parameter :: iN_4S_ = 4
   integer, parameter :: iNO_ = 5
   integer, parameter :: iHe_ = 6
-  integer, parameter :: nSpecies = 6
+  integer, parameter :: iCO2_ = 7
+  integer, parameter :: nSpecies = 7
 
-  integer, parameter :: iN_2D_ = 7
-  integer, parameter :: iN_2P_ = 8
-  integer, parameter :: iH_ = 9
+  integer, parameter :: iN_2D_ = 8
+  integer, parameter :: iN_2P_ = 9
+  integer, parameter :: iH_ = 10
 !  integer, parameter :: iAr_  = 10
-  integer, parameter :: iCO2_ = 10
   integer, parameter :: iO_1D_ = 11
   integer, parameter :: nSpeciesTotal = 11
 
@@ -53,20 +53,20 @@ module ModPlanet
   integer, parameter :: iE10400_ = 5
   integer, parameter :: iE6300_ = 6
   integer, parameter :: iE6364_ = 7
+  integer, parameter :: nEmissions = 7
+  character(len=20) :: cEmissions(nSpeciesTotal)
 
-  integer, parameter :: nEmissions = 10
-
-  integer, parameter :: i3371_ = 1
-  integer, parameter :: i4278_ = 2
-  integer, parameter :: i5200_ = 3
-  integer, parameter :: i5577_ = 4
-  integer, parameter :: i6300_ = 5
-  integer, parameter :: i7320_ = 6
-  integer, parameter :: i10400_ = 7
-  integer, parameter :: i3466_ = 8
-  integer, parameter :: i7774_ = 9
-  integer, parameter :: i8446_ = 10
-  integer, parameter :: i3726_ = 11
+  !integer, parameter :: i3371_ = 1
+  !integer, parameter :: i4278_ = 2
+  !integer, parameter :: i5200_ = 3
+  !integer, parameter :: i5577_ = 4
+  !integer, parameter :: i6300_ = 5
+  !integer, parameter :: i7320_ = 6
+  !integer, parameter :: i10400_ = 7
+  !integer, parameter :: i3466_ = 8
+  !integer, parameter :: i7774_ = 9
+  !integer, parameter :: i8446_ = 10
+  !integer, parameter :: i3726_ = 11
 
   real, parameter :: GC_Earth = 9.8                    ! m/s^2
   real, parameter :: RP_Earth = 24.0*3600.0            ! seconds
@@ -232,32 +232,36 @@ module ModPlanet
   ! 5-Species version (Omitting Helium)
   ! Updated the N2-O based upon Massman [1998] recommended values
   ! Assumed N-He and  NO-He were the same as N2-He (just a guess)
-  real, parameter, dimension(nSpecies, nSpecies) :: &
-    Diff0 = 1.0e17*reshape((/ &
-                           !-------------------------------------------+
-                           !   0       02      N2    N      NO     He
-                           !-------------------------------------------+
-                           0.000, 0.969, 0.969, 0.969, 0.715, 3.440, & ! O
-                           0.969, 0.000, 0.715, 0.969, 0.715, 3.208, & ! O2
-                           0.969, 0.715, 0.000, 0.969, 0.527, 2.939, & ! N2
-                           0.969, 0.969, 0.969, 0.000, 0.969, 2.939, & ! N
-                           0.715, 0.715, 0.527, 0.969, 0.000, 2.939, & ! NO
-                           3.440, 3.208, 2.939, 2.939, 2.939, 0.000/), & !He
-                           (/nSpecies, nSpecies/))
+  real, parameter, dimension(nSpecies, nSpecies) :: Diff0 = &
+      1.0e17*reshape((/ &
+      !-------------------------------------------+
+      !   0     02     N2      N     NO     He   CO2
+      !-------------------------------------------+
+      0.000, 0.969, 0.969, 0.969, 0.715, 3.440, 0.222, & ! O
+      0.969, 0.000, 0.715, 0.969, 0.715, 3.208, 0.577, & ! O2
+      0.969, 0.715, 0.000, 0.969, 0.527, 2.939, 0.658, & ! N2
+      0.969, 0.969, 0.969, 0.000, 0.969, 2.939, 0.222, & ! N
+      0.715, 0.715, 0.527, 0.969, 0.000, 2.939, 0.610, & ! NO
+      3.440, 3.208, 2.939, 2.939, 2.939, 0.000, 2.429, & ! He
+      0.222, 0.577, 0.658, 0.222, 0.610, 2.429, 0.000/), & ! CO2
+      (/nSpecies, nSpecies/))
+
+  ! Many of the above were taken from ModVenus!
 
   ! These are the exponents
-  real, parameter, dimension(nSpecies, nSpecies) :: &
-    DiffExp = reshape((/ &
-                      !------------------------------------------+
-                      !   0      02   N2     N       NO      He
-                      !------------------------------------------+
-                      0.000, 0.774, 0.774, 0.774, 0.750, 0.749, &      ! O
-                      0.774, 0.000, 0.750, 0.774, 0.750, 0.710, &      ! O2
-                      0.774, 0.750, 0.000, 0.774, 0.810, 0.718, &      ! N2
-                      0.774, 0.774, 0.774, 0.000, 0.774, 0.718, &      ! N
-                      0.750, 0.750, 0.810, 0.774, 0.000, 0.718, &      ! NO
-                      0.749, 0.710, 0.718, 0.718, 0.718, 0.000/), &  ! He
-                      (/nSpecies, nSpecies/))
+  real, parameter, dimension(nSpecies, nSpecies) :: DiffExp = &
+      reshape((/ &
+      !------------------------------------------+
+      !   0     02     N2      N     NO     He    CO2
+      !------------------------------------------+
+      0.000, 0.774, 0.774, 0.774, 0.750, 0.749, 0.750, &   ! O
+      0.774, 0.000, 0.750, 0.774, 0.750, 0.710, 0.749, &   ! O2
+      0.774, 0.750, 0.000, 0.774, 0.810, 0.718, 0.752, &   ! N2
+      0.774, 0.774, 0.774, 0.000, 0.774, 0.718, 0.750, &   ! N
+      0.750, 0.750, 0.810, 0.774, 0.000, 0.718, 0.751, &   ! NO
+      0.749, 0.710, 0.718, 0.718, 0.718, 0.000, 0.720, &   ! He
+      0.750, 0.749, 0.752, 0.750, 0.751, 0.720, 0.000/), & ! CO2
+      (/nSpecies, nSpecies/))
 
 contains
 
@@ -303,6 +307,14 @@ contains
     cIons(iHeP_) = "He!U+!N"
     cIons(ie_) = "e-"
 
+    cEmissions(iE2470_)  = "2470A"
+    cEmissions(iE7320_)  = "7320A"
+    cEmissions(iE3726_)  = "3726A"
+    cEmissions(iE5200_)  = "5200A"
+    cEmissions(iE10400_)  = "10400A"
+    cEmissions(iE6300_)  = "6300A"
+    cEmissions(iE6364_)  = "6364A"
+    
     Vibration(iO_3P_) = 5.0
     Vibration(iO2_) = 7.0
     Vibration(iN2_) = 7.0
