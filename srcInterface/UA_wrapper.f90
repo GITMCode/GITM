@@ -607,7 +607,7 @@ contains
             maxval(current_var_spec), &
             minval(current_var_spec)
 
-          ! I HAVE NO CLUE ABOUT UNITS
+          ! Get nflux, convert to energy later!
           select case (NameVarSpecIn_V(iVar))
             ! Hydrogen nflux spectrum:
           case ('hyd')
