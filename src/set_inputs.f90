@@ -1267,17 +1267,17 @@ subroutine set_inputs
         endif
 
       case ("#APEX")
-        
+
         call read_in_logical(UseApex, iError)
-        
+
         if (iError /= 0) then
-            write(*, *) 'Incorrect format for #APEX:'
-            write(*, *) ''
-            write(*, *) '#APEX'
-            write(*, *) 'UseApex (logical)'
-            write(*, *) '        Sets whether to use a realistic magnetic'
-            write(*, *) '        field (T) or a dipole (F)'
-            IsDone = .true.
+          write(*, *) 'Incorrect format for #APEX:'
+          write(*, *) ''
+          write(*, *) '#APEX'
+          write(*, *) 'UseApex (logical)'
+          write(*, *) '        Sets whether to use a realistic magnetic'
+          write(*, *) '        field (T) or a dipole (F)'
+          IsDone = .true.
         endif
 
       case ("#ALTITUDE")

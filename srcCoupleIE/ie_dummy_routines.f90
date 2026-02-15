@@ -52,7 +52,7 @@ end subroutine set_model_dir
 subroutine get_polarcap_results(ie, polarcap)
   class(ieModel) :: ie
   real, dimension(ie%neednMlts, &
-          ie%neednLats), intent(out) :: polarcap
+                  ie%neednLats), intent(out) :: polarcap
   return
 end subroutine get_polarcap_results
 ! ------------------------------------------------------------
@@ -138,5 +138,4 @@ end subroutine set_time_real
 subroutine run_check_indices(this)
   class(ieModel) :: this
 end subroutine run_check_indices
-
 

@@ -386,21 +386,20 @@ contains
 
   !============================================================================
   subroutine UA_get_info_for_ie(nVar, nVarSpec, nEngUA, NameVar_V, &
-                                NameVarSpec_V,nMagLat, nMagLon, EngUA)
+                                NameVarSpec_V, nMagLat, nMagLon, EngUA)
     ! Get number and names of variables for IE to UA coupling.
     ! UA reports what variables it needs here.
     ! IE will use this info to fill buffers appropriately.
 
     use ModElectrodynamics, ONLY: MagLatRes, MagLonRes
     use ModInputs, only: DynamoHighLatBoundary, UseDiffuseAurora, &
-            UseMonoAurora, UseWaveAurora, UseIonAurora, UseSpectrumAurora
+                         UseMonoAurora, UseWaveAurora, UseIonAurora, UseSpectrumAurora
     use ModSources, only: ED_N_Energies, ED_Energies
 
     integer, intent(out) :: nVar, nVarSpec, nEngUA
     integer, intent(out), optional :: nMagLat, nMagLon
     real, intent(out), optional :: EngUA(:)
     character(len=*), intent(out), optional :: NameVar_V(:), NameVarSpec_V(:)
-    
 
     integer :: i
     logical :: DoTest, DoTestMe
@@ -410,8 +409,8 @@ contains
     call CON_set_do_test(NameSub, DoTest, DoTestMe)
 
     ! Right now, nVar = pot + 2 vars for each type of aurora that is enabled
-    nVar = 1 + 2 * COUNT((/UseDiffuseAurora, UseMonoAurora, UseWaveAurora, &
-            UseIonAurora/))
+    nVar = 1 + 2*COUNT((/UseDiffuseAurora, UseMonoAurora, UseWaveAurora, &
+                         UseIonAurora/))
     ! When using full spectrum precipitation, no need to get diffuse precip
     ! if mono is enabled, then multiply by nEng
     ! nVar = 1 + 2 * nAuroraEng * COUNT((/UseMonoAurora, UseIonAurora/) + &
@@ -424,35 +423,35 @@ contains
       NameVar_V(1) = 'pot'
       if (UseDiffuseAurora) then
 !        NameVar_V(i:i+1) = (/'DiffEeFlux', 'DiffEaveE'/)
-        NameVar_V(i:i+1) = (/'def', 'dae'/)
+        NameVar_V(i:i + 1) = (/'def', 'dae'/)
         i = i + 2
-      end if
+      endif
       if (UseMonoAurora) then
 !        NameVar_V(i:i+1) = (/'MonoeFlux', 'MonoaveE'/)
-        NameVar_V(i:i+1) = (/'mef', 'mae'/)
+        NameVar_V(i:i + 1) = (/'mef', 'mae'/)
         i = i + 2
-      end if
+      endif
       if (UseWaveAurora) then
 !        NameVar_V(i:i+1) = (/'WaveeFlux', 'WaveaveE'/)
-        NameVar_V(i:i+1) = (/'wef', 'wae'/)
+        NameVar_V(i:i + 1) = (/'wef', 'wae'/)
         i = i + 2
-      end if
+      endif
       if (UseIonAurora) then
 !        NameVar_V(i:i+1) = (/'DiffIeFlux', 'DiffIaveE'/)
-        NameVar_V(i:i+1) = (/'ief', 'iae'/)
+        NameVar_V(i:i + 1) = (/'ief', 'iae'/)
         i = i + 2
-      end if
-    end if
+      endif
+    endif
 
     nVarSpec = 0
-    if(UseSpectrumAurora) nVarSpec = 2
-    if(present(NameVarSpec_V)) NameVarSpec_V = (/'hyd', 'ele'/)
+    if (UseSpectrumAurora) nVarSpec = 2
+    if (present(NameVarSpec_V)) NameVarSpec_V = (/'hyd', 'ele'/)
 
     nEngUA = ED_N_Energies
     if (present(EngUA)) then
-       if (.not. allocated(ED_Energies)) &
-         call init_energy_deposition()
-       EngUA = ED_Energies
+      if (.not. allocated(ED_Energies)) &
+        call init_energy_deposition()
+      EngUA = ED_Energies
     endif
 
     ! If more information is needed, PARAMs should be set to configure this
@@ -485,7 +484,7 @@ contains
     use ModIEGITM
     use ModElectrodynamics, only: IEModel_
     use ModInputs, only: UseDiffuseAurora, &
-            UseMonoAurora, UseWaveAurora, UseIonAurora, UseSpectrumAurora
+                         UseMonoAurora, UseWaveAurora, UseIonAurora, UseSpectrumAurora
     use ModInputs, only: iDebugLevel
     use ModSources, only: ED_N_Energies
 
@@ -498,15 +497,14 @@ contains
     real, intent(in)              :: Buffer_IIV(iSizeIn, jSizeIn, nVarIn)
     character(len=*), intent(in)  :: NameVarIn_V(nVarIn)
     integer, intent(in) :: nVarSpecIn
-    real, intent(in), optional    :: Buffer_IIIV(iSizeIn,jSizeIn,ED_N_Energies, &
-                                                nVarSpecIn)
-    character (len=*), intent(in), optional :: NameVarSpecIn_V(nVarSpecIn)
-
+    real, intent(in), optional    :: Buffer_IIIV(iSizeIn, jSizeIn, ED_N_Energies, &
+                                                 nVarSpecIn)
+    character(len=*), intent(in), optional :: NameVarSpecIn_V(nVarSpecIn)
 
     logical :: IsInitialized = .false.
 
     integer :: i, j, ii, iVar, iError, nCells_D(2)
-    real, allocatable :: current_var(:, :), current_var_spec(:,:,:)
+    real, allocatable :: current_var(:, :), current_var_spec(:, :, :)
 
     logical :: DoTest, DoTestMe
     character(len=*), parameter :: NameSub = 'UA_put_from_ie'
@@ -519,7 +517,7 @@ contains
       ! using "iSize - 1".  The +1 here compensates for that.
       nCells_D = ncell_id(IE_)
       ! Build IE grid within UA infrastructure:
-      call IEModel_%nIeLats(nCells_D(1) * 2 + 1)
+      call IEModel_%nIeLats(nCells_D(1)*2 + 1)
       call IEModel_%nIeMlts(nCells_D(2) + 1)
       call IEModel_%nIeBlks(2)
 
@@ -527,8 +525,8 @@ contains
       call IEModel_%iemlts((Grid_C(IE_)%Coord2_I)*180.0/cPi)
 
       call IEModel_%initCouple(UseDiffuseAurora, UseMonoAurora, &
-                              UseWaveAurora, UseIonAurora, UseSpectrumAurora,&
-                              ED_N_Energies)
+                               UseWaveAurora, UseIonAurora, UseSpectrumAurora, &
+                               ED_N_Energies)
 
     endif
 
@@ -540,10 +538,10 @@ contains
 !      write(*, *) 'UA/GITM: IE grid set to nLats x nLons = ', &
 !        iSizeIeHemi, jSizeIeHemi
       write(*, '(a, 2i5)') ' UA IE nLats, nLons = ', IEModel_%havenLats, &
-              IEModel_%havenMLTs
+        IEModel_%havenMLTs
       write(*, *) 'Buffer shape information:'
       write(*, '(a, 3i5)') ' iSizeIn, jSizeIn, nVarIn = ', iSizeIn, jSizeIn, &
-              nVarIn
+        nVarIn
       write(*, *) 'Shape of Buffer_IIV = ', shape(Buffer_IIV)
       write(*, *) 'ncell_id(IE_) = ', ncell_id(IE_)
 !      write(*, *) 'iSizeIeHemi, jSizeIeHemi = ', iSizeIeHemi, jSizeIeHemi
@@ -553,75 +551,74 @@ contains
     ! Currently will not work for RLM because gitm thinks that diffuse precip
     ! is the default, while IE thinks mono precip is the default
 
-    ! this should really be handled as a shallow copy, but I couldn't for the 
+    ! this should really be handled as a shallow copy, but I couldn't for the
     ! life of me figure out how to actually do one of those in Fortran
     do iVar = 1, nVarIn
       current_var = Buffer_IIV(:, :, iVar)
-      if (DoTest .and. (iProcGITM == 0)) write(*, '(a, 2(e12.5,1x))') '&
-              UA '//NameVarIn_V(iVar)// " : ", &
+      if (DoTest .and. (iProcGITM == 0)) write(*, '(a, 2(e12.5,1x))') &
+        'UA '//NameVarIn_V(iVar)//" : ", &
         maxval(current_var(:, :)), &
         minval(current_var(:, :))
 
       select case (NameVarIn_V(iVar))
-      ! There has got to be a better way to do this
+        ! There has got to be a better way to do this
         ! Electric Potential:
       case ('pot')
-         IEModel_%havePotential = current_var
+        IEModel_%havePotential = current_var
         ! Diffuse Precipitation/Total energy flux:
       case ('def')
-         IEModel_%haveDiffuseEeFlux = current_var * 1000 !W/m^2 to ergs/cm^2
+        IEModel_%haveDiffuseEeFlux = current_var*1000 !W/m^2 to ergs/cm^2
         ! Diffuse Precipitation/average energy:
       case ('dae')
-         IEModel_%haveDiffuseEaveE = current_var
+        IEModel_%haveDiffuseEaveE = current_var
         ! Monoenergetic Precipitation/Total energy flux:
       case ('mef')
-         IEModel_%haveMonoEeFlux = current_var * 1000 !W/m^2 to ergs/cm^2
+        IEModel_%haveMonoEeFlux = current_var*1000 !W/m^2 to ergs/cm^2
         ! Monoenergetic Precipitation/average energy:
       case ('mae')
-         IEModel_%haveMonoEaveE = current_var
+        IEModel_%haveMonoEaveE = current_var
         ! Wave Precipitation/Total energy flux:
       case ('wef')
-         IEModel_%haveWaveEeFlux = current_var * 1000 !W/m^2 to ergs/cm^2
+        IEModel_%haveWaveEeFlux = current_var*1000 !W/m^2 to ergs/cm^2
         ! Wave Precipitation/average energy:
       case ('wae')
-         IEModel_%haveWaveEaveE = current_var
+        IEModel_%haveWaveEaveE = current_var
         ! Ion Precipitation/Total energy flux:
       case ('ief')
-         IEModel_%haveDiffuseIeFlux = current_var * 1000 !W/m^2 to ergs/cm^2
+        IEModel_%haveDiffuseIeFlux = current_var*1000 !W/m^2 to ergs/cm^2
         ! Ion Precipitation/average energy:
       case ('iae')
-         IEModel_%haveDiffuseIaveE = current_var
+        IEModel_%haveDiffuseIaveE = current_var
       case default
         call CON_stop(NameSub//' invalid NameVarIn='//NameVarIn_V(iVar))
 
       end select
     enddo
 
-    if(present(Buffer_IIIV)) then
-        allocate(current_var_spec(IEModel_%havenMlts, IEModel_%havenLats, &
-                                  ED_N_Energies))
-        do iVar = 1, nVarSpecIn
-          current_var_spec = Buffer_IIIV(:, :, :, iVar)
-          if (DoTest .and. (iProcGITM == 0)) write(*, '(a, 2(e12.5,1x))') '&
-                  UA '//NameVarSpecIn_V(iVar)// " : ", &
-            maxval(current_var_spec), &
-            minval(current_var_spec)
+    if (present(Buffer_IIIV)) then
+      allocate(current_var_spec(IEModel_%havenMlts, IEModel_%havenLats, &
+                                ED_N_Energies))
+      do iVar = 1, nVarSpecIn
+        current_var_spec = Buffer_IIIV(:, :, :, iVar)
+        if (DoTest .and. (iProcGITM == 0)) write(*, '(a, 2(e12.5,1x))') &
+          'UA '//NameVarSpecIn_V(iVar)//" : ", &
+          maxval(current_var_spec), &
+          minval(current_var_spec)
 
-          ! Get nflux, convert to energy later!
-          select case (NameVarSpecIn_V(iVar))
-            ! Hydrogen nflux spectrum:
-          case ('hyd')
-            IEModel_%haveHydrNflux = current_var_spec
-            ! Electron nflux spectrum:
-          case ('ele')
-            IEModel_%haveElecNflux = current_var_spec
-          case default             
-            call CON_stop(NameSub//' invalid NameVarIn='//NameVarSpecIn_V(iVar))
-          end select
-        end do       
-        deallocate(current_var_spec)
-      end if
-        
+        ! Get nflux, convert to energy later!
+        select case (NameVarSpecIn_V(iVar))
+          ! Hydrogen nflux spectrum:
+        case ('hyd')
+          IEModel_%haveHydrNflux = current_var_spec
+          ! Electron nflux spectrum:
+        case ('ele')
+          IEModel_%haveElecNflux = current_var_spec
+        case default
+          call CON_stop(NameSub//' invalid NameVarIn='//NameVarSpecIn_V(iVar))
+        end select
+      enddo
+      deallocate(current_var_spec)
+    endif
 
     ! Insert call here to convert w/m^2 to ergs/cm^2 (multiply by 1000)
     deallocate(current_var)

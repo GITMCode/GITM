@@ -403,60 +403,60 @@ Subroutine calc_thermoelectric_current
   use ModSizeGitm
   use ModGITM
 
-    ! calc thermoelectric currents
+  ! calc thermoelectric currents
   real, dimension(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2) :: PartialJPara
 
-    real, dimension(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, 3) :: iVelo, eVelo
-    real, dimension(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, 3) :: JuTotal, OverB0
-    real, dimension(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2) :: DivJPerp, JuTotalDotB
-    real, dimension(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, 3) ::  Gradient_GC
+  real, dimension(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, 3) :: iVelo, eVelo
+  real, dimension(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, 3) :: JuTotal, OverB0
+  real, dimension(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2) :: DivJPerp, JuTotalDotB
+  real, dimension(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, 3) ::  Gradient_GC
 
-    integer :: iDir, iBlock=1
+  integer :: iDir, iBlock = 1
 
-    iVelo = IVelocity(:, :, :, :, iBlock)
-    eVelo = ExB(:, :, :, :)
+  iVelo = IVelocity(:, :, :, :, iBlock)
+  eVelo = ExB(:, :, :, :)
 
-    JuTotal = 0.0
+  JuTotal = 0.0
 
-    do iDir = 1, 3
-      JuTotal(:, :, :, iDir) = IDensityS(:, :, :, ie_, iBlock)*Element_Charge* &
-                               (iVelo(:, :, :, iDir) - eVelo(:, :, :, iDir))
+  do iDir = 1, 3
+    JuTotal(:, :, :, iDir) = IDensityS(:, :, :, ie_, iBlock)*Element_Charge* &
+                             (iVelo(:, :, :, iDir) - eVelo(:, :, :, iDir))
 
-      OverB0(:, :, :, iDir) = B0(:, :, :, iDir, iBlock)/B0(:, :, :, iMag_, iBlock)**2
-    enddo
+    OverB0(:, :, :, iDir) = B0(:, :, :, iDir, iBlock)/B0(:, :, :, iMag_, iBlock)**2
+  enddo
 
-    do iAlt = -1, nAlts + 2
-      do iLat = -1, nLats + 2
-        do iLon = -1, nLons + 2
-          JuTotalDotB(iLon, iLat, iAlt) = sum( &
-                                          JuTotal(iLon, iLat, iAlt, 1:3)* &
-                                          B0(iLon, iLat, iAlt, 1:3, iBlock))
-        enddo
+  do iAlt = -1, nAlts + 2
+    do iLat = -1, nLats + 2
+      do iLon = -1, nLons + 2
+        JuTotalDotB(iLon, iLat, iAlt) = sum( &
+                                        JuTotal(iLon, iLat, iAlt, 1:3)* &
+                                        B0(iLon, iLat, iAlt, 1:3, iBlock))
       enddo
     enddo
+  enddo
 
-    DivJPerp = 0.0
-    do iDir = 1, 3
-      call UAM_Gradient_GC(JuTotal(:, :, :, iDir), Gradient_GC, iBlock)
-      DivJPerp(:, :, :) = DivJPerp(:, :, :) + Gradient_GC(:, :, :, iDir)
+  DivJPerp = 0.0
+  do iDir = 1, 3
+    call UAM_Gradient_GC(JuTotal(:, :, :, iDir), Gradient_GC, iBlock)
+    DivJPerp(:, :, :) = DivJPerp(:, :, :) + Gradient_GC(:, :, :, iDir)
 
-      call UAM_Gradient_GC(JuTotalDotB(:, :, :), Gradient_GC, iBlock)
-      DivJPerp(:, :, :) = DivJPerp(:, :, :) - Gradient_GC(:, :, :, iDir) &
-                          *B0(:, :, :, iDir, iBlock)/B0(:, :, :, iMag_, iBlock)**2
+    call UAM_Gradient_GC(JuTotalDotB(:, :, :), Gradient_GC, iBlock)
+    DivJPerp(:, :, :) = DivJPerp(:, :, :) - Gradient_GC(:, :, :, iDir) &
+                        *B0(:, :, :, iDir, iBlock)/B0(:, :, :, iMag_, iBlock)**2
 
-      call UAM_Gradient_GC(OverB0(:, :, :, iDir), Gradient_GC, iBlock)
-      DivJPerp(:, :, :) = DivJPerp(:, :, :) - Gradient_GC(:, :, :, iDir) &
-                          *JuTotalDotB(:, :, :)
-    enddo
+    call UAM_Gradient_GC(OverB0(:, :, :, iDir), Gradient_GC, iBlock)
+    DivJPerp(:, :, :) = DivJPerp(:, :, :) - Gradient_GC(:, :, :, iDir) &
+                        *JuTotalDotB(:, :, :)
+  enddo
 
-    PartialJPara = -DivJPerp
+  PartialJPara = -DivJPerp
 
-    JParAlt = 0.0
-    do iAlt = 1, nAlts
-      JParAlt(:, :) = JParAlt(:, :) - DivJPerp(:, :, iAlt)*dAlt_GB(:, :, iAlt, iBlock)
-    enddo
+  JParAlt = 0.0
+  do iAlt = 1, nAlts
+    JParAlt(:, :) = JParAlt(:, :) - DivJPerp(:, :, iAlt)*dAlt_GB(:, :, iAlt, iBlock)
+  enddo
 
-  end Subroutine calc_thermoelectric_current
+end Subroutine calc_thermoelectric_current
 
 !subroutine calc_electron_ion_sources(iBlock)
 subroutine calc_electron_ion_sources(iBlock) !,eHeatingp,iHeatingp,eHeatingm,iHeatingm, iHeating, lame, lami)

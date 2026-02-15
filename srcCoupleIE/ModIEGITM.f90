@@ -24,7 +24,6 @@ module ModIEGITM
 
   real, parameter, public :: rBadValue = -1.0e32
 
-
 !  integer, external :: efield_interpret_name
 !  integer, external :: aurora_interpret_name
 
@@ -82,7 +81,7 @@ module ModIEGITM
     ! Spectrums
     real, allocatable, dimension(:, :, :) :: haveHydrNflux
     real, allocatable, dimension(:, :, :) :: haveElecNflux
-    
+
     ! Is Polar Cap (1 if is polar cap, 0 otherwise):
     real, allocatable, dimension(:, :) :: havePolarCap
 
@@ -190,14 +189,14 @@ module ModIEGITM
 
   end type ieModel
 
-  contains
-      ! ------------------------------------------------------------
-      ! Set the verbose level for the library:
-      subroutine set_verbose(this, level)
-        class(ieModel) :: this
-        integer, intent(in) :: level
-        this%iDebugLevel = level
-      end subroutine set_verbose
+contains
+  ! ------------------------------------------------------------
+  ! Set the verbose level for the library:
+  subroutine set_verbose(this, level)
+    class(ieModel) :: this
+    integer, intent(in) :: level
+    this%iDebugLevel = level
+  end subroutine set_verbose
 
   INCLUDE "grid_routines.f90"
 

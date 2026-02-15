@@ -33,7 +33,7 @@ integer function bad_outputtype()
   ! Set up all possible/valid plot types:
   NameValidTypes = (/'3DALL', '3DLST', '3DNEU', '3DION', '3DTHM', '3DCHM', &
                      '3DUSR', '3DGLO', '3DMAG', '3DHME', '3DPOT', &
-                     '2DGEL', '2DMEL', '2DUSR', '2DTEC', '2DANC', '2DHME',&
+                     '2DGEL', '2DMEL', '2DUSR', '2DTEC', '2DANC', '2DHME', &
                      '1DALL', '1DGLO', '1DTHM', '1DNEW', '1DCHM', '1DCMS', '1DUSR', &
                      '0DUSR', '0DALL'/)
 
@@ -649,7 +649,7 @@ contains
       write(iOutputUnit_, "(I7,A1,a)") 4, " ", "Dynamo Potential"
       write(iOutputUnit_, "(I7,A1,a)") 4, " ", "Total Potential"
       write(iOutputUnit_, "(I7,A1,a)") 5, " ", "Potential Y"
-  
+
     endif
 
     if (cType(3:5) == "TEC") then
@@ -743,7 +743,7 @@ contains
       write(iOutputUnit_, "(I7,A1,a)") 7, " ", "AltIntPedersen Conductance"
       write(iOutputUnit_, "(I7,A1,a)") 8, " ", "AltIntHall Conductance"
       write(iOutputUnit_, "(I7,A1,a)") 9, " ", "DivJuAlt"
-      write(iOutputUnit_, "(I7,A1,a)") 9, " ", "JParAlt"      
+      write(iOutputUnit_, "(I7,A1,a)") 9, " ", "JParAlt"
       write(iOutputUnit_, "(I7,A1,a)") 10, " ", "Field Line Length"
       write(iOutputUnit_, "(I7,A1,a)") 11, " ", "Sigma PP"
       write(iOutputUnit_, "(I7,A1,a)") 12, " ", "Sigma LL"

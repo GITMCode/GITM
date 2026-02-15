@@ -131,7 +131,7 @@ subroutine calc_physics(iBlock)
     ! Compute Magnetic Local Time
     !
 
-    if (IsEarth) then 
+    if (IsEarth) then
       ! we have subsolar & magnetic pole location, apex only uses these for MLT
       do iLat = -1, nLats + 2
         do iLon = -1, nLons + 2

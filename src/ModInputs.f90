@@ -265,7 +265,7 @@ module ModInputs
   real    :: MaxResidual = 1.0
   logical :: IncludeCowling = .false.
   real    :: DynamoLonAverage = 10.0
-  logical :: SimplyAddPotentials    = .false.
+  logical :: SimplyAddPotentials = .false.
 
   logical :: UseImprovedIonAdvection = .true.
   logical :: UseNighttimeIonBCs = .true.

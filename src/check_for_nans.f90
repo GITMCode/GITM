@@ -38,8 +38,8 @@ subroutine check_for_nans_ions(cMarker)
             write(*, *) cMarker
             write(*, *) iLon, iLat, iAlt, iProc, iIon
             write(*, *) '=>Lon:', Longitude(iLon, 1), 'Lat:', Latitude(iLat, 1), &
-                 'Alt:', Altitude_GB(iLon, iLat, iAlt, 1), 'ion:', cSpecies(iIon)
-            
+              'Alt:', Altitude_GB(iLon, iLat, iAlt, 1), 'ion:', cSpecies(iIon)
+
             IsFound = .true.
           endif
         enddo
