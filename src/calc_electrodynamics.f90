@@ -328,6 +328,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats, isInitialize)
 
   call calc_thermoelectric_current
 
+  if (.not. UseDynamo) return
   !\
   ! Magnetic grid is defined as:
   ! MLT is in hours = 0 - 24
@@ -353,8 +354,6 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats, isInitialize)
 
   UAi_nLats = nMagLats
   UAi_nMlts = nMagLons + 1
-
-  if ((.not. UseDynamo) .or. present(isInitialize)) return
 
   q2 = Element_Charge*Element_Charge
 
