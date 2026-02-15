@@ -214,8 +214,8 @@ module ModInputs
 
   logical :: UseGswmComp(4) = .true.
 
-  real :: MagneticPoleRotation = 0.0
-  real :: MagneticPoleTilt = 0.0
+  real :: MagneticPoleRotation = bAxisRotation
+  real :: MagneticPoleTilt = bAxisTilt
   real :: xDipoleCenter = 0.0
   real :: yDipoleCenter = 0.0
   real :: zDipoleCenter = 0.0
@@ -455,7 +455,6 @@ contains
 
     use ModTime
     use ModPlanet, only: IsEarth
-    use ModPlanetConst, only: Planet_, bAxisPhiPlanet_I, bAxisThetaPlanet_I
 
     call set_strings
 
@@ -497,9 +496,6 @@ contains
 
     UseApex = .false.
     DoRestart = .false.
-
-    MagneticPoleRotation = bAxisPhiPlanet_I(Planet_)
-    MagneticPoleTilt = bAxisThetaPlanet_I(Planet_)
 
     call set_planet_defaults
 

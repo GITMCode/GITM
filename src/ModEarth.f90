@@ -78,6 +78,9 @@ module ModPlanet
   real, parameter :: RBody = R_Earth
   real, parameter :: DipoleStrength = DP_Earth
 
+  real, parameter :: bAxisRotation = 289.1 * pi/180.0  ! [rad]
+  real, parameter :: bAxisTilt =      11.0 * pi/180.0  ! [rad]
+
   real, parameter :: OMEGABody = 2.00*pi/Rotation_Period  ! rad/s
 
   real, parameter :: HoursPerDay = Rotation_Period/3600.0
