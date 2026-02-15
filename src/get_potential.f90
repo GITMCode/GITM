@@ -328,6 +328,8 @@ subroutine get_potential(iBlock)
     ! We will get full spectra precip in aurora
     if (UseSpectrumAurora) then
       call IEModel_%get_aurora_spectrum(eSpectralFlux, iSpectralFlux)
+      where(eSpectralFlux < 0.) eSpectralFlux = 0.
+      where(iSpectralFlux < 0.) iSpectralFlux = 0.
       maxEnergyFlux = maxval(eSpectralFlux)
       call get_max_value_across_pes(maxEnergyFlux)
       if (maxEnergyFlux == 0) then
