@@ -598,8 +598,6 @@ subroutine calc_chemistry(iBlock)
 
           o2ptotal = o2ptotal + reaction
 
-          if (iAlt == 1) write(*,*) 'o2+ ionization : ', reaction, ions(io2p_)
-          
           ! -----------
           ! Aurora
           ! -----------
