@@ -157,7 +157,7 @@ subroutine aurora(iBlock)
         ED_Ion_EnergyFlux(:) = iSpectralFlux(j, i, :)*ED_Energies(:)
         if ((maxval(ED_EnergyFlux) > 0.) .or. (maxval(ED_Ion_EnergyFlux) > 0.)) &
           HasSomeAurora = .true.
-        if ((iProc == iProc) .and. (iDebugLevel >= 2)) then
+        if ((iProc == 1) .and. (iDebugLevel >= 2)) then
           write(*, *) '====> SPECTRUM Aurora'
           write(*, *) '=====>> max/min e- ', maxval(ED_EnergyFlux), minval(ED_EnergyFlux)
           write(*, *) '=====>> max/min ion ', maxval(ED_ion_EnergyFlux), minval(ED_ION_EnergyFlux)
