@@ -351,7 +351,8 @@ subroutine get_potential(iBlock)
       where (iSpectralFlux < 0.) iSpectralFlux = 0.
       maxEnergyFlux = maxval(eSpectralFlux)
       call get_max_value_across_pes(maxEnergyFlux)
-      if (maxEnergyFlux == 0) then
+      if ((maxEnergyFlux == 0) .and. (doStopIfNoAurora)) then
+        ! CIMI gives no precipitation for the first few iterations
         call set_error("Aurora spectrum is all zero. Must Stop!")
         call report_errors
         call stop_gitm("Stopping in get_potential")
@@ -409,7 +410,7 @@ subroutine get_potential(iBlock)
       ! Check to see if there is any aurora:
       maxEnergyFlux = maxval(ElectronEnergyFluxWave)
       call get_max_value_across_pes(maxEnergyFlux)
-      if (maxEnergyFlux == 0 .and. .not. IsFramework) then
+      if ((maxEnergyFlux == 0) .and. (doStopIfNoAurora)) then
         call set_error("Wave Aurora is zero and it was requested! Must Stop!")
         call report_errors
         call stop_gitm("Stopping in get_potential")
@@ -421,7 +422,7 @@ subroutine get_potential(iBlock)
       ! Check to see if there is any aurora:
       maxEnergyFlux = maxval(ElectronEnergyFluxMono)
       call get_max_value_across_pes(maxEnergyFlux)
-      if (maxEnergyFlux == 0 .and. .not. IsFramework) then
+      if ((maxEnergyFlux == 0) .and. (doStopIfNoAurora)) then
         call set_error("Mono Aurora is zero and it was requested! Must Stop!")
         call report_errors
         call stop_gitm("Stopping in get_potential")
@@ -433,7 +434,7 @@ subroutine get_potential(iBlock)
       ! Check to see if there is any aurora:
       maxEnergyFlux = maxval(IonEnergyFlux)
       call get_max_value_across_pes(maxEnergyFlux)
-      if (maxEnergyFlux == 0 .and. .not. IsFramework) then
+      if ((maxEnergyFlux == 0) .and. (doStopIfNoAurora)) then
         call set_error("Ion Aurora is zero and it was requested! Must Stop!")
         call report_errors
         call stop_gitm("Stopping in get_potential")
