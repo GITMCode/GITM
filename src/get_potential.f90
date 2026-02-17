@@ -117,6 +117,7 @@ subroutine init_get_potential
   if (IEModel_%iAurora_ == iSwmfSpec_) then
     if (.not. AllowAurWODiffuse) then
       AllowAurWODiffuse = .true.
+      doStopIfNoAurora = .false.
       if (iProc == 0) &
         call raise_warning("Overriding user inputs, setting AllowAurWODiffuse=True")
     endif
@@ -355,9 +356,9 @@ subroutine get_potential(iBlock)
         call report_errors
         call stop_gitm("Stopping in get_potential")
       endif
-    else
+    endif
 
-      ! We get the diffuse aurora always, since it *should* always be done.
+    if (UseDiffuseAurora) then
       ! Inside the aurora subroutine we check if the user wants to use it or not.
       call ieModel_%get_aurora(ElectronEnergyFluxDiffuse, ElectronAverageEnergyDiffuse)
 
@@ -398,45 +399,44 @@ subroutine get_potential(iBlock)
       ! Adjust the Average Energy of the Diffuse Aurora, if desired:
       if (iDebugLevel > 1) write(*, *) '=> Adjusting average energy of the aurora : ', AveEFactor
       ElectronAverageEnergyDiffuse = ElectronAverageEnergyDiffuse*AveEFactor
+    endif
+    ! -----------------------------
+    ! Ion, Wave- & Mono- aurora
+    ! -----------------------------
 
-      ! -----------------------------
-      ! Ion, Wave- & Mono- aurora
-      ! -----------------------------
-
-      if (UseWaveAurora) then
-        call IEModel_%get_electron_wave_aurora(ElectronEnergyFluxWave, ElectronAverageEnergyWave)
-        ! Check to see if there is any aurora:
-        maxEnergyFlux = maxval(ElectronEnergyFluxWave)
-        call get_max_value_across_pes(maxEnergyFlux)
-        if (maxEnergyFlux == 0 .and. .not. IsFramework) then
-          call set_error("Wave Aurora is zero and it was requested! Must Stop!")
-          call report_errors
-          call stop_gitm("Stopping in get_potential")
-        endif
+    if (UseWaveAurora) then
+      call IEModel_%get_electron_wave_aurora(ElectronEnergyFluxWave, ElectronAverageEnergyWave)
+      ! Check to see if there is any aurora:
+      maxEnergyFlux = maxval(ElectronEnergyFluxWave)
+      call get_max_value_across_pes(maxEnergyFlux)
+      if (maxEnergyFlux == 0 .and. .not. IsFramework) then
+        call set_error("Wave Aurora is zero and it was requested! Must Stop!")
+        call report_errors
+        call stop_gitm("Stopping in get_potential")
       endif
+    endif
 
-      if (UseMonoAurora) then
-        call IEModel_%get_electron_mono_aurora(ElectronEnergyFluxMono, ElectronAverageEnergyMono)
-        ! Check to see if there is any aurora:
-        maxEnergyFlux = maxval(ElectronEnergyFluxMono)
-        call get_max_value_across_pes(maxEnergyFlux)
-        if (maxEnergyFlux == 0 .and. .not. IsFramework) then
-          call set_error("Mono Aurora is zero and it was requested! Must Stop!")
-          call report_errors
-          call stop_gitm("Stopping in get_potential")
-        endif
+    if (UseMonoAurora) then
+      call IEModel_%get_electron_mono_aurora(ElectronEnergyFluxMono, ElectronAverageEnergyMono)
+      ! Check to see if there is any aurora:
+      maxEnergyFlux = maxval(ElectronEnergyFluxMono)
+      call get_max_value_across_pes(maxEnergyFlux)
+      if (maxEnergyFlux == 0 .and. .not. IsFramework) then
+        call set_error("Mono Aurora is zero and it was requested! Must Stop!")
+        call report_errors
+        call stop_gitm("Stopping in get_potential")
       endif
+    endif
 
-      if (UseIonAurora) then
-        call IEModel_%get_ion_diffuse_aurora(IonEnergyFlux, IonAverageEnergy)
-        ! Check to see if there is any aurora:
-        maxEnergyFlux = maxval(IonEnergyFlux)
-        call get_max_value_across_pes(maxEnergyFlux)
-        if (maxEnergyFlux == 0 .and. .not. IsFramework) then
-          call set_error("Ion Aurora is zero and it was requested! Must Stop!")
-          call report_errors
-          call stop_gitm("Stopping in get_potential")
-        endif
+    if (UseIonAurora) then
+      call IEModel_%get_ion_diffuse_aurora(IonEnergyFlux, IonAverageEnergy)
+      ! Check to see if there is any aurora:
+      maxEnergyFlux = maxval(IonEnergyFlux)
+      call get_max_value_across_pes(maxEnergyFlux)
+      if (maxEnergyFlux == 0 .and. .not. IsFramework) then
+        call set_error("Ion Aurora is zero and it was requested! Must Stop!")
+        call report_errors
+        call stop_gitm("Stopping in get_potential")
       endif
     endif
 
