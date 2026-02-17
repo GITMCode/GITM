@@ -92,8 +92,17 @@ subroutine init_get_potential
       call raise_warning( &
       "Using SWMF-coupled aurora, but only e- diffuse! Maybe change #AURORATYPES?")
 
-    if ((IEModel_%iAurora_ == iSwmfSpec_) .and. (.not. UseIonAurora)) &
-      call raise_warning("Using SWMF spectrum precipitation without ion/hydrogen precipitation.")
+    if (IEModel_%iAurora_ == iSwmfSpec_) then
+      ! Options for SWMF Spectrum aurora
+      if (.not. UseWaveAurora) &
+        call raise_warning("SWMFSpec does not include wave precip. Running without wave aurora is not recommended!")
+      if (UseDiffuseAurora) &
+        call raise_warning("SWMFSpec includes e- diffuse precip. Recommend setting UseDiffuseAurora=False")
+      if (UseMonoAurora) &
+        call raise_warning("SWMFSpec includes e- monoenergetic precip. Recommend setting UseMonoAurora=False")
+      if (UseIonAurora) &
+        call raise_warning("SWMFSpec includes Ion/Hyd precip. Recommend setting UseIonAurora=False")
+    endif
 
     if (cPlanet == "Earth") then
       if (IEModel_%iAurora_ == iZero_) &
