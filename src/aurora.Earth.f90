@@ -152,9 +152,10 @@ subroutine aurora(iBlock)
       enddo
 
       if (UseSpectrumAurora) Then
-        ! This is in number flux units (at the moment...)
-        ED_EnergyFlux(:) = eSpectralFlux(j, i, :)*ED_Energies(:)
-        ED_Ion_EnergyFlux(:) = iSpectralFlux(j, i, :)*ED_Energies(:)
+        ! Convert number flux (#/m2/s per bin) to energy flux (eV/cm2/s per bin)
+        ! 1e4 is for m-2 to cm-2
+        ED_EnergyFlux(:) = ED_EnergyFlux(:) + eSpectralFlux(j, i, :)*ED_Energies(:)/1.0e4
+        ED_Ion_EnergyFlux(:) = ED_Ion_EnergyFlux(:) + iSpectralFlux(j, i, :)*ED_Energies(:)/1.0e4
         if ((maxval(ED_EnergyFlux) > 0.) .or. (maxval(ED_Ion_EnergyFlux) > 0.)) &
           HasSomeAurora = .true.
         if ((iProc == 1) .and. (iDebugLevel >= 2)) then
