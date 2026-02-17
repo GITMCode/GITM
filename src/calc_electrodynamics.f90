@@ -21,7 +21,7 @@ end subroutine UA_fill_electrodynamics
 
 !\
 
-subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats, isInitialize)
+subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
 
   use ModGITM
   use ModInputs
@@ -35,7 +35,6 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats, isInitialize)
   implicit none
 
   integer, intent(out) :: UAi_nMLTs, UAi_nLats
-  logical, intent(in), optional :: isInitialize
 
   integer, external :: jday
 
