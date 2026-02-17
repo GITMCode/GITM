@@ -113,6 +113,15 @@ subroutine init_get_potential
     endif
   endif
 
+  ! Change settings; needs to be done on all procs!
+  if (IEModel_%iAurora_ == iSwmfSpec_) then
+    if (.not. AllowAurWODiffuse) then
+      AllowAurWODiffuse = .true.
+      if (iProc == 0) &
+        call raise_warning("Overriding user inputs, setting AllowAurWODiffuse=True")
+    endif
+  endif
+
   ! Initialize the grid:
   call IEModel_%nMlts(nLons + 4)
   call IEModel_%nLats(nLats + 4)
