@@ -124,7 +124,7 @@ subroutine init_get_potential
     if (doStopIfNoAurora) then
       doStopIfNoAurora = .true. ! This is used in aurora
       if (iProc == 0) &
-        call raise_warning("Overriding user inputs, setting AllowAurWODiffuse=True")
+        call raise_warning("Overriding user inputs, setting doStopIfNoAurora=False")
     endif
     doStopIfNoAurora = .false. ! Used here
   endif
