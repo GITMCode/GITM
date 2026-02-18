@@ -114,13 +114,19 @@ subroutine init_get_potential
   endif
 
   ! Change settings; needs to be done on all procs!
-  if (IEModel_%iAurora_ == iSwmfSpec_) then
+  ! These are (currently) only needed for SWMF coupling
+  if ((IEModel_%iAurora_ == iSwmfSpec_) .or. (IEModel_%iAurora_ == iSwmfAur_)) then
     if (.not. AllowAurWODiffuse) then
-      AllowAurWODiffuse = .true.
-      doStopIfNoAurora = .false.
+      AllowAurWODiffuse = .true. ! This is used in aurora
       if (iProc == 0) &
         call raise_warning("Overriding user inputs, setting AllowAurWODiffuse=True")
     endif
+    if (doStopIfNoAurora) then
+      doStopIfNoAurora = .true. ! This is used in aurora
+      if (iProc == 0) &
+        call raise_warning("Overriding user inputs, setting AllowAurWODiffuse=True")
+    endif
+    doStopIfNoAurora = .false. ! Used here
   endif
 
   ! Initialize the grid:
