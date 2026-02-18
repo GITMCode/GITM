@@ -525,6 +525,7 @@ subroutine initialize_gitm(TimeIn)
   endif
 
   call init_get_potential
+  call init_energy_deposition
 
   do iBlock = 1, nBlocks
     call calc_physics(iBlock)

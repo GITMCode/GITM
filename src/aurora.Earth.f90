@@ -166,6 +166,9 @@ subroutine aurora(iBlock)
 
       endif
 
+      ED_eFlux_Stored(j, i, :, iBlock) = ED_EnergyFlux(:)
+      ED_iFlux_Stored(j, i, :, iBlock) = ED_Ion_EnergyFlux(:)
+
       if (HasSomeAurora) &
         call calc_fang_rates(j, i, iBlock, AuroralBulkIonRate)
 

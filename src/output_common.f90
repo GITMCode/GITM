@@ -24,7 +24,7 @@ integer function bad_outputtype()
 
   implicit none
 
-  integer, parameter :: nValidTypes = 26
+  integer, parameter :: nValidTypes = 27
   integer :: j, iOutputType
   logical :: IsFound
 
@@ -32,7 +32,7 @@ integer function bad_outputtype()
 
   ! Set up all possible/valid plot types:
   NameValidTypes = (/'3DALL', '3DLST', '3DNEU', '3DION', '3DTHM', '3DCHM', &
-                     '3DUSR', '3DGLO', '3DMAG', '3DHME', '3DPOT', &
+                     '3DUSR', '3DGLO', '3DMAG', '3DHME', '3DPOT', '3DEDF', &
                      '2DGEL', '2DMEL', '2DUSR', '2DTEC', '2DANC', '2DHME', &
                      '1DALL', '1DGLO', '1DTHM', '1DNEW', '1DCHM', '1DCMS', '1DUSR', &
                      '0DUSR', '0DALL'/)
@@ -352,6 +352,11 @@ subroutine output(dir, iBlock, iOutputType)
     nVars_to_Write = 9
     call output_3dpot(iBlock)
 
+  case ('3DEDF')
+
+    nvars_to_write = 5
+    call output_3dedf(iBlock)
+
   case ('2DGEL')
 
     nvars_to_write = 19
@@ -491,6 +496,7 @@ contains
   subroutine output_header
 
     use ModElectrodynamics, only: nMagLats, nMagLons
+    use ModSources, only: ED_N_Energies
 
     integer :: iOff, iSpecies, iIon
 
@@ -509,6 +515,11 @@ contains
       if (cType(3:5) == "MEL") then
         write(iOutputUnit_, "(I7,A)") nMagLats, " nLatitude"
         write(iOutputUnit_, "(I7,A)") nMagLons + 1, " nLongitudes"
+        write(iOutputUnit_, *) " "
+        write(iOutputUnit_, *) "NO GHOSTCELLS"
+      elseif (cType(3:5) == "EDF") then
+        write(iOutputUnit_, "(I7,A)") nLats, " nLatitude"
+        write(iOutputUnit_, "(I7,A)") nLons, " nLongitudes"
         write(iOutputUnit_, *) " "
         write(iOutputUnit_, *) "NO GHOSTCELLS"
       elseif (cType(3:5) == "GEL" .or. &
@@ -532,7 +543,12 @@ contains
     write(iOutputUnit_, "(I7,A1,a)") 2, " ", "Latitude"
     write(iOutputUnit_, "(I7,A1,a)") 3, " ", "Altitude"
 
-    if (cType(3:5) == "LST") then
+    if (cType(3:5) == "EDF") then
+
+      write(iOutputUnit_, "(I7,A1,a)") 4, " ", "eFlux (eV/cm2/s)"
+      write(iOutputUnit_, "(I7,A1,a)") 5, " ", "iFlux (eV/cm2/s)"
+
+    elseif (cType(3:5) == "LST") then
 
       iOff = 4
       if (iRhoOutputList) then
@@ -1805,6 +1821,35 @@ subroutine output_3dpot(iBlock)
   enddo
 
 end subroutine output_3dpot
+
+!----------------------------------------------------------------
+
+subroutine output_3dedf(iBlock)
+
+  use ModGITM
+  use ModInputs
+  use ModSources, only: ED_Energies, ED_N_Energies, &
+    ED_eFlux_Stored, ED_iFlux_Stored
+
+  implicit none
+
+  integer, intent(in) :: iBlock
+  integer :: iLon, iLat, iEnergy
+
+  do iEnergy = 1, ED_N_Energies
+    do iLat = 1, nLats
+      do iLon = 1, nLons
+        write(iOutputUnit_) &
+          Longitude(iLon, iBlock), &
+          Latitude(iLat, iBlock), &
+          ED_Energies(iEnergy), &
+          ED_eFlux_Stored(iLon, iLat, iEnergy, iBlock), &
+          ED_iFlux_Stored(iLon, iLat, iEnergy, iBlock)
+      enddo
+    enddo
+  enddo
+
+end subroutine output_3dedf
 
 !----------------------------------------------------------------
 

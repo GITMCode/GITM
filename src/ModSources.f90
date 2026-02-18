@@ -101,9 +101,12 @@ module ModSources
   real, dimension(:), allocatable :: &
     ED_Energies, ED_delta_energy, ED_EnergyFlux, &
     ED_Ion_EnergyFlux
-  integer :: ED_N_Energies = 50
+  integer :: ED_N_Energies = 54
   ! These are only used if we are getting full precip spectra
   real, dimension(:, :, :), allocatable :: eSpectralFlux, iSpectralFlux
+  ! Stored ED flux for 3DEDF output (nLons, nLats, ED_N_Energies, nBlocks)
+  real, allocatable :: ED_eFlux_Stored(:, :, :, :)
+  real, allocatable :: ED_iFlux_Stored(:, :, :, :)
 
   real, allocatable :: AuroralIonRateS(:, :, :, :, :)
   real, allocatable :: IonPrecipIonRateS(:, :, :, :, :)
