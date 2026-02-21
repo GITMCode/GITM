@@ -116,10 +116,11 @@ subroutine calc_physics(iBlock)
   LocalTime = mod((UTime/(RotationPeriodInput/24.0) + &
                    Longitude(:, iBlock)*24.0/TwoPi), 24.0)
 
-  if (UseApex) then
+  if (IsEarth) then
+    ! This is an apex routine but doesn't need apex=T
     call SUBSOLR(iTimeArray(1), iJulianDay, iTimeArray(4), &
-                 iTimeArray(5), iTimeArray(6), SubsolarLatitude, &
-                 SubsolarLongitude)
+                  iTimeArray(5), iTimeArray(6), SubsolarLatitude, &
+                  SubsolarLongitude)
   else
     call get_subsolar(CurrentTime, VernalTime, &
                       SubsolarLongitude, SubsolarLatitude)
