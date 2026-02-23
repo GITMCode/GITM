@@ -271,7 +271,7 @@ contains
     !-------------------------------------------------------------------------
     call CON_set_do_test(NameSub, DoTest, DoTestMe)
 
-    if (DoTestMe) write(*, *) &
+    if (DoTest) write(*, *) &
       NameSub//' called; IsFirstTime = ', IsFirstTime
 
     if (IsFirstTime) then
@@ -285,7 +285,7 @@ contains
       CurrentTime = StartTime + SWMFTime
       call time_real_to_int(StartTime, iTimeArray) ! get time as integers
 
-      if (DoTestMe) then
+      if (DoTest) then
         write(*, *) NameSub//' Timing for UA (floating point):'
         write(*, *) NameSub//' Start time   = ', StartTime
         write(*, *) NameSub//' End time     = ', EndTime
