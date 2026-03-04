@@ -61,7 +61,13 @@ subroutine advance_horizontal(iBlock)
   use ModPlanet, only: nSpecies, nIonsAdvect
   use ModGITM
   use ModInputs
-  use ModSources, only: HorizontalTempSource
+  !use ModSources, only: HorizontalTempSource
+  !Atheer Alhothali, Jan, 2026: Add accelerations components
+  use ModSources, only: HorizontalTempSource, &
+                        HorizAdvection, HorizPressureGrad, &
+                        HorizCoriolis, Centrifugal, &
+                        VertAdvection
+
   use ieee_arithmetic
 
   implicit none
@@ -148,6 +154,13 @@ subroutine advance_horizontal(iBlock)
   call report("advance_horizontal", 2)
 
   do iAlt = 1, nAlts
+  !Atheer Alhothali, Jan, 2026: Initialize accelerations
+  HorizAdvection(:, :, iAlt, :) = 0.0
+  HorizPressureGrad(:, :, iAlt, :) = 0.0
+  HorizCoriolis(:, :, iAlt, :) = 0.0
+  Centrifugal(:, :, iAlt, :) = 0.0
+  VertAdvection(:, :, iAlt, :) = 0.0
+
 
     cp_c = cp(:, :, iAlt, iBlock)
     Gamma_c = gamma(:, :, iAlt, iBlock)
@@ -731,33 +744,75 @@ contains
         ! dv_phi/dt = -(V grad V + (1/rho) grad P)_phi
         ! (1/rho) grad p = grad T + T/rho grad rho
 
+        !NewVel_CD(iLon, iLat, iEast_) = &
+          !NewVel_CD(iLon, iLat, iEast_) &
+          !- Dt*(Vel_CD(iLon, iLat, iNorth_)*GradLatVel_CD(iLon, iLat, iEast_) + &
+                !Vel_CD(iLon, iLat, iEast_)*GradLonVel_CD(iLon, iLat, iEast_) + &
+                !Vel_CD(iLon, iLat, iEast_)*(Vel_CD(iLon, iLat, iUp_) &
+                                            !- TanLatitude(iLat, iBlock)*Vel_CD(iLon, iLat, iNorth_)) &
+                !*InvRadialDistance_GB(iLon, iLat, iAlt, iBlock) + &
+                !GradLonTemp_C(iLon, iLat) + &
+                !GradLonRho_C(iLon, iLat)*Temp_C(iLon, iLat)/Rho_C(iLon, iLat)) &
+          !+ Dt*( &
+          !DiffLonVel_CD(iLon, iLat, iEast_) + DiffLatVel_CD(iLon, iLat, iEast_))
+
+        ! Atheer Alhothali, Jan, 2026: Calculate EAST advection
+        HorizAdvection(iLon, iLat, iAlt, iEast_) = -( &
+          Vel_CD(iLon, iLat, iNorth_)*GradLatVel_CD(iLon, iLat, iEast_) + &
+          Vel_CD(iLon, iLat, iEast_)*GradLonVel_CD(iLon, iLat, iEast_) + &
+          Vel_CD(iLon, iLat, iEast_)*(Vel_CD(iLon, iLat, iUp_) &
+                                      - TanLatitude(iLat, iBlock)*Vel_CD(iLon, iLat, iNorth_)) &
+          *InvRadialDistance_GB(iLon, iLat, iAlt, iBlock))
+
+        ! Atheer Alhothali, Jan, 2026: Calculate EAST pressure gradient
+        HorizPressureGrad(iLon, iLat, iAlt, iEast_) = -( &
+          GradLonTemp_C(iLon, iLat) + &
+          GradLonRho_C(iLon, iLat)*Temp_C(iLon, iLat)/Rho_C(iLon, iLat))
+
+        ! Atheer Alhothali, Jan, 2026: Apply to velocity (unchanged physics)
         NewVel_CD(iLon, iLat, iEast_) = &
           NewVel_CD(iLon, iLat, iEast_) &
-          - Dt*(Vel_CD(iLon, iLat, iNorth_)*GradLatVel_CD(iLon, iLat, iEast_) + &
-                Vel_CD(iLon, iLat, iEast_)*GradLonVel_CD(iLon, iLat, iEast_) + &
-                Vel_CD(iLon, iLat, iEast_)*(Vel_CD(iLon, iLat, iUp_) &
-                                            - TanLatitude(iLat, iBlock)*Vel_CD(iLon, iLat, iNorth_)) &
-                *InvRadialDistance_GB(iLon, iLat, iAlt, iBlock) + &
-                GradLonTemp_C(iLon, iLat) + &
-                GradLonRho_C(iLon, iLat)*Temp_C(iLon, iLat)/Rho_C(iLon, iLat)) &
-          + Dt*( &
-          DiffLonVel_CD(iLon, iLat, iEast_) + DiffLatVel_CD(iLon, iLat, iEast_))
+          + Dt*(HorizAdvection(iLon, iLat, iAlt, iEast_) + &
+                HorizPressureGrad(iLon, iLat, iAlt, iEast_)) &
+          + Dt*(DiffLonVel_CD(iLon, iLat, iEast_) + DiffLatVel_CD(iLon, iLat, iEast_))
+
 
         ! dv_theta/dt = -(V grad V + (1/rho) grad P)_theta
         ! (1/rho) grad p = grad T + T/rho grad rho
 
+        !NewVel_CD(iLon, iLat, iNorth_) = &
+          !NewVel_CD(iLon, iLat, iNorth_) &
+          !- Dt*(Vel_CD(iLon, iLat, iNorth_)*GradLatVel_CD(iLon, iLat, iNorth_) + &
+                !Vel_CD(iLon, iLat, iEast_)*GradLonVel_CD(iLon, iLat, iNorth_) + &
+                !(Vel_CD(iLon, iLat, iNorth_)*Vel_CD(iLon, iLat, iUp_) &
+                 !+ TanLatitude(iLat, iBlock)*Vel_CD(iLon, iLat, iEast_)**2 &
+                 !)*InvRadialDistance_GB(iLon, iLat, iAlt, iBlock) + &
+                !GradLatTemp_C(iLon, iLat) + &
+                !GradLatRho_C(iLon, iLat)*Temp_C(iLon, iLat)/Rho_C(iLon, iLat)) &
+          !+ Dt*( &
+          !DiffLonVel_CD(iLon, iLat, iNorth_) + &
+          !DiffLatVel_CD(iLon, iLat, iNorth_))
+        
+        ! Atheer Alhothali, Jan, 2026: Calculate NORTH advection
+        HorizAdvection(iLon, iLat, iAlt, iNorth_) = -( &
+          Vel_CD(iLon, iLat, iNorth_)*GradLatVel_CD(iLon, iLat, iNorth_) + &
+          Vel_CD(iLon, iLat, iEast_)*GradLonVel_CD(iLon, iLat, iNorth_) + &
+          (Vel_CD(iLon, iLat, iNorth_)*Vel_CD(iLon, iLat, iUp_) &
+           + TanLatitude(iLat, iBlock)*Vel_CD(iLon, iLat, iEast_)**2 &
+           )*InvRadialDistance_GB(iLon, iLat, iAlt, iBlock))
+
+        ! Atheer Alhothali, Jan, 2026: Calculate NORTH pressure gradient
+        HorizPressureGrad(iLon, iLat, iAlt, iNorth_) = -( &
+          GradLatTemp_C(iLon, iLat) + &
+          GradLatRho_C(iLon, iLat)*Temp_C(iLon, iLat)/Rho_C(iLon, iLat))
+
+        ! Atheer Alhothali, Jan, 2026: Apply to velocity (unchanged physics)
         NewVel_CD(iLon, iLat, iNorth_) = &
           NewVel_CD(iLon, iLat, iNorth_) &
-          - Dt*(Vel_CD(iLon, iLat, iNorth_)*GradLatVel_CD(iLon, iLat, iNorth_) + &
-                Vel_CD(iLon, iLat, iEast_)*GradLonVel_CD(iLon, iLat, iNorth_) + &
-                (Vel_CD(iLon, iLat, iNorth_)*Vel_CD(iLon, iLat, iUp_) &
-                 + TanLatitude(iLat, iBlock)*Vel_CD(iLon, iLat, iEast_)**2 &
-                 )*InvRadialDistance_GB(iLon, iLat, iAlt, iBlock) + &
-                GradLatTemp_C(iLon, iLat) + &
-                GradLatRho_C(iLon, iLat)*Temp_C(iLon, iLat)/Rho_C(iLon, iLat)) &
-          + Dt*( &
-          DiffLonVel_CD(iLon, iLat, iNorth_) + &
-          DiffLatVel_CD(iLon, iLat, iNorth_))
+          + Dt*(HorizAdvection(iLon, iLat, iAlt, iNorth_) + &
+                HorizPressureGrad(iLon, iLat, iAlt, iNorth_)) &
+          + Dt*(DiffLonVel_CD(iLon, iLat, iNorth_) + &
+                DiffLatVel_CD(iLon, iLat, iNorth_))
 
 !          if (iLon == 1) then
 !             write(*,*) "vel before cor : ",NewVel_CD(iLon,iLat,iNorth_)
@@ -772,30 +827,65 @@ contains
                                       + Dt*( &
                                       DiffLonVel_CD(iLon, iLat, iUp_) + DiffLatVel_CD(iLon, iLat, iUp_))
 
+
         ! Same as bulk vertical velocity (above) but for each species
 
+        !do iSpc = 1, nSpecies
+          !NewVertVel_CV(iLon, iLat, iSpc) = &
+            !NewVertVel_CV(iLon, iLat, iSpc) &
+            !- Dt*( &
+            !Vel_CD(iLon, iLat, iNorth_)*GradLatVertVel_CV(iLon, iLat, iSpc) + &
+            !Vel_CD(iLon, iLat, iEast_)*GradLonVertVel_CV(iLon, iLat, iSpc)) &
+            !+ Dt*( &
+            !DiffLatVertVel_CV(iLon, iLat, iSpc) + &
+            !DiffLonVertVel_CV(iLon, iLat, iSpc))
+        !enddo
+
+        !Atheer Alhothali, Jan, 2026: Per-species horizontal advection of vertical wind
         do iSpc = 1, nSpecies
+          VertAdvection(iLon, iLat, iAlt, iSpc) = -( &
+            Vel_CD(iLon, iLat, iNorth_)*GradLatVertVel_CV(iLon, iLat, iSpc) + &
+            Vel_CD(iLon, iLat, iEast_)*GradLonVertVel_CV(iLon, iLat, iSpc))
+  
           NewVertVel_CV(iLon, iLat, iSpc) = &
             NewVertVel_CV(iLon, iLat, iSpc) &
-            - Dt*( &
-            Vel_CD(iLon, iLat, iNorth_)*GradLatVertVel_CV(iLon, iLat, iSpc) + &
-            Vel_CD(iLon, iLat, iEast_)*GradLonVertVel_CV(iLon, iLat, iSpc)) &
-            + Dt*( &
-            DiffLatVertVel_CV(iLon, iLat, iSpc) + &
-            DiffLonVertVel_CV(iLon, iLat, iSpc))
+            + Dt*VertAdvection(iLon, iLat, iAlt, iSpc) &
+            + Dt*(DiffLatVertVel_CV(iLon, iLat, iSpc) + &
+                  DiffLonVertVel_CV(iLon, iLat, iSpc))
         enddo
 
         if (UseCoriolis) then
 
-          NewVel_CD(iLon, iLat, iEast_) = NewVel_CD(iLon, iLat, iEast_) + Dt*( &
-                                          +CoriolisSin*Vel_CD(iLon, iLat, iNorth_) &
-                                          - CoriolisCos*Vel_CD(iLon, iLat, iUp_))
+          !NewVel_CD(iLon, iLat, iEast_) = NewVel_CD(iLon, iLat, iEast_) + Dt*( &
+                                          !+CoriolisSin*Vel_CD(iLon, iLat, iNorth_) &
+                                          !- CoriolisCos*Vel_CD(iLon, iLat, iUp_))
 
-          NewVel_CD(iLon, iLat, iNorth_) = NewVel_CD(iLon, iLat, iNorth_) - &
-                                           Dt*( &
-                                           CentrifugalParameter &
-                                           *RadialDistance_GB(iLon, iLat, iAlt, iBlock) &
-                                           + CoriolisSin*Vel_CD(iLon, iLat, iEast_))
+          !NewVel_CD(iLon, iLat, iNorth_) = NewVel_CD(iLon, iLat, iNorth_) - &
+                                           !Dt*( &
+                                           !CentrifugalParameter &
+                                           !*RadialDistance_GB(iLon, iLat, iAlt, iBlock) &
+                                           !+ CoriolisSin*Vel_CD(iLon, iLat, iEast_))
+
+          ! Atheer Alhothali, Jan, 2026: Calculate East and North Coriolis 
+          HorizCoriolis(iLon, iLat, iAlt, iEast_) = &
+            +CoriolisSin*Vel_CD(iLon, iLat, iNorth_) &
+            - CoriolisCos*Vel_CD(iLon, iLat, iUp_)
+
+          HorizCoriolis(iLon, iLat, iAlt, iNorth_) = &
+            -CoriolisSin*Vel_CD(iLon, iLat, iEast_)
+
+          ! Atheer Alhothali, Jan, 2026: Calculate North Centrifugal 
+          Centrifugal(iLon, iLat, iAlt, iNorth_) = &
+            -CentrifugalParameter*RadialDistance_GB(iLon, iLat, iAlt, iBlock)
+
+          ! Atheer Alhothali, Jan, 2026: Apply to velocity (unchanged physics)
+          NewVel_CD(iLon, iLat, iEast_) = NewVel_CD(iLon, iLat, iEast_) + &
+            Dt*HorizCoriolis(iLon, iLat, iAlt, iEast_)
+
+          NewVel_CD(iLon, iLat, iNorth_) = NewVel_CD(iLon, iLat, iNorth_) + &
+            Dt*(HorizCoriolis(iLon, iLat, iAlt, iNorth_) + &
+                Centrifugal(iLon, iLat, iAlt, iNorth_))
+
         endif
 
         ! dT/dt = -(V.grad T + (gamma - 1) T div V
