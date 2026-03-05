@@ -75,7 +75,7 @@ module ModElectrodynamics
   real, dimension(:, :), allocatable :: &
     SmallMagLocTimeMC, SmallMagLatMC, SmallPotentialMC
 
-  real :: MagLatRes = 0.5
+  real :: MagLatRes = 1.0
   real :: MagLonRes = 4.0
   ! These are set dynamically from the resolution above & dynamo limits
   integer :: nMagLats, nMagLons
