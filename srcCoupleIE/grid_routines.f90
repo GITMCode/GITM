@@ -137,7 +137,7 @@ subroutine set_ie_lats(this, LatsIn)
 
   do iMlt = 1, this%havenMLTs
     ! Northern hemisphere lats:
-    this%haveLats(iMlt, 1:this%havenLats/2) = LatsIn
+    this%haveLats(iMlt, 1:this%havenLats/2) = LatsIn(1:this%havenLats/2)
     ! Southern hemisphere lats (flipped):
     do iLat = this%havenLats/2 + 1, this%havenLats
       ii = this%havenLats - iLat + 1

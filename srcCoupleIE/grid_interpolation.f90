@@ -70,7 +70,7 @@ subroutine find_ua_point(this, LocIn, LocOut)
     endif
   enddo MLTs
 
-  do iPt = 1, this%havenLats
+  do iPt = 1, this%havenLats-1
     if ((this%haveLats(2, iPt + 1) < LatIn) .and. (this%haveLats(2, iPt) >= LatIn)) &
       LatIndex = iPt
   enddo
