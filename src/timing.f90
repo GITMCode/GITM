@@ -36,6 +36,7 @@ subroutine start_timing(cTimingNameIn)
   IsTiming(iTiming) = .true.
   if (iTimingLevel(iTiming) < iLevel) iTimingLevel(iTiming) = iLevel
   Timings(iTiming, 1) = mpi_wtime()
+  call timing_start('UA '//cTimingNameIn)
 
 end subroutine start_timing
 
@@ -67,6 +68,8 @@ subroutine end_timing(cTimingNameIn)
   IsTiming(iTiming) = .false.
   Timings(iTiming, 2) = Timings(iTiming, 2) + &
                         (mpi_wtime() - Timings(iTiming, 1))
+
+  call timing_stop('UA '//cTimingNameIn)
 
 end subroutine end_timing
 
