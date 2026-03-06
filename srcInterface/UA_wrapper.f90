@@ -276,6 +276,9 @@ contains
 
     if (IsFirstTime) then
 
+      ! Start GITM (internal) timer
+      call start_timing('GITM')
+
       ! Set time related variables for UA
       call get_time(tStartOut=StartTime)
       call get_time(TimeEndOut=TimeSwmfEnd)
@@ -305,6 +308,7 @@ contains
       call write_output
 
       IsFirstTime = .false.
+    call end_timing('GITM')
 
     endif
 
@@ -334,6 +338,8 @@ contains
     CurrentTime = StartTime + SWMFTime
     EndTime = StartTime + SWMFTimeLimit
 
+    call start_timing('GITM')
+
     if (iDebugLevel > 1) then
       call time_real_to_int(CurrentTime, time_array)
       write(*, "(a,i5,5i3,i3)") "> Running UA from time : ", time_array(1:7)
@@ -355,6 +361,8 @@ contains
     call write_output
 
     SWMFTime = CurrentTime - StartTime
+
+    call end_timing('GITM')
 
   end subroutine UA_run
 
