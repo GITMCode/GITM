@@ -24,15 +24,15 @@ subroutine advance_vertical_all
 
     do iLon = 1, nLons; do iLat = 1, nLats
         call advance_vertical(iLon, iLat, iBlock)
-      enddo; enddo
+      end do; end do
 
-  enddo
+  end do
 
   if (DoCheckForNans) then
     call check_for_nans_ions("After Vertical")
     call check_for_nans_neutrals("After Vertical")
     call check_for_nans_temps("After Vertical")
-  endif
+  end if
 
   call correct_min_ion_density
 
@@ -51,7 +51,7 @@ subroutine advance_vertical(iLon, iLat, iBlock)
   use ModConstants, only: pi
   !use ModSources, only: EUVHeating, KappaEddyDiffusion
   !Atheer Alhothali, Jan, 2026: Add VertCoriolis, EffectiveGravity, and VertCentrifugal
-  use ModSources, only: EUVHeating, KappaEddyDiffusion, VertCoriolis, EffectiveGravity, VertCentrifugal 
+  use ModSources, only: EUVHeating, KappaEddyDiffusion, VertCoriolis, EffectiveGravity, VertCentrifugal
   use ModInputs
   use ModVertical, ONLY: &
     LogRho, &
@@ -97,10 +97,10 @@ subroutine advance_vertical(iLon, iLat, iBlock)
   Cv_1D(-1:nAlts + 2) = cp(iLon, iLat, -1:nAlts + 2, iBlock)
 
   if (minval(NDensityS(iLon, iLat, :, 1:nSpecies, iBlock)) <= 0.0) then
-    write(*, *) "negative density found!"
-    write(*, *) NDensityS(iLon, iLat, 1, 1:nSpecies, iBlock)
+    write (*, *) "negative density found!"
+    write (*, *) NDensityS(iLon, iLat, 1, 1:nSpecies, iBlock)
     call stop_gitm("Can't Continue")
-  endif
+  end if
 
   Heating = EuvHeating(iLon, iLat, :, iBlock)
   Centrifugal = (CosLatitude(iLat, iBlock)*OmegaBodyInput)**2
@@ -108,7 +108,7 @@ subroutine advance_vertical(iLon, iLat, iBlock)
   LogRho = log(Rho(iLon, iLat, :, iBlock))
   do iDim = 1, 3
     Vel_GD(:, iDim) = Velocity(iLon, iLat, :, iDim, iBlock)
-  enddo
+  end do
 
   !!!! CHANGE !!!!
 
@@ -116,21 +116,21 @@ subroutine advance_vertical(iLon, iLat, iBlock)
   do iSpecies = 1, nSpecies
     LogNS1(:, iSpecies) = log(NDensityS(iLon, iLat, :, iSpecies, iBlock))
     VertVel(:, iSpecies) = VerticalVelocity(iLon, iLat, :, iSpecies, iBlock)
-  enddo
+  end do
 
   cMax1 = cMax_GDB(iLon, iLat, :, iUp_, iBlock)
 
   do iDim = 1, 3
     IVel(:, iDim) = IVelocity(iLon, iLat, :, iDim, iBlock)
-  enddo
+  end do
 
   do iSpecies = 1, nIons - 1 !Advect
     if (UseImprovedIonAdVection) then
       LogINS(:, iSpecies) = IDensityS(iLon, iLat, :, iSpecies, iBlock)
     else
       LogINS(:, iSpecies) = log(IDensityS(iLon, iLat, :, iSpecies, iBlock))
-    endif
-  enddo
+    end if
+  end do
 
   MeanMajorMass_1d = MeanMajorMass(iLon, iLat, :)
   gamma_1d = gamma(ilon, ilat, :, iBlock)
@@ -161,49 +161,48 @@ subroutine advance_vertical(iLon, iLat, iBlock)
     call advance_vertical_1d_ausm
   else
     call advance_vertical_1d_rusanov
-  endif
+  end if
 
   Rho(iLon, iLat, :, iBlock) = exp(LogRho)
 
   do iDim = 1, 3
     Velocity(iLon, iLat, :, iDim, iBlock) = Vel_GD(:, iDim)
-  enddo
+  end do
 
   Temperature(iLon, iLat, :, iBlock) = Temp/TempUnit(iLon, iLat, :)
 
   !Atheer Alhothali, Jan, 2026: Store Coriolis Vertical component
   if (UseCoriolis) then
     VertCoriolis(iLon, iLat, 1:nAlts) = &
-      Coriolis * Vel_GD(1:nAlts, iEast_)
-  endif
+      Coriolis*Vel_GD(1:nAlts, iEast_)
+  end if
 
   !Atheer Alhothali, Jan, 2026: Store Effective Gravity (gravity + centrifugal)
   !EffectiveGravity(iLon, iLat, 1:nAlts) = &
-    !Gravity_G(1:nAlts) + Centrifugal / InvRadialDistance_C(1:nAlts)
+  !Gravity_G(1:nAlts) + Centrifugal / InvRadialDistance_C(1:nAlts)
 
   !Atheer Alhothali, Feb, 2026: Separate the terms
   ! 1. Calculate the Vertical Centrifugal component
-  VertCentrifugal(iLon, iLat, 1:nAlts) = Centrifugal / InvRadialDistance_C(1:nAlts)
+  VertCentrifugal(iLon, iLat, 1:nAlts) = Centrifugal/InvRadialDistance_C(1:nAlts)
 
   ! 2. Calculate Effective Gravity (gravity + vertical centrifugal)
   EffectiveGravity(iLon, iLat, 1:nAlts) = Gravity_G(1:nAlts) + VertCentrifugal(iLon, iLat, 1:nAlts)
 
-
   do iSpecies = 1, nSpecies
     LogNS(iLon, iLat, :, iSpecies, iBlock) = LogNS1(:, iSpecies)
     VerticalVelocity(iLon, iLat, :, iSpecies, iBlock) = VertVel(:, iSpecies)
-  enddo
+  end do
 
   do iSpecies = nSpecies + 1, nSpecies
     LogNS(iLon, iLat, :, iSpecies, iBlock) = LogNS1(:, iSpecies)
-  enddo
+  end do
 
   nDensity(iLon, iLat, :, iBlock) = 0.0
   do iSpecies = 1, nSpecies
     nDensityS(iLon, iLat, :, iSpecies, iBlock) = exp(LogNS1(:, iSpecies))
     nDensity(iLon, iLat, :, iBlock) = nDensity(iLon, iLat, :, iBlock) + &
                                       nDensityS(iLon, iLat, :, iSpecies, iBlock)
-  enddo
+  end do
 
   if (UseIonAdvection) then
 
@@ -212,8 +211,8 @@ subroutine advance_vertical(iLon, iLat, iBlock)
         IDensityS(iLon, iLat, :, iIon, iBlock) = LogINS(:, iIon)
       else
         IDensityS(iLon, iLat, :, iIon, iBlock) = exp(LogINS(:, iIon))
-      endif
-    enddo
+      end if
+    end do
 
     !\
     ! New Electron Density
@@ -223,8 +222,8 @@ subroutine advance_vertical(iLon, iLat, iBlock)
       IDensityS(iLon, iLat, :, ie_, iBlock) = &
         IDensityS(iLon, iLat, :, ie_, iBlock) + &
         IDensityS(iLon, iLat, :, iIon, iBlock)
-    enddo
-  endif
+    end do
+  end if
 
   SpeciesDensity(iLon, iLat, :, 1:nSpeciesTotal, iBlock) = &
     NDensityS(iLon, iLat, :, :, iBlock)
