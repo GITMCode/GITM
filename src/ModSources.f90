@@ -51,8 +51,6 @@ module ModSources
 
   real, dimension(nLons, nLats, nAlts, 3) :: GWAccel = 0.0
 
-
-
 ! Atheer Alhothali, Jan 2026: Momentum acceleration
 ! ============ East and North components (3DMOMH) ============
   real, dimension(nLons, nLats, nAlts, 2) :: HorizAdvection = 0.0      ! East, North
@@ -63,9 +61,8 @@ module ModSources
 ! ============ Vertical components (3DMOMV) ============
   real, dimension(nLons, nLats, nAlts, nSpecies) :: VertAdvection = 0.0  ! Per species
   real, dimension(nLons, nLats, nAlts) :: VertCoriolis = 0.0              ! Bulk
-  real, dimension(nLons, nLats, nAlts) :: VertCentrifugal = 0.0          ! Bulk  
+  real, dimension(nLons, nLats, nAlts) :: VertCentrifugal = 0.0          ! Bulk
   real, dimension(nLons, nLats, nAlts) :: EffectiveGravity = 0.0         ! Bulk
-
 
   !BP
   real, dimension(40, 11) :: qIR_table
@@ -157,56 +154,56 @@ contains
   subroutine init_mod_sources
 
     if (allocated(EuvHeating)) RETURN
-    allocate(EuvHeating(nLons, nLats, nAlts, nBlocks))
-    allocate(eEuvHeating(nLons, nLats, nAlts, nBlocks))
-    allocate(PhotoElectronHeating(nLons, nLats, nAlts, nBlocks))
-    allocate(RadCooling(nLons, nLats, nAlts, nBlocks))
-    allocate(RadCoolingRate(nLons, nLats, nAlts, nBlocks))
-    allocate(RadCoolingErgs(nLons, nLats, nAlts, nBlocks))
-    allocate(EuvHeatingErgs(nLons, nLats, nAlts, nBlocks))
-    allocate(LowAtmosRadRate(nLons, nLats, nAlts, nBlocks))
-    allocate(QnirTOT(nLons, nLats, nAlts, nBlocks))
-    allocate(QnirLTE(nLons, nLats, nAlts, nBlocks))
-    allocate(CirLTE(nLons, nLats, nAlts, nBlocks))
-    allocate(UserHeatingRate(nLons, nLats, nAlts, nBlocks))
+    allocate (EuvHeating(nLons, nLats, nAlts, nBlocks))
+    allocate (eEuvHeating(nLons, nLats, nAlts, nBlocks))
+    allocate (PhotoElectronHeating(nLons, nLats, nAlts, nBlocks))
+    allocate (RadCooling(nLons, nLats, nAlts, nBlocks))
+    allocate (RadCoolingRate(nLons, nLats, nAlts, nBlocks))
+    allocate (RadCoolingErgs(nLons, nLats, nAlts, nBlocks))
+    allocate (EuvHeatingErgs(nLons, nLats, nAlts, nBlocks))
+    allocate (LowAtmosRadRate(nLons, nLats, nAlts, nBlocks))
+    allocate (QnirTOT(nLons, nLats, nAlts, nBlocks))
+    allocate (QnirLTE(nLons, nLats, nAlts, nBlocks))
+    allocate (CirLTE(nLons, nLats, nAlts, nBlocks))
+    allocate (UserHeatingRate(nLons, nLats, nAlts, nBlocks))
     UserHeatingRate = 0.0
-    allocate(ISourcesTotal(nLons, nLats, nAlts, nIons - 1, nBlocks))
-    allocate(ILossesTotal(nLons, nLats, nAlts, nIons - 1, nBlocks))
-    allocate(AuroralIonRateS(nLons, nLats, nAlts, nSpecies, nBlocks))
-    allocate(IonPrecipIonRateS(nLons, nLats, nAlts, nSpecies, nBlocks))
+    allocate (ISourcesTotal(nLons, nLats, nAlts, nIons - 1, nBlocks))
+    allocate (ILossesTotal(nLons, nLats, nAlts, nIons - 1, nBlocks))
+    allocate (AuroralIonRateS(nLons, nLats, nAlts, nSpecies, nBlocks))
+    allocate (IonPrecipIonRateS(nLons, nLats, nAlts, nSpecies, nBlocks))
     IonPrecipIonRateS = 0.0
-    allocate(KappaEddyDiffusion(nLons, nLats, -1:nAlts + 2, nBlocks))
+    allocate (KappaEddyDiffusion(nLons, nLats, -1:nAlts + 2, nBlocks))
 
-    allocate(eHeatingp(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1))
-    allocate(iHeatingp(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1))
-    allocate(eHeatingm(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1))
-    allocate(iHeatingm(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1))
-    allocate(iHeating(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1))
-    allocate(lame(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1))
-    allocate(lami(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1))
+    allocate (eHeatingp(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1))
+    allocate (iHeatingp(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1))
+    allocate (eHeatingm(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1))
+    allocate (iHeatingm(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1))
+    allocate (iHeating(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1))
+    allocate (lame(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1))
+    allocate (lami(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1))
 
   end subroutine init_mod_sources
   !=========================================================================
   subroutine clean_mod_sources
 
     if (.not. allocated(EuvHeating)) RETURN
-    deallocate(EuvHeating)
-    deallocate(eEuvHeating)
-    deallocate(PhotoElectronHeating)
-    deallocate(RadCooling)
-    deallocate(RadCoolingRate)
-    deallocate(RadCoolingErgs)
-    deallocate(EuvHeatingErgs)
-    deallocate(LowAtmosRadRate)
-    deallocate(QnirTOT)
-    deallocate(QnirLTE)
-    deallocate(CirLTE)
-    deallocate(UserHeatingRate)
-    deallocate(ISourcesTotal)
-    deallocate(ILossesTotal)
-    deallocate(AuroralIonRateS)
-    deallocate(IonPrecipIonRateS)
-    deallocate(KappaEddyDiffusion)
+    deallocate (EuvHeating)
+    deallocate (eEuvHeating)
+    deallocate (PhotoElectronHeating)
+    deallocate (RadCooling)
+    deallocate (RadCoolingRate)
+    deallocate (RadCoolingErgs)
+    deallocate (EuvHeatingErgs)
+    deallocate (LowAtmosRadRate)
+    deallocate (QnirTOT)
+    deallocate (QnirLTE)
+    deallocate (CirLTE)
+    deallocate (UserHeatingRate)
+    deallocate (ISourcesTotal)
+    deallocate (ILossesTotal)
+    deallocate (AuroralIonRateS)
+    deallocate (IonPrecipIonRateS)
+    deallocate (KappaEddyDiffusion)
   end subroutine clean_mod_sources
   !=========================================================================
 end module ModSources

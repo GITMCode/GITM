@@ -28,7 +28,7 @@ subroutine advance_horizontal_all
 
     call advance_horizontal(iBlock)
 
-  enddo
+  end do
 
   ! Sync everything up again.
 
@@ -36,13 +36,13 @@ subroutine advance_horizontal_all
 
   do iBlock = 1, nBlocks
     if (.not. IsFullSphere) call set_horizontal_bcs(iBlock)
-  enddo
+  end do
 
   if (DoCheckForNans) then
     call check_for_nans_ions("After Horizontal")
     call check_for_nans_neutrals("After Horizontal")
     call check_for_nans_temps("After Horizontal")
-  endif
+  end if
 
   call correct_min_ion_density
 
@@ -154,13 +154,12 @@ subroutine advance_horizontal(iBlock)
   call report("advance_horizontal", 2)
 
   do iAlt = 1, nAlts
-  !Atheer Alhothali, Jan, 2026: Initialize accelerations
-  HorizAdvection(:, :, iAlt, :) = 0.0
-  HorizPressureGrad(:, :, iAlt, :) = 0.0
-  HorizCoriolis(:, :, iAlt, :) = 0.0
-  Centrifugal(:, :, iAlt, :) = 0.0
-  VertAdvection(:, :, iAlt, :) = 0.0
-
+    !Atheer Alhothali, Jan, 2026: Initialize accelerations
+    HorizAdvection(:, :, iAlt, :) = 0.0
+    HorizPressureGrad(:, :, iAlt, :) = 0.0
+    HorizCoriolis(:, :, iAlt, :) = 0.0
+    Centrifugal(:, :, iAlt, :) = 0.0
+    VertAdvection(:, :, iAlt, :) = 0.0
 
     cp_c = cp(:, :, iAlt, iBlock)
     Gamma_c = gamma(:, :, iAlt, iBlock)
@@ -366,35 +365,35 @@ subroutine advance_horizontal(iBlock)
       NewVertVel_CV
 
     if (minval(NewNum_CV) < 0.0) then
-      write(*, *) "Negative Density after horizontal advection!!"
-      write(*, *) "Correcting...."
+      write (*, *) "Negative Density after horizontal advection!!"
+      write (*, *) "Correcting...."
       do iLon = 1, nLons
         do iLat = 1, nLats
           IsFound = .false.
           do iSpecies = 1, nSpecies
             if (NewNum_CV(iLon, iLat, iSpecies) < 0.0) then
-              write(*, *) "Species : ", iLon, iLat, iAlt, iSpecies, iBlock
+              write (*, *) "Species : ", iLon, iLat, iAlt, iSpecies, iBlock
               ! call stop_gitm("neg ion density! stopping in advance_horizontal")
               if (iSpecies <= nSpecies) then
                 NewNum_CV(iLon, iLat, iSpecies) = MinNeutralDensityAdvect
               else
                 NewNum_CV(iLon, iLat, iSpecies) = MinNeutralDensity
-              endif
+              end if
 
               IsFound = .true.
-            endif
-          enddo
+            end if
+          end do
           If (IsFound) then
             Rho(iLon, iLat, iAlt, iBlock) = 0.0
             do iSpecies = 1, nSpecies
               Rho(iLon, iLat, iAlt, iBlock) = &
                 Rho(iLon, iLat, iAlt, iBlock) + &
                 NewNum_CV(iLon, iLat, iSpecies)*Mass(iSpecies)
-            enddo
-          endif
-        enddo
-      enddo
-    endif
+            end do
+          end if
+        end do
+      end do
+    end if
 
     NDensityS(1:nLons, 1:nLats, iAlt, 1:nSpecies, iBlock) = NewNum_CV
 
@@ -403,11 +402,11 @@ subroutine advance_horizontal(iBlock)
         do iLat = 1, nLats
           do iDir = 1, 3
             if (ieee_is_nan(Velocity(iLon, iLat, iAlt, iDir, 1))) &
-              write(*, *) 'Velocity is nan : ', iLon, iLat, iAlt, iDir
-          enddo
-        enddo
-      enddo
-    endif
+              write (*, *) 'Velocity is nan : ', iLon, iLat, iAlt, iDir
+          end do
+        end do
+      end do
+    end if
 
     if (UseIonAdvection) then
 
@@ -423,11 +422,11 @@ subroutine advance_horizontal(iBlock)
 !                            Latitude(iLon,iBlock)*180/pi, &
 !                            Altitude(iAlt)/1000.0, iIon
                 NewINum_CV(iLon, iLat, iIon) = 1.0e2
-              endif
-            enddo
-          enddo
-        enddo
-      endif
+              end if
+            end do
+          end do
+        end do
+      end if
 
       IDensityS(1:nLons, 1:nLats, iAlt, 1:nIonsAdvect, iBlock) = NewINum_CV
       !\
@@ -438,10 +437,10 @@ subroutine advance_horizontal(iBlock)
         IDensityS(1:nLons, 1:nLats, iAlt, ie_, iBlock) = &
           IDensityS(1:nLons, 1:nLats, iAlt, ie_, iBlock) + &
           IDensityS(1:nLons, 1:nLats, iAlt, iIon, iBlock)
-      enddo
-    endif
+      end do
+    end if
 
-  enddo
+  end do
 
   if (UseIonAdvection .and. UseImprovedIonAdvection) then
 
@@ -457,7 +456,7 @@ subroutine advance_horizontal(iBlock)
         Vi = iVelocity(:, :, :, iDir, iBlock)
       else
         Vi = iVelocityPar(:, :, :, iDir, iBlock)
-      endif
+      end if
 
       ! Calculate Gradient First:
       call UAM_Gradient(Vi, IVelGradient, iBlock)
@@ -486,10 +485,10 @@ subroutine advance_horizontal(iBlock)
                 DivIVelocityLocal(iLon, iLat, iAlt) - &
                 TanLat*Vi(iLon, iLat, iAlt)* &
                 InvRadialDistance_GB(iLon, iLat, iAlt, iBlock)
-            enddo
-          enddo
-        enddo
-      endif
+            end do
+          end do
+        end do
+      end if
 
       if (iDir == 3) then
         ! Add to divergence for radial:
@@ -502,19 +501,19 @@ subroutine advance_horizontal(iBlock)
                 2*Vi(iLon, iLat, iAlt)* &
                 InvRadialDistance_GB(iLon, iLat, iAlt, iBlock)
 
-            enddo
-          enddo
-        enddo
-      endif
+            end do
+          end do
+        end do
+      end if
 
-    enddo
+    end do
 
     ! supress near the poles:
     do iLat = 1, nLats
       DivIVelocityLocal(1:nLons, iLat, 1:nAlts) = &
         DivIVelocityLocal(1:nLons, iLat, 1:nAlts)* &
         CosLatitude(iLat, iBlock)
-    enddo
+    end do
 
     ! New Source Term for the ion density:
 
@@ -522,20 +521,20 @@ subroutine advance_horizontal(iBlock)
       change = dt*DivIVelocityLocal
       IDensityS(1:nLons, 1:nLats, 1:nAlts, iIon, iBlock) = &
         IDensityS(1:nLons, 1:nLats, 1:nAlts, iIon, iBlock)/(1 + change)
-    enddo
+    end do
 
     IDensityS(:, :, :, ie_, iBlock) = 0.0
     do iIon = 1, nIons - 1
       IDensityS(:, :, :, ie_, iBlock) = &
         IDensityS(:, :, :, ie_, iBlock) + IDensityS(:, :, :, iIon, iBlock)
-    enddo
+    end do
 
     if (DoCheckForNans) call check_for_nans_ions('After divergence')
 
-  endif
+  end if
 
   if (iDebugLevel > 2) &
-    write(*, *) "===> advance_horizontal, MaxDiff, IVel, IDens, Dt : ", &
+    write (*, *) "===> advance_horizontal, MaxDiff, IVel, IDens, Dt : ", &
     MaxDiff, maxval(abs(IVel_CD)), &
     maxval(IDensityS(1:nLons, 1:nLats, 1:nAlts, 1:nIonsAdvect, iBlock)), dt
 
@@ -593,7 +592,7 @@ contains
       dVarDAlt_C = HalfInvDAlt_C* &
                    (Rho(1:nLons, 1:nLats, iAlt + 1, iBlock) &
                     - Rho(1:nLons, 1:nLats, iAlt - 1, iBlock))
-    endif
+    end if
     call calc_rusanov_lons(Rho_C, GradLonRho_C, DiffLonRho_C)
     call calc_rusanov_lats(Rho_C, GradLatRho_C, DiffLatRho_C)
 
@@ -617,7 +616,7 @@ contains
                              GradLonIVel_CD(:, :, iDim), DiffLonIVel_CD(:, :, iDim))
       call calc_rusanov_lats(IVel_CD(:, :, iDim), &
                              GradLatIVel_CD(:, :, iDim), DiffLatIVel_CD(:, :, iDim))
-    enddo
+    end do
 
     do iLat = 1, nLats
       DivVel_C(:, iLat) = &
@@ -638,7 +637,7 @@ contains
 !          DivIVel_C(:,iLat) = 0.0
 !       endif
 
-    enddo
+    end do
 
     do iSpc = 1, nSpecies
       if (UseTopography) dVarDAlt_C = HalfInvDAlt_C* &
@@ -657,7 +656,7 @@ contains
       call calc_rusanov_lats(VertVel_CV(:, :, iSpc), &
                              GradLatVertVel_CV(:, :, iSpc), DiffLatVertVel_CV(:, :, iSpc))
 
-    enddo
+    end do
 
     do iSpc = 1, nIonsAdvect
       if (UseTopography) dVarDAlt_C = HalfInvDAlt_C* &
@@ -667,7 +666,7 @@ contains
                              GradLonINum_CV(:, :, iSpc), DiffLonINum_CV(:, :, iSpc))
       call calc_rusanov_lats(INum_CV(:, :, iSpc), &
                              GradLatINum_CV(:, :, iSpc), DiffLatINum_CV(:, :, iSpc))
-    enddo
+    end do
 
     SinLat = sin(Latitude(1:nLats, iBlock))
     CosLat = CosLatitude(1:nLats, iBlock)
@@ -700,7 +699,7 @@ contains
                                         + GradLonNum_CV(iLon, iLat, iSpc)*Vel_CD(iLon, iLat, iEast_)) &
                                         + Dt*( &
                                         DiffLonNum_CV(iLon, iLat, iSpc) + DiffLatNum_CV(iLon, iLat, iSpc))
-        enddo
+        end do
 
 !...........add divergence term to the horizontal solver of the IONS...........
 !...........below is the original codes -chen
@@ -732,7 +731,7 @@ contains
                                          DiffLonINum_CV(iLon, iLat, iSpc) + &
                                          DiffLatINum_CV(iLon, iLat, iSpc))
 !             endif
-        enddo
+        end do
 
         RhoTest = sum(Mass(1:nSpecies)*NewNum_CV(iLon, iLat, 1:nSpecies))
 
@@ -745,29 +744,29 @@ contains
         ! (1/rho) grad p = grad T + T/rho grad rho
 
         !NewVel_CD(iLon, iLat, iEast_) = &
-          !NewVel_CD(iLon, iLat, iEast_) &
-          !- Dt*(Vel_CD(iLon, iLat, iNorth_)*GradLatVel_CD(iLon, iLat, iEast_) + &
-                !Vel_CD(iLon, iLat, iEast_)*GradLonVel_CD(iLon, iLat, iEast_) + &
-                !Vel_CD(iLon, iLat, iEast_)*(Vel_CD(iLon, iLat, iUp_) &
-                                            !- TanLatitude(iLat, iBlock)*Vel_CD(iLon, iLat, iNorth_)) &
-                !*InvRadialDistance_GB(iLon, iLat, iAlt, iBlock) + &
-                !GradLonTemp_C(iLon, iLat) + &
-                !GradLonRho_C(iLon, iLat)*Temp_C(iLon, iLat)/Rho_C(iLon, iLat)) &
-          !+ Dt*( &
-          !DiffLonVel_CD(iLon, iLat, iEast_) + DiffLatVel_CD(iLon, iLat, iEast_))
+        !NewVel_CD(iLon, iLat, iEast_) &
+        !- Dt*(Vel_CD(iLon, iLat, iNorth_)*GradLatVel_CD(iLon, iLat, iEast_) + &
+        !Vel_CD(iLon, iLat, iEast_)*GradLonVel_CD(iLon, iLat, iEast_) + &
+        !Vel_CD(iLon, iLat, iEast_)*(Vel_CD(iLon, iLat, iUp_) &
+        !- TanLatitude(iLat, iBlock)*Vel_CD(iLon, iLat, iNorth_)) &
+        !*InvRadialDistance_GB(iLon, iLat, iAlt, iBlock) + &
+        !GradLonTemp_C(iLon, iLat) + &
+        !GradLonRho_C(iLon, iLat)*Temp_C(iLon, iLat)/Rho_C(iLon, iLat)) &
+        !+ Dt*( &
+        !DiffLonVel_CD(iLon, iLat, iEast_) + DiffLatVel_CD(iLon, iLat, iEast_))
 
         ! Atheer Alhothali, Jan, 2026: Calculate EAST advection
         HorizAdvection(iLon, iLat, iAlt, iEast_) = -( &
-          Vel_CD(iLon, iLat, iNorth_)*GradLatVel_CD(iLon, iLat, iEast_) + &
-          Vel_CD(iLon, iLat, iEast_)*GradLonVel_CD(iLon, iLat, iEast_) + &
-          Vel_CD(iLon, iLat, iEast_)*(Vel_CD(iLon, iLat, iUp_) &
-                                      - TanLatitude(iLat, iBlock)*Vel_CD(iLon, iLat, iNorth_)) &
-          *InvRadialDistance_GB(iLon, iLat, iAlt, iBlock))
+                                                   Vel_CD(iLon, iLat, iNorth_)*GradLatVel_CD(iLon, iLat, iEast_) + &
+                                                   Vel_CD(iLon, iLat, iEast_)*GradLonVel_CD(iLon, iLat, iEast_) + &
+                                                   Vel_CD(iLon, iLat, iEast_)*(Vel_CD(iLon, iLat, iUp_) &
+                                                              - TanLatitude(iLat, iBlock)*Vel_CD(iLon, iLat, iNorth_)) &
+                                                   *InvRadialDistance_GB(iLon, iLat, iAlt, iBlock))
 
         ! Atheer Alhothali, Jan, 2026: Calculate EAST pressure gradient
         HorizPressureGrad(iLon, iLat, iAlt, iEast_) = -( &
-          GradLonTemp_C(iLon, iLat) + &
-          GradLonRho_C(iLon, iLat)*Temp_C(iLon, iLat)/Rho_C(iLon, iLat))
+                                                      GradLonTemp_C(iLon, iLat) + &
+                                                      GradLonRho_C(iLon, iLat)*Temp_C(iLon, iLat)/Rho_C(iLon, iLat))
 
         ! Atheer Alhothali, Jan, 2026: Apply to velocity (unchanged physics)
         NewVel_CD(iLon, iLat, iEast_) = &
@@ -776,35 +775,34 @@ contains
                 HorizPressureGrad(iLon, iLat, iAlt, iEast_)) &
           + Dt*(DiffLonVel_CD(iLon, iLat, iEast_) + DiffLatVel_CD(iLon, iLat, iEast_))
 
-
         ! dv_theta/dt = -(V grad V + (1/rho) grad P)_theta
         ! (1/rho) grad p = grad T + T/rho grad rho
 
         !NewVel_CD(iLon, iLat, iNorth_) = &
-          !NewVel_CD(iLon, iLat, iNorth_) &
-          !- Dt*(Vel_CD(iLon, iLat, iNorth_)*GradLatVel_CD(iLon, iLat, iNorth_) + &
-                !Vel_CD(iLon, iLat, iEast_)*GradLonVel_CD(iLon, iLat, iNorth_) + &
-                !(Vel_CD(iLon, iLat, iNorth_)*Vel_CD(iLon, iLat, iUp_) &
-                 !+ TanLatitude(iLat, iBlock)*Vel_CD(iLon, iLat, iEast_)**2 &
-                 !)*InvRadialDistance_GB(iLon, iLat, iAlt, iBlock) + &
-                !GradLatTemp_C(iLon, iLat) + &
-                !GradLatRho_C(iLon, iLat)*Temp_C(iLon, iLat)/Rho_C(iLon, iLat)) &
-          !+ Dt*( &
-          !DiffLonVel_CD(iLon, iLat, iNorth_) + &
-          !DiffLatVel_CD(iLon, iLat, iNorth_))
-        
+        !NewVel_CD(iLon, iLat, iNorth_) &
+        !- Dt*(Vel_CD(iLon, iLat, iNorth_)*GradLatVel_CD(iLon, iLat, iNorth_) + &
+        !Vel_CD(iLon, iLat, iEast_)*GradLonVel_CD(iLon, iLat, iNorth_) + &
+        !(Vel_CD(iLon, iLat, iNorth_)*Vel_CD(iLon, iLat, iUp_) &
+        !+ TanLatitude(iLat, iBlock)*Vel_CD(iLon, iLat, iEast_)**2 &
+        !)*InvRadialDistance_GB(iLon, iLat, iAlt, iBlock) + &
+        !GradLatTemp_C(iLon, iLat) + &
+        !GradLatRho_C(iLon, iLat)*Temp_C(iLon, iLat)/Rho_C(iLon, iLat)) &
+        !+ Dt*( &
+        !DiffLonVel_CD(iLon, iLat, iNorth_) + &
+        !DiffLatVel_CD(iLon, iLat, iNorth_))
+
         ! Atheer Alhothali, Jan, 2026: Calculate NORTH advection
         HorizAdvection(iLon, iLat, iAlt, iNorth_) = -( &
-          Vel_CD(iLon, iLat, iNorth_)*GradLatVel_CD(iLon, iLat, iNorth_) + &
-          Vel_CD(iLon, iLat, iEast_)*GradLonVel_CD(iLon, iLat, iNorth_) + &
-          (Vel_CD(iLon, iLat, iNorth_)*Vel_CD(iLon, iLat, iUp_) &
-           + TanLatitude(iLat, iBlock)*Vel_CD(iLon, iLat, iEast_)**2 &
-           )*InvRadialDistance_GB(iLon, iLat, iAlt, iBlock))
+                                                    Vel_CD(iLon, iLat, iNorth_)*GradLatVel_CD(iLon, iLat, iNorth_) + &
+                                                    Vel_CD(iLon, iLat, iEast_)*GradLonVel_CD(iLon, iLat, iNorth_) + &
+                                                    (Vel_CD(iLon, iLat, iNorth_)*Vel_CD(iLon, iLat, iUp_) &
+                                                     + TanLatitude(iLat, iBlock)*Vel_CD(iLon, iLat, iEast_)**2 &
+                                                     )*InvRadialDistance_GB(iLon, iLat, iAlt, iBlock))
 
         ! Atheer Alhothali, Jan, 2026: Calculate NORTH pressure gradient
         HorizPressureGrad(iLon, iLat, iAlt, iNorth_) = -( &
-          GradLatTemp_C(iLon, iLat) + &
-          GradLatRho_C(iLon, iLat)*Temp_C(iLon, iLat)/Rho_C(iLon, iLat))
+                                                       GradLatTemp_C(iLon, iLat) + &
+                                                       GradLatRho_C(iLon, iLat)*Temp_C(iLon, iLat)/Rho_C(iLon, iLat))
 
         ! Atheer Alhothali, Jan, 2026: Apply to velocity (unchanged physics)
         NewVel_CD(iLon, iLat, iNorth_) = &
@@ -827,46 +825,45 @@ contains
                                       + Dt*( &
                                       DiffLonVel_CD(iLon, iLat, iUp_) + DiffLatVel_CD(iLon, iLat, iUp_))
 
-
         ! Same as bulk vertical velocity (above) but for each species
 
         !do iSpc = 1, nSpecies
-          !NewVertVel_CV(iLon, iLat, iSpc) = &
-            !NewVertVel_CV(iLon, iLat, iSpc) &
-            !- Dt*( &
-            !Vel_CD(iLon, iLat, iNorth_)*GradLatVertVel_CV(iLon, iLat, iSpc) + &
-            !Vel_CD(iLon, iLat, iEast_)*GradLonVertVel_CV(iLon, iLat, iSpc)) &
-            !+ Dt*( &
-            !DiffLatVertVel_CV(iLon, iLat, iSpc) + &
-            !DiffLonVertVel_CV(iLon, iLat, iSpc))
+        !NewVertVel_CV(iLon, iLat, iSpc) = &
+        !NewVertVel_CV(iLon, iLat, iSpc) &
+        !- Dt*( &
+        !Vel_CD(iLon, iLat, iNorth_)*GradLatVertVel_CV(iLon, iLat, iSpc) + &
+        !Vel_CD(iLon, iLat, iEast_)*GradLonVertVel_CV(iLon, iLat, iSpc)) &
+        !+ Dt*( &
+        !DiffLatVertVel_CV(iLon, iLat, iSpc) + &
+        !DiffLonVertVel_CV(iLon, iLat, iSpc))
         !enddo
 
         !Atheer Alhothali, Jan, 2026: Per-species horizontal advection of vertical wind
         do iSpc = 1, nSpecies
           VertAdvection(iLon, iLat, iAlt, iSpc) = -( &
-            Vel_CD(iLon, iLat, iNorth_)*GradLatVertVel_CV(iLon, iLat, iSpc) + &
-            Vel_CD(iLon, iLat, iEast_)*GradLonVertVel_CV(iLon, iLat, iSpc))
-  
+                                                  Vel_CD(iLon, iLat, iNorth_)*GradLatVertVel_CV(iLon, iLat, iSpc) + &
+                                                  Vel_CD(iLon, iLat, iEast_)*GradLonVertVel_CV(iLon, iLat, iSpc))
+
           NewVertVel_CV(iLon, iLat, iSpc) = &
             NewVertVel_CV(iLon, iLat, iSpc) &
             + Dt*VertAdvection(iLon, iLat, iAlt, iSpc) &
             + Dt*(DiffLatVertVel_CV(iLon, iLat, iSpc) + &
                   DiffLonVertVel_CV(iLon, iLat, iSpc))
-        enddo
+        end do
 
         if (UseCoriolis) then
 
           !NewVel_CD(iLon, iLat, iEast_) = NewVel_CD(iLon, iLat, iEast_) + Dt*( &
-                                          !+CoriolisSin*Vel_CD(iLon, iLat, iNorth_) &
-                                          !- CoriolisCos*Vel_CD(iLon, iLat, iUp_))
+          !+CoriolisSin*Vel_CD(iLon, iLat, iNorth_) &
+          !- CoriolisCos*Vel_CD(iLon, iLat, iUp_))
 
           !NewVel_CD(iLon, iLat, iNorth_) = NewVel_CD(iLon, iLat, iNorth_) - &
-                                           !Dt*( &
-                                           !CentrifugalParameter &
-                                           !*RadialDistance_GB(iLon, iLat, iAlt, iBlock) &
-                                           !+ CoriolisSin*Vel_CD(iLon, iLat, iEast_))
+          !Dt*( &
+          !CentrifugalParameter &
+          !*RadialDistance_GB(iLon, iLat, iAlt, iBlock) &
+          !+ CoriolisSin*Vel_CD(iLon, iLat, iEast_))
 
-          ! Atheer Alhothali, Jan, 2026: Calculate East and North Coriolis 
+          ! Atheer Alhothali, Jan, 2026: Calculate East and North Coriolis
           HorizCoriolis(iLon, iLat, iAlt, iEast_) = &
             +CoriolisSin*Vel_CD(iLon, iLat, iNorth_) &
             - CoriolisCos*Vel_CD(iLon, iLat, iUp_)
@@ -874,19 +871,19 @@ contains
           HorizCoriolis(iLon, iLat, iAlt, iNorth_) = &
             -CoriolisSin*Vel_CD(iLon, iLat, iEast_)
 
-          ! Atheer Alhothali, Jan, 2026: Calculate North Centrifugal 
+          ! Atheer Alhothali, Jan, 2026: Calculate North Centrifugal
           Centrifugal(iLon, iLat, iAlt, iNorth_) = &
             -CentrifugalParameter*RadialDistance_GB(iLon, iLat, iAlt, iBlock)
 
           ! Atheer Alhothali, Jan, 2026: Apply to velocity (unchanged physics)
           NewVel_CD(iLon, iLat, iEast_) = NewVel_CD(iLon, iLat, iEast_) + &
-            Dt*HorizCoriolis(iLon, iLat, iAlt, iEast_)
+                                          Dt*HorizCoriolis(iLon, iLat, iAlt, iEast_)
 
           NewVel_CD(iLon, iLat, iNorth_) = NewVel_CD(iLon, iLat, iNorth_) + &
-            Dt*(HorizCoriolis(iLon, iLat, iAlt, iNorth_) + &
-                Centrifugal(iLon, iLat, iAlt, iNorth_))
+                                           Dt*(HorizCoriolis(iLon, iLat, iAlt, iNorth_) + &
+                                               Centrifugal(iLon, iLat, iAlt, iNorth_))
 
-        endif
+        end if
 
         ! dT/dt = -(V.grad T + (gamma - 1) T div V
 
@@ -898,8 +895,8 @@ contains
           + GradLonTemp_C(iLon, iLat)*Vel_CD(iLon, iLat, iEast_)) &
           + Dt*(DiffLonTemp_C(iLon, iLat) + DiffLatTemp_C(iLon, iLat))
 
-      enddo
-    enddo
+      end do
+    end do
 
   end subroutine horizontal_solver
 
@@ -951,7 +948,7 @@ contains
         (DiffFlux(2:nLats + 1) - DiffFlux(1:nLats))* &
         InvdLat
 
-    enddo
+    end do
 
     if (UseTopography) &
       GradVar = GradVar - dVarDAlt_C*dAltDLat_CB(:, :, iAlt, iBlock)
@@ -1000,7 +997,7 @@ contains
       DiffVar(:, iLat) = &
         (DiffFlux(2:nLons + 1) - DiffFlux(1:nLons))*InvdLon
 
-    enddo
+    end do
 
     if (UseTopography) &
       GradVar = GradVar - dVarDAlt_C*dAltDLon_CB(:, :, iAlt, iBlock)
@@ -1051,7 +1048,7 @@ subroutine calc_facevalues_lats(iLon, iAlt, iBlock, Var, VarLeft, VarRight)
 !     dVarDown = (Var(i)   - Var(i-1)) * InvDLatDist_FB(iLon,i  ,iAlt,iBlock)
 
     dVarLimited(i) = Limiter_mc(dVarUp, dVarDown)
-  enddo
+  end do
 
   i = nLats + 1
   dVarUp = (Var(i + 1) - Var(i))*InvDLatDist_FB(iLon, i + 1, iAlt, iBlock)
@@ -1063,7 +1060,7 @@ subroutine calc_facevalues_lats(iLon, iAlt, iBlock, Var, VarLeft, VarRight)
   do i = 1, nLats + 1
     VarLeft(i) = Var(i - 1) + 0.5*dVarLimited(i - 1)*dLatDist_FB(iLon, i, iAlt, iBlock)
     VarRight(i) = Var(i) - 0.5*dVarLimited(i)*dLatDist_FB(iLon, i, iAlt, iBlock)
-  enddo
+  end do
 
 end subroutine calc_facevalues_lats
 
@@ -1103,7 +1100,7 @@ subroutine calc_facevalues_lons(iLat, iAlt, iBlock, Var, VarLeft, VarRight)
 !     dVarUp   = (Var(i+1) - Var(i))  *InvDLonDist_FB(i+1,iLat,iAlt,iBlock)
 !     dVarDown = (Var(i)   - Var(i-1))*InvDLonDist_FB(i  ,iLat,iAlt,iBlock)
     dVarLimited(i) = Limiter_mc(dVarUp, dVarDown)
-  enddo
+  end do
 
   i = nLons + 1
 
@@ -1115,7 +1112,7 @@ subroutine calc_facevalues_lons(iLat, iAlt, iBlock, Var, VarLeft, VarRight)
   do i = 1, nLons + 1
     VarLeft(i) = Var(i - 1) + 0.5*dVarLimited(i - 1)*dLonDist_FB(i, iLat, iAlt, iBlock)
     VarRight(i) = Var(i) - 0.5*dVarLimited(i)*dLonDist_FB(i, iLat, iAlt, iBlock)
-  enddo
+  end do
 
 end subroutine calc_facevalues_lons
 
