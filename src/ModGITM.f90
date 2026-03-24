@@ -140,7 +140,6 @@ module ModGITM
 
   real, dimension(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, 3) :: &
     ExB, EField
-  real, dimension(-1:nLons + 2, -1:nLats + 2) :: JParAlt
 
   real, dimension(-1:nLons + 2, -1:nLats + 2) :: &
     ElectronEnergyFluxDiffuse, ElectronAverageEnergyDiffuse, &

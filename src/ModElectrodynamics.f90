@@ -24,7 +24,6 @@ module ModElectrodynamics
 
   ! This is the field aligned integral in magnetic coordinates
   real, dimension(:, :), allocatable :: DivJuAltMC
-  real, dimension(:, :), allocatable :: JParAltMC
 
   ! These are the conductances in magnetic coordinates
   real, dimension(:, :), allocatable :: SigmaHallMC
