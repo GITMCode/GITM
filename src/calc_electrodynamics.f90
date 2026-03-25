@@ -49,7 +49,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
   real :: kpm_s, klm_s, xstretch, ystretch
   real :: sinIm, spp, sll, shh, scc, spa, sha, sccline, sppline, sllline, shhline, be3
 
-  real :: q2, dju, dl, cD, ReferenceAlt
+  real :: q2, dju, dl, cD, ReferenceAlt, bE, bN, bU
 
   real :: magloctime_local(0:nLons + 1, 0:nLats + 1)
 
@@ -67,6 +67,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
   real :: aLat, aLon, gLat, gLon, Date, sLat, sLon, gLatMC, gLonMC
 
   real :: residual, oldresidual, a, tmp, AvgDyn, LatBoundOffset
+  real :: PeakPot, PotAtLat, LatBoundSouth, LatBoundNorth
 
   logical :: IsDone, IsFirstTime = .true., DoTestMe, Debug = .False.
 
@@ -439,27 +440,40 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
                          (sigmap_d1d2_d(i, j, k) + sigmah(i, j, k))* &
                          (Ed1(i, j, k) + ue2(i, j, k)*b0_be3(i, j, k, iBlock))
 
+          ! General conductivity tensor in geographic (East,North,Up)
+          ! coordinates, from Richmond (1995) Eq. (2.1):
+          !   J = sigma_P F + sigma_H (b x F) + sigma_0 b(b.F)
+          ! See derivation_sigmaR_and_divju.md for full details.
+          ! Uses full (bE,bN,bU) to handle magnetic declination.
+
+          bE = B0(i, j, k, iEast_, iBlock)/B0(i, j, k, iMag_, iBlock)
+          bN = B0(i, j, k, iNorth_, iBlock)/B0(i, j, k, iMag_, iBlock)
+          bU = B0(i, j, k, iUp_, iBlock)/B0(i, j, k, iMag_, iBlock)
+
           SigmaR(i, j, k, iEast_, iEast_) = &
-            Sigma_Pedersen(i, j, k)
+            Sigma_Pedersen(i, j, k)*(1.0 - bE*bE) + Sigma_0(i, j, k)*bE*bE
           SigmaR(i, j, k, iEast_, iNorth_) = &
-            -Sigma_Hall(i, j, k)*sin(DipAngle(i, j, k, iBlock))
+            (Sigma_0(i, j, k) - Sigma_Pedersen(i, j, k))*bE*bN - &
+            Sigma_Hall(i, j, k)*bU
           SigmaR(i, j, k, iEast_, iUp_) = &
-            Sigma_Hall(i, j, k)*cos(DipAngle(i, j, k, iBlock))
+            (Sigma_0(i, j, k) - Sigma_Pedersen(i, j, k))*bE*bU + &
+            Sigma_Hall(i, j, k)*bN
           SigmaR(i, j, k, iNorth_, iEast_) = &
-            -SigmaR(i, j, k, iEast_, iNorth_)
+            (Sigma_0(i, j, k) - Sigma_Pedersen(i, j, k))*bE*bN + &
+            Sigma_Hall(i, j, k)*bU
           SigmaR(i, j, k, iNorth_, iNorth_) = &
-            Sigma_Pedersen(i, j, k)*sin(DipAngle(i, j, k, iBlock))**2 + &
-            Sigma_0(i, j, k)*cos(DipAngle(i, j, k, iBlock))**2
+            Sigma_Pedersen(i, j, k)*(1.0 - bN*bN) + Sigma_0(i, j, k)*bN*bN
           SigmaR(i, j, k, iNorth_, iUp_) = &
-            (Sigma_0(i, j, k) - Sigma_Pedersen(i, j, k))* &
-            sin(DipAngle(i, j, k, iBlock))*cos(DipAngle(i, j, k, iBlock))
+            (Sigma_0(i, j, k) - Sigma_Pedersen(i, j, k))*bN*bU - &
+            Sigma_Hall(i, j, k)*bE
           SigmaR(i, j, k, iUp_, iEast_) = &
-            -SigmaR(i, j, k, iEast_, iUp_)
+            (Sigma_0(i, j, k) - Sigma_Pedersen(i, j, k))*bE*bU - &
+            Sigma_Hall(i, j, k)*bN
           SigmaR(i, j, k, iUp_, iNorth_) = &
-            SigmaR(i, j, k, iNorth_, iUp_)
+            (Sigma_0(i, j, k) - Sigma_Pedersen(i, j, k))*bN*bU + &
+            Sigma_Hall(i, j, k)*bE
           SigmaR(i, j, k, iUp_, iUp_) = &
-            Sigma_Pedersen(i, j, k)*cos(DipAngle(i, j, k, iBlock))**2 + &
-            Sigma_0(i, j, k)*sin(DipAngle(i, j, k, iBlock))**2
+            Sigma_Pedersen(i, j, k)*(1.0 - bU*bU) + Sigma_0(i, j, k)*bU*bU
         enddo
       enddo
     enddo
@@ -1469,7 +1483,62 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
 
     else
       ! No potential available yet — use default
+  
+    PeakPot = maxval(abs(FullPotentialMC(1:nMagLons, :)))
+
+    if (PeakPot > 0.0) then
+
+      ! Scan southern hemisphere (j=1 is most southern) equatorward
+      LatBoundSouth = DynamoHighLatBoundary
+      do j = 1, iEquator
+        PotAtLat = maxval(abs(FullPotentialMC(1:nMagLons, j)))
+        if (PotAtLat < 0.05 * PeakPot) then
+          ! Convert grid index to latitude offset from grid edge
+          LatBoundSouth = (j - 1) * MagLatRes
+        else
+          exit
+        endif
+      enddo
+
+      ! Scan northern hemisphere (j=nMagLats is most northern) equatorward
+      LatBoundNorth = DynamoHighLatBoundary
+      do j = nMagLats, iEquator, -1
+        PotAtLat = maxval(abs(FullPotentialMC(1:nMagLons, j)))
+        if (PotAtLat < 0.05 * PeakPot) then
+          ! Convert grid index to latitude offset from grid edge
+          LatBoundNorth = (nMagLats - j) * MagLatRes
+        else
+          exit
+        endif
+      enddo
+
+      ! Use the more conservative (equatorward) boundary to keep symmetric
+      LatBoundOffset = min(LatBoundSouth, LatBoundNorth)
+
+      ! Floor: ensure solver domain has enough latitudes (at least 4)
+      ! LatBoundOffset must be < DynamoHighLatBoundary - 2*MagLatRes
+      LatBoundOffset = max(LatBoundOffset, 20.0)
+      LatBoundOffset = min(LatBoundOffset, &
+        DynamoHighLatBoundary - 3.0 * MagLatRes)
+
+      ! Smoothing: limit change to ±2 deg per timestep
+      if (PrevLatBoundOffset >= 0.0) then
+        if (LatBoundOffset > PrevLatBoundOffset + 2.0) then
+          LatBoundOffset = PrevLatBoundOffset + 2.0
+        elseif (LatBoundOffset < PrevLatBoundOffset - 2.0) then
+          LatBoundOffset = PrevLatBoundOffset - 2.0
+        endif
+      endif
+      PrevLatBoundOffset = LatBoundOffset
+
+    else
+      ! No potential available yet — use default
       LatBoundOffset = 45.0
+    endif
+
+    if (iDebugLevel > 0) &
+      write(*, *) "=> Dynamic LatBoundOffset: ", LatBoundOffset
+
     endif
 
     if (iDebugLevel > 0) &
@@ -1496,36 +1565,6 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
 
   allocate(x(nX), y(nX), rhs(nX), b(nX), &
            d_I(nX), e_I(nX), e1_I(nX), f_I(nX), f1_I(nX))
-
-  ! call UA_SetnMLTs(nMagLons + 1)
-  call ieModel_%nMlts(nMagLons + 1)
-  call ieModel_%nLats(2)
-  ! call UA_SetnLats(2)
-
-  SmallMagLocTimeMC(:,1) = MagLocTimeMC(:,1)
-  SmallMagLocTimeMC(:,2) = MagLocTimeMC(:,nMagLats)
-  SmallMagLatMC(:,1)     = MagLatMC(:,1)
-  SmallMagLatMC(:,2)     = MagLatMC(:,nMagLats)
-
-  iError = 0
-  ! call UA_SetGrid(SmallMagLocTimeMC, SmallMagLatMC, iError)
-  call ieModel_%grid(SmallMagLocTimeMC, SmallMagLatMC)
-  if (iError /= 0) then
-    write(*, *) "Error in routine calc_electrodynamics (UA_SetGrid):"
-    write(*, *) iError
-    call stop_gitm("Stopping in calc_electrodynamics")
-  endif
-
-  iError = 0
-  ! call UA_GetPotential(SmallPotentialMC, iError)
-  call ieModel_%get_potential(SmallPotentialMC)
-
-  if (iError /= 0) then
-    write(*, *) "Error in routine calc_electrodynamics (UA_GetPotential):"
-    write(*, *) iError
-    !     call stop_gitm("Stopping in calc_electrodynamics")
-    SmallPotentialMC = 0.0
-  endif
 
   do iLat=iStart+1,iEnd-1
     do iLon = 1, nMagLons
@@ -1555,12 +1594,12 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
 
       if (iLat == iStart+1) then
         b(iI) = b(iI)-(solver_b_mc(iLon, iLat)-solver_d_mc(iLon, iLat)) * &
-          SmallPotentialMC(iLon, 1)
+          FullPotentialMC(iLon, iStart)
         e1_I(iI) = 0.0
       endif
       if (iLat == iEnd-1) then
         b(iI) = b(iI)-(solver_b_mc(iLon, iLat)+solver_d_mc(iLon, iLat)) * &
-          SmallPotentialMC(iLon, 2)
+          FullPotentialMC(iLon, iEnd)
         f1_I(iI) = 0.0
       endif
 
@@ -1588,6 +1627,10 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
   !!!  write(*,*) "Uhepta"
   call Uhepta(.true., nX, 1, nMagLons, nX, b, f_I, f1_I)
 
+  ! Use local copies because gmres modifies Tol (intent(inout))
+  MaxIteration = nItersMax
+  Residual = MaxResidual
+
   nIteration = 0
   iError = 0
   if (iDebugLevel > 2) then
@@ -1597,12 +1640,12 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
   endif
 
   call gmres(matvec_gitm, b, x, .true., nX, &
-             nItersMax, MaxResidual, 'abs', nIteration, iError, DoTestMe)
+             MaxIteration, Residual, 'abs', nIteration, iError, DoTestMe)
 
   call end_timing("dynamo_solver")
 
   if (iDebugLevel > 0) &
-    write(*, *) "=> gmres : ", nItersMax, MaxResidual, nIteration, iError
+    write(*, *) "=> gmres : ", MaxIteration, Residual, nIteration, iError
 
   iI = 0
   do iLat=iStart+1,iEnd-1
@@ -1613,7 +1656,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
   enddo
 
   !----------- Subtract the equatorial average dynamo potential ---------
-  AvgDyn = SUM(DynamoPotentialMC(:,iEquator))/SIZE(DynamoPotentialMC(:,iEquator))  
+  AvgDyn = SUM(DynamoPotentialMC(:,iEquator))/SIZE(DynamoPotentialMC(:,iEquator))  ! use as the equatorial average 
   do iLat=iStart+1,iEnd-1
     do iLon=1,nMagLons
       DynamoPotentialMC(iLon, iLat) = DynamoPotentialMC(iLon, iLat) - AvgDyn

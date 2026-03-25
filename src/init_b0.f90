@@ -89,11 +89,10 @@ subroutine init_b0
 
             ! Calculate the magnetic dip angle, the magnetic
             ! declination angle, and sines and cosines
-            ! For now, only have positive sin of the dip angle
-            ! (and the magnetic dip angle)
-
+            ! DipAngle's is  positive in the SH (B points up)
+            ! and negative in the NH (B points down)
             DipAngle(iLon, iLat, iAlt, iBlock) = &
-              atan(abs(zmag)/sqrt(xmag**2 + ymag**2))
+              atan(zmag/sqrt(xmag**2 + ymag**2))
             sinDipAngle(iLon, iLat, iAlt, iBlock) = &
               sin(DipAngle(iLon, iLat, iAlt, iBlock))
             DecAngle(iLon, iLat, iAlt, iBlock) = atan2(ymag, xmag)*180.0/pi
