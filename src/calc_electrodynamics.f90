@@ -332,8 +332,8 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
   DivJuAltMC = -1.0e32
   SigmaHallMC = 0.0
   SigmaPedersenMC = 0.0
-  SigmaHallAltIntMC = -1.0e-32
-  SigmaPedersenAltIntMC = -1.0e-32
+  SigmaHallAltIntMC = -1.0e32
+  SigmaPedersenAltIntMC = -1.0e32
   LengthMC = -1.0e32
   KDlmMC = -1.0e32
   KDpmMC = -1.0e32
@@ -780,6 +780,8 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
     DivJuAltMC = -1.0e32
     SigmaHallMC = -1.0e32  !0.0
     SigmaPedersenMC = -1.0e32  !0.0
+    SigmaHallAltIntMC = -1.0e32
+    SigmaPedersenAltIntMC = -1.0e32
     LengthMC = -1.0e32  !0.0
     SigmaPPMC = 0.0   !-1.0e32
     SigmaLLMC = 0.0   !-1.0e32
@@ -1822,8 +1824,8 @@ contains
 
     call interpolate_local(HallFieldLine, mfac, lfac, ii, jj, shline)
     call interpolate_local(PedersenFieldLine, mfac, lfac, ii, jj, spline)
-    call interpolate_local(HallConductance, mfac, lfac, ii, jj, shalt)
-    call interpolate_local(PedersenConductance, mfac, lfac, ii, jj, spalt)
+    call interpolate_local(HallConductance(:, :, iBlock), mfac, lfac, ii, jj, shalt)
+    call interpolate_local(PedersenConductance(:, :, iBlock), mfac, lfac, ii, jj, spalt)
     call interpolate_local(DivJuFieldLine, mfac, lfac, ii, jj, juline)
     call interpolate_local(LengthFieldLine, mfac, lfac, ii, jj, length)
 
