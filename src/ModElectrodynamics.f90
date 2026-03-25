@@ -73,11 +73,19 @@ module ModElectrodynamics
 
   real, dimension(:, :), allocatable :: &
     SmallMagLocTimeMC, SmallMagLatMC, SmallPotentialMC
+  ! Full potential from IE model (for dynamic dynamo boundary)
+  real, dimension(:, :), allocatable :: FullPotentialMC
+
+  ! Previous LatBoundOffset for smoothing the boundary (prevent 2+ degree jumps)
+  real :: LatBoundNow, PrevLatBoundOffset = -1.0
 
   real :: MagLatRes = 1.0
   real :: MagLonRes = 4.0
   ! These are set dynamically from the resolution above & dynamo limits
   integer :: nMagLats, nMagLons
+  ! Solver latitude bounds (set in calc_electrodynamics, used by matvec_gitm)
+  integer :: iLatSolveStart = 1
+  integer :: iLatSolveEnd = -1
 
   !----------------------------------------------------------------------
   ! These are in geographic coordinates :

@@ -151,7 +151,7 @@ subroutine get_potential(iBlock)
   use ModInputs
   use ModUserGITM
   use ModErrors
-  use ModElectrodynamics, only: IEModel_
+  use ModElectrodynamics, only: IEModel_, LatBoundNow
   use ModIndicesInterfaces
   use ModMpi
   use ModSources, only: eSpectralFlux, iSpectralFlux
@@ -165,7 +165,7 @@ subroutine get_potential(iBlock)
   logical :: IsFirstPotential(nBlocksMax) = .true.
   logical :: IsFirstAurora(nBlocksMax) = .true.
   real :: mP, dis, TempWeight
-  real :: LocalSumDiffPot, MeanDiffPot, LatBoundNow
+  real :: LocalSumDiffPot, MeanDiffPot
   real :: PotentialMin_North, PotentialMin_South
   real :: PotentialMax_North, PotentialMax_South
   real :: maxEnergyFlux
