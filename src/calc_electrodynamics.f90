@@ -45,7 +45,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
   real :: GeoLat, GeoLon, GeoAlt, xAlt, len, ped, hal
   real :: sp_d1d1_d, sp_d2d2_d, sp_d1d2_d, sh
   real :: xmag, ymag, zmag, bmag, signz, magpot, lShell
-  real :: mlatMC, mltMC, jul, shl, spl, length, kdpm_s, kdlm_s, je1_s, je2_s
+  real :: mlatMC, mltMC, jua, shl, spl, length, kdpm_s, kdlm_s, je1_s, je2_s
   real :: kpm_s, klm_s, xstretch, ystretch
   real :: sinIm, spp, sll, shh, scc, spa, sha, sccline, sppline, sllline, shhline, be3
 
@@ -803,12 +803,12 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
         if (iDebugLevel > 9) write(*, *) "=========> Moving to mag grid: ", i, j, mLatMC, mltMC
         if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
 
-        call find_mag_point(jul, shl, spl, sha, spa, length, spp, sll, shh, scc, &
+        call find_mag_point(jua, shl, spl, sha, spa, length, spp, sll, shh, scc, &
                             kdpm_s, kdlm_s, be3, kpm_s, klm_s)
 
         if (length > 0) then
 
-          DivJuAltMC(i, j) = jul
+          DivJuAltMC(i, j) = jua
           SigmaHallMC(i, j) = shl
           SigmaPedersenMC(i, j) = spl
           SigmaHallAltIntMC(i, j) = sha
@@ -1851,10 +1851,10 @@ contains
   ! mlatMC or mltMC or iBlock.
   !/
 
-  subroutine find_mag_point_old(juline, shline, spline, length, &
+  subroutine find_mag_point_old(jualt, shline, spline, length, &
                                 sppline, sllline, shhline, sccline, kdpline, kdlline)
 
-    real, intent(out) :: juline, shline, spline, &
+    real, intent(out) :: jualt, shline, spline, &
                          sppline, sllline, shhline, sccline, kdpline, kdlline
 
     integer :: ii, jj
@@ -1863,7 +1863,7 @@ contains
 
     logical :: IsFound
 
-    juline = 0.0
+    jualt = 0.0
     shline = 0.0
     spline = 0.0
     length = 0.0
@@ -1942,7 +1942,7 @@ contains
 
           call interpolate_local(HallFieldLine, mfac, lfac, ii, jj, shline)
           call interpolate_local(PedersenFieldLine, mfac, lfac, ii, jj, spline)
-          call interpolate_local(DivJuFieldLine, mfac, lfac, ii, jj, juline)
+          call interpolate_local(DivJuAlt, mfac, lfac, ii, jj, jualt)
           call interpolate_local(LengthFieldLine, mfac, lfac, ii, jj, length)
 
           call interpolate_local(SigmaPP, mfac, lfac, ii, jj, sppline)
@@ -1955,7 +1955,7 @@ contains
 
           shline = shline
           spline = spline
-          juline = juline
+          jualt = jualt
 
           ii = nLons
           jj = nLats
