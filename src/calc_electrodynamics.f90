@@ -816,7 +816,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
           LengthMC(i, j) = length
 
           sinim = abs(2.0*sin(mLatMC*pi/180)/ &
-                      sqrt(4.0 - 3.0*cos(mLatMC*pi/180)))
+                      sqrt(4.0 - 3.0*cos(mLatMC*pi/180)**2))
 
           SigmaPPMC(i, j) = spp*sinim
           SigmaLLMC(i, j) = sll/(sinim + 1e-6)
@@ -1148,7 +1148,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
     enddo
     j = iEquator
     SigmaPPMC(i, j) = 0.9*(SigmaPPMC(i, j - 1) + SigmaPPMC(i, j + 1))/2.0
-    SigmaCCMC(i, j) = 0.9*(SigmaCCMC(i, j - 1) + SigmaCCMC(i, j - 1))/2.0
+    SigmaCCMC(i, j) = 0.9*(SigmaCCMC(i, j - 1) + SigmaCCMC(i, j + 1))/2.0
     SigmaPLMC(i, j) = -(sigmahhmc(i, j) - sigmaccmc(i, j))
     SigmaLPMC(i, j) = +(sigmahhmc(i, j) + sigmaccmc(i, j))
 
@@ -1699,17 +1699,17 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
   do i = 1, nMagLons + 1
     do j = 2, nMagLats - 1
       sinim = abs(2.0*sin(MagLatMC(i, j)*pi/180)/ &
-                  sqrt(4.0 - 3.0*cos(MagLatMC(i, j)*pi/180))) + 1e-6
+                  sqrt(4.0 - 3.0*cos(MagLatMC(i, j)*pi/180)**2)) + 1e-6
       Ed2new(i, j) = (1/(RBody*sinIm))* &
                      0.5*(DynamoPotentialMC(i, j + 1) - DynamoPotentialMC(i, j - 1))/deltalmc(i, j)
     enddo
     sinim = abs(2.0*sin(MagLatMC(i, 1)*pi/180)/ &
-                sqrt(4.0 - 3.0*cos(MagLatMC(i, 1)*pi/180))) + 1e-6
+                sqrt(4.0 - 3.0*cos(MagLatMC(i, 1)*pi/180)**2)) + 1e-6
     Ed2new(i, 1) = (1/(RBody*sinIm))* &
                    (DynamoPotentialMC(i, 2) - DynamoPotentialMC(i, 1))/deltalmc(i, 1)
 
     sinim = abs(2.0*sin(MagLatMC(i, nMagLats)*pi/180)/ &
-                sqrt(4.0 - 3.0*cos(MagLatMC(i, nMagLats)*pi/180))) + 1e-6
+                sqrt(4.0 - 3.0*cos(MagLatMC(i, nMagLats)*pi/180)**2)) + 1e-6
     Ed2new(i, nMagLats) = (1/(RBody*sinIm))* &
                           (DynamoPotentialMC(i, nMagLats) - DynamoPotentialMC(i, nMagLats - 1))/deltalmc(i, nMagLats)
 
@@ -1842,7 +1842,7 @@ contains
 
     if (sppline > 1000.) write(*, *) "sppline : ", &
       mfac, lfac, ii, jj, sppline, &
-      SigmaPP(ii, jj), SigmaPP(ii + 1, jj), SigmaPP(jj + 1, ii), SigmaPP(ii + 1, jj + 1)
+      SigmaPP(ii, jj), SigmaPP(ii + 1, jj), SigmaPP(ii, jj + 1), SigmaPP(ii + 1, jj + 1)
 
   end subroutine find_mag_point
 
@@ -2093,7 +2093,7 @@ subroutine UA_calc_electrodynamics_1d
     VeOe = Ve**2 + e_gyro**2
     ViOi = Vi**2 + i_gyro**2
 
-    Sigma_0 = q2*E_Density/(1.0/MeVen + 1.0/MiVin)
+    Sigma_0 = q2*E_Density*(1.0/MeVen + 1.0/MiVin)
 
     Sigma_Pedersen = ((1.0/MeVen)*(Ve*Ve/VeOe) + &
                       (1.0/MiVin)*(Vi*Vi/ViOi))*E_Density*q2
