@@ -39,7 +39,7 @@ subroutine finalize_gitm
   endif
 
   call end_timing("Finalize")
-  call end_timing("GITM")
+  if (.not. IsFramework) call end_timing("GITM")
 
   if (iDebugLevel >= 0) call report_timing("all")
 

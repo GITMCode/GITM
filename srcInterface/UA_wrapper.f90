@@ -276,7 +276,7 @@ contains
 
     if (IsFirstTime) then
 
-      ! Start GITM (internal) timer
+      ! Start GITM timing
       call start_timing('GITM')
 
       ! Set time related variables for UA
@@ -308,7 +308,7 @@ contains
       call write_output
 
       IsFirstTime = .false.
-    call end_timing('GITM')
+      call end_timing('GITM')
 
     endif
 
