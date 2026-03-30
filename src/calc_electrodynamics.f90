@@ -377,7 +377,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
     PedersenConductance(:, :, iBlock) = 0.0
     HallConductance(:, :, iBlock) = 0.0
 
-    do k = -1, nAlts + 2
+    do k = 1, nAlts
       PedersenConductance(:, :, iBlock) = PedersenConductance(:, :, iBlock) + &
                                           Sigma_Pedersen(:, :, k)*dAlt_GB(:, :, k, iBlock)
       HallConductance(:, :, iBlock) = HallConductance(:, :, iBlock) + &
