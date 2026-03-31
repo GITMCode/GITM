@@ -343,7 +343,6 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
   SigmaPPMC = 0.0
   SigmaLPMC = -1.0e32
   SigmaPLMC = -1.0e32
-  DivJuAltMC = -1.0e32
 
   UAi_nLats = nMagLats
   UAi_nMlts = nMagLons + 1
@@ -1763,11 +1762,11 @@ contains
   ! mlatMC or mltMC or iBlock.
   !/
 
-  subroutine find_mag_point(juline, shline, spline, shalt, spalt, length, &
+  subroutine find_mag_point(jualt, shline, spline, shalt, spalt, length, &
                             sppline, sllline, shhline, sccline, kdpline, kdlline, be3, &
                             kpline, klline)
 
-    real, intent(out) :: juline, shline, spline, shalt, spalt, &
+    real, intent(out) :: jualt, shline, spline, shalt, spalt, &
                          sppline, sllline, shhline, sccline, kdpline, kdlline, &
                          be3, kpline, klline
 
@@ -1777,7 +1776,7 @@ contains
 
     logical :: IsFound
 
-    juline = 0.0
+    jualt = 0.0
     shline = 0.0
     spline = 0.0
     length = 0.0
@@ -1826,7 +1825,7 @@ contains
     call interpolate_local(PedersenFieldLine, mfac, lfac, ii, jj, spline)
     call interpolate_local(HallConductance(:, :, iBlock), mfac, lfac, ii, jj, shalt)
     call interpolate_local(PedersenConductance(:, :, iBlock), mfac, lfac, ii, jj, spalt)
-    call interpolate_local(DivJuFieldLine, mfac, lfac, ii, jj, juline)
+    call interpolate_local(DivJuAlt, mfac, lfac, ii, jj, jualt)
     call interpolate_local(LengthFieldLine, mfac, lfac, ii, jj, length)
 
     call interpolate_local(SigmaPP, mfac, lfac, ii, jj, sppline)

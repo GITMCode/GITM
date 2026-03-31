@@ -22,7 +22,7 @@ module ModElectrodynamics
     KDpm, KDlm, Kpm, Klm
   real, dimension(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2) :: ed1, ed2, je1, je2
 
-  ! This is the field aligned integral in magnetic coordinates
+  ! This is the field aligned currents alt-integral in magnetic coordinates
   real, dimension(:, :), allocatable :: DivJuAltMC
 
   ! These are the conductances in magnetic coordinates
