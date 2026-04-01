@@ -28,7 +28,7 @@ subroutine advance_horizontal_all
 
     call advance_horizontal(iBlock)
 
-  end do
+  enddo
 
   ! Sync everything up again.
 
@@ -36,13 +36,13 @@ subroutine advance_horizontal_all
 
   do iBlock = 1, nBlocks
     if (.not. IsFullSphere) call set_horizontal_bcs(iBlock)
-  end do
+  enddo
 
   if (DoCheckForNans) then
     call check_for_nans_ions("After Horizontal")
     call check_for_nans_neutrals("After Horizontal")
     call check_for_nans_temps("After Horizontal")
-  end if
+  endif
 
   call correct_min_ion_density
 
@@ -365,35 +365,35 @@ subroutine advance_horizontal(iBlock)
       NewVertVel_CV
 
     if (minval(NewNum_CV) < 0.0) then
-      write (*, *) "Negative Density after horizontal advection!!"
-      write (*, *) "Correcting...."
+      write(*, *) "Negative Density after horizontal advection!!"
+      write(*, *) "Correcting...."
       do iLon = 1, nLons
         do iLat = 1, nLats
           IsFound = .false.
           do iSpecies = 1, nSpecies
             if (NewNum_CV(iLon, iLat, iSpecies) < 0.0) then
-              write (*, *) "Species : ", iLon, iLat, iAlt, iSpecies, iBlock
+              write(*, *) "Species : ", iLon, iLat, iAlt, iSpecies, iBlock
               ! call stop_gitm("neg ion density! stopping in advance_horizontal")
               if (iSpecies <= nSpecies) then
                 NewNum_CV(iLon, iLat, iSpecies) = MinNeutralDensityAdvect
               else
                 NewNum_CV(iLon, iLat, iSpecies) = MinNeutralDensity
-              end if
+              endif
 
               IsFound = .true.
-            end if
-          end do
+            endif
+          enddo
           If (IsFound) then
             Rho(iLon, iLat, iAlt, iBlock) = 0.0
             do iSpecies = 1, nSpecies
               Rho(iLon, iLat, iAlt, iBlock) = &
                 Rho(iLon, iLat, iAlt, iBlock) + &
                 NewNum_CV(iLon, iLat, iSpecies)*Mass(iSpecies)
-            end do
-          end if
-        end do
-      end do
-    end if
+            enddo
+          endif
+        enddo
+      enddo
+    endif
 
     NDensityS(1:nLons, 1:nLats, iAlt, 1:nSpecies, iBlock) = NewNum_CV
 
@@ -402,11 +402,11 @@ subroutine advance_horizontal(iBlock)
         do iLat = 1, nLats
           do iDir = 1, 3
             if (ieee_is_nan(Velocity(iLon, iLat, iAlt, iDir, 1))) &
-              write (*, *) 'Velocity is nan : ', iLon, iLat, iAlt, iDir
-          end do
-        end do
-      end do
-    end if
+              write(*, *) 'Velocity is nan : ', iLon, iLat, iAlt, iDir
+          enddo
+        enddo
+      enddo
+    endif
 
     if (UseIonAdvection) then
 
@@ -422,11 +422,11 @@ subroutine advance_horizontal(iBlock)
 !                            Latitude(iLon,iBlock)*180/pi, &
 !                            Altitude(iAlt)/1000.0, iIon
                 NewINum_CV(iLon, iLat, iIon) = 1.0e2
-              end if
-            end do
-          end do
-        end do
-      end if
+              endif
+            enddo
+          enddo
+        enddo
+      endif
 
       IDensityS(1:nLons, 1:nLats, iAlt, 1:nIonsAdvect, iBlock) = NewINum_CV
       !\
@@ -437,10 +437,10 @@ subroutine advance_horizontal(iBlock)
         IDensityS(1:nLons, 1:nLats, iAlt, ie_, iBlock) = &
           IDensityS(1:nLons, 1:nLats, iAlt, ie_, iBlock) + &
           IDensityS(1:nLons, 1:nLats, iAlt, iIon, iBlock)
-      end do
-    end if
+      enddo
+    endif
 
-  end do
+  enddo
 
   if (UseIonAdvection .and. UseImprovedIonAdvection) then
 
@@ -456,7 +456,7 @@ subroutine advance_horizontal(iBlock)
         Vi = iVelocity(:, :, :, iDir, iBlock)
       else
         Vi = iVelocityPar(:, :, :, iDir, iBlock)
-      end if
+      endif
 
       ! Calculate Gradient First:
       call UAM_Gradient(Vi, IVelGradient, iBlock)
@@ -485,10 +485,10 @@ subroutine advance_horizontal(iBlock)
                 DivIVelocityLocal(iLon, iLat, iAlt) - &
                 TanLat*Vi(iLon, iLat, iAlt)* &
                 InvRadialDistance_GB(iLon, iLat, iAlt, iBlock)
-            end do
-          end do
-        end do
-      end if
+            enddo
+          enddo
+        enddo
+      endif
 
       if (iDir == 3) then
         ! Add to divergence for radial:
@@ -501,19 +501,19 @@ subroutine advance_horizontal(iBlock)
                 2*Vi(iLon, iLat, iAlt)* &
                 InvRadialDistance_GB(iLon, iLat, iAlt, iBlock)
 
-            end do
-          end do
-        end do
-      end if
+            enddo
+          enddo
+        enddo
+      endif
 
-    end do
+    enddo
 
     ! supress near the poles:
     do iLat = 1, nLats
       DivIVelocityLocal(1:nLons, iLat, 1:nAlts) = &
         DivIVelocityLocal(1:nLons, iLat, 1:nAlts)* &
         CosLatitude(iLat, iBlock)
-    end do
+    enddo
 
     ! New Source Term for the ion density:
 
@@ -521,20 +521,20 @@ subroutine advance_horizontal(iBlock)
       change = dt*DivIVelocityLocal
       IDensityS(1:nLons, 1:nLats, 1:nAlts, iIon, iBlock) = &
         IDensityS(1:nLons, 1:nLats, 1:nAlts, iIon, iBlock)/(1 + change)
-    end do
+    enddo
 
     IDensityS(:, :, :, ie_, iBlock) = 0.0
     do iIon = 1, nIons - 1
       IDensityS(:, :, :, ie_, iBlock) = &
         IDensityS(:, :, :, ie_, iBlock) + IDensityS(:, :, :, iIon, iBlock)
-    end do
+    enddo
 
     if (DoCheckForNans) call check_for_nans_ions('After divergence')
 
-  end if
+  endif
 
   if (iDebugLevel > 2) &
-    write (*, *) "===> advance_horizontal, MaxDiff, IVel, IDens, Dt : ", &
+    write(*, *) "===> advance_horizontal, MaxDiff, IVel, IDens, Dt : ", &
     MaxDiff, maxval(abs(IVel_CD)), &
     maxval(IDensityS(1:nLons, 1:nLats, 1:nAlts, 1:nIonsAdvect, iBlock)), dt
 
@@ -592,7 +592,7 @@ contains
       dVarDAlt_C = HalfInvDAlt_C* &
                    (Rho(1:nLons, 1:nLats, iAlt + 1, iBlock) &
                     - Rho(1:nLons, 1:nLats, iAlt - 1, iBlock))
-    end if
+    endif
     call calc_rusanov_lons(Rho_C, GradLonRho_C, DiffLonRho_C)
     call calc_rusanov_lats(Rho_C, GradLatRho_C, DiffLatRho_C)
 
@@ -616,7 +616,7 @@ contains
                              GradLonIVel_CD(:, :, iDim), DiffLonIVel_CD(:, :, iDim))
       call calc_rusanov_lats(IVel_CD(:, :, iDim), &
                              GradLatIVel_CD(:, :, iDim), DiffLatIVel_CD(:, :, iDim))
-    end do
+    enddo
 
     do iLat = 1, nLats
       DivVel_C(:, iLat) = &
@@ -637,7 +637,7 @@ contains
 !          DivIVel_C(:,iLat) = 0.0
 !       endif
 
-    end do
+    enddo
 
     do iSpc = 1, nSpecies
       if (UseTopography) dVarDAlt_C = HalfInvDAlt_C* &
@@ -656,7 +656,7 @@ contains
       call calc_rusanov_lats(VertVel_CV(:, :, iSpc), &
                              GradLatVertVel_CV(:, :, iSpc), DiffLatVertVel_CV(:, :, iSpc))
 
-    end do
+    enddo
 
     do iSpc = 1, nIonsAdvect
       if (UseTopography) dVarDAlt_C = HalfInvDAlt_C* &
@@ -666,7 +666,7 @@ contains
                              GradLonINum_CV(:, :, iSpc), DiffLonINum_CV(:, :, iSpc))
       call calc_rusanov_lats(INum_CV(:, :, iSpc), &
                              GradLatINum_CV(:, :, iSpc), DiffLatINum_CV(:, :, iSpc))
-    end do
+    enddo
 
     SinLat = sin(Latitude(1:nLats, iBlock))
     CosLat = CosLatitude(1:nLats, iBlock)
@@ -699,7 +699,7 @@ contains
                                         + GradLonNum_CV(iLon, iLat, iSpc)*Vel_CD(iLon, iLat, iEast_)) &
                                         + Dt*( &
                                         DiffLonNum_CV(iLon, iLat, iSpc) + DiffLatNum_CV(iLon, iLat, iSpc))
-        end do
+        enddo
 
 !...........add divergence term to the horizontal solver of the IONS...........
 !...........below is the original codes -chen
@@ -731,7 +731,7 @@ contains
                                          DiffLonINum_CV(iLon, iLat, iSpc) + &
                                          DiffLatINum_CV(iLon, iLat, iSpc))
 !             endif
-        end do
+        enddo
 
         RhoTest = sum(Mass(1:nSpecies)*NewNum_CV(iLon, iLat, 1:nSpecies))
 
@@ -849,7 +849,7 @@ contains
             + Dt*VertAdvection(iLon, iLat, iAlt, iSpc) &
             + Dt*(DiffLatVertVel_CV(iLon, iLat, iSpc) + &
                   DiffLonVertVel_CV(iLon, iLat, iSpc))
-        end do
+        enddo
 
         if (UseCoriolis) then
 
@@ -883,7 +883,7 @@ contains
                                            Dt*(HorizCoriolis(iLon, iLat, iAlt, iNorth_) + &
                                                Centrifugal(iLon, iLat, iAlt, iNorth_))
 
-        end if
+        endif
 
         ! dT/dt = -(V.grad T + (gamma - 1) T div V
 
@@ -895,8 +895,8 @@ contains
           + GradLonTemp_C(iLon, iLat)*Vel_CD(iLon, iLat, iEast_)) &
           + Dt*(DiffLonTemp_C(iLon, iLat) + DiffLatTemp_C(iLon, iLat))
 
-      end do
-    end do
+      enddo
+    enddo
 
   end subroutine horizontal_solver
 
@@ -948,7 +948,7 @@ contains
         (DiffFlux(2:nLats + 1) - DiffFlux(1:nLats))* &
         InvdLat
 
-    end do
+    enddo
 
     if (UseTopography) &
       GradVar = GradVar - dVarDAlt_C*dAltDLat_CB(:, :, iAlt, iBlock)
@@ -997,7 +997,7 @@ contains
       DiffVar(:, iLat) = &
         (DiffFlux(2:nLons + 1) - DiffFlux(1:nLons))*InvdLon
 
-    end do
+    enddo
 
     if (UseTopography) &
       GradVar = GradVar - dVarDAlt_C*dAltDLon_CB(:, :, iAlt, iBlock)
@@ -1048,7 +1048,7 @@ subroutine calc_facevalues_lats(iLon, iAlt, iBlock, Var, VarLeft, VarRight)
 !     dVarDown = (Var(i)   - Var(i-1)) * InvDLatDist_FB(iLon,i  ,iAlt,iBlock)
 
     dVarLimited(i) = Limiter_mc(dVarUp, dVarDown)
-  end do
+  enddo
 
   i = nLats + 1
   dVarUp = (Var(i + 1) - Var(i))*InvDLatDist_FB(iLon, i + 1, iAlt, iBlock)
@@ -1060,7 +1060,7 @@ subroutine calc_facevalues_lats(iLon, iAlt, iBlock, Var, VarLeft, VarRight)
   do i = 1, nLats + 1
     VarLeft(i) = Var(i - 1) + 0.5*dVarLimited(i - 1)*dLatDist_FB(iLon, i, iAlt, iBlock)
     VarRight(i) = Var(i) - 0.5*dVarLimited(i)*dLatDist_FB(iLon, i, iAlt, iBlock)
-  end do
+  enddo
 
 end subroutine calc_facevalues_lats
 
@@ -1100,7 +1100,7 @@ subroutine calc_facevalues_lons(iLat, iAlt, iBlock, Var, VarLeft, VarRight)
 !     dVarUp   = (Var(i+1) - Var(i))  *InvDLonDist_FB(i+1,iLat,iAlt,iBlock)
 !     dVarDown = (Var(i)   - Var(i-1))*InvDLonDist_FB(i  ,iLat,iAlt,iBlock)
     dVarLimited(i) = Limiter_mc(dVarUp, dVarDown)
-  end do
+  enddo
 
   i = nLons + 1
 
@@ -1112,7 +1112,7 @@ subroutine calc_facevalues_lons(iLat, iAlt, iBlock, Var, VarLeft, VarRight)
   do i = 1, nLons + 1
     VarLeft(i) = Var(i - 1) + 0.5*dVarLimited(i - 1)*dLonDist_FB(i, iLat, iAlt, iBlock)
     VarRight(i) = Var(i) - 0.5*dVarLimited(i)*dLonDist_FB(i, iLat, iAlt, iBlock)
-  end do
+  enddo
 
 end subroutine calc_facevalues_lons
 
