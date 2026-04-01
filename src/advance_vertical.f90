@@ -28,13 +28,13 @@ subroutine advance_vertical_all
 
   enddo
 
+  call correct_min_ion_density
+
   if (DoCheckForNans) then
     call check_for_nans_ions("After Vertical")
     call check_for_nans_neutrals("After Vertical")
     call check_for_nans_temps("After Vertical")
   endif
-
-  call correct_min_ion_density
 
   call end_timing("vertical_all")
 

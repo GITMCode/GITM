@@ -150,12 +150,13 @@ subroutine add_sources
 
   enddo
 
+  call correct_min_ion_density
+
   if (DoCheckForNans) then
     call check_for_nans_ions("After Sources")
     call check_for_nans_neutrals("After Sources")
     call check_for_nans_temps("After Sources")
   endif
 
-  call correct_min_ion_density
 
 end subroutine add_sources
