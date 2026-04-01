@@ -99,8 +99,8 @@ subroutine aurora(iBlock)
       HasSomeAurora = .false.
 
       ! For diffuse auroral models (default)
-      if (ElectronEnergyFluxDiffuse(j, i) > 1.e-5 &
-          .and. ElectronAverageEnergyDiffuse(j, i) > 1.e-5 &
+      if (ElectronEnergyFluxDiffuse(j, i) > 0.001 &
+          .and. ElectronAverageEnergyDiffuse(j, i) > 0.01 &
           .and. ElectronAverageEnergyDiffuse(j, i) < MaxAveEAurora &
           .and. UseDiffuseAurora &
           ) then
@@ -110,8 +110,8 @@ subroutine aurora(iBlock)
         HasSomeAurora = .true.
       endif
 
-      if (IonEnergyFlux(j, i) > 1.e-5 &
-          .and. IonAverageEnergy(j, i) > 1.e-5 &
+      if (IonEnergyFlux(j, i) > 0.001 &
+          .and. IonAverageEnergy(j, i) > 0.1 &
           .and. IonAverageEnergy(j, i) < MaxAveEAurora &
           .and. UseIonAurora &
           ) then
@@ -123,8 +123,8 @@ subroutine aurora(iBlock)
 
       ! Monoenergetic aurora
       if (UseMonoAurora &
-          .and. ElectronAverageEnergyMono(j, i) > 1.e-5 &
-          .and. ElectronEnergyFluxMono(j, i) > 1.e-5 &
+          .and. ElectronAverageEnergyMono(j, i) > 0.1 &
+          .and. ElectronEnergyFluxMono(j, i) > 0.1 &
           .and. ElectronAverageEnergyMono(j, i) < MaxAveEAurora &
           ) then
         if (HasSomeAurora .or. AllowAurWODiffuse) &
@@ -136,8 +136,8 @@ subroutine aurora(iBlock)
 
       ! Wave (broadband) aurora
       if (UseWaveAurora &
-          .and. ElectronEnergyFluxWave(j, i) > 1.e-5 &
-          .and. ElectronAverageEnergyWave(j, i) > 1.e-5 &
+          .and. ElectronEnergyFluxWave(j, i) > 0.1 &
+          .and. ElectronAverageEnergyWave(j, i) > 0.1 &
           .and. ElectronAverageEnergyWave(j, i) < MaxAveEAurora &
           ) then
         if (HasSomeAurora .or. AllowAurWODiffuse) &
