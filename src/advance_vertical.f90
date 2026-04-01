@@ -24,15 +24,15 @@ subroutine advance_vertical_all
 
     do iLon = 1, nLons; do iLat = 1, nLats
         call advance_vertical(iLon, iLat, iBlock)
-      end do; end do
+      enddo; enddo
 
-  end do
+  enddo
 
   if (DoCheckForNans) then
     call check_for_nans_ions("After Vertical")
     call check_for_nans_neutrals("After Vertical")
     call check_for_nans_temps("After Vertical")
-  end if
+  endif
 
   call correct_min_ion_density
 
@@ -97,10 +97,10 @@ subroutine advance_vertical(iLon, iLat, iBlock)
   Cv_1D(-1:nAlts + 2) = cp(iLon, iLat, -1:nAlts + 2, iBlock)
 
   if (minval(NDensityS(iLon, iLat, :, 1:nSpecies, iBlock)) <= 0.0) then
-    write (*, *) "negative density found!"
-    write (*, *) NDensityS(iLon, iLat, 1, 1:nSpecies, iBlock)
+    write(*, *) "negative density found!"
+    write(*, *) NDensityS(iLon, iLat, 1, 1:nSpecies, iBlock)
     call stop_gitm("Can't Continue")
-  end if
+  endif
 
   Heating = EuvHeating(iLon, iLat, :, iBlock)
   Centrifugal = (CosLatitude(iLat, iBlock)*OmegaBodyInput)**2
@@ -108,7 +108,7 @@ subroutine advance_vertical(iLon, iLat, iBlock)
   LogRho = log(Rho(iLon, iLat, :, iBlock))
   do iDim = 1, 3
     Vel_GD(:, iDim) = Velocity(iLon, iLat, :, iDim, iBlock)
-  end do
+  enddo
 
   !!!! CHANGE !!!!
 
@@ -116,21 +116,21 @@ subroutine advance_vertical(iLon, iLat, iBlock)
   do iSpecies = 1, nSpecies
     LogNS1(:, iSpecies) = log(NDensityS(iLon, iLat, :, iSpecies, iBlock))
     VertVel(:, iSpecies) = VerticalVelocity(iLon, iLat, :, iSpecies, iBlock)
-  end do
+  enddo
 
   cMax1 = cMax_GDB(iLon, iLat, :, iUp_, iBlock)
 
   do iDim = 1, 3
     IVel(:, iDim) = IVelocity(iLon, iLat, :, iDim, iBlock)
-  end do
+  enddo
 
   do iSpecies = 1, nIons - 1 !Advect
     if (UseImprovedIonAdVection) then
       LogINS(:, iSpecies) = IDensityS(iLon, iLat, :, iSpecies, iBlock)
     else
       LogINS(:, iSpecies) = log(IDensityS(iLon, iLat, :, iSpecies, iBlock))
-    end if
-  end do
+    endif
+  enddo
 
   MeanMajorMass_1d = MeanMajorMass(iLon, iLat, :)
   gamma_1d = gamma(ilon, ilat, :, iBlock)
@@ -161,13 +161,13 @@ subroutine advance_vertical(iLon, iLat, iBlock)
     call advance_vertical_1d_ausm
   else
     call advance_vertical_1d_rusanov
-  end if
+  endif
 
   Rho(iLon, iLat, :, iBlock) = exp(LogRho)
 
   do iDim = 1, 3
     Velocity(iLon, iLat, :, iDim, iBlock) = Vel_GD(:, iDim)
-  end do
+  enddo
 
   Temperature(iLon, iLat, :, iBlock) = Temp/TempUnit(iLon, iLat, :)
 
@@ -175,7 +175,7 @@ subroutine advance_vertical(iLon, iLat, iBlock)
   if (UseCoriolis) then
     VertCoriolis(iLon, iLat, 1:nAlts) = &
       Coriolis*Vel_GD(1:nAlts, iEast_)
-  end if
+  endif
 
   !Atheer Alhothali, Jan, 2026: Store Effective Gravity (gravity + centrifugal)
   !EffectiveGravity(iLon, iLat, 1:nAlts) = &
@@ -191,18 +191,18 @@ subroutine advance_vertical(iLon, iLat, iBlock)
   do iSpecies = 1, nSpecies
     LogNS(iLon, iLat, :, iSpecies, iBlock) = LogNS1(:, iSpecies)
     VerticalVelocity(iLon, iLat, :, iSpecies, iBlock) = VertVel(:, iSpecies)
-  end do
+  enddo
 
   do iSpecies = nSpecies + 1, nSpecies
     LogNS(iLon, iLat, :, iSpecies, iBlock) = LogNS1(:, iSpecies)
-  end do
+  enddo
 
   nDensity(iLon, iLat, :, iBlock) = 0.0
   do iSpecies = 1, nSpecies
     nDensityS(iLon, iLat, :, iSpecies, iBlock) = exp(LogNS1(:, iSpecies))
     nDensity(iLon, iLat, :, iBlock) = nDensity(iLon, iLat, :, iBlock) + &
                                       nDensityS(iLon, iLat, :, iSpecies, iBlock)
-  end do
+  enddo
 
   if (UseIonAdvection) then
 
@@ -211,8 +211,8 @@ subroutine advance_vertical(iLon, iLat, iBlock)
         IDensityS(iLon, iLat, :, iIon, iBlock) = LogINS(:, iIon)
       else
         IDensityS(iLon, iLat, :, iIon, iBlock) = exp(LogINS(:, iIon))
-      end if
-    end do
+      endif
+    enddo
 
     !\
     ! New Electron Density
@@ -222,8 +222,8 @@ subroutine advance_vertical(iLon, iLat, iBlock)
       IDensityS(iLon, iLat, :, ie_, iBlock) = &
         IDensityS(iLon, iLat, :, ie_, iBlock) + &
         IDensityS(iLon, iLat, :, iIon, iBlock)
-    end do
-  end if
+    enddo
+  endif
 
   SpeciesDensity(iLon, iLat, :, 1:nSpeciesTotal, iBlock) = &
     NDensityS(iLon, iLat, :, :, iBlock)
