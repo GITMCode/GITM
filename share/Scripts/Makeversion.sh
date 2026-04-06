@@ -10,20 +10,20 @@ writegitversion(){
     # Format is (date of last commit).(# of files changed from HEAD)
     printf 'character(25), parameter :: GitmVersion = & \n "%s.%s"\n' \
         "$(git log -1 --date=format:'%Y%m%d' --pretty='format:%ad')" \
-        "$(git status --porcelain | grep -v '^??' | wc -l | cut -f1 -d' ')" > src/.version
+        "$(git status --porcelain | grep -v '^??' | wc -l | awk '{$1=$1};1')" > src/.version
 
 
     # The "GitmVersionFull" variable has info about the last commit hash in addition to above
     printf '\ncharacter(50), parameter :: GitmVersionFull = "%s_%s.%s"\n\n' \
         "$(git rev-parse --abbrev-ref HEAD)" \
         "$(git log -1 --date=format:'%Y%m%d' --pretty='format:%h-%ad')" \
-        "$(git status --porcelain | grep -v '^??' | wc -l | cut -f1 -d' ')" >> src/.version
+        "$(git status --porcelain | grep -v '^??' | wc -l | awk '{$1=$1};1')" >> src/.version
 
     # Same as above, but for Electrodynamics
     printf '\ncharacter(50), parameter :: ElectrodynamicsVersionFull = "%s_%s.%s"\n\n' \
         "$(git -C ext/Electrodynamics rev-parse --abbrev-ref HEAD)" \
         "$(git -C ext/Electrodynamics log -1 --date=format:'%Y%m%d' --pretty='format:%h-%ad')" \
-        "$(git -C ext/Electrodynamics status --porcelain | grep -v '^??' | wc -l | cut -f1 -d' ')" \
+        "$(git -C ext/Electrodynamics status --porcelain | grep -v '^??' | wc -l | awk '{$1=$1};1')" \
         >> src/.version
 
 
