@@ -24,15 +24,16 @@ integer function bad_outputtype()
 
   implicit none
 
-  integer, parameter :: nValidTypes = 25
+  ! Atheer Alhothali, Jan, 2026: Change the number of output files from 25 "default" to 27
+  integer, parameter :: nValidTypes = 27
   integer :: j, iOutputType
   logical :: IsFound
 
   character(len=5) :: NameValidTypes(nValidTypes)
-
+  ! Atheer Alhothali, Jan, 2026: Add "3DMOH" and "3DMOV"
   ! Set up all possible/valid plot types:
   NameValidTypes = (/'3DALL', '3DLST', '3DNEU', '3DION', '3DTHM', '3DCHM', &
-                     '3DUSR', '3DGLO', '3DMAG', '3DHME', '2DGEL', '2DMEL', '2DUSR', &
+                     '3DUSR', '3DGLO', '3DMAG', '3DHME', '3DMOH', '3DMOV', '2DGEL', '2DMEL', '2DUSR', &
                      '2DTEC', '2DANC', '2DHME', '1DALL', '0DALL', '1DGLO', '1DTHM', '1DNEW', &
                      '1DCHM', '1DCMS', '1DUSR', '0DUSR'/)
 
@@ -346,6 +347,15 @@ subroutine output(dir, iBlock, iOutputType)
     ! for iProc=0. Header files are always written by iProc=0.
     if (DoSaveHIMEPlot) call output_3dhme(iBlock)
 
+    !Atheer Alhothali, Jan, 2026: Add 3DMOMH and 3DMOMV cases
+  case ('3DMOH')
+    nvars_to_write = 17
+    call output_3dmoh(iBlock)
+
+  case ('3DMOV')
+    nvars_to_write = 3 + 3*nSpecies + 3
+    call output_3dmov(iBlock)
+
   case ('2DGEL')
 
     nvars_to_write = 19
@@ -596,6 +606,42 @@ contains
       write(iOutputUnit_, "(I7,A1,a)") 7, " ", "B.F. North"
       write(iOutputUnit_, "(I7,A1,a)") 8, " ", "B.F. Vertical"
       write(iOutputUnit_, "(I7,A1,a)") 9, " ", "B.F. Magnitude"
+    endif
+
+!Atheer Alhothali, Jan, 2026: Add 3DMOH header
+    if (cType == "3DMOH") then
+      write(iOutputUnit_, "(I7,A1,a)") 4, " ", "Rho (kg/m3)"
+      write(iOutputUnit_, "(I7,A1,a)") 5, " ", "Vn_east (m/s)"
+      write(iOutputUnit_, "(I7,A1,a)") 6, " ", "Vn_north (m/s)"
+      write(iOutputUnit_, "(I7,A1,a)") 7, " ", "Visc_Ve_rshear (m/s2)"
+      write(iOutputUnit_, "(I7,A1,a)") 8, " ", "Visc_Vn_rshear (m/s2)"
+      write(iOutputUnit_, "(I7,A1,a)") 9, " ", "IonDrag_east (m/s2)"
+      write(iOutputUnit_, "(I7,A1,a)") 10, " ", "IonDrag_north (m/s2)"
+      write(iOutputUnit_, "(I7,A1,a)") 11, " ", "Horiz_Adv_Ve (m/s2)"
+      write(iOutputUnit_, "(I7,A1,a)") 12, " ", "Horiz_Adv_Vn (m/s2)"
+      write(iOutputUnit_, "(I7,A1,a)") 13, " ", "PressGrad_east (m/s2)"
+      write(iOutputUnit_, "(I7,A1,a)") 14, " ", "PressGrad_north (m/s2)"
+      write(iOutputUnit_, "(I7,A1,a)") 15, " ", "Coriolis_east (m/s2)"
+      write(iOutputUnit_, "(I7,A1,a)") 16, " ", "Coriolis_north (m/s2)"
+      write(iOutputUnit_, "(I7,A1,a)") 17, " ", "Centrifugal_north (m/s2)"
+      !write(iOutputUnit_, "(I7,A1,a)") 18, " ", "EffectiveGravity (m/s2)"
+    endif
+
+!Atheer Alhothali, Jan 2026: Add 3DMOV header (per species)
+    if (cType == "3DMOV") then
+      iOff = 3
+      do iSpecies = 1, nSpecies
+        write(iOutputUnit_, "(I7,A1,a)") iOff + 1, " ", &
+          "Vr_"//trim(cSpecies(iSpecies))//" (m/s)"
+        write(iOutputUnit_, "(I7,A1,a)") iOff + 2, " ", &
+          "IonDrag_up_"//trim(cSpecies(iSpecies))//" (m/s2)"
+        write(iOutputUnit_, "(I7,A1,a)") iOff + 3, " ", &
+          "Horiz_Adv_Vr_"//trim(cSpecies(iSpecies))//" (m/s2)"
+        iOff = iOff + 3
+      enddo
+      write(iOutputUnit_, "(I7,A1,a)") iOff + 1, " ", "Coriolis_up (m/s2)"
+      write(iOutputUnit_, "(I7,A1,a)") iOff + 2, " ", "Centrif_up (m/s2)"
+      write(iOutputUnit_, "(I7,A1,a)") iOff + 3, " ", "EffectiveGravity (m/s2)"
     endif
 
     if (cType(3:5) == "GEL") then
@@ -2204,3 +2250,83 @@ contains
 
 end subroutine output_1dnew
 
+!--------------------------------------------------------------------------
+! Atheer Alhothali, Jan 2026: Output East and North wind momentum components
+!--------------------------------------------------------------------------
+subroutine output_3dmoh(iBlock)
+  use ModGITM
+  use ModInputs
+  use ModSources
+  implicit none
+
+  integer, intent(in) :: iBlock
+  integer :: iAlt, iLat, iLon
+  integer :: iiAlt, iiLat, iiLon
+
+  do iAlt = -1, nAlts + 2
+    iiAlt = max(min(iAlt, nAlts), 1)
+    do iLat = -1, nLats + 2
+      iiLat = max(min(iLat, nLats), 1)
+      do iLon = -1, nLons + 2
+        iiLon = max(min(iLon, nLons), 1)
+
+        write(iOutputUnit_) &
+          Longitude(iLon, iBlock), &
+          Latitude(iLat, iBlock), &
+          Altitude_GB(iLon, iLat, iAlt, iBlock), &
+          Rho(iLon, iLat, iAlt, iBlock), &
+          Velocity(iLon, iLat, iAlt, iEast_, iBlock), &
+          Velocity(iLon, iLat, iAlt, iNorth_, iBlock), &
+          Viscosity(iiLon, iiLat, iiAlt, iEast_)/Dt, &
+          Viscosity(iiLon, iiLat, iiAlt, iNorth_)/Dt, &
+          IonDrag(iiLon, iiLat, iiAlt, iEast_), &
+          IonDrag(iiLon, iiLat, iiAlt, iNorth_), &
+          HorizAdvection(iiLon, iiLat, iiAlt, 1), &
+          HorizAdvection(iiLon, iiLat, iiAlt, 2), &
+          HorizPressureGrad(iiLon, iiLat, iiAlt, 1), &
+          HorizPressureGrad(iiLon, iiLat, iiAlt, 2), &
+          HorizCoriolis(iiLon, iiLat, iiAlt, 1), &
+          HorizCoriolis(iiLon, iiLat, iiAlt, 2), &
+          Centrifugal(iiLon, iiLat, iiAlt, 2)
+      enddo
+    enddo
+  enddo
+end subroutine output_3dmoh
+!----------------------------------------------------------------------
+! Atheer Alhothali, Jan 2026: Output vertical wind momentum per species
+!----------------------------------------------------------------------
+
+subroutine output_3dmov(iBlock)
+  use ModGITM
+  use ModInputs
+  use ModSources
+  implicit none
+
+  integer, intent(in) :: iBlock
+  integer :: iAlt, iLat, iLon, iSpecies
+  integer :: iiAlt, iiLat, iiLon ! Safety indices
+
+  do iAlt = -1, nAlts + 2
+    iiAlt = max(min(iAlt, nAlts), 1)
+    do iLat = -1, nLats + 2
+      iiLat = max(min(iLat, nLats), 1)
+      do iLon = -1, nLons + 2
+        iiLon = max(min(iLon, nLons), 1)
+
+        write(iOutputUnit_) &
+          Longitude(iLon, iBlock), &
+          Latitude(iLat, iBlock), &
+          Altitude_GB(iLon, iLat, iAlt, iBlock), &
+          ( &
+          VerticalVelocity(iLon, iLat, iAlt, iSpecies, iBlock), &
+          VerticalIonDrag(iiLon, iiLat, iiAlt, iSpecies), &
+          VertAdvection(iiLon, iiLat, iiAlt, iSpecies), &
+          iSpecies=1, nSpecies &
+          ), &
+          VertCoriolis(iiLon, iiLat, iiAlt), &
+          VertCentrifugal(iiLon, iiLat, iiAlt), &
+          EffectiveGravity(iiLon, iiLat, iiAlt)
+      enddo
+    enddo
+  enddo
+end subroutine output_3dmov

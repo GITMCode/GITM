@@ -51,6 +51,19 @@ module ModSources
 
   real, dimension(nLons, nLats, nAlts, 3) :: GWAccel = 0.0
 
+! Atheer Alhothali, Jan 2026: Momentum acceleration
+! ============ East and North components (3DMOMH) ============
+  real, dimension(nLons, nLats, nAlts, 2) :: HorizAdvection = 0.0      ! East, North
+  real, dimension(nLons, nLats, nAlts, 2) :: HorizPressureGrad = 0.0   ! East, North
+  real, dimension(nLons, nLats, nAlts, 2) :: HorizCoriolis = 0.0       ! East, North
+  real, dimension(nLons, nLats, nAlts, 2) :: Centrifugal = 0.0            ! North only
+
+! ============ Vertical components (3DMOMV) ============
+  real, dimension(nLons, nLats, nAlts, nSpecies) :: VertAdvection = 0.0  ! Per species
+  real, dimension(nLons, nLats, nAlts) :: VertCoriolis = 0.0              ! Bulk
+  real, dimension(nLons, nLats, nAlts) :: VertCentrifugal = 0.0          ! Bulk
+  real, dimension(nLons, nLats, nAlts) :: EffectiveGravity = 0.0         ! Bulk
+
   !BP
   real, dimension(40, 11) :: qIR_table
 
