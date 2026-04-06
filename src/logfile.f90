@@ -583,6 +583,15 @@ subroutine write_code_information(dir)
     write(iCodeInfoFileUnit_, *) ""
     write(iCodeInfoFileUnit_, *) ""
     write(iCodeInfoFileUnit_, *) ""
+    write(iCodeInfoFileUnit_, *) "Files changed in GITM from last commit:"
+    write(iCodeInfoFileUnit_, *) "--------------------"
+    write(iCodeInfoFileUnit_, *) DifferentFilesGitm
+    write(iCodeInfoFileUnit_, *) ""
+    write(iCodeInfoFileUnit_, *) ""
+    write(iCodeInfoFileUnit_, *) "Files changed in Electrodynamics from last git commit:"
+    write(iCodeInfoFileUnit_, *) "--------------------"
+    write(iCodeInfoFileUnit_, *) DifferentFilesElectrodynamics
+    write(iCodeInfoFileUnit_, *) ""
     write(iCodeInfoFileUnit_, *) ""
     write(iCodeInfoFileUnit_, *) ""
 
