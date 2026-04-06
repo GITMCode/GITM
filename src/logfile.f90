@@ -314,6 +314,14 @@ subroutine write_code_information(dir)
     enddo
 
     write(iCodeInfoFileUnit_, *) ""
+    write(iCodeInfoFileUnit_, *) "Values set in ModSize.f90:"
+    write(iCodeInfoFileUnit_, *) ""
+    write(iCodeInfoFileUnit_, *) "nLons:", nLons
+    write(iCodeInfoFileUnit_, *) "nLats:", nLats
+    write(iCodeInfoFileUnit_, *) "nAlts:", nAlts
+    write(iCodeInfoFileUnit_, *) "nBlocksMax:", nBlocksMax
+
+    write(iCodeInfoFileUnit_, *) ""
     write(iCodeInfoFileUnit_, *) "Inputs from UAM.in:"
     write(iCodeInfoFileUnit_, *) ""
 
