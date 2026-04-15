@@ -2,6 +2,8 @@
 
 This is the home of the Global Ionosphere/Thermosphere Model (GITM).
 
+[![DOI](https://zenodo.org/badge/468565917.svg)](https://doi.org/10.5281/zenodo.7509933)
+
 GITM has been developed in fortran-90. It has been tested with gfortran
 on Linux and MacOS as well as ifort on NASA's Pleiades computer.
 

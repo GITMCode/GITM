@@ -314,6 +314,14 @@ subroutine write_code_information(dir)
     enddo
 
     write(iCodeInfoFileUnit_, *) ""
+    write(iCodeInfoFileUnit_, *) "Values set in ModSize.f90:"
+    write(iCodeInfoFileUnit_, *) ""
+    write(iCodeInfoFileUnit_, *) "nLons:", nLons
+    write(iCodeInfoFileUnit_, *) "nLats:", nLats
+    write(iCodeInfoFileUnit_, *) "nAlts:", nAlts
+    write(iCodeInfoFileUnit_, *) "nBlocksMax:", nBlocksMax
+
+    write(iCodeInfoFileUnit_, *) ""
     write(iCodeInfoFileUnit_, *) "Inputs from UAM.in:"
     write(iCodeInfoFileUnit_, *) ""
 
@@ -582,6 +590,15 @@ subroutine write_code_information(dir)
 
     write(iCodeInfoFileUnit_, *) ""
     write(iCodeInfoFileUnit_, *) ""
+    write(iCodeInfoFileUnit_, *) ""
+    write(iCodeInfoFileUnit_, *) "Files changed in GITM from last commit:"
+    write(iCodeInfoFileUnit_, *) "--------------------"
+    write(iCodeInfoFileUnit_, *) DifferentFilesGitm
+    write(iCodeInfoFileUnit_, *) ""
+    write(iCodeInfoFileUnit_, *) ""
+    write(iCodeInfoFileUnit_, *) "Files changed in Electrodynamics from last git commit:"
+    write(iCodeInfoFileUnit_, *) "--------------------"
+    write(iCodeInfoFileUnit_, *) DifferentFilesElectrodynamics
     write(iCodeInfoFileUnit_, *) ""
     write(iCodeInfoFileUnit_, *) ""
     write(iCodeInfoFileUnit_, *) ""
