@@ -1343,7 +1343,6 @@ subroutine set_inputs
           write(*, *) 'LonEnd       (real)'
           IsDone = .true.
         else
-
           if (LatStart <= -90.0 .and. LatEnd >= 90.0) then
             IsFullSphere = .true.
           else
@@ -1351,10 +1350,15 @@ subroutine set_inputs
             LatStart = LatStart*pi/180.0
             LatEnd = LatEnd*pi/180.0
           endif
-
           LonStart = LonStart*pi/180.0
           LonEnd = LonEnd*pi/180.0
-
+        endif
+        ! Check that nLonBlocks is even (for pole connections)
+        if ((mod(nBlocksLon, 2) /= 0) .and. (nBlocksLon /= 1)) then
+          if (iDebugProc == iProc) &
+            write(*, *) "Error: nBlocksLon must be 1 or even (got ", nBlocksLon, ")"
+          isDone = .true.
+          iError = 1
         endif
 
       case ("#NEWSTRETCH")

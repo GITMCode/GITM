@@ -125,12 +125,6 @@ contains
       return
     endif
 
-    if ((num_long .ne. 1) .and. (mod(num_long, 2) .ne. 0)) then
-      ok = .false.
-      call AB_ERROR_set("AB_SPH_create", "num_long not even")
-      return
-    endif
-
     ! Initialize sph variables
     sph%cpb_long = cpb_long
     sph%cpb_lat = cpb_lat
