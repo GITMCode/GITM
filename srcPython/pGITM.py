@@ -440,6 +440,15 @@ def remove_files(header, isVerbose = False):
 def process_one_file(header, isVerbose = False, dowrite=True, 
                      write_nc=False, combine=False, runname=''):
 
+    # First check if the fortran post-processor exists. 
+    # Use it if it does. Not compatible with netcdf outputs
+    if os.path.exists("../../PostGITM.exe"):
+        if write_nc:
+            raise ValueError(
+                "Cannot use PostGITM and netCDF at the same time, yet."
+                "\n  >> either remove PostGITM.exe or disable -nc option")
+        run(f"echo {header} | ../../PostGITM.exe ", check=True, shell=True)
+
     fileOut = header.replace('.header','.bin')
 
     print(' -> Processing : ', header)
@@ -541,25 +550,15 @@ def process_all_headers(headers, doRemove=True,
         # Attempt to process file:
         if (isVerbose):
             print(f' --> Processing {head}')
-
-        if os.path.exists("../../PostGITM.exe"):
-            if write_nc:
-                raise ValueError(
-                    "Cannot use PostGITM and netCDF at the same time, yet."
-                    "\n  >> either remove PostGITM.exe or disable -nc option")
-            # Check if we can use the old postprocessor. it's faster.
-            # Pipe the header filename into PostGITM.exe
-            run(f"echo {head} | ../../PostGITM.exe ", check=True, shell=True)
+        if doParallel:
+            thisType = head.split('_')[0]
+            # create dict entry or append to list of header files
+            headerlist = headers_by_type.get(thisType, [])
+            headerlist.append(head)
+            headers_by_type[thisType] = headerlist
         else:
-            if doParallel:
-                thisType = head.split('_')[0]
-                # Build dict of
-                headerlist = headers_by_type.get(thisType, [])
-                headerlist.append(head)
-                headers_by_type[thisType] = headerlist
-            else:
-                process_one_file(head, isVerbose=isVerbose, 
-                                 write_nc=write_nc, combine=combine, runname=runname)
+            process_one_file(head, isVerbose=isVerbose, 
+                             write_nc=write_nc, combine=combine, runname=runname)
 
         if (doRemove) and not doParallel:
             remove_files(head, isVerbose = isVerbose)
