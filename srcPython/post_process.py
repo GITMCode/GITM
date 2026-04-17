@@ -70,8 +70,9 @@ def parse_args_post():
                         "resulting files: '[runname]_3DALL.nc'. Default is no descriptor.")
     
     parser.add_argument('-p', '--parallel', action='store_true',
-                        help='Set this to run single-threaded. '
-                        'Otherwise each output type is processed in parallel')
+                        help='Set this to process each output type in parallel. '
+                        'Will use one thread for each type. '
+                        'Not compatible with the Fortran postprocessor.')
 
 
     args = parser.parse_args()
