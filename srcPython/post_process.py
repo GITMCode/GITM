@@ -68,6 +68,10 @@ def parse_args_post():
     parser.add_argument('--runname', type=str, default='', help=
                         "When combining, this is prepended to the output type in the "
                         "resulting files: '[runname]_3DALL.nc'. Default is no descriptor.")
+    
+    parser.add_argument('-p', '--parallel', action='store_true',
+                        help='Set this to run single-threaded. '
+                        'Otherwise each output type is processed in parallel')
 
 
     args = parser.parse_args()
@@ -414,6 +418,7 @@ def transfer_model_output_files(user, server, dir):
 
 def do_loop(doTarZip, user, server, dir, IsRemote,
             write_nc=False, combine=False, runname='', # For writing outputs to netCDF
+            doParallel=True # Processes each output type in parallel
             ):
 
     DidWork = True
@@ -449,7 +454,8 @@ def do_loop(doTarZip, user, server, dir, IsRemote,
                 # Maybe we are already in the data directory???
                 processDir = '.'
         DidWork = post_process_gitm(processDir, DoRm, isVerbose = IsVerbose,
-                                    write_nc=write_nc, combine=combine, runname=runname)
+                                    write_nc=write_nc, combine=combine, runname=runname,
+                                    doParallel=doParallel)
 
     # 4 - Check if remote data directory exists, make it if it doesn't:
     data_remote = '/data'
@@ -505,6 +511,7 @@ if __name__ == '__main__':  # main code block
     IsVerbose = args.verbose
     if (args.norm):
         DoRm = False
+    doParallel = args.parallel
 
     # Sanity check netCDF-related arguments...
     if args.nc or args.combine or (args.runname != ''):
@@ -537,7 +544,7 @@ if __name__ == '__main__':  # main code block
                 "The remote transfer & netcdf combine options cannot be used together")
 
         DidWork = do_loop(doTarZip, user, server, dir, IsRemote,
-                          args.nc, args.combine, args.runname)
+                          args.nc, args.combine, args.runname, doParallel)
         if (DidWork):
             # Check if stop file exists:
             stopCheck = check_for_stop_file()

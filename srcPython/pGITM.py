@@ -18,6 +18,7 @@ import numpy as np
 
 from scipy.io import FortranFile
 from struct import unpack
+from multiprocessing import Pool
 
 # check if netcdf can be imported. if not, don't error unless writing netcdf files
 canWriteCDF = True
@@ -514,10 +515,77 @@ def process_one_file(header, isVerbose = False, dowrite=True,
 
     # return data if dowrite is false (for debugging)
     return data
-    
+
+    # header, isVerbose = False, dowrite=True, 
+    #                  write_nc=False, combine=False, runname=''
+
+def _process_one_file_wrapper(argumentlist):
+    # Calls process_one_file but arguments are a list so it can be threaded
+    for thisHeaderOpts in argumentlist:
+        process_one_file(header=thisHeaderOpts[0],
+                        isVerbose=thisHeaderOpts[1],
+                        dowrite=True,
+                        write_nc=thisHeaderOpts[2],
+                        combine=thisHeaderOpts[3],
+                        runname=thisHeaderOpts[4])
+
+def process_all_headers(headers, doRemove=True,
+                        write_nc=False, combine=False, runname='',
+                        isVerbose=False, doParallel=True):
+
+    # Dict of {output type: [header files]}
+    headers_by_type = {}
+
+    # Process each single header:
+    for head in headers:
+        # Attempt to process file:
+        if (isVerbose):
+            print(f' --> Processing {head}')
+
+        if os.path.exists("../../PostGITM.exe"):
+            if write_nc:
+                raise ValueError(
+                    "Cannot use PostGITM and netCDF at the same time, yet."
+                    "\n  >> either remove PostGITM.exe or disable -nc option")
+            # Check if we can use the old postprocessor. it's faster.
+            # Pipe the header filename into PostGITM.exe
+            run(f"echo {head} | ../../PostGITM.exe ", check=True, shell=True)
+        else:
+            if doParallel:
+                thisType = head.split('_')[0]
+                # Build dict of
+                headerlist = headers_by_type.get(thisType, [])
+                headerlist.append(head)
+                headers_by_type[thisType] = headerlist
+            else:
+                process_one_file(head, isVerbose=isVerbose, 
+                                 write_nc=write_nc, combine=combine, runname=runname)
+
+        if (doRemove) and not doParallel:
+            remove_files(head, isVerbose = isVerbose)
+
+    if doParallel:
+        # python multiprocessing doesn't love being called with multiple arguments.
+        # Build lists we can iterate over - length is # of spawned workers (# of output types)
+        # To preserve time integrity, headers from each output type are processed sequentially
+        # -> headers glob is sorted by time
+        arglists = []
+        for outtype, theseHeaders in headers_by_type.items():
+            these_args = []
+            for file in theseHeaders:
+                these_args.append([file, isVerbose, write_nc, combine, runname])
+            arglists.append(these_args)
+        with Pool(len(arglists)) as pool:
+            pool.map(_process_one_file_wrapper, arglists)
+
+        for head in headers:
+            if (doRemove) and not doParallel:
+                remove_files(head, isVerbose = isVerbose)
+
 
 def post_process_gitm(dir, doRemove, isVerbose = False,
-                      write_nc=False, combine=False, runname=''):
+                      write_nc=False, combine=False, runname='',
+                      doParallel=True):
 
     # Get into the correct directory for processing
     processDir = dir
@@ -537,27 +605,11 @@ def post_process_gitm(dir, doRemove, isVerbose = False,
         print('Found %i files to process' % len(headers))
     elif len(headers) == 0:
         print(" -> Did not find any files to process.")
-    
-    # Process each single header:
-    for head in headers:
-        # Attempt to process file:
-        if (isVerbose):
-            print(f' --> Processing {head}')
 
-        if os.path.exists("../../PostGITM.exe"):
-            if write_nc:
-                raise ValueError(
-                    "Cannot use PostGITM and netCDF at the same time, yet."
-                    "\n  >> either remove PostGITM.exe or disable -nc option")
-            # Check if we can use the old postprocessor. it's faster.
-            # Pipe the header filename into PostGITM.exe
-            run(f"echo {head} | ../../PostGITM.exe ", check=True, shell=True)
-        else:
-            process_one_file(head, isVerbose=isVerbose, 
-                            write_nc=write_nc, combine=combine, runname=runname)
-
-        if (doRemove):
-            remove_files(head, isVerbose = isVerbose)
+    # Actual processing was refactored for cleanliness
+    process_all_headers(headers, doRemove=doRemove,
+                        write_nc=write_nc, combine=combine, runname=runname,
+                        isVerbose=isVerbose, doParallel=doParallel)
 
     if (isVerbose):
         print('Moving into old directory : ', cwd)
