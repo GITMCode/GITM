@@ -454,7 +454,7 @@ contains
     nVarSpec = 0
     if (UseSpectrumAurora) nVarSpec = 2
     if (present(NameVarSpec_V) .and. nVarSpec > 0) &
-        NameVarSpec_V = (/'hyd', 'ele'/)
+      NameVarSpec_V = (/'hyd', 'ele'/)
 
     nEngUA = ED_N_Energies
     if (present(EngUA)) then

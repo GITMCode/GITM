@@ -1447,8 +1447,8 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
       LatBoundSouth = 0.0
       do j = iEquator, 1, -1
         PotAtLat = maxval(abs(FullPotentialMC(1:nMagLons, j)))
-        if (PotAtLat > 0.05 * PeakPot) then
-          LatBoundSouth = (j - 1) * MagLatRes
+        if (PotAtLat > 0.05*PeakPot) then
+          LatBoundSouth = (j - 1)*MagLatRes
           exit
         endif
       enddo
@@ -1457,8 +1457,8 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
       LatBoundNorth = 0.0
       do j = iEquator, nMagLats
         PotAtLat = maxval(abs(FullPotentialMC(1:nMagLons, j)))
-        if (PotAtLat > 0.05 * PeakPot) then
-          LatBoundNorth = (nMagLats - j) * MagLatRes
+        if (PotAtLat > 0.05*PeakPot) then
+          LatBoundNorth = (nMagLats - j)*MagLatRes
           exit
         endif
       enddo
@@ -1470,7 +1470,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
       ! LatBoundOffset must be < DynamoHighLatBoundary - 2*MagLatRes
       LatBoundOffset = max(LatBoundOffset, 20.0)
       LatBoundOffset = min(LatBoundOffset, &
-        DynamoHighLatBoundary - 3.0 * MagLatRes)
+                           DynamoHighLatBoundary - 3.0*MagLatRes)
 
       ! Smoothing: limit change to ±2 deg per timestep
       if (PrevLatBoundOffset >= 0.0) then
@@ -1484,61 +1484,61 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
 
     else
       ! No potential available yet — use default
-  
-    PeakPot = maxval(abs(FullPotentialMC(1:nMagLons, :)))
 
-    if (PeakPot > 0.0) then
+      PeakPot = maxval(abs(FullPotentialMC(1:nMagLons, :)))
 
-      ! Scan southern hemisphere (j=1 is most southern) equatorward
-      LatBoundSouth = DynamoHighLatBoundary
-      do j = 1, iEquator
-        PotAtLat = maxval(abs(FullPotentialMC(1:nMagLons, j)))
-        if (PotAtLat < 0.05 * PeakPot) then
-          ! Convert grid index to latitude offset from grid edge
-          LatBoundSouth = (j - 1) * MagLatRes
-        else
-          exit
+      if (PeakPot > 0.0) then
+
+        ! Scan southern hemisphere (j=1 is most southern) equatorward
+        LatBoundSouth = DynamoHighLatBoundary
+        do j = 1, iEquator
+          PotAtLat = maxval(abs(FullPotentialMC(1:nMagLons, j)))
+          if (PotAtLat < 0.05*PeakPot) then
+            ! Convert grid index to latitude offset from grid edge
+            LatBoundSouth = (j - 1)*MagLatRes
+          else
+            exit
+          endif
+        enddo
+
+        ! Scan northern hemisphere (j=nMagLats is most northern) equatorward
+        LatBoundNorth = DynamoHighLatBoundary
+        do j = nMagLats, iEquator, -1
+          PotAtLat = maxval(abs(FullPotentialMC(1:nMagLons, j)))
+          if (PotAtLat < 0.05*PeakPot) then
+            ! Convert grid index to latitude offset from grid edge
+            LatBoundNorth = (nMagLats - j)*MagLatRes
+          else
+            exit
+          endif
+        enddo
+
+        ! Use the more conservative (equatorward) boundary to keep symmetric
+        LatBoundOffset = min(LatBoundSouth, LatBoundNorth)
+
+        ! Floor: ensure solver domain has enough latitudes (at least 4)
+        ! LatBoundOffset must be < DynamoHighLatBoundary - 2*MagLatRes
+        LatBoundOffset = max(LatBoundOffset, 20.0)
+        LatBoundOffset = min(LatBoundOffset, &
+                             DynamoHighLatBoundary - 3.0*MagLatRes)
+
+        ! Smoothing: limit change to ±2 deg per timestep
+        if (PrevLatBoundOffset >= 0.0) then
+          if (LatBoundOffset > PrevLatBoundOffset + 2.0) then
+            LatBoundOffset = PrevLatBoundOffset + 2.0
+          elseif (LatBoundOffset < PrevLatBoundOffset - 2.0) then
+            LatBoundOffset = PrevLatBoundOffset - 2.0
+          endif
         endif
-      enddo
+        PrevLatBoundOffset = LatBoundOffset
 
-      ! Scan northern hemisphere (j=nMagLats is most northern) equatorward
-      LatBoundNorth = DynamoHighLatBoundary
-      do j = nMagLats, iEquator, -1
-        PotAtLat = maxval(abs(FullPotentialMC(1:nMagLons, j)))
-        if (PotAtLat < 0.05 * PeakPot) then
-          ! Convert grid index to latitude offset from grid edge
-          LatBoundNorth = (nMagLats - j) * MagLatRes
-        else
-          exit
-        endif
-      enddo
-
-      ! Use the more conservative (equatorward) boundary to keep symmetric
-      LatBoundOffset = min(LatBoundSouth, LatBoundNorth)
-
-      ! Floor: ensure solver domain has enough latitudes (at least 4)
-      ! LatBoundOffset must be < DynamoHighLatBoundary - 2*MagLatRes
-      LatBoundOffset = max(LatBoundOffset, 20.0)
-      LatBoundOffset = min(LatBoundOffset, &
-        DynamoHighLatBoundary - 3.0 * MagLatRes)
-
-      ! Smoothing: limit change to ±2 deg per timestep
-      if (PrevLatBoundOffset >= 0.0) then
-        if (LatBoundOffset > PrevLatBoundOffset + 2.0) then
-          LatBoundOffset = PrevLatBoundOffset + 2.0
-        elseif (LatBoundOffset < PrevLatBoundOffset - 2.0) then
-          LatBoundOffset = PrevLatBoundOffset - 2.0
-        endif
+      else
+        ! No potential available yet — use default
+        LatBoundOffset = 45.0
       endif
-      PrevLatBoundOffset = LatBoundOffset
 
-    else
-      ! No potential available yet — use default
-      LatBoundOffset = 45.0
-    endif
-
-    if (iDebugLevel > 0) &
-      write(*, *) "=> Dynamic LatBoundOffset: ", LatBoundOffset
+      if (iDebugLevel > 0) &
+        write(*, *) "=> Dynamic LatBoundOffset: ", LatBoundOffset
 
     endif
 
@@ -1555,10 +1555,10 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
   ! iStart/iEnd are the boundary indices for the solver domain.
   ! Solver solves interior points iStart+1 to iEnd-1.
   ! When LatBoundOffset=0: iStart=1, iEnd=nMagLats -> same as original.
-  iStart = nint(LatBoundOffset / MagLatRes) + 1
+  iStart = nint(LatBoundOffset/MagLatRes) + 1
   iEnd = nMagLats - iStart + 1
   nLatsToSolve = iEnd - iStart + 1
-  nX = (nLatsToSolve - 2) * nMagLons
+  nX = (nLatsToSolve - 2)*nMagLons
 
   ! Store in module for matvec_gitm
   iLatSolveStart = iStart
@@ -1567,7 +1567,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
   allocate(x(nX), y(nX), rhs(nX), b(nX), &
            d_I(nX), e_I(nX), e1_I(nX), f_I(nX), f1_I(nX))
 
-  do iLat=iStart+1,iEnd-1
+  do iLat = iStart + 1, iEnd - 1
     do iLon = 1, nMagLons
 
       iI = iI + 1
@@ -1593,14 +1593,14 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
       ! ilon, ilat+1
       f1_I(iI) = solver_b_mc(iLon, iLat) + solver_d_mc(iLon, iLat)
 
-      if (iLat == iStart+1) then
-        b(iI) = b(iI)-(solver_b_mc(iLon, iLat)-solver_d_mc(iLon, iLat)) * &
-          FullPotentialMC(iLon, iStart)
+      if (iLat == iStart + 1) then
+        b(iI) = b(iI) - (solver_b_mc(iLon, iLat) - solver_d_mc(iLon, iLat))* &
+                FullPotentialMC(iLon, iStart)
         e1_I(iI) = 0.0
       endif
-      if (iLat == iEnd-1) then
-        b(iI) = b(iI)-(solver_b_mc(iLon, iLat)+solver_d_mc(iLon, iLat)) * &
-          FullPotentialMC(iLon, iEnd)
+      if (iLat == iEnd - 1) then
+        b(iI) = b(iI) - (solver_b_mc(iLon, iLat) + solver_d_mc(iLon, iLat))* &
+                FullPotentialMC(iLon, iEnd)
         f1_I(iI) = 0.0
       endif
 
@@ -1649,17 +1649,17 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
     write(*, *) "=> gmres : ", MaxIteration, Residual, nIteration, iError
 
   iI = 0
-  do iLat=iStart+1,iEnd-1
-    do iLon=1,nMagLons
+  do iLat = iStart + 1, iEnd - 1
+    do iLon = 1, nMagLons
       iI = iI + 1
       DynamoPotentialMC(iLon, iLat) = x(iI)
     enddo
   enddo
 
   !----------- Subtract the equatorial average dynamo potential ---------
-  AvgDyn = SUM(DynamoPotentialMC(:,iEquator))/SIZE(DynamoPotentialMC(:,iEquator))  ! use as the equatorial average 
-  do iLat=iStart+1,iEnd-1
-    do iLon=1,nMagLons
+  AvgDyn = SUM(DynamoPotentialMC(:, iEquator))/SIZE(DynamoPotentialMC(:, iEquator))  ! use as the equatorial average
+  do iLat = iStart + 1, iEnd - 1
+    do iLon = 1, nMagLons
       DynamoPotentialMC(iLon, iLat) = DynamoPotentialMC(iLon, iLat) - AvgDyn
     enddo
   enddo

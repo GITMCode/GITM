@@ -413,50 +413,50 @@ contains
 
     integer :: iDir
 
-  iVelo = IVelocity(:, :, :, :, iBlock)
-  eVelo = ExB(:, :, :, :)
+    iVelo = IVelocity(:, :, :, :, iBlock)
+    eVelo = ExB(:, :, :, :)
 
-  JuTotal = 0.0
+    JuTotal = 0.0
 
-  do iDir = 1, 3
-    JuTotal(:, :, :, iDir) = IDensityS(:, :, :, ie_, iBlock)*Element_Charge* &
-                             (iVelo(:, :, :, iDir) - eVelo(:, :, :, iDir))
+    do iDir = 1, 3
+      JuTotal(:, :, :, iDir) = IDensityS(:, :, :, ie_, iBlock)*Element_Charge* &
+                               (iVelo(:, :, :, iDir) - eVelo(:, :, :, iDir))
 
-    OverB0(:, :, :, iDir) = B0(:, :, :, iDir, iBlock)/B0(:, :, :, iMag_, iBlock)**2
-  enddo
+      OverB0(:, :, :, iDir) = B0(:, :, :, iDir, iBlock)/B0(:, :, :, iMag_, iBlock)**2
+    enddo
 
-  do iAlt = -1, nAlts + 2
-    do iLat = -1, nLats + 2
-      do iLon = -1, nLons + 2
-        JuTotalDotB(iLon, iLat, iAlt) = sum( &
-                                        JuTotal(iLon, iLat, iAlt, 1:3)* &
-                                        B0(iLon, iLat, iAlt, 1:3, iBlock))
+    do iAlt = -1, nAlts + 2
+      do iLat = -1, nLats + 2
+        do iLon = -1, nLons + 2
+          JuTotalDotB(iLon, iLat, iAlt) = sum( &
+                                          JuTotal(iLon, iLat, iAlt, 1:3)* &
+                                          B0(iLon, iLat, iAlt, 1:3, iBlock))
+        enddo
       enddo
     enddo
-  enddo
 
-  DivJPerp = 0.0
-  do iDir = 1, 3
-    call UAM_Gradient_GC(JuTotal(:, :, :, iDir), Gradient_GC, iBlock)
-    DivJPerp(:, :, :) = DivJPerp(:, :, :) + Gradient_GC(:, :, :, iDir)
+    DivJPerp = 0.0
+    do iDir = 1, 3
+      call UAM_Gradient_GC(JuTotal(:, :, :, iDir), Gradient_GC, iBlock)
+      DivJPerp(:, :, :) = DivJPerp(:, :, :) + Gradient_GC(:, :, :, iDir)
 
-    call UAM_Gradient_GC(JuTotalDotB(:, :, :), Gradient_GC, iBlock)
-    DivJPerp(:, :, :) = DivJPerp(:, :, :) - Gradient_GC(:, :, :, iDir) &
-                        *B0(:, :, :, iDir, iBlock)/B0(:, :, :, iMag_, iBlock)**2
+      call UAM_Gradient_GC(JuTotalDotB(:, :, :), Gradient_GC, iBlock)
+      DivJPerp(:, :, :) = DivJPerp(:, :, :) - Gradient_GC(:, :, :, iDir) &
+                          *B0(:, :, :, iDir, iBlock)/B0(:, :, :, iMag_, iBlock)**2
 
-    call UAM_Gradient_GC(OverB0(:, :, :, iDir), Gradient_GC, iBlock)
-    DivJPerp(:, :, :) = DivJPerp(:, :, :) - Gradient_GC(:, :, :, iDir) &
-                        *JuTotalDotB(:, :, :)
-  enddo
+      call UAM_Gradient_GC(OverB0(:, :, :, iDir), Gradient_GC, iBlock)
+      DivJPerp(:, :, :) = DivJPerp(:, :, :) - Gradient_GC(:, :, :, iDir) &
+                          *JuTotalDotB(:, :, :)
+    enddo
 
-  PartialJPara = -DivJPerp
+    PartialJPara = -DivJPerp
 
     JParaAlt = 0.0
     do iAlt = 1, nAlts
       JParaAlt(:, :) = JParaAlt(:, :) - DivJPerp(:, :, iAlt)*dAlt_GB(:, :, iAlt, iBlock)
     enddo
 
-end Subroutine calc_thermoelectric_current
+  end Subroutine calc_thermoelectric_current
 
 end subroutine calc_electron_ion_temperature
 

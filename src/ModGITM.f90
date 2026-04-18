@@ -192,7 +192,7 @@ contains
   !=========================================================================
   subroutine init_mod_gitm
     use ModSources, only: eSpectralFlux, iSpectralFlux, ED_N_Energies, &
-      ED_eFlux_Stored, ED_iFlux_Stored
+                          ED_eFlux_Stored, ED_iFlux_Stored
 
     if (allocated(dLonDist_GB)) RETURN
     allocate(dLonDist_GB(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2, nBlocks))

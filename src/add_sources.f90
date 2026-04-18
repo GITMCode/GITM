@@ -158,5 +158,4 @@ subroutine add_sources
     call check_for_nans_temps("After Sources")
   endif
 
-
 end subroutine add_sources
