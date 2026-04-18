@@ -578,7 +578,7 @@ def process_all_headers(headers, doRemove=True,
             pool.map(_process_one_file_wrapper, arglists)
 
         for head in headers:
-            if (doRemove) and not doParallel:
+            if doRemove:
                 remove_files(head, isVerbose = isVerbose)
 
 
