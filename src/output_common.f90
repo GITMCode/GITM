@@ -24,14 +24,14 @@ integer function bad_outputtype()
 
   implicit none
 
-  integer, parameter :: nValidTypes = 27
+  integer, parameter :: nValidTypes = 28
   integer :: j, iOutputType
   logical :: IsFound
 
   character(len=5) :: NameValidTypes(nValidTypes)
 
   ! Set up all possible/valid plot types:
-  NameValidTypes = (/'3DALL', '3DLST', '3DNEU', '3DION', '3DTHM', '3DCHM', &
+  NameValidTypes = (/'3DALL', '3DSOM', '3DLST', '3DNEU', '3DION', '3DTHM', '3DCHM', &
                      '3DUSR', '3DGLO', '3DMAG', '3DHME', '3DPOT', '3DEDF', &
                      '2DGEL', '2DMEL', '2DUSR', '2DTEC', '2DANC', '2DHME', &
                      '1DALL', '1DGLO', '1DTHM', '1DNEW', '1DCHM', '1DCMS', '1DUSR', &
@@ -274,6 +274,11 @@ subroutine output(dir, iBlock, iOutputType)
 
     nvars_to_write = 13 + nSpeciesTotal + nSpecies + nIons
     call output_3dall(iBlock)
+  
+  case ('3DSOM')
+
+    nvars_to_write = 8
+    call output_3dsom(iBlock)
 
   case ('3DLST')
 
@@ -931,6 +936,16 @@ contains
 
     endif
 
+    if (cType == "3DSOM") then
+
+      write(iOutputUnit_, "(I7,A1,a)") 4, " ", "Rho (kg/m3)"
+      write(iOutputUnit_, "(I7,A1,a)") 5, " ", "["//cIons(nIons)//"]"
+      write(iOutputUnit_, "(I7,A1,a)") iOff + 1, " ", "Temperature"
+      write(iOutputUnit_, "(I7,A1,a)") iOff + 1, " ", "eTemperature"
+      write(iOutputUnit_, "(I7,A1,a)") iOff + 1, " ", "iTemperature"
+
+    endif
+
   end subroutine output_header
 
   subroutine output_header_new
@@ -1191,6 +1206,41 @@ subroutine output_3dall(iBlock)
   enddo
 
 end subroutine output_3dall
+
+!----------------------------------------------------------------
+! 3DSOM(E) - some variables. Not all! Simple diagnostics
+!----------------------------------------------------------------
+
+subroutine output_3dsom(iBlock)
+
+  use ModGITM
+  use ModInputs
+
+  implicit none
+
+  integer, intent(in) :: iBlock
+  integer :: iAlt, iLat, iLon, iiAlt, iiLat, iiLon, i
+
+  do iAlt = -1, nAlts + 2
+    iiAlt = max(min(iAlt, nAlts), 1)
+    do iLat = -1, nLats + 2
+      iiLat = min(max(iLat, 1), nLats)
+      do iLon = -1, nLons + 2
+        iiLon = min(max(iLon, 1), nLons)
+        write(iOutputUnit_) &
+          Longitude(iLon, iBlock), &
+          Latitude(iLat, iBlock), &
+          Altitude_GB(iLon, iLat, iAlt, iBlock), &
+          Rho(iLon, iLat, iAlt, iBlock), &
+          IDensityS(iLon, iLat, iAlt, nIons, iBlock), &
+          Temperature(iLon, iLat, iAlt, iBlock)*TempUnit(iLon, iLat, iAlt), &
+          eTemperature(iLon, iLat, iAlt, iBlock), &
+          ITemperature(iLon, iLat, iAlt, iBlock)
+      enddo
+    enddo
+  enddo
+
+end subroutine output_3dsom
 
 !----------------------------------------------------------------
 !
