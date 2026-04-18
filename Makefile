@@ -127,6 +127,7 @@ rundir:
 			ln -s ${UADIR}/srcData/* DataIn; rm -f DataIn/CVS; \
 			ln -s ${UADIR}/data/* DataIn;    rm -f DataIn/CVS; \
 			ln -s ${EIEDIR}/data/ext extIE; \
+			ln -s data/ plots;  
 	# For legacy postprocessor. If user has already run make POST, take those files:
 	cd ${RUNDIR} ; \
 		if [ -e ${UADIR}/src/PostGITM.exe ]; then \
