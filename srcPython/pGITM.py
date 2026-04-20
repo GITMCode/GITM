@@ -574,6 +574,8 @@ def process_all_headers(headers, doRemove=True,
             for file in theseHeaders:
                 these_args.append([file, isVerbose, write_nc, combine, runname])
             arglists.append(these_args)
+        if len(arglists) == 0:
+            return
         with Pool(len(arglists)) as pool:
             pool.map(_process_one_file_wrapper, arglists)
 
