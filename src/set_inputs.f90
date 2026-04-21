@@ -37,7 +37,7 @@ subroutine set_inputs
   integer :: iDebugProc = 0
   character(len=iCharLen_) :: cLine
   integer :: iLine, iSpecies, iSat
-  integer :: i, iError, iOutputTypes, iErrorFile, iFreq, iFile
+  integer :: i, iError, iErrorTMP, iOutputTypes, iErrorFile, iFreq, iFile
   integer, dimension(7) :: iTimeEnd
   integer :: iUnitFile = UnitTmp_
 
@@ -1728,14 +1728,14 @@ subroutine set_inputs
 
       case ("#EUV_DATA")
         call read_in_logical(UseEUVData, iError)
-        call read_in_string(cEUVFile, iError)
+        call read_in_string(cEUVFile, iErrorTMP)
 
-        if (iError /= 0) then
+        if ((iError /= 0) .or. (iErrorTMP/=0)) then
           write(*, *) 'Incorrect format for #EUV_DATA'
           write(*, *) 'This is for a FISM or some other solar spectrum file.'
           write(*, *) '#EUV_DATA'
           write(*, *) 'UseEUVData            (logical)'
-          write(*, *) 'cEUVFile              (string)'
+          write(*, *) 'cEUVFile              (string, optional. Auto-detected if nothing is given)'
         else
           ! Framework runs don't have endtime yet. Just set EUV later when it's needed.
           if (UseEUVData .and. .not. IsFramework) call Set_Euv(iError, CurrentTime, EndTime)

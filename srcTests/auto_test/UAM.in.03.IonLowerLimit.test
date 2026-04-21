@@ -66,7 +66,8 @@ From 1990 - 2018, it is best to use FISM (and need F107 too!)
 
 #EUV_DATA
 T						Use FISM solar flux data
-UA/DataIn/FISM/fismflux_daily_2002.dat		Filename
+
+^^ Empty to auto-detect which FISM file to use
 
 #ELECTRODYNAMICS
 FTA

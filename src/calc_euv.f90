@@ -826,6 +826,7 @@ subroutine Set_Euv(iError, StartTime, EndTime)
   real(Real8_), intent(in) :: EndTime, StartTime
 
   character(len=20)                       :: line, cline
+  character(len=4)                        :: strYr
   integer, dimension(7)                   :: TimeOfFlare, TimeArray
   real, dimension(6 + Num_Wavelengths_High) :: temp
 
@@ -851,6 +852,15 @@ subroutine Set_Euv(iError, StartTime, EndTime)
   ReReadEUVFile = .false.
 
   cline = ' '
+
+  ! Look for fism file automatically
+  if (trim(cEUVFile) == "auto") then
+    ! Get year as int
+    call time_real_to_int(StartTime, TimeArray)
+    ! Get year as str
+    call i2s(TimeArray(1), strYr, 4)
+    cEUVFile = "UA/DataIn/FISM/fismflux_daily_"//strYr//".dat"
+  endif
 
   inquire(file=cEUVFile, EXIST=IsThere)
   if (.not. IsThere) &

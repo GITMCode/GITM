@@ -358,7 +358,7 @@ module ModInputs
   logical                   :: UseRidleyEUV = .false.
 
   logical                   :: UseEUVData = .false.
-  character(len=iCharLen_) :: cEUVFile
+  character(len=iCharLen_) :: cEUVFile = "auto"
 
   !\
   ! Eclipse Information

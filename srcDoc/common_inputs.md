@@ -338,11 +338,11 @@ UA/DataIn/f107.txt
 ```
 It should be noted that MSIS also needs F10.7, so really this command should be included in every UAM.in file.
 
-In addition, GITM can use the Flare Irradiance Spectrum Model specification of the EUV flux.  Daily values of FISM can be used unless you are doing a flare study.  These daily values are included with GITM and can be found in UA/DataIn/FISM.  As an example, a yearly file can be used with the command (for example):
+In addition, GITM can use the Flare Irradiance Spectrum Model specification of the EUV flux.  Daily values of FISM can be used unless you are doing a flare study.  These daily values are included with GITM and can be found in UA/DataIn/FISM. These files are automatically detected, but a different file can be specified, for example:
 ```bash
 #EUV_DATA
 T                                               Use FISM solar flux data
-UA/DataIn/FISM/fismflux_daily_2002.dat          Filename for specific year
+UA/DataIn/FISM/fismflux_daily_2002.dat          Specific file, optional. Leave empty to auto-detect
 ```
 
 An example from the FISM model is shown below.
