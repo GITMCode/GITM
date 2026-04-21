@@ -1185,8 +1185,9 @@ subroutine set_inputs
           call read_in_real(MaxResidual, iError)
           call read_in_logical(IncludeCowling, iError)
           call read_in_real(DynamoLonAverage, iError)
+          call read_in_logical(SimplyAddPotentials, iErrorTMP)
         endif
-        if (iError /= 0) then
+        if ((iError /= 0) .or. (iErrorTMP/=0)) then
           write(*, *) 'Incorrect format for #DYNAMO:'
           write(*, *) ''
           write(*, *) '#DYNAMO'
@@ -1198,8 +1199,7 @@ subroutine set_inputs
           write(*, *) "DynamoLonAverage       (real)"
           write(*, *) "SimplyAddPotentials      (logical, optional. default=False)"
         endif
-        call read_in_logical(SimplyAddPotentials, iError)
-        if (iError /= 0) iError = 0
+        if (iErrorTMP /= 0) iErrorTMP = 0
 
       case ("#IONFORCING")
         call read_in_logical(UseExB, iError)
@@ -1736,6 +1736,7 @@ subroutine set_inputs
           write(*, *) '#EUV_DATA'
           write(*, *) 'UseEUVData            (logical)'
           write(*, *) 'cEUVFile              (string, optional. Auto-detected if nothing is given)'
+          iErrorTMP = 0
         else
           ! Framework runs don't have endtime yet. Just set EUV later when it's needed.
           if (UseEUVData .and. .not. IsFramework) call Set_Euv(iError, CurrentTime, EndTime)
