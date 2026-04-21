@@ -819,6 +819,7 @@ subroutine Set_Euv(iError, StartTime, EndTime)
   use ModKind
   use ModEUV
   use ModInputs
+  use ModGITM, only: iProc
 
   implicit none
 
@@ -827,6 +828,7 @@ subroutine Set_Euv(iError, StartTime, EndTime)
 
   character(len=20)                       :: line, cline
   character(len=4)                        :: strYr
+  character(len=iCharLen_)                :: cEuvFileAuto
   integer, dimension(7)                   :: TimeOfFlare, TimeArray
   real, dimension(6 + Num_Wavelengths_High) :: temp
 
@@ -853,18 +855,22 @@ subroutine Set_Euv(iError, StartTime, EndTime)
 
   cline = ' '
 
-  ! Look for fism file automatically
-  if (trim(cEUVFile) == "auto") then
-    ! Get year as int
-    call time_real_to_int(StartTime, TimeArray)
-    ! Get year as str
-    call i2s(TimeArray(1), strYr, 4)
-    cEUVFile = "UA/DataIn/FISM/fismflux_daily_"//strYr//".dat"
-  endif
-
+  ! Look for a fism file automatically
+  call time_real_to_int(StartTime, TimeArray)
+  ! Get year as str
+  call i2s(TimeArray(1), strYr, 4)
+  cEUVFileAuto = "UA/DataIn/FISM/fismflux_daily_"//strYr//".dat"
+  
   inquire(file=cEUVFile, EXIST=IsThere)
-  if (.not. IsThere) &
-    call stop_gitm(trim(cEUVFile)//" cannot be found by read_inputs")
+  if (.not. IsThere) then ! If provided file doesn't exist, look for auto
+    inquire(file=cEUVFileAuto, EXIST=IsThere)
+    if (.not. IsThere) then ! Only complain about provided EUV file name
+      call stop_gitm(trim(cEUVFile)//" cannot be found by read_inputs")
+    else ! use auto file
+      cEuvFile = cEuvFileAuto
+      if (iProc == 0) write(*, *) " -> Using EUV File: ", trim(cEUVFile)
+    endif
+  endif
 
   open(unit=iInputUnit_, file=cEUVFile, status="old", IOSTAT=iError)
 

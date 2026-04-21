@@ -37,7 +37,7 @@ subroutine set_inputs
   integer :: iDebugProc = 0
   character(len=iCharLen_) :: cLine
   integer :: iLine, iSpecies, iSat
-  integer :: i, iError, iErrorTMP, iOutputTypes, iErrorFile, iFreq, iFile
+  integer :: i, iError, iOutputTypes, iErrorFile, iFreq, iFile
   integer, dimension(7) :: iTimeEnd
   integer :: iUnitFile = UnitTmp_
 
@@ -1185,9 +1185,8 @@ subroutine set_inputs
           call read_in_real(MaxResidual, iError)
           call read_in_logical(IncludeCowling, iError)
           call read_in_real(DynamoLonAverage, iError)
-          call read_in_logical(SimplyAddPotentials, iErrorTMP)
         endif
-        if ((iError /= 0) .or. (iErrorTMP/=0)) then
+        if (iError /= 0) then
           write(*, *) 'Incorrect format for #DYNAMO:'
           write(*, *) ''
           write(*, *) '#DYNAMO'
@@ -1199,7 +1198,8 @@ subroutine set_inputs
           write(*, *) "DynamoLonAverage       (real)"
           write(*, *) "SimplyAddPotentials      (logical, optional. default=False)"
         endif
-        if (iErrorTMP /= 0) iErrorTMP = 0
+        call read_in_logical(SimplyAddPotentials, iError)
+        if (iError /= 0) iError = 0
 
       case ("#IONFORCING")
         call read_in_logical(UseExB, iError)
@@ -1728,19 +1728,23 @@ subroutine set_inputs
 
       case ("#EUV_DATA")
         call read_in_logical(UseEUVData, iError)
-        call read_in_string(cEUVFile, iErrorTMP)
 
-        if ((iError /= 0) .or. (iErrorTMP/=0)) then
+        if (iError /= 0) then
           write(*, *) 'Incorrect format for #EUV_DATA'
           write(*, *) 'This is for a FISM or some other solar spectrum file.'
           write(*, *) '#EUV_DATA'
           write(*, *) 'UseEUVData            (logical)'
           write(*, *) 'cEUVFile              (string, optional. Auto-detected if nothing is given)'
-          iErrorTMP = 0
-        else
-          ! Framework runs don't have endtime yet. Just set EUV later when it's needed.
-          if (UseEUVData .and. .not. IsFramework) call Set_Euv(iError, CurrentTime, EndTime)
+        endif
+        call read_in_string(cEUVFile, iError)
+        if (iError /= 0) &
+          iError = 0
+
+        ! Framework runs don't have endtime yet. Just set EUV later when it's needed.
+        if (UseEUVData .and. .not. IsFramework) then
+          call Set_Euv(iError, CurrentTime, EndTime)
           if (iError /= 0) then
+            write(*, *) "With EUV File: ", trim(cEUVFile)
             call stop_gitm("Stopping after set_euv in set_inputs. Error in EUV data. Check times!")
           endif
         endif
