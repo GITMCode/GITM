@@ -87,9 +87,9 @@ subroutine write_output(doForce)
 
   do i = 1, nOutputTypes
     if (floor((tSimulation - dt)/DtPlot(i)) /= floor((tsimulation)/DtPlot(i)) &
-    .or. (tSimulation == 0.0) &
-    .or. ((tSimulation + dt) >= EndTime) &
-    .or. doWriteFile) then
+     .or. (tSimulation == 0.0) &
+     .or. doWriteFile) then
+
       ! Compute cType with same Is1D adjustment used inside output().
       cType = OutputType(i)
       if (cType(1:2) == "3D" .and. Is1D) cType(1:2) = "1D"

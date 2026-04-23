@@ -77,7 +77,7 @@ program GITM
 
     iStep = iStep + 1
 
-    call write_output
+    call write_output(.false.)
   enddo
 
   ! ------------------------------------------------------------------------
