@@ -14,6 +14,14 @@ pip install -r srcDoc/requirements.txt
 mkdocs serve
 ```
 
+[Here's a bonus tip since you opened the source code.]: #
+[This is how to add comments in markdown. These are not visible when rendered]: # 
+
+[Can be multi-line,
+or single line.
+As long at there is not an empty line between the brackets]: # 
+
+
 ---
 
 Table of contents can be inserted with
