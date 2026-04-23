@@ -673,8 +673,8 @@ contains
     real, intent(out) :: buffer(nV, nX, nY, nZ)
     integer :: iLat, iLon, iv
 
-    do iLat = 1, nMagLats
-      do iLon = 1, nMagLons + 1
+    do iLat = 1, nY
+      do iLon = 1, nX
         iv = 0
         iv = iv + 1; buffer(iv, iLon, iLat, 1) = MagLonMC(iLon, iLat) * Pi / 180.0
         iv = iv + 1; buffer(iv, iLon, iLat, 1) = MagLatMC(iLon, iLat) * Pi / 180.0

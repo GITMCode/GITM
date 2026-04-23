@@ -60,13 +60,26 @@ independent ones.
 ## netcdf
 
 The NetCDF backend uses PnetCDF[^pnetcdf] to write a single self-describing file per
-output type per timestep. All MPI ranks participate collectively, writing their interior
-grid slices[^interiorslices] directly into the correct position in the global array.
-Ghost cells are stripped automatically.
+output type per timestep. Each MPI rank writes its interior grid slices[^interiorslices]
+directly into the correct position in the global array, and ghost cells are stripped
+automatically.
 
 The result is a single `.nc` file per output type per timestep — no post-processing or
 merging is required. Files can be read directly with xarray, NCO, PyITM, or any
 NetCDF-aware tool.
+
+### Conditional participation types
+
+For output types where not all blocks write, the NetCDF backend automatically switches from
+collective to **independent I/O mode** (`nfmpi_begin_indep_data` / `nfmpi_end_indep_data`).
+This applies to:
+
+- **Magnetic grid types** (`usesMagGrid=.true.`, e.g., 2DMEL) — only block 1 has the data
+- **Regional types** (`isRegional=.true.`, e.g., 2DHME) — only blocks within the user region write
+
+Independent mode allows only certain blocks/processors to write without causing MPI collective
+operation deadlocks. The transition happens transparently during file open/close; no special
+configuration is needed.
 
 !!! note "Build requirements"
     PnetCDF must be installed and `pnetcdf-config` must be on your `PATH` when

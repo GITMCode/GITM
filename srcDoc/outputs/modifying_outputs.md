@@ -97,6 +97,8 @@ The complete set of fields on an `OutputTypeInfo` is:
 | `nGhostCells` | `integer` | Ghost cells per side: 2 (3D types) or 0 (2D/1D/0D types) |
 | `nVars` | `integer` | Number of variables registered so far (updated by `add_var`) |
 | `isUserType` | `logical` | Marks USR types; variables are registered at runtime by `init_usr_output_registry` |
+| `usesMagGrid` | `logical` | True if output is on magnetic (not geographic) coordinates. Only block 1 writes. (e.g., 2DMEL) |
+| `isRegional` | `logical` | True if output is limited to a user-defined region. Only blocks within region write. (e.g., 2DHME/HIME) **For netcdf backend, both `usesMagGrid` and `isRegional` trigger independent I/O mode.** |
 | `vars(:)` | `OutputVar` | Variable names and units, in output order |
 
 ---
@@ -261,6 +263,9 @@ subroutine register_3dmytype()
   !   nGhostCells -- 2 to include ghost cells in output, 0 for interior only
   !   info        -- pointer to the new registry slot; use it directly below
   call new_output_type('3DMYT', 3, 2, info)
+  ! Optional flags (if your type has special behavior):
+  ! info%usesMagGrid = .true.   ! if output is on magnetic (not geographic) coordinates
+  ! info%isRegional = .true.    ! if only blocks within a user-defined region write
   call add_coord_vars(info)            ! adds Longitude, Latitude, Altitude
   call add_var(info, 'My Variable', 'units')
   call add_var(info, 'Another Var',  'units')
@@ -274,6 +279,14 @@ call register_3dmytype()
 ```
 
 The 5-character type code (`3DMYT` here) is what users put in `UAM.in`.
+
+!!! info "Conditional participation flags"
+    Set flags for output types where not all blocks write:
+    
+    - **`usesMagGrid = .true.`** — Output is on magnetic coordinates; only block 1 has the data. Example: 2DMEL
+    - **`isRegional = .true.`** — Output is limited to a user-defined region; only blocks in that region write. Example: 2DHME (HIME region)
+    
+    When either flag is set, the **netcdf backend automatically switches to independent I/O mode** during writes to avoid MPI collective operation deadlocks. Other backends (legacy binary, mpiio) are unaffected but will respect the conditional participation rules.
 
 ### 2. Write the gather routine
 

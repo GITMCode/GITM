@@ -147,12 +147,14 @@ subroutine output(dir, iBlock, iOutputType)
     if (iiLon < 0 .or. iiLat < 0) return
   endif
 
-  ! Xing Meng 2020-03-16: HIME type output, save output for user-defined region only
-  ! It only works under the assumption of one block per processor
-  if (cType(3:5) == "HME") then
+  ! For regional outputs (marked with isRegional flag in registry),
+  ! check if current block falls within user-defined region (HIME bounds).
+  ! Non-zero processors return early if outside region; processor 0 continues
+  ! to write header file even outside region.
+  iTypeIdx = find_output_type(cType)
+  if (iTypeIdx > 0 .and. RegisteredTypes(iTypeIdx)%isRegional) then
     DoSaveHIMEPlot = .false.
-    ! Save the current block if any cell of this block falls into the
-    ! user-defined region, set DoSaveHIMEPlot to true
+    ! Check if any cell of this block falls into the user-defined region
     do iLat = -1, nLats + 2
       do iLon = -1, nLons + 2
         if (Longitude(iLon, iBlock) >= HIMEPlotLonStart*pi/180. &
@@ -164,8 +166,7 @@ subroutine output(dir, iBlock, iOutputType)
         endif
       enddo
     enddo
-    ! Do not write output at all if the current block is outside of the
-    ! user-defined region. iProc=0 writes the header file
+    ! Non-zero processors skip if outside region
     if (iProc /= 0 .and. .not. DoSaveHIMEPlot) return
   endif
 
@@ -292,9 +293,13 @@ subroutine output(dir, iBlock, iOutputType)
     case default  ! 0D
       nX = 1; nY = 1; nZ = 1
     end select
-    ! Gather data and write -- respecting per-type skip conditions (HME region, 2DMEL block)
+    ! Gather data and write -- respecting conditional block participation.
+    ! Regional types (isRegional=T): only write if in specified region
+    ! Magnetic grid types (usesMagGrid=T): only block 1 writes
+    ! Regular types: all blocks write
     if (nV > 0) then
-      if (cType(3:5) == 'HME') then
+      if (typeInfo%isRegional) then
+        ! Regional output: only write if block is within user-defined region
         if (DoSaveHIMEPlot) then
           allocate(outBuf(nV, nX, nY, nZ))
           call gather_output(cType, iBlock, outBuf, nV, nX, nY, nZ, &
@@ -302,15 +307,11 @@ subroutine output(dir, iBlock, iOutputType)
           call ActiveBackend%write_block(iOutputUnit_, outBuf, nV, nX, nY, nZ, iBLK)
           deallocate(outBuf)
         endif
-      elseif (cType == '2DMEL') then
-        if (iBLK == 1) then
-          allocate(outBuf(nV, nX, nY, nZ))
-          call gather_output(cType, iBlock, outBuf, nV, nX, nY, nZ, &
-                             iiLon, iiLat, iiAlt, rLon, rLat, rAlt)
-          call ActiveBackend%write_block(iOutputUnit_, outBuf, nV, nX, nY, nZ, iBLK)
-          deallocate(outBuf)
-        endif
+      elseif (typeInfo%usesMagGrid .and. iBLK /= 1) then
+        ! Magnetic grid type: only block 1 writes
+        continue
       else
+        ! Regular block-partitioned output: all blocks write their data
         allocate(outBuf(nV, nX, nY, nZ))
         call gather_output(cType, iBlock, outBuf, nV, nX, nY, nZ, &
                            iiLon, iiLat, iiAlt, rLon, rLat, rAlt)

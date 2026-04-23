@@ -35,7 +35,8 @@ module ModOutputRegistry
     integer :: nGhostCells = 2
     integer :: nVars = 0
     logical :: isUserType = .false.
-    logical :: usesMagGrid = .false.
+    logical :: usesMagGrid = .false.     ! true if on magnetic (not geographic) coordinates
+    logical :: isRegional = .false.      ! true if only blocks in specified region write
     logical :: needsInterp = .false.
     logical :: needsVtec = .false.
     type(OutputVar) :: vars(MaxVarsPerType)
@@ -555,6 +556,7 @@ contains
 
     call new_output_type('2DHME', 2, 0, info)
     info%needsVtec = .true.
+    info%isRegional = .true.
     call add_coord_vars(info)
     call add_var(info, 'Local Time', 'hr')
     call add_var(info, 'Vertical TEC', 'TECU')

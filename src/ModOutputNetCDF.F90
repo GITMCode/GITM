@@ -50,6 +50,7 @@ module ModOutputNetCDF
   ! Cached from open_file for use in write_block
   integer :: nc_nBlocksLon = 0
   integer :: nc_nDims = 3    ! spatial dims of open file: 2 or 3
+  logical :: nc_needsIndepWrite = .false.  ! whether open file uses magnetic grid
 #endif
 
 contains
@@ -64,6 +65,7 @@ contains
 #ifdef HavePNetCDF
     use ModInputs, only: nBlocksLon, nBlocksLat
     use ModSizeGitm, only: nLons, nLats, nAlts
+    use ModElectrodynamics, only: nMagLons, nMagLats
     use ModOutputRegistry, only: find_output_type, RegisteredTypes
     use ModTime, only: iTimeArray
 #endif
@@ -92,6 +94,10 @@ contains
     nDims = RegisteredTypes(iTypeIdx)%nDims
     nc_nBlocksLon = nBlocksLon
     nc_nDims = nDims
+    ! Use independent I/O mode for types where not all blocks participate:
+    ! magnetic grids (only block 1) or regional outputs (only in region)
+    nc_needsIndepWrite = RegisteredTypes(iTypeIdx)%usesMagGrid .or. &
+                         RegisteredTypes(iTypeIdx)%isRegional
 
     ! Only 2D and 3D output supported in PnetCDF backend
     if (nDims < 2) then
@@ -99,8 +105,13 @@ contains
       return
     endif
 
-    nLons_g = int(nBlocksLon * nLons, MPI_OFFSET_KIND)
-    nLats_g = int(nBlocksLat * nLats, MPI_OFFSET_KIND)
+    if (RegisteredTypes(iTypeIdx)%usesMagGrid) then
+      nLons_g = int(nMagLons + 1, MPI_OFFSET_KIND)
+      nLats_g = int(nMagLats, MPI_OFFSET_KIND)
+    else
+      nLons_g = int(nBlocksLon * nLons, MPI_OFFSET_KIND)
+      nLats_g = int(nBlocksLat * nLats, MPI_OFFSET_KIND)
+    endif
     nAlts_g = int(nAlts, MPI_OFFSET_KIND)
 
     ! --- Create file (collective across all ranks) ---
@@ -165,6 +176,16 @@ contains
     if (ierr /= NF_NOERR) &
       write(*, *) "ModOutputNetCDF: nfmpi_enddef failed: ", nfmpi_strerror(ierr)
 
+    ! For types with conditional block participation, switch to independent data mode.
+    ! This allows only some blocks/processors to write without deadlocking collective I/O.
+    ! Examples: magnetic grid types (only block 1) or regional types (only blocks in region).
+    ! All processes call this together (it's a collective operation).
+    if (RegisteredTypes(iTypeIdx)%usesMagGrid .or. RegisteredTypes(iTypeIdx)%isRegional) then
+      ierr = nfmpi_begin_indep_data(ncid)
+      if (ierr /= NF_NOERR) &
+        write(*, *) "ModOutputNetCDF: nfmpi_begin_indep_data failed: ", nfmpi_strerror(ierr)
+    endif
+
 #else
   if (iProc == 1) then
     write(*, *) ""
@@ -177,12 +198,19 @@ contains
 
   ! ==================================================================
   ! Close the PnetCDF file (collective).
+  ! If in independent data mode (magnetic grid types), exit that mode first.
   ! ==================================================================
   subroutine netcdf_close_file()
 #ifdef HavePNetCDF
     integer :: ierr
 
     if (ncid == -1) return
+    ! If we entered independent data mode for magnetic grids, exit before close.
+    if (nc_needsIndepWrite) then
+      ierr = nfmpi_end_indep_data(ncid)
+      if (ierr /= NF_NOERR) &
+        write(*, *) "ModOutputNetCDF: nfmpi_end_indep_data failed: ", nfmpi_strerror(ierr)
+    endif
     ierr = nfmpi_close(ncid)
     if (ierr /= NF_NOERR) &
       write(*, *) "ModOutputNetCDF: nfmpi_close failed: ", nfmpi_strerror(ierr)
@@ -196,6 +224,13 @@ contains
   !
   ! buffer(nV, nX, nY, nZ) — full buffer for this block
   ! iBLK                   — 1-based global block index
+  !
+  ! For types with conditionalIO flag (magnetic grids, regional outputs):
+  !   - File opened in independent data mode (via nfmpi_begin_indep_data)
+  !   - Uses non-collective nfmpi_put_vara_double; only block 1 (or blocks in
+  !     region) write; others skip without deadlock
+  ! For regular block-partitioned types:
+  !   - File in collective mode; all blocks call collective nfmpi_put_vara_double_all
   !
   ! Dispatches on nc_nDims cached from open_file:
   !   3D: strip 2 ghost cells each side; write to (lon×lat×alt) var
@@ -242,14 +277,29 @@ contains
 
     allocate(slice(nLi, nLai, nAi))
 
-    do iV = 1, nV
-      slice = buffer(iV, lo_x:hi_x, lo_y:hi_y, lo_z:hi_z)
-      ierr = nfmpi_put_vara_double_all(ncid, varids(iV), &
-                                       start(1:ndimid), cnt(1:ndimid), slice)
-      if (ierr /= NF_NOERR) &
-        write(*, *) "netcdf_write_block: put_vara_double_all failed for var ", iV, &
-                    ": ", nfmpi_strerror(ierr)
-    enddo
+    ! For magnetic grid types, use non-collective I/O to avoid MPI deadlock
+    ! (only block 1 has data to write, but all processes must reach close_file() together).
+    if (nc_needsIndepWrite) then
+      ! Non-collective put for magnetic grid types
+      do iV = 1, nV
+        slice = buffer(iV, lo_x:hi_x, lo_y:hi_y, lo_z:hi_z)
+        ierr = nfmpi_put_vara_double(ncid, varids(iV), &
+                                     start(1:ndimid), cnt(1:ndimid), slice)
+        if (ierr /= NF_NOERR) &
+          write(*, *) "netcdf_write_block: put_vara_double failed for var ", iV, &
+                      ": ", nfmpi_strerror(ierr)
+      enddo
+    else
+      ! Collective put for regular block-partitioned types
+      do iV = 1, nV
+        slice = buffer(iV, lo_x:hi_x, lo_y:hi_y, lo_z:hi_z)
+        ierr = nfmpi_put_vara_double_all(ncid, varids(iV), &
+                                         start(1:ndimid), cnt(1:ndimid), slice)
+        if (ierr /= NF_NOERR) &
+          write(*, *) "netcdf_write_block: put_vara_double_all failed for var ", iV, &
+                      ": ", nfmpi_strerror(ierr)
+      enddo
+    endif
 
     deallocate(slice)
 #endif
