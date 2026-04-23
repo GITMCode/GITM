@@ -6,6 +6,16 @@ produced during a GITM simulation.
 This script works robustly and securely on a range of
 unix-like environments with Python available
 (i.e., any modern computer.)
+
+Supports three output formats written by the GITM I/O backends.
+The output backend used during the simulation is written to .header:
+  legacy  - Per-block unformatted sequential files (.bNNNN) with an ASCII
+            .header; blocks are merged and converted to a single .bin file
+  mpiio   - A single .bin file (no record markers) with blocks at fixed
+             offsets, plus a .header. The blocks are merged and rewritten 
+             as .bin (identical to using "legacy" after processing)
+  netcdf  - Output is written directly as a complete .nc file; no .header
+             is written and no post-processing is needed.
 '''
 
 import os
@@ -273,17 +283,32 @@ def read_one_binary_file(file, nVars, nLons, nLats, nAlts, isVerbose = False):
     return data
 
 # ----------------------------------------------------------------------------
-# 
+# Read one block from mpiio binary file.
+# mpiio writes buffer(nV, nX, nY, nZ) at a fixed byte offset per block,
+# in Fortran column-major order using float32 (MPI_REAL), no record markers.
+# Returns array shaped (nVars, nAlts, nLats, nLons) to match
+# read_one_binary_file.
+# nX = nLons (with ghosts), nY = nLats (with ghosts), nZ = nAlts (with ghosts)
 # ----------------------------------------------------------------------------
 
-def delete_files(header, isVerbose = False):
+def read_mpiio_file(binfile, nVars, nX, nY, nZ, iBLK,
+                    bytes_per_real=8, isVerbose=False):
+    nWords = nVars * nX * nY * nZ
+    offset = (iBLK - 1) * nWords * bytes_per_real
+    dtype = np.float64 if bytes_per_real == 8 else np.float32
 
-    if (isVerbose):
-        print(' -> Deleting files associated with header : ', header)
+    if isVerbose:
+        print('   --> Reading mpiio block %i from : %s' % (iBLK, binfile))
+    with open(binfile, 'rb') as f:
+        f.seek(offset)
+        raw = np.frombuffer(f.read(nWords * bytes_per_real), dtype=dtype).copy()
+    # Reshape in Fortran column-major order: buffer(nV, nX, nY, nZ), nV fastest.
+    block = raw.reshape((nVars, nX, nY, nZ), order='F')
+    # Reorder to (nVars, nAlts, nLats, nLons) = (nV, nZ, nY, nX)
+    return block.transpose(0, 3, 2, 1)
 
-    
 # ----------------------------------------------------------------------------
-# 
+#
 # ----------------------------------------------------------------------------
 
 def read_header(headerFile, isVerbose = False):
@@ -305,7 +330,7 @@ def read_header(headerFile, isVerbose = False):
 
     nVars = 0
     nAlts = 0
-    
+
     isDone = False
     iLine = 0
     nLines = len(lines)
@@ -316,6 +341,8 @@ def read_header(headerFile, isVerbose = False):
         return int(smashed)
     
     headerInfo = {}
+    headerInfo['format'] = 'legacy' # Default is legacy format
+    headerInfo['bytes_per_real'] = 8  # default: GITM compiled with -fdefault-real-8
     while (not isDone):
         line = lines[iLine].strip('\n')
         smashed = line.replace(" ", "")
@@ -377,7 +404,18 @@ def read_header(headerFile, isVerbose = False):
             headerInfo['time'] = \
                 datetime.datetime(iYear, iMonth, iDay, iHour, iMinute, iSecond, iMilli)
             iLine += 4
-            
+
+        m = re.match(r'FORMAT', smashed)
+        if m:
+            fmt = lines[iLine + 1].strip().replace(" ", "")
+            headerInfo['format'] = fmt
+            iLine += 1
+
+        m = re.match(r'PRECISION', smashed)
+        if m:
+            headerInfo['bytes_per_real'] = get_int(lines[iLine + 1])
+            iLine += 1
+
         m = re.match(r'VERSION', smashed)
         if m:
             line = lines[iLine + 1]
@@ -415,21 +453,32 @@ def remove_files(header, isVerbose = False):
     if (isVerbose):
         print('  --> removing files associated with : ', header)
     headerInfo = read_header(header, isVerbose = isVerbose)
-    iBlock = 1
-    for iAltBlock in range(headerInfo['nBlocksAlt']):
-        for iLatBlock in range(headerInfo['nBlocksLat']):
-            for iLonBlock in range(headerInfo['nBlocksLon']):
-                cBlock = '.b%4.4i' % iBlock
-                file = header.replace('.header', cBlock)
-                command = 'rm -f ' + file
-                if (isVerbose):
-                    print('     --> running command : ' + command)
-                os.system(command)
-                iBlock += 1
-    command = 'rm -f ' + header
-    if (isVerbose):
-        print('     --> running command : ' + command)
-    os.system(command)
+    fmt = headerInfo.get('format', 'legacy')
+
+    if fmt == 'mpiio':
+        # mpiio: .bin was overwritten with merged output
+        # Only the .header stub needs to be removed.
+        command = 'rm -f ' + header
+        if (isVerbose):
+            print('     --> running command : ' + command)
+        os.system(command)
+    else:
+        # legacy: remove per-block .bNNNN files and .header
+        iBlock = 1
+        for _ in range(headerInfo['nBlocksAlt']):
+            for _ in range(headerInfo['nBlocksLat']):
+                for _ in range(headerInfo['nBlocksLon']):
+                    cBlock = '.b%4.4i' % iBlock
+                    file = header.replace('.header', cBlock)
+                    command = 'rm -f ' + file
+                    if (isVerbose):
+                        print('     --> running command : ' + command)
+                    os.system(command)
+                    iBlock += 1
+        command = 'rm -f ' + header
+        if (isVerbose):
+            print('     --> running command : ' + command)
+        os.system(command)
     return
 
 # ----------------------------------------------------------------------------
@@ -465,19 +514,29 @@ def process_one_file(header, isVerbose = False, dowrite=True,
         # Make the data array in reverse order so that it will write out correctly:
         data[v] = np.zeros((data['nAltsTotal'], data['nLatsTotal'], data['nLonsTotal']))
 
+    fmt = data.get('format', 'legacy')
+    mpiio_bin = header.replace('.header', '.bin') if fmt == 'mpiio' else None
+    bytes_per_real = data.get('bytes_per_real', 8)
+    nX = data['nLons'] + 2 * data['nGhostsLon']
+    nY = data['nLats'] + 2 * data['nGhostsLat']
+    nZ = data['nAlts'] + 2 * data['nGhostsAlt']
+
     # Now read in all of the binary files and put the data where it belong:
     iBlock = 1
     for iAltBlock in range(data['nBlocksAlt']):
         for iLatBlock in range(data['nBlocksLat']):
             for iLonBlock in range(data['nBlocksLon']):
-                cBlock = '.b%4.4i' % iBlock
-                file = header.replace('.header', cBlock)
-                oneFile = read_one_binary_file(file, \
-                                               data['nVars'], \
-                                               data['nLons'] + 2 * data['nGhostsLon'], \
-                                               data['nLats'] + 2 * data['nGhostsLat'], \
-                                               data['nAlts'] + 2 * data['nGhostsAlt'],
-                                               isVerbose = isVerbose)
+                if fmt == 'mpiio':
+                    oneFile = read_mpiio_file(mpiio_bin, data['nVars'],
+                                              nX, nY, nZ, iBlock,
+                                              bytes_per_real=bytes_per_real,
+                                              isVerbose=isVerbose)
+                else:
+                    cBlock = '.b%4.4i' % iBlock
+                    file = header.replace('.header', cBlock)
+                    oneFile = read_one_binary_file(file, data['nVars'],
+                                                   nX, nY, nZ,
+                                                   isVerbose=isVerbose)
 
                 iWholeLonStart, iLonStart, iWholeLonEnd, iLonEnd = \
                     determine_bounds(iLonBlock, \
@@ -540,20 +599,21 @@ def post_process_gitm(dir, doRemove, isVerbose = False,
     
     # Process each single header:
     for head in headers:
-        # Attempt to process file:
-        if (isVerbose):
-            print(f' --> Processing {head}')
+        fmt = read_header(head).get('format', 'legacy')
 
-        if os.path.exists("../../PostGITM.exe"):
+        if (isVerbose):
+            print(f' --> Processing {head} (format: {fmt})')
+
+        # PostGITM.exe only understands legacy per-block format.
+        if fmt == 'legacy' and os.path.exists("../../PostGITM.exe"):
             if write_nc:
                 raise ValueError(
                     "Cannot use PostGITM and netCDF at the same time, yet."
                     "\n  >> either remove PostGITM.exe or disable -nc option")
-            # Check if we can use the old postprocessor. it's faster.
-            # Pipe the header filename into PostGITM.exe
+            # Use the legacy Fortran postprocessor (faster).
             run(f"echo {head} | ../../PostGITM.exe ", check=True, shell=True)
         else:
-            process_one_file(head, isVerbose=isVerbose, 
+            process_one_file(head, isVerbose=isVerbose,
                             write_nc=write_nc, combine=combine, runname=runname)
 
         if (doRemove):
