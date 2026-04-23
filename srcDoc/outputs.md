@@ -2,12 +2,14 @@
 
 Now that you have managed to successfully complete a GITM run you've
 found yourself with a bunch of output files. All of the GITM output is
-in mks units and this data is contained within several files located in
-the `UA/data` directory
+in MKS units. Output files are written to the directory specified by
+`#OUTPUTDIR` in `UAM.in` (default: `UA/data`).
 
-After [postprocessing](postprocessing.md), you will find yourself with a
-`log*.dat` file,and many `.bin` files in whichever formats you specified in
-SAVEPLOT (see [`#SAVEPLOT`](set_inputs.md#saveplot)
+The format of those files depends on which [output backend](outputs/output_backends.md)
+was used during the run. After [postprocessing](postprocessing.md), you will typically
+find yourself with a `log*.dat` file and one file per output type per timestep in
+whichever formats you specified in `#SAVEPLOT`
+(see [`#SAVEPLOT`](set_inputs.md#saveplot))
 
 The log file provides useful information about the run, such as whether a
 restart was performed, which physical processes were used, and a list of some
@@ -16,10 +18,24 @@ file can be very useful when sharing runs with other users, when revisiting an
 old run, or merely ensuring that GITM performed as expected. Some example log
 files can be found in the `srcTest/auto_test/ref_solns/` directory.
 
+## Output system
+
+GITM's output system is built around a **registry** — every output type declares its
+variables once, and the backends use that metadata to write headers, size buffers, and
+assemble files. This means:
+
+- Variable lists in output headers are generated automatically from the registry.
+  They will always match the data in the file.
+- Adding a new output type or modifying the USR types only requires changes in two
+  places in the source. See [Adding new outputs](outputs/modifying_outputs.md) for
+  step-by-step instructions.
+- All three backends (`legacy`, `mpiio`, `netcdf`) work with any registered output
+  type without additional changes. See [Output backends](outputs/output_backends.md)
+  for a description of each.
+
 ## Possible Output Variables
 
-The output binary files can contain the following atmospheric
-quantities:
+The output files can contain the following atmospheric quantities and more:
 
 -   **Altitude:** Altitude from the surface of the planet (m)
 
