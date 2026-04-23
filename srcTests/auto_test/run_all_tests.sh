@@ -74,7 +74,29 @@ Arguments:
                                     off by default.
 
 "
-  exit 1
+}
+
+get_backend_from_filename(){
+  # Extract backend from filename: UAM.in.##.description.BACKEND.test
+  # Returns: legacy, mpiio, netcdf, or "unknown" if not found
+  local filename="$1"
+
+  if [[ "$filename" =~ \.(legacy|mpiio|netcdf)\.test$ ]]; then
+    echo "${BASH_REMATCH[1]}"
+  else
+    echo "unknown"
+  fi
+}
+
+is_optional_backend(){
+  # Returns 0 (true) if backend is optional, 1 (false) if required
+  local backend="$1"
+
+  if [[ "$backend" == "netcdf" ]]; then
+    return 0  # netcdf is optional
+  else
+    return 1  # legacy and mpiio are required
+  fi
 }
 
 warnsavesolution(){
@@ -103,14 +125,14 @@ Cancel with Ctrl+C
 
 checkoutputs(){
   # refactored for cleanliness
+  # Returns 0 on success, 1 on failure
 
   if [ $do_save = true ]; then
     cp UA/data/log*.dat ../ref_solns/log.$test_uam
     echo
     echo
-    echo " Created ref solution: log." $test_uam 
-
-    return;
+    echo " Created ref solution: log." $test_uam
+    return 0
   fi
 
   if [ $do_compare = true ]; then
@@ -119,25 +141,28 @@ checkoutputs(){
 
     if [ $? = 0 ]; then
       # test was a success. no differences found.
-      return 
-    
+      return 0
+
     else
       echo
       echo " ============    ERROR!!!!!    ============"
       echo "  Output differs from reference solution."
       echo "  Something has gone terribly wrong!!"
       rm GITM.DONE
-      return
+      return 1
     fi
-
   fi
-
+  return 0
 }
 
 run_a_test(){
+  # Run a single test and return status:
+  #   0 = success
+  #   1 = failure (required backend)
+  #   2 = failure (optional backend)
 
   printf "\n\n>> Testing with $test_uam ...\n"
-  # Copy UAM 
+  # Copy UAM
   ln -sf $test_uam UAM.in
   rm -f GITM.DONE
 
@@ -146,21 +171,64 @@ run_a_test(){
 
   # this will either save, or diff, the output log files.
   # (double sanity-check): only run if GITM.DONE exists & above exited with no error code.
+  local checkout_status=0
   if [[ -f GITM.DONE && $? = 0 ]]; then
     checkoutputs
+    checkout_status=$?
+  else
+    checkout_status=1
   fi
 
-  if [ -f GITM.DONE ]; then
+  if [[ -f GITM.DONE && $checkout_status = 0 ]]; then
       printf "\n\n>>> $test_uam ran successfully! <<< \n\n"
-      mv $test_uam $test_uam.success 
+      mv $test_uam $test_uam.success
       mv UA/data/log*.dat UA/data/log_$test_uam.success
       rm -f GITM.DONE
+      return 0
   else
-      printf "\n\n>>> $test_uam   UNSUCCESSFUL! <<< \n\n EXITING\n\n"
-      mv UA/data/log*.dat log_$test_uam.fail
-      exit 1
+      printf "\n\n>>> $test_uam   UNSUCCESSFUL! <<< \n\n"
+      mv UA/data/log*.dat log_$test_uam.fail 2>/dev/null
+
+      # Determine if this is optional or required backend
+      local backend=$(get_backend_from_filename "$test_uam")
+      if is_optional_backend "$backend"; then
+        return 2  # optional backend failure
+      else
+        return 1  # required backend failure
+      fi
   fi
 
+}
+
+print_summary(){
+  # Print test results summary
+  local passed_count=${#passed[@]}
+  local failed_required_count=${#failed_required[@]}
+  local failed_optional_count=${#failed_optional[@]}
+  local total_count=$((passed_count + failed_required_count + failed_optional_count))
+
+  echo ""
+  echo "============================================================"
+  echo "TEST SUMMARY"
+  echo "============================================================"
+  echo "Total tests: $total_count"
+  echo "✓ Passed: $passed_count"
+
+  if [ $failed_required_count -gt 0 ]; then
+    echo "> Failed (REQUIRED): $failed_required_count"
+    for test in "${failed_required[@]}"; do
+      echo "   - $test"
+    done
+  fi
+
+  if [ $failed_optional_count -gt 0 ]; then
+    echo "> Failed (optional): $failed_optional_count"
+    for test in "${failed_optional[@]}"; do
+      echo "   - $test (netcdf - optional feature)"
+    done
+  fi
+  echo "============================================================"
+  echo ""
 }
 
 do_tests(){
@@ -198,16 +266,52 @@ do_tests(){
 
     # begin running:
     cd run/
+
+    # Initialize result tracking arrays
+    passed=()
+    failed_required=()
+    failed_optional=()
+
     if [ $onlyone = false ]; then
       for test_uam in UAM.*.test; do
           run_a_test
+          local status=$?
+
+          if [ $status = 0 ]; then
+            passed+=("$test_uam")
+          elif [ $status = 1 ]; then
+            failed_required+=("$test_uam")
+          elif [ $status = 2 ]; then
+            failed_optional+=("$test_uam")
+          fi
       done
-      exit 0
+
+      # Print summary
+      print_summary
+
+      # Exit with error code if ANY tests failed (required or optional)
+      if [ ${#failed_required[@]} -gt 0 ] || [ ${#failed_optional[@]} -gt 0 ]; then
+        exit 1
+      else
+        exit 0
+      fi
     else # if we are only running one UAM file
       test_uam=$onlyone
       run_a_test
-      exit 0
+      local status=$?
+
+      if [ $status = 0 ]; then
+        exit 0
+      else
+        # Any test failure (required or optional) fails the workflow
+        if [ $status = 2 ]; then
+          # Optional backend failure - still fails workflow, but report as warning
+          echo ""
+          echo "⚠ Test failed: $test_uam (netcdf - optional feature)"
+        fi
+        exit 1
       fi
+    fi
 }
 
 
