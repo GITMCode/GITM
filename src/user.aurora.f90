@@ -2,26 +2,6 @@
 ! Full license can be found in LICENSE
 
 ! ----------------------------------------------------------------
-! If you want to output some specific variables, then do that here.
-! In ModUserGITM, there are two variables defined, UserData2D and UserData3D.
-! To output variables:
-! 1. Figure out which variable you want to output.
-! 2. Go into the code where the variable is set and copy it into
-!    UserData3D or UserData2D.
-! 3. Do this for each variable you want to output.
-! 4. Edit output_header_user below, making a list of all the variables
-!    that you have added.  Make sure you leave longitude, latitude, and
-!    altitude in the list of variables.
-! 5. Count the number of variables that you output (including
-!    Lon, Lat, and Alt). Change nVarsUser3d or nVarsUser2d in the
-!    subroutines towards the top of this file.
-! 6. If you add more than 40 variables, you probably should check
-!    nUserOutputs in ModUserGITM.f90 and make sure that this number is
-!    larger than the number of variables that you added.
-! 7. Recompile and run. Debug. Repeat 7.
-! ----------------------------------------------------------------
-
-! ----------------------------------------------------------------
 !
 ! ----------------------------------------------------------------
 

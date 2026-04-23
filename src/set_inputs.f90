@@ -27,6 +27,7 @@ subroutine set_inputs
   use ModIE
   use ModErrors
   use ModIoUnit, only: UnitTmp_
+  use ModOutputBackend, only: requestedBackendName
 
   implicit none
 
@@ -1469,6 +1470,13 @@ subroutine set_inputs
           write(*, *) '1DALL_GITM_yyyy-mm-ddThh-mm-ss.bin'
           write(*, *) '#CCMCFILENAME'
           write(*, *) 'UseCCMCFileName    (logical)'
+        endif
+
+      case('#OUTPUTBACKEND')
+        call read_in_string(requestedBackendName, iError)
+        if (iError /= 0) then
+          write(*, *) 'Incorrect format for #OUTPUTBACKEND'
+          write(*, *) 'Must be a string!'
         endif
 
       case ("#SAVEPLOTS", "#SAVEPLOT")
