@@ -45,20 +45,6 @@ integer function bad_outputtype()
 
 end function bad_outputtype
 
-
-pure function replace(string, charset, target_char) result(res)
-    character(*), intent(in) :: string
-    character, intent(in) :: charset(:), target_char
-    character(len(string)) :: res
-    integer :: n
-    res = string
-    do n = 1, len(string)
-        if (any(string(n:n) == charset)) then
-            res(n:n) = target_char
-        end if
-    end do
-end function replace
-
 !----------------------------------------------------------------
 ! Comments: Asad added data to allow output from RCAC
 !----------------------------------------------------------------
