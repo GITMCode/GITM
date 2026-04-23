@@ -6,6 +6,7 @@ subroutine finalize_gitm
   use ModInputs
   use ModSphereInterface
   use ModErrors
+  use ModOutputBackend, only: ActiveBackend
 
   implicit none
 
@@ -18,11 +19,7 @@ subroutine finalize_gitm
   ! if (.not. Is1D) &
   !   call UA_calc_electrodynamics(nMLTsTmp, nLatsTmp)
 
-  do iOutputType = 1, nOutputTypes
-    do iBlock = 1, nBlocks
-      call output("UA/data/", iBlock, iOutputType)
-    enddo
-  enddo
+  call write_output(.true.)
 
   if (IsOpenLogFile) close(iLogFileUnit_)
 

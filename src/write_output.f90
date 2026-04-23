@@ -10,7 +10,7 @@
 !           and satellite output).  Also calls the logfile output routine.
 !-----------------------------------------------------------------------------
 
-subroutine write_output
+subroutine write_output(doForce)
 
   use ModTime
   use ModInputs
@@ -20,9 +20,11 @@ subroutine write_output
 
   implicit none
 
+  logical, optional, intent(in) :: doForce
+  logical :: doWriteFile = .false.
   real, external :: get_timing
   real :: ProjectedTime, CompletedTime, RealTime
-  integer :: i, nMLTsTmp, nLatsTmp, iBlock
+  integer :: i, iBlock
 
   ! For cTime construction and collective open/close
   character(len=5)  :: cType
@@ -32,6 +34,8 @@ subroutine write_output
   integer :: cL
 
   logical, save :: IsFirstOutput = .true.
+
+  if (present(doForce)) doWriteFile = doForce
 
   if (floor((tSimulation - dt)/DtReport) /= &
       floor((tsimulation)/DtReport) .and. iDebugLevel >= 0) then
@@ -82,6 +86,10 @@ subroutine write_output
   endif
 
   do i = 1, nOutputTypes
+    if (floor((tSimulation - dt)/DtPlot(i)) /= floor((tsimulation)/DtPlot(i)) &
+    .or. (tSimulation == 0.0) &
+    .or. ((tSimulation + dt) >= EndTime) &
+    .or. doWriteFile) then
       ! Compute cType with same Is1D adjustment used inside output().
       cType = OutputType(i)
       if (cType(1:2) == "3D" .and. Is1D) cType(1:2) = "1D"
