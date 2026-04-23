@@ -1472,7 +1472,7 @@ subroutine set_inputs
           write(*, *) 'UseCCMCFileName    (logical)'
         endif
 
-      case('#OUTPUTBACKEND')
+      case ('#OUTPUTBACKEND')
         call read_in_string(requestedBackendName, iError)
         if (iError /= 0) then
           write(*, *) 'Incorrect format for #OUTPUTBACKEND'

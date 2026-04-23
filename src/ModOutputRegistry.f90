@@ -14,7 +14,7 @@
 !   ! info%nVars, info%vars(:) now available for headers and gather
 
 module ModOutputRegistry
-  use ModInputs, only : nMaxOutputTypes
+  use ModInputs, only: nMaxOutputTypes
 
   implicit none
 
@@ -180,7 +180,7 @@ contains
     call add_var(info, 'V!Dn!N (up)', 'm/s', 'Vv', 'vertical_neutral_velocity')
     do i = 1, nSpecies
       call add_var(info, 'V!Dn!N (up,'//trim(cSpecies(i))//')', 'm/s', &
-                  'Vv_'//trim(cSpecies(i)), 'vertical_'//trim(cSpecies(i))//'velocity')
+                   'Vv_'//trim(cSpecies(i)), 'vertical_'//trim(cSpecies(i))//'velocity')
     enddo
     do i = 1, nIons
       call add_var(info, '['//trim(cIons(i))//']', '/m3')

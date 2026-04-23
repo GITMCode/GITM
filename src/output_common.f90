@@ -355,9 +355,9 @@ subroutine output(dir, iBlock, iOutputType)
       endif
     endif
 
-      ! Auto-generated header from registry metadata (all types including USR)
-      call ActiveBackend%write_header(iOutputUnit_, typeInfo, cType, &
-        nAlts, nLats, nLons, nGCs, nBlocksLat, nBlocksLon, iTimeArray, GitmVersion)
+    ! Auto-generated header from registry metadata (all types including USR)
+    call ActiveBackend%write_header(iOutputUnit_, typeInfo, cType, &
+                                    nAlts, nLats, nLons, nGCs, nBlocksLat, nBlocksLon, iTimeArray, GitmVersion)
 
     close(unit=iOutputUnit_)
 

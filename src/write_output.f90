@@ -87,8 +87,8 @@ subroutine write_output(doForce)
 
   do i = 1, nOutputTypes
     if (floor((tSimulation - dt)/DtPlot(i)) /= floor((tsimulation)/DtPlot(i)) &
-     .or. (tSimulation == 0.0) &
-     .or. doWriteFile) then
+        .or. (tSimulation == 0.0) &
+        .or. doWriteFile) then
 
       ! Compute cType with same Is1D adjustment used inside output().
       cType = OutputType(i)

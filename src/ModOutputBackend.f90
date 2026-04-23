@@ -75,9 +75,9 @@ module ModOutputBackend
     !   .true.  => output() writes an ASCII .header file (legacy, mpiio).
     !   .false. => no .header is written; metadata lives in the data file itself (netcdf).
     logical :: writes_header = .true.
-    procedure(backend_open_file_iface),    pointer, nopass :: open_file   => null()
-    procedure(backend_close_file_iface),   pointer, nopass :: close_file  => null()
-    procedure(backend_write_block_iface),  pointer, nopass :: write_block => null()
+    procedure(backend_open_file_iface), pointer, nopass :: open_file => null()
+    procedure(backend_close_file_iface), pointer, nopass :: close_file => null()
+    procedure(backend_write_block_iface), pointer, nopass :: write_block => null()
     procedure(backend_write_header_iface), pointer, nopass :: write_header => null()
   end type OutputBackend
 
@@ -90,37 +90,37 @@ contains
   ! ------------------------------------------------------------------
   subroutine init_output_backend(backend_name)
     use ModOutputMPIIO, only: mpiio_open_file, mpiio_close_file, &
-                               mpiio_write_block, mpiio_write_header
+                              mpiio_write_block, mpiio_write_header
     use ModOutputNetCDF, only: netcdf_open_file, netcdf_close_file, &
-                                netcdf_write_block
+                               netcdf_write_block
     character(len=*), intent(in) :: backend_name
 
     select case (trim(backend_name))
     case ('mpiio')
-      ActiveBackend%name               = 'mpiio'
+      ActiveBackend%name = 'mpiio'
       ActiveBackend%uses_external_file = .false.
-      ActiveBackend%open_file          => mpiio_open_file
-      ActiveBackend%close_file         => mpiio_close_file
-      ActiveBackend%write_block        => mpiio_write_block
-      ActiveBackend%write_header       => mpiio_write_header
+      ActiveBackend%open_file => mpiio_open_file
+      ActiveBackend%close_file => mpiio_close_file
+      ActiveBackend%write_block => mpiio_write_block
+      ActiveBackend%write_header => mpiio_write_header
     case ('netcdf')
-      ActiveBackend%name               = 'netcdf'
+      ActiveBackend%name = 'netcdf'
       ActiveBackend%uses_external_file = .false.
-      ActiveBackend%writes_header      = .false.
-      ActiveBackend%open_file          => netcdf_open_file
-      ActiveBackend%close_file         => netcdf_close_file
-      ActiveBackend%write_block        => netcdf_write_block
+      ActiveBackend%writes_header = .false.
+      ActiveBackend%open_file => netcdf_open_file
+      ActiveBackend%close_file => netcdf_close_file
+      ActiveBackend%write_block => netcdf_write_block
       ! write_header left null: output_common.f90 checks writes_header before calling it
     case default
       if (trim(backend_name) /= 'legacy') &
         write(*, *) "WARNING: unknown output backend '", trim(backend_name), &
-          "', using legacy"
-      ActiveBackend%name               = 'legacy'
+        "', using legacy"
+      ActiveBackend%name = 'legacy'
       ActiveBackend%uses_external_file = .true.
-      ActiveBackend%open_file          => legacy_open_file
-      ActiveBackend%close_file         => legacy_close_file
-      ActiveBackend%write_block        => legacy_write_block
-      ActiveBackend%write_header       => legacy_write_header
+      ActiveBackend%open_file => legacy_open_file
+      ActiveBackend%close_file => legacy_close_file
+      ActiveBackend%write_block => legacy_write_block
+      ActiveBackend%write_header => legacy_write_header
     end select
   end subroutine init_output_backend
 
@@ -234,8 +234,8 @@ contains
         write(iUnit, *) " "
         write(iUnit, *) "NO GHOSTCELLS"
       else
-        write(iUnit, "(I7,7A)") nLats + nGCs * 2, " nLatitudes"
-        write(iUnit, "(I7,7A)") nLons + nGCs * 2, " nLongitudes"
+        write(iUnit, "(I7,7A)") nLats + nGCs*2, " nLatitudes"
+        write(iUnit, "(I7,7A)") nLons + nGCs*2, " nLongitudes"
       endif
     endif
     write(iUnit, *) ""

@@ -104,7 +104,7 @@ contains
       iv = iv + 1; buffer(iv, jx, jy, jz) = NDensityS(iLon, iLat, iAlt, i, iBlock)
     enddo
     iv = iv + 1; buffer(iv, jx, jy, jz) = &
-      Temperature(iLon, iLat, iAlt, iBlock) * TempUnit(iLon, iLat, iAlt)
+ Temperature(iLon, iLat, iAlt, iBlock)*TempUnit(iLon, iLat, iAlt)
     do i = 1, 3
       iv = iv + 1; buffer(iv, jx, jy, jz) = Velocity(iLon, iLat, iAlt, i, iBlock)
     enddo
@@ -156,7 +156,7 @@ contains
       iv = iv + 1; buffer(iv, 1, 1, jz) = inter2d(Tmp, iiLon, iiLat, rLon, rLat)
     enddo
 
-    Tmp = Temperature(0:nLons + 1, 0:nLats + 1, iAlt, iBlock) * &
+    Tmp = Temperature(0:nLons + 1, 0:nLats + 1, iAlt, iBlock)* &
           TempUnit(0:nLons + 1, 0:nLats + 1, iAlt)
     iv = iv + 1; buffer(iv, 1, 1, jz) = inter2d(Tmp, iiLon, iiLat, rLon, rLat)
 
@@ -276,7 +276,7 @@ contains
           enddo
           if (iTemperatureOutputList(1)) then
             iv = iv + 1; buffer(iv, jx, jy, jz) = &
-              Temperature(iLon, iLat, iAlt, iBlock) * TempUnit(iLon, iLat, iAlt)
+ Temperature(iLon, iLat, iAlt, iBlock)*TempUnit(iLon, iLat, iAlt)
           endif
           if (iTemperatureOutputList(2)) then
             iv = iv + 1; buffer(iv, jx, jy, jz) = ITemperature(iLon, iLat, iAlt, iBlock)
@@ -390,31 +390,31 @@ contains
           iv = iv + 1; buffer(iv, jx, jy, jz) = Latitude(iLat, iBlock)
           iv = iv + 1; buffer(iv, jx, jy, jz) = Altitude_GB(iLon, iLat, iAlt, iBlock)
           iv = iv + 1; buffer(iv, jx, jy, jz) = &
-            EuvHeating(iiLon, iiLat, iiAlt, iBlock) * TempUnit(iiLon, iiLat, iiAlt)
+ EuvHeating(iiLon, iiLat, iiAlt, iBlock)*TempUnit(iiLon, iiLat, iiAlt)
           iv = iv + 1; buffer(iv, jx, jy, jz) = &
-            Conduction(iiLon, iiLat, iiAlt) * TempUnit(iiLon, iiLat, iiAlt) / dt
+ Conduction(iiLon, iiLat, iiAlt)*TempUnit(iiLon, iiLat, iiAlt)/dt
           iv = iv + 1; buffer(iv, jx, jy, jz) = MoleConduction(iiLon, iiLat, iiAlt)
           iv = iv + 1; buffer(iv, jx, jy, jz) = EddyCond(iiLon, iiLat, iiAlt)
           iv = iv + 1; buffer(iv, jx, jy, jz) = EddyCondAdia(iiLon, iiLat, iiAlt)
           iv = iv + 1; buffer(iv, jx, jy, jz) = &
-            ChemicalHeatingRate(iiLon, iiLat, iiAlt) * TempUnit(iiLon, iiLat, iiAlt) / dt
+ ChemicalHeatingRate(iiLon, iiLat, iiAlt)*TempUnit(iiLon, iiLat, iiAlt)/dt
           iv = iv + 1; buffer(iv, jx, jy, jz) = &
-            JouleHeating(iiLon, iiLat, iiAlt) * TempUnit(iiLon, iiLat, iiAlt)
+ JouleHeating(iiLon, iiLat, iiAlt)*TempUnit(iiLon, iiLat, iiAlt)
           iv = iv + 1; buffer(iv, jx, jy, jz) = &
-            -NOCooling(iiLon, iiLat, iiAlt) * TempUnit(iiLon, iiLat, iiAlt)
+ -NOCooling(iiLon, iiLat, iiAlt)*TempUnit(iiLon, iiLat, iiAlt)
           iv = iv + 1; buffer(iv, jx, jy, jz) = &
-            -OCooling(iiLon, iiLat, iiAlt) * TempUnit(iiLon, iiLat, iiAlt)
+ -OCooling(iiLon, iiLat, iiAlt)*TempUnit(iiLon, iiLat, iiAlt)
           iv = iv + 1; buffer(iv, jx, jy, jz) = EuvTotal(iiLon, iiLat, iiAlt, iBlock)
           iv = iv + 1; buffer(iv, jx, jy, jz) = cp(iiLon, iiLat, iiAlt, iBlock)
           iv = iv + 1; buffer(iv, jx, jy, jz) = Rho(iiLon, iiLat, iiAlt, iBlock)
           iv = iv + 1; buffer(iv, jx, jy, jz) = sqrt(sum(EField(iLon, iLat, iAlt, :)**2))
           iv = iv + 1; buffer(iv, jx, jy, jz) = Sigma_Pedersen(iLon, iLat, iAlt)
           iv = iv + 1; buffer(iv, jx, jy, jz) = &
-            AuroralIonRateS(iiLon, iiLat, iiAlt, iO_3P_, iBlock)
+ AuroralIonRateS(iiLon, iiLat, iiAlt, iO_3P_, iBlock)
           iv = iv + 1; buffer(iv, jx, jy, jz) = &
-            AuroralIonRateS(iiLon, iiLat, iiAlt, iO2_, iBlock)
+ AuroralIonRateS(iiLon, iiLat, iiAlt, iO2_, iBlock)
           iv = iv + 1; buffer(iv, jx, jy, jz) = &
-            AuroralIonRateS(iiLon, iiLat, iiAlt, iN2_, iBlock)
+ AuroralIonRateS(iiLon, iiLat, iiAlt, iN2_, iBlock)
         enddo
       enddo
     enddo
@@ -446,13 +446,13 @@ contains
           iv = iv + 1; buffer(iv, jx, jy, jz) = Altitude_GB(iLon, iLat, iAlt, iBlock)
           do iReact = 1, nReactions
             iv = iv + 1; buffer(iv, jx, jy, jz) = &
-              ChemicalHeatingSpecies(iiLon, iiLat, iiAlt, iReact) / Element_Charge
+ ChemicalHeatingSpecies(iiLon, iiLat, iiAlt, iReact)/Element_Charge
           enddo
           iv = iv + 1; buffer(iv, jx, jy, jz) = &
-            ChemicalHeatingRate(iiLon, iiLat, iiAlt) * &
-            cp(iiLon, iiLat, iiAlt, iBlock) * &
-            Rho(iiLon, iiLat, iiAlt, iBlock) * TempUnit(iiLon, iiLat, iiAlt) / &
-            Element_Charge
+ ChemicalHeatingRate(iiLon, iiLat, iiAlt)* &
+ cp(iiLon, iiLat, iiAlt, iBlock)* &
+ Rho(iiLon, iiLat, iiAlt, iBlock)*TempUnit(iiLon, iiLat, iiAlt)/ &
+ Element_Charge
         enddo
       enddo
     enddo
@@ -524,9 +524,9 @@ contains
                                 jx, jy, jz, iLon, iLat, iAlt, iBlock)
           ! HME-specific variables (source terms use clamped iiAlt)
           iv = iv + 1; buffer(iv, jx, jy, jz) = &
-            PhotoElectronHeating(iLon, iLat, iiAlt, iBlock) * dt * TempUnit(iLon, iLat, iiAlt)
+ PhotoElectronHeating(iLon, iLat, iiAlt, iBlock)*dt*TempUnit(iLon, iLat, iiAlt)
           iv = iv + 1; buffer(iv, jx, jy, jz) = &
-            JouleHeating(iLon, iLat, iiAlt) * dt * TempUnit(iLon, iLat, iiAlt)
+ JouleHeating(iLon, iLat, iiAlt)*dt*TempUnit(iLon, iLat, iiAlt)
           iv = iv + 1; buffer(iv, jx, jy, jz) = cp(iLon, iLat, iiAlt, iBlock)
           iv = iv + 1; buffer(iv, jx, jy, jz) = mLatitude(iLon, iLat, iAlt, iBlock)
           iv = iv + 1; buffer(iv, jx, jy, jz) = mLongitude(iLon, iLat, iAlt, iBlock)
@@ -569,8 +569,8 @@ contains
           iv = iv + 1; buffer(iv, jx, jy, jz) = Rho(iLon, iLat, iAlt, iBlock)
           iv = iv + 1; buffer(iv, jx, jy, jz) = Velocity(iLon, iLat, iAlt, iEast_, iBlock)
           iv = iv + 1; buffer(iv, jx, jy, jz) = Velocity(iLon, iLat, iAlt, iNorth_, iBlock)
-          iv = iv + 1; buffer(iv, jx, jy, jz) = Viscosity(iiLon, iiLat, iiAlt, iEast_) / dt
-          iv = iv + 1; buffer(iv, jx, jy, jz) = Viscosity(iiLon, iiLat, iiAlt, iNorth_) / dt
+          iv = iv + 1; buffer(iv, jx, jy, jz) = Viscosity(iiLon, iiLat, iiAlt, iEast_)/dt
+          iv = iv + 1; buffer(iv, jx, jy, jz) = Viscosity(iiLon, iiLat, iiAlt, iNorth_)/dt
           iv = iv + 1; buffer(iv, jx, jy, jz) = IonDrag(iiLon, iiLat, iiAlt, iEast_)
           iv = iv + 1; buffer(iv, jx, jy, jz) = IonDrag(iiLon, iiLat, iiAlt, iNorth_)
           iv = iv + 1; buffer(iv, jx, jy, jz) = HorizAdvection(iiLon, iiLat, iiAlt, 1)
@@ -610,11 +610,11 @@ contains
           iv = iv + 1; buffer(iv, jx, jy, jz) = Altitude_GB(iLon, iLat, iAlt, iBlock)
           do iSpecies = 1, nSpecies
             iv = iv + 1; buffer(iv, jx, jy, jz) = &
-              VerticalVelocity(iLon, iLat, iAlt, iSpecies, iBlock)
+ VerticalVelocity(iLon, iLat, iAlt, iSpecies, iBlock)
             iv = iv + 1; buffer(iv, jx, jy, jz) = &
-              VerticalIonDrag(iiLon, iiLat, iiAlt, iSpecies)
+ VerticalIonDrag(iiLon, iiLat, iiAlt, iSpecies)
             iv = iv + 1; buffer(iv, jx, jy, jz) = &
-              VertAdvection(iiLon, iiLat, iiAlt, iSpecies)
+ VertAdvection(iiLon, iiLat, iiAlt, iSpecies)
           enddo
           iv = iv + 1; buffer(iv, jx, jy, jz) = VertCoriolis(iiLon, iiLat, iiAlt)
           iv = iv + 1; buffer(iv, jx, jy, jz) = VertCentrifugal(iiLon, iiLat, iiAlt)
@@ -676,10 +676,10 @@ contains
     do iLat = 1, nY
       do iLon = 1, nX
         iv = 0
-        iv = iv + 1; buffer(iv, iLon, iLat, 1) = MagLonMC(iLon, iLat) * Pi / 180.0
-        iv = iv + 1; buffer(iv, iLon, iLat, 1) = MagLatMC(iLon, iLat) * Pi / 180.0
+        iv = iv + 1; buffer(iv, iLon, iLat, 1) = MagLonMC(iLon, iLat)*Pi/180.0
+        iv = iv + 1; buffer(iv, iLon, iLat, 1) = MagLatMC(iLon, iLat)*Pi/180.0
         iv = iv + 1; buffer(iv, iLon, iLat, 1) = Altitude_GB(1, 1, 1, iBlock)
-        iv = iv + 1; buffer(iv, iLon, iLat, 1) = MagLocTimeMC(iLon, iLat) * Pi / 180.0
+        iv = iv + 1; buffer(iv, iLon, iLat, 1) = MagLocTimeMC(iLon, iLat)*Pi/180.0
         iv = iv + 1; buffer(iv, iLon, iLat, 1) = GeoLatMC(iLon, iLat)
         iv = iv + 1; buffer(iv, iLon, iLat, 1) = GeoLonMC(iLon, iLat)
         iv = iv + 1; buffer(iv, iLon, iLat, 1) = SigmaPedersenMC(iLon, iLat)
@@ -807,9 +807,9 @@ contains
       iv = 0
 
       iv = iv + 1; buffer(iv, 1, 1, jz) = &
-        rLon * Longitude(iiLon, iBlock) + (1 - rLon) * Longitude(iiLon + 1, iBlock)
+ rLon*Longitude(iiLon, iBlock) + (1 - rLon)*Longitude(iiLon + 1, iBlock)
       iv = iv + 1; buffer(iv, 1, 1, jz) = &
-        rLat * Latitude(iiLat, iBlock) + (1 - rLat) * Latitude(iiLat + 1, iBlock)
+ rLat*Latitude(iiLat, iBlock) + (1 - rLat)*Latitude(iiLat + 1, iBlock)
       iv = iv + 1; buffer(iv, 1, 1, jz) = Altitude_GB(iiLon, iiLat, iAlt, iBlock)
 
       call fill_neutral_vars_interp2d(iv, buffer, nV, nZ, jz, &
@@ -849,21 +849,21 @@ contains
       iv = iv + 1; buffer(iv, 1, 1, jz) = Latitude(1, 1)
       iv = iv + 1; buffer(iv, 1, 1, jz) = Altitude_GB(1, 1, iAlt, 1)
       iv = iv + 1; buffer(iv, 1, 1, jz) = &
-        EuvHeating(1, 1, iiAlt, 1) * dt * TempUnit(1, 1, iiAlt)
+ EuvHeating(1, 1, iiAlt, 1)*dt*TempUnit(1, 1, iiAlt)
       iv = iv + 1; buffer(iv, 1, 1, jz) = &
-        Conduction(1, 1, iiAlt) * TempUnit(1, 1, iiAlt)
+ Conduction(1, 1, iiAlt)*TempUnit(1, 1, iiAlt)
       iv = iv + 1; buffer(iv, 1, 1, jz) = MoleConduction(1, 1, iiAlt)
       iv = iv + 1; buffer(iv, 1, 1, jz) = EddyCond(1, 1, iiAlt)
       iv = iv + 1; buffer(iv, 1, 1, jz) = EddyCondAdia(1, 1, iiAlt)
       iv = iv + 1; buffer(iv, 1, 1, jz) = &
-        ChemicalHeatingRate(1, 1, iiAlt) * TempUnit(1, 1, iiAlt)
+ ChemicalHeatingRate(1, 1, iiAlt)*TempUnit(1, 1, iiAlt)
       iv = iv + 1; buffer(iv, 1, 1, jz) = &
-        JouleHeating(1, 1, iiAlt) * dt * TempUnit(1, 1, iiAlt)
+ JouleHeating(1, 1, iiAlt)*dt*TempUnit(1, 1, iiAlt)
       iv = iv + 1; buffer(iv, 1, 1, jz) = &
-        -RadCooling(1, 1, iiAlt, 1) * dt * TempUnit(1, 1, iiAlt)
+ -RadCooling(1, 1, iiAlt, 1)*dt*TempUnit(1, 1, iiAlt)
       iv = iv + 1; buffer(iv, 1, 1, jz) = &
-        -OCooling(1, 1, iiAlt) * dt * TempUnit(1, 1, iiAlt)
-      iv = iv + 1; buffer(iv, 1, 1, jz) = EuvTotal(1, 1, iiAlt, 1) * dt
+ -OCooling(1, 1, iiAlt)*dt*TempUnit(1, 1, iiAlt)
+      iv = iv + 1; buffer(iv, 1, 1, jz) = EuvTotal(1, 1, iiAlt, 1)*dt
       do i = 1, nSpeciesTotal
         iv = iv + 1; buffer(iv, 1, 1, jz) = NeutralSourcesTotal(iiAlt, i)
       enddo
@@ -892,12 +892,12 @@ contains
       iv = iv + 1; buffer(iv, 1, 1, jz) = Altitude_GB(1, 1, iAlt, iBlock)
       do iReact = 1, nReactions
         iv = iv + 1; buffer(iv, 1, 1, jz) = &
-          ChemicalHeatingSpecies(1, 1, iiAlt, iReact) / Element_Charge
+ ChemicalHeatingSpecies(1, 1, iiAlt, iReact)/Element_Charge
       enddo
       iv = iv + 1; buffer(iv, 1, 1, jz) = &
-        ChemicalHeatingRate(1, 1, iiAlt) * &
-        cp(1, 1, iiAlt, iBlock) * &
-        Rho(1, 1, iiAlt, iBlock) * TempUnit(1, 1, iiAlt) / Element_Charge
+ ChemicalHeatingRate(1, 1, iiAlt)* &
+ cp(1, 1, iiAlt, iBlock)* &
+ Rho(1, 1, iiAlt, iBlock)*TempUnit(1, 1, iiAlt)/Element_Charge
     enddo
     if (iv /= nV) call gather_error('gather_1dchm', iv, nV)
   end subroutine gather_1dchm
@@ -918,11 +918,11 @@ contains
 
       ! 1DNEW has different coords: Lon, LocalTime, Lat, SZA, Alt
       iv = iv + 1; buffer(iv, 1, 1, jz) = &
-        rLon * Longitude(iiLon, iBlock) + (1 - rLon) * Longitude(iiLon + 1, iBlock)
+ rLon*Longitude(iiLon, iBlock) + (1 - rLon)*Longitude(iiLon + 1, iBlock)
       iv = iv + 1; buffer(iv, 1, 1, jz) = &
-        rLon * LocalTime(iiLon) + (1 - rLon) * LocalTime(iiLon + 1)
+ rLon*LocalTime(iiLon) + (1 - rLon)*LocalTime(iiLon + 1)
       iv = iv + 1; buffer(iv, 1, 1, jz) = &
-        rLat * Latitude(iiLat, iBlock) + (1 - rLat) * Latitude(iiLat + 1, iBlock)
+ rLat*Latitude(iiLat, iBlock) + (1 - rLat)*Latitude(iiLat + 1, iBlock)
       iv = iv + 1; buffer(iv, 1, 1, jz) = Sza(iiLon, iiLat, iBlock)
       iv = iv + 1; buffer(iv, 1, 1, jz) = Altitude_GB(iiLon, iiLat, iAlt, iBlock)
 
@@ -933,7 +933,7 @@ contains
 
       ! 1DNEW-specific: mixing ratios
       do i = 1, nSpecies
-        Tmp = NDensityS(0:nLons + 1, 0:nLats + 1, iAlt, i, iBlock) / &
+        Tmp = NDensityS(0:nLons + 1, 0:nLats + 1, iAlt, i, iBlock)/ &
               NDensity(0:nLons + 1, 0:nLats + 1, iAlt, iBlock)
         iv = iv + 1; buffer(iv, 1, 1, jz) = inter2d(Tmp, iiLon, iiLat, rLon, rLat)
       enddo
@@ -960,12 +960,12 @@ contains
     iv = 0
 
     iv = iv + 1; buffer(iv, 1, 1, 1) = &
-      rLon * Longitude(iiLon, iBlock) + (1 - rLon) * Longitude(iiLon + 1, iBlock)
+ rLon*Longitude(iiLon, iBlock) + (1 - rLon)*Longitude(iiLon + 1, iBlock)
     iv = iv + 1; buffer(iv, 1, 1, 1) = &
-      rLat * Latitude(iiLat, iBlock) + (1 - rLat) * Latitude(iiLat + 1, iBlock)
+ rLat*Latitude(iiLat, iBlock) + (1 - rLat)*Latitude(iiLat + 1, iBlock)
     iv = iv + 1; buffer(iv, 1, 1, 1) = &
-      rAlt * Altitude_GB(iiLon, iiLat, iiAlt, iBlock) + &
-      (1 - rAlt) * Altitude_GB(iiLon + 1, iiLat + 1, iiAlt + 1, iBlock)
+ rAlt*Altitude_GB(iiLon, iiLat, iiAlt, iBlock) + &
+ (1 - rAlt)*Altitude_GB(iiLon + 1, iiLat + 1, iiAlt + 1, iBlock)
 
     Tmp = Rho(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1, iBlock)
     iv = iv + 1; buffer(iv, 1, 1, 1) = inter3d(Tmp, iiLon, iiLat, iiAlt, rLon, rLat, rAlt)
@@ -975,7 +975,7 @@ contains
       iv = iv + 1; buffer(iv, 1, 1, 1) = inter3d(Tmp, iiLon, iiLat, iiAlt, rLon, rLat, rAlt)
     enddo
 
-    Tmp = Temperature(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1, iBlock) * &
+    Tmp = Temperature(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1, iBlock)* &
           TempUnit(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1)
     iv = iv + 1; buffer(iv, 1, 1, 1) = inter3d(Tmp, iiLon, iiLat, iiAlt, rLon, rLat, rAlt)
 
@@ -1008,19 +1008,19 @@ contains
 
     ! Mixing ratios
     do i = 1, nSpecies
-      Tmp = NDensityS(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1, i, iBlock) / &
+      Tmp = NDensityS(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1, i, iBlock)/ &
             NDensity(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1, iBlock)
       iv = iv + 1; buffer(iv, 1, 1, 1) = inter3d(Tmp, iiLon, iiLat, iiAlt, rLon, rLat, rAlt)
     enddo
 
     ! Heating terms
-    iv = iv + 1; buffer(iv, 1, 1, 1) = dt * RadCooling(1, 1, jAlt, iBlock) * TempUnit(1, 1, jAlt)
-    iv = iv + 1; buffer(iv, 1, 1, 1) = dt * EuvHeating(1, 1, jAlt, iBlock) * TempUnit(1, 1, jAlt)
-    iv = iv + 1; buffer(iv, 1, 1, 1) = Conduction(1, 1, jAlt) * TempUnit(1, 1, jAlt)
+    iv = iv + 1; buffer(iv, 1, 1, 1) = dt*RadCooling(1, 1, jAlt, iBlock)*TempUnit(1, 1, jAlt)
+    iv = iv + 1; buffer(iv, 1, 1, 1) = dt*EuvHeating(1, 1, jAlt, iBlock)*TempUnit(1, 1, jAlt)
+    iv = iv + 1; buffer(iv, 1, 1, 1) = Conduction(1, 1, jAlt)*TempUnit(1, 1, jAlt)
     iv = iv + 1; buffer(iv, 1, 1, 1) = &
-      dt * EuvHeating(1, 1, jAlt, iBlock) * TempUnit(1, 1, jAlt) - &
-      dt * RadCooling(1, 1, jAlt, iBlock) * TempUnit(1, 1, jAlt) + &
-      Conduction(1, 1, jAlt) * TempUnit(1, 1, jAlt)
+ dt*EuvHeating(1, 1, jAlt, iBlock)*TempUnit(1, 1, jAlt) - &
+ dt*RadCooling(1, 1, jAlt, iBlock)*TempUnit(1, 1, jAlt) + &
+ Conduction(1, 1, jAlt)*TempUnit(1, 1, jAlt)
     iv = iv + 1; buffer(iv, 1, 1, 1) = HeatingEfficiency_CB(1, 1, jAlt, iBlock)
     if (iv /= nV) call gather_error('gather_0dall', iv, nV)
   end subroutine gather_0dall
@@ -1083,9 +1083,9 @@ contains
     do iAlt = -1, nAlts + 2
       jz = iAlt + 2
       buffer(1, 1, 1, jz) = &
-        rLon * Longitude(iiLon, iBlock) + (1 - rLon) * Longitude(iiLon + 1, iBlock)
+        rLon*Longitude(iiLon, iBlock) + (1 - rLon)*Longitude(iiLon + 1, iBlock)
       buffer(2, 1, 1, jz) = &
-        rLat * Latitude(iiLat, iBlock) + (1 - rLat) * Latitude(iiLat + 1, iBlock)
+        rLat*Latitude(iiLat, iBlock) + (1 - rLat)*Latitude(iiLat + 1, iBlock)
       buffer(3, 1, 1, jz) = Altitude_GB(iiLon, iiLat, iAlt, iBlock)
       if (nV > 3) &
         buffer(4:nV, 1, 1, jz) = UserData1D(1, 1, iAlt, 1:nV - 3)
@@ -1101,12 +1101,12 @@ contains
     real, intent(out) :: buffer(nV, 1, 1, 1)
 
     buffer(1, 1, 1, 1) = &
-      rLon * Longitude(iiLon, iBlock) + (1 - rLon) * Longitude(iiLon + 1, iBlock)
+      rLon*Longitude(iiLon, iBlock) + (1 - rLon)*Longitude(iiLon + 1, iBlock)
     buffer(2, 1, 1, 1) = &
-      rLat * Latitude(iiLat, iBlock) + (1 - rLat) * Latitude(iiLat + 1, iBlock)
+      rLat*Latitude(iiLat, iBlock) + (1 - rLat)*Latitude(iiLat + 1, iBlock)
     buffer(3, 1, 1, 1) = &
-      rAlt * Altitude_GB(iiLon, iiLat, iiAlt, iBlock) + &
-      (1 - rAlt) * Altitude_GB(iiLon, iiLat, iiAlt + 1, iBlock)
+      rAlt*Altitude_GB(iiLon, iiLat, iiAlt, iBlock) + &
+      (1 - rAlt)*Altitude_GB(iiLon, iiLat, iiAlt + 1, iBlock)
     ! 0D user data is a scalar per variable; no UserData0D array exists —
     ! the user populates UserData1D(1,1,1,1:nVarsUser0d-3) at a fixed point.
     if (nV > 3) &
@@ -1123,10 +1123,10 @@ contains
     integer, intent(in) :: iiLon, iiLat
 
     inter2d = &
-      rLon * rLat * variable(iiLon, iiLat) + &
-      (1 - rLon) * rLat * variable(iiLon + 1, iiLat) + &
-      rLon * (1 - rLat) * variable(iiLon, iiLat + 1) + &
-      (1 - rLon) * (1 - rLat) * variable(iiLon + 1, iiLat + 1)
+      rLon*rLat*variable(iiLon, iiLat) + &
+      (1 - rLon)*rLat*variable(iiLon + 1, iiLat) + &
+      rLon*(1 - rLat)*variable(iiLon, iiLat + 1) + &
+      (1 - rLon)*(1 - rLat)*variable(iiLon + 1, iiLat + 1)
   end function inter2d
 
   real function inter3d(variable, iiLon, iiLat, iiAlt, rLon, rLat, rAlt)
@@ -1135,14 +1135,14 @@ contains
     integer, intent(in) :: iiLon, iiLat, iiAlt
 
     inter3d = &
-      rLon * rLat * rAlt * variable(iiLon, iiLat, iiAlt) + &
-      (1 - rLon) * rLat * rAlt * variable(iiLon + 1, iiLat, iiAlt) + &
-      rLon * (1 - rLat) * rAlt * variable(iiLon, iiLat + 1, iiAlt) + &
-      (1 - rLon) * (1 - rLat) * rAlt * variable(iiLon + 1, iiLat + 1, iiAlt) + &
-      rLon * rLat * (1 - rAlt) * variable(iiLon, iiLat, iiAlt + 1) + &
-      (1 - rLon) * rLat * (1 - rAlt) * variable(iiLon + 1, iiLat, iiAlt + 1) + &
-      rLon * (1 - rLat) * (1 - rAlt) * variable(iiLon, iiLat + 1, iiAlt + 1) + &
-      (1 - rLon) * (1 - rLat) * (1 - rAlt) * variable(iiLon + 1, iiLat + 1, iiAlt + 1)
+      rLon*rLat*rAlt*variable(iiLon, iiLat, iiAlt) + &
+      (1 - rLon)*rLat*rAlt*variable(iiLon + 1, iiLat, iiAlt) + &
+      rLon*(1 - rLat)*rAlt*variable(iiLon, iiLat + 1, iiAlt) + &
+      (1 - rLon)*(1 - rLat)*rAlt*variable(iiLon + 1, iiLat + 1, iiAlt) + &
+      rLon*rLat*(1 - rAlt)*variable(iiLon, iiLat, iiAlt + 1) + &
+      (1 - rLon)*rLat*(1 - rAlt)*variable(iiLon + 1, iiLat, iiAlt + 1) + &
+      rLon*(1 - rLat)*(1 - rAlt)*variable(iiLon, iiLat + 1, iiAlt + 1) + &
+      (1 - rLon)*(1 - rLat)*(1 - rAlt)*variable(iiLon + 1, iiLat + 1, iiAlt + 1)
   end function inter3d
 
 end module ModOutputGather

@@ -83,9 +83,9 @@ contains
 
     call MPI_Type_size(MPI_REAL, bytes_per_element, ierr)
 
-    nWords = nV * nX * nY * nZ
-    offset = int(iBLK - 1, MPI_OFFSET_KIND) * &
-             int(nWords, MPI_OFFSET_KIND) * &
+    nWords = nV*nX*nY*nZ
+    offset = int(iBLK - 1, MPI_OFFSET_KIND)* &
+             int(nWords, MPI_OFFSET_KIND)* &
              int(bytes_per_element, MPI_OFFSET_KIND)
 
     call MPI_File_write_at(mpiio_fh, offset, buffer, nWords, MPI_REAL, &
@@ -176,14 +176,14 @@ contains
         write(iUnit, "(I7,A)") nMagLons + 1, " nLongitudes"
         write(iUnit, *) " "
         write(iUnit, *) "NO GHOSTCELLS"
-      elseif (info%nGhostCells==0) then
+      elseif (info%nGhostCells == 0) then
         write(iUnit, "(I7,A)") nLats, " nLatitude"
         write(iUnit, "(I7,A)") nLons, " nLongitudes"
         write(iUnit, *) " "
         write(iUnit, *) "NO GHOSTCELLS"
       else
-        write(iUnit, "(I7,7A)") nLats + info%nGhostCells * 2, " nLatitudes"
-        write(iUnit, "(I7,7A)") nLons + info%nGhostCells * 2, " nLongitudes"
+        write(iUnit, "(I7,7A)") nLats + info%nGhostCells*2, " nLatitudes"
+        write(iUnit, "(I7,7A)") nLons + info%nGhostCells*2, " nLongitudes"
       endif
     endif
     write(iUnit, *) ""

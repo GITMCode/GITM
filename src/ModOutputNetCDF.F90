@@ -109,8 +109,8 @@ contains
       nLons_g = int(nMagLons + 1, MPI_OFFSET_KIND)
       nLats_g = int(nMagLats, MPI_OFFSET_KIND)
     else
-      nLons_g = int(nBlocksLon * nLons, MPI_OFFSET_KIND)
-      nLats_g = int(nBlocksLat * nLats, MPI_OFFSET_KIND)
+      nLons_g = int(nBlocksLon*nLons, MPI_OFFSET_KIND)
+      nLats_g = int(nBlocksLat*nLats, MPI_OFFSET_KIND)
     endif
     nAlts_g = int(nAlts, MPI_OFFSET_KIND)
 
@@ -163,7 +163,7 @@ contains
                            dimid_vars(1:ndimid), varids(iV))
       if (ierr /= NF_NOERR) &
         write(*, *) "netcdf_open: def_var '", trim(varname), "' failed: ", &
-                    nfmpi_strerror(ierr)
+        nfmpi_strerror(ierr)
       if (len_trim(RegisteredTypes(iTypeIdx)%vars(iV)%units) > 0) then
         attlen = int(len_trim(RegisteredTypes(iTypeIdx)%vars(iV)%units), MPI_OFFSET_KIND)
         ierr = nfmpi_put_att_text(ncid, varids(iV), "units", attlen, &
@@ -187,12 +187,12 @@ contains
     endif
 
 #else
-  if (iProc == 1) then
-    write(*, *) ""
-    write(*, *) "ERROR: GITM was built without PnetCDF support."
-    write(*, *) "       Recompile in an environment where pnetcdf-config is available."
-    call stop_gitm("NetCDF cannot be used")
-  endif
+    if (iProc == 1) then
+      write(*, *) ""
+      write(*, *) "ERROR: GITM was built without PnetCDF support."
+      write(*, *) "       Recompile in an environment where pnetcdf-config is available."
+      call stop_gitm("NetCDF cannot be used")
+    endif
 #endif
   end subroutine netcdf_open_file
 
@@ -251,29 +251,29 @@ contains
 
     ! 0-based block spatial indices
     iBlockLon_0 = mod(iBLK - 1, nc_nBlocksLon)
-    iBlockLat_0 = (iBLK - 1) / nc_nBlocksLon
+    iBlockLat_0 = (iBLK - 1)/nc_nBlocksLon
 
     if (nc_nDims == 3) then
       ! 3D type: buffer has 2 ghost cells each side
-      nLi  = nX - 4;  lo_x = 3;  hi_x = nX - 2
-      nLai = nY - 4;  lo_y = 3;  hi_y = nY - 2
-      nAi  = nZ - 4;  lo_z = 3;  hi_z = nZ - 2
+      nLi = nX - 4; lo_x = 3; hi_x = nX - 2
+      nLai = nY - 4; lo_y = 3; hi_y = nY - 2
+      nAi = nZ - 4; lo_z = 3; hi_z = nZ - 2
       ndimid = 3
     else
       ! 2D type: buffer has no ghost cells (nX=nLons, nY=nLats, nZ=1)
-      nLi  = nX;  lo_x = 1;  hi_x = nX
-      nLai = nY;  lo_y = 1;  hi_y = nY
-      nAi  = nZ;  lo_z = 1;  hi_z = nZ
+      nLi = nX; lo_x = 1; hi_x = nX
+      nLai = nY; lo_y = 1; hi_y = nY
+      nAi = nZ; lo_z = 1; hi_z = nZ
       ndimid = 2
     endif
 
-    start(1) = int(iBlockLon_0 * nLi,  MPI_OFFSET_KIND) + 1_MPI_OFFSET_KIND
-    start(2) = int(iBlockLat_0 * nLai, MPI_OFFSET_KIND) + 1_MPI_OFFSET_KIND
+    start(1) = int(iBlockLon_0*nLi, MPI_OFFSET_KIND) + 1_MPI_OFFSET_KIND
+    start(2) = int(iBlockLat_0*nLai, MPI_OFFSET_KIND) + 1_MPI_OFFSET_KIND
     start(3) = 1_MPI_OFFSET_KIND
 
-    cnt(1) = int(nLi,  MPI_OFFSET_KIND)
+    cnt(1) = int(nLi, MPI_OFFSET_KIND)
     cnt(2) = int(nLai, MPI_OFFSET_KIND)
-    cnt(3) = int(nAi,  MPI_OFFSET_KIND)
+    cnt(3) = int(nAi, MPI_OFFSET_KIND)
 
     allocate(slice(nLi, nLai, nAi))
 
@@ -287,7 +287,7 @@ contains
                                      start(1:ndimid), cnt(1:ndimid), slice)
         if (ierr /= NF_NOERR) &
           write(*, *) "netcdf_write_block: put_vara_double failed for var ", iV, &
-                      ": ", nfmpi_strerror(ierr)
+          ": ", nfmpi_strerror(ierr)
       enddo
     else
       ! Collective put for regular block-partitioned types
@@ -297,7 +297,7 @@ contains
                                          start(1:ndimid), cnt(1:ndimid), slice)
         if (ierr /= NF_NOERR) &
           write(*, *) "netcdf_write_block: put_vara_double_all failed for var ", iV, &
-                      ": ", nfmpi_strerror(ierr)
+          ": ", nfmpi_strerror(ierr)
       enddo
     endif
 
