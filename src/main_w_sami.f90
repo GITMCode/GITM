@@ -70,7 +70,7 @@ program GITM
 
     call initialize_gitm(CurrentTime)
 
-    call write_output
+    call write_output(.false.)
 
     call report("Starting Main Time Loop", 0)
 
@@ -126,7 +126,7 @@ program GITM
 
         iStep = iStep + 1
 
-        call write_output
+        call write_output(.false.)
 
       enddo
 
