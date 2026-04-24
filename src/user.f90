@@ -414,26 +414,6 @@ subroutine user_bc_perturbation(LogRhoBc, LogNSBc, VelBc_GD, TempBc)
 end subroutine user_bc_perturbation
 
 ! ----------------------------------------------------------------
-! If you want to output some specific variables, then do that here.
-! In ModUserGITM, there are two variables defined, UserData2D and UserData3D.
-! To output variables:
-! 1. Figure out which variable you want to output.
-! 2. Go into the code where the variable is set and copy it into
-!    UserData3D or UserData2D.
-! 3. Do this for each variable you want to output.
-! 4. Edit output_header_user below, making a list of all the variables
-!    that you have added.  Make sure you leave longitude, latitude, and
-!    altitude in the list of variables.
-! 5. Count the number of variables that you output (including
-!    Lon, Lat, and Alt). Change nVarsUser3d or nVarsUser2d in the
-!    subroutines towards the top of this file.
-! 6. If you add more than 40 variables, you probably should check
-!    nUserOutputs in ModUserGITM.f90 and make sure that this number is
-!    larger than the number of variables that you added.
-! 7. Recompile and run. Debug. Repeat 7.
-! ----------------------------------------------------------------
-
-! ----------------------------------------------------------------
 !
 ! ----------------------------------------------------------------
 
@@ -501,266 +481,76 @@ subroutine set_nVarsUser0d
 end subroutine set_nVarsUser0d
 
 ! ----------------------------------------------------------------
+! Populate the output registry for all USR types with variable names
+! and units. Called once from write_output before the first output
+! timestep so that collective backends (mpiio, netcdf) have the
+! metadata they need before open_file is called.
 !
+! Variable names here must match output_header_user exactly so that
+! legacy and mpiio .header files remain consistent.
 ! ----------------------------------------------------------------
-
-subroutine output_header_user(cType, iOutputUnit_)
+subroutine init_usr_output_registry()
 
   use ModUserGITM
   use ModSources, only: ED_Energies, ED_N_Energies
+  use ModOutputRegistry, only: find_output_type, RegisteredTypes, add_var
 
   implicit none
 
-  character(len=5), intent(in) :: cType
-  integer, intent(in)           :: iOutputUnit_
-  integer :: n
+  integer :: idx, n
+  character(len=60) :: varname
 
-  ! ------------------------------------------
-  ! 3D Output Header
-  ! ------------------------------------------
-
-  if (cType(1:2) == '3D') then
-
-    write(iOutputUnit_, *) "NUMERICAL VALUES"
-    write(iOutputUnit_, "(I7,6A)") nVarsUser3d, " nvars"
-    write(iOutputUnit_, "(I7,7A)") nAlts + 4, " nAltitudes"
-    write(iOutputUnit_, "(I7,7A)") nLats + 4, " nLatitudes"
-    write(iOutputUnit_, "(I7,7A)") nLons + 4, " nLongitudes"
-
-    write(iOutputUnit_, *) ""
-
-    write(iOutputUnit_, *) "VARIABLE LIST"
-    write(iOutputUnit_, "(I7,A1,a)") 1, " ", "Longitude"
-    write(iOutputUnit_, "(I7,A1,a)") 2, " ", "Latitude"
-    write(iOutputUnit_, "(I7,A1,a)") 3, " ", "Altitude"
-    write(iOutputUnit_, "(I7,A1,a)") 4, " ", "Joule Heating"
-    write(iOutputUnit_, "(I7,A1,a)") 5, " ", "JPara"
-
+  ! ---- 3DUSR ----
+  call set_nVarsUser3d()
+  idx = find_output_type('3DUSR')
+  if (idx > 0 .and. RegisteredTypes(idx)%nVars == 0) then
+    call add_var(RegisteredTypes(idx), 'Longitude', 'rad')
+    call add_var(RegisteredTypes(idx), 'Latitude', 'rad')
+    call add_var(RegisteredTypes(idx), 'Altitude', 'm')
+    call add_var(RegisteredTypes(idx), 'Joule Heating', 'K/s')
+    call add_var(RegisteredTypes(idx), 'JPara', 'A/m2')
   endif
 
-  ! ------------------------------------------
-  ! 2D Output Header
-  ! ------------------------------------------
-
-  if (cType(1:2) == '2D') then
-
-    write(iOutputUnit_, *) "NUMERICAL VALUES"
-    write(iOutputUnit_, "(I7,6A)") nVarsUser2d, " nvars"
-    write(iOutputUnit_, "(I7,7A)") 1, " nAltitudes"
-    write(iOutputUnit_, "(I7,7A)") nLats, " nLatitudes"
-    write(iOutputUnit_, "(I7,7A)") nLons, " nLongitudes"
-
-    write(iOutputUnit_, *) ""
-    write(iOutputUnit_, *) "NO GHOSTCELLS"
-    write(iOutputUnit_, *) ""
-
-    write(iOutputUnit_, *) "VARIABLE LIST"
-    write(iOutputUnit_, "(I7,A1,a)") 1, " ", "Longitude"
-    write(iOutputUnit_, "(I7,A1,a)") 2, " ", "Latitude"
-    write(iOutputUnit_, "(I7,A1,a)") 3, " ", "Altitude"
-    write(iOutputUnit_, "(I7,A1,a)") 4, " ", "Potential (kV)"
-    write(iOutputUnit_, "(I7,A1,a)") 5, " ", "Average Energy (keV)"
-    write(iOutputUnit_, "(I7,A1,a)") 6, " ", "Total Energy (ergs)"
-    write(iOutputUnit_, "(I7,A1,a)") 7, " ", "Discrete Average Energy (keV)"
-    write(iOutputUnit_, "(I7,A1,a)") 8, " ", "Discrete Total Energy (ergs)"
-    write(iOutputUnit_, "(I7,A1,a)") 9, " ", "Wave Average Energy (keV)"
-    write(iOutputUnit_, "(I7,A1,a)") 10, " ", "Wave Total Energy (ergs)"
-    do n = 1, ED_N_Energies
-      write(iOutputUnit_, "(I7,A6,1P,E9.3,A11)") 10 + n, " Flux@", ED_energies(n), "eV (/cm2/s)"
-    enddo
+  ! ---- 2DUSR ----
+  call set_nVarsUser2d()
+  idx = find_output_type('2DUSR')
+  if (idx > 0 .and. RegisteredTypes(idx)%nVars == 0) then
+    call add_var(RegisteredTypes(idx), 'Longitude', 'rad')
+    call add_var(RegisteredTypes(idx), 'Latitude', 'rad')
+    call add_var(RegisteredTypes(idx), 'Altitude', 'm')
+    call add_var(RegisteredTypes(idx), 'Potential (kV)', 'kV')
+    call add_var(RegisteredTypes(idx), 'Average Energy (keV)', 'keV')
+    call add_var(RegisteredTypes(idx), 'Total Energy (ergs)', 'ergs/cm2/s')
+    call add_var(RegisteredTypes(idx), 'Discrete Average Energy (keV)', 'keV')
+    call add_var(RegisteredTypes(idx), 'Discrete Total Energy (ergs)', 'ergs/cm2/s')
+    call add_var(RegisteredTypes(idx), 'Wave Average Energy (keV)', 'keV')
+    call add_var(RegisteredTypes(idx), 'Wave Total Energy (ergs)', 'ergs/cm2/s')
+    ! do n = 1, ED_N_Energies
+    !   write(varname, "(A5,1P,E9.3,A7)") 'Flux@', ED_Energies(n), 'eV'
+    !   call add_var(RegisteredTypes(idx), trim(varname), '/cm2/s')
+    ! enddo
   endif
 
-  ! ------------------------------------------
-  ! 1D Output Header
-  ! ------------------------------------------
-
-  if (cType(1:2) == '1D') then
-
-    write(iOutputUnit_, *) "NUMERICAL VALUES"
-    write(iOutputUnit_, "(I7,6A)") nVarsUser1d, " nvars"
-    write(iOutputUnit_, "(I7,7A)") nAlts + 4, " nAltitudes"
-    write(iOutputUnit_, "(I7,7A)") 1, " nLatitudes"
-    write(iOutputUnit_, "(I7,7A)") 1, " nLongitudes"
-
-    write(iOutputUnit_, *) "VARIABLE LIST"
-    write(iOutputUnit_, "(I7,A1,a)") 1, " ", "Longitude"
-    write(iOutputUnit_, "(I7,A1,a)") 2, " ", "Latitude"
-    write(iOutputUnit_, "(I7,A1,a)") 3, " ", "Altitude"
-    write(iOutputUnit_, "(I7,A1,a)") 4, " ", "Electron Density"
+  ! ---- 1DUSR ----
+  call set_nVarsUser1d()
+  idx = find_output_type('1DUSR')
+  if (idx > 0 .and. RegisteredTypes(idx)%nVars == 0) then
+    call add_var(RegisteredTypes(idx), 'Longitude', 'rad')
+    call add_var(RegisteredTypes(idx), 'Latitude', 'rad')
+    call add_var(RegisteredTypes(idx), 'Altitude', 'm')
+    call add_var(RegisteredTypes(idx), 'Electron Density', '/m3')
   endif
 
-  ! ------------------------------------------
-  ! 0D Output Header
-  ! ------------------------------------------
-
-  if (cType(1:2) == '0D') then
-
-    write(iOutputUnit_, *) "NUMERICAL VALUES"
-    write(iOutputUnit_, "(I7,6A)") nVarsUser0d, " nvars"
-    write(iOutputUnit_, "(I7,7A)") 1, " nAltitudes"
-    write(iOutputUnit_, "(I7,7A)") 1, " nLatitudes"
-    write(iOutputUnit_, "(I7,7A)") 1, " nLongitudes"
-
-    write(iOutputUnit_, *) "VARIABLE LIST"
-    write(iOutputUnit_, "(I7,A1,a)") 1, " ", "Longitude"
-    write(iOutputUnit_, "(I7,A1,a)") 2, " ", "Latitude"
-    write(iOutputUnit_, "(I7,A1,a)") 3, " ", "Altitude"
-    write(iOutputUnit_, "(I7,A1,a)") 4, " ", "Electron Density"
-    write(iOutputUnit_, "(I7,A1,a)") 5, " ", "Electron Temperature"
-    write(iOutputUnit_, "(I7,A1,a)") 6, " ", "Ion Temperature"
+  ! ---- 0DUSR ----
+  call set_nVarsUser0d()
+  idx = find_output_type('0DUSR')
+  if (idx > 0 .and. RegisteredTypes(idx)%nVars == 0) then
+    call add_var(RegisteredTypes(idx), 'Longitude', 'rad')
+    call add_var(RegisteredTypes(idx), 'Latitude', 'rad')
+    call add_var(RegisteredTypes(idx), 'Altitude', 'm')
+    call add_var(RegisteredTypes(idx), 'Electron Density', '/m3')
+    call add_var(RegisteredTypes(idx), 'Electron Temperature', 'K')
+    call add_var(RegisteredTypes(idx), 'Ion Temperature', 'K')
   endif
 
-  write(iOutputUnit_, *) ""
-
-end subroutine output_header_user
-
-!----------------------------------------------------------------
-!
-!----------------------------------------------------------------
-
-subroutine output_3dUser(iBlock, iOutputUnit_)
-
-  use ModGITM
-  use ModUserGITM
-
-  implicit none
-
-  integer, intent(in) :: iBlock, iOutputUnit_
-  integer :: iAlt, iLat, iLon
-
-  do iAlt = -1, nAlts + 2
-    do iLat = -1, nLats + 2
-      do iLon = -1, nLons + 2
-        write(iOutputUnit_) &
-          Longitude(iLon, iBlock), &
-          Latitude(iLat, iBlock), &
-          Altitude_GB(iLon, iLat, iAlt, iBlock), &
-          UserData3D(iLon, iLat, iAlt, 1:nVarsUser3d - 3, iBlock)
-      enddo
-    enddo
-  enddo
-
-end subroutine output_3dUser
-
-!----------------------------------------------------------------
-!
-!----------------------------------------------------------------
-
-subroutine output_2dUser(iBlock, iOutputUnit_)
-
-  use ModGITM
-  use ModUserGITM
-
-  implicit none
-
-  integer, intent(in) :: iBlock, iOutputUnit_
-  integer :: iAlt, iLat, iLon
-
-  iAlt = 1
-  do iLat = 1, nLats
-    do iLon = 1, nLons
-      write(iOutputUnit_) &
-        Longitude(iLon, iBlock), &
-        Latitude(iLat, iBlock), &
-        Altitude_GB(iLon, iLat, iAlt, iBlock), &
-        UserData2D(iLon, iLat, iAlt, 1:nVarsUser2d - 3, iBlock)
-    enddo
-  enddo
-
-end subroutine output_2dUser
-
-!----------------------------------------------------------------
-!
-!----------------------------------------------------------------
-
-subroutine output_1dUser(iiLon, iiLat, iBlock, rLon, rLat, iOutputUnit_)
-
-  use ModGITM
-  use ModUserGITM
-  use ModPlanet, only: ie_
-
-  implicit none
-
-  integer, intent(in) :: iiLat, iiLon, iBlock, iOutputUnit_
-  real, intent(in)    :: rLon, rLat
-  integer :: iAlt
-
-  do iAlt = -1, nAlts + 2
-    write(iOutputUnit_) &
-      rLon*Longitude(iiLon, iBlock) + (1 - rLon)*Longitude(iiLon + 1, iBlock), &
-      rLat*Latitude(iiLat, iBlock) + (1 - rLat)*Latitude(iiLat + 1, iBlock), &
-      Altitude_GB(iiLon, iiLat, iAlt, iBlock), &
-      inter(IDensityS(0:nLons + 1, 0:nLats + 1, iAlt, ie_, iBlock), &
-            iiLon, iiLat, rLon, rLat)
-  enddo
-
-contains
-
-  real function inter(variable, iiLon, iiLat, rLon, rLat) &
-    result(PointValue)
-
-    implicit none
-
-    real :: variable(:, :), rLon, rLat
-    integer :: iiLon, iiLat
-
-    PointValue = &
-      (rLon)*(rLat)*Variable(iiLon, iiLat) + &
-      (1 - rLon)*(rLat)*Variable(iiLon + 1, iiLat) + &
-      (rLon)*(1 - rLat)*Variable(iiLon, iiLat + 1) + &
-      (1 - rLon)*(1 - rLat)*Variable(iiLon + 1, iiLat + 1)
-
-  end function inter
-
-end subroutine output_1dUser
-
-!----------------------------------------------------------------
-!
-!----------------------------------------------------------------
-
-subroutine output_0dUser(iiLon, iiLat, iiAlt, iBlock, rLon, rLat, rAlt, iOutputUnit_)
-
-  use ModGITM
-  use ModUserGITM
-  use ModPlanet, only: ie_
-
-  implicit none
-
-  integer, intent(in) :: iiLat, iiLon, iiAlt, iBlock, iOutputUnit_
-  real, intent(in)    :: rLon, rLat, rAlt
-
-  write(iOutputUnit_) &
-    rLon*Longitude(iiLon, iBlock) + (1 - rLon)*Longitude(iiLon + 1, iBlock), &
-    rLat*Latitude(iiLat, iBlock) + (1 - rLat)*Latitude(iiLat + 1, iBlock), &
-    rAlt*Altitude_GB(iiLon, iiLat, iiAlt, iBlock) + &
-    (1 - rAlt)*Altitude_GB(iiLon, iiLat, iiAlt + 1, iBlock), &
-    inter(IDensityS(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1, ie_, iBlock), &
-          iiLon, iiLat, iiAlt, rLon, rLat, rAlt), &
-    inter(eTemperature(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1, iBlock), &
-          iiLon, iiLat, iiAlt, rLon, rLat, rAlt), &
-    inter(ITemperature(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1, iBlock), &
-          iiLon, iiLat, iiAlt, rLon, rLat, rAlt)
-
-contains
-
-  real function inter(variable, iiLon, iiLat, iiAlt, rLon, rLat, rAlt) &
-    result(PointValue)
-
-    implicit none
-
-    real :: variable(:, :, :), rLon, rLat, rAlt
-    integer :: iiLon, iiLat, iiAlt
-
-    PointValue = &
-      (rLon)*(rLat)*(rAlt)*Variable(iiLon, iiLat, iiAlt) + &
-      (1 - rLon)*(rLat)*(rAlt)*Variable(iiLon + 1, iiLat, iiAlt) + &
-      (rLon)*(1 - rLat)*(rAlt)*Variable(iiLon, iiLat + 1, iiAlt) + &
-      (1 - rLon)*(1 - rLat)*(rAlt)*Variable(iiLon + 1, iiLat + 1, iiAlt) + &
-      (rLon)*(rLat)*(1 - rAlt)*Variable(iiLon, iiLat, iiAlt + 1) + &
-      (1 - rLon)*(rLat)*(1 - rAlt)*Variable(iiLon + 1, iiLat, iiAlt + 1) + &
-      (rLon)*(1 - rLat)*(1 - rAlt)*Variable(iiLon, iiLat + 1, iiAlt + 1) + &
-      (1 - rLon)*(1 - rLat)*(1 - rAlt)*Variable(iiLon + 1, iiLat + 1, iiAlt + 1)
-
-  end function inter
-
-end subroutine output_0dUser
+end subroutine init_usr_output_registry

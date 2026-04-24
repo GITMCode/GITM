@@ -74,6 +74,8 @@ nav:
   - Outputs:
     - Postprocessing: postprocessing.md
     - Available Outputs: outputs.md
+    - Adding new outputs: outputs/modifying_outputs.md
+    - Output backends: outputs/output_backends.md
     - Plotting Outputs: plotters.md
   - Internals:
     - Overview: internals/overview.md

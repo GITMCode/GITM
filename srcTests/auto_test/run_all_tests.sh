@@ -1,5 +1,6 @@
 #!/bin/bash
 
+set -e
 
 get_help(){
 
@@ -11,16 +12,16 @@ get_help(){
   - All UAM files matching the pattern UAM.*.test
     are automatically tested on GitHub
 
-> When adding a new feature, it is recommended to create a test. 
+> When adding a new feature, it is recommended to create a test.
   - To do this, first create a UAM.in file which uses the new feature.
-  - Then, run this script with: 
+  - Then, run this script with:
     > ./run_all_tests.sh -d -c --save_solution -o [your uam file]
   - Add a few words to the file name to explain the test. See below for more.
   - Please try to keep the numbers increasing sequentially, if possible.
 
-Additional notes about the test may be added. Name must conform to: 
+Additional notes about the test may be added. Name must conform to:
             UAM.in.##.*.test
-and no spaces can be added. Numbers do not need to be increasing, but will be useful 
+and no spaces can be added. Numbers do not need to be increasing, but will be useful
 when comparing outputs. It is recommended to follow the pattern:
             UAM.in.##.[anything_you_want].test
 
@@ -73,7 +74,29 @@ Arguments:
                                     off by default.
 
 "
-  exit 1
+}
+
+get_backend_from_filename(){
+  # Extract backend from filename: UAM.in.##.description.BACKEND.test
+  # Returns: legacy, mpiio, netcdf, or "unknown" if not found
+  local filename="$1"
+
+  if [[ "$filename" =~ \.(legacy|mpiio|netcdf)\.test$ ]]; then
+    echo "${BASH_REMATCH[1]}"
+  else
+    echo "unknown"
+  fi
+}
+
+is_optional_backend(){
+  # Returns 0 (true) if backend is optional, 1 (false) if required
+  local backend="$1"
+
+  if [[ "$backend" == "netcdf" ]]; then
+    return 0  # netcdf is optional
+  else
+    return 1  # legacy and mpiio are required
+  fi
 }
 
 warnsavesolution(){
@@ -87,7 +110,7 @@ Using --save_solution will overwrite the reference logfiles
 
 Only use this if you know what you are doing.
 
-If you just created a new test, run with -o/--only 
+If you just created a new test, run with -o/--only
 to save a solution for the test you created.
 
 Cancel with Ctrl+C
@@ -102,41 +125,44 @@ Cancel with Ctrl+C
 
 checkoutputs(){
   # refactored for cleanliness
+  # Returns 0 on success, 1 on failure
 
   if [ $do_save = true ]; then
     cp UA/data/log*.dat ../ref_solns/log.$test_uam
     echo
     echo
-    echo " Created ref solution: log." $test_uam 
-
-    return;
+    echo " Created ref solution: log." $test_uam
+    return 0
   fi
 
   if [ $do_compare = true ]; then
     echo
     ../../../share/Scripts/DiffNum.pl -r=5e-5 -a=1e-1 -t ../ref_solns/log.$test_uam UA/data/log*.dat
-    
+
     if [ $? = 0 ]; then
       # test was a success. no differences found.
-      return 
-    
+      return 0
+
     else
       echo
       echo " ============    ERROR!!!!!    ============"
       echo "  Output differs from reference solution."
       echo "  Something has gone terribly wrong!!"
       rm GITM.DONE
-      return
+      return 1
     fi
-
   fi
-
+  return 0
 }
 
 run_a_test(){
+  # Run a single test and return status:
+  #   0 = success
+  #   1 = failure (required backend)
+  #   2 = failure (optional backend)
 
   printf "\n\n>> Testing with $test_uam ...\n"
-  # Copy UAM 
+  # Copy UAM
   ln -sf $test_uam UAM.in
   rm -f GITM.DONE
 
@@ -145,35 +171,78 @@ run_a_test(){
 
   # this will either save, or diff, the output log files.
   # (double sanity-check): only run if GITM.DONE exists & above exited with no error code.
+  local checkout_status=0
   if [[ -f GITM.DONE && $? = 0 ]]; then
     checkoutputs
+    checkout_status=$?
+  else
+    checkout_status=1
   fi
 
-  if [ -f GITM.DONE ]; then
+  if [[ -f GITM.DONE && $checkout_status = 0 ]]; then
       printf "\n\n>>> $test_uam ran successfully! <<< \n\n"
-      mv $test_uam $test_uam.success 
+      mv $test_uam $test_uam.success
       mv UA/data/log*.dat UA/data/log_$test_uam.success
       rm -f GITM.DONE
+      return 0
   else
-      printf "\n\n>>> $test_uam   UNSUCCESSFUL! <<< \n\n EXITING\n\n"
-      mv UA/data/log*.dat log_$test_uam.fail
-      exit 1
+      printf "\n\n>>> $test_uam   UNSUCCESSFUL! <<< \n\n"
+      mv UA/data/log*.dat log_$test_uam.fail 2>/dev/null
+
+      # Determine if this is optional or required backend
+      local backend=$(get_backend_from_filename "$test_uam")
+      if is_optional_backend "$backend"; then
+        return 2  # optional backend failure
+      else
+        return 1  # required backend failure
+      fi
   fi
 
 }
 
+print_summary(){
+  # Print test results summary
+  local passed_count=${#passed[@]}
+  local failed_required_count=${#failed_required[@]}
+  local failed_optional_count=${#failed_optional[@]}
+  local total_count=$((passed_count + failed_required_count + failed_optional_count))
+
+  echo ""
+  echo "============================================================"
+  echo "TEST SUMMARY"
+  echo "============================================================"
+  echo "Total tests: $total_count"
+  echo "✓ Passed: $passed_count"
+
+  if [ $failed_required_count -gt 0 ]; then
+    echo "> Failed (REQUIRED): $failed_required_count"
+    for test in "${failed_required[@]}"; do
+      echo "   - $test"
+    done
+  fi
+
+  if [ $failed_optional_count -gt 0 ]; then
+    echo "> Failed (optional): $failed_optional_count"
+    for test in "${failed_optional[@]}"; do
+      echo "   - $test (netcdf - optional feature)"
+    done
+  fi
+  echo "============================================================"
+  echo ""
+}
+
 do_tests(){
     # Configure & compile
-    cd ../../ 
+    cd ../../
     
     if [ $clean = true ]; then
       make clean
     elif [ $distclean = true ]; then
-      make distclean    
+      make distclean
     fi
 
     if [ $config = true ]; then
-        ./Config.pl -install -earth -compiler=gfortran10 $debug
+        ./Config.pl -install -earth -compiler=gfortran -debug
     fi
 
     make -j
@@ -185,28 +254,10 @@ do_tests(){
       exit 1
     fi
 
-    # make GITM/run to srcTest/auto_test/run
-    # - Old rundir's can cause unintended issues.
-    # - Rename GITM/run it if it exists & make a new rundir
-    if [[ -d run ]]; then
-      echo
-      echo " ==========================================================="
-      echo " Found a run directory at GITM's root folder!!"
-      echo " Moving its contents to run_madebytestscript/, just in case"
-      echo " You have 10 seconds to cancel ..."
-      echo 
-      echo " > ls" $(pwd)"/run"
-      ls run/
-      sleep 10
-
-      mv run run_madebytestscript
-    fi
-
-    # Cnsecutive test runs won't have to sleep for 10 seconds
     # Since we can't tell when (or how) srcTest/auto_test/run was made, replace it
-    make rundir
+    # 'make rundir' defaults to creating 'run', if we set RUNDIR, it creates that instead.
     rm -rf srcTests/auto_test/run
-    mv run srcTests/auto_test/
+    make rundir RUNDIR=srcTests/auto_test/run
 
     # Copy the test files into run/
     cd srcTests/auto_test/
@@ -215,16 +266,52 @@ do_tests(){
 
     # begin running:
     cd run/
+
+    # Initialize result tracking arrays
+    passed=()
+    failed_required=()
+    failed_optional=()
+
     if [ $onlyone = false ]; then
       for test_uam in UAM.*.test; do
           run_a_test
+          local status=$?
+
+          if [ $status = 0 ]; then
+            passed+=("$test_uam")
+          elif [ $status = 1 ]; then
+            failed_required+=("$test_uam")
+          elif [ $status = 2 ]; then
+            failed_optional+=("$test_uam")
+          fi
       done
-      exit 0
+
+      # Print summary
+      print_summary
+
+      # Exit with error code if ANY tests failed (required or optional)
+      if [ ${#failed_required[@]} -gt 0 ] || [ ${#failed_optional[@]} -gt 0 ]; then
+        exit 1
+      else
+        exit 0
+      fi
     else # if we are only running one UAM file
       test_uam=$onlyone
       run_a_test
-      exit 0
+      local status=$?
+
+      if [ $status = 0 ]; then
+        exit 0
+      else
+        # Any test failure (required or optional) fails the workflow
+        if [ $status = 2 ]; then
+          # Optional backend failure - still fails workflow, but report as warning
+          echo ""
+          echo "⚠ Test failed: $test_uam (netcdf - optional feature)"
+        fi
+        exit 1
       fi
+    fi
 }
 
 
@@ -246,12 +333,6 @@ while [[ $# -gt 0 ]]; do
     -h|--help)
       get_help
       exit 1
-      ;;
-
-    -d|--debug)
-      echo "Using -debug"
-      debug="-debug"
-      shift
       ;;
 
     -c|--clean)
@@ -297,8 +378,9 @@ while [[ $# -gt 0 ]]; do
       ;;
 
     *)
-      echo "Unrecognized argument: $1"
-      if [ -e $1 ]; then echo "Run with '-o $1' to test one file"; fi
+      get_help
+      echo "> Unrecognized argument: $1"
+      if [ -e $1 ]; then echo "  Run with '-o $1' to test one file"; fi
       exit 1
 
   # end arg parsing
@@ -309,7 +391,6 @@ done
 if [ $do_save = true ]; then warnsavesolution; fi
 
 # wait a sec to show users that settings are being used
-sleep 1.5
+sleep 2
 
 do_tests
-done

@@ -1,3 +1,5 @@
+comma := ,
+
 ABDIR   = ${UADIR}/srcSphereAB
 IODIR   = ${DATAREADINDICESDIR}
 GLDIR   = ${UADIR}/srcGlow
@@ -9,6 +11,16 @@ include ../Makefile.def
 
 include Makefile.DEPEND
 include Makefile.RULES
+
+PNETCDF_INC  = $(shell pnetcdf-config --includedir 2>/dev/null)
+PNETCDF_LIB  = $(shell pnetcdf-config --libdir 2>/dev/null)
+PNETCDF_LINK = $(if $(PNETCDF_LIB),-L$(PNETCDF_LIB) -lpnetcdf -Wl$(comma)-rpath$(comma)$(PNETCDF_LIB),)
+PNETCDF_DEFS = $(if $(PNETCDF_LIB),-DHavePNetCDF,)
+Lflag1      += $(PNETCDF_LINK)
+# INCL_EXTRA feeds into CFLAG -> Cflag3 (compile-time include search path)
+INCL_EXTRA  += $(if $(PNETCDF_INC),-I$(PNETCDF_INC),)
+# Cflag3 carries -DHavePNetCDF into all compilation units (harmless to non-NetCDF files)
+Cflag3      += $(PNETCDF_DEFS)
 
 SEARCH_EXTRA =  -I${ABDIR} \
 	 	-I${IODIR} \
@@ -35,6 +47,11 @@ MODULES = \
 	ModReadGitm3d.o\
 	ModSami.o\
 	ModSatellites.o\
+	ModOutputRegistry.o\
+	ModOutputBackend.o\
+	ModOutputGather.o\
+	ModOutputMPIIO.o\
+	ModOutputNetCDF.o\
 	ModSize.o\
 	ModSources.o\
 	ModSphereInterface.o\
