@@ -302,7 +302,7 @@ contains
       call fix_vernal_time
 
       call initialize_gitm(CurrentTime)
-      call write_output
+      call write_output(.false.)
 
       IsFirstTime = .false.
 
@@ -352,7 +352,7 @@ contains
 
     iStep = iStep + 1
 
-    call write_output
+    call write_output(.false.)
 
     SWMFTime = CurrentTime - StartTime
 

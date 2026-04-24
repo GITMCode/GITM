@@ -20,8 +20,8 @@ subroutine write_output(doForce)
 
   implicit none
 
-  logical, optional, intent(in) :: doForce
-  logical :: doWriteFile = .false.
+  logical, intent(in) :: doForce
+  logical :: doWriteFile
   real, external :: get_timing
   real :: ProjectedTime, CompletedTime, RealTime
   integer :: i, iBlock
@@ -35,7 +35,7 @@ subroutine write_output(doForce)
 
   logical, save :: IsFirstOutput = .true.
 
-  if (present(doForce)) doWriteFile = doForce
+  doWriteFile = doForce
 
   if (floor((tSimulation - dt)/DtReport) /= &
       floor((tsimulation)/DtReport) .and. iDebugLevel >= 0) then
