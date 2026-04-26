@@ -68,7 +68,11 @@ def parse_args_post():
     parser.add_argument('--runname', type=str, default='', help=
                         "When combining, this is prepended to the output type in the "
                         "resulting files: '[runname]_3DALL.nc'. Default is no descriptor.")
-
+    
+    parser.add_argument('-np', '--parallel', type=int, default=1, const=4, nargs='?',
+        help="Number of processors to use, default=1 (always sequential).\n"
+             "[-np] with no number will use 4 processors.\n"
+             "Otherwise, use [-np X] for X processors.")
 
     args = parser.parse_args()
 
@@ -270,6 +274,10 @@ def tar_and_zip_gitm():
         DidWork = run_command(command)
         command = 'cd ' + data_here + ' ; rm -f ' + baseFile + '.header ; cd ../..'
         DidWork = run_command(command)
+        command = 'cd ' + data_here + ' ; rm -f ' + baseFile + '.bin ; cd ../..'
+        DidWork = run_command(command)
+        command = 'cd ' + data_here + ' ; rm -f ' + baseFile + '.raw ; cd ../..'
+        DidWork = run_command(command)
         command = 'cd ' + data_here + ' ; rm -f ' + baseFile + '.sat ; cd ../..'
         DidWork = run_command(command)
 
@@ -413,7 +421,7 @@ def transfer_model_output_files(user, server, dir):
 # ----------------------------------------------------------------------
 
 def do_loop(doTarZip, user, server, dir, IsRemote,
-            write_nc=False, combine=False, runname='', # For writing outputs to netCDF
+            write_nc=False, combine=False, runname='', nProcs=1
             ):
 
     DidWork = True
@@ -449,7 +457,8 @@ def do_loop(doTarZip, user, server, dir, IsRemote,
                 # Maybe we are already in the data directory???
                 processDir = '.'
         DidWork = post_process_gitm(processDir, DoRm, isVerbose = IsVerbose,
-                                    write_nc=write_nc, combine=combine, runname=runname)
+                                    write_nc=write_nc, combine=combine, runname=runname,
+                                    nProcs=nProcs)
 
     # 4 - Check if remote data directory exists, make it if it doesn't:
     data_remote = '/data'
@@ -537,7 +546,7 @@ if __name__ == '__main__':  # main code block
                 "The remote transfer & netcdf combine options cannot be used together")
 
         DidWork = do_loop(doTarZip, user, server, dir, IsRemote,
-                          args.nc, args.combine, args.runname)
+                          args.nc, args.combine, args.runname, args.parallel)
         if (DidWork):
             # Check if stop file exists:
             stopCheck = check_for_stop_file()

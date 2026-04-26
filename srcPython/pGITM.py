@@ -25,6 +25,7 @@ import argparse
 import re
 import datetime
 import numpy as np
+from multiprocessing import Pool
 
 from scipy.io import FortranFile
 from struct import unpack
@@ -167,6 +168,7 @@ def create_netcdf(filename, data, isVerbose=False):
         for varname in data['vars']:
             unit = None
             newname = variables.get_short_names([varname])[0]
+            newname = newname.replace('[', '').replace(']', '')
             thisvar = ncfile.createVariable(newname, np.float64, 
                                             ('time', 'lon', 'lat', 'z'))
             thisvar[0, :, :, :] = data[varname].T
@@ -196,6 +198,7 @@ def append_netcdf(filename, data, isVerbose):
 
         for varname in data['vars']:
             newname = variables.get_short_names([varname])[0]
+            newname = newname.replace('[', '').replace(']', '')
             ncfile[newname][-1, :, :, :] = data[varname].T
 
     return
@@ -462,6 +465,11 @@ def remove_files(header, write_nc=False, isVerbose=False):
         if (isVerbose):
             print('     --> running command : ' + command)
         os.system(command)
+        
+        rawFile = header.replace('.header', '.raw')
+        command = 'rm -f ' + rawFile
+        os.system(command)
+        
         if write_nc:
             # Then we need to remove .bin file too. MPIIO writes .bin & .header,
             # we have changed it to .nc
@@ -493,7 +501,7 @@ def remove_files(header, write_nc=False, isVerbose=False):
 # ----------------------------------------------------------------------------
 
 def process_one_file(header, isVerbose = False, dowrite=True, 
-                     write_nc=False, combine=False, runname=''):
+                     write_nc=False, combine=False, runname='', doRemove=True):
 
     fileOut = header.replace('.header','.bin')
 
@@ -522,7 +530,12 @@ def process_one_file(header, isVerbose = False, dowrite=True,
         data[v] = np.zeros((data['nAltsTotal'], data['nLatsTotal'], data['nLonsTotal']))
 
     fmt = data.get('format', 'legacy')
-    mpiio_bin = header.replace('.header', '.bin') if fmt == 'mpiio' else None
+    mpiio_bin = None
+    if fmt == 'mpiio':
+        mpiio_bin = header.replace('.header', '.raw')
+        if not os.path.exists(mpiio_bin):
+            mpiio_bin = header.replace('.header', '.bin')
+            
     bytes_per_real = data.get('bytes_per_real', 8)
     nX = data['nLons'] + 2 * data['nGhostsLon']
     nY = data['nLats'] + 2 * data['nGhostsLat']
@@ -575,15 +588,33 @@ def process_one_file(header, isVerbose = False, dowrite=True,
             else:
                 raise ImportError("Cant import netCDF4")
         else: # default !!
-            write_gitm_file(fileOut, data, isVerbose = isVerbose)
+            tmpFile = fileOut + ".tmp"
+            write_gitm_file(tmpFile, data, isVerbose = isVerbose)
+            
+            if fmt == 'mpiio' and not doRemove:
+                rawFile = header.replace('.header', '.raw')
+                # If we're reading from .bin, rename it to .raw before replacing
+                if not os.path.exists(rawFile) and os.path.exists(fileOut):
+                    os.rename(fileOut, rawFile)
+                    
+            os.replace(tmpFile, fileOut)
+        if doRemove:
+            remove_files(header, write_nc=write_nc, isVerbose=isVerbose)
         return
 
     # return data if dowrite is false (for debugging)
     return data
-    
+
+#########################################
+##              Wrappers               ##
+#########################################
+
+def process_file_list(headers, isVerbose=False, dowrite=True, write_nc=False, combine=False, runname='', doRemove=True):
+    for h in headers:
+        process_one_file(h, isVerbose=isVerbose, dowrite=dowrite, write_nc=write_nc, combine=combine, runname=runname, doRemove=doRemove)
 
 def post_process_gitm(dir, doRemove, isVerbose = False,
-                      write_nc=False, combine=False, runname=''):
+                      write_nc=False, combine=False, runname='', nProcs=1):
 
     # Get into the correct directory for processing
     processDir = dir
@@ -604,27 +635,60 @@ def post_process_gitm(dir, doRemove, isVerbose = False,
     elif len(headers) == 0:
         print(" -> Did not find any files to process.")
     
-    # Process each single header:
+    # Separate out files that can be processed by Fortran PostGITM.exe
+    use_post_exe = os.path.exists("../../PostGITM.exe")
+    python_headers = []
+
     for head in headers:
         fmt = read_header(head).get('format', 'legacy')
 
-        if (isVerbose):
-            print(f' --> Processing {head} (format: {fmt})')
-
         # PostGITM.exe only understands legacy per-block format.
-        if fmt == 'legacy' and os.path.exists("../../PostGITM.exe"):
+        if fmt == 'legacy' and use_post_exe:
+            if (isVerbose):
+                print(f' --> Processing {head} (format: {fmt})')
             if write_nc:
                 raise ValueError(
                     "Cannot use PostGITM and netCDF at the same time, yet."
                     "\n  >> either remove PostGITM.exe or disable -nc option")
             # Use the legacy Fortran postprocessor (faster).
             run(f"echo {head} | ../../PostGITM.exe ", check=True, shell=True)
+            if (doRemove):
+                remove_files(head, write_nc=write_nc, isVerbose=isVerbose)
         else:
-            process_one_file(head, isVerbose=isVerbose,
-                            write_nc=write_nc, combine=combine, runname=runname)
+            python_headers.append(head)
 
-        if (doRemove):
-            remove_files(head, write_nc=write_nc, isVerbose = isVerbose)
+    if not python_headers:
+        if (isVerbose):
+            print('Moving into old directory : ', cwd)
+        os.chdir(cwd)
+        return True
+
+    if nProcs > 1:
+        if write_nc and combine:
+            # Group by output type to maintain sequential writes per-type
+            headers_by_type = {}
+            for head in python_headers:
+                thisType = head.split('_')[0]
+                headers_by_type.setdefault(thisType, []).append(head)
+            
+            arglists = [(hlist, isVerbose, True, write_nc, combine, runname, doRemove) 
+                        for hlist in headers_by_type.values()]
+            
+            with Pool(min(nProcs, len(arglists))) as pool:
+                pool.starmap(process_file_list, arglists)
+        else:
+            arglists = [(head, isVerbose, True, write_nc, combine, runname, doRemove) 
+                        for head in python_headers]
+            with Pool(nProcs) as pool:
+                pool.starmap(process_one_file, arglists)
+    else:
+        # Sequential processing
+        for head in python_headers:
+            if (isVerbose):
+                fmt = read_header(head).get('format', 'legacy')
+                print(f' --> Processing {head} (format: {fmt})')
+            process_one_file(head, isVerbose=isVerbose, write_nc=write_nc, 
+                             combine=combine, runname=runname, doRemove=doRemove)
 
     if (isVerbose):
         print('Moving into old directory : ', cwd)
@@ -645,9 +709,7 @@ if __name__ == '__main__':
     doRemove = not args.norm
     
     if (args.header != 'none'):
-        data = process_one_file(args.header, isVerbose = doPrint)
-        if (doRemove):
-            remove_files(args.header, isVerbose = doPrint)
+        data = process_one_file(args.header, isVerbose = doPrint, doRemove=doRemove)
         exit()
 
     post_process_gitm(args.dir, doRemove, isVerbose = doPrint)
