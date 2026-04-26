@@ -448,7 +448,7 @@ def read_header(headerFile, isVerbose = False):
 # 
 # ----------------------------------------------------------------------------
 
-def remove_files(header, isVerbose = False):
+def remove_files(header, write_nc=False, isVerbose=False):
 
     if (isVerbose):
         print('  --> removing files associated with : ', header)
@@ -462,6 +462,13 @@ def remove_files(header, isVerbose = False):
         if (isVerbose):
             print('     --> running command : ' + command)
         os.system(command)
+        if write_nc:
+            # Then we need to remove .bin file too. MPIIO writes .bin & .header,
+            # we have changed it to .nc
+            command = 'rm -f ' + header.replace('.header', '.bin')
+            if (isVerbose):
+                print('     --> running command : ' + command)
+            os.system(command)
     else:
         # legacy: remove per-block .bNNNN files and .header
         iBlock = 1
@@ -617,7 +624,7 @@ def post_process_gitm(dir, doRemove, isVerbose = False,
                             write_nc=write_nc, combine=combine, runname=runname)
 
         if (doRemove):
-            remove_files(head, isVerbose = isVerbose)
+            remove_files(head, write_nc=write_nc, isVerbose = isVerbose)
 
     if (isVerbose):
         print('Moving into old directory : ', cwd)
