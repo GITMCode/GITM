@@ -196,6 +196,32 @@ files. It only works for satellite files now.
     #APPENDFILES
     DoAppendFiles    (logical)
 
+### OUTPUTBACKEND
+
+Selects the I/O backend used to write output files. Three backends are available:
+
+- `legacy` — per-block binary files (default; backwards-compatible with all existing tools)
+- `mpiio` — single shared binary file written collectively via MPI-IO
+- `netcdf` — single self-describing NetCDF file per output type per timestep (requires PnetCDF)
+
+    #OUTPUTBACKEND
+    BackendName    (string: legacy | mpiio | netcdf)
+
+If this block is absent, the `legacy` backend is used. See the
+[Output Backends](outputs/output_backends.md) page for a full description and
+build requirements.
+
+### NETCDFAPPEND
+
+When using the `netcdf` backend, enables multi-time mode: instead of one file per output
+type per timestep, all timesteps for each output type are accumulated in a single file
+(e.g., `3DALL.nc`). Data variables gain an unlimited time dimension as their last axis,
+making files directly usable with xarray and other time-series tools. Has no effect
+when `#OUTPUTBACKEND` is `legacy` or `mpiio`.
+
+    #NETCDFAPPEND
+    UseNetcdfMultiTime    (logical)
+
 ## Drivers
 
 ### F107

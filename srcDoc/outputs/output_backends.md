@@ -68,6 +68,35 @@ The result is a single `.nc` file per output type per timestep — no post-proce
 merging is required. Files can be read directly with xarray, NCO, PyITM, or any
 NetCDF-aware tool.
 
+### Multi-time files
+
+By default the NetCDF backend creates one file per output type per timestep
+(e.g., `3DALL_t230101_000000.nc`, `3DALL_t230101_000500.nc`, …). For long runs this
+produces a large number of files. Enable **multi-time mode** to accumulate all
+timesteps in a single file per output type instead:
+
+```
+#OUTPUTBACKEND
+netcdf
+
+#NETCDFAPPEND
+T
+```
+
+With multi-time mode enabled the output files are not named with time
+(`3DALL.nc`, `2DANC.nc`, …). Each file uses an **unlimited time dimension** so
+data variables are shaped `(lon, lat[, alt], time)`. This is the native format
+for time-series analysis with xarray:
+
+```python
+import xarray as xr
+ds = xr.open_dataset("3DALL.nc", decode_times=True)
+```
+
+!!! note
+    Multi-time mode is only effective with the `netcdf` backend. The `#NETCDFAPPEND`
+    line is silently ignored if `#OUTPUTBACKEND` is `legacy` or `mpiio`.
+
 ### Conditional participation types
 
 For output types where not all blocks write, the NetCDF backend automatically switches from
