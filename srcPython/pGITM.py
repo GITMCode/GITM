@@ -609,9 +609,14 @@ def process_one_file(header, isVerbose = False, dowrite=True,
 ##              Wrappers               ##
 #########################################
 
-def process_file_list(headers, isVerbose=False, dowrite=True, write_nc=False, combine=False, runname='', doRemove=True):
+def process_file_list(headers, dowrite=True, doRemove=True,
+                      write_nc=False, combine=False, runname='',
+                      isVerbose=False):
     for h in headers:
-        process_one_file(h, isVerbose=isVerbose, dowrite=dowrite, write_nc=write_nc, combine=combine, runname=runname, doRemove=doRemove)
+        process_one_file(h, dowrite=dowrite, doRemove=doRemove,
+                         write_nc=write_nc, combine=combine, runname=runname,
+                         isVerbose=isVerbose, 
+                        )
 
 def post_process_gitm(dir, doRemove, isVerbose = False,
                       write_nc=False, combine=False, runname='', nProcs=1):
