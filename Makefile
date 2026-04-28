@@ -1,4 +1,3 @@
-
 default : GITM
 
 include Makefile.def
@@ -129,12 +128,15 @@ rundir:
 			ln -s ${EIEDIR}/data/ext extIE; \
 			if [ ${STANDALONE} == NO ]; then    \
 				ln -s data/ plots; \
+				ln -s post_process.py pGITM; \
 			fi
 	# For legacy postprocessor. If user has already run make POST, take those files:
 	cd ${RUNDIR} ; \
 		if [ -e ${UADIR}/src/PostGITM.exe ]; then \
 			ln -s ${UADIR}/src/PostGITM.exe .; \
-			ln -s ${UADIR}/src/pGITM .; \
+			if [ ${STANDALONE} == YES ]; then  \
+				ln -s ${UADIR}/src/pGITM .; \
+			fi				\
 		fi
 	cd ${RUNDIR} ;                                   \
 		if [ -e ${BINDIR}/GITM.exe ]; then       \
