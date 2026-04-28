@@ -26,23 +26,24 @@ def parse_args_post():
                         default = 'remote')
 
     parser.add_argument('-user',
-                        help = 'remote user name (default none)',
+                        help = 'Remote user name (default none)',
                         default = 'none')
     
     parser.add_argument('-server',
-                        help = 'remote system name (default none)',
+                        help = 'Remote system name (default none)',
                         default = 'none')
     
     parser.add_argument('-dir',
-                        help = 'remote directory to use (default none)',
+                        help = 'Remote directory to use (default none)',
                         default = 'none')
     
     parser.add_argument('-sleep',
-                        help = 'how long to sleep between loops in seconds, (default 300)',
+                        help = 'How long to sleep between loops in seconds (default 300)',
                         default = 300, type = int)
 
     parser.add_argument('-totaltime',
-                        help = 'specify how long to run in total in hours, (default 0 - only run once)',
+                        help = 'Specify how long to run in total in hours,\n'
+                               '(default 0 - only run once)',
                         default = 0, type = int)
     
     parser.add_argument('-v', '--verbose',
@@ -50,30 +51,29 @@ def parse_args_post():
                         action = 'store_true')
     
     parser.add_argument('-norm',
-                        help = "don't remove any files",
+                        help = "Don't remove any files",
                         action = 'store_true')
     
     parser.add_argument('-tgz',
-                        help = "tar and zip raw GITM file instead of process",
+                        help = "Tar and zip raw GITM file instead of process",
                         action = 'store_true')
 
     parser.add_argument('-nc', action = 'store_true',
                         help = "Postprocess to netCDF files instead on '.bin'?")
     
     parser.add_argument('--combine', action='store_true',
-                        help="If processing to netCDF, we can combine each timestep to a"
-                        " single file per output type. (ex: 3DALL.nc, etc.). "
-                        "Will not work without -nc or if using remote.")
+                        help="If processing to netCDF, we can combine each timestep\n"
+                             "to a single file per output type. (3DALL.nc, etc.).\n"
+                             "Will not work without -nc or if using remote.")
     
     parser.add_argument('--runname', type=str, default='', help=
-                        "When combining, this is prepended to the output type in the "
+                        "When combining, this is prepended to the output type in the\n"
                         "resulting files: '[runname]_3DALL.nc'. Default is no descriptor.")
     
-    parser.add_argument('-p', '--parallel', action='store_true',
-                        help='Set this to process each output type in parallel. '
-                        'Will use one thread for each type. '
-                        'Not compatible with the Fortran postprocessor.')
-
+    parser.add_argument('-np', '--parallel', type=int, default=1, const=4, nargs='?',
+        help="Number of processors to use, default=1 (always sequential).\n"
+             "[-np] with no number will use 4 processors.\n"
+             "Otherwise, use [-np X] for X processors.")
 
     args = parser.parse_args()
 
@@ -275,6 +275,10 @@ def tar_and_zip_gitm():
         DidWork = run_command(command)
         command = 'cd ' + data_here + ' ; rm -f ' + baseFile + '.header ; cd ../..'
         DidWork = run_command(command)
+        command = 'cd ' + data_here + ' ; rm -f ' + baseFile + '.bin ; cd ../..'
+        DidWork = run_command(command)
+        command = 'cd ' + data_here + ' ; rm -f ' + baseFile + '.raw ; cd ../..'
+        DidWork = run_command(command)
         command = 'cd ' + data_here + ' ; rm -f ' + baseFile + '.sat ; cd ../..'
         DidWork = run_command(command)
 
@@ -418,8 +422,7 @@ def transfer_model_output_files(user, server, dir):
 # ----------------------------------------------------------------------
 
 def do_loop(doTarZip, user, server, dir, IsRemote,
-            write_nc=False, combine=False, runname='', # For writing outputs to netCDF
-            doParallel=True # Processes each output type in parallel
+            write_nc=False, combine=False, runname='', nProcs=1
             ):
 
     DidWork = True
@@ -456,7 +459,7 @@ def do_loop(doTarZip, user, server, dir, IsRemote,
                 processDir = '.'
         DidWork = post_process_gitm(processDir, DoRm, isVerbose = IsVerbose,
                                     write_nc=write_nc, combine=combine, runname=runname,
-                                    doParallel=doParallel)
+                                    nProcs=nProcs)
 
     # 4 - Check if remote data directory exists, make it if it doesn't:
     data_remote = '/data'
@@ -545,7 +548,7 @@ if __name__ == '__main__':  # main code block
                 "The remote transfer & netcdf combine options cannot be used together")
 
         DidWork = do_loop(doTarZip, user, server, dir, IsRemote,
-                          args.nc, args.combine, args.runname, doParallel)
+                          args.nc, args.combine, args.runname, args.parallel)
         if (DidWork):
             # Check if stop file exists:
             stopCheck = check_for_stop_file()

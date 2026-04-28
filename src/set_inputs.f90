@@ -1476,6 +1476,13 @@ subroutine set_inputs
           write(*, *) 'Must be a string!'
         endif
 
+      case ('#NETCDFAPPEND')
+        call read_in_logical(UseNetcdfMultiTime, iError)
+        if (iError /= 0) then
+          write(*, *) 'Incorrect format for #NETCDFAPPEND'
+          write(*, *) 'Must be a logical (T/F)!'
+        endif
+
       case ("#SAVEPLOTS", "#SAVEPLOT")
         call read_in_real(DtRestart, iError)
         call read_in_int(nOutputTypes, iError)
