@@ -2662,20 +2662,20 @@ subroutine gtd8d(iyd,sec,alt,glat,glong,stl,f107a,f107,ap,mass,d,t)
   call msiscalc(xday,xutsec,xalt,xlat,xlon,xsfluxavg,xsflux,xap,xtn,xdn,tex=xtex)
 
   ! Convert the output arguments to the legacy format (mks to cgs, re-order species)
-  t(1) = sngl(xtex)    ! Expospheric temperature
-  t(2) = sngl(xtn)     ! Temperature at altitude
+  t(1) = real(xtex)    ! Expospheric temperature
+  t(2) = real(xtn)     ! Temperature at altitude
   where (xdn .ne. dmissing) xdn = xdn*1d-6
   if (xdn(1) .ne. dmissing) xdn(1) = xdn(1)*1e3_rp
-  d(1) = sngl(xdn(5))  ! [He]
-  d(2) = sngl(xdn(4))  ! [O]
-  d(3) = sngl(xdn(2))  ! [N2]
-  d(4) = sngl(xdn(3))  ! [O2]
-  d(5) = sngl(xdn(7))  ! [Ar]
-  d(6) = sngl(xdn(1))  ! Mass density
-  d(7) = sngl(xdn(6))  ! [H]
-  d(8) = sngl(xdn(8))  ! [N]
-  d(9) = sngl(xdn(9))  ! [Anomalous O]
-  d(10) = sngl(xdn(10))  ! [NO]
+  d(1) = real(xdn(5))  ! [He]
+  d(2) = real(xdn(4))  ! [O]
+  d(3) = real(xdn(2))  ! [N2]
+  d(4) = real(xdn(3))  ! [O2]
+  d(5) = real(xdn(7))  ! [Ar]
+  d(6) = real(xdn(1))  ! Mass density
+  d(7) = real(xdn(6))  ! [H]
+  d(8) = real(xdn(8))  ! [N]
+  d(9) = real(xdn(9))  ! [Anomalous O]
+  d(10) = real(xdn(10))  ! [NO]
 
   return
 
