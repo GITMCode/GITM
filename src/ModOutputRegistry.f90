@@ -112,7 +112,7 @@ contains
   end subroutine new_output_type
 
   ! -----------------------------------------------------------------
-  ! Add the standard lon/lat/alt coordinate variables
+  ! Geographic lon/lat/alt coordinates
   ! -----------------------------------------------------------------
   subroutine add_coord_vars(info)
     type(OutputTypeInfo), intent(inout) :: info

@@ -57,7 +57,7 @@ module ModOutputNetCDF
   integer :: nc_time_record = 1        ! current time record being written (1-based)
   integer :: nc_varid_time = -1        ! varid of the time coordinate variable
   integer :: nc_type_records(nc_max_types)  ! records written per output type so far
-  data nc_type_records / nc_max_types*0 /
+  data nc_type_records/nc_max_types*0/
   character(len=300) :: nc_multitime_filename = ''  ! filename for current type
 #endif
 
@@ -81,7 +81,7 @@ contains
     use ModOutputRegistry, only: find_output_type, RegisteredTypes
     use ModTime, only: iTimeArray, CurrentTime
     ! Not compiled in standalone. Change 1965 when it is!
-    ! use ModTimeConvert, only: iYearBase 
+    ! use ModTimeConvert, only: iYearBase
 #endif
     character(len=*), intent(in) :: dir, cType, cTime
     integer, intent(in) :: cL
@@ -342,28 +342,28 @@ contains
       ! --- 1-D coordinate variables --- (Not present in magnetic/needsIndepWrite outputs)
       ! Written only on the first time record; coordinates don't change between timesteps.
       if (nc_time_record == 1) then
-        ! lon: each block writes its own interior lon range (degrees east)
+        ! lon: each block writes its own interior lon range (radians east)
         cstart(1) = start(1)
         ccnt(1) = cnt(1)
         allocate(coord1d(nLi))
-        coord1d = real(Longitude(1:nLi, 1), kind=8) * cRadToDeg
+        coord1d = real(Longitude(1:nLi, 1), kind=8)!*cRadToDeg
         ierr = nfmpi_put_vara_double_all(ncid, coordids(1), cstart, ccnt, coord1d)
         deallocate(coord1d)
 
-        ! lat: each block writes its own interior lat range (degrees north)
+        ! lat: each block writes its own interior lat range (rad north)
         cstart(1) = start(2)
         ccnt(1) = cnt(2)
         allocate(coord1d(nLai))
-        coord1d = real(Latitude(1:nLai, 1), kind=8) * cRadToDeg
+        coord1d = real(Latitude(1:nLai, 1), kind=8)!*cRadToDeg
         ierr = nfmpi_put_vara_double_all(ncid, coordids(2), cstart, ccnt, coord1d)
         deallocate(coord1d)
 
-        ! z (3D only): all blocks cover the same altitude levels (km)
+        ! z (3D only): all blocks cover the same altitude levels (m)
         if (nc_nDims == 3) then
           cstart(1) = 1_MPI_OFFSET_KIND
           ccnt(1) = cnt(3)
           allocate(coord1d(nAi))
-          coord1d = real(Altitude_GB(1, 1, 1:nAi, 1), kind=8) / 1000.0d0
+          coord1d = real(Altitude_GB(1, 1, 1:nAi, 1), kind=8)!/1000.0d0
           ierr = nfmpi_put_vara_double_all(ncid, coordids(3), cstart, ccnt, coord1d)
           deallocate(coord1d)
         endif
@@ -403,6 +403,21 @@ contains
     character(len=80) :: varname
     character(len=40) :: coord_units
     character(len=30) :: coord_str
+    character(len=8) :: dstr, tstr
+
+    ! CF global attributes
+    attlen = 6_MPI_OFFSET_KIND
+    coord_units = trim(RegisteredTypes(iTypeIdx)%code)//" output from GITM"
+    attlen = int(len_trim(coord_units), MPI_OFFSET_KIND)
+    ierr = nfmpi_put_att_text(ncid, NF_GLOBAL, "title", attlen, trim(coord_units))
+    coord_units = "GITM (Global Ionosphere-Thermosphere Model)"
+    attlen = int(len_trim(coord_units), MPI_OFFSET_KIND)
+    ierr = nfmpi_put_att_text(ncid, NF_GLOBAL, "source", attlen, trim(coord_units))
+    call date_and_time(date=dstr, time=tstr)
+    coord_units = dstr(1:4)//"-"//dstr(5:6)//"-"//dstr(7:8)//" "// &
+                  tstr(1:2)//":"//tstr(3:4)//":"//tstr(5:6)//" Created by GITM"
+    attlen = int(len_trim(coord_units), MPI_OFFSET_KIND)
+    ierr = nfmpi_put_att_text(ncid, NF_GLOBAL, "history", attlen, trim(coord_units))
 
     ! Spatial dims
     ierr = nfmpi_def_dim(ncid, "lon", nLons_g, dimid_lon)
@@ -439,6 +454,11 @@ contains
         attlen = int(len_trim(RegisteredTypes(iTypeIdx)%vars(iV)%units), MPI_OFFSET_KIND)
         ierr = nfmpi_put_att_text(ncid, varids(iV), "units", attlen, &
                                   trim(RegisteredTypes(iTypeIdx)%vars(iV)%units))
+      endif
+      if (len_trim(RegisteredTypes(iTypeIdx)%vars(iV)%longName) > 0) then
+        attlen = int(len_trim(RegisteredTypes(iTypeIdx)%vars(iV)%longName), MPI_OFFSET_KIND)
+        ierr = nfmpi_put_att_text(ncid, varids(iV), "long_name", attlen, &
+                                  trim(RegisteredTypes(iTypeIdx)%vars(iV)%longName))
       endif
     enddo
 
@@ -487,9 +507,11 @@ contains
     integer :: i
     do i = 1, len_trim(name)
       select case (name(i:i))
-      case (' ', '/', '(', ')', '[', ']', '#', '%', '!', '+', '-', '*', '^', '.', &
+      case (' ', '/', '(', ')', '[', ']', '#', '%', '!', '-', '*', '^', '.', &
             ',', '{', '}', '\', '<', '>', '=', '&', '|', '~', '`', '"', "'", '?', '@', '$', ';', ':')
         name(i:i) = '_'
+      case ('+')
+        name(i:i) = '_plus'
       end select
     enddo
     ! NetCDF classic names must start with a letter; prefix with 'v_' if not
