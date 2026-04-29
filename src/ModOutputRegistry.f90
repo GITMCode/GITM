@@ -25,8 +25,8 @@ module ModOutputRegistry
   type :: OutputVar
     character(len=MaxNameLen) :: name = ''
     character(len=MaxUnitsLen) :: units = ''
-    character(len=MaxUnitsLen) :: longName = ''
-    character(len=MaxUnitsLen) :: shortName = ''
+    character(len=MaxNameLen) :: longName = ''
+    character(len=MaxNameLen) :: shortName = ''
   end type OutputVar
 
   type :: OutputTypeInfo
@@ -60,7 +60,6 @@ contains
     info%nVars = info%nVars + 1
     if (info%nVars > MaxVarsPerType) &
       call stop_gitm("ERROR: too many vars in output type "//info%code)
-    ! endif
     info%vars(info%nVars)%name = varName
     if (present(shortName)) then
       info%vars(info%nVars)%shortName = shortName
@@ -70,7 +69,7 @@ contains
     if (present(longName)) then
       info%vars(info%nVars)%longName = longName
     else
-      info%vars(info%nVars)%shortName = varName
+      info%vars(info%nVars)%longName = varName
     endif
     info%vars(info%nVars)%units = units
   end subroutine add_var
