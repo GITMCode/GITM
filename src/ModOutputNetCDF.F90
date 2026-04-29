@@ -403,7 +403,8 @@ contains
     character(len=80) :: varname
     character(len=40) :: coord_units
     character(len=30) :: coord_str
-    character(len=8) :: dstr, tstr
+    character(len=8)  :: dstr
+    character(len=10) :: tstr
 
     ! CF global attributes
     attlen = 6_MPI_OFFSET_KIND
