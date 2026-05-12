@@ -43,7 +43,7 @@ C gLon = Geographin Longitude
 
            do i=mid*10.0-100,mid*10.0+100
 
-              ang = real(i)/10.0*dtor
+              ang = dble(i)/10.0d0*dtor
               stfcpa = ste*ctp*cos(ang)-cte*stp
               stfspa = sin(ang)*ste
 
@@ -166,7 +166,7 @@ C gLon = Geographin Longitude
 
            do iLon = 0, 360, 10
 
-              gLonGuess = real(iLon)
+              gLonGuess = dble(iLon)
               call APEX(DATE,gLatGuess,gLonGuess,Alt,lShell,aLatTest,aLonTest,
      !             bmag,xmag,ymag,zmag,MagPot)
 
@@ -179,7 +179,7 @@ C gLon = Geographin Longitude
 
            enddo
 
-           gLon = real(iLonBest)
+           gLon = dble(iLonBest)
 
            dLon = 20.0
 
@@ -194,7 +194,7 @@ C gLon = Geographin Longitude
 
               do iLat = -5,5
 
-                 gLatGuess = gLat + real(iLat)/10 * dLat
+                 gLatGuess = gLat + dble(iLat)/10.0d0*dLat
                  gLonGuess = gLon
                  call APEX(DATE,gLatGuess,gLonGuess,Alt,lShell,aLatTest,aLonTest,
      !                bmag,xmag,ymag,zmag,MagPot)
@@ -214,7 +214,7 @@ C gLon = Geographin Longitude
               do iLon = -5,5
 
                  gLatGuess = gLat
-                 gLonGuess = gLon + real(iLon)/10 * dLat
+                 gLonGuess = gLon + dble(iLon)/10.0d0*dLat
                  call APEX(DATE,gLatGuess,gLonGuess,Alt,lShell,aLatTest,aLonTest,
      !                bmag,xmag,ymag,zmag,MagPot)
 
@@ -229,7 +229,7 @@ C gLon = Geographin Longitude
 
               enddo
 
-              dLon = dLon * exp((real(iCount)-5)/10)
+              dLon = dLon * exp((dble(iCount)-5.0d0)/10.0d0)
               iCount = iCount + 1
 
            enddo
@@ -2853,7 +2853,7 @@ C  where ARBITRARY INTEGER = YR+1.  This gives:
       G0 = -2.472 + (-.2558905*(YR-4*NLEAP) - 3.79617E-2*NLEAP)
 C
 C Universal time in seconds:
-      UT = FLOAT(IHR*3600 + IMN*60) + SEC
+      UT = DBLE(IHR*3600 + IMN*60) + SEC
 C
 C Days (including fraction) since 12 UT on January 1 of IYR:
       DF = (UT/86400. - 1.5) + IDAY
@@ -2877,7 +2877,7 @@ C Ecliptic longitude:
       SINLAM = SIN(LAMRAD)
 C
 C Days (including fraction) since 12 UT on January 1 of 2000:
-      N = DF + FLOAT(365*YR + NLEAP)
+      N = DF + DBLE(365*YR + NLEAP)
 C
 C Obliquity of ecliptic:
       EPSILON = 23.439 - 4.E-7*N
@@ -2895,7 +2895,7 @@ C
 C Equation of time (degrees):
       ETDEG = L - ALPHA
       NROT = NINT(ETDEG/360.)
-      ETDEG = ETDEG - FLOAT(360*NROT)
+      ETDEG = ETDEG - DBLE(360*NROT)
 C
 C Apparent time (degrees):
       APTIME = UT/240. + ETDEG
@@ -2904,7 +2904,7 @@ C
 C Subsolar longitude:
       SBSLLON = 180. - APTIME
       NROT = NINT(SBSLLON/360.)
-      SBSLLON = SBSLLON - FLOAT(360*NROT)
+      SBSLLON = SBSLLON - DBLE(360*NROT)
 C
       RETURN
       END
