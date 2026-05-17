@@ -88,7 +88,7 @@ contains
              int(nWords, MPI_OFFSET_KIND)* &
              int(bytes_per_element, MPI_OFFSET_KIND)
 
-    call MPI_File_write_at(mpiio_fh, offset, buffer(1,1,1,1), nWords, MPI_REAL, &
+    call MPI_File_write_at(mpiio_fh, offset, buffer(1, 1, 1, 1), nWords, MPI_REAL, &
                            status, ierr)
     if (ierr /= MPI_SUCCESS) &
       write(*, *) 'ModOutputMPIIO: MPI_File_write_at failed, iBLK=', iBLK
