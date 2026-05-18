@@ -256,6 +256,7 @@ contains
   ! ==================================================================
   subroutine netcdf_write_block(iUnit, buffer, nV, nX, nY, nZ, iBLK)
     use ModGITM, only: Longitude, Latitude, Altitude_GB
+    use ModElectrodynamics, only: MagLonMC, MagLatMC
     use ModConst, only: cRadToDeg
     use ModInputs, only: UseNetcdfMultiTime
     integer, intent(in) :: iUnit, nV, nX, nY, nZ, iBLK
@@ -323,6 +324,24 @@ contains
           write(*, *) "netcdf_write_block: put_vara_double failed for var ", iV, &
           ": ", nfmpi_strerror(ierr)
       enddo
+
+      ! Coordinate variables: only block 1 writes, only on the first time record.
+      ! MagLonMC/MagLatMC are separable grids so the 1D axes are column/row slices.
+      if (iBLK == 1 .and. nc_time_record == 1) then
+        cstart(1) = 1_MPI_OFFSET_KIND
+        ccnt(1) = int(nLi, MPI_OFFSET_KIND)
+        allocate(coord1d(nLi))
+        coord1d = real(MagLonMC(1:nLi, 1), kind=8)
+        ierr = nfmpi_put_vara_double(ncid, coordids(1), cstart, ccnt, coord1d)
+        deallocate(coord1d)
+
+        cstart(1) = 1_MPI_OFFSET_KIND
+        ccnt(1) = int(nLai, MPI_OFFSET_KIND)
+        allocate(coord1d(nLai))
+        coord1d = real(MagLatMC(1, 1:nLai), kind=8)
+        ierr = nfmpi_put_vara_double(ncid, coordids(2), cstart, ccnt, coord1d)
+        deallocate(coord1d)
+      endif
     else
       ! Collective put for regular block-partitioned types
       do iV = 1, nV
@@ -339,7 +358,7 @@ contains
           ": ", nfmpi_strerror(ierr)
       enddo
 
-      ! --- 1-D coordinate variables --- (Not present in magnetic/needsIndepWrite outputs)
+      ! --- 1-D coordinate variables ---
       ! Written only on the first time record; coordinates don't change between timesteps.
       if (nc_time_record == 1) then
         ! lon: each block writes its own interior lon range (radians east)
