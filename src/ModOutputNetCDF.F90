@@ -294,7 +294,7 @@ contains
     start(1) = int(iBlockLon_0*nLi, MPI_OFFSET_KIND) + 1_MPI_OFFSET_KIND
     start(2) = int(iBlockLat_0*nLai, MPI_OFFSET_KIND) + 1_MPI_OFFSET_KIND
     start(3) = 1_MPI_OFFSET_KIND
-    start(4) = int(nc_time_record, MPI_OFFSET_KIND)
+    start(ndimid + 1) = int(nc_time_record, MPI_OFFSET_KIND)
 
     cnt(1) = int(nLi, MPI_OFFSET_KIND)
     cnt(2) = int(nLai, MPI_OFFSET_KIND)
