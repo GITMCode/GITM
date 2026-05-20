@@ -520,29 +520,74 @@ contains
   end subroutine define_file_structure
 
   ! ==================================================================
-  ! Replace characters invalid in NetCDF variable names with '_'
+  ! Sanitize a string for use as a NetCDF variable name:
+  !   ()[]        -> removed
+  !   +           -> 'p'
+  !   -           -> 'm'
+  !   spaces/misc -> '_'
+  ! After substitution: collapse '__' runs, strip leading/trailing '_',
+  ! then prefix with 'v_' if the result doesn't start with a letter.
   ! ==================================================================
   subroutine sanitize_nc_name(name)
     character(len=*), intent(inout) :: name
-    integer :: i
+    character(len=len(name)) :: tmp
+    integer :: i, j, n
+
+    ! Pass 1: build tmp with substitutions; remove '(' ')' '[' ']'
+    j = 0
     do i = 1, len_trim(name)
       select case (name(i:i))
-      case (' ', '/', '(', ')', '[', ']', '#', '%', '!', '-', '*', '^', '.', &
-            ',', '{', '}', '\', '<', '>', '=', '&', '|', '~', '`', '"', "'", '?', '@', '$', ';', ':')
-        name(i:i) = '_'
+      case ('(', ')', '[', ']')
+        ! remove — do not copy
       case ('+')
-        name(i:i) = '_plus'
+        j = j + 1
+        if (j <= len(tmp)) tmp(j:j) = 'p'
+      case ('-')
+        j = j + 1
+        if (j <= len(tmp)) tmp(j:j) = 'm'
+      case (' ', '/', '#', '%', '!', '*', '^', '.', ',', '{', '}', '\', &
+            '<', '>', '=', '&', '|', '~', '`', '"', "'", '?', '@', '$', ';', ':')
+        j = j + 1
+        if (j <= len(tmp)) tmp(j:j) = '_'
+      case default
+        j = j + 1
+        if (j <= len(tmp)) tmp(j:j) = name(i:i)
       end select
     enddo
-    ! NetCDF classic names must start with a letter; prefix with 'v_' if not
+    if (j < len(tmp)) tmp(j + 1:) = ' '
+    n = j
+
+    ! Pass 2: copy tmp -> name, collapsing consecutive '_' into one
+    name = ' '
+    j = 0
+    do i = 1, n
+      if (tmp(i:i) == '_' .and. j > 0 .and. name(j:j) == '_') cycle
+      j = j + 1
+      name(j:j) = tmp(i:i)
+    enddo
+
+    ! Strip leading '_'
+    do while (len_trim(name) > 0 .and. name(1:1) == '_')
+      name = name(2:)
+    enddo
+
+    ! Strip trailing '_'
+    n = len_trim(name)
+    do while (n > 0 .and. name(n:n) == '_')
+      name(n:n) = ' '
+      n = n - 1
+    enddo
+
+    ! NetCDF classic names must start with a letter; prefix with 'var_' if not
     if (len_trim(name) > 0) then
       select case (name(1:1))
       case ('a':'z', 'A':'Z')
         ! ok
       case default
-        name = 'v_'//name
+        name = 'var_'//name
       end select
     endif
+
   end subroutine sanitize_nc_name
 #endif
 
