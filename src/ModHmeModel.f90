@@ -566,6 +566,7 @@ contains
   subroutine hme_3alt(thme, u_a3, u_p3, v_a3, v_p3, geopt_a3, geopt_p3, &
                       temp_a3, temp_p3, dr_rho_a3, dr_rho_p3)
 
+    use ModInputs, only: iDebugLevel
     implicit none
     character(len=*), intent(in) :: thme
     character(len=iCharLenFile_) :: NameOfHMEFile
@@ -582,7 +583,11 @@ contains
     do i = 1, nAltHme
 
       NameOfHMEFile = (trim(hmeDir)//'HME_3alt/'//trim(thme)// &
-                       trim('_')//trim(altn(i))//trim('00m-F75.txt'))
+           trim('_')//trim(altn(i))//trim('00m-F75.txt'))
+
+      if (iDebuglevel > 2) &
+           write(*,*) 'Reading HME file : ', NameOfHMEFile
+      
       call read_hme_file(NameOfHMEFile, u_a, u_p, v_a, v_p, &
                          geopt_a, geopt_p, temp_a, temp_p, &
                          dr_rho_a, dr_rho_p)
