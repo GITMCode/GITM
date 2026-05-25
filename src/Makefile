@@ -19,8 +19,9 @@ PNETCDF_DEFS = $(if $(PNETCDF_LIB),-DHavePNetCDF,)
 Lflag1      += $(PNETCDF_LINK)
 # INCL_EXTRA feeds into CFLAG -> Cflag3 (compile-time include search path)
 INCL_EXTRA  += $(if $(PNETCDF_INC),-I$(PNETCDF_INC),)
-# Cflag3 carries -DHavePNetCDF into all compilation units (harmless to non-NetCDF files)
-Cflag3      += $(PNETCDF_DEFS)
+# CFLAGS carries -DHavePNetCDF into all compilation units
+# (harmless to non-NetCDF files & works for all opt levels)
+CFLAGS      += $(PNETCDF_DEFS)
 
 SEARCH_EXTRA =  -I${ABDIR} \
 	 	-I${IODIR} \
