@@ -80,18 +80,27 @@ timesteps in a single file per output type instead:
 netcdf
 
 #NETCDFAPPEND
-T
+'daily'/'single'/('none'=default)
 ```
 
-With multi-time mode enabled the output files are not named with time
-(`3DALL.nc`, `2DANC.nc`, …). Each file uses an **unlimited time dimension** so
-data variables are shaped `(lon, lat[, alt], time)`. This is the native format
-for time-series analysis with xarray:
+With multi-time mode enabled the output files use an **unlimited time dimension** so
+additional times can be placed in the same file.
+The backend fitst creates the filename, then checks if it has written to that file yet.
+If not, the file is created. If it has written to that file, it just appends.
+This means additional runs in the same directory ***will overwrite files***.
+
+Data variables are shaped `(lon, lat[, alt], time)`. 
+These can be natively read by xarray:
 
 ```python
 import xarray as xr
 ds = xr.open_dataset("3DALL.nc", decode_times=True)
 ```
+
+Options for `#NETCDFAPPEND` are:
+- 'none': default. Writes .nc files instead of .bin. No time appending
+- 'daily': One file per day, e.g. `3DALL_2002-12-21.nc`  `3DALL_2002-12-22.nc`, etc.
+- 'single': Puts each output type into the same file for the entire run (e.g. `3DALL.nc`)
 
 !!! note
     Multi-time mode is only effective with the `netcdf` backend. The `#NETCDFAPPEND`
