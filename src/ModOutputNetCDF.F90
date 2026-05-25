@@ -526,12 +526,13 @@ contains
   !   -           -> 'm'
   !   spaces/misc -> '_'
   ! After substitution: collapse '__' runs, strip leading/trailing '_',
-  ! then prefix with 'v_' if the result doesn't start with a letter.
+  ! then prefix with 'var_' if the result doesn't start with a letter.
   ! ==================================================================
   subroutine sanitize_nc_name(name)
     character(len=*), intent(inout) :: name
     character(len=len(name)) :: tmp
     integer :: i, j, n
+    character :: prev
 
     ! Pass 1: build tmp with substitutions; remove '(' ')' '[' ']'
     j = 0
@@ -558,12 +559,14 @@ contains
     n = j
 
     ! Pass 2: copy tmp -> name, collapsing consecutive '_' into one
-    name = ' '
     j = 0
+    name = ' '
+    prev = ' '
     do i = 1, n
-      if (tmp(i:i) == '_' .and. j > 0 .and. name(j:j) == '_') cycle
+      if (tmp(i:i) == '_' .and. prev == '_') cycle
       j = j + 1
       name(j:j) = tmp(i:i)
+      prev = tmp(i:i)
     enddo
 
     ! Strip leading '_'
