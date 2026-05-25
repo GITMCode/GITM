@@ -58,6 +58,8 @@ module ModOutputNetCDF
   integer :: nc_varid_time = -1        ! varid of the time coordinate variable
   integer :: nc_type_records(nc_max_types)  ! records written per output type so far
   data nc_type_records/nc_max_types*0/
+  character(len=300) :: nc_type_filenames(nc_max_types)  ! last filename opened per type
+  data nc_type_filenames/nc_max_types*' '/
 
 #endif
 
@@ -92,6 +94,7 @@ contains
     integer(kind=MPI_OFFSET_KIND) :: nLons_g, nLats_g, nAlts_g
     integer(kind=MPI_OFFSET_KIND) :: tstart(1), tcnt(1)
     character(len=80) :: varname
+    character(len=20) :: cDate
     real(kind=8) :: time_val(1)
 
     ! Look up variable metadata from registry
@@ -127,16 +130,26 @@ contains
 
     if (UseNetcdfMultiTime) then
       ! ----------------------------------------------------------------
-      ! Multi-time mode: one file per output type accumulates all times.
+      ! Multi-time mode! Either:
+      ! - single: one file per output type, accumulates all times.
+      ! - daily: one output file, per type, per day
       ! ----------------------------------------------------------------
       if (iTypeIdx > nc_max_types) iTypeIdx = nc_max_types
-      nc_type_records(iTypeIdx) = nc_type_records(iTypeIdx) + 1
-      nc_time_record = nc_type_records(iTypeIdx)
-      filename = trim(dir)//"/"//trim(cType)//".nc"
-      nc_multitime_filename = filename
+      ! Build filename first; create-vs-reopen is driven by whether this filename
+      ! has been opened in this session.
+      ! This correctly handles daily rollover (new date -> new file) and fresh
+      ! runs in the same directory (not-yet-used filename -> always create).
+      if (NetCdfAppendOption == 'single') then
+        filename = trim(dir)//"/"//trim(cType)//".nc"
+      else ! Add date to 'daily' files
+        write(cDate, '(i4.4,"-",i2.2,"-",i2.2)') iTimeArray(1), iTimeArray(2), iTimeArray(3)
+        filename = trim(dir)//"/"//trim(cType)//"_"//trim(cDate)//".nc"
+      endif
 
-      if (nc_time_record == 1) then
-        ! ---- First record: create file and define everything ----
+      if (trim(filename) /= trim(nc_type_filenames(iTypeIdx))) then
+        ! ---- New file: create and define everything ----
+        nc_type_records(iTypeIdx) = 1
+        nc_type_filenames(iTypeIdx) = trim(filename)
         ierr = nfmpi_create(iCommGITM, trim(filename), &
                             IOR(NF_CLOBBER, NF_64BIT_DATA), MPI_INFO_NULL, ncid)
         if (ierr /= NF_NOERR) then
@@ -146,7 +159,8 @@ contains
         call define_file_structure(nDims, nVars, iTypeIdx, nLons_g, nLats_g, nAlts_g, &
                                    iTimeArray, isMultiTime=.true.)
       else
-        ! ---- Subsequent records: reopen existing file and re-fetch varids ----
+        ! ---- Same file: reopen and append next record ----
+        nc_type_records(iTypeIdx) = nc_type_records(iTypeIdx) + 1
         ierr = nfmpi_open(iCommGITM, trim(filename), NF_WRITE, MPI_INFO_NULL, ncid)
         if (ierr /= NF_NOERR) then
           write(*, *) "ModOutputNetCDF: nfmpi_open failed: ", nfmpi_strerror(ierr)
@@ -168,6 +182,7 @@ contains
         ierr = nfmpi_inq_varid(ncid, "lat", coordids(2))
         if (nDims == 3) ierr = nfmpi_inq_varid(ncid, "z", coordids(3))
       endif
+      nc_time_record = nc_type_records(iTypeIdx)
 
     else
       ! ----------------------------------------------------------------
