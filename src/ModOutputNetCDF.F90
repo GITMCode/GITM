@@ -58,7 +58,7 @@ module ModOutputNetCDF
   integer :: nc_varid_time = -1        ! varid of the time coordinate variable
   integer :: nc_type_records(nc_max_types)  ! records written per output type so far
   data nc_type_records/nc_max_types*0/
-  character(len=300) :: nc_multitime_filename = ''  ! filename for current type
+
 #endif
 
 contains
@@ -75,7 +75,7 @@ contains
   subroutine netcdf_open_file(dir, cType, cTime, cL)
     use ModGITM, only: iCommGITM, iProc
 #ifdef HavePNetCDF
-    use ModInputs, only: nBlocksLon, nBlocksLat, UseNetcdfMultiTime
+    use ModInputs, only: nBlocksLon, nBlocksLat, UseNetcdfMultiTime, NetCdfAppendOption
     use ModSizeGitm, only: nLons, nLats, nAlts
     use ModElectrodynamics, only: nMagLons, nMagLats
     use ModOutputRegistry, only: find_output_type, RegisteredTypes
