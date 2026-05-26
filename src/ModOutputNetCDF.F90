@@ -342,7 +342,11 @@ contains
 
       ! Coordinate variables: only block 1 writes, only on the first time record.
       ! MagLonMC/MagLatMC are separable grids so the 1D axes are column/row slices.
-      if (iBLK == 1 .and. nc_time_record == 1) then
+      ! Guard against configurations where UA_calc_electrodynamics never ran its
+      ! IsFirstTime block (e.g. UseDynamo=F, DipoleStrength=0, Is1D) leaving
+      ! MagLatMC/MagLonMC unallocated.
+      if (iBLK == 1 .and. nc_time_record == 1 .and. &
+          allocated(MagLonMC) .and. allocated(MagLatMC)) then
         cstart(1) = 1_MPI_OFFSET_KIND
         ccnt(1) = int(nLi, MPI_OFFSET_KIND)
         allocate(coord1d(nLi))
@@ -380,24 +384,24 @@ contains
         cstart(1) = start(1)
         ccnt(1) = cnt(1)
         allocate(coord1d(nLi))
-        coord1d = real(Longitude(1:nLi, 1), kind=8)!*cRadToDeg
+        coord1d = real(Longitude(1:nLi, 1), kind=8)*cRadToDeg
         ierr = nfmpi_put_vara_double_all(ncid, coordids(1), cstart, ccnt, coord1d)
         deallocate(coord1d)
 
-        ! lat: each block writes its own interior lat range (rad north)
+        ! lat: each block writes its own interior lat range (degrees north)
         cstart(1) = start(2)
         ccnt(1) = cnt(2)
         allocate(coord1d(nLai))
-        coord1d = real(Latitude(1:nLai, 1), kind=8)!*cRadToDeg
+        coord1d = real(Latitude(1:nLai, 1), kind=8)*cRadToDeg
         ierr = nfmpi_put_vara_double_all(ncid, coordids(2), cstart, ccnt, coord1d)
         deallocate(coord1d)
 
-        ! z (3D only): all blocks cover the same altitude levels (m)
+        ! z (3D only): all blocks cover the same altitude levels (km)
         if (nc_nDims == 3) then
           cstart(1) = 1_MPI_OFFSET_KIND
           ccnt(1) = cnt(3)
           allocate(coord1d(nAi))
-          coord1d = real(Altitude_GB(1, 1, 1:nAi, 1), kind=8)!/1000.0d0
+          coord1d = real(Altitude_GB(1, 1, 1:nAi, 1), kind=8)/1000.0d0
           ierr = nfmpi_put_vara_double_all(ncid, coordids(3), cstart, ccnt, coord1d)
           deallocate(coord1d)
         endif
@@ -498,6 +502,7 @@ contains
     enddo
 
     ! Time coordinate variable
+    ! 1965 is left out in case we need to change the base-year
     write(coord_units, '("seconds since ",i4.4,"-01-01 00:00:00")') 1965
     ierr = nfmpi_def_var(ncid, "time", NF_DOUBLE, 1, [dimid_time], nc_varid_time)
     attlen = int(len_trim(coord_units), MPI_OFFSET_KIND)

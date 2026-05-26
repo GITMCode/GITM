@@ -529,9 +529,8 @@ contains
     call new_output_type('2DMEL', 2, 0, info)
     info%usesMagGrid = .true.
     ! We need mag coords, not geographic!
-    call add_var(info, 'mlon', 'rad', 'mlon', 'Magnetic longitude')
-    call add_var(info, 'mlat', 'rad', 'mlat', 'Magnetic latitude')
-    call add_var(info, 'z', 'km', 'z', 'Altitude')
+    call add_var(info, 'mlon', 'deg', 'mlon', 'Magnetic longitude')
+    call add_var(info, 'mlat', 'deg', 'mlat', 'Magnetic latitude')
 
     call add_var(info, 'MLT', 'hr', 'MLT', 'Magnetic local time')
     call add_var(info, 'GeoLat', 'deg', 'GeoLat', 'Geographic latitude')

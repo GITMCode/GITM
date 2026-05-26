@@ -676,9 +676,8 @@ contains
     do iLat = 1, nY
       do iLon = 1, nX
         iv = 0
-        iv = iv + 1; buffer(iv, iLon, iLat, 1) = MagLonMC(iLon, iLat)*Pi/180.0
-        iv = iv + 1; buffer(iv, iLon, iLat, 1) = MagLatMC(iLon, iLat)*Pi/180.0
-        iv = iv + 1; buffer(iv, iLon, iLat, 1) = Altitude_GB(1, 1, 1, iBlock)
+        iv = iv + 1; buffer(iv, iLon, iLat, 1) = MagLonMC(iLon, iLat)
+        iv = iv + 1; buffer(iv, iLon, iLat, 1) = MagLatMC(iLon, iLat)
         iv = iv + 1; buffer(iv, iLon, iLat, 1) = MagLocTimeMC(iLon, iLat)
         iv = iv + 1; buffer(iv, iLon, iLat, 1) = GeoLatMC(iLon, iLat)
         iv = iv + 1; buffer(iv, iLon, iLat, 1) = GeoLonMC(iLon, iLat)
