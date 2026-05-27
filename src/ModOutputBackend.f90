@@ -12,6 +12,7 @@
 module ModOutputBackend
 
   use ModOutputRegistry, only: OutputTypeInfo, OutputVar
+  use ModOutputContainer, only: OutputContainer
   use ModInputs, only: iCharLen_
 
   implicit none
@@ -58,6 +59,15 @@ module ModOutputBackend
       integer, intent(in) :: iTimeArray(7)
       character(len=*), intent(in) :: cVersion
     end subroutine
+
+    ! Write all variables in a container to the output file for one block.
+    ! Called per block per timestep on participating ranks.
+    subroutine backend_write_container_iface(c, iBlock, iTimeArray)
+      import :: OutputContainer
+      type(OutputContainer), intent(inout) :: c
+      integer, intent(in) :: iBlock
+      integer, intent(in) :: iTimeArray(7)
+    end subroutine
   end interface
 
   ! ------------------------------------------------------------------
@@ -79,6 +89,7 @@ module ModOutputBackend
     procedure(backend_close_file_iface), pointer, nopass :: close_file => null()
     procedure(backend_write_block_iface), pointer, nopass :: write_block => null()
     procedure(backend_write_header_iface), pointer, nopass :: write_header => null()
+    procedure(backend_write_container_iface), pointer, nopass :: write_container => null()
   end type OutputBackend
 
   type(OutputBackend) :: ActiveBackend
@@ -90,9 +101,10 @@ contains
   ! ------------------------------------------------------------------
   subroutine init_output_backend(backend_name)
     use ModOutputMPIIO, only: mpiio_open_file, mpiio_close_file, &
-                              mpiio_write_block, mpiio_write_header
+                              mpiio_write_block, mpiio_write_header, &
+                              mpiio_write_container
     use ModOutputNetCDF, only: netcdf_open_file, netcdf_close_file, &
-                               netcdf_write_block
+                               netcdf_write_block, netcdf_write_container
     character(len=*), intent(in) :: backend_name
 
     select case (trim(backend_name))
@@ -103,6 +115,7 @@ contains
       ActiveBackend%close_file => mpiio_close_file
       ActiveBackend%write_block => mpiio_write_block
       ActiveBackend%write_header => mpiio_write_header
+      ActiveBackend%write_container => mpiio_write_container
     case ('netcdf')
       ActiveBackend%name = 'netcdf'
       ActiveBackend%uses_external_file = .false.
@@ -110,6 +123,7 @@ contains
       ActiveBackend%open_file => netcdf_open_file
       ActiveBackend%close_file => netcdf_close_file
       ActiveBackend%write_block => netcdf_write_block
+      ActiveBackend%write_container => netcdf_write_container
       ! write_header left null: output_common.f90 checks writes_header before calling it
     case default
       if (trim(backend_name) /= 'legacy') &

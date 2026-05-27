@@ -25,7 +25,7 @@ module ModOutputContainer
   ! Grid kind constants — controls how backends interpret dims and participation.
   integer, parameter :: GRID_GEO_3D = 1  ! geographic 3D block-partitioned
   integer, parameter :: GRID_GEO_2D = 2  ! geographic 2D (integrated, e.g. TEC)
-  integer, parameter :: GRID_MAG_2D = 3  ! magnetic 2D (e.g. 2DMEL, only iBlock==1 writes)
+  integer, parameter :: GRID_MAG_2D = 3  ! magnetic 2D (e.g. 2DMEL)
   integer, parameter :: GRID_HIME   = 4  ! regional (only DoSaveHIMEPlot ranks write)
 
   integer, parameter :: MaxContainerVars = 300
@@ -133,7 +133,6 @@ contains
     case (GRID_GEO_3D, GRID_GEO_2D)
       this%this_rank_writes = .true.
     case (GRID_MAG_2D)
-      ! Magnetic grid data is gathered to rank 0; iBlock is always 1 per rank.
       this%this_rank_writes = (iProc == 0)
     case (GRID_HIME)
       ! HIME participation is a per-rank flag set externally; do not override here.

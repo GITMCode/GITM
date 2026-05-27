@@ -48,6 +48,8 @@ MODULES = \
 	ModReadGitm3d.o\
 	ModSami.o\
 	ModSatellites.o\
+	ModOutputContainer.o\
+	ModOutputProducers.o\
 	ModOutputRegistry.o\
 	ModOutputBackend.o\
 	ModOutputGather.o\
