@@ -618,18 +618,28 @@ contains
   ! netcdf_write_container — write a filled OutputContainer to the open PnetCDF file.
   !
   ! Called from output_common.f90 after fill_<type>().  The file is already open
-  ! (netcdf_open_file ran before the block loop) and in independent data mode
-  ! (nfmpi_begin_indep_data was called for usesMagGrid types).
+  ! (netcdf_open_file ran before the block loop).
   !
-  ! Only the participating rank writes (this_rank_writes=T); others return early
-  ! without any pnetcdf calls, which is safe in independent I/O mode.
+  ! Two I/O modes, driven by nc_needsIndepWrite (set at open_file time):
   !
-  ! Registry shortNames match container var names in the same order (verified),
-  ! so varids(i) / coordids map directly to c%vars(i).
+  !   nc_needsIndepWrite=T (MAG_2D / usesMagGrid):
+  !     File is in independent data mode.  Only the participating rank writes;
+  !     others return early.  start=(1,1): single block covers the full grid.
   !
-  ! Axis vars (is_axis=T) are 1D in the container but 2D in the file:
-  !   lon axis (shape3(1)==nX): replicate along Y  → buf2d(:, iy)
-  !   lat axis (shape3(1)==nY): replicate along X  → buf2d(ix, :)
+  !   nc_needsIndepWrite=F (GEO_2D block-partitioned):
+  !     File is in collective data mode.  All ranks participate; each writes
+  !     its block at the correct global offset (mirrors netcdf_write_block).
+  !     iBlockLon_0 = mod(iBlock-1, nc_nBlocksLon)
+  !     iBlockLat_0 = (iBlock-1) / nc_nBlocksLon
+  !     start(1) = iBlockLon_0 * nX + 1
+  !     start(2) = iBlockLat_0 * nY + 1
+  !
+  ! Axis vars (is_axis=T) are 1D in the container but 2D in the data variables:
+  !   lon axis (shape3(1)==nX): replicate along Y → buf2d(:, iy)
+  !   lat axis (shape3(1)==nY): replicate along X → buf2d(ix, :)
+  !
+  ! 1D coord variables (lon, lat) are written once per file (nc_time_record==1)
+  ! from the first axis var encountered for each axis, at the block's offset.
   ! ---------------------------------------------------------------------------
   subroutine netcdf_write_container(c, iBlock, iTimeArray)
     use ModOutputContainer, only: OutputContainer, output_kind
@@ -643,6 +653,7 @@ contains
 #ifdef HavePNetCDF
     integer(kind=MPI_OFFSET_KIND) :: start(3), cnt(3), cstart(1), ccnt(1)
     integer :: nX, nY, i, ix, iy, ierr
+    integer :: iBlockLon_0, iBlockLat_0
     real(kind=8), allocatable :: buf2d(:, :), coord1d(:)
 
     if (.not. c%this_rank_writes) return
@@ -659,8 +670,17 @@ contains
     end do
     if (nX == 0 .or. nY == 0) return
 
-    start(1) = 1_MPI_OFFSET_KIND
-    start(2) = 1_MPI_OFFSET_KIND
+    if (nc_needsIndepWrite) then
+      ! MAG_2D: single rank, full grid, file already in independent mode.
+      start(1) = 1_MPI_OFFSET_KIND
+      start(2) = 1_MPI_OFFSET_KIND
+    else
+      ! GEO_2D: each block writes at its global offset (collective mode).
+      iBlockLon_0 = mod(iBlock - 1, nc_nBlocksLon)
+      iBlockLat_0 = (iBlock - 1) / nc_nBlocksLon
+      start(1) = int(iBlockLon_0 * nX, MPI_OFFSET_KIND) + 1_MPI_OFFSET_KIND
+      start(2) = int(iBlockLat_0 * nY, MPI_OFFSET_KIND) + 1_MPI_OFFSET_KIND
+    end if
     start(3) = int(nc_time_record, MPI_OFFSET_KIND)
     cnt(1) = int(nX, MPI_OFFSET_KIND)
     cnt(2) = int(nY, MPI_OFFSET_KIND)
@@ -685,33 +705,52 @@ contains
         buf2d = real(c%vars(i)%data(:, :, 1), kind=8)
       end if
 
-      if (UseNetcdfMultiTime) then
-        ierr = nfmpi_put_vara_double(ncid, varids(i), start(1:3), cnt(1:3), buf2d)
+      if (nc_needsIndepWrite) then
+        if (UseNetcdfMultiTime) then
+          ierr = nfmpi_put_vara_double(ncid, varids(i), start(1:3), cnt(1:3), buf2d)
+        else
+          ierr = nfmpi_put_vara_double(ncid, varids(i), start(1:2), cnt(1:2), buf2d)
+        end if
       else
-        ierr = nfmpi_put_vara_double(ncid, varids(i), start(1:2), cnt(1:2), buf2d)
+        if (UseNetcdfMultiTime) then
+          ierr = nfmpi_put_vara_double_all(ncid, varids(i), start(1:3), cnt(1:3), buf2d)
+        else
+          ierr = nfmpi_put_vara_double_all(ncid, varids(i), start(1:2), cnt(1:2), buf2d)
+        end if
       end if
       if (ierr /= NF_NOERR) &
-        write(*, *) "netcdf_write_container: put_vara_double failed for ", &
+        write(*, *) "netcdf_write_container: put_vara failed for ", &
         trim(c%vars(i)%name), ": ", nfmpi_strerror(ierr)
     end do
 
     deallocate(buf2d)
 
-    ! 1D NetCDF coordinate vars (lon/lat): written once per file.
-    ! Source: container axis vars (vars(1)=mlon, vars(2)=mlat).
+    ! 1D coordinate variables (lon, lat): written once per file.
+    ! MAG_2D: independent put at offset 1 (single block, full grid).
+    ! GEO_2D: collective put at the block's global lon/lat offset.
     if (nc_time_record == 1) then
-      cstart(1) = 1_MPI_OFFSET_KIND
-
+      ! lon coord: first axis var whose shape3(1)==nX
       ccnt(1) = int(nX, MPI_OFFSET_KIND)
+      cstart(1) = start(1)  ! already block-offset or 1 depending on mode
       allocate(coord1d(nX))
       coord1d = real(c%vars(1)%data(1:nX, 1, 1), kind=8)
-      ierr = nfmpi_put_vara_double(ncid, coordids(1), cstart, ccnt, coord1d)
+      if (nc_needsIndepWrite) then
+        ierr = nfmpi_put_vara_double(ncid, coordids(1), cstart, ccnt, coord1d)
+      else
+        ierr = nfmpi_put_vara_double_all(ncid, coordids(1), cstart, ccnt, coord1d)
+      end if
       deallocate(coord1d)
 
+      ! lat coord: second axis var whose shape3(1)==nY
       ccnt(1) = int(nY, MPI_OFFSET_KIND)
+      cstart(1) = start(2)
       allocate(coord1d(nY))
       coord1d = real(c%vars(2)%data(1:nY, 1, 1), kind=8)
-      ierr = nfmpi_put_vara_double(ncid, coordids(2), cstart, ccnt, coord1d)
+      if (nc_needsIndepWrite) then
+        ierr = nfmpi_put_vara_double(ncid, coordids(2), cstart, ccnt, coord1d)
+      else
+        ierr = nfmpi_put_vara_double_all(ncid, coordids(2), cstart, ccnt, coord1d)
+      end if
       deallocate(coord1d)
     end if
 #endif

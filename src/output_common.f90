@@ -67,7 +67,8 @@ subroutine output(dir, iBlock, iOutputType)
   use ModOutputGather, only: gather_output
   use ModOutputBackend, only: ActiveBackend
   use ModOutputContainer, only: OutputContainer
-  use ModOutputProducers, only: containers, iCont_2DMEL, init_output_containers, fill_2dmel
+  use ModOutputProducers, only: containers, iCont_2DMEL, iCont_2DTEC, iCont_2DGEL, &
+                               init_output_containers, fill_2dmel, fill_2dtec, fill_2dgel
   use ModGITMVersion, only: GitmVersion
 
   implicit none
@@ -307,6 +308,18 @@ subroutine output(dir, iBlock, iOutputType)
         if (associated(ActiveBackend%write_container)) &
           call ActiveBackend%write_container(containers(iCont_2DMEL), iBLK, iTimeArray)
         call containers(iCont_2DMEL)%reset()
+      elseif (cType == '2DTEC') then
+        call init_output_containers()
+        call fill_2dtec(containers(iCont_2DTEC), iBlock)
+        if (associated(ActiveBackend%write_container)) &
+          call ActiveBackend%write_container(containers(iCont_2DTEC), iBLK, iTimeArray)
+        call containers(iCont_2DTEC)%reset()
+      elseif (cType == '2DGEL') then
+        call init_output_containers()
+        call fill_2dgel(containers(iCont_2DGEL), iBlock)
+        if (associated(ActiveBackend%write_container)) &
+          call ActiveBackend%write_container(containers(iCont_2DGEL), iBLK, iTimeArray)
+        call containers(iCont_2DGEL)%reset()
       elseif (typeInfo%isRegional) then
         ! Regional output: only write if block is within user-defined region
         if (DoSaveHIMEPlot) then

@@ -10,7 +10,7 @@
 ! Module-level containers(:) array lives for the whole run; allocated once in
 ! init_output_containers, reused across timesteps.
 !
-! Currently implemented: 2DMEL (prototype).
+! Currently implemented: 2DMEL, 2DTEC, 2DGEL.
 
 module ModOutputProducers
 
@@ -22,7 +22,9 @@ module ModOutputProducers
 
   ! Index constants — one per output type handled here.
   integer, parameter :: iCont_2DMEL = 1
-  integer, parameter :: nContainers = 1
+  integer, parameter :: iCont_2DTEC = 2
+  integer, parameter :: iCont_2DGEL = 3
+  integer, parameter :: nContainers = 3
 
   logical :: containers_initialized = .false.
 
@@ -35,6 +37,8 @@ contains
     if (containers_initialized) return
     allocate(containers(nContainers))
     call define_schema_2dmel(containers(iCont_2DMEL))
+    call define_schema_2dtec(containers(iCont_2DTEC))
+    call define_schema_2dgel(containers(iCont_2DGEL))
     containers_initialized = .true.
   end subroutine init_output_containers
 
@@ -197,5 +201,177 @@ contains
     call c%put('Kphi',      real(kpmMC, output_kind))
     call c%put('Klamda',    real(klmMC, output_kind))
   end subroutine fill_2dmel
+
+  ! ---------------------------------------------------------------------------
+  ! define_schema_2dtec — register all 2DTEC variables.
+  !
+  ! Grid: geographic 2D, per-block, nLons x nLats.
+  ! Longitude/Latitude stored in radians in model; converted to degrees at put time.
+  ! ---------------------------------------------------------------------------
+  subroutine define_schema_2dtec(c)
+    use ModGITM, only: nLons, nLats
+    type(OutputContainer), intent(inout) :: c
+
+    c%cType    = '2DTEC'
+    c%gridKind = GRID_GEO_2D
+
+    ! Axis variables (1D coordinate arrays).
+    call c%define_var('Longitude', units='degrees_east', &
+                      shape3=[nLons, 1, 1], is_axis=.true., &
+                      longName='Geographic longitude')
+    call c%define_var('Latitude', units='degrees_north', &
+                      shape3=[nLats, 1, 1], is_axis=.true., &
+                      longName='Geographic latitude')
+
+    ! 2D data variables (nLons x nLats x 1).
+    call c%define_var('Altitude', units='m', &
+                      shape3=[nLons, nLats, 1], &
+                      longName='Altitude above surface')
+    call c%define_var('SZA', units='rad', &
+                      shape3=[nLons, nLats, 1], &
+                      longName='Solar zenith angle')
+    call c%define_var('TEC', units='TECU', &
+                      shape3=[nLons, nLats, 1], &
+                      longName='Vertical total electron content')
+  end subroutine define_schema_2dtec
+
+  ! ---------------------------------------------------------------------------
+  ! fill_2dtec — put 2DTEC data into the container for iBlock.
+  !
+  ! All blocks participate (GRID_GEO_2D).
+  ! Longitude/Latitude are in radians in the model; converted to degrees here.
+  ! ---------------------------------------------------------------------------
+  subroutine fill_2dtec(c, iBlock)
+    use ModGITM
+    use ModEUV, only: Sza
+    use ModConst, only: cRadToDeg
+    type(OutputContainer), intent(inout) :: c
+    integer, intent(in) :: iBlock
+
+    call c%prepare(iBlock)
+    if (.not. c%this_rank_writes) return
+
+    call calc_vtec(iBlock)
+
+    call c%put('Longitude', real(Longitude(1:nLons, iBlock) * cRadToDeg, output_kind))
+    call c%put('Latitude',  real(Latitude(1:nLats, iBlock) * cRadToDeg, output_kind))
+    call c%put('Altitude',  real(Altitude_GB(1:nLons, 1:nLats, 1, iBlock), output_kind))
+    call c%put('SZA',       real(Sza(1:nLons, 1:nLats, iBlock), output_kind))
+    call c%put('TEC',       real(VTEC(1:nLons, 1:nLats, iBlock), output_kind))
+  end subroutine fill_2dtec
+
+  ! ---------------------------------------------------------------------------
+  ! define_schema_2dgel — register all 2DGEL variables.
+  !
+  ! Grid: geographic 2D, per-block, nLons x nLats.
+  ! Longitude/Latitude stored in radians in model; converted to degrees at put time.
+  ! ---------------------------------------------------------------------------
+  subroutine define_schema_2dgel(c)
+    use ModGITM, only: nLons, nLats
+    type(OutputContainer), intent(inout) :: c
+
+    c%cType    = '2DGEL'
+    c%gridKind = GRID_GEO_2D
+
+    ! Axis variables (1D coordinate arrays).
+    call c%define_var('Longitude', units='degrees_east', &
+                      shape3=[nLons, 1, 1], is_axis=.true., &
+                      longName='Geographic longitude')
+    call c%define_var('Latitude', units='degrees_north', &
+                      shape3=[nLats, 1, 1], is_axis=.true., &
+                      longName='Geographic latitude')
+
+    ! 2D data variables (nLons x nLats x 1).
+    call c%define_var('Altitude', units='m', &
+                      shape3=[nLons, nLats, 1], &
+                      longName='Altitude above surface')
+    call c%define_var('pot', units='V', &
+                      shape3=[nLons, nLats, 1], &
+                      longName='Electric potential')
+    call c%define_var('PedCond', units='S', &
+                      shape3=[nLons, nLats, 1], &
+                      longName='Height-integrated Pedersen conductance')
+    call c%define_var('HalCond', units='S', &
+                      shape3=[nLons, nLats, 1], &
+                      longName='Height-integrated Hall conductance')
+    call c%define_var('AveE', units='eV', &
+                      shape3=[nLons, nLats, 1], &
+                      longName='Diffuse electron precipitation average energy')
+    call c%define_var('eFlux', units='ergs/cm2/s', &
+                      shape3=[nLons, nLats, 1], &
+                      longName='Diffuse electron precipitation energy flux')
+    call c%define_var('AveE_W', units='eV', &
+                      shape3=[nLons, nLats, 1], &
+                      longName='Wave-driven electron precipitation average energy')
+    call c%define_var('eFlux_W', units='ergs/cm2/s', &
+                      shape3=[nLons, nLats, 1], &
+                      longName='Wave-driven electron precipitation energy flux')
+    call c%define_var('AveE_M', units='eV', &
+                      shape3=[nLons, nLats, 1], &
+                      longName='Monoenergetic electron precipitation average energy')
+    call c%define_var('eFlux_M', units='ergs/cm2/s', &
+                      shape3=[nLons, nLats, 1], &
+                      longName='Monoenergetic electron precipitation energy flux')
+    call c%define_var('AveE_I', units='eV', &
+                      shape3=[nLons, nLats, 1], &
+                      longName='Ion precipitation average energy')
+    call c%define_var('eFlux_I', units='ergs/cm2/s', &
+                      shape3=[nLons, nLats, 1], &
+                      longName='Ion precipitation energy flux')
+    call c%define_var('DivJuAlt', units='A/m2', &
+                      shape3=[nLons, nLats, 1], &
+                      longName='Height-integrated divergence of horizontal current')
+    call c%define_var('PedFLCond', units='S', &
+                      shape3=[nLons, nLats, 1], &
+                      longName='Field-line integrated Pedersen conductance')
+    call c%define_var('HalFLCond', units='S', &
+                      shape3=[nLons, nLats, 1], &
+                      longName='Field-line integrated Hall conductance')
+    call c%define_var('DivJuFL', units='A/m2', &
+                      shape3=[nLons, nLats, 1], &
+                      longName='Field-line divergence of current')
+    call c%define_var('FL_length', units='m', &
+                      shape3=[nLons, nLats, 1], &
+                      longName='Field line length')
+  end subroutine define_schema_2dgel
+
+  ! ---------------------------------------------------------------------------
+  ! fill_2dgel — put 2DGEL data into the container for iBlock.
+  !
+  ! All blocks participate (GRID_GEO_2D).
+  ! Longitude/Latitude are in radians in the model; converted to degrees here.
+  ! ModElectrodynamics 2D arrays (ElectronAverageEnergyDiffuse etc.) are
+  ! block-local: no iBlock index, hold the current block's data at call time.
+  ! ---------------------------------------------------------------------------
+  subroutine fill_2dgel(c, iBlock)
+    use ModGITM
+    use ModElectrodynamics
+    use ModConst, only: cRadToDeg
+    type(OutputContainer), intent(inout) :: c
+    integer, intent(in) :: iBlock
+
+    call c%prepare(iBlock)
+    if (.not. c%this_rank_writes) return
+
+    call c%put('Longitude', real(Longitude(1:nLons, iBlock) * cRadToDeg, output_kind))
+    call c%put('Latitude',  real(Latitude(1:nLats, iBlock) * cRadToDeg, output_kind))
+    call c%put('Altitude',  real(Altitude_GB(1:nLons, 1:nLats, 1, iBlock), output_kind))
+    call c%put('pot',       real(Potential(1:nLons, 1:nLats, 1, iBlock), output_kind))
+    call c%put('PedCond',   real(PedersenConductance(1:nLons, 1:nLats, iBlock), output_kind))
+    call c%put('HalCond',   real(HallConductance(1:nLons, 1:nLats, iBlock), output_kind))
+    call c%put('AveE',      real(ElectronAverageEnergyDiffuse(1:nLons, 1:nLats), output_kind))
+    call c%put('eFlux',     real(ElectronEnergyFluxDiffuse(1:nLons, 1:nLats), output_kind))
+    call c%put('AveE_W',    real(ElectronAverageEnergyWave(1:nLons, 1:nLats), output_kind))
+    call c%put('eFlux_W',   real(ElectronEnergyFluxWave(1:nLons, 1:nLats), output_kind))
+    call c%put('AveE_M',    real(ElectronAverageEnergyMono(1:nLons, 1:nLats), output_kind))
+    call c%put('eFlux_M',   real(ElectronEnergyFluxMono(1:nLons, 1:nLats), output_kind))
+    call c%put('AveE_I',    real(IonAverageEnergy(1:nLons, 1:nLats), output_kind))
+    call c%put('eFlux_I',   real(IonEnergyFlux(1:nLons, 1:nLats), output_kind))
+    call c%put('DivJuAlt',  real(DivJuAlt(1:nLons, 1:nLats), output_kind))
+    call c%put('PedFLCond', real(PedersenFieldLine(1:nLons, 1:nLats), output_kind))
+    call c%put('HalFLCond', real(HallFieldLine(1:nLons, 1:nLats), output_kind))
+    call c%put('DivJuFL',   real(DivJuFieldLine(1:nLons, 1:nLats), output_kind))
+    call c%put('FL_length', real(LengthFieldLine(1:nLons, 1:nLats), output_kind))
+  end subroutine fill_2dgel
 
 end module ModOutputProducers
