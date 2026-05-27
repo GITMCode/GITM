@@ -614,4 +614,107 @@ contains
   end subroutine sanitize_nc_name
 #endif
 
+  ! ---------------------------------------------------------------------------
+  ! netcdf_write_container — write a filled OutputContainer to the open PnetCDF file.
+  !
+  ! Called from output_common.f90 after fill_<type>().  The file is already open
+  ! (netcdf_open_file ran before the block loop) and in independent data mode
+  ! (nfmpi_begin_indep_data was called for usesMagGrid types).
+  !
+  ! Only the participating rank writes (this_rank_writes=T); others return early
+  ! without any pnetcdf calls, which is safe in independent I/O mode.
+  !
+  ! Registry shortNames match container var names in the same order (verified),
+  ! so varids(i) / coordids map directly to c%vars(i).
+  !
+  ! Axis vars (is_axis=T) are 1D in the container but 2D in the file:
+  !   lon axis (shape3(1)==nX): replicate along Y  → buf2d(:, iy)
+  !   lat axis (shape3(1)==nY): replicate along X  → buf2d(ix, :)
+  ! ---------------------------------------------------------------------------
+  subroutine netcdf_write_container(c, iBlock, iTimeArray)
+    use ModOutputContainer, only: OutputContainer, output_kind
+#ifdef HavePNetCDF
+    use ModInputs, only: UseNetcdfMultiTime
+#endif
+    type(OutputContainer), intent(inout) :: c
+    integer, intent(in) :: iBlock
+    integer, intent(in) :: iTimeArray(7)
+
+#ifdef HavePNetCDF
+    integer(kind=MPI_OFFSET_KIND) :: start(3), cnt(3), cstart(1), ccnt(1)
+    integer :: nX, nY, i, ix, iy, ierr
+    real(kind=8), allocatable :: buf2d(:, :), coord1d(:)
+
+    if (.not. c%this_rank_writes) return
+    if (ncid == -1) return
+    if (c%nVars == 0) return
+
+    ! Derive grid dims from non-axis vars
+    nX = 0; nY = 0
+    do i = 1, c%nVars
+      if (.not. c%vars(i)%is_axis) then
+        nX = max(nX, c%vars(i)%shape3(1))
+        nY = max(nY, c%vars(i)%shape3(2))
+      end if
+    end do
+    if (nX == 0 .or. nY == 0) return
+
+    start(1) = 1_MPI_OFFSET_KIND
+    start(2) = 1_MPI_OFFSET_KIND
+    start(3) = int(nc_time_record, MPI_OFFSET_KIND)
+    cnt(1) = int(nX, MPI_OFFSET_KIND)
+    cnt(2) = int(nY, MPI_OFFSET_KIND)
+    cnt(3) = 1_MPI_OFFSET_KIND
+
+    allocate(buf2d(nX, nY))
+
+    do i = 1, c%nVars
+      if (c%vars(i)%is_axis) then
+        if (c%vars(i)%shape3(1) == nX) then
+          ! lon axis: 1D → expand along Y
+          do iy = 1, nY
+            buf2d(:, iy) = real(c%vars(i)%data(:, 1, 1), kind=8)
+          end do
+        else
+          ! lat axis: 1D → expand along X
+          do ix = 1, nX
+            buf2d(ix, :) = real(c%vars(i)%data(:, 1, 1), kind=8)
+          end do
+        end if
+      else
+        buf2d = real(c%vars(i)%data(:, :, 1), kind=8)
+      end if
+
+      if (UseNetcdfMultiTime) then
+        ierr = nfmpi_put_vara_double(ncid, varids(i), start(1:3), cnt(1:3), buf2d)
+      else
+        ierr = nfmpi_put_vara_double(ncid, varids(i), start(1:2), cnt(1:2), buf2d)
+      end if
+      if (ierr /= NF_NOERR) &
+        write(*, *) "netcdf_write_container: put_vara_double failed for ", &
+        trim(c%vars(i)%name), ": ", nfmpi_strerror(ierr)
+    end do
+
+    deallocate(buf2d)
+
+    ! 1D NetCDF coordinate vars (lon/lat): written once per file.
+    ! Source: container axis vars (vars(1)=mlon, vars(2)=mlat).
+    if (nc_time_record == 1) then
+      cstart(1) = 1_MPI_OFFSET_KIND
+
+      ccnt(1) = int(nX, MPI_OFFSET_KIND)
+      allocate(coord1d(nX))
+      coord1d = real(c%vars(1)%data(1:nX, 1, 1), kind=8)
+      ierr = nfmpi_put_vara_double(ncid, coordids(1), cstart, ccnt, coord1d)
+      deallocate(coord1d)
+
+      ccnt(1) = int(nY, MPI_OFFSET_KIND)
+      allocate(coord1d(nY))
+      coord1d = real(c%vars(2)%data(1:nY, 1, 1), kind=8)
+      ierr = nfmpi_put_vara_double(ncid, coordids(2), cstart, ccnt, coord1d)
+      deallocate(coord1d)
+    end if
+#endif
+  end subroutine netcdf_write_container
+
 end module ModOutputNetCDF
