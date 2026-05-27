@@ -13,7 +13,7 @@ module ModOutputBackend
 
   use ModOutputRegistry, only: OutputTypeInfo, OutputVar
   use ModOutputContainer, only: OutputContainer
-  use ModInputs, only: iCharLen_
+  use ModInputs, only: iCharLen_, iOutputUnit_
 
   implicit none
   ! Default to legacy so runs without #OUTPUTBACKEND in UAM.in behave identically
@@ -135,6 +135,7 @@ contains
       ActiveBackend%close_file => legacy_close_file
       ActiveBackend%write_block => legacy_write_block
       ActiveBackend%write_header => legacy_write_header
+      ActiveBackend%write_container => legacy_write_container
     end select
   end subroutine init_output_backend
 
@@ -227,7 +228,7 @@ contains
     if (cType == '1DNEW') then
       write(iUnit, "(I7,7A)") nAlts, " nAltitudes"
     elseif (cType(1:2) /= "2D" .and. cType(1:2) /= "0D") then
-      write(iUnit, "(I7,7A)") nAlts + 4, " nAltitudes"
+      write(iUnit, "(I7,7A)") nAlts + nGCs*2, " nAltitudes"
     else
       write(iUnit, "(I7,7A)") 1, " nAltitudes"
     endif
@@ -239,6 +240,11 @@ contains
       if (info%usesMagGrid) then
         write(iUnit, "(I7,A)") nMagLats, " nLatitude"
         write(iUnit, "(I7,A)") nMagLons + 1, " nLongitudes"
+        write(iUnit, *) " "
+        write(iUnit, *) "NO GHOSTCELLS"
+      elseif (nGCs == 0) then
+        write(iUnit, "(I7,A)") nLats, " nLatitude"
+        write(iUnit, "(I7,A)") nLons, " nLongitudes"
         write(iUnit, *) " "
         write(iUnit, *) "NO GHOSTCELLS"
       elseif (cType(3:5) == "GEL" .or. cType(3:5) == "TEC" .or. &
@@ -265,5 +271,76 @@ contains
     write(iUnit, *) ""
 
   end subroutine legacy_write_header
+
+  ! ---------------------------------------------------------------------------
+  ! legacy_write_container — pack container vars into a single tmpbuf and write
+  ! to the legacy unformatted file for the current block.
+  ! Replicates the legacy per-grid-point write pattern exactly:
+  !   do iz, do iy, do ix: write(unit) buffer(:, ix, iy, iz)
+  ! ---------------------------------------------------------------------------
+  subroutine legacy_write_container(c, iBlock, iTimeArray)
+    use ModInputs, only: iOutputUnit_
+    use ModOutputContainer, only: OutputContainer, output_kind
+    type(OutputContainer), intent(inout) :: c
+    integer, intent(in) :: iBlock
+    integer, intent(in) :: iTimeArray(7)
+
+    real(output_kind), allocatable :: tmpbuf(:, :, :, :)
+    integer :: nV, nX, nY, nZ
+    integer :: i, ix, iy, iz, iAxis
+
+    if (.not. c%this_rank_writes) return
+    if (c%nVars == 0) return
+
+    ! Grid dims from non-axis vars only (axis vars have degenerate dims).
+    nX = 0; nY = 0; nZ = 0
+    do i = 1, c%nVars
+      if (.not. c%vars(i)%is_axis) then
+        nX = max(nX, c%vars(i)%shape3(1))
+        nY = max(nY, c%vars(i)%shape3(2))
+        nZ = max(nZ, c%vars(i)%shape3(3))
+      end if
+    end do
+    if (nX == 0 .or. nY == 0 .or. nZ == 0) return
+
+    nV = c%nVars
+    allocate(tmpbuf(nV, nX, nY, nZ))
+
+    ! Axis vars are identified by position: first is_axis var = lon, second = lat.
+    iAxis = 0
+    do i = 1, nV
+      if (c%vars(i)%is_axis) then
+        iAxis = iAxis + 1
+        if (iAxis == 1) then
+          ! Longitude axis: replicate 1D data along lat and alt dimensions.
+          do iz = 1, nZ
+            do iy = 1, nY
+              tmpbuf(i, :, iy, iz) = c%vars(i)%data(:, 1, 1)
+            end do
+          end do
+        else
+          ! Latitude axis: replicate 1D data along lon and alt dimensions.
+          do iz = 1, nZ
+            do ix = 1, nX
+              tmpbuf(i, ix, :, iz) = c%vars(i)%data(:, 1, 1)
+            end do
+          end do
+        end if
+      else
+        tmpbuf(i, :, :, :) = c%vars(i)%data
+      end if
+    end do
+
+    ! Write the packed buffer to the legacy unformatted unit
+    do iz = 1, nZ
+      do iy = 1, nY
+        do ix = 1, nX
+          write(iOutputUnit_) tmpbuf(1:nV, ix, iy, iz)
+        enddo
+      enddo
+    enddo
+
+    deallocate(tmpbuf)
+  end subroutine legacy_write_container
 
 end module ModOutputBackend
