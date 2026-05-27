@@ -66,6 +66,8 @@ subroutine output(dir, iBlock, iOutputType)
   use ModOutputRegistry, only: OutputTypeInfo, find_output_type, RegisteredTypes
   use ModOutputGather, only: gather_output
   use ModOutputBackend, only: ActiveBackend
+  use ModOutputContainer, only: OutputContainer
+  use ModOutputProducers, only: containers, iCont_2DMEL, init_output_containers, fill_2dmel
   use ModGITMVersion, only: GitmVersion
 
   implicit none
@@ -298,7 +300,14 @@ subroutine output(dir, iBlock, iOutputType)
     ! Magnetic grid types (usesMagGrid=T): only block 1 writes
     ! Regular types: all blocks write
     if (nV > 0) then
-      if (typeInfo%isRegional) then
+      if (cType == '2DMEL') then
+        ! Container path: replaces gather+write_block for 2DMEL.
+        call init_output_containers()
+        call fill_2dmel(containers(iCont_2DMEL), iBlock)
+        if (associated(ActiveBackend%write_container)) &
+          call ActiveBackend%write_container(containers(iCont_2DMEL), iBLK, iTimeArray)
+        call containers(iCont_2DMEL)%reset()
+      elseif (typeInfo%isRegional) then
         ! Regional output: only write if block is within user-defined region
         if (DoSaveHIMEPlot) then
           allocate(outBuf(nV, nX, nY, nZ))

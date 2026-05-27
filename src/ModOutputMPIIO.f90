@@ -200,4 +200,84 @@ contains
 
   end subroutine mpiio_write_header
 
+  ! ---------------------------------------------------------------------------
+  ! mpiio_write_container — pack container vars into a single tmpbuf and write
+  ! at the file offset determined by iBlock (= global block index iBLK).
+  !
+  ! Axis vars (is_axis=.true.) are 1D in the container but must be expanded to
+  ! the full 2D grid in the file so every block slice is self-contained:
+  !   lon axis (shape3(1)==nX): replicate along Y  → tmpbuf(iV, :, iy, 1)
+  !   lat axis (shape3(1)==nY): replicate along X  → tmpbuf(iV, ix, :, 1)
+  ! This works because nX (nMagLons+1=91) ≠ nY (nMagLats=181).
+  ! ---------------------------------------------------------------------------
+  subroutine mpiio_write_container(c, iBlock, iTimeArray)
+    use ModOutputContainer, only: OutputContainer, output_kind, GRID_MAG_2D
+    type(OutputContainer), intent(inout) :: c
+    integer, intent(in) :: iBlock
+    integer, intent(in) :: iTimeArray(7)
+
+    real(output_kind), allocatable :: tmpbuf(:, :, :, :)
+    integer(kind=MPI_OFFSET_KIND) :: offset
+    integer :: nV, nX, nY, nZ, nTotal, bytes_per_element
+    integer :: i, ix, iy, ierr
+    integer :: status(MPI_STATUS_SIZE)
+
+    if (.not. c%this_rank_writes) return
+    if (mpiio_fh == -1) return
+    if (c%nVars == 0) return
+
+    ! Grid dims from non-axis vars only (axis vars have degenerate dims).
+    nX = 0; nY = 0; nZ = 0
+    do i = 1, c%nVars
+      if (.not. c%vars(i)%is_axis) then
+        nX = max(nX, c%vars(i)%shape3(1))
+        nY = max(nY, c%vars(i)%shape3(2))
+        nZ = max(nZ, c%vars(i)%shape3(3))
+      end if
+    end do
+    if (nX == 0 .or. nY == 0 .or. nZ == 0) return
+
+    nV = c%nVars
+    nTotal = nV * nX * nY * nZ
+    allocate(tmpbuf(nV, nX, nY, nZ))
+
+    do i = 1, nV
+      if (c%vars(i)%is_axis) then
+        if (c%vars(i)%shape3(1) == nX) then
+          ! Longitude axis: replicate 1D data along the latitude dimension.
+          do iy = 1, nY
+            tmpbuf(i, :, iy, 1) = c%vars(i)%data(:, 1, 1)
+          end do
+        else
+          ! Latitude axis: replicate 1D data along the longitude dimension.
+          do ix = 1, nX
+            tmpbuf(i, ix, :, 1) = c%vars(i)%data(:, 1, 1)
+          end do
+        end if
+      else
+        tmpbuf(i, :, :, :) = c%vars(i)%data
+      end if
+    end do
+
+    call MPI_Type_size(MPI_REAL, bytes_per_element, ierr)
+    ! Offset is derived from gridKind so it stays consistent with the
+    ! participation rule in OutputContainer%prepare. MAG_2D files hold
+    ! exactly one block written by one rank; block-partitioned files
+    ! stripe by global block index.
+    if (c%gridKind == GRID_MAG_2D) then
+      offset = 0_MPI_OFFSET_KIND
+    else
+      offset = int(iBlock - 1, MPI_OFFSET_KIND) * &
+               int(nTotal, MPI_OFFSET_KIND) * &
+               int(bytes_per_element, MPI_OFFSET_KIND)
+    endif
+
+    call MPI_File_write_at(mpiio_fh, offset, tmpbuf(1, 1, 1, 1), nTotal, &
+                           MPI_REAL, status, ierr)
+    if (ierr /= MPI_SUCCESS) &
+      write(*, *) 'ModOutputMPIIO: mpiio_write_container failed, iBlock=', iBlock
+
+    deallocate(tmpbuf)
+  end subroutine mpiio_write_container
+
 end module ModOutputMPIIO
