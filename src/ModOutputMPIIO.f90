@@ -162,7 +162,7 @@ contains
     if (cType == '1DNEW') then
       write(iUnit, "(I7,7A)") nAlts, " nAltitudes"
     elseif (cType(1:2) /= "2D" .and. cType(1:2) /= "0D") then
-      write(iUnit, "(I7,7A)") nAlts + 4, " nAltitudes"
+      write(iUnit, "(I7,7A)") nAlts + nGCs*2, " nAltitudes"
     else
       write(iUnit, "(I7,7A)") 1, " nAltitudes"
     endif
@@ -176,14 +176,14 @@ contains
         write(iUnit, "(I7,A)") nMagLons + 1, " nLongitudes"
         write(iUnit, *) " "
         write(iUnit, *) "NO GHOSTCELLS"
-      elseif (info%nGhostCells == 0) then
+      elseif (nGCs == 0) then
         write(iUnit, "(I7,A)") nLats, " nLatitude"
         write(iUnit, "(I7,A)") nLons, " nLongitudes"
         write(iUnit, *) " "
         write(iUnit, *) "NO GHOSTCELLS"
       else
-        write(iUnit, "(I7,7A)") nLats + info%nGhostCells*2, " nLatitudes"
-        write(iUnit, "(I7,7A)") nLons + info%nGhostCells*2, " nLongitudes"
+        write(iUnit, "(I7,7A)") nLats + nGCs*2, " nLatitudes"
+        write(iUnit, "(I7,7A)") nLons + nGCs*2, " nLongitudes"
       endif
     endif
     write(iUnit, *) ""
@@ -204,11 +204,10 @@ contains
   ! mpiio_write_container — pack container vars into a single tmpbuf and write
   ! at the file offset determined by iBlock (= global block index iBLK).
   !
-  ! Axis vars (is_axis=.true.) are 1D in the container but must be expanded to
-  ! the full 2D grid in the file so every block slice is self-contained:
-  !   lon axis (shape3(1)==nX): replicate along Y  → tmpbuf(iV, :, iy, 1)
-  !   lat axis (shape3(1)==nY): replicate along X  → tmpbuf(iV, ix, :, 1)
-  ! This works because nX (nMagLons+1=91) ≠ nY (nMagLats=181).
+  ! Axis vars (is_axis=.true.) are 1D in the container but expanded to the
+  ! full (nX,nY,nZ) grid: first axis var = lon (replicate along Y,Z), second
+  ! axis var = lat (replicate along X,Z).  Position-based, not shape-based, so
+  ! it is safe when nLons==nLats.
   ! ---------------------------------------------------------------------------
   subroutine mpiio_write_container(c, iBlock, iTimeArray)
     use ModOutputContainer, only: OutputContainer, output_kind, GRID_MAG_2D
@@ -219,7 +218,7 @@ contains
     real(output_kind), allocatable :: tmpbuf(:, :, :, :)
     integer(kind=MPI_OFFSET_KIND) :: offset
     integer :: nV, nX, nY, nZ, nTotal, bytes_per_element
-    integer :: i, ix, iy, ierr
+    integer :: i, ix, iy, iz, iAxis, ierr
     integer :: status(MPI_STATUS_SIZE)
 
     if (.not. c%this_rank_writes) return
@@ -241,17 +240,25 @@ contains
     nTotal = nV * nX * nY * nZ
     allocate(tmpbuf(nV, nX, nY, nZ))
 
+    ! Axis vars are identified by position: first is_axis var = lon, second = lat.
+    ! Shape-based disambiguation (shape3(1)==nX) breaks when nLons==nLats.
+    iAxis = 0
     do i = 1, nV
       if (c%vars(i)%is_axis) then
-        if (c%vars(i)%shape3(1) == nX) then
-          ! Longitude axis: replicate 1D data along the latitude dimension.
-          do iy = 1, nY
-            tmpbuf(i, :, iy, 1) = c%vars(i)%data(:, 1, 1)
+        iAxis = iAxis + 1
+        if (iAxis == 1) then
+          ! Longitude axis: replicate 1D data along lat and alt dimensions.
+          do iz = 1, nZ
+            do iy = 1, nY
+              tmpbuf(i, :, iy, iz) = c%vars(i)%data(:, 1, 1)
+            end do
           end do
         else
-          ! Latitude axis: replicate 1D data along the longitude dimension.
-          do ix = 1, nX
-            tmpbuf(i, ix, :, 1) = c%vars(i)%data(:, 1, 1)
+          ! Latitude axis: replicate 1D data along lon and alt dimensions.
+          do iz = 1, nZ
+            do ix = 1, nX
+              tmpbuf(i, ix, :, iz) = c%vars(i)%data(:, 1, 1)
+            end do
           end do
         end if
       else

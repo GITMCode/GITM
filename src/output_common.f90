@@ -68,7 +68,9 @@ subroutine output(dir, iBlock, iOutputType)
   use ModOutputBackend, only: ActiveBackend
   use ModOutputContainer, only: OutputContainer
   use ModOutputProducers, only: containers, iCont_2DMEL, iCont_2DTEC, iCont_2DGEL, &
-                               init_output_containers, fill_2dmel, fill_2dtec, fill_2dgel
+                               iCont_3DNEU, iCont_3DALL, iCont_3DION, iCont_3DTHM, iCont_3DCHM, &
+                               init_output_containers, fill_2dmel, fill_2dtec, fill_2dgel, &
+                               fill_3dneu, fill_3dall, fill_3dion, fill_3dthm, fill_3dchm
   use ModGITMVersion, only: GitmVersion
 
   implicit none
@@ -81,7 +83,7 @@ subroutine output(dir, iBlock, iOutputType)
   character(len=24) :: cTime = '', cTimeSave = ''
   integer :: iiLat, iiLon, iiAlt, nGCs, cL = 0
   integer :: iLon, iLat, iAlt, nVars_to_Write, nlines, iBLK, iSpecies, i
-  logical :: done, IsFirstTime = .true., IsThere, DoSaveHIMEPlot
+  logical :: done, IsFirstTime = .true., IsThere, DoSaveHIMEPlot, uses_container
 
   real :: LatFind, LonFind, AltFind
   real :: rLon, rLat, rAlt
@@ -271,6 +273,7 @@ subroutine output(dir, iBlock, iOutputType)
   ! (Registry and backend initialized in write_output before first block loop)
 
   nGCs = 2
+  uses_container = .false.
 
   ! Registry-based output: lookup -> gather -> backend write (all types including USR)
   iTypeIdx = find_output_type(cType)
@@ -303,23 +306,61 @@ subroutine output(dir, iBlock, iOutputType)
     if (nV > 0) then
       if (cType == '2DMEL') then
         ! Container path: replaces gather+write_block for 2DMEL.
+        uses_container = .true.
         call init_output_containers()
         call fill_2dmel(containers(iCont_2DMEL), iBlock)
         if (associated(ActiveBackend%write_container)) &
           call ActiveBackend%write_container(containers(iCont_2DMEL), iBLK, iTimeArray)
         call containers(iCont_2DMEL)%reset()
       elseif (cType == '2DTEC') then
+        uses_container = .true.
         call init_output_containers()
         call fill_2dtec(containers(iCont_2DTEC), iBlock)
         if (associated(ActiveBackend%write_container)) &
           call ActiveBackend%write_container(containers(iCont_2DTEC), iBLK, iTimeArray)
         call containers(iCont_2DTEC)%reset()
       elseif (cType == '2DGEL') then
+        uses_container = .true.
         call init_output_containers()
         call fill_2dgel(containers(iCont_2DGEL), iBlock)
         if (associated(ActiveBackend%write_container)) &
           call ActiveBackend%write_container(containers(iCont_2DGEL), iBLK, iTimeArray)
         call containers(iCont_2DGEL)%reset()
+      elseif (cType == '3DNEU') then
+        uses_container = .true.
+        call init_output_containers()
+        call fill_3dneu(containers(iCont_3DNEU), iBlock)
+        if (associated(ActiveBackend%write_container)) &
+          call ActiveBackend%write_container(containers(iCont_3DNEU), iBLK, iTimeArray)
+        call containers(iCont_3DNEU)%reset()
+      elseif (cType == '3DALL') then
+        uses_container = .true.
+        call init_output_containers()
+        call fill_3dall(containers(iCont_3DALL), iBlock)
+        if (associated(ActiveBackend%write_container)) &
+          call ActiveBackend%write_container(containers(iCont_3DALL), iBLK, iTimeArray)
+        call containers(iCont_3DALL)%reset()
+      elseif (cType == '3DION') then
+        uses_container = .true.
+        call init_output_containers()
+        call fill_3dion(containers(iCont_3DION), iBlock)
+        if (associated(ActiveBackend%write_container)) &
+          call ActiveBackend%write_container(containers(iCont_3DION), iBLK, iTimeArray)
+        call containers(iCont_3DION)%reset()
+      elseif (cType == '3DTHM') then
+        uses_container = .true.
+        call init_output_containers()
+        call fill_3dthm(containers(iCont_3DTHM), iBlock)
+        if (associated(ActiveBackend%write_container)) &
+          call ActiveBackend%write_container(containers(iCont_3DTHM), iBLK, iTimeArray)
+        call containers(iCont_3DTHM)%reset()
+      elseif (cType == '3DCHM') then
+        uses_container = .true.
+        call init_output_containers()
+        call fill_3dchm(containers(iCont_3DCHM), iBlock)
+        if (associated(ActiveBackend%write_container)) &
+          call ActiveBackend%write_container(containers(iCont_3DCHM), iBLK, iTimeArray)
+        call containers(iCont_3DCHM)%reset()
       elseif (typeInfo%isRegional) then
         ! Regional output: only write if block is within user-defined region
         if (DoSaveHIMEPlot) then
@@ -348,6 +389,10 @@ subroutine output(dir, iBlock, iOutputType)
     close(unit=iOutputUnit_)
 
   !! Now write the header file (skipped for backends where metadata lives in the data file)
+
+  ! Container-backed types have no ghost cells in their output; override nGCs so
+  ! the header reports 0 ghost cells and the Python reader does not try to strip them.
+  if (uses_container) nGCs = 0
 
   if (ActiveBackend%writes_header .and. &
       ((iProc == 0 .and. iBlock == nBlocks) .or. iOutputType <= -1)) then

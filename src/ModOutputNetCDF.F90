@@ -642,7 +642,7 @@ contains
   ! from the first axis var encountered for each axis, at the block's offset.
   ! ---------------------------------------------------------------------------
   subroutine netcdf_write_container(c, iBlock, iTimeArray)
-    use ModOutputContainer, only: OutputContainer, output_kind
+    use ModOutputContainer, only: OutputContainer, output_kind, GRID_GEO_3D
 #ifdef HavePNetCDF
     use ModInputs, only: UseNetcdfMultiTime
 #endif
@@ -651,71 +651,130 @@ contains
     integer, intent(in) :: iTimeArray(7)
 
 #ifdef HavePNetCDF
-    integer(kind=MPI_OFFSET_KIND) :: start(3), cnt(3), cstart(1), ccnt(1)
-    integer :: nX, nY, i, ix, iy, ierr
+    ! start/cnt are sized for 3D+time; 2D paths use start(1:3)/cnt(1:3) slices.
+    integer(kind=MPI_OFFSET_KIND) :: start(4), cnt(4), cstart(1), ccnt(1)
+    integer :: nX, nY, nZ, i, ix, iy, iz, iAxis, ierr
     integer :: iBlockLon_0, iBlockLat_0
-    real(kind=8), allocatable :: buf2d(:, :), coord1d(:)
+    logical :: is3d
+    real(kind=8), allocatable :: buf2d(:, :), buf3d(:, :, :), coord1d(:)
 
     if (.not. c%this_rank_writes) return
     if (ncid == -1) return
     if (c%nVars == 0) return
 
-    ! Derive grid dims from non-axis vars
-    nX = 0; nY = 0
+    ! Derive grid dims from non-axis vars.
+    nX = 0; nY = 0; nZ = 0
     do i = 1, c%nVars
       if (.not. c%vars(i)%is_axis) then
         nX = max(nX, c%vars(i)%shape3(1))
         nY = max(nY, c%vars(i)%shape3(2))
+        nZ = max(nZ, c%vars(i)%shape3(3))
       end if
     end do
-    if (nX == 0 .or. nY == 0) return
+    if (nX == 0 .or. nY == 0 .or. nZ == 0) return
+
+    is3d = (c%gridKind == GRID_GEO_3D)
 
     if (nc_needsIndepWrite) then
       ! MAG_2D: single rank, full grid, file already in independent mode.
       start(1) = 1_MPI_OFFSET_KIND
       start(2) = 1_MPI_OFFSET_KIND
     else
-      ! GEO_2D: each block writes at its global offset (collective mode).
+      ! GEO_2D / GEO_3D: each block writes at its global lon/lat offset.
       iBlockLon_0 = mod(iBlock - 1, nc_nBlocksLon)
       iBlockLat_0 = (iBlock - 1) / nc_nBlocksLon
       start(1) = int(iBlockLon_0 * nX, MPI_OFFSET_KIND) + 1_MPI_OFFSET_KIND
       start(2) = int(iBlockLat_0 * nY, MPI_OFFSET_KIND) + 1_MPI_OFFSET_KIND
     end if
-    start(3) = int(nc_time_record, MPI_OFFSET_KIND)
     cnt(1) = int(nX, MPI_OFFSET_KIND)
     cnt(2) = int(nY, MPI_OFFSET_KIND)
-    cnt(3) = 1_MPI_OFFSET_KIND
 
-    allocate(buf2d(nX, nY))
+    if (is3d) then
+      start(3) = 1_MPI_OFFSET_KIND            ! alt always starts at 1
+      start(4) = int(nc_time_record, MPI_OFFSET_KIND)
+      cnt(3) = int(nZ, MPI_OFFSET_KIND)
+      cnt(4) = 1_MPI_OFFSET_KIND
+    else
+      start(3) = int(nc_time_record, MPI_OFFSET_KIND)
+      cnt(3) = 1_MPI_OFFSET_KIND
+    end if
 
+    ! Axis vars: first is_axis var = lon, second = lat (position-based, safe
+    ! when nLons==nLats).  Non-axis vars are written as full 2D or 3D arrays.
+    if (is3d) then
+      allocate(buf3d(nX, nY, nZ))
+    else
+      allocate(buf2d(nX, nY))
+    end if
+
+    iAxis = 0
     do i = 1, c%nVars
       if (c%vars(i)%is_axis) then
-        if (c%vars(i)%shape3(1) == nX) then
-          ! lon axis: 1D → expand along Y
-          do iy = 1, nY
-            buf2d(:, iy) = real(c%vars(i)%data(:, 1, 1), kind=8)
-          end do
+        iAxis = iAxis + 1
+        if (is3d) then
+          if (iAxis == 1) then
+            ! Longitude axis: replicate along Y and Z.
+            do iz = 1, nZ
+              do iy = 1, nY
+                buf3d(:, iy, iz) = real(c%vars(i)%data(:, 1, 1), kind=8)
+              end do
+            end do
+          else
+            ! Latitude axis: replicate along X and Z.
+            do iz = 1, nZ
+              do ix = 1, nX
+                buf3d(ix, :, iz) = real(c%vars(i)%data(:, 1, 1), kind=8)
+              end do
+            end do
+          end if
         else
-          ! lat axis: 1D → expand along X
-          do ix = 1, nX
-            buf2d(ix, :) = real(c%vars(i)%data(:, 1, 1), kind=8)
-          end do
+          if (iAxis == 1) then
+            ! Longitude axis: replicate along Y.
+            do iy = 1, nY
+              buf2d(:, iy) = real(c%vars(i)%data(:, 1, 1), kind=8)
+            end do
+          else
+            ! Latitude axis: replicate along X.
+            do ix = 1, nX
+              buf2d(ix, :) = real(c%vars(i)%data(:, 1, 1), kind=8)
+            end do
+          end if
         end if
       else
-        buf2d = real(c%vars(i)%data(:, :, 1), kind=8)
+        if (is3d) then
+          buf3d = real(c%vars(i)%data(:, :, :), kind=8)
+        else
+          buf2d = real(c%vars(i)%data(:, :, 1), kind=8)
+        end if
       end if
 
-      if (nc_needsIndepWrite) then
-        if (UseNetcdfMultiTime) then
-          ierr = nfmpi_put_vara_double(ncid, varids(i), start(1:3), cnt(1:3), buf2d)
+      if (is3d) then
+        if (nc_needsIndepWrite) then
+          if (UseNetcdfMultiTime) then
+            ierr = nfmpi_put_vara_double(ncid, varids(i), start(1:4), cnt(1:4), buf3d)
+          else
+            ierr = nfmpi_put_vara_double(ncid, varids(i), start(1:3), cnt(1:3), buf3d)
+          end if
         else
-          ierr = nfmpi_put_vara_double(ncid, varids(i), start(1:2), cnt(1:2), buf2d)
+          if (UseNetcdfMultiTime) then
+            ierr = nfmpi_put_vara_double_all(ncid, varids(i), start(1:4), cnt(1:4), buf3d)
+          else
+            ierr = nfmpi_put_vara_double_all(ncid, varids(i), start(1:3), cnt(1:3), buf3d)
+          end if
         end if
       else
-        if (UseNetcdfMultiTime) then
-          ierr = nfmpi_put_vara_double_all(ncid, varids(i), start(1:3), cnt(1:3), buf2d)
+        if (nc_needsIndepWrite) then
+          if (UseNetcdfMultiTime) then
+            ierr = nfmpi_put_vara_double(ncid, varids(i), start(1:3), cnt(1:3), buf2d)
+          else
+            ierr = nfmpi_put_vara_double(ncid, varids(i), start(1:2), cnt(1:2), buf2d)
+          end if
         else
-          ierr = nfmpi_put_vara_double_all(ncid, varids(i), start(1:2), cnt(1:2), buf2d)
+          if (UseNetcdfMultiTime) then
+            ierr = nfmpi_put_vara_double_all(ncid, varids(i), start(1:3), cnt(1:3), buf2d)
+          else
+            ierr = nfmpi_put_vara_double_all(ncid, varids(i), start(1:2), cnt(1:2), buf2d)
+          end if
         end if
       end if
       if (ierr /= NF_NOERR) &
@@ -723,15 +782,18 @@ contains
         trim(c%vars(i)%name), ": ", nfmpi_strerror(ierr)
     end do
 
-    deallocate(buf2d)
+    if (is3d) then
+      deallocate(buf3d)
+    else
+      deallocate(buf2d)
+    end if
 
-    ! 1D coordinate variables (lon, lat): written once per file.
-    ! MAG_2D: independent put at offset 1 (single block, full grid).
-    ! GEO_2D: collective put at the block's global lon/lat offset.
+    ! 1D coordinate variables written once per file (nc_time_record==1).
+    ! lon/lat use block offset; z uses absolute [1,nZ] (all blocks span full alt).
     if (nc_time_record == 1) then
-      ! lon coord: first axis var whose shape3(1)==nX
+      ! lon coord (var 1 by convention)
       ccnt(1) = int(nX, MPI_OFFSET_KIND)
-      cstart(1) = start(1)  ! already block-offset or 1 depending on mode
+      cstart(1) = start(1)
       allocate(coord1d(nX))
       coord1d = real(c%vars(1)%data(1:nX, 1, 1), kind=8)
       if (nc_needsIndepWrite) then
@@ -741,7 +803,7 @@ contains
       end if
       deallocate(coord1d)
 
-      ! lat coord: second axis var whose shape3(1)==nY
+      ! lat coord (var 2 by convention)
       ccnt(1) = int(nY, MPI_OFFSET_KIND)
       cstart(1) = start(2)
       allocate(coord1d(nY))
@@ -752,6 +814,20 @@ contains
         ierr = nfmpi_put_vara_double_all(ncid, coordids(2), cstart, ccnt, coord1d)
       end if
       deallocate(coord1d)
+
+      ! z coord (var 3 by convention for 3D; altitude in km)
+      if (is3d) then
+        ccnt(1) = int(nZ, MPI_OFFSET_KIND)
+        cstart(1) = 1_MPI_OFFSET_KIND
+        allocate(coord1d(nZ))
+        coord1d = real(c%vars(3)%data(1, 1, 1:nZ), kind=8) / 1000.0d0
+        if (nc_needsIndepWrite) then
+          ierr = nfmpi_put_vara_double(ncid, coordids(3), cstart, ccnt, coord1d)
+        else
+          ierr = nfmpi_put_vara_double_all(ncid, coordids(3), cstart, ccnt, coord1d)
+        end if
+        deallocate(coord1d)
+      end if
     end if
 #endif
   end subroutine netcdf_write_container
