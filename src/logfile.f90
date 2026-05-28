@@ -243,16 +243,22 @@ subroutine logfile(dir)
     AverageVertVel = AverageVertVel/TotalVolume
 
     call get_f107(CurrentTime, f107, iError)
+    if (iError /= 0) f107 = 0.0
     call get_f107A(CurrentTime, f107A, iError)
+    if (iError /= 0) f107A = 0.0
     call get_IMF_By(CurrentTime, by, iError)
+    if (iError /= 0) by = 0.0
     call get_IMF_Bz(CurrentTime, bz, iError)
+    if (iError /= 0) bz = 0.0
     call get_sw_v(CurrentTime, Vx, iError)
+    if (iError /= 0) Vx = 0.0
     call get_hpi(CurrentTime, Hpi, iError)
+    if (iError /= 0) Hpi = 0.0
 
     if (Is1D) SSVTEC = -1.0
 
     write(iLogFileUnit_, "(i8,i5,5i3,i4,f8.4,6f9.1,5f7.1,9f8.1,2f7.1,3f8.3)") &
-      iStep, iTimeArray, &  ! i8, i5, 5i3, i4
+      iStep, iTimeArray(1:6), floor(iTimeArray(7)/10.0)*10, &  ! i8, i5, 5i3, i4; ms rounded to 10ms to avoid compiler fp drift
       dt, &  ! f8.4
       minTemp, maxTemp, AverageTemp, minVertVel, maxVertVel, AverageVertVel, & ! 6f9.1
       f107, f107A, By, Bz, Vx, &  ! 5f7.1
