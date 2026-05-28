@@ -272,9 +272,16 @@ def determine_bounds(iBlock, nBlocks, nPts, nGCs):
 # 
 # ----------------------------------------------------------------------------
 
-def read_one_binary_file(file, nVars, nLons, nLats, nAlts, isVerbose = False):
+def read_one_binary_file(file, nVars, nLons, nLats, nAlts, isVerbose = False, allow_missing = False):
     # Store in reversed order, due to the whole fortran / python order diff
     data = np.zeros((nVars, nAlts, nLats, nLons))
+    if not os.path.exists(file):
+        if allow_missing:
+            if (isVerbose):
+                print('   --> Block file not found (expected for skipped/regional blocks): ', file)
+            return data
+        else:
+            raise FileNotFoundError(f"Required block file not found: {file}")
     if (isVerbose):
         print('   --> Reading file : ', file)
     fpin = open(file, 'rb')
@@ -554,9 +561,11 @@ def process_one_file(header, isVerbose = False, dowrite=True,
                 else:
                     cBlock = '.b%4.4i' % iBlock
                     file = header.replace('.header', cBlock)
+                    is_regional = "HME" in header
                     oneFile = read_one_binary_file(file, data['nVars'],
                                                    nX, nY, nZ,
-                                                   isVerbose=isVerbose)
+                                                   isVerbose=isVerbose,
+                                                   allow_missing=is_regional)
 
                 iWholeLonStart, iLonStart, iWholeLonEnd, iLonEnd = \
                     determine_bounds(iLonBlock, \
