@@ -443,6 +443,15 @@ contains
     character(len=30) :: coord_str
     character(len=8)  :: dstr
     character(len=10) :: tstr
+    ! Types where only some blocks write (magnetic-grid, regional) leave the
+    ! rest of the grid unwritten; fill those elements with NaN instead of 0 so
+    ! consumers don't read them as real data.
+    logical :: doFillNaN
+    real(8) :: fillNaN
+
+    doFillNaN = RegisteredTypes(iTypeIdx)%usesMagGrid .or. &
+                RegisteredTypes(iTypeIdx)%isRegional
+    fillNaN = transfer(int(z'7FF8000000000000', 8), 1.0_8)
 
     ! CF global attributes
     attlen = 6_MPI_OFFSET_KIND
@@ -489,6 +498,11 @@ contains
                            dimid_vars(1:ndimid_var), varids(iV))
       if (ierr /= NF_NOERR) &
         write(*, *) "netcdf_open: def_var '", trim(varname), "' failed: ", nfmpi_strerror(ierr)
+      if (doFillNaN) then
+        ierr = nfmpi_def_var_fill(ncid, varids(iV), 0, fillNaN)
+        ierr = nfmpi_put_att_double(ncid, varids(iV), "_FillValue", NF_DOUBLE, &
+                                    1_MPI_OFFSET_KIND, [fillNaN])
+      endif
       if (len_trim(RegisteredTypes(iTypeIdx)%vars(iV)%units) > 0) then
         attlen = int(len_trim(RegisteredTypes(iTypeIdx)%vars(iV)%units), MPI_OFFSET_KIND)
         ierr = nfmpi_put_att_text(ncid, varids(iV), "units", attlen, &

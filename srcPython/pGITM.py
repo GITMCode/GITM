@@ -279,6 +279,9 @@ def read_one_binary_file(file, nVars, nLons, nLats, nAlts, isVerbose = False, al
         if allow_missing:
             if (isVerbose):
                 print('   --> Block file not found (expected for skipped/regional blocks): ', file)
+            # Unwritten regional blocks hold no data; mark as NaN so downstream
+            # consumers don't misread them as altitude=0 / value=0 samples.
+            data[:] = np.nan
             return data
         else:
             raise FileNotFoundError(f"Required block file not found: {file}")
