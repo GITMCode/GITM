@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# Exit immediately if an unhandled pipeline/command fails
 set -e
 
 get_help(){
@@ -137,9 +138,11 @@ checkoutputs(){
 
   if [ $do_compare = true ]; then
     echo
-    ../../../share/Scripts/DiffNum.pl -r=5e-5 -a=1e-1 -t ../ref_solns/log.$test_uam UA/data/log*.dat
+    # Capture diff status without triggering set -e
+    local diff_status=0
+    ../../../share/Scripts/DiffNum.pl -r=5e-5 -a=1e-1 -t ../ref_solns/log.$test_uam UA/data/log*.dat || diff_status=$?
 
-    if [ $? = 0 ]; then
+    if [ $diff_status = 0 ]; then
       # test was a success. no differences found.
       return 0
 
@@ -166,20 +169,19 @@ run_a_test(){
   ln -sf $test_uam UAM.in
   rm -f GITM.DONE
 
-  # Run GITM, stop if error.
-  mpirun -np 4 $oversubscribe ./GITM.exe
+  # Run GITM, capture status without triggering set -e
+  local mpi_status=0
+  mpirun -np 4 $oversubscribe ./GITM.exe || mpi_status=$?
 
   # this will either save, or diff, the output log files.
-  # (double sanity-check): only run if GITM.DONE exists & above exited with no error code.
   local checkout_status=0
-  if [[ -f GITM.DONE && $? = 0 ]]; then
-    checkoutputs
-    checkout_status=$?
+  if [ -f GITM.DONE ] && [ $mpi_status = 0 ]; then
+    checkoutputs || checkout_status=$?
   else
     checkout_status=1
   fi
 
-  if [[ -f GITM.DONE && $checkout_status = 0 ]]; then
+  if [ -f GITM.DONE ] && [ $checkout_status = 0 ]; then
       printf "\n\n>>> $test_uam ran successfully! <<< \n\n"
       mv $test_uam $test_uam.success
       mv UA/data/log*.dat UA/data/log_$test_uam.success
@@ -245,14 +247,13 @@ do_tests(){
         ./Config.pl -install -earth -compiler=gfortran -debug
     fi
 
-    make -j
-
-    if [ $? != 0 ]; then
+    # Capture make status without triggering set -e
+    make -j || {
       echo
       echo "Could not compile!"
       echo "The tests have failed. Exiting."
       exit 1
-    fi
+    }
 
     # Since we can't tell when (or how) srcTest/auto_test/run was made, replace it
     # 'make rundir' defaults to creating 'run', if we set RUNDIR, it creates that instead.
