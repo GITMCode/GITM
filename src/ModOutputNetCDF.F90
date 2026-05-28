@@ -642,7 +642,7 @@ contains
   ! from the first axis var encountered for each axis, at the block's offset.
   ! ---------------------------------------------------------------------------
   subroutine netcdf_write_container(c, iBlock, iTimeArray)
-    use ModOutputContainer, only: OutputContainer, output_kind, GRID_GEO_3D
+    use ModOutputContainer, only: OutputContainer, output_kind, GRID_GEO_3D, GRID_MAG_2D
 #ifdef HavePNetCDF
     use ModInputs, only: UseNetcdfMultiTime
 #endif
@@ -675,12 +675,14 @@ contains
 
     is3d = (c%gridKind == GRID_GEO_3D)
 
-    if (nc_needsIndepWrite) then
-      ! MAG_2D: single rank, full grid, file already in independent mode.
+    if (nc_needsIndepWrite .and. c%gridKind == GRID_MAG_2D) then
+      ! MAG_2D: single rank writes the full magnetic grid starting at (1,1).
       start(1) = 1_MPI_OFFSET_KIND
       start(2) = 1_MPI_OFFSET_KIND
     else
-      ! GEO_2D / GEO_3D: each block writes at its global lon/lat offset.
+      ! GEO_2D / GEO_3D / GRID_HIME: each block writes at its global lon/lat offset.
+      ! For GRID_HIME (regional), only participating blocks call this, but they still
+      ! write at their correct position in the full global grid.
       iBlockLon_0 = mod(iBlock - 1, nc_nBlocksLon)
       iBlockLat_0 = (iBlock - 1) / nc_nBlocksLon
       start(1) = int(iBlockLon_0 * nX, MPI_OFFSET_KIND) + 1_MPI_OFFSET_KIND
