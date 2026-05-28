@@ -29,7 +29,25 @@ module ModOutputProducers
   integer, parameter :: iCont_3DION = 6
   integer, parameter :: iCont_3DTHM = 7
   integer, parameter :: iCont_3DCHM = 8
-  integer, parameter :: nContainers = 8
+  integer, parameter :: iCont_3DLST = 9
+  integer, parameter :: iCont_3DGLO = 10
+  integer, parameter :: iCont_3DMAG = 11
+  integer, parameter :: iCont_3DHME = 12
+  integer, parameter :: iCont_3DMOH = 13
+  integer, parameter :: iCont_3DMOV = 14
+  integer, parameter :: iCont_2DANC = 15
+  integer, parameter :: iCont_2DHME = 16
+  integer, parameter :: iCont_1DALL = 17
+  integer, parameter :: iCont_0DALL = 18
+  integer, parameter :: iCont_1DGLO = 19
+  integer, parameter :: iCont_1DTHM = 20
+  integer, parameter :: iCont_1DCHM = 21
+  integer, parameter :: iCont_1DNEW = 22
+  integer, parameter :: iCont_3DUSR = 23
+  integer, parameter :: iCont_2DUSR = 24
+  integer, parameter :: iCont_1DUSR = 25
+  integer, parameter :: iCont_0DUSR = 26
+  integer, parameter :: nContainers = 26
 
   logical :: containers_initialized = .false.
 
@@ -49,6 +67,24 @@ contains
     call define_schema_3dion(containers(iCont_3DION))
     call define_schema_3dthm(containers(iCont_3DTHM))
     call define_schema_3dchm(containers(iCont_3DCHM))
+    call define_schema_3dlst(containers(iCont_3DLST))
+    call define_schema_3dglo(containers(iCont_3DGLO))
+    call define_schema_3dmag(containers(iCont_3DMAG))
+    call define_schema_3dhme(containers(iCont_3DHME))
+    call define_schema_3dmoh(containers(iCont_3DMOH))
+    call define_schema_3dmov(containers(iCont_3DMOV))
+    call define_schema_2danc(containers(iCont_2DANC))
+    call define_schema_2dhme(containers(iCont_2DHME))
+    call define_schema_1dall(containers(iCont_1DALL))
+    call define_schema_0dall(containers(iCont_0DALL))
+    call define_schema_1dglo(containers(iCont_1DGLO))
+    call define_schema_1dthm(containers(iCont_1DTHM))
+    call define_schema_1dchm(containers(iCont_1DCHM))
+    call define_schema_1dnew(containers(iCont_1DNEW))
+    call define_schema_3dusr(containers(iCont_3DUSR))
+    call define_schema_2dusr(containers(iCont_2DUSR))
+    call define_schema_1dusr(containers(iCont_1DUSR))
+    call define_schema_0dusr(containers(iCont_0DUSR))
     containers_initialized = .true.
   end subroutine init_output_containers
 
@@ -185,8 +221,8 @@ contains
 
     ! 2D data variables.
     call c%put('MLT',      real(MagLocTimeMC, output_kind))
-    call c%put('GeoLat',   real(GeoLatMC * cRadToDeg, output_kind))
-    call c%put('GeoLon',   real(GeoLonMC * cRadToDeg, output_kind))
+    call c%put('GeoLat',   real(GeoLatMC, output_kind))
+    call c%put('GeoLon',   real(GeoLonMC, output_kind))
     call c%put('PedCond',  real(SigmaPedersenMC, output_kind))
     call c%put('HalCond',  real(SigmaHallMC, output_kind))
     call c%put('DivJuAlt', real(DivJuAltMC, output_kind))
@@ -878,5 +914,1638 @@ contains
                     Rho(1:nLons, 1:nLats, 1:nAlts, iBlock) * &
                     TempUnit(1:nLons, 1:nLats, 1:nAlts) / Element_Charge, output_kind))
   end subroutine fill_3dchm
+
+  ! ---------------------------------------------------------------------------
+  ! define_schema_3dlst — register variables for 3DLST dynamically.
+  ! ---------------------------------------------------------------------------
+  subroutine define_schema_3dlst(c)
+    use ModGITM, only: nLons, nLats, nAlts
+    use ModPlanet, only: nSpeciesTotal, nSpecies, nIons, cSpecies, cIons
+    use ModInputs, only: iRhoOutputList, iNeutralDensityOutputList, &
+                         iNeutralWindOutputList, iIonDensityOutputList, &
+                         iIonWindOutputList, iTemperatureOutputList
+    type(OutputContainer), intent(inout) :: c
+    integer :: i
+
+    c%cType    = '3DLST'
+    c%gridKind = GRID_GEO_3D
+
+    call c%define_var('Longitude', units='degrees_east', &
+                      shape3=[nLons, 1, 1], is_axis=.true., &
+                      longName='Geographic longitude')
+    call c%define_var('Latitude', units='degrees_north', &
+                      shape3=[nLats, 1, 1], is_axis=.true., &
+                      longName='Geographic latitude')
+    call c%define_var('Altitude', units='m', &
+                      shape3=[nLons, nLats, nAlts], &
+                      longName='Altitude')
+
+    if (iRhoOutputList) then
+      call c%define_var('Rho', units='kg/m3', shape3=[nLons, nLats, nAlts], longName='Total neutral mass density')
+    endif
+    do i = 1, nSpeciesTotal
+      if (iNeutralDensityOutputList(i)) then
+        call c%define_var('['//trim(cSpecies(i))//']', units='/m3', shape3=[nLons, nLats, nAlts], &
+                          longName='Number density of '//trim(cSpecies(i)))
+      endif
+    enddo
+    if (iNeutralWindOutputList(1)) then
+      call c%define_var('Vn (east)', units='m/s', shape3=[nLons, nLats, nAlts], longName='Eastward neutral wind')
+    endif
+    if (iNeutralWindOutputList(2)) then
+      call c%define_var('Vn (north)', units='m/s', shape3=[nLons, nLats, nAlts], longName='Northward neutral wind')
+    endif
+    if (iNeutralWindOutputList(3)) then
+      call c%define_var('Vn (up)', units='m/s', shape3=[nLons, nLats, nAlts], longName='Vertical neutral wind')
+    endif
+    do i = 1, nIons
+      if (iIonDensityOutputList(i)) then
+        call c%define_var('['//trim(cIons(i))//']', units='/m3', shape3=[nLons, nLats, nAlts], &
+                          longName='Number density of '//trim(cIons(i)))
+      endif
+    enddo
+    if (iIonWindOutputList(1)) then
+      call c%define_var('Vi (east)', units='m/s', shape3=[nLons, nLats, nAlts], longName='Eastward ion drift')
+    endif
+    if (iIonWindOutputList(2)) then
+      call c%define_var('Vi (north)', units='m/s', shape3=[nLons, nLats, nAlts], longName='Northward ion drift')
+    endif
+    if (iIonWindOutputList(3)) then
+      call c%define_var('Vi (up)', units='m/s', shape3=[nLons, nLats, nAlts], longName='Vertical ion drift')
+    endif
+    if (iTemperatureOutputList(1)) then
+      call c%define_var('Neutral Temperature', units='K', shape3=[nLons, nLats, nAlts], longName='Neutral temperature')
+    endif
+    if (iTemperatureOutputList(2)) then
+      call c%define_var('Ion Temperature', units='K', shape3=[nLons, nLats, nAlts], longName='Ion temperature')
+    endif
+    if (iTemperatureOutputList(3)) then
+      call c%define_var('Electron Temperature', units='K', shape3=[nLons, nLats, nAlts], longName='Electron temperature')
+    endif
+  end subroutine define_schema_3dlst
+
+  ! ---------------------------------------------------------------------------
+  ! fill_3dlst — put 3DLST data into the container for iBlock.
+  ! ---------------------------------------------------------------------------
+  subroutine fill_3dlst(c, iBlock)
+    use ModGITM
+    use ModConst, only: cRadToDeg
+    use ModPlanet, only: nSpeciesTotal, nSpecies, nIons, cSpecies, cIons
+    use ModInputs, only: iRhoOutputList, iNeutralDensityOutputList, &
+                         iNeutralWindOutputList, iIonDensityOutputList, &
+                         iIonWindOutputList, iTemperatureOutputList
+    type(OutputContainer), intent(inout) :: c
+    integer, intent(in) :: iBlock
+    integer :: i
+
+    call c%prepare(iBlock)
+    if (.not. c%this_rank_writes) return
+
+    call c%put('Longitude', real(Longitude(1:nLons, iBlock) * cRadToDeg, output_kind))
+    call c%put('Latitude',  real(Latitude(1:nLats, iBlock) * cRadToDeg, output_kind))
+    call c%put('Altitude',  real(Altitude_GB(1:nLons, 1:nLats, 1:nAlts, iBlock), output_kind))
+
+    if (iRhoOutputList) then
+      call c%put('Rho', real(Rho(1:nLons, 1:nLats, 1:nAlts, iBlock), output_kind))
+    endif
+    do i = 1, nSpeciesTotal
+      if (iNeutralDensityOutputList(i)) then
+        call c%put('['//trim(cSpecies(i))//']', &
+                   real(NDensityS(1:nLons, 1:nLats, 1:nAlts, i, iBlock), output_kind))
+      endif
+    enddo
+    if (iNeutralWindOutputList(1)) then
+      call c%put('Vn (east)', real(Velocity(1:nLons, 1:nLats, 1:nAlts, 1, iBlock), output_kind))
+    endif
+    if (iNeutralWindOutputList(2)) then
+      call c%put('Vn (north)', real(Velocity(1:nLons, 1:nLats, 1:nAlts, 2, iBlock), output_kind))
+    endif
+    if (iNeutralWindOutputList(3)) then
+      call c%put('Vn (up)', real(Velocity(1:nLons, 1:nLats, 1:nAlts, 3, iBlock), output_kind))
+    endif
+    do i = 1, nIons
+      if (iIonDensityOutputList(i)) then
+        call c%put('['//trim(cIons(i))//']', &
+                   real(IDensityS(1:nLons, 1:nLats, 1:nAlts, i, iBlock), output_kind))
+      endif
+    enddo
+    if (iIonWindOutputList(1)) then
+      call c%put('Vi (east)', real(IVelocity(1:nLons, 1:nLats, 1:nAlts, 1, iBlock), output_kind))
+    endif
+    if (iIonWindOutputList(2)) then
+      call c%put('Vi (north)', real(IVelocity(1:nLons, 1:nLats, 1:nAlts, 2, iBlock), output_kind))
+    endif
+    if (iIonWindOutputList(3)) then
+      call c%put('Vi (up)', real(IVelocity(1:nLons, 1:nLats, 1:nAlts, 3, iBlock), output_kind))
+    endif
+    if (iTemperatureOutputList(1)) then
+      call c%put('Neutral Temperature', &
+                 real(Temperature(1:nLons, 1:nLats, 1:nAlts, iBlock) * &
+                      TempUnit(1:nLons, 1:nLats, 1:nAlts), output_kind))
+    endif
+    if (iTemperatureOutputList(2)) then
+      call c%put('Ion Temperature', real(ITemperature(1:nLons, 1:nLats, 1:nAlts, iBlock), output_kind))
+    endif
+    if (iTemperatureOutputList(3)) then
+      call c%put('Electron Temperature', real(eTemperature(1:nLons, 1:nLats, 1:nAlts, iBlock), output_kind))
+    endif
+  end subroutine fill_3dlst
+
+  ! ---------------------------------------------------------------------------
+  ! define_schema_3dglo — register variables for 3DGLO (glow emission stub).
+  ! ---------------------------------------------------------------------------
+  subroutine define_schema_3dglo(c)
+    use ModGITM, only: nLons, nLats, nAlts
+    type(OutputContainer), intent(inout) :: c
+
+    c%cType    = '3DGLO'
+    c%gridKind = GRID_GEO_3D
+
+    call c%define_var('Longitude', units='degrees_east', shape3=[nLons, 1, 1], is_axis=.true., &
+                      longName='Geographic longitude')
+    call c%define_var('Latitude', units='degrees_north', shape3=[nLats, 1, 1], is_axis=.true., &
+                      longName='Geographic latitude')
+    call c%define_var('Altitude', units='m', shape3=[nLons, nLats, nAlts], longName='Altitude')
+    call c%define_var('6300 A Emission', units='', shape3=[nLons, nLats, nAlts], longName='6300 Angstrom emission')
+    call c%define_var('PhotoElectronUp', units='', shape3=[nLons, nLats, nAlts], longName='Photoelectron flux up')
+    call c%define_var('PhotoElectronDown', units='', shape3=[nLons, nLats, nAlts], longName='Photoelectron flux down')
+  end subroutine define_schema_3dglo
+
+  ! ---------------------------------------------------------------------------
+  ! fill_3dglo — put 3DGLO stub data into the container.
+  ! ---------------------------------------------------------------------------
+  subroutine fill_3dglo(c, iBlock)
+    use ModGITM
+    use ModConst, only: cRadToDeg
+    type(OutputContainer), intent(inout) :: c
+    integer, intent(in) :: iBlock
+    real(output_kind), allocatable :: zero_buf(:,:,:)
+
+    call c%prepare(iBlock)
+    if (.not. c%this_rank_writes) return
+
+    call c%put('Longitude', real(Longitude(1:nLons, iBlock) * cRadToDeg, output_kind))
+    call c%put('Latitude',  real(Latitude(1:nLats, iBlock) * cRadToDeg, output_kind))
+    call c%put('Altitude',  real(Altitude_GB(1:nLons, 1:nLats, 1:nAlts, iBlock), output_kind))
+
+    allocate(zero_buf(nLons, nLats, nAlts))
+    zero_buf = 0.0_output_kind
+    call c%put('6300 A Emission', zero_buf)
+    call c%put('PhotoElectronUp', zero_buf)
+    call c%put('PhotoElectronDown', zero_buf)
+    deallocate(zero_buf)
+  end subroutine fill_3dglo
+
+  ! ---------------------------------------------------------------------------
+  ! define_schema_3dmag — register variables for 3DMAG.
+  ! ---------------------------------------------------------------------------
+  subroutine define_schema_3dmag(c)
+    use ModGITM, only: nLons, nLats, nAlts
+    type(OutputContainer), intent(inout) :: c
+
+    c%cType    = '3DMAG'
+    c%gridKind = GRID_GEO_3D
+
+    call c%define_var('Longitude', units='degrees_east', shape3=[nLons, 1, 1], is_axis=.true., &
+                      longName='Geographic longitude')
+    call c%define_var('Latitude', units='degrees_north', shape3=[nLats, 1, 1], is_axis=.true., &
+                      longName='Geographic latitude')
+    call c%define_var('Altitude', units='m', shape3=[nLons, nLats, nAlts], longName='Altitude')
+    call c%define_var('Magnetic Latitude', units='deg', shape3=[nLons, nLats, nAlts], longName='Magnetic latitude')
+    call c%define_var('Magnetic Longitude', units='deg', shape3=[nLons, nLats, nAlts], longName='Magnetic longitude')
+    call c%define_var('B.F. East', units='T', shape3=[nLons, nLats, nAlts], longName='Magnetic field eastward')
+    call c%define_var('B.F. North', units='T', shape3=[nLons, nLats, nAlts], longName='Magnetic field northward')
+    call c%define_var('B.F. Vertical', units='T', shape3=[nLons, nLats, nAlts], longName='Magnetic field vertical')
+    call c%define_var('B.F. Magnitude', units='T', shape3=[nLons, nLats, nAlts], longName='Magnetic field magnitude')
+  end subroutine define_schema_3dmag
+
+  ! ---------------------------------------------------------------------------
+  ! fill_3dmag — put 3DMAG variables into the container.
+  ! ---------------------------------------------------------------------------
+  subroutine fill_3dmag(c, iBlock)
+    use ModGITM
+    use ModConst, only: cRadToDeg
+    type(OutputContainer), intent(inout) :: c
+    integer, intent(in) :: iBlock
+
+    call c%prepare(iBlock)
+    if (.not. c%this_rank_writes) return
+
+    call c%put('Longitude', real(Longitude(1:nLons, iBlock) * cRadToDeg, output_kind))
+    call c%put('Latitude',  real(Latitude(1:nLats, iBlock) * cRadToDeg, output_kind))
+    call c%put('Altitude',  real(Altitude_GB(1:nLons, 1:nLats, 1:nAlts, iBlock), output_kind))
+    call c%put('Magnetic Latitude', real(mLatitude(1:nLons, 1:nLats, 1:nAlts, iBlock), output_kind))
+    call c%put('Magnetic Longitude', real(mLongitude(1:nLons, 1:nLats, 1:nAlts, iBlock), output_kind))
+    call c%put('B.F. East', real(B0(1:nLons, 1:nLats, 1:nAlts, 1, iBlock), output_kind))
+    call c%put('B.F. North', real(B0(1:nLons, 1:nLats, 1:nAlts, 2, iBlock), output_kind))
+    call c%put('B.F. Vertical', real(B0(1:nLons, 1:nLats, 1:nAlts, 3, iBlock), output_kind))
+    call c%put('B.F. Magnitude', real(B0(1:nLons, 1:nLats, 1:nAlts, 4, iBlock), output_kind))
+  end subroutine fill_3dmag
+
+  ! ---------------------------------------------------------------------------
+  ! define_schema_3dhme — register variables for 3DHME.
+  ! ---------------------------------------------------------------------------
+  subroutine define_schema_3dhme(c)
+    use ModGITM, only: nLons, nLats, nAlts
+    use ModPlanet, only: nSpeciesTotal, nSpecies, nIons, cSpecies, cIons
+    type(OutputContainer), intent(inout) :: c
+    integer :: i
+
+    c%cType    = '3DHME'
+    c%gridKind = GRID_HIME
+
+    call c%define_var('Longitude', units='degrees_east', shape3=[nLons, 1, 1], is_axis=.true., &
+                      longName='Geographic longitude')
+    call c%define_var('Latitude', units='degrees_north', shape3=[nLats, 1, 1], is_axis=.true., &
+                      longName='Geographic latitude')
+    call c%define_var('Altitude', units='m', shape3=[nLons, nLats, nAlts], longName='Altitude')
+    call c%define_var('Rho', units='kg/m3', shape3=[nLons, nLats, nAlts], longName='Total neutral mass density')
+    do i = 1, nSpeciesTotal
+      call c%define_var('['//trim(cSpecies(i))//']', units='/m3', shape3=[nLons, nLats, nAlts], &
+                        longName='Number density of '//trim(cSpecies(i)))
+    enddo
+    call c%define_var('Temperature', units='K', shape3=[nLons, nLats, nAlts], longName='Neutral temperature')
+    call c%define_var('Vn (east)', units='m/s', shape3=[nLons, nLats, nAlts], longName='Eastward neutral wind')
+    call c%define_var('Vn (north)', units='m/s', shape3=[nLons, nLats, nAlts], longName='Northward neutral wind')
+    call c%define_var('Vn (up)', units='m/s', shape3=[nLons, nLats, nAlts], longName='Vertical neutral wind')
+    do i = 1, nSpecies
+      call c%define_var('Vn (up,'//trim(cSpecies(i))//')', units='m/s', shape3=[nLons, nLats, nAlts], &
+                        longName='Vertical neutral wind for '//trim(cSpecies(i)))
+    enddo
+    do i = 1, nIons
+      call c%define_var('['//trim(cIons(i))//']', units='/m3', shape3=[nLons, nLats, nAlts], &
+                        longName='Number density of '//trim(cIons(i)))
+    enddo
+    call c%define_var('eTemperature', units='K', shape3=[nLons, nLats, nAlts], longName='Electron temperature')
+    call c%define_var('iTemperature', units='K', shape3=[nLons, nLats, nAlts], longName='Ion temperature')
+    call c%define_var('Vi (east)', units='m/s', shape3=[nLons, nLats, nAlts], longName='Eastward ion drift')
+    call c%define_var('Vi (north)', units='m/s', shape3=[nLons, nLats, nAlts], longName='Northward ion drift')
+    call c%define_var('Vi (up)', units='m/s', shape3=[nLons, nLats, nAlts], longName='Vertical ion drift')
+    call c%define_var('PhotoElectron Heating', units='K', shape3=[nLons, nLats, nAlts], longName='Photoelectron heating')
+    call c%define_var('Joule Heating', units='K', shape3=[nLons, nLats, nAlts], longName='Joule heating')
+    call c%define_var('Specific Heat', units='J/kg/K', shape3=[nLons, nLats, nAlts], longName='Specific heat Cp')
+    call c%define_var('Magnetic Latitude', units='deg', shape3=[nLons, nLats, nAlts], longName='Magnetic latitude')
+    call c%define_var('Magnetic Longitude', units='deg', shape3=[nLons, nLats, nAlts], longName='Magnetic longitude')
+    call c%define_var('B.F. East', units='T', shape3=[nLons, nLats, nAlts], longName='Magnetic field eastward')
+    call c%define_var('B.F. North', units='T', shape3=[nLons, nLats, nAlts], longName='Magnetic field northward')
+    call c%define_var('B.F. Vertical', units='T', shape3=[nLons, nLats, nAlts], longName='Magnetic field vertical')
+    call c%define_var('B.F. Magnitude', units='T', shape3=[nLons, nLats, nAlts], longName='Magnetic field magnitude')
+    call c%define_var('Potential', units='V', shape3=[nLons, nLats, nAlts], longName='Electric potential')
+    call c%define_var('PotentialY', units='V', shape3=[nLons, nLats, nAlts], longName='Potential Y component')
+    call c%define_var('E.F. East', units='V/m', shape3=[nLons, nLats, nAlts], longName='Electric field eastward')
+    call c%define_var('E.F. North', units='V/m', shape3=[nLons, nLats, nAlts], longName='Electric field northward')
+    call c%define_var('E.F. Vertical', units='V/m', shape3=[nLons, nLats, nAlts], longName='Electric field vertical')
+  end subroutine define_schema_3dhme
+
+  ! ---------------------------------------------------------------------------
+  ! fill_3dhme — put 3DHME regional variables into the container.
+  ! ---------------------------------------------------------------------------
+  subroutine fill_3dhme(c, iBlock)
+    use ModGITM
+    use ModConst, only: cRadToDeg
+    use ModConstants, only: pi
+    use ModInputs, only: HIMEPlotLonStart, HIMEPlotLonEnd, HIMEPlotLatStart, HIMEPlotLatEnd
+    use ModPlanet, only: nSpeciesTotal, nSpecies, nIons, cSpecies, cIons
+    use ModSources, only: PhotoElectronHeating, JouleHeating
+    type(OutputContainer), intent(inout) :: c
+    integer, intent(in) :: iBlock
+    integer :: i, iLat, iLon
+    logical :: DoSaveHIMEPlot
+
+    DoSaveHIMEPlot = .false.
+    do iLat = -1, nLats + 2
+      do iLon = -1, nLons + 2
+        if (Longitude(iLon, iBlock) >= HIMEPlotLonStart*pi/180.0_output_kind &
+            .and. Longitude(iLon, iBlock) <= HIMEPlotLonEnd*pi/180.0_output_kind &
+            .and. Latitude(iLat, iBlock) >= HIMEPlotLatStart*pi/180.0_output_kind &
+            .and. Latitude(iLat, iBlock) <= HIMEPlotLatEnd*pi/180.0_output_kind) then
+          DoSaveHIMEPlot = .true.
+          exit
+        endif
+      enddo
+    enddo
+
+    c%this_rank_writes = DoSaveHIMEPlot
+    if (.not. c%this_rank_writes) return
+
+    call c%put('Longitude', real(Longitude(1:nLons, iBlock) * cRadToDeg, output_kind))
+    call c%put('Latitude',  real(Latitude(1:nLats, iBlock) * cRadToDeg, output_kind))
+    call c%put('Altitude',  real(Altitude_GB(1:nLons, 1:nLats, 1:nAlts, iBlock), output_kind))
+    call c%put('Rho',       real(Rho(1:nLons, 1:nLats, 1:nAlts, iBlock), output_kind))
+    do i = 1, nSpeciesTotal
+      call c%put('['//trim(cSpecies(i))//']', &
+                 real(NDensityS(1:nLons, 1:nLats, 1:nAlts, i, iBlock), output_kind))
+    end do
+    call c%put('Temperature', &
+               real(Temperature(1:nLons, 1:nLats, 1:nAlts, iBlock) * &
+                    TempUnit(1:nLons, 1:nLats, 1:nAlts), output_kind))
+    call c%put('Vn (east)',  real(Velocity(1:nLons, 1:nLats, 1:nAlts, 1, iBlock), output_kind))
+    call c%put('Vn (north)', real(Velocity(1:nLons, 1:nLats, 1:nAlts, 2, iBlock), output_kind))
+    call c%put('Vn (up)',    real(Velocity(1:nLons, 1:nLats, 1:nAlts, 3, iBlock), output_kind))
+    do i = 1, nSpecies
+      call c%put('Vn (up,'//trim(cSpecies(i))//')', &
+                 real(VerticalVelocity(1:nLons, 1:nLats, 1:nAlts, i, iBlock), output_kind))
+    end do
+    do i = 1, nIons
+      call c%put('['//trim(cIons(i))//']', &
+                 real(IDensityS(1:nLons, 1:nLats, 1:nAlts, i, iBlock), output_kind))
+    end do
+    call c%put('eTemperature', real(eTemperature(1:nLons, 1:nLats, 1:nAlts, iBlock), output_kind))
+    call c%put('iTemperature', real(ITemperature(1:nLons, 1:nLats, 1:nAlts, iBlock), output_kind))
+    call c%put('Vi (east)',    real(IVelocity(1:nLons, 1:nLats, 1:nAlts, 1, iBlock), output_kind))
+    call c%put('Vi (north)',   real(IVelocity(1:nLons, 1:nLats, 1:nAlts, 2, iBlock), output_kind))
+    call c%put('Vi (up)',      real(IVelocity(1:nLons, 1:nLats, 1:nAlts, 3, iBlock), output_kind))
+    call c%put('PhotoElectron Heating', &
+               real(PhotoElectronHeating(1:nLons, 1:nLats, 1:nAlts, iBlock) * &
+                    dt * TempUnit(1:nLons, 1:nLats, 1:nAlts), output_kind))
+    call c%put('Joule Heating', &
+               real(JouleHeating(1:nLons, 1:nLats, 1:nAlts) * &
+                    dt * TempUnit(1:nLons, 1:nLats, 1:nAlts), output_kind))
+    call c%put('Specific Heat', real(cp(1:nLons, 1:nLats, 1:nAlts, iBlock), output_kind))
+    call c%put('Magnetic Latitude', real(mLatitude(1:nLons, 1:nLats, 1:nAlts, iBlock), output_kind))
+    call c%put('Magnetic Longitude', real(mLongitude(1:nLons, 1:nLats, 1:nAlts, iBlock), output_kind))
+    call c%put('B.F. East', real(B0(1:nLons, 1:nLats, 1:nAlts, 1, iBlock), output_kind))
+    call c%put('B.F. North', real(B0(1:nLons, 1:nLats, 1:nAlts, 2, iBlock), output_kind))
+    call c%put('B.F. Vertical', real(B0(1:nLons, 1:nLats, 1:nAlts, 3, iBlock), output_kind))
+    call c%put('B.F. Magnitude', real(B0(1:nLons, 1:nLats, 1:nAlts, 4, iBlock), output_kind))
+    call c%put('Potential', real(Potential(1:nLons, 1:nLats, 1:nAlts, iBlock), output_kind))
+    call c%put('PotentialY', real(PotentialY(1:nLons, 1:nLats, 1:nAlts, iBlock), output_kind))
+    call c%put('E.F. East', real(EField(1:nLons, 1:nLats, 1:nAlts, 1), output_kind))
+    call c%put('E.F. North', real(EField(1:nLons, 1:nLats, 1:nAlts, 2), output_kind))
+    call c%put('E.F. Vertical', real(EField(1:nLons, 1:nLats, 1:nAlts, 3), output_kind))
+  end subroutine fill_3dhme
+
+  ! ---------------------------------------------------------------------------
+  ! define_schema_3dmoh — register variables for 3DMOH.
+  ! ---------------------------------------------------------------------------
+  subroutine define_schema_3dmoh(c)
+    use ModGITM, only: nLons, nLats, nAlts
+    type(OutputContainer), intent(inout) :: c
+
+    c%cType    = '3DMOH'
+    c%gridKind = GRID_GEO_3D
+
+    call c%define_var('Longitude', units='degrees_east', shape3=[nLons, 1, 1], is_axis=.true., &
+                      longName='Geographic longitude')
+    call c%define_var('Latitude', units='degrees_north', shape3=[nLats, 1, 1], is_axis=.true., &
+                      longName='Geographic latitude')
+    call c%define_var('Altitude', units='m', shape3=[nLons, nLats, nAlts], longName='Altitude')
+    call c%define_var('Rho', units='kg/m3', shape3=[nLons, nLats, nAlts], longName='Mass density')
+    call c%define_var('Vn (east)', units='m/s', shape3=[nLons, nLats, nAlts], longName='Eastward wind')
+    call c%define_var('Vn (north)', units='m/s', shape3=[nLons, nLats, nAlts], longName='Northward wind')
+    call c%define_var('Visc_Ve_rshear', units='m/s2', shape3=[nLons, nLats, nAlts], longName='Viscous east shear accel')
+    call c%define_var('Visc_Vn_rshear', units='m/s2', shape3=[nLons, nLats, nAlts], longName='Viscous north shear accel')
+    call c%define_var('IonDrag_east', units='m/s2', shape3=[nLons, nLats, nAlts], longName='Ion drag east accel')
+    call c%define_var('IonDrag_north', units='m/s2', shape3=[nLons, nLats, nAlts], longName='Ion drag north accel')
+    call c%define_var('Horiz_Adv_Ve', units='m/s2', shape3=[nLons, nLats, nAlts], longName='Horiz advection east accel')
+    call c%define_var('Horiz_Adv_Vn', units='m/s2', shape3=[nLons, nLats, nAlts], longName='Horiz advection north accel')
+    call c%define_var('PressGrad (east)', units='m/s2', shape3=[nLons, nLats, nAlts], longName='Press gradient east accel')
+    call c%define_var('PressGrad (north)', units='m/s2', shape3=[nLons, nLats, nAlts], longName='Press gradient north accel')
+    call c%define_var('Coriolis_east', units='m/s2', shape3=[nLons, nLats, nAlts], longName='Coriolis east accel')
+    call c%define_var('Coriolis_north', units='m/s2', shape3=[nLons, nLats, nAlts], longName='Coriolis north accel')
+    call c%define_var('Centrifugal_north', units='m/s2', shape3=[nLons, nLats, nAlts], longName='Centrifugal north accel')
+  end subroutine define_schema_3dmoh
+
+  ! ---------------------------------------------------------------------------
+  ! fill_3dmoh — put 3DMOH variables into the container.
+  ! ---------------------------------------------------------------------------
+  subroutine fill_3dmoh(c, iBlock)
+    use ModGITM
+    use ModConst, only: cRadToDeg
+    use ModSources
+    type(OutputContainer), intent(inout) :: c
+    integer, intent(in) :: iBlock
+
+    call c%prepare(iBlock)
+    if (.not. c%this_rank_writes) return
+
+    call c%put('Longitude', real(Longitude(1:nLons, iBlock) * cRadToDeg, output_kind))
+    call c%put('Latitude',  real(Latitude(1:nLats, iBlock) * cRadToDeg, output_kind))
+    call c%put('Altitude',  real(Altitude_GB(1:nLons, 1:nLats, 1:nAlts, iBlock), output_kind))
+    call c%put('Rho',       real(Rho(1:nLons, 1:nLats, 1:nAlts, iBlock), output_kind))
+    call c%put('Vn (east)',  real(Velocity(1:nLons, 1:nLats, 1:nAlts, iEast_, iBlock), output_kind))
+    call c%put('Vn (north)', real(Velocity(1:nLons, 1:nLats, 1:nAlts, iNorth_, iBlock), output_kind))
+    call c%put('Visc_Ve_rshear', real(Viscosity(1:nLons, 1:nLats, 1:nAlts, iEast_)/dt, output_kind))
+    call c%put('Visc_Vn_rshear', real(Viscosity(1:nLons, 1:nLats, 1:nAlts, iNorth_)/dt, output_kind))
+    call c%put('IonDrag_east', real(IonDrag(1:nLons, 1:nLats, 1:nAlts, iEast_), output_kind))
+    call c%put('IonDrag_north', real(IonDrag(1:nLons, 1:nLats, 1:nAlts, iNorth_), output_kind))
+    call c%put('Horiz_Adv_Ve', real(HorizAdvection(1:nLons, 1:nLats, 1:nAlts, 1), output_kind))
+    call c%put('Horiz_Adv_Vn', real(HorizAdvection(1:nLons, 1:nLats, 1:nAlts, 2), output_kind))
+    call c%put('PressGrad (east)', real(HorizPressureGrad(1:nLons, 1:nLats, 1:nAlts, 1), output_kind))
+    call c%put('PressGrad (north)', real(HorizPressureGrad(1:nLons, 1:nLats, 1:nAlts, 2), output_kind))
+    call c%put('Coriolis_east', real(HorizCoriolis(1:nLons, 1:nLats, 1:nAlts, 1), output_kind))
+    call c%put('Coriolis_north', real(HorizCoriolis(1:nLons, 1:nLats, 1:nAlts, 2), output_kind))
+    call c%put('Centrifugal_north', real(Centrifugal(1:nLons, 1:nLats, 1:nAlts, 2), output_kind))
+  end subroutine fill_3dmoh
+
+  ! ---------------------------------------------------------------------------
+  ! define_schema_3dmov — register variables for 3DMOV.
+  ! ---------------------------------------------------------------------------
+  subroutine define_schema_3dmov(c)
+    use ModGITM, only: nLons, nLats, nAlts
+    use ModPlanet, only: nSpecies, cSpecies
+    type(OutputContainer), intent(inout) :: c
+    integer :: i
+
+    c%cType    = '3DMOV'
+    c%gridKind = GRID_GEO_3D
+
+    call c%define_var('Longitude', units='degrees_east', shape3=[nLons, 1, 1], is_axis=.true., &
+                      longName='Geographic longitude')
+    call c%define_var('Latitude', units='degrees_north', shape3=[nLats, 1, 1], is_axis=.true., &
+                      longName='Geographic latitude')
+    call c%define_var('Altitude', units='m', shape3=[nLons, nLats, nAlts], longName='Altitude')
+    do i = 1, nSpecies
+      call c%define_var('Vn (up,'//trim(cSpecies(i))//')', units='m/s', shape3=[nLons, nLats, nAlts], &
+                        longName='Vertical wind for '//trim(cSpecies(i)))
+      call c%define_var('IonDrag_up_'//trim(cSpecies(i)), units='m/s2', shape3=[nLons, nLats, nAlts], &
+                        longName='Ion drag upward for '//trim(cSpecies(i)))
+      call c%define_var('Horiz_Adv_Vn (up,'//trim(cSpecies(i))//')', units='m/s2', shape3=[nLons, nLats, nAlts], &
+                        longName='Horiz advection upward for '//trim(cSpecies(i)))
+    enddo
+    call c%define_var('Coriolis_up', units='m/s2', shape3=[nLons, nLats, nAlts], longName='Coriolis upward accel')
+    call c%define_var('Centrif_up', units='m/s2', shape3=[nLons, nLats, nAlts], longName='Centrifugal upward accel')
+    call c%define_var('EffectiveGravity', units='m/s2', shape3=[nLons, nLats, nAlts], longName='Effective gravity accel')
+  end subroutine define_schema_3dmov
+
+  ! ---------------------------------------------------------------------------
+  ! fill_3dmov — put 3DMOV variables into the container.
+  ! ---------------------------------------------------------------------------
+  subroutine fill_3dmov(c, iBlock)
+    use ModGITM
+    use ModConst, only: cRadToDeg
+    use ModSources
+    type(OutputContainer), intent(inout) :: c
+    integer, intent(in) :: iBlock
+    integer :: iSpecies
+
+    call c%prepare(iBlock)
+    if (.not. c%this_rank_writes) return
+
+    call c%put('Longitude', real(Longitude(1:nLons, iBlock) * cRadToDeg, output_kind))
+    call c%put('Latitude',  real(Latitude(1:nLats, iBlock) * cRadToDeg, output_kind))
+    call c%put('Altitude',  real(Altitude_GB(1:nLons, 1:nLats, 1:nAlts, iBlock), output_kind))
+    do iSpecies = 1, nSpecies
+      call c%put('Vn (up,'//trim(cSpecies(iSpecies))//')', &
+                 real(VerticalVelocity(1:nLons, 1:nLats, 1:nAlts, iSpecies, iBlock), output_kind))
+      call c%put('IonDrag_up_'//trim(cSpecies(iSpecies)), &
+                 real(VerticalIonDrag(1:nLons, 1:nLats, 1:nAlts, iSpecies), output_kind))
+      call c%put('Horiz_Adv_Vn (up,'//trim(cSpecies(iSpecies))//')', &
+                 real(VertAdvection(1:nLons, 1:nLats, 1:nAlts, iSpecies), output_kind))
+    enddo
+    call c%put('Coriolis_up', real(VertCoriolis(1:nLons, 1:nLats, 1:nAlts), output_kind))
+    call c%put('Centrif_up', real(VertCentrifugal(1:nLons, 1:nLats, 1:nAlts), output_kind))
+    call c%put('EffectiveGravity', real(EffectiveGravity(1:nLons, 1:nLats, 1:nAlts), output_kind))
+  end subroutine fill_3dmov
+
+  ! ---------------------------------------------------------------------------
+  ! define_schema_2danc — register variables for 2DANC.
+  ! ---------------------------------------------------------------------------
+  subroutine define_schema_2danc(c)
+    use ModGITM, only: nLons, nLats
+    type(OutputContainer), intent(inout) :: c
+
+    c%cType    = '2DANC'
+    c%gridKind = GRID_GEO_2D
+
+    call c%define_var('Longitude', units='degrees_east', shape3=[nLons, 1, 1], is_axis=.true., &
+                      longName='Geographic longitude')
+    call c%define_var('Latitude', units='degrees_north', shape3=[nLats, 1, 1], is_axis=.true., &
+                      longName='Geographic latitude')
+    call c%define_var('Altitude', units='m', shape3=[nLons, nLats, 1], longName='Altitude')
+    call c%define_var('LT', units='hr', shape3=[nLons, nLats, 1], longName='Local Time')
+    call c%define_var('SZA', units='rad', shape3=[nLons, nLats, 1], longName='Solar zenith angle')
+    call c%define_var('TEC', units='TECU', shape3=[nLons, nLats, 1], longName='Total electron content')
+    call c%define_var('JH_int', units='W/m2', shape3=[nLons, nLats, 1], longName='Alt-integrated Joule heating')
+    call c%define_var('HT_int', units='W/m2', shape3=[nLons, nLats, 1], longName='Alt-integrated Heat transfer')
+    call c%define_var('EUV_int', units='W/m2', shape3=[nLons, nLats, 1], longName='Alt-integrated EUV heating')
+    call c%define_var('PE_int', units='W/m2', shape3=[nLons, nLats, 1], longName='Alt-integrated PE heating')
+    call c%define_var('Chem_int', units='W/m2', shape3=[nLons, nLats, 1], longName='Alt-integrated Chem heating')
+    call c%define_var('RadCool_int', units='W/m2', shape3=[nLons, nLats, 1], longName='Alt-integrated Rad cooling')
+    call c%define_var('CO2Cool_int', units='W/m2', shape3=[nLons, nLats, 1], longName='Alt-integrated CO2 cooling')
+    call c%define_var('NOCool_int', units='W/m2', shape3=[nLons, nLats, 1], longName='Alt-integrated NO cooling')
+    call c%define_var('OCool_int', units='W/m2', shape3=[nLons, nLats, 1], longName='Alt-integrated O cooling')
+  end subroutine define_schema_2danc
+
+  ! ---------------------------------------------------------------------------
+  ! fill_2danc — put 2DANC integrated variables into the container.
+  ! ---------------------------------------------------------------------------
+  subroutine fill_2danc(c, iBlock)
+    use ModGITM
+    use ModConst, only: cRadToDeg
+    use ModElectrodynamics
+    use ModEUV, only: Sza
+    use ModSources
+    type(OutputContainer), intent(inout) :: c
+    integer, intent(in) :: iBlock
+    real(output_kind) :: lt_buf(nLons, nLats)
+    integer :: iLat
+
+    call c%prepare(iBlock)
+    if (.not. c%this_rank_writes) return
+
+    call calc_vtec(iBlock)
+
+    call c%put('Longitude', real(Longitude(1:nLons, iBlock) * cRadToDeg, output_kind))
+    call c%put('Latitude',  real(Latitude(1:nLats, iBlock) * cRadToDeg, output_kind))
+    call c%put('Altitude',  real(Altitude_GB(1:nLons, 1:nLats, nAlts, iBlock), output_kind))
+
+    ! Replicate LocalTime(1:nLons) along Latitude dimension
+    do iLat = 1, nLats
+      lt_buf(:, iLat) = real(LocalTime(1:nLons), output_kind)
+    enddo
+    call c%put('LT', lt_buf)
+
+    call c%put('SZA', real(Sza(1:nLons, 1:nLats, iBlock), output_kind))
+    call c%put('TEC', real(VTEC(1:nLons, 1:nLats, iBlock), output_kind))
+    call c%put('JH_int', real(JouleHeating2d(1:nLons, 1:nLats), output_kind))
+    call c%put('HT_int', real(HeatTransfer2d(1:nLons, 1:nLats), output_kind))
+    call c%put('EUV_int', real(EuvHeating2d(1:nLons, 1:nLats), output_kind))
+    call c%put('PE_int', real(PhotoElectronHeating2d(1:nLons, 1:nLats), output_kind))
+    call c%put('Chem_int', real(ChemicalHeating2d(1:nLons, 1:nLats), output_kind))
+    call c%put('RadCool_int', real(RadiativeCooling2d(1:nLons, 1:nLats), output_kind))
+    call c%put('CO2Cool_int', real(CO2Cooling2d(1:nLons, 1:nLats), output_kind))
+    call c%put('NOCool_int', real(NOCooling2d(1:nLons, 1:nLats), output_kind))
+    call c%put('OCool_int', real(OCooling2d(1:nLons, 1:nLats), output_kind))
+  end subroutine fill_2danc
+
+  ! ---------------------------------------------------------------------------
+  ! define_schema_2dhme — register variables for 2DHME.
+  ! ---------------------------------------------------------------------------
+  subroutine define_schema_2dhme(c)
+    use ModGITM, only: nLons, nLats
+    type(OutputContainer), intent(inout) :: c
+
+    c%cType    = '2DHME'
+    c%gridKind = GRID_HIME
+
+    call c%define_var('Longitude', units='degrees_east', shape3=[nLons, 1, 1], is_axis=.true., &
+                      longName='Geographic longitude')
+    call c%define_var('Latitude', units='degrees_north', shape3=[nLats, 1, 1], is_axis=.true., &
+                      longName='Geographic latitude')
+    call c%define_var('Altitude', units='m', shape3=[nLons, nLats, 1], longName='Altitude')
+    call c%define_var('LT', units='hr', shape3=[nLons, nLats, 1], longName='Local Time')
+    call c%define_var('TEC', units='TECU', shape3=[nLons, nLats, 1], longName='Total electron content')
+  end subroutine define_schema_2dhme
+
+  ! ---------------------------------------------------------------------------
+  ! fill_2dhme — put 2DHME regional variables into the container.
+  ! ---------------------------------------------------------------------------
+  subroutine fill_2dhme(c, iBlock)
+    use ModGITM
+    use ModConst, only: cRadToDeg
+    use ModConstants, only: pi
+    use ModInputs, only: HIMEPlotLonStart, HIMEPlotLonEnd, HIMEPlotLatStart, HIMEPlotLatEnd
+    use ModElectrodynamics
+    type(OutputContainer), intent(inout) :: c
+    integer, intent(in) :: iBlock
+    real(output_kind) :: lt_buf(nLons, nLats)
+    integer :: iLat, iLon
+    logical :: DoSaveHIMEPlot
+
+    DoSaveHIMEPlot = .false.
+    do iLat = -1, nLats + 2
+      do iLon = -1, nLons + 2
+        if (Longitude(iLon, iBlock) >= HIMEPlotLonStart*pi/180.0_output_kind &
+            .and. Longitude(iLon, iBlock) <= HIMEPlotLonEnd*pi/180.0_output_kind &
+            .and. Latitude(iLat, iBlock) >= HIMEPlotLatStart*pi/180.0_output_kind &
+            .and. Latitude(iLat, iBlock) <= HIMEPlotLatEnd*pi/180.0_output_kind) then
+          DoSaveHIMEPlot = .true.
+          exit
+        endif
+      enddo
+    enddo
+
+    c%this_rank_writes = DoSaveHIMEPlot
+    if (.not. c%this_rank_writes) return
+
+    call calc_vtec(iBlock)
+
+    call c%put('Longitude', real(Longitude(1:nLons, iBlock) * cRadToDeg, output_kind))
+    call c%put('Latitude',  real(Latitude(1:nLats, iBlock) * cRadToDeg, output_kind))
+    call c%put('Altitude',  real(Altitude_GB(1:nLons, 1:nLats, 1, iBlock), output_kind))
+
+    do iLat = 1, nLats
+      lt_buf(:, iLat) = real(LocalTime(1:nLons), output_kind)
+    enddo
+    call c%put('LT', lt_buf)
+    call c%put('TEC', real(VTEC(1:nLons, 1:nLats, iBlock), output_kind))
+  end subroutine fill_2dhme
+
+  ! ---------------------------------------------------------------------------
+  ! define_schema_1dall — register variables for 1DALL.
+  ! ---------------------------------------------------------------------------
+  subroutine define_schema_1dall(c)
+    use ModGITM, only: nAlts
+    use ModPlanet, only: nSpeciesTotal, nSpecies, nIons, cSpecies, cIons
+    type(OutputContainer), intent(inout) :: c
+    integer :: i
+
+    c%cType    = '1DALL'
+    c%gridKind = GRID_GEO_2D
+
+    call c%define_var('Longitude', units='degrees_east', shape3=[nAlts, 1, 1], is_axis=.true.)
+    call c%define_var('Latitude', units='degrees_north', shape3=[nAlts, 1, 1], is_axis=.true.)
+    call c%define_var('Altitude', units='m', shape3=[nAlts, 1, 1])
+    call c%define_var('Rho', units='kg/m3', shape3=[nAlts, 1, 1])
+    do i = 1, nSpeciesTotal
+      call c%define_var('['//trim(cSpecies(i))//']', units='/m3', shape3=[nAlts, 1, 1])
+    enddo
+    call c%define_var('Temperature', units='K', shape3=[nAlts, 1, 1])
+    call c%define_var('Vn (east)', units='m/s', shape3=[nAlts, 1, 1])
+    call c%define_var('Vn (north)', units='m/s', shape3=[nAlts, 1, 1])
+    call c%define_var('Vn (up)', units='m/s', shape3=[nAlts, 1, 1])
+    do i = 1, nSpecies
+      call c%define_var('Vn (up,'//trim(cSpecies(i))//')', units='m/s', shape3=[nAlts, 1, 1])
+    enddo
+    do i = 1, nIons
+      call c%define_var('['//trim(cIons(i))//']', units='/m3', shape3=[nAlts, 1, 1])
+    enddo
+    call c%define_var('eTemperature', units='K', shape3=[nAlts, 1, 1])
+    call c%define_var('iTemperature', units='K', shape3=[nAlts, 1, 1])
+    call c%define_var('Vi (east)', units='m/s', shape3=[nAlts, 1, 1])
+    call c%define_var('Vi (north)', units='m/s', shape3=[nAlts, 1, 1])
+    call c%define_var('Vi (up)', units='m/s', shape3=[nAlts, 1, 1])
+  end subroutine define_schema_1dall
+
+  ! ---------------------------------------------------------------------------
+  ! fill_1dall — put 1DALL interpolated vertical column data.
+  ! ---------------------------------------------------------------------------
+  subroutine fill_1dall(c, iBlock, iiLon, iiLat, rLon, rLat)
+    use ModGITM
+    use ModConst, only: cRadToDeg
+    use ModPlanet, only: nSpeciesTotal, nSpecies, nIons, cSpecies, cIons
+    type(OutputContainer), intent(inout) :: c
+    integer, intent(in) :: iBlock, iiLon, iiLat
+    real, intent(in) :: rLon, rLat
+    real(output_kind) :: tmp_lon(nAlts), tmp_lat(nAlts), tmp_data(nAlts)
+    real :: slice2d(0:nLons + 1, 0:nLats + 1)
+    integer :: iAlt, i
+
+    call c%prepare(iBlock)
+    if (.not. c%this_rank_writes) return
+
+    tmp_lon = real((rLon * Longitude(iiLon, iBlock) + (1.0 - rLon) * Longitude(iiLon + 1, iBlock)) * cRadToDeg, output_kind)
+    tmp_lat = real((rLat * Latitude(iiLat, iBlock) + (1.0 - rLat) * Latitude(iiLat + 1, iBlock)) * cRadToDeg, output_kind)
+    call c%put('Longitude', tmp_lon)
+    call c%put('Latitude',  tmp_lat)
+
+    do iAlt = 1, nAlts
+      tmp_data(iAlt) = real(Altitude_GB(iiLon, iiLat, iAlt, iBlock), output_kind)
+    enddo
+    call c%put('Altitude', tmp_data)
+
+    do iAlt = 1, nAlts
+      slice2d = Rho(0:nLons + 1, 0:nLats + 1, iAlt, iBlock)
+      tmp_data(iAlt) = real(inter2d(slice2d, iiLon, iiLat, rLon, rLat), output_kind)
+    enddo
+    call c%put('Rho', tmp_data)
+
+    do i = 1, nSpeciesTotal
+      do iAlt = 1, nAlts
+        slice2d = NDensityS(0:nLons + 1, 0:nLats + 1, iAlt, i, iBlock)
+        tmp_data(iAlt) = real(inter2d(slice2d, iiLon, iiLat, rLon, rLat), output_kind)
+      enddo
+      call c%put('['//trim(cSpecies(i))//']', tmp_data)
+    enddo
+
+    do iAlt = 1, nAlts
+      slice2d = Temperature(0:nLons + 1, 0:nLats + 1, iAlt, iBlock) * &
+                TempUnit(0:nLons + 1, 0:nLats + 1, iAlt)
+      tmp_data(iAlt) = real(inter2d(slice2d, iiLon, iiLat, rLon, rLat), output_kind)
+    enddo
+    call c%put('Temperature', tmp_data)
+
+    do i = 1, 3
+      do iAlt = 1, nAlts
+        slice2d = Velocity(0:nLons + 1, 0:nLats + 1, iAlt, i, iBlock)
+        tmp_data(iAlt) = real(inter2d(slice2d, iiLon, iiLat, rLon, rLat), output_kind)
+      enddo
+      if (i == 1) call c%put('Vn (east)', tmp_data)
+      if (i == 2) call c%put('Vn (north)', tmp_data)
+      if (i == 3) call c%put('Vn (up)', tmp_data)
+    enddo
+
+    do i = 1, nSpecies
+      do iAlt = 1, nAlts
+        slice2d = VerticalVelocity(0:nLons + 1, 0:nLats + 1, iAlt, i, iBlock)
+        tmp_data(iAlt) = real(inter2d(slice2d, iiLon, iiLat, rLon, rLat), output_kind)
+      enddo
+      call c%put('Vn (up,'//trim(cSpecies(i))//')', tmp_data)
+    enddo
+
+    do i = 1, nIons
+      do iAlt = 1, nAlts
+        slice2d = IDensityS(0:nLons + 1, 0:nLats + 1, iAlt, i, iBlock)
+        tmp_data(iAlt) = real(inter2d(slice2d, iiLon, iiLat, rLon, rLat), output_kind)
+      enddo
+      call c%put('['//trim(cIons(i))//']', tmp_data)
+    enddo
+
+    do iAlt = 1, nAlts
+      slice2d = eTemperature(0:nLons + 1, 0:nLats + 1, iAlt, iBlock)
+      tmp_data(iAlt) = real(inter2d(slice2d, iiLon, iiLat, rLon, rLat), output_kind)
+    enddo
+    call c%put('eTemperature', tmp_data)
+
+    do iAlt = 1, nAlts
+      slice2d = ITemperature(0:nLons + 1, 0:nLats + 1, iAlt, iBlock)
+      tmp_data(iAlt) = real(inter2d(slice2d, iiLon, iiLat, rLon, rLat), output_kind)
+    enddo
+    call c%put('iTemperature', tmp_data)
+
+    do i = 1, 3
+      do iAlt = 1, nAlts
+        slice2d = IVelocity(0:nLons + 1, 0:nLats + 1, iAlt, i, iBlock)
+        tmp_data(iAlt) = real(inter2d(slice2d, iiLon, iiLat, rLon, rLat), output_kind)
+      enddo
+      if (i == 1) call c%put('Vi (east)', tmp_data)
+      if (i == 2) call c%put('Vi (north)', tmp_data)
+      if (i == 3) call c%put('Vi (up)', tmp_data)
+    enddo
+  end subroutine fill_1dall
+
+  ! ---------------------------------------------------------------------------
+  ! define_schema_0dall — register variables for 0DALL.
+  ! ---------------------------------------------------------------------------
+  subroutine define_schema_0dall(c)
+    use ModPlanet, only: nSpeciesTotal, nSpecies, nIons, cSpecies, cIons
+    type(OutputContainer), intent(inout) :: c
+    integer :: i
+
+    c%cType    = '0DALL'
+    c%gridKind = GRID_GEO_2D
+
+    call c%define_var('Longitude', units='degrees_east', shape3=[1, 1, 1], is_axis=.true.)
+    call c%define_var('Latitude', units='degrees_north', shape3=[1, 1, 1], is_axis=.true.)
+    call c%define_var('Altitude', units='m', shape3=[1, 1, 1])
+    call c%define_var('Rho', units='kg/m3', shape3=[1, 1, 1])
+    do i = 1, nSpeciesTotal
+      call c%define_var('['//trim(cSpecies(i))//']', units='/m3', shape3=[1, 1, 1])
+    enddo
+    call c%define_var('Temperature', units='K', shape3=[1, 1, 1])
+    call c%define_var('Vn (east)', units='m/s', shape3=[1, 1, 1])
+    call c%define_var('Vn (north)', units='m/s', shape3=[1, 1, 1])
+    call c%define_var('Vn (up)', units='m/s', shape3=[1, 1, 1])
+    do i = 1, nSpecies
+      call c%define_var('Vn (up,'//trim(cSpecies(i))//')', units='m/s', shape3=[1, 1, 1])
+    enddo
+    do i = 1, nIons
+      call c%define_var('['//trim(cIons(i))//']', units='/m3', shape3=[1, 1, 1])
+    enddo
+    call c%define_var('eTemperature', units='K', shape3=[1, 1, 1])
+    call c%define_var('iTemperature', units='K', shape3=[1, 1, 1])
+    call c%define_var('Vi (east)', units='m/s', shape3=[1, 1, 1])
+    call c%define_var('Vi (north)', units='m/s', shape3=[1, 1, 1])
+    call c%define_var('Vi (up)', units='m/s', shape3=[1, 1, 1])
+    do i = 1, nSpecies
+      call c%define_var(trim(cSpecies(i))//' Mixing Ratio', units='', shape3=[1, 1, 1])
+    enddo
+    call c%define_var('RadCooling', units='K/s', shape3=[1, 1, 1])
+    call c%define_var('EuvHeating', units='K/s', shape3=[1, 1, 1])
+    call c%define_var('Conduction', units='K/s', shape3=[1, 1, 1])
+    call c%define_var('Heat Balance Total', units='K/s', shape3=[1, 1, 1])
+    call c%define_var('Heating Efficiency', units='', shape3=[1, 1, 1])
+  end subroutine define_schema_0dall
+
+  ! ---------------------------------------------------------------------------
+  ! fill_0dall — put 0DALL 3D-interpolated point data.
+  ! ---------------------------------------------------------------------------
+  subroutine fill_0dall(c, iBlock, iiLon, iiLat, iiAlt, rLon, rLat, rAlt)
+    use ModGITM
+    use ModConst, only: cRadToDeg
+    use ModEUV, only: HeatingEfficiency_CB
+    use ModSources, only: JouleHeating, RadCooling, EuvHeating, Conduction
+    use ModPlanet, only: nSpeciesTotal, nSpecies, nIons, cSpecies, cIons
+    type(OutputContainer), intent(inout) :: c
+    integer, intent(in) :: iBlock, iiLon, iiLat, iiAlt
+    real, intent(in) :: rLon, rLat, rAlt
+    real :: Tmp3d(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1)
+    integer :: jAlt, i
+
+    call c%prepare(iBlock)
+    if (.not. c%this_rank_writes) return
+
+    jAlt = max(min(iiAlt, nAlts), 1)
+
+    call c%put('Longitude', real((rLon * Longitude(iiLon, iBlock) + (1.0 - rLon) * Longitude(iiLon + 1, iBlock)) * cRadToDeg, output_kind))
+    call c%put('Latitude',  real((rLat * Latitude(iiLat, iBlock) + (1.0 - rLat) * Latitude(iiLat + 1, iBlock)) * cRadToDeg, output_kind))
+    call c%put('Altitude',  real(rAlt * Altitude_GB(iiLon, iiLat, iiAlt, iBlock) + &
+                                 (1.0 - rAlt) * Altitude_GB(iiLon + 1, iiLat + 1, iiAlt + 1, iBlock), output_kind))
+
+    Tmp3d = Rho(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1, iBlock)
+    call c%put('Rho', real(inter3d(Tmp3d, iiLon, iiLat, iiAlt, rLon, rLat, rAlt), output_kind))
+
+    do i = 1, nSpeciesTotal
+      Tmp3d = NDensityS(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1, i, iBlock)
+      call c%put('['//trim(cSpecies(i))//']', real(inter3d(Tmp3d, iiLon, iiLat, iiAlt, rLon, rLat, rAlt), output_kind))
+    enddo
+
+    Tmp3d = Temperature(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1, iBlock) * &
+            TempUnit(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1)
+    call c%put('Temperature', real(inter3d(Tmp3d, iiLon, iiLat, iiAlt, rLon, rLat, rAlt), output_kind))
+
+    do i = 1, 3
+      Tmp3d = Velocity(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1, i, iBlock)
+      if (i == 1) call c%put('Vn (east)', real(inter3d(Tmp3d, iiLon, iiLat, iiAlt, rLon, rLat, rAlt), output_kind))
+      if (i == 2) call c%put('Vn (north)', real(inter3d(Tmp3d, iiLon, iiLat, iiAlt, rLon, rLat, rAlt), output_kind))
+      if (i == 3) call c%put('Vn (up)', real(inter3d(Tmp3d, iiLon, iiLat, iiAlt, rLon, rLat, rAlt), output_kind))
+    enddo
+
+    do i = 1, nSpecies
+      Tmp3d = VerticalVelocity(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1, i, iBlock)
+      call c%put('Vn (up,'//trim(cSpecies(i))//')', real(inter3d(Tmp3d, iiLon, iiLat, iiAlt, rLon, rLat, rAlt), output_kind))
+    enddo
+
+    do i = 1, nIons
+      Tmp3d = IDensityS(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1, i, iBlock)
+      call c%put('['//trim(cIons(i))//']', real(inter3d(Tmp3d, iiLon, iiLat, iiAlt, rLon, rLat, rAlt), output_kind))
+    enddo
+
+    Tmp3d = eTemperature(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1, iBlock)
+    call c%put('eTemperature', real(inter3d(Tmp3d, iiLon, iiLat, iiAlt, rLon, rLat, rAlt), output_kind))
+    Tmp3d = iTemperature(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1, iBlock)
+    call c%put('iTemperature', real(inter3d(Tmp3d, iiLon, iiLat, iiAlt, rLon, rLat, rAlt), output_kind))
+
+    Tmp3d = IVelocity(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1, iEast_, iBlock)
+    call c%put('Vi (east)', real(inter3d(Tmp3d, iiLon, iiLat, iiAlt, rLon, rLat, rAlt), output_kind))
+    Tmp3d = IVelocity(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1, iNorth_, iBlock)
+    call c%put('Vi (north)', real(inter3d(Tmp3d, iiLon, iiLat, iiAlt, rLon, rLat, rAlt), output_kind))
+    Tmp3d = IVelocity(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1, iUp_, iBlock)
+    call c%put('Vi (up)', real(inter3d(Tmp3d, iiLon, iiLat, iiAlt, rLon, rLat, rAlt), output_kind))
+
+    do i = 1, nSpecies
+      Tmp3d = NDensityS(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1, i, iBlock) / &
+              NDensity(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1, iBlock)
+      call c%put(trim(cSpecies(i))//' Mixing Ratio', real(inter3d(Tmp3d, iiLon, iiLat, iiAlt, rLon, rLat, rAlt), output_kind))
+    enddo
+
+    call c%put('RadCooling', real(dt*RadCooling(1, 1, jAlt, iBlock)*TempUnit(1, 1, jAlt), output_kind))
+    call c%put('EuvHeating', real(dt*EuvHeating(1, 1, jAlt, iBlock)*TempUnit(1, 1, jAlt), output_kind))
+    call c%put('Conduction', real(Conduction(1, 1, jAlt)*TempUnit(1, 1, jAlt), output_kind))
+    call c%put('Heat Balance Total', real((dt*EuvHeating(1, 1, jAlt, iBlock)*TempUnit(1, 1, jAlt) - &
+                                          dt*RadCooling(1, 1, jAlt, iBlock)*TempUnit(1, 1, jAlt) + &
+                                          Conduction(1, 1, jAlt)*TempUnit(1, 1, jAlt)), output_kind))
+    call c%put('Heating Efficiency', real(HeatingEfficiency_CB(1, 1, jAlt, iBlock), output_kind))
+  end subroutine fill_0dall
+
+  ! ---------------------------------------------------------------------------
+  ! define_schema_1dglo — register variables for 1DGLO.
+  ! ---------------------------------------------------------------------------
+  subroutine define_schema_1dglo(c)
+    use ModGITM, only: nAlts
+    type(OutputContainer), intent(inout) :: c
+
+    c%cType    = '1DGLO'
+    c%gridKind = GRID_MAG_2D
+
+    call c%define_var('Longitude', units='degrees_east', shape3=[nAlts, 1, 1], is_axis=.true.)
+    call c%define_var('Latitude', units='degrees_north', shape3=[nAlts, 1, 1], is_axis=.true.)
+    call c%define_var('Altitude', units='m', shape3=[nAlts, 1, 1])
+    call c%define_var('6300 A Emission', units='', shape3=[nAlts, 1, 1])
+    call c%define_var('PhotoElectronUp', units='', shape3=[nAlts, 1, 1])
+    call c%define_var('PhotoElectronDown', units='', shape3=[nAlts, 1, 1])
+  end subroutine define_schema_1dglo
+
+  ! ---------------------------------------------------------------------------
+  ! fill_1dglo — put 1DGLO stub variables.
+  ! ---------------------------------------------------------------------------
+  subroutine fill_1dglo(c, iBlock)
+    use ModGITM
+    use ModConst, only: cRadToDeg
+    type(OutputContainer), intent(inout) :: c
+    integer, intent(in) :: iBlock
+    real(output_kind) :: tmp_lon(nAlts), tmp_lat(nAlts), tmp_alt(nAlts), zero_arr(nAlts)
+    integer :: iAlt
+
+    call c%prepare(iBlock)
+    if (.not. c%this_rank_writes) return
+
+    tmp_lon = real(Longitude(1, iBlock) * cRadToDeg, output_kind)
+    tmp_lat = real(Latitude(1, iBlock) * cRadToDeg, output_kind)
+    call c%put('Longitude', tmp_lon)
+    call c%put('Latitude',  tmp_lat)
+
+    do iAlt = 1, nAlts
+      tmp_alt(iAlt) = real(Altitude_GB(1, 1, iAlt, iBlock), output_kind)
+    enddo
+    call c%put('Altitude', tmp_alt)
+
+    zero_arr = 0.0_output_kind
+    call c%put('6300 A Emission', zero_arr)
+    call c%put('PhotoElectronUp', zero_arr)
+    call c%put('PhotoElectronDown', zero_arr)
+  end subroutine fill_1dglo
+
+  ! ---------------------------------------------------------------------------
+  ! define_schema_1dthm — register variables for 1DTHM.
+  ! ---------------------------------------------------------------------------
+  subroutine define_schema_1dthm(c)
+    use ModGITM, only: nAlts
+    use ModPlanet, only: nSpeciesTotal, cSpecies
+    type(OutputContainer), intent(inout) :: c
+    integer :: i
+
+    c%cType    = '1DTHM'
+    c%gridKind = GRID_MAG_2D
+
+    call c%define_var('Longitude', units='degrees_east', shape3=[nAlts, 1, 1], is_axis=.true.)
+    call c%define_var('Latitude', units='degrees_north', shape3=[nAlts, 1, 1], is_axis=.true.)
+    call c%define_var('Altitude', units='m', shape3=[nAlts, 1, 1])
+    call c%define_var('EUV Heating (K/s)', units='K/s', shape3=[nAlts, 1, 1])
+    call c%define_var('Conduction (K/s)', units='K/s', shape3=[nAlts, 1, 1])
+    call c%define_var('Molecular Conduction (K/s)', units='K/s', shape3=[nAlts, 1, 1])
+    call c%define_var('Eddy Conduction (K/s)', units='K/s', shape3=[nAlts, 1, 1])
+    call c%define_var('Eddy Adiabatic Conduction (K/s)', units='K/s', shape3=[nAlts, 1, 1])
+    call c%define_var('Chemical Heating (K/s)', units='K/s', shape3=[nAlts, 1, 1])
+    call c%define_var('Joule Heating (K/s)', units='K/s', shape3=[nAlts, 1, 1])
+    call c%define_var('NO Cooling (K/s)', units='K/s', shape3=[nAlts, 1, 1])
+    call c%define_var('O Cooling (K/s)', units='K/s', shape3=[nAlts, 1, 1])
+    call c%define_var('Total Abs EUV', units='W/m2', shape3=[nAlts, 1, 1])
+    do i = 1, nSpeciesTotal
+      call c%define_var('Production Rate '//trim(cSpecies(i)), units='/m3/s', shape3=[nAlts, 1, 1])
+    enddo
+    do i = 1, nSpeciesTotal
+      call c%define_var('Loss Rate '//trim(cSpecies(i)), units='/m3/s', shape3=[nAlts, 1, 1])
+    enddo
+  end subroutine define_schema_1dthm
+
+  ! ---------------------------------------------------------------------------
+  ! fill_1dthm — put 1DTHM variables at point (1,1).
+  ! ---------------------------------------------------------------------------
+  subroutine fill_1dthm(c, iBlock)
+    use ModGITM
+    use ModConst, only: cRadToDeg
+    use ModSources
+    use ModEUV, only: EuvTotal
+    use ModPlanet, only: nSpeciesTotal, cSpecies
+    type(OutputContainer), intent(inout) :: c
+    integer, intent(in) :: iBlock
+    real(output_kind) :: tmp_lon(nAlts), tmp_lat(nAlts), tmp_data(nAlts)
+    integer :: iAlt, iiAlt, i
+
+    call c%prepare(iBlock)
+    if (.not. c%this_rank_writes) return
+
+    tmp_lon = real(Longitude(1, 1) * cRadToDeg, output_kind)
+    tmp_lat = real(Latitude(1, 1) * cRadToDeg, output_kind)
+    call c%put('Longitude', tmp_lon)
+    call c%put('Latitude',  tmp_lat)
+
+    do iAlt = 1, nAlts
+      tmp_data(iAlt) = real(Altitude_GB(1, 1, iAlt, 1), output_kind)
+    enddo
+    call c%put('Altitude', tmp_data)
+
+    do iAlt = 1, nAlts
+      iiAlt = max(min(iAlt, nAlts), 1)
+      tmp_data(iAlt) = real(EuvHeating(1, 1, iiAlt, 1)*dt*TempUnit(1, 1, iiAlt), output_kind)
+    enddo
+    call c%put('EUV Heating (K/s)', tmp_data)
+
+    do iAlt = 1, nAlts
+      iiAlt = max(min(iAlt, nAlts), 1)
+      tmp_data(iAlt) = real(Conduction(1, 1, iiAlt)*TempUnit(1, 1, iiAlt), output_kind)
+    enddo
+    call c%put('Conduction (K/s)', tmp_data)
+
+    do iAlt = 1, nAlts
+      iiAlt = max(min(iAlt, nAlts), 1)
+      tmp_data(iAlt) = real(MoleConduction(1, 1, iiAlt), output_kind)
+    enddo
+    call c%put('Molecular Conduction (K/s)', tmp_data)
+
+    do iAlt = 1, nAlts
+      iiAlt = max(min(iAlt, nAlts), 1)
+      tmp_data(iAlt) = real(EddyCond(1, 1, iiAlt), output_kind)
+    enddo
+    call c%put('Eddy Conduction (K/s)', tmp_data)
+
+    do iAlt = 1, nAlts
+      iiAlt = max(min(iAlt, nAlts), 1)
+      tmp_data(iAlt) = real(EddyCondAdia(1, 1, iiAlt), output_kind)
+    enddo
+    call c%put('Eddy Adiabatic Conduction (K/s)', tmp_data)
+
+    do iAlt = 1, nAlts
+      iiAlt = max(min(iAlt, nAlts), 1)
+      tmp_data(iAlt) = real(ChemicalHeatingRate(1, 1, iiAlt)*TempUnit(1, 1, iiAlt), output_kind)
+    enddo
+    call c%put('Chemical Heating (K/s)', tmp_data)
+
+    do iAlt = 1, nAlts
+      iiAlt = max(min(iAlt, nAlts), 1)
+      tmp_data(iAlt) = real(JouleHeating(1, 1, iiAlt)*dt*TempUnit(1, 1, iiAlt), output_kind)
+    enddo
+    call c%put('Joule Heating (K/s)', tmp_data)
+
+    do iAlt = 1, nAlts
+      iiAlt = max(min(iAlt, nAlts), 1)
+      tmp_data(iAlt) = real(-RadCooling(1, 1, iiAlt, 1)*dt*TempUnit(1, 1, iiAlt), output_kind)
+    enddo
+    call c%put('NO Cooling (K/s)', tmp_data)
+
+    do iAlt = 1, nAlts
+      iiAlt = max(min(iAlt, nAlts), 1)
+      tmp_data(iAlt) = real(-OCooling(1, 1, iiAlt)*dt*TempUnit(1, 1, iiAlt), output_kind)
+    enddo
+    call c%put('O Cooling (K/s)', tmp_data)
+
+    do iAlt = 1, nAlts
+      iiAlt = max(min(iAlt, nAlts), 1)
+      tmp_data(iAlt) = real(EuvTotal(1, 1, iiAlt, 1)*dt, output_kind)
+    enddo
+    call c%put('Total Abs EUV', tmp_data)
+
+    do i = 1, nSpeciesTotal
+      do iAlt = 1, nAlts
+        iiAlt = max(min(iAlt, nAlts), 1)
+        tmp_data(iAlt) = real(NeutralSourcesTotal(iiAlt, i), output_kind)
+      enddo
+      call c%put('Production Rate '//trim(cSpecies(i)), tmp_data)
+    enddo
+
+    do i = 1, nSpeciesTotal
+      do iAlt = 1, nAlts
+        iiAlt = max(min(iAlt, nAlts), 1)
+        tmp_data(iAlt) = real(NeutralLossesTotal(iiAlt, i), output_kind)
+      enddo
+      call c%put('Loss Rate '//trim(cSpecies(i)), tmp_data)
+    enddo
+  end subroutine fill_1dthm
+
+  ! ---------------------------------------------------------------------------
+  ! define_schema_1dchm — register variables for 1DCHM.
+  ! ---------------------------------------------------------------------------
+  subroutine define_schema_1dchm(c)
+    use ModGITM, only: nAlts
+    type(OutputContainer), intent(inout) :: c
+
+    c%cType    = '1DCHM'
+    c%gridKind = GRID_MAG_2D
+
+    call c%define_var('Longitude', units='degrees_east', shape3=[nAlts, 1, 1], is_axis=.true.)
+    call c%define_var('Latitude', units='degrees_north', shape3=[nAlts, 1, 1], is_axis=.true.)
+    call c%define_var('Altitude', units='m', shape3=[nAlts, 1, 1])
+    call c%define_var('N2+ + e', units='/m3/s', shape3=[nAlts, 1, 1])
+    call c%define_var('O2+ + e', units='/m3/s', shape3=[nAlts, 1, 1])
+    call c%define_var('N2+ + O', units='/m3/s', shape3=[nAlts, 1, 1])
+    call c%define_var('NO+ + e', units='/m3/s', shape3=[nAlts, 1, 1])
+    call c%define_var('N+ + O2', units='/m3/s', shape3=[nAlts, 1, 1])
+    call c%define_var('NO + N', units='/m3/s', shape3=[nAlts, 1, 1])
+    call c%define_var('O+ + O2', units='/m3/s', shape3=[nAlts, 1, 1])
+    call c%define_var('N + O2', units='/m3/s', shape3=[nAlts, 1, 1])
+    call c%define_var('O2+ + N', units='/m3/s', shape3=[nAlts, 1, 1])
+    call c%define_var('O2+ + NO', units='/m3/s', shape3=[nAlts, 1, 1])
+    call c%define_var('O2+ + N2', units='/m3/s', shape3=[nAlts, 1, 1])
+    call c%define_var('N2+ + O2', units='/m3/s', shape3=[nAlts, 1, 1])
+    call c%define_var('N+ + O', units='/m3/s', shape3=[nAlts, 1, 1])
+    call c%define_var('O!+ + N2', units='/m3/s', shape3=[nAlts, 1, 1])
+    call c%define_var('O(1D) + N2', units='/m3/s', shape3=[nAlts, 1, 1])
+    call c%define_var('O(1D) + O2', units='/m3/s', shape3=[nAlts, 1, 1])
+    call c%define_var('O(1D) + O', units='/m3/s', shape3=[nAlts, 1, 1])
+    call c%define_var('O(1D) + e', units='/m3/s', shape3=[nAlts, 1, 1])
+    call c%define_var('N(2D) + O2', units='/m3/s', shape3=[nAlts, 1, 1])
+    call c%define_var('O+(2D)+e', units='/m3/s', shape3=[nAlts, 1, 1])
+    call c%define_var('N(2D) + O', units='/m3/s', shape3=[nAlts, 1, 1])
+    call c%define_var('N(2D) + e', units='/m3/s', shape3=[nAlts, 1, 1])
+    call c%define_var('O+(2D + N2', units='/m3/s', shape3=[nAlts, 1, 1])
+    call c%define_var('O+(2P) + e', units='/m3/s', shape3=[nAlts, 1, 1])
+    call c%define_var('O+(2P) + O', units='/m3/s', shape3=[nAlts, 1, 1])
+    call c%define_var('O+(2P) + N2', units='/m3/s', shape3=[nAlts, 1, 1])
+    call c%define_var('Chemical Heating Rate', units='K/s', shape3=[nAlts, 1, 1])
+  end subroutine define_schema_1dchm
+
+  ! ---------------------------------------------------------------------------
+  ! fill_1dchm — put 1DCHM variables at point (1,1).
+  ! ---------------------------------------------------------------------------
+  subroutine fill_1dchm(c, iBlock)
+    use ModGITM
+    use ModConst, only: cRadToDeg
+    use ModSources
+    use ModConstants, only: Element_Charge
+    type(OutputContainer), intent(inout) :: c
+    integer, intent(in) :: iBlock
+    real(output_kind) :: tmp_lon(nAlts), tmp_lat(nAlts), tmp_data(nAlts)
+    integer :: iAlt, iiAlt, i
+
+    call c%prepare(iBlock)
+    if (.not. c%this_rank_writes) return
+
+    tmp_lon = real(Longitude(1, 1) * cRadToDeg, output_kind)
+    tmp_lat = real(Latitude(1, 1) * cRadToDeg, output_kind)
+    call c%put('Longitude', tmp_lon)
+    call c%put('Latitude',  tmp_lat)
+
+    do iAlt = 1, nAlts
+      tmp_data(iAlt) = real(Altitude_GB(1, 1, iAlt, 1), output_kind)
+    enddo
+    call c%put('Altitude', tmp_data)
+
+    do i = 1, nReactions
+      do iAlt = 1, nAlts
+        iiAlt = max(min(iAlt, nAlts), 1)
+        tmp_data(iAlt) = real(ChemicalHeatingSpecies(1, 1, iiAlt, i) / Element_Charge, output_kind)
+      enddo
+      if (i == 1) call c%put('N2+ + e', tmp_data)
+      if (i == 2) call c%put('O2+ + e', tmp_data)
+      if (i == 3) call c%put('N2+ + O', tmp_data)
+      if (i == 4) call c%put('NO+ + e', tmp_data)
+      if (i == 5) call c%put('N+ + O2', tmp_data)
+      if (i == 6) call c%put('NO + N', tmp_data)
+      if (i == 7) call c%put('O+ + O2', tmp_data)
+      if (i == 8) call c%put('N + O2', tmp_data)
+      if (i == 9) call c%put('O2+ + N', tmp_data)
+      if (i == 10) call c%put('O2+ + NO', tmp_data)
+      if (i == 11) call c%put('O2+ + N2', tmp_data)
+      if (i == 12) call c%put('N2+ + O2', tmp_data)
+      if (i == 13) call c%put('N+ + O', tmp_data)
+      if (i == 14) call c%put('O!+ + N2', tmp_data)
+      if (i == 15) call c%put('O(1D) + N2', tmp_data)
+      if (i == 16) call c%put('O(1D) + O2', tmp_data)
+      if (i == 17) call c%put('O(1D) + O', tmp_data)
+      if (i == 18) call c%put('O(1D) + e', tmp_data)
+      if (i == 19) call c%put('N(2D) + O2', tmp_data)
+      if (i == 20) call c%put('O+(2D)+e', tmp_data)
+      if (i == 21) call c%put('N(2D) + O', tmp_data)
+      if (i == 22) call c%put('N(2D) + e', tmp_data)
+      if (i == 23) call c%put('O+(2D + N2', tmp_data)
+      if (i == 24) call c%put('O+(2P) + e', tmp_data)
+      if (i == 25) call c%put('O+(2P) + O', tmp_data)
+      if (i == 26) call c%put('O+(2P) + N2', tmp_data)
+    enddo
+
+    do iAlt = 1, nAlts
+      iiAlt = max(min(iAlt, nAlts), 1)
+      tmp_data(iAlt) = real(ChemicalHeatingRate(1, 1, iiAlt) * &
+                            cp(1, 1, iiAlt, 1) * &
+                            Rho(1, 1, iiAlt, 1) * &
+                            TempUnit(1, 1, iiAlt) / Element_Charge, output_kind)
+    enddo
+    call c%put('Chemical Heating Rate', tmp_data)
+  end subroutine fill_1dchm
+
+  ! ---------------------------------------------------------------------------
+  ! define_schema_1dnew — register variables for 1DNEW.
+  ! ---------------------------------------------------------------------------
+  subroutine define_schema_1dnew(c)
+    use ModGITM, only: nAlts
+    use ModPlanet, only: nSpeciesTotal, nSpecies, nIons, cSpecies, cIons
+    type(OutputContainer), intent(inout) :: c
+    integer :: i
+
+    c%cType    = '1DNEW'
+    c%gridKind = GRID_GEO_2D
+
+    call c%define_var('Longitude', units='degrees_east', shape3=[nAlts, 1, 1], is_axis=.true.)
+    call c%define_var('Local Time', units='hr', shape3=[nAlts, 1, 1])
+    call c%define_var('Latitude', units='degrees_north', shape3=[nAlts, 1, 1])
+    call c%define_var('Solar Zenith Angle', units='rad', shape3=[nAlts, 1, 1])
+    call c%define_var('Altitude', units='m', shape3=[nAlts, 1, 1])
+    call c%define_var('Rho', units='kg/m3', shape3=[nAlts, 1, 1])
+    do i = 1, nSpeciesTotal
+      call c%define_var('['//trim(cSpecies(i))//']', units='/m3', shape3=[nAlts, 1, 1])
+    enddo
+    call c%define_var('Temperature', units='K', shape3=[nAlts, 1, 1])
+    call c%define_var('Vn (east)', units='m/s', shape3=[nAlts, 1, 1])
+    call c%define_var('Vn (north)', units='m/s', shape3=[nAlts, 1, 1])
+    call c%define_var('Vn (up)', units='m/s', shape3=[nAlts, 1, 1])
+    do i = 1, nSpecies
+      call c%define_var('Vn (up,'//trim(cSpecies(i))//')', units='m/s', shape3=[nAlts, 1, 1])
+    enddo
+    do i = 1, nIons
+      call c%define_var('['//trim(cIons(i))//']', units='/m3', shape3=[nAlts, 1, 1])
+    enddo
+    call c%define_var('eTemperature', units='K', shape3=[nAlts, 1, 1])
+    call c%define_var('iTemperature', units='K', shape3=[nAlts, 1, 1])
+    call c%define_var('Vi (east)', units='m/s', shape3=[nAlts, 1, 1])
+    call c%define_var('Vi (north)', units='m/s', shape3=[nAlts, 1, 1])
+    call c%define_var('Vi (up)', units='m/s', shape3=[nAlts, 1, 1])
+    do i = 1, nSpecies
+      call c%define_var(trim(cSpecies(i))//' Mixing Ratio', units='', shape3=[nAlts, 1, 1])
+    enddo
+  end subroutine define_schema_1dnew
+
+  ! ---------------------------------------------------------------------------
+  ! fill_1dnew — put 1DNEW interpolated vertical column variables.
+  ! ---------------------------------------------------------------------------
+  subroutine fill_1dnew(c, iBlock, iiLon, iiLat, rLon, rLat)
+    use ModGITM
+    use ModConst, only: cRadToDeg
+    use ModEUV, only: Sza
+    use ModPlanet, only: nSpeciesTotal, nSpecies, nIons, cSpecies, cIons
+    type(OutputContainer), intent(inout) :: c
+    integer, intent(in) :: iBlock, iiLon, iiLat
+    real, intent(in) :: rLon, rLat
+    real(output_kind) :: tmp_lon(nAlts), tmp_lat(nAlts), tmp_lt(nAlts), tmp_sza(nAlts), tmp_data(nAlts)
+    real :: slice2d(0:nLons + 1, 0:nLats + 1)
+    integer :: iAlt, i
+
+    call c%prepare(iBlock)
+    if (.not. c%this_rank_writes) return
+
+    tmp_lon = real((rLon * Longitude(iiLon, iBlock) + (1.0 - rLon) * Longitude(iiLon + 1, iBlock)) * cRadToDeg, output_kind)
+    tmp_lat = real((rLat * Latitude(iiLat, iBlock) + (1.0 - rLat) * Latitude(iiLat + 1, iBlock)) * cRadToDeg, output_kind)
+    tmp_lt  = real(LocalTime(iiLon), output_kind)
+    tmp_sza = real(rLon*rLat*Sza(iiLon, iiLat, iBlock) + &
+                   (1.0 - rLon)*rLat*Sza(iiLon + 1, iiLat, iBlock) + &
+                   rLon*(1.0 - rLat)*Sza(iiLon, iiLat + 1, iBlock) + &
+                   (1.0 - rLon)*(1.0 - rLat)*Sza(iiLon + 1, iiLat + 1, iBlock), output_kind)
+
+    call c%put('Longitude', tmp_lon)
+    call c%put('Local Time', tmp_lt)
+    call c%put('Latitude',  tmp_lat)
+    call c%put('Solar Zenith Angle', tmp_sza)
+
+    do iAlt = 1, nAlts
+      tmp_data(iAlt) = real(Altitude_GB(iiLon, iiLat, iAlt, iBlock), output_kind)
+    enddo
+    call c%put('Altitude', tmp_data)
+
+    do iAlt = 1, nAlts
+      slice2d = Rho(0:nLons + 1, 0:nLats + 1, iAlt, iBlock)
+      tmp_data(iAlt) = real(inter2d(slice2d, iiLon, iiLat, rLon, rLat), output_kind)
+    enddo
+    call c%put('Rho', tmp_data)
+
+    do i = 1, nSpeciesTotal
+      do iAlt = 1, nAlts
+        slice2d = NDensityS(0:nLons + 1, 0:nLats + 1, iAlt, i, iBlock)
+        tmp_data(iAlt) = real(inter2d(slice2d, iiLon, iiLat, rLon, rLat), output_kind)
+      enddo
+      call c%put('['//trim(cSpecies(i))//']', tmp_data)
+    enddo
+
+    do iAlt = 1, nAlts
+      slice2d = Temperature(0:nLons + 1, 0:nLats + 1, iAlt, iBlock) * &
+                TempUnit(0:nLons + 1, 0:nLats + 1, iAlt)
+      tmp_data(iAlt) = real(inter2d(slice2d, iiLon, iiLat, rLon, rLat), output_kind)
+    enddo
+    call c%put('Temperature', tmp_data)
+
+    do i = 1, 3
+      do iAlt = 1, nAlts
+        slice2d = Velocity(0:nLons + 1, 0:nLats + 1, iAlt, i, iBlock)
+        tmp_data(iAlt) = real(inter2d(slice2d, iiLon, iiLat, rLon, rLat), output_kind)
+      enddo
+      if (i == 1) call c%put('Vn (east)', tmp_data)
+      if (i == 2) call c%put('Vn (north)', tmp_data)
+      if (i == 3) call c%put('Vn (up)', tmp_data)
+    enddo
+
+    do i = 1, nSpecies
+      do iAlt = 1, nAlts
+        slice2d = VerticalVelocity(0:nLons + 1, 0:nLats + 1, iAlt, i, iBlock)
+        tmp_data(iAlt) = real(inter2d(slice2d, iiLon, iiLat, rLon, rLat), output_kind)
+      enddo
+      call c%put('Vn (up,'//trim(cSpecies(i))//')', tmp_data)
+    enddo
+
+    do i = 1, nIons
+      do iAlt = 1, nAlts
+        slice2d = IDensityS(0:nLons + 1, 0:nLats + 1, iAlt, i, iBlock)
+        tmp_data(iAlt) = real(inter2d(slice2d, iiLon, iiLat, rLon, rLat), output_kind)
+      enddo
+      call c%put('['//trim(cIons(i))//']', tmp_data)
+    enddo
+
+    do iAlt = 1, nAlts
+      slice2d = eTemperature(0:nLons + 1, 0:nLats + 1, iAlt, iBlock)
+      tmp_data(iAlt) = real(inter2d(slice2d, iiLon, iiLat, rLon, rLat), output_kind)
+    enddo
+    call c%put('eTemperature', tmp_data)
+
+    do iAlt = 1, nAlts
+      slice2d = ITemperature(0:nLons + 1, 0:nLats + 1, iAlt, iBlock)
+      tmp_data(iAlt) = real(inter2d(slice2d, iiLon, iiLat, rLon, rLat), output_kind)
+    enddo
+    call c%put('iTemperature', tmp_data)
+
+    do i = 1, 3
+      do iAlt = 1, nAlts
+        slice2d = IVelocity(0:nLons + 1, 0:nLats + 1, iAlt, i, iBlock)
+        tmp_data(iAlt) = real(inter2d(slice2d, iiLon, iiLat, rLon, rLat), output_kind)
+      enddo
+      if (i == 1) call c%put('Vi (east)', tmp_data)
+      if (i == 2) call c%put('Vi (north)', tmp_data)
+      if (i == 3) call c%put('Vi (up)', tmp_data)
+    enddo
+
+    do i = 1, nSpecies
+      do iAlt = 1, nAlts
+        slice2d = NDensityS(0:nLons + 1, 0:nLats + 1, iAlt, i, iBlock)/ &
+                  NDensity(0:nLons + 1, 0:nLats + 1, iAlt, iBlock)
+        tmp_data(iAlt) = real(inter2d(slice2d, iiLon, iiLat, rLon, rLat), output_kind)
+      enddo
+      call c%put(trim(cSpecies(i))//' Mixing Ratio', tmp_data)
+    enddo
+  end subroutine fill_1dnew
+
+  ! ---------------------------------------------------------------------------
+  ! define_schema_3dusr — register dynamic user-defined variables for 3DUSR.
+  ! ---------------------------------------------------------------------------
+  subroutine define_schema_3dusr(c)
+    use ModGITM, only: nLons, nLats, nAlts
+    use ModOutputRegistry, only: find_output_type, RegisteredTypes
+    type(OutputContainer), intent(inout) :: c
+    integer :: idx, i
+
+    c%cType    = '3DUSR'
+    c%gridKind = GRID_GEO_3D
+
+    idx = find_output_type('3DUSR')
+    if (idx > 0) then
+      do i = 1, RegisteredTypes(idx)%nVars
+        if (trim(RegisteredTypes(idx)%vars(i)%name) == 'Longitude') then
+          call c%define_var('Longitude', units='degrees_east', shape3=[nLons, 1, 1], is_axis=.true., &
+                            longName='Geographic longitude')
+        elseif (trim(RegisteredTypes(idx)%vars(i)%name) == 'Latitude') then
+          call c%define_var('Latitude', units='degrees_north', shape3=[nLats, 1, 1], is_axis=.true., &
+                            longName='Geographic latitude')
+        elseif (trim(RegisteredTypes(idx)%vars(i)%name) == 'Altitude') then
+          call c%define_var('Altitude', units='m', shape3=[nLons, nLats, nAlts], longName='Altitude')
+        else
+          call c%define_var(trim(RegisteredTypes(idx)%vars(i)%name), &
+                            units=trim(RegisteredTypes(idx)%vars(i)%units), &
+                            shape3=[nLons, nLats, nAlts], &
+                            longName=trim(RegisteredTypes(idx)%vars(i)%longName))
+        endif
+      enddo
+    endif
+  end subroutine define_schema_3dusr
+
+  ! ---------------------------------------------------------------------------
+  ! fill_3dusr — put 3DUSR variables into the container.
+  ! ---------------------------------------------------------------------------
+  subroutine fill_3dusr(c, iBlock)
+    use ModGITM
+    use ModConst, only: cRadToDeg
+    use ModUserGITM, only: UserData3D
+    use ModOutputRegistry, only: find_output_type, RegisteredTypes
+    type(OutputContainer), intent(inout) :: c
+    integer, intent(in) :: iBlock
+    integer :: idx, i, iv
+
+    call c%prepare(iBlock)
+    if (.not. c%this_rank_writes) return
+
+    idx = find_output_type('3DUSR')
+    if (idx > 0) then
+      iv = 0
+      do i = 1, RegisteredTypes(idx)%nVars
+        if (trim(RegisteredTypes(idx)%vars(i)%name) == 'Longitude') then
+          call c%put('Longitude', real(Longitude(1:nLons, iBlock) * cRadToDeg, output_kind))
+        elseif (trim(RegisteredTypes(idx)%vars(i)%name) == 'Latitude') then
+          call c%put('Latitude',  real(Latitude(1:nLats, iBlock) * cRadToDeg, output_kind))
+        elseif (trim(RegisteredTypes(idx)%vars(i)%name) == 'Altitude') then
+          call c%put('Altitude',  real(Altitude_GB(1:nLons, 1:nLats, 1:nAlts, iBlock), output_kind))
+        else
+          iv = iv + 1
+          call c%put(trim(RegisteredTypes(idx)%vars(i)%name), &
+                     real(UserData3D(1:nLons, 1:nLats, 1:nAlts, iv, iBlock), output_kind))
+        endif
+      enddo
+    endif
+  end subroutine fill_3dusr
+
+  ! ---------------------------------------------------------------------------
+  ! define_schema_2dusr — register dynamic user-defined variables for 2DUSR.
+  ! ---------------------------------------------------------------------------
+  subroutine define_schema_2dusr(c)
+    use ModGITM, only: nLons, nLats
+    use ModOutputRegistry, only: find_output_type, RegisteredTypes
+    type(OutputContainer), intent(inout) :: c
+    integer :: idx, i
+
+    c%cType    = '2DUSR'
+    c%gridKind = GRID_GEO_2D
+
+    idx = find_output_type('2DUSR')
+    if (idx > 0) then
+      do i = 1, RegisteredTypes(idx)%nVars
+        if (trim(RegisteredTypes(idx)%vars(i)%name) == 'Longitude') then
+          call c%define_var('Longitude', units='degrees_east', shape3=[nLons, 1, 1], is_axis=.true., &
+                            longName='Geographic longitude')
+        elseif (trim(RegisteredTypes(idx)%vars(i)%name) == 'Latitude') then
+          call c%define_var('Latitude', units='degrees_north', shape3=[nLats, 1, 1], is_axis=.true., &
+                            longName='Geographic latitude')
+        elseif (trim(RegisteredTypes(idx)%vars(i)%name) == 'Altitude') then
+          call c%define_var('Altitude', units='m', shape3=[nLons, nLats, 1], longName='Altitude')
+        else
+          call c%define_var(trim(RegisteredTypes(idx)%vars(i)%name), &
+                            units=trim(RegisteredTypes(idx)%vars(i)%units), &
+                            shape3=[nLons, nLats, 1], &
+                            longName=trim(RegisteredTypes(idx)%vars(i)%longName))
+        endif
+      enddo
+    endif
+  end subroutine define_schema_2dusr
+
+  ! ---------------------------------------------------------------------------
+  ! fill_2dusr — put 2DUSR variables into the container.
+  ! ---------------------------------------------------------------------------
+  subroutine fill_2dusr(c, iBlock)
+    use ModGITM
+    use ModConst, only: cRadToDeg
+    use ModUserGITM, only: UserData2D
+    use ModOutputRegistry, only: find_output_type, RegisteredTypes
+    type(OutputContainer), intent(inout) :: c
+    integer, intent(in) :: iBlock
+    integer :: idx, i, iv
+
+    call c%prepare(iBlock)
+    if (.not. c%this_rank_writes) return
+
+    idx = find_output_type('2DUSR')
+    if (idx > 0) then
+      iv = 0
+      do i = 1, RegisteredTypes(idx)%nVars
+        if (trim(RegisteredTypes(idx)%vars(i)%name) == 'Longitude') then
+          call c%put('Longitude', real(Longitude(1:nLons, iBlock) * cRadToDeg, output_kind))
+        elseif (trim(RegisteredTypes(idx)%vars(i)%name) == 'Latitude') then
+          call c%put('Latitude',  real(Latitude(1:nLats, iBlock) * cRadToDeg, output_kind))
+        elseif (trim(RegisteredTypes(idx)%vars(i)%name) == 'Altitude') then
+          call c%put('Altitude',  real(Altitude_GB(1:nLons, 1:nLats, 1, iBlock), output_kind))
+        else
+          iv = iv + 1
+          call c%put(trim(RegisteredTypes(idx)%vars(i)%name), &
+                     real(UserData2D(1:nLons, 1:nLats, 1, iv, iBlock), output_kind))
+        endif
+      enddo
+    endif
+  end subroutine fill_2dusr
+
+  ! ---------------------------------------------------------------------------
+  ! define_schema_1dusr — register variables for 1DUSR dynamically.
+  ! ---------------------------------------------------------------------------
+  subroutine define_schema_1dusr(c)
+    use ModGITM, only: nAlts
+    use ModOutputRegistry, only: find_output_type, RegisteredTypes
+    type(OutputContainer), intent(inout) :: c
+    integer :: idx, i
+
+    c%cType    = '1DUSR'
+    c%gridKind = GRID_GEO_2D
+
+    idx = find_output_type('1DUSR')
+    if (idx > 0) then
+      do i = 1, RegisteredTypes(idx)%nVars
+        if (trim(RegisteredTypes(idx)%vars(i)%name) == 'Longitude') then
+          call c%define_var('Longitude', units='degrees_east', shape3=[nAlts, 1, 1], is_axis=.true.)
+        elseif (trim(RegisteredTypes(idx)%vars(i)%name) == 'Latitude') then
+          call c%define_var('Latitude', units='degrees_north', shape3=[nAlts, 1, 1], is_axis=.true.)
+        elseif (trim(RegisteredTypes(idx)%vars(i)%name) == 'Altitude') then
+          call c%define_var('Altitude', units='m', shape3=[nAlts, 1, 1])
+        else
+          call c%define_var(trim(RegisteredTypes(idx)%vars(i)%name), &
+                            units=trim(RegisteredTypes(idx)%vars(i)%units), &
+                            shape3=[nAlts, 1, 1], &
+                            longName=trim(RegisteredTypes(idx)%vars(i)%longName))
+        endif
+      enddo
+    endif
+  end subroutine define_schema_1dusr
+
+  ! ---------------------------------------------------------------------------
+  ! fill_1dusr — put 1DUSR variables into the container.
+  ! ---------------------------------------------------------------------------
+  subroutine fill_1dusr(c, iBlock, iiLon, iiLat, rLon, rLat)
+    use ModGITM
+    use ModConst, only: cRadToDeg
+    use ModUserGITM, only: UserData1D
+    use ModOutputRegistry, only: find_output_type, RegisteredTypes
+    type(OutputContainer), intent(inout) :: c
+    integer, intent(in) :: iBlock, iiLon, iiLat
+    real, intent(in) :: rLon, rLat
+    real(output_kind) :: tmp_lon(nAlts), tmp_lat(nAlts), tmp_data(nAlts)
+    integer :: idx, i, iv, iAlt
+
+    call c%prepare(iBlock)
+    if (.not. c%this_rank_writes) return
+
+    idx = find_output_type('1DUSR')
+    if (idx > 0) then
+      iv = 0
+      do i = 1, RegisteredTypes(idx)%nVars
+        if (trim(RegisteredTypes(idx)%vars(i)%name) == 'Longitude') then
+          tmp_lon = real((rLon * Longitude(iiLon, iBlock) + (1.0 - rLon) * Longitude(iiLon + 1, iBlock)) * cRadToDeg, output_kind)
+          call c%put('Longitude', tmp_lon)
+        elseif (trim(RegisteredTypes(idx)%vars(i)%name) == 'Latitude') then
+          tmp_lat = real((rLat * Latitude(iiLat, iBlock) + (1.0 - rLat) * Latitude(iiLat + 1, iBlock)) * cRadToDeg, output_kind)
+          call c%put('Latitude',  tmp_lat)
+        elseif (trim(RegisteredTypes(idx)%vars(i)%name) == 'Altitude') then
+          do iAlt = 1, nAlts
+            tmp_data(iAlt) = real(Altitude_GB(iiLon, iiLat, iAlt, iBlock), output_kind)
+          enddo
+          call c%put('Altitude', tmp_data)
+        else
+          iv = iv + 1
+          do iAlt = 1, nAlts
+            tmp_data(iAlt) = real(UserData1D(iiLon, iiLat, iAlt, iv), output_kind)
+          enddo
+          call c%put(trim(RegisteredTypes(idx)%vars(i)%name), tmp_data)
+        endif
+      enddo
+    endif
+  end subroutine fill_1dusr
+
+  ! ---------------------------------------------------------------------------
+  ! define_schema_0dusr — register variables for 0DUSR dynamically.
+  ! ---------------------------------------------------------------------------
+  subroutine define_schema_0dusr(c)
+    use ModOutputRegistry, only: find_output_type, RegisteredTypes
+    type(OutputContainer), intent(inout) :: c
+    integer :: idx, i
+
+    c%cType    = '0DUSR'
+    c%gridKind = GRID_GEO_2D
+
+    idx = find_output_type('0DUSR')
+    if (idx > 0) then
+      do i = 1, RegisteredTypes(idx)%nVars
+        if (trim(RegisteredTypes(idx)%vars(i)%name) == 'Longitude') then
+          call c%define_var('Longitude', units='degrees_east', shape3=[1, 1, 1], is_axis=.true.)
+        elseif (trim(RegisteredTypes(idx)%vars(i)%name) == 'Latitude') then
+          call c%define_var('Latitude', units='degrees_north', shape3=[1, 1, 1], is_axis=.true.)
+        elseif (trim(RegisteredTypes(idx)%vars(i)%name) == 'Altitude') then
+          call c%define_var('Altitude', units='m', shape3=[1, 1, 1])
+        else
+          call c%define_var(trim(RegisteredTypes(idx)%vars(i)%name), &
+                            units=trim(RegisteredTypes(idx)%vars(i)%units), &
+                            shape3=[1, 1, 1], &
+                            longName=trim(RegisteredTypes(idx)%vars(i)%longName))
+        endif
+      enddo
+    endif
+  end subroutine define_schema_0dusr
+
+  ! ---------------------------------------------------------------------------
+  ! fill_0dusr — put 0DUSR variables into the container.
+  ! ---------------------------------------------------------------------------
+  subroutine fill_0dusr(c, iBlock, iiLon, iiLat, iiAlt, rLon, rLat, rAlt)
+    use ModGITM
+    use ModConst, only: cRadToDeg
+    use ModUserGITM, only: UserData1D
+    use ModOutputRegistry, only: find_output_type, RegisteredTypes
+    type(OutputContainer), intent(inout) :: c
+    integer, intent(in) :: iBlock, iiLon, iiLat, iiAlt
+    real, intent(in) :: rLon, rLat, rAlt
+    integer :: idx, i, iv
+
+    call c%prepare(iBlock)
+    if (.not. c%this_rank_writes) return
+
+    idx = find_output_type('0DUSR')
+    if (idx > 0) then
+      iv = 0
+      do i = 1, RegisteredTypes(idx)%nVars
+        if (trim(RegisteredTypes(idx)%vars(i)%name) == 'Longitude') then
+          call c%put('Longitude', real((rLon * Longitude(iiLon, iBlock) + (1.0 - rLon) * Longitude(iiLon + 1, iBlock)) * cRadToDeg, output_kind))
+        elseif (trim(RegisteredTypes(idx)%vars(i)%name) == 'Latitude') then
+          call c%put('Latitude',  real((rLat * Latitude(iiLat, iBlock) + (1.0 - rLat) * Latitude(iiLat + 1, iBlock)) * cRadToDeg, output_kind))
+        elseif (trim(RegisteredTypes(idx)%vars(i)%name) == 'Altitude') then
+          call c%put('Altitude',  real(rAlt * Altitude_GB(iiLon, iiLat, iiAlt, iBlock) + &
+                                       (1.0 - rAlt) * Altitude_GB(iiLon + 1, iiLat + 1, iiAlt + 1, iBlock), output_kind))
+        else
+          iv = iv + 1
+          call c%put(trim(RegisteredTypes(idx)%vars(i)%name), &
+                     real(UserData1D(iiLon, iiLat, iiAlt, iv), output_kind))
+        endif
+      enddo
+    endif
+  end subroutine fill_0dusr
+
+  ! ---------------------------------------------------------------------------
+  ! inter2d — Bilinear interpolation on a 2D grid slice.
+  ! ---------------------------------------------------------------------------
+  real function inter2d(variable, iiLon, iiLat, rLon, rLat)
+    real, intent(in) :: variable(:, :), rLon, rLat
+    integer, intent(in) :: iiLon, iiLat
+
+    inter2d = &
+      rLon*rLat*variable(iiLon, iiLat) + &
+      (1.0 - rLon)*rLat*variable(iiLon + 1, iiLat) + &
+      rLon*(1.0 - rLat)*variable(iiLon, iiLat + 1) + &
+      (1.0 - rLon)*(1.0 - rLat)*variable(iiLon + 1, iiLat + 1)
+  end function inter2d
+
+  ! ---------------------------------------------------------------------------
+  ! inter3d — Trilinear interpolation on a 3D grid.
+  ! ---------------------------------------------------------------------------
+  real function inter3d(variable, iiLon, iiLat, iiAlt, rLon, rLat, rAlt)
+    real, intent(in) :: variable(:, :, :)
+    real, intent(in) :: rLon, rLat, rAlt
+    integer, intent(in) :: iiLon, iiLat, iiAlt
+
+    inter3d = &
+      rLon*rLat*rAlt*variable(iiLon, iiLat, iiAlt) + &
+      (1.0 - rLon)*rLat*rAlt*variable(iiLon + 1, iiLat, iiAlt) + &
+      rLon*(1.0 - rLat)*rAlt*variable(iiLon, iiLat + 1, iiAlt) + &
+      (1.0 - rLon)*(1.0 - rLat)*rAlt*variable(iiLon + 1, iiLat + 1, iiAlt) + &
+      rLon*rLat*(1.0 - rAlt)*variable(iiLon, iiLat, iiAlt + 1) + &
+      (1.0 - rLon)*rLat*(1.0 - rAlt)*variable(iiLon + 1, iiLat, iiAlt + 1) + &
+      rLon*(1.0 - rLat)*(1.0 - rAlt)*variable(iiLon, iiLat + 1, iiAlt + 1) + &
+      (1.0 - rLon)*(1.0 - rLat)*(1.0 - rAlt)*variable(iiLon + 1, iiLat + 1, iiAlt + 1)
+  end function inter3d
 
 end module ModOutputProducers

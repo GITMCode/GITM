@@ -67,10 +67,7 @@ subroutine output(dir, iBlock, iOutputType)
   use ModOutputGather, only: gather_output
   use ModOutputBackend, only: ActiveBackend
   use ModOutputContainer, only: OutputContainer
-  use ModOutputProducers, only: containers, iCont_2DMEL, iCont_2DTEC, iCont_2DGEL, &
-                               iCont_3DNEU, iCont_3DALL, iCont_3DION, iCont_3DTHM, iCont_3DCHM, &
-                               init_output_containers, fill_2dmel, fill_2dtec, fill_2dgel, &
-                               fill_3dneu, fill_3dall, fill_3dion, fill_3dthm, fill_3dchm
+  use ModOutputProducers
   use ModGITMVersion, only: GitmVersion
 
   implicit none
@@ -361,6 +358,132 @@ subroutine output(dir, iBlock, iOutputType)
         if (associated(ActiveBackend%write_container)) &
           call ActiveBackend%write_container(containers(iCont_3DCHM), iBLK, iTimeArray)
         call containers(iCont_3DCHM)%reset()
+      elseif (cType == '3DLST') then
+        uses_container = .true.
+        call init_output_containers()
+        call fill_3dlst(containers(iCont_3DLST), iBlock)
+        if (associated(ActiveBackend%write_container)) &
+          call ActiveBackend%write_container(containers(iCont_3DLST), iBLK, iTimeArray)
+        call containers(iCont_3DLST)%reset()
+      elseif (cType == '3DGLO') then
+        uses_container = .true.
+        call init_output_containers()
+        call fill_3dglo(containers(iCont_3DGLO), iBlock)
+        if (associated(ActiveBackend%write_container)) &
+          call ActiveBackend%write_container(containers(iCont_3DGLO), iBLK, iTimeArray)
+        call containers(iCont_3DGLO)%reset()
+      elseif (cType == '3DMAG') then
+        uses_container = .true.
+        call init_output_containers()
+        call fill_3dmag(containers(iCont_3DMAG), iBlock)
+        if (associated(ActiveBackend%write_container)) &
+          call ActiveBackend%write_container(containers(iCont_3DMAG), iBLK, iTimeArray)
+        call containers(iCont_3DMAG)%reset()
+      elseif (cType == '3DHME') then
+        uses_container = .true.
+        call init_output_containers()
+        call fill_3dhme(containers(iCont_3DHME), iBlock)
+        if (associated(ActiveBackend%write_container)) &
+          call ActiveBackend%write_container(containers(iCont_3DHME), iBLK, iTimeArray)
+        call containers(iCont_3DHME)%reset()
+      elseif (cType == '3DMOH') then
+        uses_container = .true.
+        call init_output_containers()
+        call fill_3dmoh(containers(iCont_3DMOH), iBlock)
+        if (associated(ActiveBackend%write_container)) &
+          call ActiveBackend%write_container(containers(iCont_3DMOH), iBLK, iTimeArray)
+        call containers(iCont_3DMOH)%reset()
+      elseif (cType == '3DMOV') then
+        uses_container = .true.
+        call init_output_containers()
+        call fill_3dmov(containers(iCont_3DMOV), iBlock)
+        if (associated(ActiveBackend%write_container)) &
+          call ActiveBackend%write_container(containers(iCont_3DMOV), iBLK, iTimeArray)
+        call containers(iCont_3DMOV)%reset()
+      elseif (cType == '2DANC') then
+        uses_container = .true.
+        call init_output_containers()
+        call fill_2danc(containers(iCont_2DANC), iBlock)
+        if (associated(ActiveBackend%write_container)) &
+          call ActiveBackend%write_container(containers(iCont_2DANC), iBLK, iTimeArray)
+        call containers(iCont_2DANC)%reset()
+      elseif (cType == '2DHME') then
+        uses_container = .true.
+        call init_output_containers()
+        call fill_2dhme(containers(iCont_2DHME), iBlock)
+        if (associated(ActiveBackend%write_container)) &
+          call ActiveBackend%write_container(containers(iCont_2DHME), iBLK, iTimeArray)
+        call containers(iCont_2DHME)%reset()
+      elseif (cType == '1DALL') then
+        uses_container = .true.
+        call init_output_containers()
+        call fill_1dall(containers(iCont_1DALL), iBlock, iiLon, iiLat, rLon, rLat)
+        if (associated(ActiveBackend%write_container)) &
+          call ActiveBackend%write_container(containers(iCont_1DALL), iBLK, iTimeArray)
+        call containers(iCont_1DALL)%reset()
+      elseif (cType == '0DALL') then
+        uses_container = .true.
+        call init_output_containers()
+        call fill_0dall(containers(iCont_0DALL), iBlock, iiLon, iiLat, iiAlt, rLon, rLat, rAlt)
+        if (associated(ActiveBackend%write_container)) &
+          call ActiveBackend%write_container(containers(iCont_0DALL), iBLK, iTimeArray)
+        call containers(iCont_0DALL)%reset()
+      elseif (cType == '1DGLO') then
+        uses_container = .true.
+        call init_output_containers()
+        call fill_1dglo(containers(iCont_1DGLO), iBlock)
+        if (associated(ActiveBackend%write_container)) &
+          call ActiveBackend%write_container(containers(iCont_1DGLO), iBLK, iTimeArray)
+        call containers(iCont_1DGLO)%reset()
+      elseif (cType == '1DTHM') then
+        uses_container = .true.
+        call init_output_containers()
+        call fill_1dthm(containers(iCont_1DTHM), iBlock)
+        if (associated(ActiveBackend%write_container)) &
+          call ActiveBackend%write_container(containers(iCont_1DTHM), iBLK, iTimeArray)
+        call containers(iCont_1DTHM)%reset()
+      elseif (cType == '1DCHM') then
+        uses_container = .true.
+        call init_output_containers()
+        call fill_1dchm(containers(iCont_1DCHM), iBlock)
+        if (associated(ActiveBackend%write_container)) &
+          call ActiveBackend%write_container(containers(iCont_1DCHM), iBLK, iTimeArray)
+        call containers(iCont_1DCHM)%reset()
+      elseif (cType == '1DNEW') then
+        uses_container = .true.
+        call init_output_containers()
+        call fill_1dnew(containers(iCont_1DNEW), iBlock, iiLon, iiLat, rLon, rLat)
+        if (associated(ActiveBackend%write_container)) &
+          call ActiveBackend%write_container(containers(iCont_1DNEW), iBLK, iTimeArray)
+        call containers(iCont_1DNEW)%reset()
+      elseif (cType == '3DUSR') then
+        uses_container = .true.
+        call init_output_containers()
+        call fill_3dusr(containers(iCont_3DUSR), iBlock)
+        if (associated(ActiveBackend%write_container)) &
+          call ActiveBackend%write_container(containers(iCont_3DUSR), iBLK, iTimeArray)
+        call containers(iCont_3DUSR)%reset()
+      elseif (cType == '2DUSR') then
+        uses_container = .true.
+        call init_output_containers()
+        call fill_2dusr(containers(iCont_2DUSR), iBlock)
+        if (associated(ActiveBackend%write_container)) &
+          call ActiveBackend%write_container(containers(iCont_2DUSR), iBLK, iTimeArray)
+        call containers(iCont_2DUSR)%reset()
+      elseif (cType == '1DUSR') then
+        uses_container = .true.
+        call init_output_containers()
+        call fill_1dusr(containers(iCont_1DUSR), iBlock, iiLon, iiLat, rLon, rLat)
+        if (associated(ActiveBackend%write_container)) &
+          call ActiveBackend%write_container(containers(iCont_1DUSR), iBLK, iTimeArray)
+        call containers(iCont_1DUSR)%reset()
+      elseif (cType == '0DUSR') then
+        uses_container = .true.
+        call init_output_containers()
+        call fill_0dusr(containers(iCont_0DUSR), iBlock, iiLon, iiLat, iiAlt, rLon, rLat, rAlt)
+        if (associated(ActiveBackend%write_container)) &
+          call ActiveBackend%write_container(containers(iCont_0DUSR), iBLK, iTimeArray)
+        call containers(iCont_0DUSR)%reset()
       elseif (typeInfo%isRegional) then
         ! Regional output: only write if block is within user-defined region
         if (DoSaveHIMEPlot) then
