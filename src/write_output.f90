@@ -34,6 +34,8 @@ subroutine write_output(doForce)
   integer :: cL
 
   logical, save :: IsFirstOutput = .true.
+  real, save :: tLastOutputWrite(nMaxOutputTypes)
+  real, save :: tLastLogWrite
 
   doWriteFile = doForce
 
@@ -55,6 +57,8 @@ subroutine write_output(doForce)
 
   ! Initialize the output registry and I/O backend exactly once.
   if (IsFirstOutput) then
+    tLastOutputWrite = -1.0
+    tLastLogWrite = -1.0
     call init_output_registry()
     call init_usr_output_registry()
     call init_output_backend(requestedBackendName)
@@ -86,9 +90,10 @@ subroutine write_output(doForce)
   endif
 
   do i = 1, nOutputTypes
-    if (floor((tSimulation - dt)/DtPlot(i)) /= floor((tsimulation)/DtPlot(i)) &
-        .or. (tSimulation == 0.0) &
-        .or. doWriteFile) then
+    if (tSimulation /= tLastOutputWrite(i) .and. &
+        (floor((tSimulation - dt)/DtPlot(i)) /= floor((tsimulation)/DtPlot(i)) &
+         .or. (tSimulation == 0.0) &
+         .or. doWriteFile)) then
 
       ! Compute cType with same Is1D adjustment used inside output().
       cType = OutputType(i)
@@ -103,6 +108,7 @@ subroutine write_output(doForce)
       ! For collective backends: collectively close the file after all blocks are done.
       ! For legacy: close_file is a no-op.
       call ActiveBackend%close_file()
+      tLastOutputWrite(i) = tSimulation
     endif
   enddo
 
@@ -113,9 +119,10 @@ subroutine write_output(doForce)
     call write_restart(restartOutDir)
   endif
 
-  if (floor((tSimulation - dt)/DtLogfile) /= &
-      floor((tsimulation)/DtLogfile)) then
+  if (tSimulation /= tLastLogWrite .and. &
+      floor((tSimulation - dt)/DtLogfile) /= floor((tsimulation)/DtLogfile)) then
     call logfile(logDir)
+    tLastLogWrite = tSimulation
   endif
 
 end subroutine write_output
