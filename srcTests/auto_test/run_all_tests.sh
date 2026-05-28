@@ -78,11 +78,11 @@ Arguments:
 }
 
 get_backend_from_filename(){
-  # Extract backend from filename: UAM.in.##.description.BACKEND.test
+  # Extract backend from filename: UAM.in.##.description.BACKEND.anything.test
   # Returns: legacy, mpiio, netcdf, or "unknown" if not found
   local filename="$1"
 
-  if [[ "$filename" =~ \.(legacy|mpiio|netcdf)\.test$ ]]; then
+  if [[ "$filename" =~ \.(legacy|mpiio|netcdf)\. ]]; then
     echo "${BASH_REMATCH[1]}"
   else
     echo "unknown"
@@ -105,7 +105,7 @@ warnsavesolution(){
   # This is only called if --savesolutions is set
 
   printf "
-!!!!!!!!!!!!!!!!!    WARNING    !!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!    WARNING    !!!!!!!!!!!!!!!!!
 
 Using --save_solution will overwrite the reference logfiles
 
@@ -124,10 +124,12 @@ Cancel with Ctrl+C
 }
 
 
+
 checkoutputs(){
   # refactored for cleanliness
   # Returns 0 on success, 1 on failure
 
+  # 1. Handle solution saving for global log files
   if [ $do_save = true ]; then
     cp UA/data/log*.dat ../ref_solns/log.$test_uam
     echo
@@ -136,25 +138,34 @@ checkoutputs(){
     return 0
   fi
 
+  # 2. Diff standard global log files (existing logic)
   if [ $do_compare = true ]; then
     echo
     # Capture diff status without triggering set -e
     local diff_status=0
     ../../../share/Scripts/DiffNum.pl -r=5e-5 -a=1e-1 -t ../ref_solns/log.$test_uam UA/data/log*.dat || diff_status=$?
 
-    if [ $diff_status = 0 ]; then
-      # test was a success. no differences found.
-      return 0
-
-    else
+    if [ $diff_status != 0 ]; then
       echo
       echo " ============    ERROR!!!!!    ============"
       echo "  Output differs from reference solution."
       echo "  Something has gone terribly wrong!!"
-      rm GITM.DONE
+      rm -f GITM.DONE
       return 1
     fi
   fi
+
+  # 3. Physical value/sanity checks — only for BACKEND_TEST runs
+  if [[ "$test_uam" == *"BACKEND_TEST"* ]] && [ -x ../validate_outputs.py ]; then
+    echo ">> Running output validation checks..."
+    local python_status=0
+    ../validate_outputs.py "UA/data/" || python_status=$?
+    if [ $python_status != 0 ]; then
+      rm -f GITM.DONE
+      return 1
+    fi
+  fi
+
   return 0
 }
 
@@ -167,7 +178,9 @@ run_a_test(){
   printf "\n\n>> Testing with $test_uam ...\n"
   # Copy UAM
   ln -sf $test_uam UAM.in
-  rm -f GITM.DONE
+  
+  # Pre-test Isolation: Sweep clean any intermediate output files from previous runs
+  rm -f GITM.DONE UA/data/*.nc UA/data/*.bin UA/data/*.header UA/data/*.dat UA/data/*.b[0-9][0-9][0-9][0-9]
 
   # Run GITM, capture status without triggering set -e
   local mpi_status=0
@@ -186,10 +199,28 @@ run_a_test(){
       mv $test_uam $test_uam.success
       mv UA/data/log*.dat UA/data/log_$test_uam.success
       rm -f GITM.DONE
+      
+      # SUCCESS Cleanup
+      if [ $do_save = false ]; then
+        # For backend tests, stage outputs for cross-backend comparison.
+        # Only the first run per backend is kept (e.g. netcdf test 13 is
+        # staged, the append variant test 14 is not).
+        local backend=$(get_backend_from_filename "$test_uam")
+        local stage_dir="UA/data/backend_compare/${backend}"
+        if [[ "$test_uam" == *"BACKEND_TEST"* ]] && [[ "$backend" != "unknown" ]] && [ ! -d "$stage_dir" ]; then
+          mkdir -p "$stage_dir"
+          cp UA/data/*.nc UA/data/*.bin UA/data/*.header UA/data/*.b[0-9][0-9][0-9][0-9] "$stage_dir/" 2>/dev/null || true
+        fi
+        rm -f UA/data/*.nc UA/data/*.bin UA/data/*.header UA/data/*.b[0-9][0-9][0-9][0-9]
+      fi
       return 0
   else
       printf "\n\n>>> $test_uam   UNSUCCESSFUL! <<< \n\n"
-      mv UA/data/log*.dat log_$test_uam.fail 2>/dev/null
+      
+      # FAILURE Preservation: Move failed outputs to a dedicated folder to keep them safe for debugging
+      mkdir -p UA/data/failed_outputs_$test_uam
+      mv UA/data/*.nc UA/data/*.bin UA/data/*.header UA/data/*.dat UA/data/*.b[0-9][0-9][0-9][0-9] UA/data/failed_outputs_$test_uam/ 2>/dev/null || true
+      rm -f GITM.DONE
 
       # Determine if this is optional or required backend
       local backend=$(get_backend_from_filename "$test_uam")
@@ -287,6 +318,26 @@ do_tests(){
           fi
       done
 
+      # Cross-backend data comparison (runs after all individual backend tests)
+      if [ $do_save = false ] && [ $do_compare = true ]; then
+        local compare_dir="UA/data/backend_compare"
+        if [ -d "$compare_dir" ]; then
+          local ndirs=$(find "$compare_dir" -mindepth 1 -maxdepth 1 -type d | wc -l)
+          if [ "$ndirs" -ge 2 ]; then
+            echo ""
+            echo ">> Cross-backend data comparison..."
+            local compare_status=0
+            python3 ../compare_backends.py "$compare_dir"/*/ || compare_status=$?
+            if [ $compare_status != 0 ]; then
+              failed_required+=("CROSS_BACKEND_COMPARISON")
+            else
+              passed+=("CROSS_BACKEND_COMPARISON")
+            fi
+          fi
+          rm -rf "$compare_dir"
+        fi
+      fi
+
       # Print summary
       print_summary
 
@@ -317,7 +368,9 @@ do_tests(){
 
 
 
-## --------------------------- ##
+## -------------------------- ##
+## ---- Main Entry Point ---- ##
+## -------------------------- ##
 
 debug=""
 clean=false
