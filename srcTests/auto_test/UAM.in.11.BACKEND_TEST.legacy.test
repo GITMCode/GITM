@@ -84,9 +84,8 @@ Output file stuff
 2DHME
 300.0
 
-
 #OUTPUTBACKEND
-netcdf
+legacy
 
 ------------ Electrodynamics Drivers ------------
 
@@ -143,7 +142,7 @@ The default is to have apex off, since other planets don't have
 apex, so need to turn apex on!
 
 #APEX
-F
+T
 
 -----------------------------------------------------------------
 Some new features:
