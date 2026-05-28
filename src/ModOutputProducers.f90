@@ -221,8 +221,8 @@ contains
 
     ! 2D data variables.
     call c%put('MLT',      real(MagLocTimeMC, output_kind))
-    call c%put('GeoLat',   real(GeoLatMC, output_kind))
-    call c%put('GeoLon',   real(GeoLonMC, output_kind))
+    call c%put('GeoLat',   real(GeoLatMC * cRadToDeg, output_kind))
+    call c%put('GeoLon',   real(GeoLonMC * cRadToDeg, output_kind))
     call c%put('PedCond',  real(SigmaPedersenMC, output_kind))
     call c%put('HalCond',  real(SigmaHallMC, output_kind))
     call c%put('DivJuAlt', real(DivJuAltMC, output_kind))
