@@ -46,7 +46,13 @@ def log_check(label, condition, detail):
     return condition
 
 
-def validate_variable(name, vals):
+def is_regional_file(path):
+    """Regional output types (HME/HIME) only write blocks inside a user region."""
+    base = os.path.basename(path).upper()
+    return 'HME' in base or 'HIME' in base
+
+
+def validate_variable(name, vals, is_regional=False):
     """Apply name-driven physical rules.  Returns True if all checks pass."""
     passed = True
     name_lower = name.lower()
@@ -84,7 +90,11 @@ def validate_variable(name, vals):
         ) and passed
 
     # --- Altitude: exact name match only (avoids AltInt* variables) ---
-    elif name_lower == 'altitude':
+    # Regional outputs (HME/HIME) only write blocks inside the region; the
+    # mpiio backend stripes one .raw file and leaves out-of-region block slots
+    # zero-filled (no missing file for pGITM to mark NaN), so a 0 here is
+    # expected, not a bug.  Skip the positivity check for regional files.
+    elif name_lower == 'altitude' and not is_regional:
         vmin = float(flat.min())
         passed = log_check(
             f"'{name}' > 0",
@@ -148,15 +158,16 @@ def check_netcdf_file(nc_path):
 
     is_append = 'time' in dims and len(dims['time']) > 1
 
+    regional = is_regional_file(nc_path)
     for varname in variables:
         var = ds.variables[varname]
         data = var[:]
         if is_append and 'time' in var.dimensions:
             t_last = len(dims['time']) - 1
-            if not validate_variable(varname, data[t_last]):
+            if not validate_variable(varname, data[t_last], is_regional=regional):
                 passed = False
         else:
-            if not validate_variable(varname, data):
+            if not validate_variable(varname, data, is_regional=regional):
                 passed = False
 
     ds.close()
@@ -180,12 +191,13 @@ def check_header_file(header_path):
                      f"nLons={nX} nLats={nY} nAlts={nZ}"):
         passed = False
 
+    regional = is_regional_file(header_path)
     for varname in data.get('vars', []):
         if varname not in data:
             log_fail(varname, "not found in processed data")
             passed = False
             continue
-        if not validate_variable(varname, data[varname]):
+        if not validate_variable(varname, data[varname], is_regional=regional):
             passed = False
 
     return passed
