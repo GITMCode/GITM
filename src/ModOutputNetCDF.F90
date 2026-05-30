@@ -439,7 +439,7 @@ contains
     integer :: dimid_vars(4), ndimid, ndimid_var, iV, ierr
     integer(kind=MPI_OFFSET_KIND) :: attlen
     character(len=80) :: varname
-    character(len=40) :: coord_units
+    character(len=80) :: coord_units
     character(len=30) :: coord_str
     character(len=8)  :: dstr
     character(len=10) :: tstr
@@ -513,6 +513,11 @@ contains
         ierr = nfmpi_put_att_text(ncid, varids(iV), "long_name", attlen, &
                                   trim(RegisteredTypes(iTypeIdx)%vars(iV)%longName))
       endif
+      ! Add attribute 'gitm_name' containing the name that's written in .bin files
+      ! Unnecessary, but makes comparisons between .bin and .nc files *so* much easier
+      attlen = int(len_trim(RegisteredTypes(iTypeIdx)%vars(iV)%name), MPI_OFFSET_KIND)
+      ierr = nfmpi_put_att_text(ncid, varids(iV), "gitm_name", attlen, &
+                                trim(RegisteredTypes(iTypeIdx)%vars(iV)%name))
     enddo
 
     ! Time coordinate variable
