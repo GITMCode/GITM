@@ -10,7 +10,10 @@ Usage:
     python3 compare_backends.py dir1/ dir2/ [dir3/ ...]
 
 Each directory should contain the output files from a single backend run
-(.header + .b*/.bin files for legacy/mpiio, or .nc files for netcdf).
+(.header + .b*/.bin/.raw files for legacy/mpiio, or .nc files for netcdf).
+
+NetCDF variables are matched to binary variables via the 'gitm_name' attribute
+written by GITM (the canonical name also used in binary outputs).
 
 Exit code 0 = all match, 1 = mismatch detected, 2 = usage error.
 """
@@ -54,7 +57,8 @@ def load_binary_outputs(directory):
     """Load all timesteps from a legacy or mpiio output directory via pGITM.
 
     Returns {timestep_key: data_dict, ...} where data_dict has a 'vars' list
-    and varname -> np.array mappings (produced by pGITM.process_one_file).
+    and varname -> np.array mappings.  Ghost cells are stripped so arrays are
+    (nAlts, nLats, nLons) — matching the netcdf layout — ready for ravel comparison.
     """
     result = {}
     for header in sorted(glob.glob(os.path.join(directory, '*.header'))):
@@ -63,6 +67,17 @@ def load_binary_outputs(directory):
             continue
         try:
             data = pGITM.process_one_file(header, dowrite=False, isVerbose=False)
+            ng_alt = data.get('nGhostsAlt', 2)
+            ng_lat = data.get('nGhostsLat', 2)
+            ng_lon = data.get('nGhostsLon', 2)
+            sl = (
+                slice(ng_alt, -ng_alt if ng_alt > 0 else None),
+                slice(ng_lat, -ng_lat if ng_lat > 0 else None),
+                slice(ng_lon, -ng_lon if ng_lon > 0 else None),
+            )
+            for v in data.get('vars', []):
+                if v in data and isinstance(data[v], np.ndarray) and data[v].ndim == 3:
+                    data[v] = data[v][sl]
             result[ts] = data
         except Exception as e:
             print(f"  [WARN] Could not load {header}: {e}")
@@ -73,7 +88,9 @@ def load_netcdf_outputs(directory):
     """Load all timesteps from a netcdf output directory.
 
     Returns the same {timestep_key: data_dict} structure as the binary loader
-    so the comparison code is format-agnostic.
+    so the comparison code is format-agnostic.  Physics variables are keyed by
+    their 'gitm_name' attribute (the canonical GITM name matching the binary
+    format), falling back to the nc variable name for coordinate variables.
     """
     if nc4 is None:
         print("  [WARN] netCDF4 not available; cannot load NetCDF outputs.")
@@ -86,15 +103,20 @@ def load_netcdf_outputs(directory):
             continue
         try:
             ds = nc4.Dataset(nc_path, 'r')
-            data = {'vars': list(ds.variables.keys())}
+            data = {'vars': []}
             for vname in ds.variables:
-                arr = ds.variables[vname][:]
+                v = ds.variables[vname]
+                arr = v[:]
                 # Multi-time files: take the last timestep for comparison
-                if 'time' in ds.variables[vname].dimensions \
+                if 'time' in v.dimensions \
                    and 'time' in ds.dimensions \
                    and len(ds.dimensions['time']) > 1:
                     arr = arr[-1]
-                data[vname] = np.asarray(arr, dtype=np.float64)
+                arr = np.asarray(arr, dtype=np.float64)
+                key = v.gitm_name.replace(" ", "") \
+                    if hasattr(v, 'gitm_name') else vname
+                data['vars'].append(key)
+                data[key] = arr
             ds.close()
             result[ts] = data
         except Exception as e:
@@ -157,7 +179,18 @@ def compare_timestep(name_a, data_a, name_b, data_b,
             passed = False
             continue
 
-        if np.allclose(a, b, rtol=rtol, atol=atol, equal_nan=True):
+        # Regional/mag-grid outputs leave out-of-region cells unwritten: the
+        # legacy/netcdf backends NaN-fill them while mpiio zero-fills them
+        # Compare only cells finite in BOTH backends so the fill region (NaN
+        # in at least one) is dropped; in-region data is still fully checked.
+        finite = np.isfinite(a) & np.isfinite(b)
+        if not finite.any():
+            n_ok += 1
+            continue
+        a = a[finite]
+        b = b[finite]
+
+        if np.allclose(a, b, rtol=rtol, atol=atol):
             n_ok += 1
         else:
             diff = np.abs(a - b)
