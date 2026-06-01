@@ -330,11 +330,16 @@ do_tests(){
             python3 ../compare_backends.py "$compare_dir"/*/ || compare_status=$?
             if [ $compare_status != 0 ]; then
               failed_required+=("CROSS_BACKEND_COMPARISON")
+              # Keep staged per-backend outputs so the failure can be
+              # inspected / compare_backends.py re-run by hand.
+              echo "   Outputs kept for inspection at: $compare_dir"
             else
               passed+=("CROSS_BACKEND_COMPARISON")
+              rm -rf "$compare_dir"
             fi
+          else
+            rm -rf "$compare_dir"
           fi
-          rm -rf "$compare_dir"
         fi
       fi
 
