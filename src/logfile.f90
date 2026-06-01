@@ -162,11 +162,14 @@ subroutine logfile(dir)
     write(iLogFileUnit_, '(a)') " "
     write(iLogFileUnit_, '(a)') "#START"
     write(iLogFileUnit_, '(a)') &
-      "   iStep year month day hour min sec  ms      dt "// &
-      "min(T) max(T) mean(T) min(VV) max(VV) mean(VV) F107 F107A "// &
-      "By Bz Vx HP HPn HPs HPn_diff HPs_diff HPn_w HPs_w HPn_m HPs_m "// &
-      "CPCPn CPCPs "// &
-      "SubsolarLon SubsolarLat SubsolarVTEC"
+      "   iStep yyyy mm dd HH MM SS  ms      dt"// &
+      "    min(T)    max(T)   mean(T)   min(VV)   max(VV)  mean(VV)"//&
+      "      F107     F107A        By        Bz        Vx"//&
+      "        HP       HPn       HPs  HPn_diff  HPs_diff"//&
+      "     HPn_w     HPs_w     HPn_m     HPs_m"//&
+      "     CPCPn     CPCPs"// &
+      " SubsolarLon SubsolarLat SubsolarVTEC"
+
   endif
 
   call get_subsolar(CurrentTime, VernalTime, SSLon, SSLat)
@@ -257,15 +260,24 @@ subroutine logfile(dir)
 
     if (Is1D) SSVTEC = -1.0
 
-    write(iLogFileUnit_, "(i8,i5,5i3,i4,f8.4,6f9.1,5f7.1,9f8.1,2f7.1,3f8.3)") &
-      iStep, iTimeArray(1:6), floor(iTimeArray(7)/10.0)*10, &  ! i8, i5, 5i3, i4; ms rounded to 10ms to avoid compiler fp drift
-      dt, &  ! f8.4
-      minTemp, maxTemp, AverageTemp, minVertVel, maxVertVel, AverageVertVel, & ! 6f9.1
-      f107, f107A, By, Bz, Vx, &  ! 5f7.1
+    ! Format: (i8,i5,5i3,i4,f8.3,26f10.3)
+    !   i8        — iStep
+    !   i5,5i3,i4 — yyyy mm dd HH MM SS ms (ms rounded to 10ms to avoid fp drift)
+    !   f8.3      — dt
+    !   6f10.3    — min/max/mean temperature (K), min/max/mean vertical velocity (m/s)
+    !   5f10.3    — F107, F107A, By (nT), Bz (nT), Vx (km/s)
+    !   9f10.3    — HP, HPn, HPs, HPn_diff, HPs_diff, HPn_w, HPs_w, HPn_m, HPs_m (GW)
+    !   2f10.3    — CPCPn, CPCPs (kV)
+    !   3f10.3    — SubsolarLon (deg), SubsolarLat (deg), SubsolarVTEC (TECU)
+    write(iLogFileUnit_, "(i8,i5,5i3,i4,f8.3,26f10.3)") &
+      iStep, iTimeArray(1:6), floor(iTimeArray(7)/10.0)*10, &
+      dt, &
+      minTemp, maxTemp, AverageTemp, minVertVel, maxVertVel, AverageVertVel, &
+      f107, f107A, By, Bz, Vx, &
       Hpi, HPn/1.0e9, HPs/1.0e9, &
-      HPn_d/1.0e9, HPs_d/1.0e9, HPn_w/1.0e9, HPs_w/1.0e9, HPn_m/1.0e9, HPs_m/1.0e9, & ! 9f8.1
-      CPCPn, CPCPs, & ! 2f7.1
-      SSLon, SSLat, SSVTEC   ! 3f8.3
+      HPn_d/1.0e9, HPs_d/1.0e9, HPn_w/1.0e9, HPs_w/1.0e9, HPn_m/1.0e9, HPs_m/1.0e9, &
+      CPCPn, CPCPs, &
+      SSLon, SSLat, SSVTEC
 
     call flush_unit(iLogFileUnit_)
   endif
