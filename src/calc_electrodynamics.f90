@@ -1499,7 +1499,10 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
   !!!  write(*,*) "Uhepta"
   call Uhepta(.true., nX, 1, nMagLons, nX, b, f_I, f1_I)
 
-  MaxIteration = 200      !good enough
+  ! Use local copies because gmres modifies Tol (intent(inout))
+  MaxIteration = nItersMax
+  Residual = MaxResidual
+
   nIteration = 0
   iError = 0
   if (iDebugLevel > 2) then
@@ -1508,8 +1511,6 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
     DoTestMe = .false.
   endif
 
-  Residual = 1.0    !! Residual = 1.0 iterations required ~ 103
-             !! with Residual=0.01,only 20 more iterations are required (~ 122)
   call gmres(matvec_gitm, b, x, .true., nX, &
              MaxIteration, Residual, 'abs', nIteration, iError, DoTestMe)
 
