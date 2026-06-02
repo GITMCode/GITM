@@ -247,12 +247,6 @@ contains
         write(iUnit, "(I7,A)") nLons, " nLongitudes"
         write(iUnit, *) " "
         write(iUnit, *) "NO GHOSTCELLS"
-      elseif (cType(3:5) == "GEL" .or. cType(3:5) == "TEC" .or. &
-              cType(1:5) == "2DANC" .or. cType(3:5) == "HME") then
-        write(iUnit, "(I7,A)") nLats, " nLatitude"
-        write(iUnit, "(I7,A)") nLons, " nLongitudes"
-        write(iUnit, *) " "
-        write(iUnit, *) "NO GHOSTCELLS"
       else
         write(iUnit, "(I7,7A)") nLats + nGCs*2, " nLatitudes"
         write(iUnit, "(I7,7A)") nLons + nGCs*2, " nLongitudes"
