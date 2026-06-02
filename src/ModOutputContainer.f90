@@ -49,6 +49,11 @@ module ModOutputContainer
     logical                     :: this_rank_writes = .false.
     logical                     :: any_rank_skips   = .false.  ! set at file open via allreduce
     logical                     :: schema_locked    = .false.  ! true after open_file
+    ! Per-type ghost cell width (per side). Default 0 = interior-only outputs.
+    ! Set to 2 in define_schema_<type> to include GITM's ghost cells in legacy/mpiio
+    ! output; netcdf backend strips them automatically for GEO_* gridKinds.
+    ! When > 0, every variable's spatial dims must be padded by 2*nGhostCells.
+    integer                     :: nGhostCells = 0
   contains
     procedure :: define_var
     procedure :: prepare

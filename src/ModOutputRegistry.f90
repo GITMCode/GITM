@@ -302,7 +302,7 @@ contains
   subroutine register_3dthm()
     type(OutputTypeInfo), pointer :: info
 
-    call new_output_type('3DTHM', 3, 2, info)
+    call new_output_type('3DTHM', 3, 0, info)
     call add_coord_vars(info)
     call add_var(info, 'EUV Heating (K/s)', 'K/s', 'Q_euv', 'EUV heating rate')
     call add_var(info, 'Conduction (K/s)', 'K/s', 'Q_cond', 'Thermal conduction heating rate')
@@ -327,7 +327,7 @@ contains
   subroutine register_3dchm()
     type(OutputTypeInfo), pointer :: info
 
-    call new_output_type('3DCHM', 3, 2, info)
+    call new_output_type('3DCHM', 3, 0, info)
     call add_coord_vars(info)
     call add_var(info, 'N2+ + e', '/m3/s', 'R_N2p_e', 'N2+ + e recombination rate')
     call add_var(info, 'O2+ + e', '/m3/s', 'R_O2p_e', 'O2+ + e recombination rate')
@@ -435,7 +435,7 @@ contains
   subroutine register_3dmoh()
     type(OutputTypeInfo), pointer :: info
 
-    call new_output_type('3DMOH', 3, 2, info)
+    call new_output_type('3DMOH', 3, 0, info)
     call add_coord_vars(info)
     call add_var(info, 'Rho (kg/m3)', 'kg/m3', 'rho', 'Total neutral mass density')
     call add_var(info, 'Vn_east (m/s)', 'm/s', 'Ve', 'Eastward neutral wind')
@@ -469,7 +469,7 @@ contains
     type(OutputTypeInfo), pointer :: info
     integer :: i
 
-    call new_output_type('3DMOV', 3, 2, info)
+    call new_output_type('3DMOV', 3, 0, info)
     call add_coord_vars(info)
     do i = 1, nSpecies
       call add_var(info, 'Vr_'//trim(cSpecies(i))//' (m/s)', 'm/s', &

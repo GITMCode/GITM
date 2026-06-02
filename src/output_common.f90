@@ -513,9 +513,6 @@ subroutine output(dir, iBlock, iOutputType)
 
   !! Now write the header file (skipped for backends where metadata lives in the data file)
 
-  ! Container-backed types have no ghost cells in their output; override nGCs so
-  ! the header reports 0 ghost cells and the Python reader does not try to strip them.
-  if (uses_container) nGCs = 0
 
   if (ActiveBackend%writes_header .and. &
       ((iProc == 0 .and. iBlock == nBlocks) .or. iOutputType <= -1)) then
