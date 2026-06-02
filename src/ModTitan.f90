@@ -138,6 +138,12 @@ module ModPlanet
   real, parameter :: RBody = R_Titan
   real, parameter :: DipoleStrength = DP_Titan
 
+  real :: MagneticPoleTilt = 0.0
+  real :: MagneticPoleRotation = 0.0
+  real :: xDipoleCenter = 0.0
+  real :: yDipoleCenter = 0.0
+  real :: zDipoleCenter = 0.0
+
   real, parameter :: OMEGABody = 2.00*pi/Rotation_Period  ! rad/s
 
   real, parameter :: HoursPerDay = Rotation_Period/3600.0

@@ -212,11 +212,7 @@ module ModInputs
 
   logical :: UseGswmComp(4) = .true.
 
-  real :: MagneticPoleRotation = 0.0
-  real :: MagneticPoleTilt = 0.0
-  real :: xDipoleCenter = 0.0
-  real :: yDipoleCenter = 0.0
-  real :: zDipoleCenter = 0.0
+
 
   logical :: IsFixedTilt = .false.
 
