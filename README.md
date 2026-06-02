@@ -9,7 +9,7 @@ on Linux and MacOS as well as ifort on NASA's Pleiades computer.
 
 For the complete documentation, see [GITM's Read the Docs Page](https://gitm.readthedocs.io).
 
-GITM's stable version is the main branch, which is downloaded by default.  If you want the latest changes, but are ok with possibly unstable code, you can use the 'develop' version, which is described below.  If you don't know what you are doing, please just use the main version (i.e., don't checkout a different branch).
+GITM's stable version is the main branch, which is downloaded by default.  If you want the latest changes, you can use the 'develop' version, which is described below.  If you don't know what you are doing, please just use the main version (i.e., don't checkout a different branch).
 
 ## Quick Start
 
@@ -30,11 +30,11 @@ Substitute the URL with the `https` link from the "Code" button above if you do 
 cd GITM
 ```
 
-(if you want/need to change to a different branch, do that here with the command:
+If you want/need to change to a different branch, do that now with the command:
 ```shell
 git checkout develop
 ```
-but, again, we don't recommend this unless you know what you are doing!)
+but, again, we don't recommend this unless you know what you are doing!
 
 3\. Configure the Fortran compiler and download the external electrodynamics library (the install should do this automagically):
 
@@ -46,18 +46,18 @@ The above command is that it assumes that you have a working gfortran compiler a
 things like mpif90 work ok.  If you don't have gfortran and mpif90, then you need
 to get these things for your computer. 
 
-> `Config.pl` should automatically determine your gfortran version since gfortran>=10 needs
-> to use different compilation commands than versions 9 and below.
+> `Config.pl` should automatically determine your gfortran version.
 > If you notice that `Config.pl` does not detect the correct gfortran version, set
 > `-compiler=gfortran` if you have gfortran <10 or `-compiler=gfortran10` for 
-> gfortran>=10
+> gfortran>=10. This is nexessary because gfortran>=10 uses different compilation
+> commands than versions 9 and below.
 
 In theory, Mars, Venus, Titan, and LV-426 should work.  These are in
 various states of completion, so I wouldn't count on them being
 perfect. To configure with one of these, simple use the planet as
 an option (like '-venus', instead of '-earth)'.
 
-If running on Pleiades, you need to have these
+If running on a NASA HECC system, you may need to have these
 in your start-up script (.cshrc, .bashrc, etc):
 
 ```
