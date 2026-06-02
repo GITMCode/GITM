@@ -49,7 +49,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
   real :: kpm_s, klm_s, xstretch, ystretch
   real :: sinIm, spp, sll, shh, scc, sccline, sppline, sllline, shhline, be3
 
-  real :: q2, dju, dl, cD, ReferenceAlt
+  real :: q2, dju, dl, cD, ReferenceAlt, bE, bN, bU
 
   real :: magloctime_local(0:nLons + 1, 0:nLats + 1)
 
@@ -436,27 +436,39 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
                          (sigmap_d1d2_d(i, j, k) + sigmah(i, j, k))* &
                          (Ed1(i, j, k) + ue2(i, j, k)*b0_be3(i, j, k, iBlock))
 
+          ! General conductivity tensor in geographic (East,North,Up)
+          ! coordinates, from Richmond (1995) Eq. (2.1):
+          !   J = sigma_P F + sigma_H (b x F) + sigma_0 b(b.F)
+          ! Uses full (bE,bN,bU) to handle magnetic declination.
+
+          bE = B0(i, j, k, iEast_, iBlock)/B0(i, j, k, iMag_, iBlock)
+          bN = B0(i, j, k, iNorth_, iBlock)/B0(i, j, k, iMag_, iBlock)
+          bU = B0(i, j, k, iUp_, iBlock)/B0(i, j, k, iMag_, iBlock)
+
           SigmaR(i, j, k, iEast_, iEast_) = &
-            Sigma_Pedersen(i, j, k)
+            Sigma_Pedersen(i, j, k)*(1.0 - bE*bE) + Sigma_0(i, j, k)*bE*bE
           SigmaR(i, j, k, iEast_, iNorth_) = &
-            -Sigma_Hall(i, j, k)*sin(DipAngle(i, j, k, iBlock))
+            (Sigma_0(i, j, k) - Sigma_Pedersen(i, j, k))*bE*bN - &
+            Sigma_Hall(i, j, k)*bU
           SigmaR(i, j, k, iEast_, iUp_) = &
-            Sigma_Hall(i, j, k)*cos(DipAngle(i, j, k, iBlock))
+            (Sigma_0(i, j, k) - Sigma_Pedersen(i, j, k))*bE*bU + &
+            Sigma_Hall(i, j, k)*bN
           SigmaR(i, j, k, iNorth_, iEast_) = &
-            -SigmaR(i, j, k, iEast_, iNorth_)
+            (Sigma_0(i, j, k) - Sigma_Pedersen(i, j, k))*bE*bN + &
+            Sigma_Hall(i, j, k)*bU
           SigmaR(i, j, k, iNorth_, iNorth_) = &
-            Sigma_Pedersen(i, j, k)*sin(DipAngle(i, j, k, iBlock))**2 + &
-            Sigma_0(i, j, k)*cos(DipAngle(i, j, k, iBlock))**2
+            Sigma_Pedersen(i, j, k)*(1.0 - bN*bN) + Sigma_0(i, j, k)*bN*bN
           SigmaR(i, j, k, iNorth_, iUp_) = &
-            (Sigma_0(i, j, k) - Sigma_Pedersen(i, j, k))* &
-            sin(DipAngle(i, j, k, iBlock))*cos(DipAngle(i, j, k, iBlock))
+            (Sigma_0(i, j, k) - Sigma_Pedersen(i, j, k))*bN*bU - &
+            Sigma_Hall(i, j, k)*bE
           SigmaR(i, j, k, iUp_, iEast_) = &
-            -SigmaR(i, j, k, iEast_, iUp_)
+            (Sigma_0(i, j, k) - Sigma_Pedersen(i, j, k))*bE*bU - &
+            Sigma_Hall(i, j, k)*bN
           SigmaR(i, j, k, iUp_, iNorth_) = &
-            SigmaR(i, j, k, iNorth_, iUp_)
+            (Sigma_0(i, j, k) - Sigma_Pedersen(i, j, k))*bN*bU + &
+            Sigma_Hall(i, j, k)*bE
           SigmaR(i, j, k, iUp_, iUp_) = &
-            Sigma_Pedersen(i, j, k)*cos(DipAngle(i, j, k, iBlock))**2 + &
-            Sigma_0(i, j, k)*sin(DipAngle(i, j, k, iBlock))**2
+            Sigma_Pedersen(i, j, k)*(1.0 - bU*bU) + Sigma_0(i, j, k)*bU*bU
         enddo
       enddo
     enddo
