@@ -11,7 +11,7 @@ subroutine UA_fill_electrodynamics(UAr2_fac, UAr2_ped, UAr2_hal, &
   real, dimension(nMagLons + 1, nMagLats), intent(out) :: &
     UAr2_fac, UAr2_ped, UAr2_hal, UAr2_lats, UAr2_mlts
 
-  UAr2_Fac = DivJuAltMC
+  UAr2_Fac = DivJuFieldLineMC
   UAr2_Ped = SigmaPedersenMC
   UAr2_Hal = SigmaHallMC
   UAr2_lats = MagLatMC
@@ -104,7 +104,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
     nMagLats = (2*DynamoHighLatBoundary)/MagLatRes + 1
     nMagLons = 360.0/MagLonRes
 
-    allocate(DivJuAltMC(nMagLons + 1, nMagLats), &
+    allocate(DivJuFieldLineMC(nMagLons + 1, nMagLats), &
              SigmaHallMC(nMagLons + 1, nMagLats), &
              SigmaPedersenMC(nMagLons + 1, nMagLats), &
              SigmaLLMC(nMagLons + 1, nMagLats), &
@@ -148,7 +148,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
              SmallPotentialMC(nMagLons + 1, 2), &
              stat=iError)
 
-    DivJuAltMC = 0.0
+    DivJuFieldLineMC = 0.0
     SigmaHallMC = 0.0
     SigmaPedersenMC = 0.0
     SigmaLLMC = 0.0
@@ -195,7 +195,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
     OldPotMC = 0.0
 
     if (iError /= 0) then
-      call stop_gitm("Error allocating array DivJuAltMC")
+      call stop_gitm("Error allocating array DivJuFieldLineMC")
     endif
 
     date = iStartTime(1) + float(iJulianDay)/float(jday(iStartTime(1), 12, 31))
@@ -327,7 +327,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
   ! Lat is in degrees = -90 - 90
   !/
 
-  DivJuAltMC = -1.0e32
+  DivJuFieldLineMC = -1.0e32
   SigmaHallMC = 0.0
   SigmaPedersenMC = 0.0
   LengthMC = -1.0e32
@@ -339,7 +339,6 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
   SigmaPPMC = 0.0
   SigmaLPMC = -1.0e32
   SigmaPLMC = -1.0e32
-  DivJuAltMC = -1.0e32
 
   UAi_nLats = nMagLats
   UAi_nMlts = nMagLons + 1
@@ -772,7 +771,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
 
     call calc_mltlocal
 
-    DivJuAltMC = -1.0e32
+    DivJuFieldLineMC = -1.0e32
     SigmaHallMC = -1.0e32  !0.0
     SigmaPedersenMC = -1.0e32  !0.0
     LengthMC = -1.0e32  !0.0
@@ -803,7 +802,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
 
         if (length > 0) then
 
-          DivJuAltMC(i, j) = jul
+          DivJuFieldLineMC(i, j) = jul
           SigmaHallMC(i, j) = shl
           SigmaPedersenMC(i, j) = spl
           LengthMC(i, j) = length
@@ -843,7 +842,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
   if (iDebugLevel > 2) write(*, *) "===> Beginning Sum of Electrodynamics"
   if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
 
-  DivJuAltMC(nMagLons + 1, :) = DivJuAltMC(1, :)
+  DivJuFieldLineMC(nMagLons + 1, :) = DivJuFieldLineMC(1, :)
   SigmaHallMC(nMagLons + 1, :) = SigmaHallMC(1, :)
   SigmaPedersenMC(nMagLons + 1, :) = SigmaPedersenMC(1, :)
   LengthMC(nMagLons + 1, :) = LengthMC(1, :)
@@ -863,8 +862,8 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
 
   bs = nMagLats*(nMagLons + 1)
 
-  MagBufferMC = DivJuAltMC
-  call MPI_AllREDUCE(MagBufferMC, DivJuAltMC, &
+  MagBufferMC = DivJuFieldLineMC
+  call MPI_AllREDUCE(MagBufferMC, DivJuFieldLineMC, &
                      bs, MPI_REAL, MPI_MAX, iCommGITM, iError)
 
   MagBufferMC = SigmaHallMC

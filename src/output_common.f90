@@ -1826,7 +1826,7 @@ subroutine output_2dmel(iBlock)
         GeoLonMC(iLon, iLat), &
         SigmaPedersenMC(iLon, iLat), &
         SigmaHallMC(iLon, iLat), &
-        DivJuAltMC(iLon, iLat), &
+        DivJuFieldLineMC(iLon, iLat), &
         LengthMC(iLon, iLat), &
         SigmaPPMC(iLon, iLat), &
         SigmaLLMC(iLon, iLat), &

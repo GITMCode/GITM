@@ -23,7 +23,7 @@ module ModElectrodynamics
   real, dimension(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2) :: ed1, ed2, je1, je2
 
   ! This is the field aligned integral in magnetic coordinates
-  real, dimension(:, :), allocatable :: DivJuAltMC
+  real, dimension(:, :), allocatable :: DivJuFieldLineMC
 
   ! These are the conductances in magnetic coordinates
   real, dimension(:, :), allocatable :: SigmaHallMC
