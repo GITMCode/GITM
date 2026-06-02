@@ -661,7 +661,8 @@ contains
   ! from the first axis var encountered for each axis, at the block's offset.
   ! ---------------------------------------------------------------------------
   subroutine netcdf_write_container(c, iBlock, iTimeArray)
-    use ModOutputContainer, only: OutputContainer, output_kind, GRID_GEO_3D, GRID_MAG_2D
+    use ModOutputContainer, only: OutputContainer, output_kind, &
+                                  GRID_GEO_3D, GRID_GEO_2D, GRID_MAG_2D, GRID_HIME
 #ifdef HavePNetCDF
     use ModInputs, only: UseNetcdfMultiTime
 #endif
@@ -674,14 +675,23 @@ contains
     integer(kind=MPI_OFFSET_KIND) :: start(4), cnt(4), cstart(1), ccnt(1)
     integer :: nX, nY, nZ, i, ix, iy, iz, iAxis, ierr
     integer :: iBlockLon_0, iBlockLat_0
-    logical :: is3d
+    integer :: nGC, ax_lo, ay_lo, az_lo
+    logical :: is3d, doStrip
     real(kind=8), allocatable :: buf2d(:, :), buf3d(:, :, :), coord1d(:)
 
     if (.not. c%this_rank_writes) return
     if (ncid == -1) return
     if (c%nVars == 0) return
 
-    ! Derive grid dims from non-axis vars.
+    ! Ghost cell stripping: netcdf writes interior only for geographic grids.
+    ! Magnetic grids (GRID_MAG_2D) have no ghost concept and are never stripped.
+    doStrip = (c%nGhostCells > 0) .and. &
+              (c%gridKind == GRID_GEO_2D .or. c%gridKind == GRID_GEO_3D &
+               .or. c%gridKind == GRID_HIME)
+    nGC = merge(c%nGhostCells, 0, doStrip)
+
+    ! Derive grid dims from non-axis vars.  Container shapes include any ghost
+    ! padding; subtract it here so nX/nY/nZ are interior sizes (the on-disk shape).
     nX = 0; nY = 0; nZ = 0
     do i = 1, c%nVars
       if (.not. c%vars(i)%is_axis) then
@@ -691,6 +701,14 @@ contains
       end if
     end do
     if (nX == 0 .or. nY == 0 .or. nZ == 0) return
+    nX = nX - 2*nGC
+    nY = nY - 2*nGC
+    nZ = nZ - 2*nGC
+
+    ! Lower-bound offsets into container storage when stripping (1-based slice start).
+    ax_lo = nGC + 1
+    ay_lo = nGC + 1
+    az_lo = nGC + 1
 
     is3d = (c%gridKind == GRID_GEO_3D)
 
@@ -737,14 +755,14 @@ contains
             ! Longitude axis: replicate along Y and Z.
             do iz = 1, nZ
               do iy = 1, nY
-                buf3d(:, iy, iz) = real(c%vars(i)%data(:, 1, 1), kind=8)
+                buf3d(:, iy, iz) = real(c%vars(i)%data(ax_lo:ax_lo+nX-1, 1, 1), kind=8)
               end do
             end do
           else
             ! Latitude axis: replicate along X and Z.
             do iz = 1, nZ
               do ix = 1, nX
-                buf3d(ix, :, iz) = real(c%vars(i)%data(:, 1, 1), kind=8)
+                buf3d(ix, :, iz) = real(c%vars(i)%data(ay_lo:ay_lo+nY-1, 1, 1), kind=8)
               end do
             end do
           end if
@@ -752,20 +770,23 @@ contains
           if (iAxis == 1) then
             ! Longitude axis: replicate along Y.
             do iy = 1, nY
-              buf2d(:, iy) = real(c%vars(i)%data(:, 1, 1), kind=8)
+              buf2d(:, iy) = real(c%vars(i)%data(ax_lo:ax_lo+nX-1, 1, 1), kind=8)
             end do
           else
             ! Latitude axis: replicate along X.
             do ix = 1, nX
-              buf2d(ix, :) = real(c%vars(i)%data(:, 1, 1), kind=8)
+              buf2d(ix, :) = real(c%vars(i)%data(ay_lo:ay_lo+nY-1, 1, 1), kind=8)
             end do
           end if
         end if
       else
         if (is3d) then
-          buf3d = real(c%vars(i)%data(:, :, :), kind=8)
+          buf3d = real(c%vars(i)%data(ax_lo:ax_lo+nX-1, &
+                                      ay_lo:ay_lo+nY-1, &
+                                      az_lo:az_lo+nZ-1), kind=8)
         else
-          buf2d = real(c%vars(i)%data(:, :, 1), kind=8)
+          buf2d = real(c%vars(i)%data(ax_lo:ax_lo+nX-1, &
+                                      ay_lo:ay_lo+nY-1, 1), kind=8)
         end if
       end if
 
@@ -816,7 +837,7 @@ contains
       ccnt(1) = int(nX, MPI_OFFSET_KIND)
       cstart(1) = start(1)
       allocate(coord1d(nX))
-      coord1d = real(c%vars(1)%data(1:nX, 1, 1), kind=8)
+      coord1d = real(c%vars(1)%data(ax_lo:ax_lo+nX-1, 1, 1), kind=8)
       if (nc_needsIndepWrite) then
         ierr = nfmpi_put_vara_double(ncid, coordids(1), cstart, ccnt, coord1d)
       else
@@ -828,7 +849,7 @@ contains
       ccnt(1) = int(nY, MPI_OFFSET_KIND)
       cstart(1) = start(2)
       allocate(coord1d(nY))
-      coord1d = real(c%vars(2)%data(1:nY, 1, 1), kind=8)
+      coord1d = real(c%vars(2)%data(ay_lo:ay_lo+nY-1, 1, 1), kind=8)
       if (nc_needsIndepWrite) then
         ierr = nfmpi_put_vara_double(ncid, coordids(2), cstart, ccnt, coord1d)
       else
@@ -841,7 +862,7 @@ contains
         ccnt(1) = int(nZ, MPI_OFFSET_KIND)
         cstart(1) = 1_MPI_OFFSET_KIND
         allocate(coord1d(nZ))
-        coord1d = real(c%vars(3)%data(1, 1, 1:nZ), kind=8) / 1000.0d0
+        coord1d = real(c%vars(3)%data(ax_lo, ay_lo, az_lo:az_lo+nZ-1), kind=8) / 1000.0d0
         if (nc_needsIndepWrite) then
           ierr = nfmpi_put_vara_double(ncid, coordids(3), cstart, ccnt, coord1d)
         else

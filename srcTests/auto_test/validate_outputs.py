@@ -67,7 +67,7 @@ def validate_variable(name, vals, is_regional=False):
         max_abs = float(np.abs(flat).max())
         passed = log_check(
             f"'{name}' in degrees (not radians)",
-            max_abs > 3.15,
+            max_abs > 7.,
             f"max_abs={max_abs:.3f}"
         ) and passed
 
@@ -80,12 +80,14 @@ def validate_variable(name, vals, is_regional=False):
             f"min={vmin:.3f} max={vmax:.3f}"
         ) and passed
 
-    # --- Longitude bounds [-370, 370] ---
+    # --- Longitude bounds [-210, 400] ---
+    # Set to account for +/- 180 deg range and 0-360 range
+    # At "default" resolution, the two ghost cells extend 30 deg past 0-360
     elif 'lon' in name_lower:
         vmin, vmax = float(flat.min()), float(flat.max())
         passed = log_check(
-            f"'{name}' longitude bounds [-370, 370]",
-            vmin >= -370.0 and vmax <= 370.0,
+            f"'{name}' longitude bounds [-210, 400]",
+            vmin >= -220.0 and vmax <= 400.0,
             f"min={vmin:.3f} max={vmax:.3f}"
         ) and passed
 
