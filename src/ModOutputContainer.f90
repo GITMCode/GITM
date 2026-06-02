@@ -259,7 +259,7 @@ contains
     if (s1 /= this%vars(idx)%shape3(1) .or. &
         s2 /= this%vars(idx)%shape3(2) .or. &
         s3 /= this%vars(idx)%shape3(3)) then
-      write(*, '(a,a,a,3(i0,a),a,3(i0,a))') &
+      write(*, '(a,a,a,3(i0,a),3(i0,a))') &
         'ModOutputContainer: put_3d shape mismatch for "', trim(name), '": expected ', &
         this%vars(idx)%shape3(1), 'x', this%vars(idx)%shape3(2), 'x', &
         this%vars(idx)%shape3(3), ', got ', s1, 'x', s2, 'x', s3, ''
