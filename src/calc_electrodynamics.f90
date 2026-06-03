@@ -734,7 +734,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
               else
                 if (GeoAlt > Altitude_GB(iLon, iLat, iAlt + 1, iBlock)) &
                   iAlt = iAlt + 1
-                xAlt = (GeoAlt - Altitude_GB(iLon, iLat, iAlt, iBlock))/ &
+                xAlt = (Altitude_GB(iLon, iLat, iAlt + 1, iBlock) - GeoAlt)/ &
                        (Altitude_GB(iLon, iLat, iAlt + 1, iBlock) &
                         - Altitude_GB(iLon, iLat, iAlt, iBlock))
                 GeoLat = GeoLat + signz*xmag/bmag*len/(RBody + GeoAlt)
