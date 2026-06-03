@@ -212,8 +212,6 @@ module ModInputs
 
   logical :: UseGswmComp(4) = .true.
 
-
-
   logical :: IsFixedTilt = .false.
 
   !\

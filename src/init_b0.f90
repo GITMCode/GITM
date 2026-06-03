@@ -108,8 +108,8 @@ subroutine init_b0
   if (UseApex .and. IsEarth) then
     call dypol(MagneticPoleColat, MagneticPoleLon, MagneticPoleStrength)
   else if (IsEarth) then
-    MagneticPoleColat = MagneticPoleTilt * 180.0/pi
-    MagneticPoleLon = MagneticPoleRotation * 180.0/pi
+    MagneticPoleColat = MagneticPoleTilt*180.0/pi
+    MagneticPoleLon = MagneticPoleRotation*180.0/pi
   endif
 
   !    GyroFrequency_Electron(:,:,:,iBlock) = &

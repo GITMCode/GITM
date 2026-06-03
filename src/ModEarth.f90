@@ -80,8 +80,8 @@ module ModPlanet
 
   ! Approximate IGRF 2000 epoch values; used when UseApex=F.
   ! Override at runtime with #DIPOLE in UAM.in.
-  real :: MagneticPoleTilt     = 11.5 * pi / 180.0   ! rad, colatitude of dipole N pole
-  real :: MagneticPoleRotation = 289.1 * pi / 180.0  ! rad, E longitude of dipole N pole
+  real :: MagneticPoleTilt = 11.5*pi/180.0   ! rad, colatitude of dipole N pole
+  real :: MagneticPoleRotation = 289.1*pi/180.0  ! rad, E longitude of dipole N pole
   real :: xDipoleCenter = 0.0   ! m
   real :: yDipoleCenter = 0.0   ! m
   real :: zDipoleCenter = 0.0   ! m
