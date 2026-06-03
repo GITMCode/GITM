@@ -1553,7 +1553,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
       Ed1new(i, j) = -(1/(RBody*cos(MagLatMC(i, j)*pi/180)))* &
                      0.5*(DynamoPotentialMC(i + 1, j) - DynamoPotentialMC(i - 1, j))/deltapmc(i, j)
     enddo
-    Ed1new(1, j) = -(1/(RBody*cos(MagLatMC(i, j)*pi/180)))* &
+    Ed1new(1, j) = -(1/(RBody*cos(MagLatMC(1, j)*pi/180)))* &
                    (DynamoPotentialMC(2, j) - DynamoPotentialMC(1, j))/deltapmc(1, j)
     Ed1new(nMagLons + 1, j) = Ed1new(1, j)
   enddo
