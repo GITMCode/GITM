@@ -12,16 +12,23 @@ include ../Makefile.def
 include Makefile.DEPEND
 include Makefile.RULES
 
-PNETCDF_INC  = $(shell pnetcdf-config --includedir 2>/dev/null)
-PNETCDF_LIB  = $(shell pnetcdf-config --libdir 2>/dev/null)
-PNETCDF_LINK = $(if $(PNETCDF_LIB),-L$(PNETCDF_LIB) -lpnetcdf -Wl$(comma)-rpath$(comma)$(PNETCDF_LIB),)
-PNETCDF_DEFS = $(if $(PNETCDF_LIB),-DHavePNetCDF,)
-Lflag1      += $(PNETCDF_LINK)
-# INCL_EXTRA feeds into CFLAG -> Cflag3 (compile-time include search path)
-INCL_EXTRA  += $(if $(PNETCDF_INC),-I$(PNETCDF_INC),)
-# CFLAG carries -DHavePNetCDF into all compilation units
-# (harmless to non-NetCDF files & works for all opt levels)
-CFLAG      += $(PNETCDF_DEFS)
+
+# Auto-detect pnetcdf via pnetcdf-config on PATH. No effect if not installed.
+# Keep in sync with CON/Control/src/Makefile in the SWMF tree (if possible).
+# := so pnetcdf-config runs once at parse time, not on every expansion.
+# Hardcode -lpnetcdf rather than `pnetcdf-config --libs`: some installs
+# drop -lpnetcdf from  --libs.
+PNETCDF_INCDIR := $(shell pnetcdf-config --includedir 2>/dev/null)
+PNETCDF_LIBDIR := $(shell pnetcdf-config --libdir     2>/dev/null)
+PNETCDF_LINK   := $(if $(PNETCDF_LIBDIR),-L$(PNETCDF_LIBDIR) -lpnetcdf -Wl$(comma)-rpath$(comma)$(PNETCDF_LIBDIR),)
+PNETCDF_DEFS   := $(if $(PNETCDF_LIBDIR),-DHavePNetCDF,)
+# Lflag1 is GITM's link-flag accumulator; consumed by every ${LINK.f90} below.
+Lflag1         += $(PNETCDF_LINK)
+# INCL_EXTRA feeds into CFLAG -> Cflag{OPT} (compile-time include search path).
+INCL_EXTRA     += $(if $(PNETCDF_INCDIR),-I$(PNETCDF_INCDIR),)
+# CFLAG carries -DHavePNetCDF into all compilation units (harmless to non-NetCDF files).
+CFLAG          += $(PNETCDF_DEFS)
+
 
 SEARCH_EXTRA =  -I${ABDIR} \
 	 	-I${IODIR} \
