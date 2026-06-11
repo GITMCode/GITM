@@ -4,6 +4,9 @@ localdefault: help # default target
 
 DIR     = ${UADIR}
 
+DIRSFILE = ${UADIR}/Makefile.def
+BUILDDIR = ${UADIR}
+
 SCRIPTDIR = ${UADIR}/share/Scripts
 LIBDIR    = ${UADIR}/src
 RUNDIR    = ${UADIR}/run
