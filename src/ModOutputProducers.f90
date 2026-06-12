@@ -59,7 +59,214 @@ module ModOutputProducers
 
   logical :: containers_initialized = .false.
 
+  ! ---------------------------------------------------------------------------
+  ! USR variable registry — populated by register_usr_var() from user.f90 before
+  ! the first output timestep.  Coord vars (Longitude/Latitude/Altitude) are
+  ! always defined unconditionally in define_schema_*dusr and are NOT listed here.
+  ! ---------------------------------------------------------------------------
+  integer, parameter :: MaxUsrVars = 100
+
+  type :: UsrVarEntry
+    character(len=60) :: name     = ''
+    character(len=40) :: units    = ''
+    character(len=60) :: longName = ''
+  end type UsrVarEntry
+
+  type(UsrVarEntry) :: UsrVars3D(MaxUsrVars)
+  integer           :: nUsrVars3D = 0
+  type(UsrVarEntry) :: UsrVars2D(MaxUsrVars)
+  integer           :: nUsrVars2D = 0
+  type(UsrVarEntry) :: UsrVars1D(MaxUsrVars)
+  integer           :: nUsrVars1D = 0
+  type(UsrVarEntry) :: UsrVars0D(MaxUsrVars)
+  integer           :: nUsrVars0D = 0
+
+  ! Generic interface for storing user-defined output data.
+  ! Dispatches on array rank: 3D (lon×lat×alt), 2D (lon×lat), 1D (alt profile).
+  ! See add_usr_output_3d for full documentation.
+  interface add_usr_output
+    module procedure add_usr_output_3d
+    module procedure add_usr_output_2d
+    module procedure add_usr_output_1d
+  end interface add_usr_output
+
 contains
+
+  ! ---------------------------------------------------------------------------
+  ! register_usr_var — add one user-defined variable to the appropriate USR list.
+  ! Called from init_usr_output_registry in user.f90 before the first output.
+  ! dims: 3, 2, 1, or 0 (spatial dimensionality of the output type).
+  ! Coord vars (Longitude, Latitude, Altitude) must NOT be registered here;
+  ! they are defined unconditionally in each define_schema_*dusr.
+  ! ---------------------------------------------------------------------------
+  subroutine register_usr_var(dims, name, units, longName)
+    use ModUserGITM, only: nUserOutputs
+    integer, intent(in)          :: dims
+    character(len=*), intent(in) :: name, units
+    character(len=*), intent(in), optional :: longName
+    character(len=60) :: lName
+
+    lName = name
+    if (present(longName)) lName = longName
+
+    select case (dims)
+    case (3)
+      nUsrVars3D = nUsrVars3D + 1
+      if (nUsrVars3D > nUserOutputs) call stop_gitm("register_usr_var: too many 3DUSR vars — increase nUserOutputs")
+      if (nUsrVars3D > MaxUsrVars)   call stop_gitm("register_usr_var: nUsrVars3D exceeds MaxUsrVars")
+      UsrVars3D(nUsrVars3D) = UsrVarEntry(name, units, lName)
+    case (2)
+      nUsrVars2D = nUsrVars2D + 1
+      if (nUsrVars2D > nUserOutputs) call stop_gitm("register_usr_var: too many 2DUSR vars — increase nUserOutputs")
+      if (nUsrVars2D > MaxUsrVars)   call stop_gitm("register_usr_var: nUsrVars2D exceeds MaxUsrVars")
+      UsrVars2D(nUsrVars2D) = UsrVarEntry(name, units, lName)
+    case (1)
+      nUsrVars1D = nUsrVars1D + 1
+      if (nUsrVars1D > nUserOutputs) call stop_gitm("register_usr_var: too many 1DUSR vars — increase nUserOutputs")
+      if (nUsrVars1D > MaxUsrVars)   call stop_gitm("register_usr_var: nUsrVars1D exceeds MaxUsrVars")
+      UsrVars1D(nUsrVars1D) = UsrVarEntry(name, units, lName)
+    case (0)
+      nUsrVars0D = nUsrVars0D + 1
+      if (nUsrVars0D > nUserOutputs) call stop_gitm("register_usr_var: too many 0DUSR vars — increase nUserOutputs")
+      if (nUsrVars0D > MaxUsrVars)   call stop_gitm("register_usr_var: nUsrVars0D exceeds MaxUsrVars")
+      UsrVars0D(nUsrVars0D) = UsrVarEntry(name, units, lName)
+    end select
+  end subroutine register_usr_var
+
+  ! ---------------------------------------------------------------------------
+  ! find_usr_var_idx — return 1-based index of name in UsrVars*D, or -1.
+  ! ---------------------------------------------------------------------------
+  integer function find_usr_var_idx(dim, name) result(idx)
+    integer, intent(in)          :: dim
+    character(len=*), intent(in) :: name
+    integer :: i
+    idx = -1
+    select case (dim)
+    case (3)
+      do i = 1, nUsrVars3D
+        if (trim(UsrVars3D(i)%name) == trim(name)) then; idx = i; return; end if
+      end do
+    case (2)
+      do i = 1, nUsrVars2D
+        if (trim(UsrVars2D(i)%name) == trim(name)) then; idx = i; return; end if
+      end do
+    case (1)
+      do i = 1, nUsrVars1D
+        if (trim(UsrVars1D(i)%name) == trim(name)) then; idx = i; return; end if
+      end do
+    case (0)
+      do i = 1, nUsrVars0D
+        if (trim(UsrVars0D(i)%name) == trim(name)) then; idx = i; return; end if
+      end do
+    end select
+  end function find_usr_var_idx
+
+  ! ---------------------------------------------------------------------------
+  ! add_usr_output_3d — store a 3D (lon×lat×alt) user-defined field.
+  !
+  ! Call from physics code each timestep to provide data for 3DUSR output.
+  ! First call with a new name registers the variable; subsequent calls update
+  ! the stored data.  All new-name calls must occur before the first output
+  ! write — see init_usr_output_registry in user.f90.
+  !
+  ! Ghost cell detection (size(arr,1)):
+  !   nLons     — interior array, stored as-is
+  !   nLons+4   — ghost-inclusive array (2 ghosts each side), stripped to interior
+  !   anything else (incl. magnetic grid sizes) — stop_gitm
+  !
+  ! iBlock defaults to 1 when not supplied.
+  ! ---------------------------------------------------------------------------
+  subroutine add_usr_output_3d(arr, name, units, iBlock, longName)
+    use ModSizeGitm, only: nLons, nLats, nAlts
+    use ModUserGITM, only: UserData3D
+    use ModElectrodynamics, only: nMagLons, nMagLats
+    real, intent(in)                       :: arr(:,:,:)
+    character(len=*), intent(in)           :: name, units
+    integer, intent(in), optional          :: iBlock
+    character(len=*), intent(in), optional :: longName
+    integer :: iBlk, idx, n1
+
+    iBlk = 1; if (present(iBlock)) iBlk = iBlock
+    n1 = size(arr, 1)
+
+    if (n1 == nMagLons .or. n1 == nMagLons + 1) &
+      call stop_gitm("add_usr_output: magnetic grid arrays not supported ('"//trim(name)//"')")
+    if (n1 /= nLons .and. n1 /= nLons + 4) &
+      call stop_gitm("add_usr_output: unrecognized shape for '"//trim(name)//"' — pass (nLons,nLats,nAlts) or ghost-inclusive")
+
+    idx = find_usr_var_idx(3, name)
+    if (idx < 0) then
+      call register_usr_var(3, name, units, longName)
+      idx = find_usr_var_idx(3, name)
+    end if
+
+    if (n1 == nLons + 4) then
+      UserData3D(1:nLons, 1:nLats, 1:nAlts, idx, iBlk) = arr(3:nLons+2, 3:nLats+2, 3:nAlts+2)
+    else
+      UserData3D(1:nLons, 1:nLats, 1:nAlts, idx, iBlk) = arr
+    end if
+  end subroutine add_usr_output_3d
+
+  ! ---------------------------------------------------------------------------
+  ! add_usr_output_2d — store a 2D (lon×lat) user-defined field.
+  ! Ghost detection: nLons → interior; nLons+4 → ghost-inclusive, stripped.
+  ! ---------------------------------------------------------------------------
+  subroutine add_usr_output_2d(arr, name, units, iBlock, longName)
+    use ModSizeGitm, only: nLons, nLats
+    use ModUserGITM, only: UserData2D
+    use ModElectrodynamics, only: nMagLons, nMagLats
+    real, intent(in)                       :: arr(:,:)
+    character(len=*), intent(in)           :: name, units
+    integer, intent(in), optional          :: iBlock
+    character(len=*), intent(in), optional :: longName
+    integer :: iBlk, idx, n1
+
+    iBlk = 1; if (present(iBlock)) iBlk = iBlock
+    n1 = size(arr, 1)
+
+    if (n1 == nMagLons .or. n1 == nMagLons + 1) &
+      call stop_gitm("add_usr_output: magnetic grid arrays not supported ('"//trim(name)//"')")
+    if (n1 /= nLons .and. n1 /= nLons + 4) &
+      call stop_gitm("add_usr_output: unrecognized shape for '"//trim(name)//"' — pass (nLons,nLats) or ghost-inclusive")
+
+    idx = find_usr_var_idx(2, name)
+    if (idx < 0) then
+      call register_usr_var(2, name, units, longName)
+      idx = find_usr_var_idx(2, name)
+    end if
+
+    if (n1 == nLons + 4) then
+      UserData2D(1:nLons, 1:nLats, 1, idx, iBlk) = arr(3:nLons+2, 3:nLats+2)
+    else
+      UserData2D(1:nLons, 1:nLats, 1, idx, iBlk) = arr
+    end if
+  end subroutine add_usr_output_2d
+
+  ! ---------------------------------------------------------------------------
+  ! add_usr_output_1d — store a 1D (altitude profile) user-defined field.
+  ! Data is stored globally (not per-block); iBlock is accepted but ignored.
+  ! arr must have size nAlts.
+  ! ---------------------------------------------------------------------------
+  subroutine add_usr_output_1d(arr, name, units, iBlock, longName)
+    use ModSizeGitm, only: nAlts
+    use ModUserGITM, only: UserData1D
+    real, intent(in)                       :: arr(:)
+    character(len=*), intent(in)           :: name, units
+    integer, intent(in), optional          :: iBlock
+    character(len=*), intent(in), optional :: longName
+    integer :: idx
+
+    if (size(arr) /= nAlts) &
+      call stop_gitm("add_usr_output: 1D array must have size nAlts ('"//trim(name)//"')")
+
+    idx = find_usr_var_idx(1, name)
+    if (idx < 0) then
+      call register_usr_var(1, name, units, longName)
+      idx = find_usr_var_idx(1, name)
+    end if
+
+    UserData1D(1, 1, 1:nAlts, idx) = arr
+  end subroutine add_usr_output_1d
 
   ! ---------------------------------------------------------------------------
   ! init_output_containers — allocate and define schemas.  Called once.
@@ -2325,39 +2532,24 @@ contains
   end subroutine fill_1dnew
 
   ! ---------------------------------------------------------------------------
-  ! define_schema_3dusr — register dynamic user-defined variables for 3DUSR.
+  ! define_schema_3dusr — define variables for the 3DUSR container.
   ! ---------------------------------------------------------------------------
   subroutine define_schema_3dusr(c)
-    use ModGITM, only: nLons, nLats, nAlts
-    use ModOutputRegistry, only: find_output_type, RegisteredTypes
+    use ModSizeGitm, only: nLons, nLats, nAlts
     type(OutputContainer), intent(inout) :: c
-    integer :: nGC
-    integer :: idx, i
+    integer :: i
 
-    c%cType    = '3DUSR'
-    c%gridKind = GRID_GEO_3D
-    c%nGhostCells = 2
-    nGC = c%nGhostCells
+    c%cType       = '3DUSR'
+    c%gridKind    = GRID_GEO_3D
+    c%nGhostCells = 0
 
-    idx = find_output_type('3DUSR')
-    if (idx > 0) then
-      do i = 1, RegisteredTypes(idx)%nVars
-        if (trim(RegisteredTypes(idx)%vars(i)%name) == 'Longitude') then
-          call c%define_var('Longitude', units='degrees_east', shape3=[nLons + 2*nGC, 1, 1], is_axis=.true., &
-                            longName='Geographic longitude')
-        elseif (trim(RegisteredTypes(idx)%vars(i)%name) == 'Latitude') then
-          call c%define_var('Latitude', units='degrees_north', shape3=[nLats + 2*nGC, 1, 1], is_axis=.true., &
-                            longName='Geographic latitude')
-        elseif (trim(RegisteredTypes(idx)%vars(i)%name) == 'Altitude') then
-          call c%define_var('Altitude', units='m', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], longName='Altitude')
-        else
-          call c%define_var(trim(RegisteredTypes(idx)%vars(i)%name), &
-                            units=trim(RegisteredTypes(idx)%vars(i)%units), &
-                            shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], &
-                            longName=trim(RegisteredTypes(idx)%vars(i)%longName))
-        endif
-      enddo
-    endif
+    call c%define_var('Longitude', units='degrees_east',  shape3=[nLons, 1, 1],           is_axis=.true., longName='Geographic longitude')
+    call c%define_var('Latitude',  units='degrees_north', shape3=[nLats, 1, 1],           is_axis=.true., longName='Geographic latitude')
+    call c%define_var('Altitude',  units='m',             shape3=[nLons, nLats, nAlts],   longName='Altitude')
+    do i = 1, nUsrVars3D
+      call c%define_var(trim(UsrVars3D(i)%name), units=trim(UsrVars3D(i)%units), &
+                        shape3=[nLons, nLats, nAlts], longName=trim(UsrVars3D(i)%longName))
+    end do
   end subroutine define_schema_3dusr
 
   ! ---------------------------------------------------------------------------
@@ -2367,69 +2559,40 @@ contains
     use ModGITM
     use ModConst, only: cRadToDeg
     use ModUserGITM, only: UserData3D
-    use ModOutputRegistry, only: find_output_type, RegisteredTypes
     type(OutputContainer), intent(inout) :: c
-    integer :: nGC
     integer, intent(in) :: iBlock
-    integer :: idx, i, iv
+    integer :: i
 
     call c%prepare(iBlock)
     if (.not. c%this_rank_writes) return
-    nGC = c%nGhostCells
 
-    idx = find_output_type('3DUSR')
-    if (idx > 0) then
-      iv = 0
-      do i = 1, RegisteredTypes(idx)%nVars
-        if (trim(RegisteredTypes(idx)%vars(i)%name) == 'Longitude') then
-          call c%put('Longitude', real(Longitude(1-nGC:nLons+nGC, iBlock) * cRadToDeg, output_kind))
-        elseif (trim(RegisteredTypes(idx)%vars(i)%name) == 'Latitude') then
-          call c%put('Latitude',  real(Latitude(1-nGC:nLats+nGC, iBlock) * cRadToDeg, output_kind))
-        elseif (trim(RegisteredTypes(idx)%vars(i)%name) == 'Altitude') then
-          call c%put('Altitude',  real(Altitude_GB(1-nGC:nLons+nGC, 1-nGC:nLats+nGC, 1-nGC:nAlts+nGC, iBlock), output_kind))
-        else
-          iv = iv + 1
-          call c%put(trim(RegisteredTypes(idx)%vars(i)%name), &
-                     real(UserData3D(1-nGC:nLons+nGC, 1-nGC:nLats+nGC, 1-nGC:nAlts+nGC, iv, iBlock), output_kind))
-        endif
-      enddo
-    endif
+    call c%put('Longitude', real(Longitude(1:nLons, iBlock) * cRadToDeg, output_kind))
+    call c%put('Latitude',  real(Latitude(1:nLats, iBlock) * cRadToDeg, output_kind))
+    call c%put('Altitude',  real(Altitude_GB(1:nLons, 1:nLats, 1:nAlts, iBlock), output_kind))
+    do i = 1, nUsrVars3D
+      call c%put(trim(UsrVars3D(i)%name), real(UserData3D(1:nLons, 1:nLats, 1:nAlts, i, iBlock), output_kind))
+    end do
   end subroutine fill_3dusr
 
   ! ---------------------------------------------------------------------------
-  ! define_schema_2dusr — register dynamic user-defined variables for 2DUSR.
+  ! define_schema_2dusr — define variables for the 2DUSR container.
   ! ---------------------------------------------------------------------------
   subroutine define_schema_2dusr(c)
     use ModGITM, only: nLons, nLats
-    use ModOutputRegistry, only: find_output_type, RegisteredTypes
     type(OutputContainer), intent(inout) :: c
-    integer :: nGC
-    integer :: idx, i
+    integer :: i
 
-    c%cType    = '2DUSR'
-    c%gridKind = GRID_GEO_2D
+    c%cType       = '2DUSR'
+    c%gridKind    = GRID_GEO_2D
     c%nGhostCells = 0
-    nGC = c%nGhostCells
 
-    idx = find_output_type('2DUSR')
-    if (idx > 0) then
-      do i = 1, RegisteredTypes(idx)%nVars
-        if (trim(RegisteredTypes(idx)%vars(i)%name) == 'Longitude') then
-          call c%define_var('Longitude', units='degrees_east', shape3=[nLons + 2*nGC, 1, 1], is_axis=.true., &
-                            longName='Geographic longitude')
-        elseif (trim(RegisteredTypes(idx)%vars(i)%name) == 'Latitude') then
-          call c%define_var('Latitude', units='degrees_north', shape3=[nLats + 2*nGC, 1, 1], is_axis=.true., &
-                            longName='Geographic latitude')
-        elseif (trim(RegisteredTypes(idx)%vars(i)%name) == 'Altitude') then
-          call c%define_var('Altitude', units='m', shape3=[nLons + 2*nGC, nLats + 2*nGC, 1], longName='Altitude')
-        else
-          call c%define_var(trim(RegisteredTypes(idx)%vars(i)%name), &
-                            units=trim(RegisteredTypes(idx)%vars(i)%units), &
-                            shape3=[nLons + 2*nGC, nLats + 2*nGC, 1], &
-                            longName=trim(RegisteredTypes(idx)%vars(i)%longName))
-        endif
-      enddo
-    endif
+    call c%define_var('Longitude', units='degrees_east',  shape3=[nLons, 1, 1],    is_axis=.true., longName='Geographic longitude')
+    call c%define_var('Latitude',  units='degrees_north', shape3=[nLats, 1, 1],    is_axis=.true., longName='Geographic latitude')
+    call c%define_var('Altitude',  units='m',             shape3=[nLons, nLats, 1], longName='Altitude')
+    do i = 1, nUsrVars2D
+      call c%define_var(trim(UsrVars2D(i)%name), units=trim(UsrVars2D(i)%units), &
+                        shape3=[nLons, nLats, 1], longName=trim(UsrVars2D(i)%longName))
+    end do
   end subroutine define_schema_2dusr
 
   ! ---------------------------------------------------------------------------
@@ -2439,64 +2602,40 @@ contains
     use ModGITM
     use ModConst, only: cRadToDeg
     use ModUserGITM, only: UserData2D
-    use ModOutputRegistry, only: find_output_type, RegisteredTypes
     type(OutputContainer), intent(inout) :: c
-    integer :: nGC
     integer, intent(in) :: iBlock
-    integer :: idx, i, iv
+    integer :: i
 
     call c%prepare(iBlock)
     if (.not. c%this_rank_writes) return
-    nGC = c%nGhostCells
 
-    idx = find_output_type('2DUSR')
-    if (idx > 0) then
-      iv = 0
-      do i = 1, RegisteredTypes(idx)%nVars
-        if (trim(RegisteredTypes(idx)%vars(i)%name) == 'Longitude') then
-          call c%put('Longitude', real(Longitude(1-nGC:nLons+nGC, iBlock) * cRadToDeg, output_kind))
-        elseif (trim(RegisteredTypes(idx)%vars(i)%name) == 'Latitude') then
-          call c%put('Latitude',  real(Latitude(1-nGC:nLats+nGC, iBlock) * cRadToDeg, output_kind))
-        elseif (trim(RegisteredTypes(idx)%vars(i)%name) == 'Altitude') then
-          call c%put('Altitude',  real(Altitude_GB(1-nGC:nLons+nGC, 1-nGC:nLats+nGC, 1, iBlock), output_kind))
-        else
-          iv = iv + 1
-          call c%put(trim(RegisteredTypes(idx)%vars(i)%name), &
-                     real(UserData2D(1-nGC:nLons+nGC, 1-nGC:nLats+nGC, 1, iv, iBlock), output_kind))
-        endif
-      enddo
-    endif
+    call c%put('Longitude', real(Longitude(1:nLons, iBlock) * cRadToDeg, output_kind))
+    call c%put('Latitude',  real(Latitude(1:nLats, iBlock) * cRadToDeg, output_kind))
+    call c%put('Altitude',  real(Altitude_GB(1:nLons, 1:nLats, 1, iBlock), output_kind))
+    do i = 1, nUsrVars2D
+      call c%put(trim(UsrVars2D(i)%name), real(UserData2D(1:nLons, 1:nLats, 1, i, iBlock), output_kind))
+    end do
   end subroutine fill_2dusr
 
   ! ---------------------------------------------------------------------------
-  ! define_schema_1dusr — register variables for 1DUSR dynamically.
+  ! define_schema_1dusr — define variables for the 1DUSR container.
   ! ---------------------------------------------------------------------------
   subroutine define_schema_1dusr(c)
     use ModGITM, only: nAlts
-    use ModOutputRegistry, only: find_output_type, RegisteredTypes
     type(OutputContainer), intent(inout) :: c
-    integer :: idx, i
+    integer :: i
 
-    c%cType    = '1DUSR'
-    c%gridKind = GRID_GEO_2D
+    c%cType       = '1DUSR'
+    c%gridKind    = GRID_GEO_2D
+    c%nGhostCells = 0
 
-    idx = find_output_type('1DUSR')
-    if (idx > 0) then
-      do i = 1, RegisteredTypes(idx)%nVars
-        if (trim(RegisteredTypes(idx)%vars(i)%name) == 'Longitude') then
-          call c%define_var('Longitude', units='degrees_east', shape3=[nAlts, 1, 1], is_axis=.true.)
-        elseif (trim(RegisteredTypes(idx)%vars(i)%name) == 'Latitude') then
-          call c%define_var('Latitude', units='degrees_north', shape3=[nAlts, 1, 1], is_axis=.true.)
-        elseif (trim(RegisteredTypes(idx)%vars(i)%name) == 'Altitude') then
-          call c%define_var('Altitude', units='m', shape3=[nAlts, 1, 1])
-        else
-          call c%define_var(trim(RegisteredTypes(idx)%vars(i)%name), &
-                            units=trim(RegisteredTypes(idx)%vars(i)%units), &
-                            shape3=[nAlts, 1, 1], &
-                            longName=trim(RegisteredTypes(idx)%vars(i)%longName))
-        endif
-      enddo
-    endif
+    call c%define_var('Longitude', units='degrees_east',  shape3=[nAlts, 1, 1], is_axis=.true.)
+    call c%define_var('Latitude',  units='degrees_north', shape3=[nAlts, 1, 1], is_axis=.true.)
+    call c%define_var('Altitude',  units='m',             shape3=[nAlts, 1, 1])
+    do i = 1, nUsrVars1D
+      call c%define_var(trim(UsrVars1D(i)%name), units=trim(UsrVars1D(i)%units), &
+                        shape3=[nAlts, 1, 1], longName=trim(UsrVars1D(i)%longName))
+    end do
   end subroutine define_schema_1dusr
 
   ! ---------------------------------------------------------------------------
@@ -2506,70 +2645,49 @@ contains
     use ModGITM
     use ModConst, only: cRadToDeg
     use ModUserGITM, only: UserData1D
-    use ModOutputRegistry, only: find_output_type, RegisteredTypes
     type(OutputContainer), intent(inout) :: c
     integer, intent(in) :: iBlock, iiLon, iiLat
     real, intent(in) :: rLon, rLat
-    real(output_kind) :: tmp_lon(nAlts), tmp_lat(nAlts), tmp_data(nAlts)
-    integer :: idx, i, iv, iAlt
+    real(output_kind) :: tmp(nAlts)
+    integer :: i, iAlt
 
     call c%prepare(iBlock)
     if (.not. c%this_rank_writes) return
 
-    idx = find_output_type('1DUSR')
-    if (idx > 0) then
-      iv = 0
-      do i = 1, RegisteredTypes(idx)%nVars
-        if (trim(RegisteredTypes(idx)%vars(i)%name) == 'Longitude') then
-          tmp_lon = real((rLon * Longitude(iiLon, iBlock) + (1.0 - rLon) * Longitude(iiLon + 1, iBlock)) * cRadToDeg, output_kind)
-          call c%put('Longitude', tmp_lon)
-        elseif (trim(RegisteredTypes(idx)%vars(i)%name) == 'Latitude') then
-          tmp_lat = real((rLat * Latitude(iiLat, iBlock) + (1.0 - rLat) * Latitude(iiLat + 1, iBlock)) * cRadToDeg, output_kind)
-          call c%put('Latitude',  tmp_lat)
-        elseif (trim(RegisteredTypes(idx)%vars(i)%name) == 'Altitude') then
-          do iAlt = 1, nAlts
-            tmp_data(iAlt) = real(Altitude_GB(iiLon, iiLat, iAlt, iBlock), output_kind)
-          enddo
-          call c%put('Altitude', tmp_data)
-        else
-          iv = iv + 1
-          do iAlt = 1, nAlts
-            tmp_data(iAlt) = real(UserData1D(iiLon, iiLat, iAlt, iv), output_kind)
-          enddo
-          call c%put(trim(RegisteredTypes(idx)%vars(i)%name), tmp_data)
-        endif
-      enddo
-    endif
+    tmp = real((rLon * Longitude(iiLon, iBlock) + (1.0 - rLon) * Longitude(iiLon+1, iBlock)) * cRadToDeg, output_kind)
+    call c%put('Longitude', tmp)
+    tmp = real((rLat * Latitude(iiLat, iBlock) + (1.0 - rLat) * Latitude(iiLat+1, iBlock)) * cRadToDeg, output_kind)
+    call c%put('Latitude', tmp)
+    do iAlt = 1, nAlts
+      tmp(iAlt) = real(Altitude_GB(iiLon, iiLat, iAlt, iBlock), output_kind)
+    end do
+    call c%put('Altitude', tmp)
+    do i = 1, nUsrVars1D
+      do iAlt = 1, nAlts
+        tmp(iAlt) = real(UserData1D(iiLon, iiLat, iAlt, i), output_kind)
+      end do
+      call c%put(trim(UsrVars1D(i)%name), tmp)
+    end do
   end subroutine fill_1dusr
 
   ! ---------------------------------------------------------------------------
-  ! define_schema_0dusr — register variables for 0DUSR dynamically.
+  ! define_schema_0dusr — define variables for the 0DUSR container.
   ! ---------------------------------------------------------------------------
   subroutine define_schema_0dusr(c)
-    use ModOutputRegistry, only: find_output_type, RegisteredTypes
     type(OutputContainer), intent(inout) :: c
-    integer :: idx, i
+    integer :: i
 
-    c%cType    = '0DUSR'
-    c%gridKind = GRID_GEO_2D
+    c%cType       = '0DUSR'
+    c%gridKind    = GRID_GEO_2D
+    c%nGhostCells = 0
 
-    idx = find_output_type('0DUSR')
-    if (idx > 0) then
-      do i = 1, RegisteredTypes(idx)%nVars
-        if (trim(RegisteredTypes(idx)%vars(i)%name) == 'Longitude') then
-          call c%define_var('Longitude', units='degrees_east', shape3=[1, 1, 1], is_axis=.true.)
-        elseif (trim(RegisteredTypes(idx)%vars(i)%name) == 'Latitude') then
-          call c%define_var('Latitude', units='degrees_north', shape3=[1, 1, 1], is_axis=.true.)
-        elseif (trim(RegisteredTypes(idx)%vars(i)%name) == 'Altitude') then
-          call c%define_var('Altitude', units='m', shape3=[1, 1, 1])
-        else
-          call c%define_var(trim(RegisteredTypes(idx)%vars(i)%name), &
-                            units=trim(RegisteredTypes(idx)%vars(i)%units), &
-                            shape3=[1, 1, 1], &
-                            longName=trim(RegisteredTypes(idx)%vars(i)%longName))
-        endif
-      enddo
-    endif
+    call c%define_var('Longitude', units='degrees_east',  shape3=[1, 1, 1], is_axis=.true.)
+    call c%define_var('Latitude',  units='degrees_north', shape3=[1, 1, 1], is_axis=.true.)
+    call c%define_var('Altitude',  units='m',             shape3=[1, 1, 1])
+    do i = 1, nUsrVars0D
+      call c%define_var(trim(UsrVars0D(i)%name), units=trim(UsrVars0D(i)%units), &
+                        shape3=[1, 1, 1], longName=trim(UsrVars0D(i)%longName))
+    end do
   end subroutine define_schema_0dusr
 
   ! ---------------------------------------------------------------------------
@@ -2579,33 +2697,21 @@ contains
     use ModGITM
     use ModConst, only: cRadToDeg
     use ModUserGITM, only: UserData1D
-    use ModOutputRegistry, only: find_output_type, RegisteredTypes
     type(OutputContainer), intent(inout) :: c
     integer, intent(in) :: iBlock, iiLon, iiLat, iiAlt
     real, intent(in) :: rLon, rLat, rAlt
-    integer :: idx, i, iv
+    integer :: i
 
     call c%prepare(iBlock)
     if (.not. c%this_rank_writes) return
 
-    idx = find_output_type('0DUSR')
-    if (idx > 0) then
-      iv = 0
-      do i = 1, RegisteredTypes(idx)%nVars
-        if (trim(RegisteredTypes(idx)%vars(i)%name) == 'Longitude') then
-          call c%put('Longitude', real((rLon * Longitude(iiLon, iBlock) + (1.0 - rLon) * Longitude(iiLon + 1, iBlock)) * cRadToDeg, output_kind))
-        elseif (trim(RegisteredTypes(idx)%vars(i)%name) == 'Latitude') then
-          call c%put('Latitude',  real((rLat * Latitude(iiLat, iBlock) + (1.0 - rLat) * Latitude(iiLat + 1, iBlock)) * cRadToDeg, output_kind))
-        elseif (trim(RegisteredTypes(idx)%vars(i)%name) == 'Altitude') then
-          call c%put('Altitude',  real(rAlt * Altitude_GB(iiLon, iiLat, iiAlt, iBlock) + &
-                                       (1.0 - rAlt) * Altitude_GB(iiLon + 1, iiLat + 1, iiAlt + 1, iBlock), output_kind))
-        else
-          iv = iv + 1
-          call c%put(trim(RegisteredTypes(idx)%vars(i)%name), &
-                     real(UserData1D(iiLon, iiLat, iiAlt, iv), output_kind))
-        endif
-      enddo
-    endif
+    call c%put('Longitude', real((rLon * Longitude(iiLon, iBlock) + (1.0 - rLon) * Longitude(iiLon+1, iBlock)) * cRadToDeg, output_kind))
+    call c%put('Latitude',  real((rLat * Latitude(iiLat, iBlock)  + (1.0 - rLat) * Latitude(iiLat+1, iBlock))  * cRadToDeg, output_kind))
+    call c%put('Altitude',  real(rAlt * Altitude_GB(iiLon, iiLat, iiAlt, iBlock) + &
+                                 (1.0 - rAlt) * Altitude_GB(iiLon+1, iiLat+1, iiAlt+1, iBlock), output_kind))
+    do i = 1, nUsrVars0D
+      call c%put(trim(UsrVars0D(i)%name), real(UserData1D(iiLon, iiLat, iiAlt, i), output_kind))
+    end do
   end subroutine fill_0dusr
 
   ! ---------------------------------------------------------------------------
