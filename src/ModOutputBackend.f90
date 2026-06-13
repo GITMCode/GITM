@@ -11,8 +11,7 @@
 
 module ModOutputBackend
 
-  use ModOutputRegistry, only: OutputTypeInfo, OutputVar
-  use ModOutputContainer, only: OutputContainer
+  use ModOutputContainer, only: OutputContainer, GRID_MAG_2D
   use ModInputs, only: iCharLen_, iOutputUnit_
 
   implicit none
@@ -46,13 +45,13 @@ module ModOutputBackend
       real, intent(in) :: buffer(nV, nX, nY, nZ)
     end subroutine
 
-    subroutine backend_write_header_iface(iUnit, info, cType, &
+    subroutine backend_write_header_iface(iUnit, c, cType, &
                                           nAlts, nLats, nLons, nGCs, &
                                           nBlocksLat, nBlocksLon, &
                                           iTimeArray, cVersion)
-      import :: OutputTypeInfo
+      import :: OutputContainer
       integer, intent(in) :: iUnit
-      type(OutputTypeInfo), intent(in) :: info
+      type(OutputContainer), intent(in) :: c
       character(len=5), intent(in) :: cType
       integer, intent(in) :: nAlts, nLats, nLons, nGCs
       integer, intent(in) :: nBlocksLat, nBlocksLon
@@ -177,13 +176,13 @@ contains
   ! Reproduces the format of the legacy output_header, write_head_blocks,
   ! write_head_time, and write_head_version subroutines.
   ! ------------------------------------------------------------------
-  subroutine legacy_write_header(iUnit, info, cType, &
+  subroutine legacy_write_header(iUnit, c, cType, &
                                  nAlts, nLats, nLons, nGCs, &
                                  nBlocksLat, nBlocksLon, &
                                  iTimeArray, cVersion)
     use ModElectrodynamics, only: nMagLats, nMagLons
     integer, intent(in) :: iUnit
-    type(OutputTypeInfo), intent(in) :: info
+    type(OutputContainer), intent(in) :: c
     character(len=5), intent(in) :: cType
     integer, intent(in) :: nAlts, nLats, nLons, nGCs
     integer, intent(in) :: nBlocksLat, nBlocksLon
@@ -223,7 +222,7 @@ contains
 
     ! --- NUMERICAL VALUES section ---
     write(iUnit, *) "NUMERICAL VALUES"
-    write(iUnit, "(I7,6A)") info%nVars, " nvars"
+    write(iUnit, "(I7,6A)") c%nVars, " nvars"
 
     if (cType == '1DNEW') then
       write(iUnit, "(I7,7A)") nAlts, " nAltitudes"
@@ -237,7 +236,7 @@ contains
       write(iUnit, "(I7,7A)") 1, " nLatitudes"
       write(iUnit, "(I7,7A)") 1, " nLongitudes"
     else
-      if (info%usesMagGrid) then
+      if (c%gridKind == GRID_MAG_2D) then
         write(iUnit, "(I7,A)") nMagLats, " nLatitude"
         write(iUnit, "(I7,A)") nMagLons + 1, " nLongitudes"
         write(iUnit, *) " "
@@ -254,10 +253,10 @@ contains
     endif
     write(iUnit, *) ""
 
-    ! --- VARIABLE LIST section (auto-generated from registry) ---
+    ! --- VARIABLE LIST section ---
     write(iUnit, *) "VARIABLE LIST"
-    do i = 1, info%nVars
-      write(iUnit, "(I7,A1,a)") i, " ", trim(info%vars(i)%name)
+    do i = 1, c%nVars
+      write(iUnit, "(I7,A1,a)") i, " ", trim(c%vars(i)%name)
     enddo
 
     write(iUnit, *) ""

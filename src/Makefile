@@ -57,7 +57,6 @@ MODULES = \
 	ModSatellites.o\
 	ModOutputContainer.o\
 	ModOutputProducers.o\
-	ModOutputRegistry.o\
 	ModOutputBackend.o\
 	ModOutputMPIIO.o\
 	ModOutputNetCDF.o\

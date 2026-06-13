@@ -15,7 +15,6 @@ subroutine write_output(doForce)
   use ModTime
   use ModInputs
   use ModGITM
-  use ModOutputRegistry, only: init_output_registry
   use ModOutputBackend, only: ActiveBackend, init_output_backend, requestedBackendName
 
   implicit none
@@ -55,11 +54,11 @@ subroutine write_output(doForce)
     endif
   endif
 
-  ! Initialize the output registry and I/O backend exactly once.
+  ! Initialize output: USR var registration must precede container schema init
+  ! (define_schema_*dusr reads nUsrVars*D, which register_usr_var populates).
   if (IsFirstOutput) then
     tLastOutputWrite = -1.0
     tLastLogWrite = -1.0
-    call init_output_registry()
     call init_usr_output_registry()
     call init_output_backend(requestedBackendName)
     IsFirstOutput = .false.

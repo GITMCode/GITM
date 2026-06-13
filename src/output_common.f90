@@ -21,20 +21,14 @@
 integer function bad_outputtype()
 
   use ModInputs, only: OutputType, nOutputTypes
-  use ModOutputRegistry, only: find_output_type, nRegisteredTypes, &
-                               init_output_registry
+  use ModOutputProducers, only: is_known_output_type
 
   implicit none
 
   integer :: iOutputType
 
-  ! Ensure the registry is populated (safe to call multiple times;
-  ! init_output_registry resets and re-registers on each call).
-  if (nRegisteredTypes == 0) call init_output_registry()
-
-  ! Validate each requested output type against the registry.
   do iOutputType = 1, nOutputTypes
-    if (find_output_type(OutputType(iOutputType)) < 1) then
+    if (.not. is_known_output_type(OutputType(iOutputType))) then
       bad_outputtype = iOutputType
       return
     endif
@@ -63,9 +57,8 @@ subroutine output(dir, iBlock, iOutputType)
   use ModRCMR, only: RCMRFlag
   use ModConstants, only: pi
   use ModElectrodynamics, only: nMagLats, nMagLons
-  use ModOutputRegistry, only: OutputTypeInfo, find_output_type, RegisteredTypes
   use ModOutputBackend, only: ActiveBackend
-  use ModOutputContainer, only: OutputContainer
+  use ModOutputContainer, only: OutputContainer, GRID_HIME
   use ModOutputProducers
   use ModGITMVersion, only: GitmVersion
 
@@ -87,9 +80,7 @@ subroutine output(dir, iBlock, iOutputType)
   character(len=2) :: cYear, cMonth, cDay, cHour, cMinute, cSecond
   character(len=4) :: cYearL
 
-  type(OutputTypeInfo) :: typeInfo
-  integer :: iTypeIdx
-  integer :: nV, nX, nY, nZ
+  integer :: iContIdx
 
   !! construct naming strings
 
@@ -146,12 +137,17 @@ subroutine output(dir, iBlock, iOutputType)
     if (iiLon < 0 .or. iiLat < 0) return
   endif
 
-  ! For regional outputs (marked with isRegional flag in registry),
-  ! check if current block falls within user-defined region (HIME bounds).
-  ! Non-zero processors return early if outside region; processor 0 continues
-  ! to write header file even outside region.
-  iTypeIdx = find_output_type(cType)
-  if (iTypeIdx > 0 .and. RegisteredTypes(iTypeIdx)%isRegional) then
+  call init_output_containers()
+  iContIdx = get_container_idx(cType)
+  if (iContIdx < 0) then
+    write(*, *) "WARNING: unknown output type: ", cType
+    return
+  endif
+
+  ! For regional outputs (GRID_HIME), check if this block falls within the
+  ! user-defined region.  Non-zero processors return early if outside region;
+  ! processor 0 continues to write the header file even outside region.
+  if (containers(iContIdx)%gridKind == GRID_HIME) then
     DoSaveHIMEPlot = .false.
     ! Check if any cell of this block falls into the user-defined region
     do iLat = -1, nLats + 2
@@ -264,32 +260,9 @@ subroutine output(dir, iBlock, iOutputType)
     ! collectively in write_output() around the block loop; nothing to do here.
   endif
 
-  nGCs = 2
-  iTypeIdx = find_output_type(cType)
-  if (iTypeIdx < 1) then
-    write(*, *) "WARNING: output type not found in registry: ", cType
-  else
-    typeInfo = RegisteredTypes(iTypeIdx)
-    nGCs = typeInfo%nGhostCells
-    nV = typeInfo%nVars
-    select case (typeInfo%nDims)
-    case (3)
-      nX = nLons + 4; nY = nLats + 4; nZ = nAlts + 4
-    case (2)
-      if (typeInfo%usesMagGrid) then
-        nX = nMagLons + 1; nY = nMagLats
-      else
-        nX = nLons; nY = nLats
-      endif
-      nZ = 1
-    case (1)
-      nX = 1; nY = 1; nZ = nAlts + 4
-    case default  ! 0D
-      nX = 1; nY = 1; nZ = 1
-    end select
-    if (nV > 0) then
-      call init_output_containers()
-      if (cType == '2DMEL') then
+  nGCs = containers(iContIdx)%nGhostCells
+  if (containers(iContIdx)%nVars > 0) then
+    if (cType == '2DMEL') then
         call fill_2dmel(containers(iCont_2DMEL), iBlock)
         if (associated(ActiveBackend%write_container)) &
           call ActiveBackend%write_container(containers(iCont_2DMEL), iBLK, iTimeArray)
@@ -420,7 +393,6 @@ subroutine output(dir, iBlock, iOutputType)
           call ActiveBackend%write_container(containers(iCont_0DUSR), iBLK, iTimeArray)
         call containers(iCont_0DUSR)%reset()
       endif
-    endif
   endif
 
   if (iOutputType <= -1 .or. ActiveBackend%uses_external_file) &
@@ -457,8 +429,7 @@ subroutine output(dir, iBlock, iOutputType)
       endif
     endif
 
-    ! Auto-generated header from registry metadata (all types including USR)
-    call ActiveBackend%write_header(iOutputUnit_, typeInfo, cType, &
+    call ActiveBackend%write_header(iOutputUnit_, containers(iContIdx), cType, &
                                     nAlts, nLats, nLons, nGCs, nBlocksLat, nBlocksLon, iTimeArray, GitmVersion)
 
     close(unit=iOutputUnit_)

@@ -26,7 +26,7 @@
 
 module ModOutputMPIIO
 
-  use ModOutputRegistry, only: OutputTypeInfo
+  use ModOutputContainer, only: OutputContainer, output_kind, GRID_MAG_2D
   use ModMpi
 
   implicit none
@@ -100,13 +100,13 @@ contains
   ! Content mirrors legacy_write_header with a FORMAT/mpiio section
   ! prepended so post-processors can identify the file type.
   ! ------------------------------------------------------------------
-  subroutine mpiio_write_header(iUnit, info, cType, &
+  subroutine mpiio_write_header(iUnit, c, cType, &
                                 nAlts, nLats, nLons, nGCs, &
                                 nBlocksLat, nBlocksLon, &
                                 iTimeArray, cVersion)
     use ModElectrodynamics, only: nMagLats, nMagLons
     integer, intent(in) :: iUnit
-    type(OutputTypeInfo), intent(in) :: info
+    type(OutputContainer), intent(in) :: c
     character(len=5), intent(in) :: cType
     integer, intent(in) :: nAlts, nLats, nLons, nGCs
     integer, intent(in) :: nBlocksLat, nBlocksLon
@@ -157,7 +157,7 @@ contains
 
     ! --- NUMERICAL VALUES section ---
     write(iUnit, *) "NUMERICAL VALUES"
-    write(iUnit, "(I7,6A)") info%nVars, " nvars"
+    write(iUnit, "(I7,6A)") c%nVars, " nvars"
 
     if (cType == '1DNEW') then
       write(iUnit, "(I7,7A)") nAlts, " nAltitudes"
@@ -171,7 +171,7 @@ contains
       write(iUnit, "(I7,7A)") 1, " nLatitudes"
       write(iUnit, "(I7,7A)") 1, " nLongitudes"
     else
-      if (info%usesMagGrid) then
+      if (c%gridKind == GRID_MAG_2D) then
         write(iUnit, "(I7,A)") nMagLats, " nLatitude"
         write(iUnit, "(I7,A)") nMagLons + 1, " nLongitudes"
         write(iUnit, *) " "
@@ -190,8 +190,8 @@ contains
 
     ! --- VARIABLE LIST section ---
     write(iUnit, *) "VARIABLE LIST"
-    do i = 1, info%nVars
-      write(iUnit, "(I7,A1,a)") i, " ", trim(info%vars(i)%name)
+    do i = 1, c%nVars
+      write(iUnit, "(I7,A1,a)") i, " ", trim(c%vars(i)%name)
     enddo
 
     write(iUnit, *) ""
@@ -210,7 +210,6 @@ contains
   ! it is safe when nLons==nLats.
   ! ---------------------------------------------------------------------------
   subroutine mpiio_write_container(c, iBlock, iTimeArray)
-    use ModOutputContainer, only: OutputContainer, output_kind, GRID_MAG_2D
     type(OutputContainer), intent(inout) :: c
     integer, intent(in) :: iBlock
     integer, intent(in) :: iTimeArray(7)

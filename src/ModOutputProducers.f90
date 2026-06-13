@@ -93,6 +93,60 @@ module ModOutputProducers
 contains
 
   ! ---------------------------------------------------------------------------
+  ! is_known_output_type — return .true. if cType is a registered output code.
+  ! Pure string check, no container state required (safe to call before init).
+  ! ---------------------------------------------------------------------------
+  logical function is_known_output_type(cType)
+    character(len=5), intent(in) :: cType
+    select case (trim(cType))
+    case ('2DMEL', '2DTEC', '2DGEL', '3DNEU', '3DALL', '3DION', '3DTHM', '3DCHM', &
+          '3DLST', '3DGLO', '3DMAG', '3DHME', '3DMOH', '3DMOV', '2DANC', '2DHME', &
+          '1DALL', '0DALL', '1DGLO', '1DTHM', '1DCHM', '1DNEW', &
+          '3DUSR', '2DUSR', '1DUSR', '0DUSR')
+      is_known_output_type = .true.
+    case default
+      is_known_output_type = .false.
+    end select
+  end function is_known_output_type
+
+  ! ---------------------------------------------------------------------------
+  ! get_container_idx — return the containers(:) index for cType, or -1.
+  ! Requires init_output_containers() to have been called.
+  ! ---------------------------------------------------------------------------
+  integer function get_container_idx(cType)
+    character(len=5), intent(in) :: cType
+    select case (trim(cType))
+    case ('2DMEL'); get_container_idx = iCont_2DMEL
+    case ('2DTEC'); get_container_idx = iCont_2DTEC
+    case ('2DGEL'); get_container_idx = iCont_2DGEL
+    case ('3DNEU'); get_container_idx = iCont_3DNEU
+    case ('3DALL'); get_container_idx = iCont_3DALL
+    case ('3DION'); get_container_idx = iCont_3DION
+    case ('3DTHM'); get_container_idx = iCont_3DTHM
+    case ('3DCHM'); get_container_idx = iCont_3DCHM
+    case ('3DLST'); get_container_idx = iCont_3DLST
+    case ('3DGLO'); get_container_idx = iCont_3DGLO
+    case ('3DMAG'); get_container_idx = iCont_3DMAG
+    case ('3DHME'); get_container_idx = iCont_3DHME
+    case ('3DMOH'); get_container_idx = iCont_3DMOH
+    case ('3DMOV'); get_container_idx = iCont_3DMOV
+    case ('2DANC'); get_container_idx = iCont_2DANC
+    case ('2DHME'); get_container_idx = iCont_2DHME
+    case ('1DALL'); get_container_idx = iCont_1DALL
+    case ('0DALL'); get_container_idx = iCont_0DALL
+    case ('1DGLO'); get_container_idx = iCont_1DGLO
+    case ('1DTHM'); get_container_idx = iCont_1DTHM
+    case ('1DCHM'); get_container_idx = iCont_1DCHM
+    case ('1DNEW'); get_container_idx = iCont_1DNEW
+    case ('3DUSR'); get_container_idx = iCont_3DUSR
+    case ('2DUSR'); get_container_idx = iCont_2DUSR
+    case ('1DUSR'); get_container_idx = iCont_1DUSR
+    case ('0DUSR'); get_container_idx = iCont_0DUSR
+    case default;   get_container_idx = -1
+    end select
+  end function get_container_idx
+
+  ! ---------------------------------------------------------------------------
   ! register_usr_var — add one user-defined variable to the appropriate USR list.
   ! Called from init_usr_output_registry in user.f90 before the first output.
   ! dims: 3, 2, 1, or 0 (spatial dimensionality of the output type).
