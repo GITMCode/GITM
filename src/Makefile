@@ -59,7 +59,6 @@ MODULES = \
 	ModOutputProducers.o\
 	ModOutputRegistry.o\
 	ModOutputBackend.o\
-	ModOutputGather.o\
 	ModOutputMPIIO.o\
 	ModOutputNetCDF.o\
 	ModSize.o\
