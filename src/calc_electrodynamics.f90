@@ -1291,9 +1291,10 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
   solver_b_mc = 4*deltapmc**2*cos(MagLatMC*pi/180)*sigmallmc
   solver_c_mc = deltalmc*deltapmc*(SigmaPLmc + SigmaLPmc)
 
-  solver_d_mc = 2.0*deltalmc*deltapmc**2* &
-                (dSigmaPLdpMC - sign(1.0, MagLatMC)*sin(MagLatMC*pi/180)*sigmallmc &
-                 + cos(MagLatMC*pi/180)*dSigmaLLdlMC*sign(1.0, MagLatMC))
+  solver_d_mc = 2.0*deltalmc*deltapmc**2 &
+                *(sign(1.0, MagLatMC)*dSigmaPLdpMC &
+                  - sin(MagLatMC*pi/180)*sigmallmc &
+                  + cos(MagLatMC*pi/180)*dSigmaLLdlMC)
 
   solver_e_mc = 2.0*deltalmc**2*deltapmc*( &
                 dSigmaPPdpMC/cos(MagLatMC*pi/180) + dSigmaLPdlMC*sign(1.0, MagLatMC))
@@ -1374,8 +1375,9 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
           SigmaLPMC(i, j)
 
         solver_d_mc(i, j) = solver_d_mc(i, j) &
-                            - 2.0*deltalmc(i, j)*deltapmc(i, j)**2* &
-                            dSigmaPLdpMC(i, j)
+                            - sign(1.0, MagLatMC(i, j)) &
+                            *2.0*deltalmc(i, j)*deltapmc(i, j)**2 &
+                            *dSigmaPLdpMC(i, j)
 
         solver_e_mc(i, j) = 2.0*deltalmc(i, j)**2* &
                             deltapmc(i, j)*( &
