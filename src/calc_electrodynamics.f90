@@ -1467,13 +1467,23 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
       f1_I(iI) = solver_b_mc(iLon, iLat) + solver_d_mc(iLon, iLat)
 
       if (iLat == 2) then
+        iLm = iLon - 1
+        if (iLm == 0) iLm = nMagLons
+        iLp = iLon + 1
+        if (iLp == nMagLons + 1) iLp = 1
         b(iI) = b(iI) - (solver_b_mc(iLon, iLat) - solver_d_mc(iLon, iLat))* &
-                SmallPotentialMC(iLon, 1)
+                SmallPotentialMC(iLon, 1) &
+                + solver_c_mc(iLon, iLat)*(SmallPotentialMC(iLp, 1) - SmallPotentialMC(iLm, 1))
         e1_I(iI) = 0.0
       endif
       if (iLat == nMagLats - 1) then
+        iLm = iLon - 1
+        if (iLm == 0) iLm = nMagLons
+        iLp = iLon + 1
+        if (iLp == nMagLons + 1) iLp = 1
         b(iI) = b(iI) - (solver_b_mc(iLon, iLat) + solver_d_mc(iLon, iLat))* &
-                SmallPotentialMC(iLon, 2)
+                SmallPotentialMC(iLon, 2) &
+                - solver_c_mc(iLon, iLat)*(SmallPotentialMC(iLp, 2) - SmallPotentialMC(iLm, 2))
         f1_I(iI) = 0.0
       endif
 
