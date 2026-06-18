@@ -214,12 +214,6 @@ module ModInputs
 
   logical :: UseGswmComp(4) = .true.
 
-  real :: MagneticPoleRotation = 0.0
-  real :: MagneticPoleTilt = 0.0
-  real :: xDipoleCenter = 0.0
-  real :: yDipoleCenter = 0.0
-  real :: zDipoleCenter = 0.0
-
   logical :: IsFixedTilt = .false.
 
   !\
@@ -265,6 +259,11 @@ module ModInputs
   real    :: MaxResidual = 1.0
   logical :: IncludeCowling = .false.
   real    :: DynamoLonAverage = 10.0
+  real    :: DynamoFracPotentialCutoff = 0.0
+  logical :: doDynamoHemisphericMirror = .true.
+  logical :: doUseMagnetoPotentialBCs = .true.
+  logical :: doDynamoLatBlend = .true.
+  logical :: doDynamoSubtractEquatorialAvg = .true.
 
   logical :: UseImprovedIonAdvection = .true.
   logical :: UseNighttimeIonBCs = .true.
