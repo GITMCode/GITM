@@ -135,6 +135,7 @@ module ModInputs
   integer, parameter :: nMaxOutputTypes = 50
   character(len=iCharLen_), dimension(nMaxOutputTypes) :: OutputType
   logical :: UseNetcdfMultiTime = .false.
+  character(iCharLen_) :: NetCdfAppendOption = 'none'
 
   real :: DtPlot(nMaxOutputTypes)
   real :: DtPlotSave(nMaxOutputTypes)

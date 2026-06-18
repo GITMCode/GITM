@@ -1477,10 +1477,28 @@ subroutine set_inputs
         endif
 
       case ('#NETCDFAPPEND')
-        call read_in_logical(UseNetcdfMultiTime, iError)
+        call read_in_string(NetCdfAppendOption, iError)
+        ! Verify: can be 'daily', 'single', or 'none' (default)
+        if ((trim(NetCdfAppendOption) == 'single') &
+          .or. (trim(NetCdfAppendOption) == 'daily')) then
+            UseNetcdfMultiTime = .true.
+          elseif (trim(NetCdfAppendOption) == 'none') then
+          ! This is default, but set it anyways...
+          UseNetcdfMultiTime = .false.
+        else
+          iError = iError + 1
+        endif
+
         if (iError /= 0) then
-          write(*, *) 'Incorrect format for #NETCDFAPPEND'
-          write(*, *) 'Must be a logical (T/F)!'
+          write(*, *) ""
+          write(*, *) "Incorrect format for #NETCDFAPPEND"
+          write(*, *) "> Received:  ", trim(NetCdfAppendOption)
+          write(*, *) ""
+          write(*, *) "Must be one of: 'single'/'daily'/'none':"
+          write(*, *) " - 'none' makes one file per outputDt"
+          write(*, *) " - 'daily' creates a new file each day"
+          write(*, *) " - 'single' uses the same file for the whole run"
+          write(*, *) ""
         endif
 
       case ("#SAVEPLOTS", "#SAVEPLOT")

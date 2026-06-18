@@ -21,20 +21,14 @@
 integer function bad_outputtype()
 
   use ModInputs, only: OutputType, nOutputTypes
-  use ModOutputRegistry, only: find_output_type, nRegisteredTypes, &
-                               init_output_registry
+  use ModOutputProducers, only: is_known_output_type
 
   implicit none
 
   integer :: iOutputType
 
-  ! Ensure the registry is populated (safe to call multiple times;
-  ! init_output_registry resets and re-registers on each call).
-  if (nRegisteredTypes == 0) call init_output_registry()
-
-  ! Validate each requested output type against the registry.
   do iOutputType = 1, nOutputTypes
-    if (find_output_type(OutputType(iOutputType)) < 1) then
+    if (.not. is_known_output_type(OutputType(iOutputType))) then
       bad_outputtype = iOutputType
       return
     endif
@@ -63,9 +57,9 @@ subroutine output(dir, iBlock, iOutputType)
   use ModRCMR, only: RCMRFlag
   use ModConstants, only: pi
   use ModElectrodynamics, only: nMagLats, nMagLons
-  use ModOutputRegistry, only: OutputTypeInfo, find_output_type, RegisteredTypes
-  use ModOutputGather, only: gather_output
   use ModOutputBackend, only: ActiveBackend
+  use ModOutputContainer, only: OutputContainer, GRID_HIME
+  use ModOutputProducers
   use ModGITMVersion, only: GitmVersion
 
   implicit none
@@ -77,7 +71,7 @@ subroutine output(dir, iBlock, iOutputType)
   character(len=5) :: proc_str, cBlock, cType
   character(len=24) :: cTime = '', cTimeSave = ''
   integer :: iiLat, iiLon, iiAlt, nGCs, cL = 0
-  integer :: iLon, iLat, iAlt, nVars_to_Write, nlines, iBLK, iSpecies, i
+  integer :: iLon, iLat, iAlt, nlines, iBLK, iSpecies, i
   logical :: done, IsFirstTime = .true., IsThere, DoSaveHIMEPlot
 
   real :: LatFind, LonFind, AltFind
@@ -86,11 +80,7 @@ subroutine output(dir, iBlock, iOutputType)
   character(len=2) :: cYear, cMonth, cDay, cHour, cMinute, cSecond
   character(len=4) :: cYearL
 
-  ! New: registry-based output infrastructure
-  type(OutputTypeInfo) :: typeInfo
-  integer :: iTypeIdx
-  integer :: nV, nX, nY, nZ
-  real, allocatable :: outBuf(:, :, :, :)
+  integer :: iContIdx
 
   !! construct naming strings
 
@@ -147,12 +137,17 @@ subroutine output(dir, iBlock, iOutputType)
     if (iiLon < 0 .or. iiLat < 0) return
   endif
 
-  ! For regional outputs (marked with isRegional flag in registry),
-  ! check if current block falls within user-defined region (HIME bounds).
-  ! Non-zero processors return early if outside region; processor 0 continues
-  ! to write header file even outside region.
-  iTypeIdx = find_output_type(cType)
-  if (iTypeIdx > 0 .and. RegisteredTypes(iTypeIdx)%isRegional) then
+  call init_output_containers()
+  iContIdx = get_container_idx(cType)
+  if (iContIdx < 0) then
+    write(*, *) "WARNING: unknown output type: ", cType
+    return
+  endif
+
+  ! For regional outputs (GRID_HIME), check if this block falls within the
+  ! user-defined region.  Non-zero processors return early if outside region;
+  ! processor 0 continues to write the header file even outside region.
+  if (containers(iContIdx)%gridKind == GRID_HIME) then
     DoSaveHIMEPlot = .false.
     ! Check if any cell of this block falls into the user-defined region
     do iLat = -1, nLats + 2
@@ -265,67 +260,146 @@ subroutine output(dir, iBlock, iOutputType)
     ! collectively in write_output() around the block loop; nothing to do here.
   endif
 
-  ! (Registry and backend initialized in write_output before first block loop)
-
-  nGCs = 2
-
-  ! Registry-based output: lookup -> gather -> backend write (all types including USR)
-  iTypeIdx = find_output_type(cType)
-  if (iTypeIdx < 1) then
-    write(*, *) "WARNING: output type not found in registry: ", cType
-  else
-    typeInfo = RegisteredTypes(iTypeIdx)
-    nGCs = typeInfo%nGhostCells
-    nV = typeInfo%nVars
-    ! Compute buffer dimensions from type metadata
-    select case (typeInfo%nDims)
-    case (3)
-      nX = nLons + 4; nY = nLats + 4; nZ = nAlts + 4
-    case (2)
-      if (typeInfo%usesMagGrid) then
-        nX = nMagLons + 1; nY = nMagLats
-      else
-        nX = nLons; nY = nLats
+  nGCs = containers(iContIdx)%nGhostCells
+  if (containers(iContIdx)%nVars > 0) then
+    if (cType == '2DMEL') then
+        call fill_2dmel(containers(iCont_2DMEL), iBlock)
+        if (associated(ActiveBackend%write_container)) &
+          call ActiveBackend%write_container(containers(iCont_2DMEL), iBLK, iTimeArray)
+        call containers(iCont_2DMEL)%reset()
+      elseif (cType == '2DTEC') then
+        call fill_2dtec(containers(iCont_2DTEC), iBlock)
+        if (associated(ActiveBackend%write_container)) &
+          call ActiveBackend%write_container(containers(iCont_2DTEC), iBLK, iTimeArray)
+        call containers(iCont_2DTEC)%reset()
+      elseif (cType == '2DGEL') then
+        call fill_2dgel(containers(iCont_2DGEL), iBlock)
+        if (associated(ActiveBackend%write_container)) &
+          call ActiveBackend%write_container(containers(iCont_2DGEL), iBLK, iTimeArray)
+        call containers(iCont_2DGEL)%reset()
+      elseif (cType == '3DNEU') then
+        call fill_3dneu(containers(iCont_3DNEU), iBlock)
+        if (associated(ActiveBackend%write_container)) &
+          call ActiveBackend%write_container(containers(iCont_3DNEU), iBLK, iTimeArray)
+        call containers(iCont_3DNEU)%reset()
+      elseif (cType == '3DALL') then
+        call fill_3dall(containers(iCont_3DALL), iBlock)
+        if (associated(ActiveBackend%write_container)) &
+          call ActiveBackend%write_container(containers(iCont_3DALL), iBLK, iTimeArray)
+        call containers(iCont_3DALL)%reset()
+      elseif (cType == '3DION') then
+        call fill_3dion(containers(iCont_3DION), iBlock)
+        if (associated(ActiveBackend%write_container)) &
+          call ActiveBackend%write_container(containers(iCont_3DION), iBLK, iTimeArray)
+        call containers(iCont_3DION)%reset()
+      elseif (cType == '3DTHM') then
+        call fill_3dthm(containers(iCont_3DTHM), iBlock)
+        if (associated(ActiveBackend%write_container)) &
+          call ActiveBackend%write_container(containers(iCont_3DTHM), iBLK, iTimeArray)
+        call containers(iCont_3DTHM)%reset()
+      elseif (cType == '3DCHM') then
+        call fill_3dchm(containers(iCont_3DCHM), iBlock)
+        if (associated(ActiveBackend%write_container)) &
+          call ActiveBackend%write_container(containers(iCont_3DCHM), iBLK, iTimeArray)
+        call containers(iCont_3DCHM)%reset()
+      elseif (cType == '3DLST') then
+        call fill_3dlst(containers(iCont_3DLST), iBlock)
+        if (associated(ActiveBackend%write_container)) &
+          call ActiveBackend%write_container(containers(iCont_3DLST), iBLK, iTimeArray)
+        call containers(iCont_3DLST)%reset()
+      elseif (cType == '3DGLO') then
+        call fill_3dglo(containers(iCont_3DGLO), iBlock)
+        if (associated(ActiveBackend%write_container)) &
+          call ActiveBackend%write_container(containers(iCont_3DGLO), iBLK, iTimeArray)
+        call containers(iCont_3DGLO)%reset()
+      elseif (cType == '3DMAG') then
+        call fill_3dmag(containers(iCont_3DMAG), iBlock)
+        if (associated(ActiveBackend%write_container)) &
+          call ActiveBackend%write_container(containers(iCont_3DMAG), iBLK, iTimeArray)
+        call containers(iCont_3DMAG)%reset()
+      elseif (cType == '3DHME') then
+        call fill_3dhme(containers(iCont_3DHME), iBlock)
+        if (associated(ActiveBackend%write_container)) &
+          call ActiveBackend%write_container(containers(iCont_3DHME), iBLK, iTimeArray)
+        call containers(iCont_3DHME)%reset()
+      elseif (cType == '3DMOH') then
+        call fill_3dmoh(containers(iCont_3DMOH), iBlock)
+        if (associated(ActiveBackend%write_container)) &
+          call ActiveBackend%write_container(containers(iCont_3DMOH), iBLK, iTimeArray)
+        call containers(iCont_3DMOH)%reset()
+      elseif (cType == '3DMOV') then
+        call fill_3dmov(containers(iCont_3DMOV), iBlock)
+        if (associated(ActiveBackend%write_container)) &
+          call ActiveBackend%write_container(containers(iCont_3DMOV), iBLK, iTimeArray)
+        call containers(iCont_3DMOV)%reset()
+      elseif (cType == '2DANC') then
+        call fill_2danc(containers(iCont_2DANC), iBlock)
+        if (associated(ActiveBackend%write_container)) &
+          call ActiveBackend%write_container(containers(iCont_2DANC), iBLK, iTimeArray)
+        call containers(iCont_2DANC)%reset()
+      elseif (cType == '2DHME') then
+        call fill_2dhme(containers(iCont_2DHME), iBlock)
+        if (associated(ActiveBackend%write_container)) &
+          call ActiveBackend%write_container(containers(iCont_2DHME), iBLK, iTimeArray)
+        call containers(iCont_2DHME)%reset()
+      elseif (cType == '1DALL') then
+        call fill_1dall(containers(iCont_1DALL), iBlock, iiLon, iiLat, rLon, rLat)
+        if (associated(ActiveBackend%write_container)) &
+          call ActiveBackend%write_container(containers(iCont_1DALL), iBLK, iTimeArray)
+        call containers(iCont_1DALL)%reset()
+      elseif (cType == '0DALL') then
+        call fill_0dall(containers(iCont_0DALL), iBlock, iiLon, iiLat, iiAlt, rLon, rLat, rAlt)
+        if (associated(ActiveBackend%write_container)) &
+          call ActiveBackend%write_container(containers(iCont_0DALL), iBLK, iTimeArray)
+        call containers(iCont_0DALL)%reset()
+      elseif (cType == '1DGLO') then
+        call fill_1dglo(containers(iCont_1DGLO), iBlock)
+        if (associated(ActiveBackend%write_container)) &
+          call ActiveBackend%write_container(containers(iCont_1DGLO), iBLK, iTimeArray)
+        call containers(iCont_1DGLO)%reset()
+      elseif (cType == '1DTHM') then
+        call fill_1dthm(containers(iCont_1DTHM), iBlock)
+        if (associated(ActiveBackend%write_container)) &
+          call ActiveBackend%write_container(containers(iCont_1DTHM), iBLK, iTimeArray)
+        call containers(iCont_1DTHM)%reset()
+      elseif (cType == '1DCHM') then
+        call fill_1dchm(containers(iCont_1DCHM), iBlock)
+        if (associated(ActiveBackend%write_container)) &
+          call ActiveBackend%write_container(containers(iCont_1DCHM), iBLK, iTimeArray)
+        call containers(iCont_1DCHM)%reset()
+      elseif (cType == '1DNEW') then
+        call fill_1dnew(containers(iCont_1DNEW), iBlock, iiLon, iiLat, rLon, rLat)
+        if (associated(ActiveBackend%write_container)) &
+          call ActiveBackend%write_container(containers(iCont_1DNEW), iBLK, iTimeArray)
+        call containers(iCont_1DNEW)%reset()
+      elseif (cType == '3DUSR') then
+        call fill_3dusr(containers(iCont_3DUSR), iBlock)
+        if (associated(ActiveBackend%write_container)) &
+          call ActiveBackend%write_container(containers(iCont_3DUSR), iBLK, iTimeArray)
+        call containers(iCont_3DUSR)%reset()
+      elseif (cType == '2DUSR') then
+        call fill_2dusr(containers(iCont_2DUSR), iBlock)
+        if (associated(ActiveBackend%write_container)) &
+          call ActiveBackend%write_container(containers(iCont_2DUSR), iBLK, iTimeArray)
+        call containers(iCont_2DUSR)%reset()
+      elseif (cType == '1DUSR') then
+        call fill_1dusr(containers(iCont_1DUSR), iBlock, iiLon, iiLat, rLon, rLat)
+        if (associated(ActiveBackend%write_container)) &
+          call ActiveBackend%write_container(containers(iCont_1DUSR), iBLK, iTimeArray)
+        call containers(iCont_1DUSR)%reset()
+      elseif (cType == '0DUSR') then
+        call fill_0dusr(containers(iCont_0DUSR), iBlock, iiLon, iiLat, iiAlt, rLon, rLat, rAlt)
+        if (associated(ActiveBackend%write_container)) &
+          call ActiveBackend%write_container(containers(iCont_0DUSR), iBLK, iTimeArray)
+        call containers(iCont_0DUSR)%reset()
       endif
-      nZ = 1
-    case (1)
-      nX = 1; nY = 1; nZ = nAlts + 4
-    case default  ! 0D
-      nX = 1; nY = 1; nZ = 1
-    end select
-    ! Gather data and write -- respecting conditional block participation.
-    ! Regional types (isRegional=T): only write if in specified region
-    ! Magnetic grid types (usesMagGrid=T): only block 1 writes
-    ! Regular types: all blocks write
-    if (nV > 0) then
-      if (typeInfo%isRegional) then
-        ! Regional output: only write if block is within user-defined region
-        if (DoSaveHIMEPlot) then
-          allocate(outBuf(nV, nX, nY, nZ))
-          call gather_output(cType, iBlock, outBuf, nV, nX, nY, nZ, &
-                             iiLon, iiLat, iiAlt, rLon, rLat, rAlt)
-          call ActiveBackend%write_block(iOutputUnit_, outBuf, nV, nX, nY, nZ, iBLK)
-          deallocate(outBuf)
-        endif
-      elseif (typeInfo%usesMagGrid .and. iBLK /= 1) then
-        ! Magnetic grid type: only block 1 writes
-        continue
-      else
-        ! Regular block-partitioned output: all blocks write their data
-        allocate(outBuf(nV, nX, nY, nZ))
-        call gather_output(cType, iBlock, outBuf, nV, nX, nY, nZ, &
-                           iiLon, iiLat, iiAlt, rLon, rLat, rAlt)
-        call ActiveBackend%write_block(iOutputUnit_, outBuf, nV, nX, nY, nZ, iBLK)
-        deallocate(outBuf)
-      endif
-    endif
-    nvars_to_write = nV
   endif
 
   if (iOutputType <= -1 .or. ActiveBackend%uses_external_file) &
     close(unit=iOutputUnit_)
 
   !! Now write the header file (skipped for backends where metadata lives in the data file)
+
 
   if (ActiveBackend%writes_header .and. &
       ((iProc == 0 .and. iBlock == nBlocks) .or. iOutputType <= -1)) then
@@ -355,8 +429,7 @@ subroutine output(dir, iBlock, iOutputType)
       endif
     endif
 
-    ! Auto-generated header from registry metadata (all types including USR)
-    call ActiveBackend%write_header(iOutputUnit_, typeInfo, cType, &
+    call ActiveBackend%write_header(iOutputUnit_, containers(iContIdx), cType, &
                                     nAlts, nLats, nLons, nGCs, nBlocksLat, nBlocksLon, iTimeArray, GitmVersion)
 
     close(unit=iOutputUnit_)

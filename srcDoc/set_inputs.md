@@ -213,14 +213,23 @@ build requirements.
 
 ### NETCDFAPPEND
 
-When using the `netcdf` backend, enables multi-time mode: instead of one file per output
-type per timestep, all timesteps for each output type are accumulated in a single file
-(e.g., `3DALL.nc`). Data variables gain an unlimited time dimension as their last axis,
+When using the `netcdf` backend, there are three choices for how often to write files.
+Specify that option here!
+
+- `none` (default)" Writes one file per output type, per outputDt. This is the same as 
+  the other backends (e.g. `3DALL_t021221_235000.nc`)
+- `single`: Combines all outputDt into one file. This file can easily reach hundreds of 
+  GB, but some find that easier to manage than many small files. (e.g., `3DALL.nc`)
+- `daily`: Is a blend of the two. Creates a new file per day, for each output type
+  (e.g., `3DALL_2002-12-21.nc`).
+
+Any of the append options (other than `none`) enable multi-time mode.
+Data variables gain an unlimited time dimension as their last axis,
 making files directly usable with xarray and other time-series tools. Has no effect
 when `#OUTPUTBACKEND` is `legacy` or `mpiio`.
 
     #NETCDFAPPEND
-    UseNetcdfMultiTime    (logical)
+    UseNetcdfMultiTime    (character)
 
 ## Drivers
 

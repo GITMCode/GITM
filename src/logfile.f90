@@ -162,11 +162,14 @@ subroutine logfile(dir)
     write(iLogFileUnit_, '(a)') " "
     write(iLogFileUnit_, '(a)') "#START"
     write(iLogFileUnit_, '(a)') &
-      "   iStep year month day hour min sec  ms      dt "// &
-      "min(T) max(T) mean(T) min(VV) max(VV) mean(VV) F107 F107A "// &
-      "By Bz Vx HP HPn HPs HPn_diff HPs_diff HPn_w HPs_w HPn_m HPs_m "// &
-      "CPCPn CPCPs "// &
-      "SubsolarLon SubsolarLat SubsolarVTEC"
+      "   iStep yyyy mm dd HH MM SS  ms      dt"// &
+      "    min(T)    max(T)   mean(T)   min(VV)   max(VV)  mean(VV)"//&
+      "      F107     F107A        By        Bz        Vx"//&
+      "        HP       HPn       HPs  HPn_diff  HPs_diff"//&
+      "     HPn_w     HPs_w     HPn_m     HPs_m"//&
+      "     CPCPn     CPCPs"// &
+      " SubsolarLon SubsolarLat SubsolarVTEC"
+
   endif
 
   call get_subsolar(CurrentTime, VernalTime, SSLon, SSLat)
@@ -243,23 +246,38 @@ subroutine logfile(dir)
     AverageVertVel = AverageVertVel/TotalVolume
 
     call get_f107(CurrentTime, f107, iError)
+    if (iError /= 0) f107 = 0.0
     call get_f107A(CurrentTime, f107A, iError)
+    if (iError /= 0) f107A = 0.0
     call get_IMF_By(CurrentTime, by, iError)
+    if (iError /= 0) by = 0.0
     call get_IMF_Bz(CurrentTime, bz, iError)
+    if (iError /= 0) bz = 0.0
     call get_sw_v(CurrentTime, Vx, iError)
+    if (iError /= 0) Vx = 0.0
     call get_hpi(CurrentTime, Hpi, iError)
+    if (iError /= 0) Hpi = 0.0
 
     if (Is1D) SSVTEC = -1.0
 
-    write(iLogFileUnit_, "(i8,i5,5i3,i4,f8.4,6f9.1,5f7.1,9f8.1,2f7.1,3f8.3)") &
-      iStep, iTimeArray, &  ! i8, i5, 5i3, i4
-      dt, &  ! f8.4
-      minTemp, maxTemp, AverageTemp, minVertVel, maxVertVel, AverageVertVel, & ! 6f9.1
-      f107, f107A, By, Bz, Vx, &  ! 5f7.1
+    ! Format: (i8,i5,5i3,i4,f8.3,26f10.3)
+    !   i8        — iStep
+    !   i5,5i3,i4 — yyyy mm dd HH MM SS ms (ms rounded to 10ms to avoid fp drift)
+    !   f8.3      — dt
+    !   6f10.3    — min/max/mean temperature (K), min/max/mean vertical velocity (m/s)
+    !   5f10.3    — F107, F107A, By (nT), Bz (nT), Vx (km/s)
+    !   9f10.3    — HP, HPn, HPs, HPn_diff, HPs_diff, HPn_w, HPs_w, HPn_m, HPs_m (GW)
+    !   2f10.3    — CPCPn, CPCPs (kV)
+    !   3f10.3    — SubsolarLon (deg), SubsolarLat (deg), SubsolarVTEC (TECU)
+    write(iLogFileUnit_, "(i8,i5,5i3,i4,f8.3,26f10.3)") &
+      iStep, iTimeArray(1:6), floor(iTimeArray(7)/10.0)*10, &
+      dt, &
+      minTemp, maxTemp, AverageTemp, minVertVel, maxVertVel, AverageVertVel, &
+      f107, f107A, By, Bz, Vx, &
       Hpi, HPn/1.0e9, HPs/1.0e9, &
-      HPn_d/1.0e9, HPs_d/1.0e9, HPn_w/1.0e9, HPs_w/1.0e9, HPn_m/1.0e9, HPs_m/1.0e9, & ! 9f8.1
-      CPCPn, CPCPs, & ! 2f7.1
-      SSLon, SSLat, SSVTEC   ! 3f8.3
+      HPn_d/1.0e9, HPs_d/1.0e9, HPn_w/1.0e9, HPs_w/1.0e9, HPn_m/1.0e9, HPs_m/1.0e9, &
+      CPCPn, CPCPs, &
+      SSLon, SSLat, SSVTEC
 
     call flush_unit(iLogFileUnit_)
   endif
@@ -312,6 +330,14 @@ subroutine write_code_information(dir)
     do i = 1, nIons
       write(iCodeInfoFileUnit_, *) "Ion Species ", cIons(i)
     enddo
+
+    write(iCodeInfoFileUnit_, *) ""
+    write(iCodeInfoFileUnit_, *) "Values set in ModSize.f90:"
+    write(iCodeInfoFileUnit_, *) ""
+    write(iCodeInfoFileUnit_, *) "nLons:", nLons
+    write(iCodeInfoFileUnit_, *) "nLats:", nLats
+    write(iCodeInfoFileUnit_, *) "nAlts:", nAlts
+    write(iCodeInfoFileUnit_, *) "nBlocksMax:", nBlocksMax
 
     write(iCodeInfoFileUnit_, *) ""
     write(iCodeInfoFileUnit_, *) "Inputs from UAM.in:"
@@ -582,6 +608,15 @@ subroutine write_code_information(dir)
 
     write(iCodeInfoFileUnit_, *) ""
     write(iCodeInfoFileUnit_, *) ""
+    write(iCodeInfoFileUnit_, *) ""
+    write(iCodeInfoFileUnit_, *) "Files changed in GITM from last commit:"
+    write(iCodeInfoFileUnit_, *) "--------------------"
+    write(iCodeInfoFileUnit_, *) DifferentFilesGitm
+    write(iCodeInfoFileUnit_, *) ""
+    write(iCodeInfoFileUnit_, *) ""
+    write(iCodeInfoFileUnit_, *) "Files changed in Electrodynamics from last git commit:"
+    write(iCodeInfoFileUnit_, *) "--------------------"
+    write(iCodeInfoFileUnit_, *) DifferentFilesElectrodynamics
     write(iCodeInfoFileUnit_, *) ""
     write(iCodeInfoFileUnit_, *) ""
     write(iCodeInfoFileUnit_, *) ""

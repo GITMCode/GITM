@@ -481,76 +481,44 @@ subroutine set_nVarsUser0d
 end subroutine set_nVarsUser0d
 
 ! ----------------------------------------------------------------
-! Populate the output registry for all USR types with variable names
-! and units. Called once from write_output before the first output
-! timestep so that collective backends (mpiio, netcdf) have the
-! metadata they need before open_file is called.
-!
-! Variable names here must match output_header_user exactly so that
-! legacy and mpiio .header files remain consistent.
+! Register user-defined variable names and units for all USR output
+! types.  Called once from write_output before the first output
+! timestep.  Longitude/Latitude/Altitude are defined unconditionally
+! by each define_schema_*dusr and must NOT be listed here.
 ! ----------------------------------------------------------------
 subroutine init_usr_output_registry()
 
-  use ModUserGITM
+  use ModOutputProducers, only: register_usr_var
   use ModSources, only: ED_Energies, ED_N_Energies
-  use ModOutputRegistry, only: find_output_type, RegisteredTypes, add_var
 
   implicit none
 
-  integer :: idx, n
+  integer :: n
   character(len=60) :: varname
 
   ! ---- 3DUSR ----
-  call set_nVarsUser3d()
-  idx = find_output_type('3DUSR')
-  if (idx > 0 .and. RegisteredTypes(idx)%nVars == 0) then
-    call add_var(RegisteredTypes(idx), 'Longitude', 'rad')
-    call add_var(RegisteredTypes(idx), 'Latitude', 'rad')
-    call add_var(RegisteredTypes(idx), 'Altitude', 'm')
-    call add_var(RegisteredTypes(idx), 'Joule Heating', 'K/s')
-    call add_var(RegisteredTypes(idx), 'JPara', 'A/m2')
-  endif
+  call register_usr_var(3, 'Joule Heating', 'K/s')
+  call register_usr_var(3, 'JPara', 'A/m2')
 
   ! ---- 2DUSR ----
-  call set_nVarsUser2d()
-  idx = find_output_type('2DUSR')
-  if (idx > 0 .and. RegisteredTypes(idx)%nVars == 0) then
-    call add_var(RegisteredTypes(idx), 'Longitude', 'rad')
-    call add_var(RegisteredTypes(idx), 'Latitude', 'rad')
-    call add_var(RegisteredTypes(idx), 'Altitude', 'm')
-    call add_var(RegisteredTypes(idx), 'Potential (kV)', 'kV')
-    call add_var(RegisteredTypes(idx), 'Average Energy (keV)', 'keV')
-    call add_var(RegisteredTypes(idx), 'Total Energy (ergs)', 'ergs/cm2/s')
-    call add_var(RegisteredTypes(idx), 'Discrete Average Energy (keV)', 'keV')
-    call add_var(RegisteredTypes(idx), 'Discrete Total Energy (ergs)', 'ergs/cm2/s')
-    call add_var(RegisteredTypes(idx), 'Wave Average Energy (keV)', 'keV')
-    call add_var(RegisteredTypes(idx), 'Wave Total Energy (ergs)', 'ergs/cm2/s')
-    ! do n = 1, ED_N_Energies
-    !   write(varname, "(A5,1P,E9.3,A7)") 'Flux@', ED_Energies(n), 'eV'
-    !   call add_var(RegisteredTypes(idx), trim(varname), '/cm2/s')
-    ! enddo
-  endif
+  call register_usr_var(2, 'Potential (kV)', 'kV')
+  call register_usr_var(2, 'Average Energy (keV)', 'keV')
+  call register_usr_var(2, 'Total Energy (ergs)', 'ergs/cm2/s')
+  call register_usr_var(2, 'Discrete Average Energy (keV)', 'keV')
+  call register_usr_var(2, 'Discrete Total Energy (ergs)', 'ergs/cm2/s')
+  call register_usr_var(2, 'Wave Average Energy (keV)', 'keV')
+  call register_usr_var(2, 'Wave Total Energy (ergs)', 'ergs/cm2/s')
+  ! do n = 1, ED_N_Energies
+  !   write(varname, "(A5,1P,E9.3,A7)") 'Flux@', ED_Energies(n), 'eV'
+  !   call register_usr_var(2, trim(varname), '/cm2/s')
+  ! enddo
 
   ! ---- 1DUSR ----
-  call set_nVarsUser1d()
-  idx = find_output_type('1DUSR')
-  if (idx > 0 .and. RegisteredTypes(idx)%nVars == 0) then
-    call add_var(RegisteredTypes(idx), 'Longitude', 'rad')
-    call add_var(RegisteredTypes(idx), 'Latitude', 'rad')
-    call add_var(RegisteredTypes(idx), 'Altitude', 'm')
-    call add_var(RegisteredTypes(idx), 'Electron Density', '/m3')
-  endif
+  call register_usr_var(1, 'Electron Density', '/m3')
 
   ! ---- 0DUSR ----
-  call set_nVarsUser0d()
-  idx = find_output_type('0DUSR')
-  if (idx > 0 .and. RegisteredTypes(idx)%nVars == 0) then
-    call add_var(RegisteredTypes(idx), 'Longitude', 'rad')
-    call add_var(RegisteredTypes(idx), 'Latitude', 'rad')
-    call add_var(RegisteredTypes(idx), 'Altitude', 'm')
-    call add_var(RegisteredTypes(idx), 'Electron Density', '/m3')
-    call add_var(RegisteredTypes(idx), 'Electron Temperature', 'K')
-    call add_var(RegisteredTypes(idx), 'Ion Temperature', 'K')
-  endif
+  call register_usr_var(0, 'Electron Density', '/m3')
+  call register_usr_var(0, 'Electron Temperature', 'K')
+  call register_usr_var(0, 'Ion Temperature', 'K')
 
 end subroutine init_usr_output_registry

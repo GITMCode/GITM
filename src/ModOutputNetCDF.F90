@@ -57,8 +57,10 @@ module ModOutputNetCDF
   integer :: nc_time_record = 1        ! current time record being written (1-based)
   integer :: nc_varid_time = -1        ! varid of the time coordinate variable
   integer :: nc_type_records(nc_max_types)  ! records written per output type so far
-  data nc_type_records / nc_max_types*0 /
-  character(len=300) :: nc_multitime_filename = ''  ! filename for current type
+  data nc_type_records/nc_max_types*0/
+  character(len=300) :: nc_type_filenames(nc_max_types)  ! last filename opened per type
+  data nc_type_filenames/nc_max_types*' '/
+
 #endif
 
 contains
@@ -75,13 +77,13 @@ contains
   subroutine netcdf_open_file(dir, cType, cTime, cL)
     use ModGITM, only: iCommGITM, iProc
 #ifdef HavePNetCDF
-    use ModInputs, only: nBlocksLon, nBlocksLat, UseNetcdfMultiTime
+    use ModInputs, only: nBlocksLon, nBlocksLat, UseNetcdfMultiTime, NetCdfAppendOption
     use ModSizeGitm, only: nLons, nLats, nAlts
     use ModElectrodynamics, only: nMagLons, nMagLats
     use ModOutputRegistry, only: find_output_type, RegisteredTypes
     use ModTime, only: iTimeArray, CurrentTime
     ! Not compiled in standalone. Change 1965 when it is!
-    ! use ModTimeConvert, only: iYearBase 
+    ! use ModTimeConvert, only: iYearBase
 #endif
     character(len=*), intent(in) :: dir, cType, cTime
     integer, intent(in) :: cL
@@ -92,6 +94,7 @@ contains
     integer(kind=MPI_OFFSET_KIND) :: nLons_g, nLats_g, nAlts_g
     integer(kind=MPI_OFFSET_KIND) :: tstart(1), tcnt(1)
     character(len=80) :: varname
+    character(len=20) :: cDate
     real(kind=8) :: time_val(1)
 
     ! Look up variable metadata from registry
@@ -127,16 +130,26 @@ contains
 
     if (UseNetcdfMultiTime) then
       ! ----------------------------------------------------------------
-      ! Multi-time mode: one file per output type accumulates all times.
+      ! Multi-time mode! Either:
+      ! - single: one file per output type, accumulates all times.
+      ! - daily: one output file, per type, per day
       ! ----------------------------------------------------------------
       if (iTypeIdx > nc_max_types) iTypeIdx = nc_max_types
-      nc_type_records(iTypeIdx) = nc_type_records(iTypeIdx) + 1
-      nc_time_record = nc_type_records(iTypeIdx)
-      filename = trim(dir)//"/"//trim(cType)//".nc"
-      nc_multitime_filename = filename
+      ! Build filename first; create-vs-reopen is driven by whether this filename
+      ! has been opened in this session.
+      ! This correctly handles daily rollover (new date -> new file) and fresh
+      ! runs in the same directory (not-yet-used filename -> always create).
+      if (NetCdfAppendOption == 'single') then
+        filename = trim(dir)//"/"//trim(cType)//".nc"
+      else ! Add date to 'daily' files
+        write(cDate, '(i4.4,"-",i2.2,"-",i2.2)') iTimeArray(1), iTimeArray(2), iTimeArray(3)
+        filename = trim(dir)//"/"//trim(cType)//"_"//trim(cDate)//".nc"
+      endif
 
-      if (nc_time_record == 1) then
-        ! ---- First record: create file and define everything ----
+      if (trim(filename) /= trim(nc_type_filenames(iTypeIdx))) then
+        ! ---- New file: create and define everything ----
+        nc_type_records(iTypeIdx) = 1
+        nc_type_filenames(iTypeIdx) = trim(filename)
         ierr = nfmpi_create(iCommGITM, trim(filename), &
                             IOR(NF_CLOBBER, NF_64BIT_DATA), MPI_INFO_NULL, ncid)
         if (ierr /= NF_NOERR) then
@@ -146,7 +159,8 @@ contains
         call define_file_structure(nDims, nVars, iTypeIdx, nLons_g, nLats_g, nAlts_g, &
                                    iTimeArray, isMultiTime=.true.)
       else
-        ! ---- Subsequent records: reopen existing file and re-fetch varids ----
+        ! ---- Same file: reopen and append next record ----
+        nc_type_records(iTypeIdx) = nc_type_records(iTypeIdx) + 1
         ierr = nfmpi_open(iCommGITM, trim(filename), NF_WRITE, MPI_INFO_NULL, ncid)
         if (ierr /= NF_NOERR) then
           write(*, *) "ModOutputNetCDF: nfmpi_open failed: ", nfmpi_strerror(ierr)
@@ -168,6 +182,7 @@ contains
         ierr = nfmpi_inq_varid(ncid, "lat", coordids(2))
         if (nDims == 3) ierr = nfmpi_inq_varid(ncid, "z", coordids(3))
       endif
+      nc_time_record = nc_type_records(iTypeIdx)
 
     else
       ! ----------------------------------------------------------------
@@ -256,6 +271,7 @@ contains
   ! ==================================================================
   subroutine netcdf_write_block(iUnit, buffer, nV, nX, nY, nZ, iBLK)
     use ModGITM, only: Longitude, Latitude, Altitude_GB
+    use ModElectrodynamics, only: MagLonMC, MagLatMC
     use ModConst, only: cRadToDeg
     use ModInputs, only: UseNetcdfMultiTime
     integer, intent(in) :: iUnit, nV, nX, nY, nZ, iBLK
@@ -293,7 +309,7 @@ contains
     start(1) = int(iBlockLon_0*nLi, MPI_OFFSET_KIND) + 1_MPI_OFFSET_KIND
     start(2) = int(iBlockLat_0*nLai, MPI_OFFSET_KIND) + 1_MPI_OFFSET_KIND
     start(3) = 1_MPI_OFFSET_KIND
-    start(4) = int(nc_time_record, MPI_OFFSET_KIND)
+    start(ndimid + 1) = int(nc_time_record, MPI_OFFSET_KIND)
 
     cnt(1) = int(nLi, MPI_OFFSET_KIND)
     cnt(2) = int(nLai, MPI_OFFSET_KIND)
@@ -323,6 +339,28 @@ contains
           write(*, *) "netcdf_write_block: put_vara_double failed for var ", iV, &
           ": ", nfmpi_strerror(ierr)
       enddo
+
+      ! Coordinate variables: only block 1 writes, only on the first time record.
+      ! MagLonMC/MagLatMC are separable grids so the 1D axes are column/row slices.
+      ! Guard against configurations where UA_calc_electrodynamics never ran its
+      ! IsFirstTime block (e.g. UseDynamo=F, DipoleStrength=0, Is1D) leaving
+      ! MagLatMC/MagLonMC unallocated.
+      if (iBLK == 1 .and. nc_time_record == 1 .and. &
+          allocated(MagLonMC) .and. allocated(MagLatMC)) then
+        cstart(1) = 1_MPI_OFFSET_KIND
+        ccnt(1) = int(nLi, MPI_OFFSET_KIND)
+        allocate(coord1d(nLi))
+        coord1d = real(MagLonMC(1:nLi, 1), kind=8)
+        ierr = nfmpi_put_vara_double(ncid, coordids(1), cstart, ccnt, coord1d)
+        deallocate(coord1d)
+
+        cstart(1) = 1_MPI_OFFSET_KIND
+        ccnt(1) = int(nLai, MPI_OFFSET_KIND)
+        allocate(coord1d(nLai))
+        coord1d = real(MagLatMC(1, 1:nLai), kind=8)
+        ierr = nfmpi_put_vara_double(ncid, coordids(2), cstart, ccnt, coord1d)
+        deallocate(coord1d)
+      endif
     else
       ! Collective put for regular block-partitioned types
       do iV = 1, nV
@@ -339,14 +377,14 @@ contains
           ": ", nfmpi_strerror(ierr)
       enddo
 
-      ! --- 1-D coordinate variables --- (Not present in magnetic/needsIndepWrite outputs)
+      ! --- 1-D coordinate variables ---
       ! Written only on the first time record; coordinates don't change between timesteps.
       if (nc_time_record == 1) then
-        ! lon: each block writes its own interior lon range (degrees east)
+        ! lon: each block writes its own interior lon range (radians east)
         cstart(1) = start(1)
         ccnt(1) = cnt(1)
         allocate(coord1d(nLi))
-        coord1d = real(Longitude(1:nLi, 1), kind=8) * cRadToDeg
+        coord1d = real(Longitude(1:nLi, 1), kind=8)*cRadToDeg
         ierr = nfmpi_put_vara_double_all(ncid, coordids(1), cstart, ccnt, coord1d)
         deallocate(coord1d)
 
@@ -354,7 +392,7 @@ contains
         cstart(1) = start(2)
         ccnt(1) = cnt(2)
         allocate(coord1d(nLai))
-        coord1d = real(Latitude(1:nLai, 1), kind=8) * cRadToDeg
+        coord1d = real(Latitude(1:nLai, 1), kind=8)*cRadToDeg
         ierr = nfmpi_put_vara_double_all(ncid, coordids(2), cstart, ccnt, coord1d)
         deallocate(coord1d)
 
@@ -363,7 +401,7 @@ contains
           cstart(1) = 1_MPI_OFFSET_KIND
           ccnt(1) = cnt(3)
           allocate(coord1d(nAi))
-          coord1d = real(Altitude_GB(1, 1, 1:nAi, 1), kind=8) / 1000.0d0
+          coord1d = real(Altitude_GB(1, 1, 1:nAi, 1), kind=8)/1000.0d0
           ierr = nfmpi_put_vara_double_all(ncid, coordids(3), cstart, ccnt, coord1d)
           deallocate(coord1d)
         endif
@@ -401,8 +439,33 @@ contains
     integer :: dimid_vars(4), ndimid, ndimid_var, iV, ierr
     integer(kind=MPI_OFFSET_KIND) :: attlen
     character(len=80) :: varname
-    character(len=40) :: coord_units
+    character(len=80) :: coord_units
     character(len=30) :: coord_str
+    character(len=8)  :: dstr
+    character(len=10) :: tstr
+    ! Types where only some blocks write (magnetic-grid, regional) leave the
+    ! rest of the grid unwritten; fill those elements with NaN instead of 0 so
+    ! consumers don't read them as real data.
+    logical :: doFillNaN
+    real(8) :: fillNaN
+
+    doFillNaN = RegisteredTypes(iTypeIdx)%usesMagGrid .or. &
+                RegisteredTypes(iTypeIdx)%isRegional
+    fillNaN = transfer(int(z'7FF8000000000000', 8), 1.0_8)
+
+    ! CF global attributes
+    attlen = 6_MPI_OFFSET_KIND
+    coord_units = trim(RegisteredTypes(iTypeIdx)%code)//" output from GITM"
+    attlen = int(len_trim(coord_units), MPI_OFFSET_KIND)
+    ierr = nfmpi_put_att_text(ncid, NF_GLOBAL, "title", attlen, trim(coord_units))
+    coord_units = "GITM (Global Ionosphere-Thermosphere Model)"
+    attlen = int(len_trim(coord_units), MPI_OFFSET_KIND)
+    ierr = nfmpi_put_att_text(ncid, NF_GLOBAL, "source", attlen, trim(coord_units))
+    call date_and_time(date=dstr, time=tstr)
+    coord_units = dstr(1:4)//"-"//dstr(5:6)//"-"//dstr(7:8)//" "// &
+                  tstr(1:2)//":"//tstr(3:4)//":"//tstr(5:6)//" Created by GITM"
+    attlen = int(len_trim(coord_units), MPI_OFFSET_KIND)
+    ierr = nfmpi_put_att_text(ncid, NF_GLOBAL, "history", attlen, trim(coord_units))
 
     ! Spatial dims
     ierr = nfmpi_def_dim(ncid, "lon", nLons_g, dimid_lon)
@@ -435,14 +498,30 @@ contains
                            dimid_vars(1:ndimid_var), varids(iV))
       if (ierr /= NF_NOERR) &
         write(*, *) "netcdf_open: def_var '", trim(varname), "' failed: ", nfmpi_strerror(ierr)
+      if (doFillNaN) then
+        ierr = nfmpi_def_var_fill(ncid, varids(iV), 0, fillNaN)
+        ierr = nfmpi_put_att_double(ncid, varids(iV), "_FillValue", NF_DOUBLE, &
+                                    1_MPI_OFFSET_KIND, [fillNaN])
+      endif
       if (len_trim(RegisteredTypes(iTypeIdx)%vars(iV)%units) > 0) then
         attlen = int(len_trim(RegisteredTypes(iTypeIdx)%vars(iV)%units), MPI_OFFSET_KIND)
         ierr = nfmpi_put_att_text(ncid, varids(iV), "units", attlen, &
                                   trim(RegisteredTypes(iTypeIdx)%vars(iV)%units))
       endif
+      if (len_trim(RegisteredTypes(iTypeIdx)%vars(iV)%longName) > 0) then
+        attlen = int(len_trim(RegisteredTypes(iTypeIdx)%vars(iV)%longName), MPI_OFFSET_KIND)
+        ierr = nfmpi_put_att_text(ncid, varids(iV), "long_name", attlen, &
+                                  trim(RegisteredTypes(iTypeIdx)%vars(iV)%longName))
+      endif
+      ! Add attribute 'gitm_name' containing the name that's written in .bin files
+      ! Unnecessary, but makes comparisons between .bin and .nc files *so* much easier
+      attlen = int(len_trim(RegisteredTypes(iTypeIdx)%vars(iV)%name), MPI_OFFSET_KIND)
+      ierr = nfmpi_put_att_text(ncid, varids(iV), "gitm_name", attlen, &
+                                trim(RegisteredTypes(iTypeIdx)%vars(iV)%name))
     enddo
 
     ! Time coordinate variable
+    ! 1965 is left out in case we need to change the base-year
     write(coord_units, '("seconds since ",i4.4,"-01-01 00:00:00")') 1965
     ierr = nfmpi_def_var(ncid, "time", NF_DOUBLE, 1, [dimid_time], nc_varid_time)
     attlen = int(len_trim(coord_units), MPI_OFFSET_KIND)
@@ -480,28 +559,319 @@ contains
   end subroutine define_file_structure
 
   ! ==================================================================
-  ! Replace characters invalid in NetCDF variable names with '_'
+  ! Sanitize a string for use as a NetCDF variable name:
+  !   ()[]        -> removed
+  !   +           -> 'p'
+  !   -           -> 'm'
+  !   spaces/misc -> '_'
+  ! After substitution: collapse '__' runs, strip leading/trailing '_',
+  ! then prefix with 'var_' if the result doesn't start with a letter.
   ! ==================================================================
   subroutine sanitize_nc_name(name)
     character(len=*), intent(inout) :: name
-    integer :: i
+    character(len=len(name)) :: tmp
+    integer :: i, j, n
+    character :: prev
+
+    ! Pass 1: build tmp with substitutions; remove '(' ')' '[' ']'
+    j = 0
     do i = 1, len_trim(name)
       select case (name(i:i))
-      case (' ', '/', '(', ')', '[', ']', '#', '%', '!', '+', '-', '*', '^', '.', &
-            ',', '{', '}', '\', '<', '>', '=', '&', '|', '~', '`', '"', "'", '?', '@', '$', ';', ':')
-        name(i:i) = '_'
+      case ('(', ')', '[', ']')
+        ! remove — do not copy
+      case ('+')
+        j = j + 1
+        if (j <= len(tmp)) tmp(j:j) = 'p'
+      case ('-')
+        j = j + 1
+        if (j <= len(tmp)) tmp(j:j) = 'm'
+      case (' ', '/', '#', '%', '!', '*', '^', '.', ',', '{', '}', '\', &
+            '<', '>', '=', '&', '|', '~', '`', '"', "'", '?', '@', '$', ';', ':')
+        j = j + 1
+        if (j <= len(tmp)) tmp(j:j) = '_'
+      case default
+        j = j + 1
+        if (j <= len(tmp)) tmp(j:j) = name(i:i)
       end select
     enddo
-    ! NetCDF classic names must start with a letter; prefix with 'v_' if not
+    if (j < len(tmp)) tmp(j + 1:) = ' '
+    n = j
+
+    ! Pass 2: copy tmp -> name, collapsing consecutive '_' into one
+    j = 0
+    name = ' '
+    prev = ' '
+    do i = 1, n
+      if (tmp(i:i) == '_' .and. prev == '_') cycle
+      j = j + 1
+      name(j:j) = tmp(i:i)
+      prev = tmp(i:i)
+    enddo
+
+    ! Strip leading '_'
+    do while (len_trim(name) > 0 .and. name(1:1) == '_')
+      name = name(2:)
+    enddo
+
+    ! Strip trailing '_'
+    n = len_trim(name)
+    do while (n > 0 .and. name(n:n) == '_')
+      name(n:n) = ' '
+      n = n - 1
+    enddo
+
+    ! NetCDF classic names must start with a letter; prefix with 'var_' if not
     if (len_trim(name) > 0) then
       select case (name(1:1))
       case ('a':'z', 'A':'Z')
         ! ok
       case default
-        name = 'v_'//name
+        name = 'var_'//name
       end select
     endif
+
   end subroutine sanitize_nc_name
 #endif
+
+  ! ---------------------------------------------------------------------------
+  ! netcdf_write_container — write a filled OutputContainer to the open PnetCDF file.
+  !
+  ! Called from output_common.f90 after fill_<type>().  The file is already open
+  ! (netcdf_open_file ran before the block loop).
+  !
+  ! Two I/O modes, driven by nc_needsIndepWrite (set at open_file time):
+  !
+  !   nc_needsIndepWrite=T (MAG_2D / usesMagGrid):
+  !     File is in independent data mode.  Only the participating rank writes;
+  !     others return early.  start=(1,1): single block covers the full grid.
+  !
+  !   nc_needsIndepWrite=F (GEO_2D block-partitioned):
+  !     File is in collective data mode.  All ranks participate; each writes
+  !     its block at the correct global offset (mirrors netcdf_write_block).
+  !     iBlockLon_0 = mod(iBlock-1, nc_nBlocksLon)
+  !     iBlockLat_0 = (iBlock-1) / nc_nBlocksLon
+  !     start(1) = iBlockLon_0 * nX + 1
+  !     start(2) = iBlockLat_0 * nY + 1
+  !
+  ! Axis vars (is_axis=T) are 1D in the container but 2D in the data variables:
+  !   lon axis (shape3(1)==nX): replicate along Y → buf2d(:, iy)
+  !   lat axis (shape3(1)==nY): replicate along X → buf2d(ix, :)
+  !
+  ! 1D coord variables (lon, lat) are written once per file (nc_time_record==1)
+  ! from the first axis var encountered for each axis, at the block's offset.
+  ! ---------------------------------------------------------------------------
+  subroutine netcdf_write_container(c, iBlock, iTimeArray)
+    use ModOutputContainer, only: OutputContainer, output_kind, &
+                                  GRID_GEO_3D, GRID_GEO_2D, GRID_MAG_2D, GRID_HIME
+#ifdef HavePNetCDF
+    use ModInputs, only: UseNetcdfMultiTime
+#endif
+    type(OutputContainer), intent(inout) :: c
+    integer, intent(in) :: iBlock
+    integer, intent(in) :: iTimeArray(7)
+
+#ifdef HavePNetCDF
+    ! start/cnt are sized for 3D+time; 2D paths use start(1:3)/cnt(1:3) slices.
+    integer(kind=MPI_OFFSET_KIND) :: start(4), cnt(4), cstart(1), ccnt(1)
+    integer :: nX, nY, nZ, i, ix, iy, iz, iAxis, ierr
+    integer :: iBlockLon_0, iBlockLat_0
+    integer :: nGC, ax_lo, ay_lo, az_lo
+    logical :: is3d, doStrip
+    real(kind=8), allocatable :: buf2d(:, :), buf3d(:, :, :), coord1d(:)
+
+    if (.not. c%this_rank_writes) return
+    if (ncid == -1) return
+    if (c%nVars == 0) return
+
+    ! Ghost cell stripping: netcdf writes interior only for geographic grids.
+    ! Magnetic grids (GRID_MAG_2D) have no ghost concept and are never stripped.
+    doStrip = (c%nGhostCells > 0) .and. &
+              (c%gridKind == GRID_GEO_2D .or. c%gridKind == GRID_GEO_3D &
+               .or. c%gridKind == GRID_HIME)
+    nGC = merge(c%nGhostCells, 0, doStrip)
+
+    ! Derive grid dims from non-axis vars.  Container shapes include any ghost
+    ! padding; subtract it here so nX/nY/nZ are interior sizes (the on-disk shape).
+    nX = 0; nY = 0; nZ = 0
+    do i = 1, c%nVars
+      if (.not. c%vars(i)%is_axis) then
+        nX = max(nX, c%vars(i)%shape3(1))
+        nY = max(nY, c%vars(i)%shape3(2))
+        nZ = max(nZ, c%vars(i)%shape3(3))
+      end if
+    end do
+    if (nX == 0 .or. nY == 0 .or. nZ == 0) return
+    nX = nX - 2*nGC
+    nY = nY - 2*nGC
+    nZ = nZ - 2*nGC
+
+    ! Lower-bound offsets into container storage when stripping (1-based slice start).
+    ax_lo = nGC + 1
+    ay_lo = nGC + 1
+    az_lo = nGC + 1
+
+    is3d = (c%gridKind == GRID_GEO_3D)
+
+    if (nc_needsIndepWrite .and. c%gridKind == GRID_MAG_2D) then
+      ! MAG_2D: single rank writes the full magnetic grid starting at (1,1).
+      start(1) = 1_MPI_OFFSET_KIND
+      start(2) = 1_MPI_OFFSET_KIND
+    else
+      ! GEO_2D / GEO_3D / GRID_HIME: each block writes at its global lon/lat offset.
+      ! For GRID_HIME (regional), only participating blocks call this, but they still
+      ! write at their correct position in the full global grid.
+      iBlockLon_0 = mod(iBlock - 1, nc_nBlocksLon)
+      iBlockLat_0 = (iBlock - 1) / nc_nBlocksLon
+      start(1) = int(iBlockLon_0 * nX, MPI_OFFSET_KIND) + 1_MPI_OFFSET_KIND
+      start(2) = int(iBlockLat_0 * nY, MPI_OFFSET_KIND) + 1_MPI_OFFSET_KIND
+    end if
+    cnt(1) = int(nX, MPI_OFFSET_KIND)
+    cnt(2) = int(nY, MPI_OFFSET_KIND)
+
+    if (is3d) then
+      start(3) = 1_MPI_OFFSET_KIND            ! alt always starts at 1
+      start(4) = int(nc_time_record, MPI_OFFSET_KIND)
+      cnt(3) = int(nZ, MPI_OFFSET_KIND)
+      cnt(4) = 1_MPI_OFFSET_KIND
+    else
+      start(3) = int(nc_time_record, MPI_OFFSET_KIND)
+      cnt(3) = 1_MPI_OFFSET_KIND
+    end if
+
+    ! Axis vars: first is_axis var = lon, second = lat (position-based, safe
+    ! when nLons==nLats).  Non-axis vars are written as full 2D or 3D arrays.
+    if (is3d) then
+      allocate(buf3d(nX, nY, nZ))
+    else
+      allocate(buf2d(nX, nY))
+    end if
+
+    iAxis = 0
+    do i = 1, c%nVars
+      if (c%vars(i)%is_axis) then
+        iAxis = iAxis + 1
+        if (is3d) then
+          if (iAxis == 1) then
+            ! Longitude axis: replicate along Y and Z.
+            do iz = 1, nZ
+              do iy = 1, nY
+                buf3d(:, iy, iz) = real(c%vars(i)%data(ax_lo:ax_lo+nX-1, 1, 1), kind=8)
+              end do
+            end do
+          else
+            ! Latitude axis: replicate along X and Z.
+            do iz = 1, nZ
+              do ix = 1, nX
+                buf3d(ix, :, iz) = real(c%vars(i)%data(ay_lo:ay_lo+nY-1, 1, 1), kind=8)
+              end do
+            end do
+          end if
+        else
+          if (iAxis == 1) then
+            ! Longitude axis: replicate along Y.
+            do iy = 1, nY
+              buf2d(:, iy) = real(c%vars(i)%data(ax_lo:ax_lo+nX-1, 1, 1), kind=8)
+            end do
+          else
+            ! Latitude axis: replicate along X.
+            do ix = 1, nX
+              buf2d(ix, :) = real(c%vars(i)%data(ay_lo:ay_lo+nY-1, 1, 1), kind=8)
+            end do
+          end if
+        end if
+      else
+        if (is3d) then
+          buf3d = real(c%vars(i)%data(ax_lo:ax_lo+nX-1, &
+                                      ay_lo:ay_lo+nY-1, &
+                                      az_lo:az_lo+nZ-1), kind=8)
+        else
+          buf2d = real(c%vars(i)%data(ax_lo:ax_lo+nX-1, &
+                                      ay_lo:ay_lo+nY-1, 1), kind=8)
+        end if
+      end if
+
+      if (is3d) then
+        if (nc_needsIndepWrite) then
+          if (UseNetcdfMultiTime) then
+            ierr = nfmpi_put_vara_double(ncid, varids(i), start(1:4), cnt(1:4), buf3d)
+          else
+            ierr = nfmpi_put_vara_double(ncid, varids(i), start(1:3), cnt(1:3), buf3d)
+          end if
+        else
+          if (UseNetcdfMultiTime) then
+            ierr = nfmpi_put_vara_double_all(ncid, varids(i), start(1:4), cnt(1:4), buf3d)
+          else
+            ierr = nfmpi_put_vara_double_all(ncid, varids(i), start(1:3), cnt(1:3), buf3d)
+          end if
+        end if
+      else
+        if (nc_needsIndepWrite) then
+          if (UseNetcdfMultiTime) then
+            ierr = nfmpi_put_vara_double(ncid, varids(i), start(1:3), cnt(1:3), buf2d)
+          else
+            ierr = nfmpi_put_vara_double(ncid, varids(i), start(1:2), cnt(1:2), buf2d)
+          end if
+        else
+          if (UseNetcdfMultiTime) then
+            ierr = nfmpi_put_vara_double_all(ncid, varids(i), start(1:3), cnt(1:3), buf2d)
+          else
+            ierr = nfmpi_put_vara_double_all(ncid, varids(i), start(1:2), cnt(1:2), buf2d)
+          end if
+        end if
+      end if
+      if (ierr /= NF_NOERR) &
+        write(*, *) "netcdf_write_container: put_vara failed for ", &
+        trim(c%vars(i)%name), ": ", nfmpi_strerror(ierr)
+    end do
+
+    if (is3d) then
+      deallocate(buf3d)
+    else
+      deallocate(buf2d)
+    end if
+
+    ! 1D coordinate variables written once per file (nc_time_record==1).
+    ! lon/lat use block offset; z uses absolute [1,nZ] (all blocks span full alt).
+    if (nc_time_record == 1) then
+      ! lon coord (var 1 by convention)
+      ccnt(1) = int(nX, MPI_OFFSET_KIND)
+      cstart(1) = start(1)
+      allocate(coord1d(nX))
+      coord1d = real(c%vars(1)%data(ax_lo:ax_lo+nX-1, 1, 1), kind=8)
+      if (nc_needsIndepWrite) then
+        ierr = nfmpi_put_vara_double(ncid, coordids(1), cstart, ccnt, coord1d)
+      else
+        ierr = nfmpi_put_vara_double_all(ncid, coordids(1), cstart, ccnt, coord1d)
+      end if
+      deallocate(coord1d)
+
+      ! lat coord (var 2 by convention)
+      ccnt(1) = int(nY, MPI_OFFSET_KIND)
+      cstart(1) = start(2)
+      allocate(coord1d(nY))
+      coord1d = real(c%vars(2)%data(ay_lo:ay_lo+nY-1, 1, 1), kind=8)
+      if (nc_needsIndepWrite) then
+        ierr = nfmpi_put_vara_double(ncid, coordids(2), cstart, ccnt, coord1d)
+      else
+        ierr = nfmpi_put_vara_double_all(ncid, coordids(2), cstart, ccnt, coord1d)
+      end if
+      deallocate(coord1d)
+
+      ! z coord (var 3 by convention for 3D; altitude in km)
+      if (is3d) then
+        ccnt(1) = int(nZ, MPI_OFFSET_KIND)
+        cstart(1) = 1_MPI_OFFSET_KIND
+        allocate(coord1d(nZ))
+        coord1d = real(c%vars(3)%data(ax_lo, ay_lo, az_lo:az_lo+nZ-1), kind=8) / 1000.0d0
+        if (nc_needsIndepWrite) then
+          ierr = nfmpi_put_vara_double(ncid, coordids(3), cstart, ccnt, coord1d)
+        else
+          ierr = nfmpi_put_vara_double_all(ncid, coordids(3), cstart, ccnt, coord1d)
+        end if
+        deallocate(coord1d)
+      end if
+    end if
+#endif
+  end subroutine netcdf_write_container
 
 end module ModOutputNetCDF

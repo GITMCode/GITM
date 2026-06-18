@@ -11,8 +11,8 @@
 
 module ModOutputBackend
 
-  use ModOutputRegistry, only: OutputTypeInfo, OutputVar
-  use ModInputs, only: iCharLen_
+  use ModOutputContainer, only: OutputContainer, GRID_MAG_2D
+  use ModInputs, only: iCharLen_, iOutputUnit_
 
   implicit none
   ! Default to legacy so runs without #OUTPUTBACKEND in UAM.in behave identically
@@ -45,18 +45,27 @@ module ModOutputBackend
       real, intent(in) :: buffer(nV, nX, nY, nZ)
     end subroutine
 
-    subroutine backend_write_header_iface(iUnit, info, cType, &
+    subroutine backend_write_header_iface(iUnit, c, cType, &
                                           nAlts, nLats, nLons, nGCs, &
                                           nBlocksLat, nBlocksLon, &
                                           iTimeArray, cVersion)
-      import :: OutputTypeInfo
+      import :: OutputContainer
       integer, intent(in) :: iUnit
-      type(OutputTypeInfo), intent(in) :: info
+      type(OutputContainer), intent(in) :: c
       character(len=5), intent(in) :: cType
       integer, intent(in) :: nAlts, nLats, nLons, nGCs
       integer, intent(in) :: nBlocksLat, nBlocksLon
       integer, intent(in) :: iTimeArray(7)
       character(len=*), intent(in) :: cVersion
+    end subroutine
+
+    ! Write all variables in a container to the output file for one block.
+    ! Called per block per timestep on participating ranks.
+    subroutine backend_write_container_iface(c, iBlock, iTimeArray)
+      import :: OutputContainer
+      type(OutputContainer), intent(inout) :: c
+      integer, intent(in) :: iBlock
+      integer, intent(in) :: iTimeArray(7)
     end subroutine
   end interface
 
@@ -79,6 +88,7 @@ module ModOutputBackend
     procedure(backend_close_file_iface), pointer, nopass :: close_file => null()
     procedure(backend_write_block_iface), pointer, nopass :: write_block => null()
     procedure(backend_write_header_iface), pointer, nopass :: write_header => null()
+    procedure(backend_write_container_iface), pointer, nopass :: write_container => null()
   end type OutputBackend
 
   type(OutputBackend) :: ActiveBackend
@@ -90,9 +100,10 @@ contains
   ! ------------------------------------------------------------------
   subroutine init_output_backend(backend_name)
     use ModOutputMPIIO, only: mpiio_open_file, mpiio_close_file, &
-                              mpiio_write_block, mpiio_write_header
+                              mpiio_write_block, mpiio_write_header, &
+                              mpiio_write_container
     use ModOutputNetCDF, only: netcdf_open_file, netcdf_close_file, &
-                               netcdf_write_block
+                               netcdf_write_block, netcdf_write_container
     character(len=*), intent(in) :: backend_name
 
     select case (trim(backend_name))
@@ -103,6 +114,7 @@ contains
       ActiveBackend%close_file => mpiio_close_file
       ActiveBackend%write_block => mpiio_write_block
       ActiveBackend%write_header => mpiio_write_header
+      ActiveBackend%write_container => mpiio_write_container
     case ('netcdf')
       ActiveBackend%name = 'netcdf'
       ActiveBackend%uses_external_file = .false.
@@ -110,6 +122,7 @@ contains
       ActiveBackend%open_file => netcdf_open_file
       ActiveBackend%close_file => netcdf_close_file
       ActiveBackend%write_block => netcdf_write_block
+      ActiveBackend%write_container => netcdf_write_container
       ! write_header left null: output_common.f90 checks writes_header before calling it
     case default
       if (trim(backend_name) /= 'legacy') &
@@ -121,6 +134,7 @@ contains
       ActiveBackend%close_file => legacy_close_file
       ActiveBackend%write_block => legacy_write_block
       ActiveBackend%write_header => legacy_write_header
+      ActiveBackend%write_container => legacy_write_container
     end select
   end subroutine init_output_backend
 
@@ -162,13 +176,13 @@ contains
   ! Reproduces the format of the legacy output_header, write_head_blocks,
   ! write_head_time, and write_head_version subroutines.
   ! ------------------------------------------------------------------
-  subroutine legacy_write_header(iUnit, info, cType, &
+  subroutine legacy_write_header(iUnit, c, cType, &
                                  nAlts, nLats, nLons, nGCs, &
                                  nBlocksLat, nBlocksLon, &
                                  iTimeArray, cVersion)
     use ModElectrodynamics, only: nMagLats, nMagLons
     integer, intent(in) :: iUnit
-    type(OutputTypeInfo), intent(in) :: info
+    type(OutputContainer), intent(in) :: c
     character(len=5), intent(in) :: cType
     integer, intent(in) :: nAlts, nLats, nLons, nGCs
     integer, intent(in) :: nBlocksLat, nBlocksLon
@@ -208,12 +222,12 @@ contains
 
     ! --- NUMERICAL VALUES section ---
     write(iUnit, *) "NUMERICAL VALUES"
-    write(iUnit, "(I7,6A)") info%nVars, " nvars"
+    write(iUnit, "(I7,6A)") c%nVars, " nvars"
 
     if (cType == '1DNEW') then
       write(iUnit, "(I7,7A)") nAlts, " nAltitudes"
     elseif (cType(1:2) /= "2D" .and. cType(1:2) /= "0D") then
-      write(iUnit, "(I7,7A)") nAlts + 4, " nAltitudes"
+      write(iUnit, "(I7,7A)") nAlts + nGCs*2, " nAltitudes"
     else
       write(iUnit, "(I7,7A)") 1, " nAltitudes"
     endif
@@ -222,13 +236,12 @@ contains
       write(iUnit, "(I7,7A)") 1, " nLatitudes"
       write(iUnit, "(I7,7A)") 1, " nLongitudes"
     else
-      if (info%usesMagGrid) then
+      if (c%gridKind == GRID_MAG_2D) then
         write(iUnit, "(I7,A)") nMagLats, " nLatitude"
         write(iUnit, "(I7,A)") nMagLons + 1, " nLongitudes"
         write(iUnit, *) " "
         write(iUnit, *) "NO GHOSTCELLS"
-      elseif (cType(3:5) == "GEL" .or. cType(3:5) == "TEC" .or. &
-              cType(1:5) == "2DANC" .or. cType(3:5) == "HME") then
+      elseif (nGCs == 0) then
         write(iUnit, "(I7,A)") nLats, " nLatitude"
         write(iUnit, "(I7,A)") nLons, " nLongitudes"
         write(iUnit, *) " "
@@ -240,10 +253,10 @@ contains
     endif
     write(iUnit, *) ""
 
-    ! --- VARIABLE LIST section (auto-generated from registry) ---
+    ! --- VARIABLE LIST section ---
     write(iUnit, *) "VARIABLE LIST"
-    do i = 1, info%nVars
-      write(iUnit, "(I7,A1,a)") i, " ", trim(info%vars(i)%name)
+    do i = 1, c%nVars
+      write(iUnit, "(I7,A1,a)") i, " ", trim(c%vars(i)%name)
     enddo
 
     write(iUnit, *) ""
@@ -251,5 +264,76 @@ contains
     write(iUnit, *) ""
 
   end subroutine legacy_write_header
+
+  ! ---------------------------------------------------------------------------
+  ! legacy_write_container — pack container vars into a single tmpbuf and write
+  ! to the legacy unformatted file for the current block.
+  ! Replicates the legacy per-grid-point write pattern exactly:
+  !   do iz, do iy, do ix: write(unit) buffer(:, ix, iy, iz)
+  ! ---------------------------------------------------------------------------
+  subroutine legacy_write_container(c, iBlock, iTimeArray)
+    use ModInputs, only: iOutputUnit_
+    use ModOutputContainer, only: OutputContainer, output_kind
+    type(OutputContainer), intent(inout) :: c
+    integer, intent(in) :: iBlock
+    integer, intent(in) :: iTimeArray(7)
+
+    real(output_kind), allocatable :: tmpbuf(:, :, :, :)
+    integer :: nV, nX, nY, nZ
+    integer :: i, ix, iy, iz, iAxis
+
+    if (.not. c%this_rank_writes) return
+    if (c%nVars == 0) return
+
+    ! Grid dims from non-axis vars only (axis vars have degenerate dims).
+    nX = 0; nY = 0; nZ = 0
+    do i = 1, c%nVars
+      if (.not. c%vars(i)%is_axis) then
+        nX = max(nX, c%vars(i)%shape3(1))
+        nY = max(nY, c%vars(i)%shape3(2))
+        nZ = max(nZ, c%vars(i)%shape3(3))
+      end if
+    end do
+    if (nX == 0 .or. nY == 0 .or. nZ == 0) return
+
+    nV = c%nVars
+    allocate(tmpbuf(nV, nX, nY, nZ))
+
+    ! Axis vars are identified by position: first is_axis var = lon, second = lat.
+    iAxis = 0
+    do i = 1, nV
+      if (c%vars(i)%is_axis) then
+        iAxis = iAxis + 1
+        if (iAxis == 1) then
+          ! Longitude axis: replicate 1D data along lat and alt dimensions.
+          do iz = 1, nZ
+            do iy = 1, nY
+              tmpbuf(i, :, iy, iz) = c%vars(i)%data(:, 1, 1)
+            end do
+          end do
+        else
+          ! Latitude axis: replicate 1D data along lon and alt dimensions.
+          do iz = 1, nZ
+            do ix = 1, nX
+              tmpbuf(i, ix, :, iz) = c%vars(i)%data(:, 1, 1)
+            end do
+          end do
+        end if
+      else
+        tmpbuf(i, :, :, :) = c%vars(i)%data
+      end if
+    end do
+
+    ! Write the packed buffer to the legacy unformatted unit
+    do iz = 1, nZ
+      do iy = 1, nY
+        do ix = 1, nX
+          write(iOutputUnit_) tmpbuf(1:nV, ix, iy, iz)
+        enddo
+      enddo
+    enddo
+
+    deallocate(tmpbuf)
+  end subroutine legacy_write_container
 
 end module ModOutputBackend

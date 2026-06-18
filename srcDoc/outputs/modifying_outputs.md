@@ -190,10 +190,8 @@ if (idx > 0 .and. RegisteredTypes(idx)%nVars == 0) then
 
 !!! danger "Variable order matters"
     The order of `add_var()` calls **must exactly match** the order of array indices
-    you used when populating `UserData*D`. If you populate index 1 with variable A and
-    index 2 with variable B, but register them as B then A, the output columns will be
-    scrambled. There is no error message — your data will simply be wrong. **Double-check
-    this order.**
+    you used when populating `UserData*D`. If you populate things out of order, the
+    output columns will be scrambled. There is no error message.
 
 The name you give here appears in the `.header` file and in NetCDF metadata. Use the
 same naming style as existing entries in that section.
@@ -334,6 +332,14 @@ subroutine gather_3dmyt(iBlock, buffer, nV, nX, nY, nZ)
   if (iv /= nV) call gather_error('gather_3dmyt', iv, nV)
 end subroutine gather_3dmyt
 ```
+
+!!! warning "Variable order matters"
+  Take note of the order you added variables to the registry.
+  The variables must be placed in the buffer with the same order.
+
+  It is not required to fill the buffer in order (i.e. you can manually set `iV`),
+  but filling the buffer in the same order that the variables were defined helps
+  make sure things are consistent.
 
 For a **2D output type** (registered with `nDims=2`, `nGhostCells=0`), there is no
 altitude loop and the buffer size is `nLons × nLats`:

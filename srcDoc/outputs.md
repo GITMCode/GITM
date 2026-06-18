@@ -35,6 +35,9 @@ assemble files. This means:
 
 ## Possible Output Variables
 
+!!! error "#TODO this is outdated"
+    We need to update the variable list. Nothing uses IDL chars anymore. This is going to be a few hrs of work
+
 The output files can contain the following atmospheric quantities and more:
 
 -   **Altitude:** Altitude from the surface of the planet (m)

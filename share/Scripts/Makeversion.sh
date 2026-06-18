@@ -8,43 +8,57 @@
 writegitversion(){
     # This is the float-type version placed in output files
     # Format is (date of last commit).(# of files changed from HEAD)
+    # first line defines the format, second line puts in the  date of last commit
+    # Third line calls git status, counts the number of different files, and strips that of whitespace
     printf 'character(25), parameter :: GitmVersion = & \n "%s.%s"\n' \
         "$(git log -1 --date=format:'%Y%m%d' --pretty='format:%ad')" \
-        "$(git status --porcelain | grep -v '^??' | wc -l | cut -f1 -d' ')" > src/.version
+        "$(git status --porcelain | grep -v '^??' | wc -l | awk '{$1=$1};1')" > src/.version
 
 
     # The "GitmVersionFull" variable has info about the last commit hash in addition to above
     printf '\ncharacter(50), parameter :: GitmVersionFull = "%s_%s.%s"\n\n' \
         "$(git rev-parse --abbrev-ref HEAD)" \
         "$(git log -1 --date=format:'%Y%m%d' --pretty='format:%h-%ad')" \
-        "$(git status --porcelain | grep -v '^??' | wc -l | cut -f1 -d' ')" >> src/.version
+        "$(git status --porcelain | grep -v '^??' | wc -l | awk '{$1=$1};1')" >> src/.version
 
     # Same as above, but for Electrodynamics
     printf '\ncharacter(50), parameter :: ElectrodynamicsVersionFull = "%s_%s.%s"\n\n' \
         "$(git -C ext/Electrodynamics rev-parse --abbrev-ref HEAD)" \
         "$(git -C ext/Electrodynamics log -1 --date=format:'%Y%m%d' --pretty='format:%h-%ad')" \
-        "$(git -C ext/Electrodynamics status --porcelain | grep -v '^??' | wc -l | cut -f1 -d' ')" \
+        "$(git -C ext/Electrodynamics status --porcelain | grep -v '^??' | wc -l | awk '{$1=$1};1')" \
         >> src/.version
 
 
     # Here, for completeness, all of the changes files are listed.
-    printf 'character(*), parameter :: DifferentFilesGitm = "&\n' >> src/.version
+    printf 'character(*), parameter :: DifferentFilesGitm = ""' >> src/.version
 
     files=$(git status --porcelain | awk '{print $NF}')
-    for file in $files; do
-        echo "&$file,&" >> src/.version
-    done
-    printf '&"\n\n' >> src/.version
 
-    printf 'character(*), parameter :: DifferentFilesElectrodynamics = "&\n' >> src/.version
+    # Storing multi-line strings in Fortran is a chore
+    # format is var = "some text" // NEW_LINE("A") // & ...
+    # NEW_LINE("A") is the newline character, where A is any text (used for decoding)
+    # This implementation seemed line the least amount of extra code & conditionals
+    # We parse thru the different files (from git status) and for each write the
+    # continuation on the prev line, this file name, and a newline character.
+    # This allows the first line to be a linrbreak & the last line to not have anything
+    for file in $files; do
+        printf ' // &\n\"'$file'\" // NEW_LINE(\"A\")' >> src/.version
+    done
+    echo '' >> src/.version
+    echo '' >> src/.version
+
+    printf 'character(*), parameter :: DifferentFilesElectrodynamics = ""' >> src/.version
 
     if [ -d ext/Electrodynamics ]; then
         files=$(git -C ext/Electrodynamics status --porcelain | awk '{print $NF}')
         for file in $files; do
-            echo  "&$file,&" >> src/.version
+            printf ' // &\n\"'$file'\" // NEW_LINE(\"A\")' >> src/.version
+            # echo  "$file,&" >> src/.version
         done
     fi
-    printf '&"'>> src/.version
+    echo '' >> src/.version
+
+
 }
 
 ################
