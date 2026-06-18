@@ -40,7 +40,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
 
   integer :: i, j, k, bs, iError, iBlock, iDir, iLon, iLat, iAlt, ip, im, iOff
 
-  integer :: iEquator
+  integer :: iEquator, nLatsToSolve
 
   real :: GeoLat, GeoLon, GeoAlt, xAlt, len, ped, hal
   real :: sp_d1d1_d, sp_d2d2_d, sp_d1d2_d, sh
@@ -66,7 +66,8 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
 
   real :: aLat, aLon, gLat, gLon, Date, sLat, sLon, gLatMC, gLonMC
 
-  real :: residual, oldresidual, a, tmp
+  real :: residual, oldresidual, a, tmp, AvgDyn, LatBoundOffset
+  real :: PeakPot, PotAtLat, LatBoundSouth, LatBoundNorth, LatBoundDelPerDT=0.5
 
   logical :: IsDone, IsFirstTime = .true., DoTestMe, Debug = .False.
 
@@ -141,11 +142,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
              DynamoPotentialMC(nMagLons + 1, nMagLats), &
              Ed1new(nMagLons + 1, nMagLats), Ed2new(nMagLons + 1, nMagLats), &
              OldPotMC(nMagLons + 1, nMagLats), &
-             stat=iError)
-
-    allocate(SmallMagLocTimeMC(nMagLons + 1, 2), &
-             SmallMagLatMC(nMagLons + 1, 2), &
-             SmallPotentialMC(nMagLons + 1, 2), &
+             FullPotentialMC(nMagLons + 1, nMagLats), &
              stat=iError)
 
     DivJuFieldLineMC = 0.0
@@ -1406,41 +1403,104 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
   ! Fill in the diagonal vectors
   iI = 0
 
-  nX = (nMagLats - 2)*(nMagLons)
+  ! Get the high-latitude potential on the full magnetic grid.
+  call ieModel_%nMlts(nMagLons + 1)
+  call ieModel_%nLats(nMagLats)
+  call ieModel_%grid(MagLocTimeMC, MagLatMC)
+  call ieModel_%get_potential(FullPotentialMC)
+
+  ! ------------------------------------------------------------------
+  ! Determine the solver boundary offset.
+  ! DynamoFracPotentialCutoff controls where the dynamo is solved:
+  !   <= 0   -> fixed boundary; solve the full magnetic grid (default,
+  !             reproduces the original behavior: iStart=1, iEnd=nMagLats).
+  !   0<f<=1 -> scan each hemisphere from the equator poleward and place
+  !             the solver boundary where |potential| first exceeds f of
+  !             its maximum, so the dynamo is only solved equatorward of
+  !             the active magnetospheric convection region.
+  ! ------------------------------------------------------------------
+  if (DynamoFracPotentialCutoff > 0.0) then
+
+    PeakPot = maxval(abs(FullPotentialMC(1:nMagLons, :)))
+
+    if (PeakPot > 0.0) then
+
+      ! Southern hemisphere
+      LatBoundSouth = 0.0
+      do j = iEquator, 1, -1
+        PotAtLat = maxval(abs(FullPotentialMC(1:nMagLons, j)))
+        if (PotAtLat > DynamoFracPotentialCutoff*PeakPot) then
+          LatBoundSouth = (j - 1)*MagLatRes
+          exit
+        endif
+      enddo
+
+      ! Northern hemisphere
+      LatBoundNorth = 0.0
+      do j = iEquator, nMagLats
+        PotAtLat = maxval(abs(FullPotentialMC(1:nMagLons, j)))
+        if (PotAtLat > DynamoFracPotentialCutoff*PeakPot) then
+          LatBoundNorth = (nMagLats - j)*MagLatRes
+          exit
+        endif
+      enddo
+
+      ! Both hemisphere constraints are lower bounds on LatBoundOffset,
+      ! so take max to ensure the solver boundary is outside the active
+      ! IE region in both hemispheres simultaneously.
+      LatBoundOffset = max(LatBoundSouth, LatBoundNorth)
+
+      ! Cap: keep at least a few latitudes around the equator in the
+      ! solver domain. frac->1.0 leaves LatBoundOffset near 0 -> a
+      ! near-global solve (boundary approaches the poles).
+      LatBoundOffset = min(LatBoundOffset, &
+                           DynamoHighLatBoundary - 3.0*MagLatRes)
+
+      ! Smoothing: limit change to +/- LatBoundDelPerDT deg per timestep
+      if (PrevLatBoundOffset >= 0.0) then
+        if (LatBoundOffset > PrevLatBoundOffset + LatBoundDelPerDT) then
+          LatBoundOffset = PrevLatBoundOffset + LatBoundDelPerDT
+        elseif (LatBoundOffset < PrevLatBoundOffset - LatBoundDelPerDT) then
+          LatBoundOffset = PrevLatBoundOffset - LatBoundDelPerDT
+        endif
+      endif
+      PrevLatBoundOffset = LatBoundOffset
+
+    else
+      ! No potential available yet — use default
+      LatBoundOffset = 45.0
+
+    endif
+
+    if (iDebugLevel > 0) &
+      write(*, *) "=> Dynamic LatBoundOffset: ", LatBoundOffset
+
+  else
+    ! Fixed boundary (default): solve the full magnetic grid, so iStart=1
+    ! and iEnd=nMagLats below -- identical to the original behavior.
+    LatBoundOffset = 0.0
+  endif
+
+  ! Export the solve-domain poleward boundary so get_potential's blend
+  ! tracks it (see DynamoSolveLatBound use in get_potential.f90).
+  DynamoSolveLatBound = DynamoHighLatBoundary - LatBoundOffset
+
+  ! iStart/iEnd are the boundary indices for the solver domain.
+  ! Solver solves interior points iStart+1 to iEnd-1.
+  ! When LatBoundOffset=0: iStart=1, iEnd=nMagLats -> same as original.
+  iStart = nint(LatBoundOffset/MagLatRes) + 1
+  iEnd = nMagLats - iStart + 1
+  nLatsToSolve = iEnd - iStart + 1
+  nX = (nLatsToSolve - 2)*nMagLons
+
+  ! Store in module for matvec_gitm
+  iLatSolveStart = iStart
+  iLatSolveEnd = iEnd
 
   allocate(x(nX), y(nX), rhs(nX), b(nX), &
            d_I(nX), e_I(nX), e1_I(nX), f_I(nX), f1_I(nX))
 
-  ! call UA_SetnMLTs(nMagLons + 1)
-  call ieModel_%nMlts(nMagLons + 1)
-  call ieModel_%nLats(2)
-  ! call UA_SetnLats(2)
-
-  SmallMagLocTimeMC(:, 1) = MagLocTimeMC(:, 1)
-  SmallMagLocTimeMC(:, 2) = MagLocTimeMC(:, nMagLats)
-  SmallMagLatMC(:, 1) = MagLatMC(:, 1)
-  SmallMagLatMC(:, 2) = MagLatMC(:, nMagLats)
-  iError = 0
-  ! call UA_SetGrid(SmallMagLocTimeMC, SmallMagLatMC, iError)
-  call ieModel_%grid(SmallMagLocTimeMC, SmallMagLatMC)
-  if (iError /= 0) then
-    write(*, *) "Error in routine calc_electrodynamics (UA_SetGrid):"
-    write(*, *) iError
-    call stop_gitm("Stopping in calc_electrodynamics")
-  endif
-
-  iError = 0
-  ! call UA_GetPotential(SmallPotentialMC, iError)
-  call ieModel_%get_potential(SmallPotentialMC)
-
-  if (iError /= 0) then
-    write(*, *) "Error in routine calc_electrodynamics (UA_GetPotential):"
-    write(*, *) iError
-    !     call stop_gitm("Stopping in calc_electrodynamics")
-    SmallPotentialMC = 0.0
-  endif
-
-  do iLat = 2, nMagLats - 1
+  do iLat = iStart + 1, iEnd - 1
     do iLon = 1, nMagLons
 
       iI = iI + 1
@@ -1466,24 +1526,32 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
       ! ilon, ilat+1
       f1_I(iI) = solver_b_mc(iLon, iLat) + solver_d_mc(iLon, iLat)
 
-      if (iLat == 2) then
-        iLm = iLon - 1
-        if (iLm == 0) iLm = nMagLons
-        iLp = iLon + 1
-        if (iLp == nMagLons + 1) iLp = 1
-        b(iI) = b(iI) - (solver_b_mc(iLon, iLat) - solver_d_mc(iLon, iLat))* &
-                SmallPotentialMC(iLon, 1) &
-                + solver_c_mc(iLon, iLat)*(SmallPotentialMC(iLp, 1) - SmallPotentialMC(iLm, 1))
+      if (iLat == iStart + 1) then
+        ! Move the (Dirichlet) boundary-row contribution to the RHS. When
+        ! doUseMagnetoPotentialBCs is false the boundary value is 0, so the
+        ! RHS is left unchanged; either way the off-diagonal coupling to the
+        ! boundary row (e1_I) is zeroed.
+        if (doUseMagnetoPotentialBCs) then
+          iLm = iLon - 1
+          if (iLm == 0) iLm = nMagLons
+          iLp = iLon + 1
+          if (iLp == nMagLons + 1) iLp = 1
+          b(iI) = b(iI) - (solver_b_mc(iLon, iLat) - solver_d_mc(iLon, iLat))* &
+                  FullPotentialMC(iLon, iStart) &
+                  + solver_c_mc(iLon, iLat)*(FullPotentialMC(iLp, iStart) - FullPotentialMC(iLm, iStart))
+        endif
         e1_I(iI) = 0.0
       endif
-      if (iLat == nMagLats - 1) then
-        iLm = iLon - 1
-        if (iLm == 0) iLm = nMagLons
-        iLp = iLon + 1
-        if (iLp == nMagLons + 1) iLp = 1
-        b(iI) = b(iI) - (solver_b_mc(iLon, iLat) + solver_d_mc(iLon, iLat))* &
-                SmallPotentialMC(iLon, 2) &
-                - solver_c_mc(iLon, iLat)*(SmallPotentialMC(iLp, 2) - SmallPotentialMC(iLm, 2))
+      if (iLat == iEnd - 1) then
+        if (doUseMagnetoPotentialBCs) then
+          iLm = iLon - 1
+          if (iLm == 0) iLm = nMagLons
+          iLp = iLon + 1
+          if (iLp == nMagLons + 1) iLp = 1
+          b(iI) = b(iI) - (solver_b_mc(iLon, iLat) + solver_d_mc(iLon, iLat))* &
+                  FullPotentialMC(iLon, iEnd) &
+                  - solver_c_mc(iLon, iLat)*(FullPotentialMC(iLp, iEnd) - FullPotentialMC(iLm, iEnd))
+        endif
         f1_I(iI) = 0.0
       endif
 
@@ -1532,28 +1600,48 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
     write(*, *) "=> gmres : ", MaxIteration, Residual, nIteration, iError
 
   iI = 0
-  do iLat = 2, nMagLats - 1
+  do iLat = iStart + 1, iEnd - 1
     do iLon = 1, nMagLons
       iI = iI + 1
       DynamoPotentialMC(iLon, iLat) = x(iI)
     enddo
   enddo
 
-  DynamoPotentialMC(:, 1) = 0.0
-  DynamoPotentialMC(:, nMagLats) = 0.0
-
-  ! --------------------------------------------------------------------------
-  ! This is mapping the northern hemisphere onto the southern hemisphere.
-  ! Should we really be doing this????? -dw
-  OldPotMC = DynamoPotentialMC
-
-  do iLat = 2, nMagLats/2
-    do iLon = 1, nMagLons
-      iI = nMagLats - iLat + 1
-      DynamoPotentialMC(iLon, iLat) = OldPotMC(iLon, iI)
+  if (doDynamoHemisphericMirror) then
+    !---- Original behavior: zero the solver boundaries and mirror the -----
+    !---- northern hemisphere solution onto the southern hemisphere. -------
+    !---- (loop iStart+1..iEquator-1 == 2..nMagLats/2 at the full grid). ---
+    DynamoPotentialMC(:, iStart) = 0.0
+    DynamoPotentialMC(:, iEnd) = 0.0
+    OldPotMC = DynamoPotentialMC
+    do iLat = iStart + 1, iEquator - 1
+      do iLon = 1, nMagLons
+        iI = nMagLats - iLat + 1
+        DynamoPotentialMC(iLon, iLat) = OldPotMC(iLon, iI)
+      enddo
     enddo
-  enddo
-  ! --------------------------------------------------------------------------
+  else
+    !---- Keep both hemispheres as solved. Optionally remove the -----------
+    !---- equatorial-average offset, then set the boundary rows. -----------
+    if (doDynamoSubtractEquatorialAvg) then
+      AvgDyn = SUM(DynamoPotentialMC(1:nMagLons, iEquator))/nMagLons
+    else
+      AvgDyn = 0.0
+    endif
+    do iLat = iStart + 1, iEnd - 1
+      do iLon = 1, nMagLons
+        DynamoPotentialMC(iLon, iLat) = DynamoPotentialMC(iLon, iLat) - AvgDyn
+      enddo
+    enddo
+    ! Boundary rows match whatever BC the solve used (magnetospheric or 0).
+    if (doUseMagnetoPotentialBCs) then
+      DynamoPotentialMC(:, iStart) = FullPotentialMC(:, iStart) - AvgDyn
+      DynamoPotentialMC(:, iEnd) = FullPotentialMC(:, iEnd) - AvgDyn
+    else
+      DynamoPotentialMC(:, iStart) = -AvgDyn
+      DynamoPotentialMC(:, iEnd) = -AvgDyn
+    endif
+  endif
 
   DynamoPotentialMC(nMagLons + 1, :) = DynamoPotentialMC(1, :)
 
@@ -1873,24 +1961,25 @@ subroutine matvec_gitm(x_I, y_I, n)
   !-------------------------------------------------------------------------
 
   ! Put 1D vector into 2D solution
-  i = 0; 
-  do iLat = 2, nMagLats - 1
+  x_G = 0.0
+  i = 0
+  do iLat = iLatSolveStart + 1, iLatSolveEnd - 1
     do iLon = 1, nMagLons
       i = i + 1
       x_G(iLon, iLat) = x_I(i)
     enddo
   enddo
 
-  x_G(:, 1) = 0.0
-  x_G(:, nMagLats) = 0.0
+  ! Boundary conditions: zero potential at solver boundaries
+  x_G(:, iLatSolveStart) = 0.0
+  x_G(:, iLatSolveEnd) = 0.0
 
   ! Apply periodic boundary conditions in Psi direction
   x_G(nMagLons + 1, :) = x_G(1, :)
 
-  i = 0; 
-  !  write(*,*)'X_G dim:',nMagLons+1, nMagLats
+  i = 0
 
-  do iLat = 2, nMagLats - 1
+  do iLat = iLatSolveStart + 1, iLatSolveEnd - 1
     do iLon = 1, nMagLons
       i = i + 1
 

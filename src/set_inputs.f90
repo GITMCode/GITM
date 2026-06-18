@@ -1193,6 +1193,20 @@ subroutine set_inputs
           write(*, *) "MaxResidual            (V,real)"
           write(*, *) "IncludeCowling         (logical)"
           write(*, *) "DynamoLonAverage       (real)"
+          write(*, *) "DynamoFracPotentialCutoff   (optional, real <= 1.0)"
+          write(*, *) "doDynamoHemisphericMirror   (optional, logical)"
+          write(*, *) "doUseMagnetoPotentialBCs    (optional, logical)"
+          write(*, *) "doDynamoLatBlend            (optional, logical)"
+        endif
+        call read_in_real(DynamoFracPotentialCutoff, iError)
+        call read_in_logical(doDynamoHemisphericMirror, iError)
+        call read_in_logical(doUseMagnetoPotentialBCs, iError)
+        call read_in_logical(doDynamoLatBlend, iError)
+        call read_in_logical(doDynamoSubtractEquatorialAvg, iError)
+        if (iError /= 0) then 
+          iError = 0
+          if (iProc == 0) write(*,*) &
+            " >> NOT all experimental Dynamo options were set. Be careful!!!"
         endif
 
       case ("#IONFORCING")
