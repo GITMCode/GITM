@@ -496,7 +496,7 @@ end subroutine init_hme
 subroutine update_hme_tides
 
   use ModHmeModel
-  use ModTime, only: utime, iJulianDay
+  use ModTime, only: utime, iJulianDay, iTimeArray
   use ModTides
   use ModGITM, only: iProc
 
@@ -515,6 +515,7 @@ subroutine update_hme_tides
   else
     ReadFiles = .false.
   endif
+  iYear = iTimeArray(1)
 
   ut = utime/3600.0
 
