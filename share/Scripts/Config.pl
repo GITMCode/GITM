@@ -62,7 +62,7 @@ $Compiler = $Compiler{$Machine} or $Compiler = $Compiler{$OS} or
 
 
 
-if ($Machine='athfe' and $Compiler='crayftn'){
+if ($Machine eq 'athfe' and $Compiler eq 'crayftn'){
     print "
 ====================================================
 On athena we recommend using -compiler=ifortmpif90
