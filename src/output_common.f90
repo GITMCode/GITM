@@ -673,7 +673,7 @@ contains
       write(iOutputUnit_, "(I7,A1,a)") 8, " ", "AltIntHeatingTransfer (W/m2)"
       write(iOutputUnit_, "(I7,A1,a)") 9, " ", "AltIntEuvHeating (W/m2)"
       write(iOutputUnit_, "(I7,A1,a)") 10, " ", "AltIntPhotoElectronHeating (W/m2)"
-      write(iOutputUnit_, "(I7,A1,a)") 11, " ", "AltIntChamicalHeating (W/m2)"
+      write(iOutputUnit_, "(I7,A1,a)") 11, " ", "AltIntChemicalHeating (W/m2)"
       write(iOutputUnit_, "(I7,A1,a)") 12, " ", "AltIntRadCooling (W/m2)"
       write(iOutputUnit_, "(I7,A1,a)") 12, " ", "AltIntCO2Cooling (W/m2)"
       write(iOutputUnit_, "(I7,A1,a)") 12, " ", "AltIntNOCooling (W/m2)"
@@ -1821,12 +1821,12 @@ subroutine output_2dmel(iBlock)
         MagLonMC(iLon, iLat)*Pi/180.0, &
         MagLatMC(iLon, iLat)*Pi/180.0, &
         Altitude_GB(iLon, iLat, iAlt, iBlock), &
-        MagLocTimeMC(iLon, iLat)*Pi/180.0, &
+        MagLocTimeMC(iLon, iLat), &
         GeoLatMC(iLon, iLat), &
         GeoLonMC(iLon, iLat), &
         SigmaPedersenMC(iLon, iLat), &
         SigmaHallMC(iLon, iLat), &
-        DivJuAltMC(iLon, iLat), &
+        DivJuFieldLineMC(iLon, iLat), &
         LengthMC(iLon, iLat), &
         SigmaPPMC(iLon, iLat), &
         SigmaLLMC(iLon, iLat), &
