@@ -35,7 +35,6 @@
 
 module ModOutputNetCDF
 
-  use ModOutputRegistry, only: OutputTypeInfo
 #ifdef HavePNetCDF
   use ModMpi
   use pnetcdf
@@ -80,7 +79,8 @@ contains
     use ModInputs, only: nBlocksLon, nBlocksLat, UseNetcdfMultiTime, NetCdfAppendOption
     use ModSizeGitm, only: nLons, nLats, nAlts
     use ModElectrodynamics, only: nMagLons, nMagLats
-    use ModOutputRegistry, only: find_output_type, RegisteredTypes
+    use ModOutputProducers, only: get_container_idx, containers, init_output_containers
+    use ModOutputContainer, only: GRID_MAG_2D, GRID_HIME
     use ModTime, only: iTimeArray, CurrentTime
     ! Not compiled in standalone. Change 1965 when it is!
     ! use ModTimeConvert, only: iYearBase
@@ -97,21 +97,29 @@ contains
     character(len=20) :: cDate
     real(kind=8) :: time_val(1)
 
-    ! Look up variable metadata from registry
-    iTypeIdx = find_output_type(cType)
+    ! The open path runs before the block loop, so containers may not be built
+    ! yet (init_output_containers normally runs during the first fill). Ensure
+    ! the schemas exist before reading metadata; the call is idempotent.
+    call init_output_containers()
+
+    ! Look up variable metadata from the output container
+    iTypeIdx = get_container_idx(cType)
     if (iTypeIdx < 1) then
       write(*, *) "ModOutputNetCDF: unknown output type '", trim(cType), "'"
       ncid = -1
       return
     endif
-    nVars = RegisteredTypes(iTypeIdx)%nVars
-    nDims = RegisteredTypes(iTypeIdx)%nDims
+    nVars = containers(iTypeIdx)%nVars
+    ! nDims is not stored on the container; derive it from the leading digit of
+    ! the type code (3DALL->3, 2DMEL->2, ...). This also distinguishes 2DHME from
+    ! 3DHME, which share the same gridKind.
+    read (cType(1:1), '(i1)') nDims
     nc_nBlocksLon = nBlocksLon
     nc_nDims = nDims
     ! Use independent I/O mode for types where not all blocks participate:
     ! magnetic grids (only block 1) or regional outputs (only in region)
-    nc_needsIndepWrite = RegisteredTypes(iTypeIdx)%usesMagGrid .or. &
-                         RegisteredTypes(iTypeIdx)%isRegional
+    nc_needsIndepWrite = containers(iTypeIdx)%gridKind == GRID_MAG_2D .or. &
+                         containers(iTypeIdx)%gridKind == GRID_HIME
 
     ! Only 2D and 3D output supported in PnetCDF backend
     if (nDims < 2) then
@@ -119,7 +127,7 @@ contains
       return
     endif
 
-    if (RegisteredTypes(iTypeIdx)%usesMagGrid) then
+    if (containers(iTypeIdx)%gridKind == GRID_MAG_2D) then
       nLons_g = int(nMagLons + 1, MPI_OFFSET_KIND)
       nLats_g = int(nMagLats, MPI_OFFSET_KIND)
     else
@@ -170,7 +178,7 @@ contains
         ndimid = merge(3, 2, nDims == 3)
         allocate(varids(nVars), coordids(ndimid))
         do iV = 1, nVars
-          varname = trim(RegisteredTypes(iTypeIdx)%vars(iV)%shortName)
+          varname = trim(containers(iTypeIdx)%vars(iV)%name)
           call sanitize_nc_name(varname)
           ierr = nfmpi_inq_varid(ncid, trim(varname), varids(iV))
           if (ierr /= NF_NOERR) &
@@ -212,7 +220,7 @@ contains
     ! This allows only some blocks/processors to write without deadlocking collective I/O.
     ! Examples: magnetic grid types (only block 1) or regional types (only blocks in region).
     ! All processes call this together (it's a collective operation).
-    if (RegisteredTypes(iTypeIdx)%usesMagGrid .or. RegisteredTypes(iTypeIdx)%isRegional) then
+    if (nc_needsIndepWrite) then
       ierr = nfmpi_begin_indep_data(ncid)
       if (ierr /= NF_NOERR) &
         write(*, *) "ModOutputNetCDF: nfmpi_begin_indep_data failed: ", nfmpi_strerror(ierr)
@@ -429,7 +437,8 @@ contains
   ! ==================================================================
   subroutine define_file_structure(nDims, nVars, iTypeIdx, nLons_g, nLats_g, nAlts_g, &
                                    iTimeArray, isMultiTime)
-    use ModOutputRegistry, only: RegisteredTypes
+    use ModOutputProducers, only: containers
+    use ModOutputContainer, only: GRID_MAG_2D, GRID_HIME
     integer, intent(in) :: nDims, nVars, iTypeIdx
     integer(kind=MPI_OFFSET_KIND), intent(in) :: nLons_g, nLats_g, nAlts_g
     integer, intent(in) :: iTimeArray(7)
@@ -449,13 +458,13 @@ contains
     logical :: doFillNaN
     real(8) :: fillNaN
 
-    doFillNaN = RegisteredTypes(iTypeIdx)%usesMagGrid .or. &
-                RegisteredTypes(iTypeIdx)%isRegional
+    doFillNaN = containers(iTypeIdx)%gridKind == GRID_MAG_2D .or. &
+                containers(iTypeIdx)%gridKind == GRID_HIME
     fillNaN = transfer(int(z'7FF8000000000000', 8), 1.0_8)
 
     ! CF global attributes
     attlen = 6_MPI_OFFSET_KIND
-    coord_units = trim(RegisteredTypes(iTypeIdx)%code)//" output from GITM"
+    coord_units = trim(containers(iTypeIdx)%cType)//" output from GITM"
     attlen = int(len_trim(coord_units), MPI_OFFSET_KIND)
     ierr = nfmpi_put_att_text(ncid, NF_GLOBAL, "title", attlen, trim(coord_units))
     coord_units = "GITM (Global Ionosphere-Thermosphere Model)"
@@ -492,7 +501,7 @@ contains
 
     ! Data variables
     do iV = 1, nVars
-      varname = trim(RegisteredTypes(iTypeIdx)%vars(iV)%shortName)
+      varname = trim(containers(iTypeIdx)%vars(iV)%name)
       call sanitize_nc_name(varname)
       ierr = nfmpi_def_var(ncid, trim(varname), NF_DOUBLE, ndimid_var, &
                            dimid_vars(1:ndimid_var), varids(iV))
@@ -503,21 +512,21 @@ contains
         ierr = nfmpi_put_att_double(ncid, varids(iV), "_FillValue", NF_DOUBLE, &
                                     1_MPI_OFFSET_KIND, [fillNaN])
       endif
-      if (len_trim(RegisteredTypes(iTypeIdx)%vars(iV)%units) > 0) then
-        attlen = int(len_trim(RegisteredTypes(iTypeIdx)%vars(iV)%units), MPI_OFFSET_KIND)
+      if (len_trim(containers(iTypeIdx)%vars(iV)%units) > 0) then
+        attlen = int(len_trim(containers(iTypeIdx)%vars(iV)%units), MPI_OFFSET_KIND)
         ierr = nfmpi_put_att_text(ncid, varids(iV), "units", attlen, &
-                                  trim(RegisteredTypes(iTypeIdx)%vars(iV)%units))
+                                  trim(containers(iTypeIdx)%vars(iV)%units))
       endif
-      if (len_trim(RegisteredTypes(iTypeIdx)%vars(iV)%longName) > 0) then
-        attlen = int(len_trim(RegisteredTypes(iTypeIdx)%vars(iV)%longName), MPI_OFFSET_KIND)
+      if (len_trim(containers(iTypeIdx)%vars(iV)%longName) > 0) then
+        attlen = int(len_trim(containers(iTypeIdx)%vars(iV)%longName), MPI_OFFSET_KIND)
         ierr = nfmpi_put_att_text(ncid, varids(iV), "long_name", attlen, &
-                                  trim(RegisteredTypes(iTypeIdx)%vars(iV)%longName))
+                                  trim(containers(iTypeIdx)%vars(iV)%longName))
       endif
       ! Add attribute 'gitm_name' containing the name that's written in .bin files
       ! Unnecessary, but makes comparisons between .bin and .nc files *so* much easier
-      attlen = int(len_trim(RegisteredTypes(iTypeIdx)%vars(iV)%name), MPI_OFFSET_KIND)
+      attlen = int(len_trim(containers(iTypeIdx)%vars(iV)%name), MPI_OFFSET_KIND)
       ierr = nfmpi_put_att_text(ncid, varids(iV), "gitm_name", attlen, &
-                                trim(RegisteredTypes(iTypeIdx)%vars(iV)%name))
+                                trim(containers(iTypeIdx)%vars(iV)%name))
     enddo
 
     ! Time coordinate variable
