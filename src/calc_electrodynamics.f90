@@ -67,7 +67,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
   real :: aLat, aLon, gLat, gLon, Date, sLat, sLon, gLatMC, gLonMC
 
   real :: residual, oldresidual, a, tmp, AvgDyn, LatBoundOffset
-  real :: PeakPot, PotAtLat, LatBoundSouth, LatBoundNorth, LatBoundDelPerDT=0.5
+  real :: PeakPot, PotAtLat, LatBoundSouth, LatBoundNorth, LatBoundDelPerDT = 0.5
 
   logical :: IsDone, IsFirstTime = .true., DoTestMe, Debug = .False.
 

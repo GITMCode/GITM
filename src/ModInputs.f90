@@ -259,7 +259,7 @@ module ModInputs
   real    :: DynamoLonAverage = 10.0
   real    :: DynamoFracPotentialCutoff = 0.0
   logical :: doDynamoHemisphericMirror = .true.
-  logical :: doUseMagnetoPotentialBCs  = .true.
+  logical :: doUseMagnetoPotentialBCs = .true.
   logical :: doDynamoLatBlend = .true.
   logical :: doDynamoSubtractEquatorialAvg = .true.
 
