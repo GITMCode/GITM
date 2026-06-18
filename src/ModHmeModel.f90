@@ -92,7 +92,7 @@ contains
     if (ierror .ne. 0) then
       iOutputError = 1
       write(*, *) 'No Hme Input file was found'
-      write(*,*) 'File should be : ', NameOfFile
+      write(*, *) 'File should be : ', NameOfFile
       return
     endif
 
@@ -130,7 +130,7 @@ contains
     if (ierror .ne. 0) then
       iOutputError = 1
       write(*, *) 'No HME file was found. Please check the directory of data'
-      write(*,*) 'File is : ', NameOfIndexFile
+      write(*, *) 'File is : ', NameOfIndexFile
       return
     endif
 
@@ -373,7 +373,7 @@ contains
 
     !----------------------------day2-------------------------------------
     if (ReadFiles) then
-       write(mm, '(I3.3)') day2
+      write(mm, '(I3.3)') day2
       NameOfCoefFile2 = trim(hmeDir)//'tidi_coef/'//yy// &
                         '/tidi_coef_'//yy//mm//'.txt'
       if (iDebuglevel > 2) &
@@ -453,7 +453,7 @@ contains
     dr_rho_all = 0.0
 
     do i = 1, size(hmes_slt)
-       hme_tmp = hmes_slt(i)
+      hme_tmp = hmes_slt(i)
       call get_ns(hme_tmp(5:7), n, s)
 
       amp_fac = amps_slt(i)
@@ -583,11 +583,11 @@ contains
     do i = 1, nAltHme
 
       NameOfHMEFile = (trim(hmeDir)//'HME_3alt/'//trim(thme)// &
-           trim('_')//trim(altn(i))//trim('00m-F75.txt'))
+                       trim('_')//trim(altn(i))//trim('00m-F75.txt'))
 
       if (iDebuglevel > 2) &
-           write(*,*) 'Reading HME file : ', NameOfHMEFile
-      
+        write(*, *) 'Reading HME file : ', NameOfHMEFile
+
       call read_hme_file(NameOfHMEFile, u_a, u_p, v_a, v_p, &
                          geopt_a, geopt_p, temp_a, temp_p, &
                          dr_rho_a, dr_rho_p)

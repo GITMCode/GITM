@@ -516,7 +516,7 @@ subroutine update_hme_tides
     ReadFiles = .false.
   endif
   iYear = iTimeArray(1)
-  
+
   ut = utime/3600.0
 
   lp_day = daysTidi == iday
