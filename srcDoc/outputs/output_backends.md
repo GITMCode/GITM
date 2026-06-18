@@ -1,7 +1,10 @@
 # Output Backends
 
-GITM can write outputs using three different backends. All three produce the same data
-and are supported by `pGITM.py`. Which one you use depends on your system and workflow.
+GITM can write outputs using three different backends. All three consume the same
+output [containers](../outputs.md#output-system) (defined in
+`src/ModOutputProducers.f90`) and produce the same scientific data; they differ
+only in how files are laid out on disk. All three are supported by `pGITM.py`.
+Which one you use depends on your system and workflow.
 
 To select a backend, add this block to `UAM.in`:
 
@@ -110,14 +113,25 @@ Options for `#NETCDFAPPEND` are:
 
 For output types where not all blocks write, the NetCDF backend automatically switches from
 collective to **independent I/O mode** (`nfmpi_begin_indep_data` / `nfmpi_end_indep_data`).
-This applies to:
+Participation is driven by the container's `gridKind` (see
+`src/ModOutputContainer.f90`):
 
-- **Magnetic grid types** (`usesMagGrid=.true.`, e.g., 2DMEL) — only block 1 has the data
-- **Regional types** (`isRegional=.true.`, e.g., 2DHME) — only blocks within the user region write
+- **`GRID_MAG_2D`** (e.g., 2DMEL) — output is on the magnetic grid; only `iProc == 0`
+  has the data and writes. `prepare()` sets `this_rank_writes` accordingly.
+- **`GRID_HIME`** (e.g., 2DHME/3DHME) — regional output; only blocks whose cells fall
+  inside the user-defined HIME region write. Participation is set externally before
+  `prepare()` is called.
 
 Independent mode allows only certain blocks/processors to write without causing MPI collective
 operation deadlocks. The transition happens transparently during file open/close; no special
 configuration is needed.
+
+The `mpiio` backend handles conditional participation by striping output by global
+block offset and leaving non-participating slots zero-filled (no separate per-block
+file to mark NaN). A `0` value in a regional `mpiio` output file is therefore
+expected for cells outside the region — `validate_outputs.py` recognises HME/HIME
+files and skips the `altitude > 0` sanity check accordingly. The `legacy` backend
+simply skips file creation on non-participating ranks.
 
 !!! note "Build requirements"
     PnetCDF must be installed and `pnetcdf-config` must be on your `PATH` when

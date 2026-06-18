@@ -23,6 +23,7 @@
 module ModOutputProducers
 
   use ModOutputContainer
+  use ModUserGITM, only: nUserOutputs
 
   implicit none
 
@@ -63,8 +64,14 @@ module ModOutputProducers
   ! USR variable registry — populated by register_usr_var() from user.f90 before
   ! the first output timestep.  Coord vars (Longitude/Latitude/Altitude) are
   ! always defined unconditionally in define_schema_*dusr and are NOT listed here.
+  !
+  ! Storage strategy: allocatable, grows on demand (doubling) starting from
+  ! UsrInitCap.  The registry itself is uncapped — the real ceiling is
+  ! nUserOutputs (from ModUserGITM), which sizes the actual UserData*D arrays.
+  ! Decoupling them means raising nUserOutputs is the only knob users ever touch
+  ! to support more USR variables.
   ! ---------------------------------------------------------------------------
-  integer, parameter :: MaxUsrVars = 100
+  integer, parameter :: UsrInitCap = 16
 
   type :: UsrVarEntry
     character(len=60) :: name     = ''
@@ -72,14 +79,14 @@ module ModOutputProducers
     character(len=60) :: longName = ''
   end type UsrVarEntry
 
-  type(UsrVarEntry) :: UsrVars3D(MaxUsrVars)
-  integer           :: nUsrVars3D = 0
-  type(UsrVarEntry) :: UsrVars2D(MaxUsrVars)
-  integer           :: nUsrVars2D = 0
-  type(UsrVarEntry) :: UsrVars1D(MaxUsrVars)
-  integer           :: nUsrVars1D = 0
-  type(UsrVarEntry) :: UsrVars0D(MaxUsrVars)
-  integer           :: nUsrVars0D = 0
+  type(UsrVarEntry), allocatable :: UsrVars3D(:)
+  integer                        :: nUsrVars3D = 0
+  type(UsrVarEntry), allocatable :: UsrVars2D(:)
+  integer                        :: nUsrVars2D = 0
+  type(UsrVarEntry), allocatable :: UsrVars1D(:)
+  integer                        :: nUsrVars1D = 0
+  type(UsrVarEntry), allocatable :: UsrVars0D(:)
+  integer                        :: nUsrVars0D = 0
 
   ! Generic interface for storing user-defined output data.
   ! Dispatches on array rank: 3D (lon×lat×alt), 2D (lon×lat), 1D (alt profile).
@@ -154,7 +161,6 @@ contains
   ! they are defined unconditionally in each define_schema_*dusr.
   ! ---------------------------------------------------------------------------
   subroutine register_usr_var(dims, name, units, longName)
-    use ModUserGITM, only: nUserOutputs
     integer, intent(in)          :: dims
     character(len=*), intent(in) :: name, units
     character(len=*), intent(in), optional :: longName
@@ -163,29 +169,56 @@ contains
     lName = name
     if (present(longName)) lName = longName
 
+    ! The cap check guards the UserData*D data arrays (sized nUserOutputs).
+    ! The registry itself is uncapped — grow_usr_registry handles allocation.
     select case (dims)
     case (3)
       nUsrVars3D = nUsrVars3D + 1
-      if (nUsrVars3D > nUserOutputs) call stop_gitm("register_usr_var: too many 3DUSR vars — increase nUserOutputs")
-      if (nUsrVars3D > MaxUsrVars)   call stop_gitm("register_usr_var: nUsrVars3D exceeds MaxUsrVars")
+      if (nUsrVars3D > nUserOutputs) call stop_gitm("register_usr_var: too many 3DUSR vars — increase nUserOutputs in ModUser.f90")
+      call grow_usr_registry(UsrVars3D, nUsrVars3D)
       UsrVars3D(nUsrVars3D) = UsrVarEntry(name, units, lName)
     case (2)
       nUsrVars2D = nUsrVars2D + 1
-      if (nUsrVars2D > nUserOutputs) call stop_gitm("register_usr_var: too many 2DUSR vars — increase nUserOutputs")
-      if (nUsrVars2D > MaxUsrVars)   call stop_gitm("register_usr_var: nUsrVars2D exceeds MaxUsrVars")
+      if (nUsrVars2D > nUserOutputs) call stop_gitm("register_usr_var: too many 2DUSR vars — increase nUserOutputs in ModUser.f90")
+      call grow_usr_registry(UsrVars2D, nUsrVars2D)
       UsrVars2D(nUsrVars2D) = UsrVarEntry(name, units, lName)
     case (1)
       nUsrVars1D = nUsrVars1D + 1
-      if (nUsrVars1D > nUserOutputs) call stop_gitm("register_usr_var: too many 1DUSR vars — increase nUserOutputs")
-      if (nUsrVars1D > MaxUsrVars)   call stop_gitm("register_usr_var: nUsrVars1D exceeds MaxUsrVars")
+      if (nUsrVars1D > nUserOutputs) call stop_gitm("register_usr_var: too many 1DUSR vars — increase nUserOutputs in ModUser.f90")
+      call grow_usr_registry(UsrVars1D, nUsrVars1D)
       UsrVars1D(nUsrVars1D) = UsrVarEntry(name, units, lName)
     case (0)
       nUsrVars0D = nUsrVars0D + 1
-      if (nUsrVars0D > nUserOutputs) call stop_gitm("register_usr_var: too many 0DUSR vars — increase nUserOutputs")
-      if (nUsrVars0D > MaxUsrVars)   call stop_gitm("register_usr_var: nUsrVars0D exceeds MaxUsrVars")
+      if (nUsrVars0D > nUserOutputs) call stop_gitm("register_usr_var: too many 0DUSR vars — increase nUserOutputs in ModUser.f90")
+      call grow_usr_registry(UsrVars0D, nUsrVars0D)
       UsrVars0D(nUsrVars0D) = UsrVarEntry(name, units, lName)
     end select
   end subroutine register_usr_var
+
+  ! ---------------------------------------------------------------------------
+  ! grow_usr_registry — ensure arr is allocated and has capacity >= n.
+  ! Doubling growth from UsrInitCap.  Registration is one-time at startup so
+  ! the copy cost is negligible (tiny string records, few growth events).
+  ! ---------------------------------------------------------------------------
+  subroutine grow_usr_registry(arr, n)
+    type(UsrVarEntry), allocatable, intent(inout) :: arr(:)
+    integer, intent(in) :: n
+    type(UsrVarEntry), allocatable :: tmp(:)
+    integer :: cap
+
+    if (.not. allocated(arr)) then
+      allocate(arr(max(UsrInitCap, n)))
+      return
+    end if
+    if (size(arr) >= n) return
+    cap = size(arr)
+    do while (cap < n)
+      cap = cap * 2
+    end do
+    allocate(tmp(cap))
+    tmp(1:size(arr)) = arr
+    call move_alloc(tmp, arr)
+  end subroutine grow_usr_registry
 
   ! ---------------------------------------------------------------------------
   ! find_usr_var_idx — return 1-based index of name in UsrVars*D, or -1.

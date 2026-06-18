@@ -8,6 +8,7 @@ subroutine add_sources
   use ModSources
   use ModInputs
   use ModUserGITM
+  use ModOutputProducers, only: add_usr_output
 
   implicit none
 
@@ -72,10 +73,11 @@ subroutine add_sources
 
     !-------------------------------------------
     ! This is an example of a user output:
+    ! 'Joule Heating' is pre-registered in init_usr_output_registry (user.f90);
+    ! add_usr_output stores it into that slot by name (no slot bookkeeping).
     !-------------------------------------------
 
-    UserData3D(:, :, :, 1, iBlock) = 0.0
-    UserData3D(1:nLons, 1:nLats, 1:nAlts, 1, iBlock) = JouleHeating
+    call add_usr_output(JouleHeating, 'Joule Heating', 'K/s', iBlock=iBlock)
 
     !-------------------------------------------------------------------------
     ! Neutral Velocity Source Terms

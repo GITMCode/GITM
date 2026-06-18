@@ -59,6 +59,9 @@ Arguments:
         -o, --only                Only run this UAM test file.
                                     Useful if a higher number test has failed.
                                     By default, all tests are run alphabetically.
+        --backends_only           Only run the backend tests? This option bypasses
+                                    all of the other tests, and does not work if 
+                                    nocompare is also set.
         --nocompare               Default configuration diff's the log file.
                                     Use this if you want to only do a run & not
                                     check the output.
@@ -305,7 +308,9 @@ do_tests(){
     failed_optional=()
 
     if [ $onlyone = false ]; then
-      for test_uam in UAM.*.test; do
+      local test_glob="UAM.*.test"
+      if [ $backends_only = true ]; then test_glob="UAM.*BACKEND_TEST*.test"; fi
+      for test_uam in $test_glob; do
           run_a_test
           local status=$?
 
@@ -383,6 +388,7 @@ distclean=false
 config=false
 onlyone=false
 oversubscribe=""
+backends_only=false
 
 do_save=false
 do_compare=true
@@ -428,6 +434,11 @@ while [[ $# -gt 0 ]]; do
         exit 1
       fi
       shift 2
+      ;;
+
+    --backends_only)
+      backends_only=true
+      shift
       ;;
 
     --oversubscribe)

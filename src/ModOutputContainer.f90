@@ -23,9 +23,14 @@ module ModOutputContainer
   integer, parameter :: output_kind = kind(1.0)
 
   ! Grid kind constants — controls how backends interpret dims and participation.
+  ! Participation rules are set in prepare(): GEO_3D/GEO_2D = all ranks write,
+  ! MAG_2D = only iProc==0, HIME = caller sets per-rank flag externally.
+  ! GRID_GEO_2D doubles as the "all geographic ranks participate" default for
+  ! 1D and 0D outputs (no dedicated GRID_GEO_1D/_0D — participation rule is
+  ! identical, and the dim count is carried by each variable's shape3).
   integer, parameter :: GRID_GEO_3D = 1  ! geographic 3D block-partitioned
-  integer, parameter :: GRID_GEO_2D = 2  ! geographic 2D (integrated, e.g. TEC)
-  integer, parameter :: GRID_MAG_2D = 3  ! magnetic 2D (e.g. 2DMEL)
+  integer, parameter :: GRID_GEO_2D = 2  ! geographic 2D / 1D / 0D (all ranks participate)
+  integer, parameter :: GRID_MAG_2D = 3  ! magnetic 2D (e.g. 2DMEL); iProc==0 only
   integer, parameter :: GRID_HIME   = 4  ! regional (only DoSaveHIMEPlot ranks write)
 
   integer, parameter :: MaxContainerVars = 300
@@ -184,11 +189,9 @@ contains
 
     if (.not. this%this_rank_writes) return
     idx = this%find_var(name)
-    if (idx == 0) then
-      write(*, '(a,a,a,a)') 'ModOutputContainer: put_0d unknown variable "', &
-        trim(name), '" in type ', trim(this%cType)
-      return
-    end if
+    if (idx == 0) &
+      call stop_gitm('ModOutputContainer: put_0d unknown variable "'// &
+                     trim(name)//'" in type '//trim(this%cType))
     this%vars(idx)%data(1, 1, 1) = scalar
   end subroutine put_0d
 
@@ -200,19 +203,18 @@ contains
     character(len=*), intent(in) :: name
     real(output_kind), intent(in) :: arr(:)
     integer :: idx, n
+    character(len=128) :: errmsg
 
     if (.not. this%this_rank_writes) return
     idx = this%find_var(name)
-    if (idx == 0) then
-      write(*, '(a,a,a,a)') 'ModOutputContainer: put_1d unknown variable "', &
-        trim(name), '" in type ', trim(this%cType)
-      return
-    end if
+    if (idx == 0) &
+      call stop_gitm('ModOutputContainer: put_1d unknown variable "'// &
+                     trim(name)//'" in type '//trim(this%cType))
     n = size(arr)
     if (n /= this%vars(idx)%shape3(1)) then
-      write(*, '(a,a,a,i0,a,i0)') 'ModOutputContainer: put_1d shape mismatch for "', &
+      write(errmsg, '(a,a,a,i0,a,i0)') 'ModOutputContainer: put_1d shape mismatch for "', &
         trim(name), '": expected ', this%vars(idx)%shape3(1), ', got ', n
-      return
+      call stop_gitm(trim(errmsg))
     end if
     this%vars(idx)%data(:, 1, 1) = arr
   end subroutine put_1d
@@ -225,21 +227,20 @@ contains
     character(len=*), intent(in) :: name
     real(output_kind), intent(in) :: arr(:, :)
     integer :: idx, s1, s2
+    character(len=128) :: errmsg
 
     if (.not. this%this_rank_writes) return
     idx = this%find_var(name)
-    if (idx == 0) then
-      write(*, '(a,a,a,a)') 'ModOutputContainer: put_2d unknown variable "', &
-        trim(name), '" in type ', trim(this%cType)
-      return
-    end if
+    if (idx == 0) &
+      call stop_gitm('ModOutputContainer: put_2d unknown variable "'// &
+                     trim(name)//'" in type '//trim(this%cType))
     s1 = size(arr, 1); s2 = size(arr, 2)
     if (s1 /= this%vars(idx)%shape3(1) .or. s2 /= this%vars(idx)%shape3(2)) then
-      write(*, '(a,a,a,2(i0,a),a,2(i0,a))') &
+      write(errmsg, '(a,a,a,2(i0,a),a,2(i0,a))') &
         'ModOutputContainer: put_2d shape mismatch for "', trim(name), '": expected ', &
         this%vars(idx)%shape3(1), 'x', this%vars(idx)%shape3(2), ', got ', &
         s1, 'x', s2, ''
-      return
+      call stop_gitm(trim(errmsg))
     end if
     this%vars(idx)%data(:, :, 1) = arr
   end subroutine put_2d
@@ -252,23 +253,22 @@ contains
     character(len=*), intent(in) :: name
     real(output_kind), intent(in) :: arr(:, :, :)
     integer :: idx, s1, s2, s3
+    character(len=128) :: errmsg
 
     if (.not. this%this_rank_writes) return
     idx = this%find_var(name)
-    if (idx == 0) then
-      write(*, '(a,a,a,a)') 'ModOutputContainer: put_3d unknown variable "', &
-        trim(name), '" in type ', trim(this%cType)
-      return
-    end if
+    if (idx == 0) &
+      call stop_gitm('ModOutputContainer: put_3d unknown variable "'// &
+                     trim(name)//'" in type '//trim(this%cType))
     s1 = size(arr, 1); s2 = size(arr, 2); s3 = size(arr, 3)
     if (s1 /= this%vars(idx)%shape3(1) .or. &
         s2 /= this%vars(idx)%shape3(2) .or. &
         s3 /= this%vars(idx)%shape3(3)) then
-      write(*, '(a,a,a,3(i0,a),3(i0,a))') &
+      write(errmsg, '(a,a,a,3(i0,a),3(i0,a))') &
         'ModOutputContainer: put_3d shape mismatch for "', trim(name), '": expected ', &
         this%vars(idx)%shape3(1), 'x', this%vars(idx)%shape3(2), 'x', &
         this%vars(idx)%shape3(3), ', got ', s1, 'x', s2, 'x', s3, ''
-      return
+      call stop_gitm(trim(errmsg))
     end if
     this%vars(idx)%data = arr
   end subroutine put_3d

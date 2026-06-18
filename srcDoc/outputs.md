@@ -20,18 +20,20 @@ files can be found in the `srcTest/auto_test/ref_solns/` directory.
 
 ## Output system
 
-GITM's output system is built around a **registry** — every output type declares its
-variables once, and the backends use that metadata to write headers, size buffers, and
-assemble files. This means:
+GITM's output system is built around **containers** (`src/ModOutputContainer.f90`).
+Every output type pairs a `define_schema_<type>` routine (declares variable names,
+units, and shapes once) with a `fill_<type>` routine (copies data into the container
+each timestep). The backends consume the container — they read variable metadata
+straight off it for headers, and write its `vars(:)%data` arrays to disk. This means:
 
-- Variable lists in output headers are generated automatically from the registry.
-  They will always match the data in the file.
-- Adding a new output type or modifying the USR types only requires changes in two
-  places in the source. See [Adding new outputs](outputs/modifying_outputs.md) for
-  step-by-step instructions.
-- All three backends (`legacy`, `mpiio`, `netcdf`) work with any registered output
-  type without additional changes. See [Output backends](outputs/output_backends.md)
-  for a description of each.
+- Variable lists in output headers, NetCDF metadata, and on-disk layout are all
+  generated from the container schema. They cannot drift out of sync with the data.
+- Adding a new output type or modifying the USR types only requires touching
+  `src/ModOutputProducers.f90` (where the schema/fill routines live).
+  See [Adding new outputs](outputs/modifying_outputs.md) for step-by-step instructions.
+- All three backends (`legacy`, `mpiio`, `netcdf`) consume the same container without
+  per-type code paths. See [Output backends](outputs/output_backends.md) for a
+  description of each.
 
 ## Possible Output Variables
 
