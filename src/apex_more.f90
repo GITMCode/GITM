@@ -673,21 +673,21 @@ subroutine cofrm(date)
       n = n + 1
     endif ! n < m
     lm = ll + l
-    if (m == 0) f0 = f0*float(n)/2.
+    if (m == 0) f0 = f0*dble(n)/2.0d0
     if (m == 0) f = f0/sqrt(2.0)
     nn = n + 1
     mm = 1
 
     if (m /= 0) then
-      f = f/sqrt(float(n - m + 1)/float(n + m))
+      f = f/sqrt(dble(n - m + 1)/dble(n + m))
       gb(l + 1) = (tc*gh(lm) + t*gh(lm + nc))*f
     else
       gb(l + 1) = (tc*gh(lm) + t*gh(lm + nc))*f0
     endif
-    gv(l + 1) = gb(l + 1)/float(nn)
+    gv(l + 1) = gb(l + 1)/dble(nn)
     if (m /= 0) then
       gb(l + 2) = (tc*gh(lm + 1) + t*gh(lm + nc + 1))*f
-      gv(l + 2) = gb(l + 2)/float(nn)
+      gv(l + 2) = gb(l + 2)/dble(nn)
       l = l + 2
     else
       l = l + 1
@@ -820,7 +820,7 @@ subroutine feldg(iflag, glat, glon, alt, bnrth, beast, bdown, babs)
 
 100 continue
     il = ih - i
-    f = 2./float(i - k + 2)
+    f = 2.0d0/dble(i - k + 2)
     x = xi(1)*f
     y = xi(2)*f
     z = xi(3)*(f + f)
