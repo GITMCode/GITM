@@ -65,7 +65,7 @@ jobs:
         run: |
           brew update
           brew install gcc open-mpi
-          ln -s $(brew --prefix)/bin/gfortran-15 $(brew --prefix)/bin/gfortran
+          # ln -s $(brew --prefix)/bin/gfortran-15 $(brew --prefix)/bin/gfortran
       - name: Clone GITM repository
         uses: actions/checkout@v4
       - name: Run tests on MacOS (compile, clean, run one test, no output checking)
