@@ -527,7 +527,7 @@ contains
     call c%put('GeoLon',   real(GeoLonMC * cRadToDeg, output_kind))
     call c%put('PedCond',  real(SigmaPedersenMC, output_kind))
     call c%put('HalCond',  real(SigmaHallMC, output_kind))
-    call c%put('DivJuAlt', real(DivJuAltMC, output_kind))
+    call c%put('DivJuAlt', real(DivJuFieldLineMC, output_kind))
     call c%put('FL_length',real(LengthMC, output_kind))
     call c%put('Sigma_PP', real(SigmaPPMC, output_kind))
     call c%put('Sigma_LL', real(SigmaLLMC, output_kind))
