@@ -503,13 +503,13 @@ contains
     do iV = 1, nVars
       varname = trim(containers(iTypeIdx)%vars(iV)%name)
       call sanitize_nc_name(varname)
-      ierr = nfmpi_def_var(ncid, trim(varname), NF_DOUBLE, ndimid_var, &
+      ierr = nfmpi_def_var(ncid, trim(varname), NF_FLOAT, ndimid_var, &
                            dimid_vars(1:ndimid_var), varids(iV))
       if (ierr /= NF_NOERR) &
         write(*, *) "netcdf_open: def_var '", trim(varname), "' failed: ", nfmpi_strerror(ierr)
       if (doFillNaN) then
         ierr = nfmpi_def_var_fill(ncid, varids(iV), 0, fillNaN)
-        ierr = nfmpi_put_att_double(ncid, varids(iV), "_FillValue", NF_DOUBLE, &
+        ierr = nfmpi_put_att_double(ncid, varids(iV), "_FillValue", NF_FLOAT, &
                                     1_MPI_OFFSET_KIND, [fillNaN])
       endif
       if (len_trim(containers(iTypeIdx)%vars(iV)%units) > 0) then
@@ -532,23 +532,23 @@ contains
     ! Time coordinate variable
     ! 1965 is left out in case we need to change the base-year
     write(coord_units, '("seconds since ",i4.4,"-01-01 00:00:00")') 1965
-    ierr = nfmpi_def_var(ncid, "time", NF_DOUBLE, 1, [dimid_time], nc_varid_time)
+    ierr = nfmpi_def_var(ncid, "time", NF_FLOAT, 1, [dimid_time], nc_varid_time)
     attlen = int(len_trim(coord_units), MPI_OFFSET_KIND)
     ierr = nfmpi_put_att_text(ncid, nc_varid_time, "units", attlen, trim(coord_units))
     attlen = 8_MPI_OFFSET_KIND
     ierr = nfmpi_put_att_text(ncid, nc_varid_time, "calendar", attlen, "standard")
 
     ! Spatial coordinate variables
-    ierr = nfmpi_def_var(ncid, "lon", NF_DOUBLE, 1, [dimid_lon], coordids(1))
+    ierr = nfmpi_def_var(ncid, "lon", NF_FLOAT, 1, [dimid_lon], coordids(1))
     attlen = 12_MPI_OFFSET_KIND
     ierr = nfmpi_put_att_text(ncid, coordids(1), "units", attlen, "degrees_east")
 
-    ierr = nfmpi_def_var(ncid, "lat", NF_DOUBLE, 1, [dimid_lat], coordids(2))
+    ierr = nfmpi_def_var(ncid, "lat", NF_FLOAT, 1, [dimid_lat], coordids(2))
     attlen = 13_MPI_OFFSET_KIND
     ierr = nfmpi_put_att_text(ncid, coordids(2), "units", attlen, "degrees_north")
 
     if (nDims == 3) then
-      ierr = nfmpi_def_var(ncid, "z", NF_DOUBLE, 1, [dimid_alt], coordids(3))
+      ierr = nfmpi_def_var(ncid, "z", NF_FLOAT, 1, [dimid_alt], coordids(3))
       attlen = 2_MPI_OFFSET_KIND
       ierr = nfmpi_put_att_text(ncid, coordids(3), "units", attlen, "km")
     endif
