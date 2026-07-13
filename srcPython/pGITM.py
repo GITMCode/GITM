@@ -164,22 +164,38 @@ def create_netcdf(filename, data, isVerbose=False):
             print(" --> Attributes added. Current ncfile:")
             print(ncfile)
 
+        # convert to rad -> deg when the values look like radians, so we don't leave
+        # radians unconverted nor double-convert already-degree data. Magnetic grids are
+        # stored internally in degrees, so this guard only checks geographic grids.
+
+        # Thresholds: radian lon spans at most ~2*pi + ghost (~7); radian lat
+        # ~pi/2 + ghost (~2); degree grids reach ~360 / ~90.
+        def _to_degrees(arr, rad_max):
+            return np.rad2deg(arr) if np.nanmax(np.abs(arr)) <= rad_max else arr
+
+        if is_geographic:
+            data[xsrc] = _to_degrees(data[xsrc], 8.0)
+            data[ysrc] = _to_degrees(data[ysrc], 3.5)
+
         # We'll try to add the coordinates, if they can be added cleanly...
-        if np.all(data['Longitude'][0, 0, :] == data['Longitude']):
-            lon = ncfile.createVariable('lon', np.float64, ('lon'))
-            lon[:] = np.rad2deg(data['Longitude'][0, 0, :])
-            lon.units = 'degrees_east'
-            lon.long_name = 'Longitude'
+        if np.all(data[xsrc][0, 0, :] == data[xsrc]):
+            xvar = ncfile.createVariable(xname, np.float64, (xname,))
+            xvar[:] = data[xsrc][0, 0, :]
+            xvar.units = xunits
+            xvar.long_name = xlong
 
         # Latitude needs to be checked differently...
-        diffarray = np.diff(data['Latitude'], axis=2)
+        diffarray = np.diff(data[ysrc], axis=2)
         if np.all(diffarray == diffarray[0, 0, 0]):
-            lat = ncfile.createVariable('lat', np.float64, ('lat'))
-            lat[:] = np.rad2deg(data['Latitude'][0, :, 0])
-            lat.units = 'degrees_north'
-            lat.long_name = 'Latitude'
+            yvar = ncfile.createVariable(yname, np.float64, (yname,))
+            yvar[:] = data[ysrc][0, :, 0]
+            yvar.units = yunits
+            yvar.long_name = ylong
 
-        if np.all(data['Altitude'][:, 0, 0] == data['Altitude'].T):
+        # Altitude coordinate: geographic 3-D output only
+        if 'Altitude' in data and np.all(
+            data['Altitude'][:, 0, 0] == data['Altitude'].T
+        ):
             alt = ncfile.createVariable('z', np.float64, ('z'))
             alt[:] = data['Altitude'][:, 0, 0] / 1000
             alt.units = 'km'
@@ -190,7 +206,7 @@ def create_netcdf(filename, data, isVerbose=False):
             unit = None
             newname = variables.get_short_names([varname])[0]
             newname = newname.replace('[', '').replace(']', '')
-            thisvar = ncfile.createVariable(newname, np.float64, 
+            thisvar = ncfile.createVariable(newname, np.float64,
                                             ('time', xname, yname, 'z'))
             thisvar[0, :, :, :] = data[varname].T
             if 'V' in newname:
