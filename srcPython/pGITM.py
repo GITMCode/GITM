@@ -111,14 +111,35 @@ def create_netcdf(filename, data, isVerbose=False):
     if isVerbose:
         print(" --> Creating netCDF file:", filename)
     
-    # get dimensions:
-    nz, ny, nx = data["Longitude"].shape
+    # Grid shape from the header (computed in process_one_file).
+    # Magnetic-grid (2DMEL) files have no Longitude variable; (mlon,mlat).
+    nz = data['nAltsTotal']
+    ny = data['nLatsTotal']
+    nx = data['nLonsTotal']
+
+    # Set the names for Geo & Mag grids' dimensions
+    if 'Longitude' in data:
+        xname, yname = 'lon', 'lat'
+        xsrc, ysrc = 'Longitude', 'Latitude'
+        xlong, ylong = 'Longitude', 'Latitude'
+        xunits, yunits = 'degrees_east', 'degrees_north'
+        is_geographic = True
+    elif 'mlon' in data:
+        xname, yname = 'mlon', 'mlat'
+        xsrc, ysrc = 'mlon', 'mlat'
+        xlong, ylong = 'Magnetic Longitude', 'Magnetic Latitude'
+        xunits, yunits = 'degrees', 'degrees'
+        is_geographic = False
+    else:
+        raise ValueError(
+            "create_netcdf: no recognized horizontal coordinate variables "
+            "(expected Longitude/Latitude or mlon/mlat) in " + str(filename))
 
     with Dataset(filename, mode="w", format="NETCDF4") as ncfile:
         # Dimensions
         t = ncfile.createDimension('time', None)
-        xdim = ncfile.createDimension('lon', nx)
-        ydim = ncfile.createDimension('lat', ny)
+        xdim = ncfile.createDimension(xname, nx)
+        ydim = ncfile.createDimension(yname, ny)
         zdim = ncfile.createDimension('z', nz)
 
         # time!
@@ -170,7 +191,7 @@ def create_netcdf(filename, data, isVerbose=False):
             newname = variables.get_short_names([varname])[0]
             newname = newname.replace('[', '').replace(']', '')
             thisvar = ncfile.createVariable(newname, np.float64, 
-                                            ('time', 'lon', 'lat', 'z'))
+                                            ('time', xname, yname, 'z'))
             thisvar[0, :, :, :] = data[varname].T
             if 'V' in newname:
                 unit = 'm/s'
