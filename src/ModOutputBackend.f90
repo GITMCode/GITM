@@ -292,8 +292,8 @@ contains
         nX = max(nX, c%vars(i)%shape3(1))
         nY = max(nY, c%vars(i)%shape3(2))
         nZ = max(nZ, c%vars(i)%shape3(3))
-      end if
-    end do
+      endif
+    enddo
     if (nX == 0 .or. nY == 0 .or. nZ == 0) return
 
     nV = c%nVars
@@ -309,20 +309,20 @@ contains
           do iz = 1, nZ
             do iy = 1, nY
               tmpbuf(i, :, iy, iz) = c%vars(i)%data(:, 1, 1)
-            end do
-          end do
+            enddo
+          enddo
         else
           ! Latitude axis: replicate 1D data along lon and alt dimensions.
           do iz = 1, nZ
             do ix = 1, nX
               tmpbuf(i, ix, :, iz) = c%vars(i)%data(:, 1, 1)
-            end do
-          end do
-        end if
+            enddo
+          enddo
+        endif
       else
         tmpbuf(i, :, :, :) = c%vars(i)%data
-      end if
-    end do
+      endif
+    enddo
 
     ! Write the packed buffer to the legacy unformatted unit
     do iz = 1, nZ

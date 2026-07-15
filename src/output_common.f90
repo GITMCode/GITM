@@ -263,143 +263,142 @@ subroutine output(dir, iBlock, iOutputType)
   nGCs = containers(iContIdx)%nGhostCells
   if (containers(iContIdx)%nVars > 0) then
     if (cType == '2DMEL') then
-        call fill_2dmel(containers(iCont_2DMEL), iBlock)
-        if (associated(ActiveBackend%write_container)) &
-          call ActiveBackend%write_container(containers(iCont_2DMEL), iBLK, iTimeArray)
-        call containers(iCont_2DMEL)%reset()
-      elseif (cType == '2DTEC') then
-        call fill_2dtec(containers(iCont_2DTEC), iBlock)
-        if (associated(ActiveBackend%write_container)) &
-          call ActiveBackend%write_container(containers(iCont_2DTEC), iBLK, iTimeArray)
-        call containers(iCont_2DTEC)%reset()
-      elseif (cType == '2DGEL') then
-        call fill_2dgel(containers(iCont_2DGEL), iBlock)
-        if (associated(ActiveBackend%write_container)) &
-          call ActiveBackend%write_container(containers(iCont_2DGEL), iBLK, iTimeArray)
-        call containers(iCont_2DGEL)%reset()
-      elseif (cType == '3DNEU') then
-        call fill_3dneu(containers(iCont_3DNEU), iBlock)
-        if (associated(ActiveBackend%write_container)) &
-          call ActiveBackend%write_container(containers(iCont_3DNEU), iBLK, iTimeArray)
-        call containers(iCont_3DNEU)%reset()
-      elseif (cType == '3DALL') then
-        call fill_3dall(containers(iCont_3DALL), iBlock)
-        if (associated(ActiveBackend%write_container)) &
-          call ActiveBackend%write_container(containers(iCont_3DALL), iBLK, iTimeArray)
-        call containers(iCont_3DALL)%reset()
-      elseif (cType == '3DION') then
-        call fill_3dion(containers(iCont_3DION), iBlock)
-        if (associated(ActiveBackend%write_container)) &
-          call ActiveBackend%write_container(containers(iCont_3DION), iBLK, iTimeArray)
-        call containers(iCont_3DION)%reset()
-      elseif (cType == '3DTHM') then
-        call fill_3dthm(containers(iCont_3DTHM), iBlock)
-        if (associated(ActiveBackend%write_container)) &
-          call ActiveBackend%write_container(containers(iCont_3DTHM), iBLK, iTimeArray)
-        call containers(iCont_3DTHM)%reset()
-      elseif (cType == '3DCHM') then
-        call fill_3dchm(containers(iCont_3DCHM), iBlock)
-        if (associated(ActiveBackend%write_container)) &
-          call ActiveBackend%write_container(containers(iCont_3DCHM), iBLK, iTimeArray)
-        call containers(iCont_3DCHM)%reset()
-      elseif (cType == '3DLST') then
-        call fill_3dlst(containers(iCont_3DLST), iBlock)
-        if (associated(ActiveBackend%write_container)) &
-          call ActiveBackend%write_container(containers(iCont_3DLST), iBLK, iTimeArray)
-        call containers(iCont_3DLST)%reset()
-      elseif (cType == '3DGLO') then
-        call fill_3dglo(containers(iCont_3DGLO), iBlock)
-        if (associated(ActiveBackend%write_container)) &
-          call ActiveBackend%write_container(containers(iCont_3DGLO), iBLK, iTimeArray)
-        call containers(iCont_3DGLO)%reset()
-      elseif (cType == '3DMAG') then
-        call fill_3dmag(containers(iCont_3DMAG), iBlock)
-        if (associated(ActiveBackend%write_container)) &
-          call ActiveBackend%write_container(containers(iCont_3DMAG), iBLK, iTimeArray)
-        call containers(iCont_3DMAG)%reset()
-      elseif (cType == '3DHME') then
-        call fill_3dhme(containers(iCont_3DHME), iBlock)
-        if (associated(ActiveBackend%write_container)) &
-          call ActiveBackend%write_container(containers(iCont_3DHME), iBLK, iTimeArray)
-        call containers(iCont_3DHME)%reset()
-      elseif (cType == '3DMOH') then
-        call fill_3dmoh(containers(iCont_3DMOH), iBlock)
-        if (associated(ActiveBackend%write_container)) &
-          call ActiveBackend%write_container(containers(iCont_3DMOH), iBLK, iTimeArray)
-        call containers(iCont_3DMOH)%reset()
-      elseif (cType == '3DMOV') then
-        call fill_3dmov(containers(iCont_3DMOV), iBlock)
-        if (associated(ActiveBackend%write_container)) &
-          call ActiveBackend%write_container(containers(iCont_3DMOV), iBLK, iTimeArray)
-        call containers(iCont_3DMOV)%reset()
-      elseif (cType == '2DANC') then
-        call fill_2danc(containers(iCont_2DANC), iBlock)
-        if (associated(ActiveBackend%write_container)) &
-          call ActiveBackend%write_container(containers(iCont_2DANC), iBLK, iTimeArray)
-        call containers(iCont_2DANC)%reset()
-      elseif (cType == '2DHME') then
-        call fill_2dhme(containers(iCont_2DHME), iBlock)
-        if (associated(ActiveBackend%write_container)) &
-          call ActiveBackend%write_container(containers(iCont_2DHME), iBLK, iTimeArray)
-        call containers(iCont_2DHME)%reset()
-      elseif (cType == '1DALL') then
-        call fill_1dall(containers(iCont_1DALL), iBlock, iiLon, iiLat, rLon, rLat)
-        if (associated(ActiveBackend%write_container)) &
-          call ActiveBackend%write_container(containers(iCont_1DALL), iBLK, iTimeArray)
-        call containers(iCont_1DALL)%reset()
-      elseif (cType == '0DALL') then
-        call fill_0dall(containers(iCont_0DALL), iBlock, iiLon, iiLat, iiAlt, rLon, rLat, rAlt)
-        if (associated(ActiveBackend%write_container)) &
-          call ActiveBackend%write_container(containers(iCont_0DALL), iBLK, iTimeArray)
-        call containers(iCont_0DALL)%reset()
-      elseif (cType == '1DGLO') then
-        call fill_1dglo(containers(iCont_1DGLO), iBlock)
-        if (associated(ActiveBackend%write_container)) &
-          call ActiveBackend%write_container(containers(iCont_1DGLO), iBLK, iTimeArray)
-        call containers(iCont_1DGLO)%reset()
-      elseif (cType == '1DTHM') then
-        call fill_1dthm(containers(iCont_1DTHM), iBlock)
-        if (associated(ActiveBackend%write_container)) &
-          call ActiveBackend%write_container(containers(iCont_1DTHM), iBLK, iTimeArray)
-        call containers(iCont_1DTHM)%reset()
-      elseif (cType == '1DCHM') then
-        call fill_1dchm(containers(iCont_1DCHM), iBlock)
-        if (associated(ActiveBackend%write_container)) &
-          call ActiveBackend%write_container(containers(iCont_1DCHM), iBLK, iTimeArray)
-        call containers(iCont_1DCHM)%reset()
-      elseif (cType == '1DNEW') then
-        call fill_1dnew(containers(iCont_1DNEW), iBlock, iiLon, iiLat, rLon, rLat)
-        if (associated(ActiveBackend%write_container)) &
-          call ActiveBackend%write_container(containers(iCont_1DNEW), iBLK, iTimeArray)
-        call containers(iCont_1DNEW)%reset()
-      elseif (cType == '3DUSR') then
-        call fill_3dusr(containers(iCont_3DUSR), iBlock)
-        if (associated(ActiveBackend%write_container)) &
-          call ActiveBackend%write_container(containers(iCont_3DUSR), iBLK, iTimeArray)
-        call containers(iCont_3DUSR)%reset()
-      elseif (cType == '2DUSR') then
-        call fill_2dusr(containers(iCont_2DUSR), iBlock)
-        if (associated(ActiveBackend%write_container)) &
-          call ActiveBackend%write_container(containers(iCont_2DUSR), iBLK, iTimeArray)
-        call containers(iCont_2DUSR)%reset()
-      elseif (cType == '1DUSR') then
-        call fill_1dusr(containers(iCont_1DUSR), iBlock, iiLon, iiLat, rLon, rLat)
-        if (associated(ActiveBackend%write_container)) &
-          call ActiveBackend%write_container(containers(iCont_1DUSR), iBLK, iTimeArray)
-        call containers(iCont_1DUSR)%reset()
-      elseif (cType == '0DUSR') then
-        call fill_0dusr(containers(iCont_0DUSR), iBlock, iiLon, iiLat, iiAlt, rLon, rLat, rAlt)
-        if (associated(ActiveBackend%write_container)) &
-          call ActiveBackend%write_container(containers(iCont_0DUSR), iBLK, iTimeArray)
-        call containers(iCont_0DUSR)%reset()
-      endif
+      call fill_2dmel(containers(iCont_2DMEL), iBlock)
+      if (associated(ActiveBackend%write_container)) &
+        call ActiveBackend%write_container(containers(iCont_2DMEL), iBLK, iTimeArray)
+      call containers(iCont_2DMEL)%reset()
+    elseif (cType == '2DTEC') then
+      call fill_2dtec(containers(iCont_2DTEC), iBlock)
+      if (associated(ActiveBackend%write_container)) &
+        call ActiveBackend%write_container(containers(iCont_2DTEC), iBLK, iTimeArray)
+      call containers(iCont_2DTEC)%reset()
+    elseif (cType == '2DGEL') then
+      call fill_2dgel(containers(iCont_2DGEL), iBlock)
+      if (associated(ActiveBackend%write_container)) &
+        call ActiveBackend%write_container(containers(iCont_2DGEL), iBLK, iTimeArray)
+      call containers(iCont_2DGEL)%reset()
+    elseif (cType == '3DNEU') then
+      call fill_3dneu(containers(iCont_3DNEU), iBlock)
+      if (associated(ActiveBackend%write_container)) &
+        call ActiveBackend%write_container(containers(iCont_3DNEU), iBLK, iTimeArray)
+      call containers(iCont_3DNEU)%reset()
+    elseif (cType == '3DALL') then
+      call fill_3dall(containers(iCont_3DALL), iBlock)
+      if (associated(ActiveBackend%write_container)) &
+        call ActiveBackend%write_container(containers(iCont_3DALL), iBLK, iTimeArray)
+      call containers(iCont_3DALL)%reset()
+    elseif (cType == '3DION') then
+      call fill_3dion(containers(iCont_3DION), iBlock)
+      if (associated(ActiveBackend%write_container)) &
+        call ActiveBackend%write_container(containers(iCont_3DION), iBLK, iTimeArray)
+      call containers(iCont_3DION)%reset()
+    elseif (cType == '3DTHM') then
+      call fill_3dthm(containers(iCont_3DTHM), iBlock)
+      if (associated(ActiveBackend%write_container)) &
+        call ActiveBackend%write_container(containers(iCont_3DTHM), iBLK, iTimeArray)
+      call containers(iCont_3DTHM)%reset()
+    elseif (cType == '3DCHM') then
+      call fill_3dchm(containers(iCont_3DCHM), iBlock)
+      if (associated(ActiveBackend%write_container)) &
+        call ActiveBackend%write_container(containers(iCont_3DCHM), iBLK, iTimeArray)
+      call containers(iCont_3DCHM)%reset()
+    elseif (cType == '3DLST') then
+      call fill_3dlst(containers(iCont_3DLST), iBlock)
+      if (associated(ActiveBackend%write_container)) &
+        call ActiveBackend%write_container(containers(iCont_3DLST), iBLK, iTimeArray)
+      call containers(iCont_3DLST)%reset()
+    elseif (cType == '3DGLO') then
+      call fill_3dglo(containers(iCont_3DGLO), iBlock)
+      if (associated(ActiveBackend%write_container)) &
+        call ActiveBackend%write_container(containers(iCont_3DGLO), iBLK, iTimeArray)
+      call containers(iCont_3DGLO)%reset()
+    elseif (cType == '3DMAG') then
+      call fill_3dmag(containers(iCont_3DMAG), iBlock)
+      if (associated(ActiveBackend%write_container)) &
+        call ActiveBackend%write_container(containers(iCont_3DMAG), iBLK, iTimeArray)
+      call containers(iCont_3DMAG)%reset()
+    elseif (cType == '3DHME') then
+      call fill_3dhme(containers(iCont_3DHME), iBlock)
+      if (associated(ActiveBackend%write_container)) &
+        call ActiveBackend%write_container(containers(iCont_3DHME), iBLK, iTimeArray)
+      call containers(iCont_3DHME)%reset()
+    elseif (cType == '3DMOH') then
+      call fill_3dmoh(containers(iCont_3DMOH), iBlock)
+      if (associated(ActiveBackend%write_container)) &
+        call ActiveBackend%write_container(containers(iCont_3DMOH), iBLK, iTimeArray)
+      call containers(iCont_3DMOH)%reset()
+    elseif (cType == '3DMOV') then
+      call fill_3dmov(containers(iCont_3DMOV), iBlock)
+      if (associated(ActiveBackend%write_container)) &
+        call ActiveBackend%write_container(containers(iCont_3DMOV), iBLK, iTimeArray)
+      call containers(iCont_3DMOV)%reset()
+    elseif (cType == '2DANC') then
+      call fill_2danc(containers(iCont_2DANC), iBlock)
+      if (associated(ActiveBackend%write_container)) &
+        call ActiveBackend%write_container(containers(iCont_2DANC), iBLK, iTimeArray)
+      call containers(iCont_2DANC)%reset()
+    elseif (cType == '2DHME') then
+      call fill_2dhme(containers(iCont_2DHME), iBlock)
+      if (associated(ActiveBackend%write_container)) &
+        call ActiveBackend%write_container(containers(iCont_2DHME), iBLK, iTimeArray)
+      call containers(iCont_2DHME)%reset()
+    elseif (cType == '1DALL') then
+      call fill_1dall(containers(iCont_1DALL), iBlock, iiLon, iiLat, rLon, rLat)
+      if (associated(ActiveBackend%write_container)) &
+        call ActiveBackend%write_container(containers(iCont_1DALL), iBLK, iTimeArray)
+      call containers(iCont_1DALL)%reset()
+    elseif (cType == '0DALL') then
+      call fill_0dall(containers(iCont_0DALL), iBlock, iiLon, iiLat, iiAlt, rLon, rLat, rAlt)
+      if (associated(ActiveBackend%write_container)) &
+        call ActiveBackend%write_container(containers(iCont_0DALL), iBLK, iTimeArray)
+      call containers(iCont_0DALL)%reset()
+    elseif (cType == '1DGLO') then
+      call fill_1dglo(containers(iCont_1DGLO), iBlock)
+      if (associated(ActiveBackend%write_container)) &
+        call ActiveBackend%write_container(containers(iCont_1DGLO), iBLK, iTimeArray)
+      call containers(iCont_1DGLO)%reset()
+    elseif (cType == '1DTHM') then
+      call fill_1dthm(containers(iCont_1DTHM), iBlock)
+      if (associated(ActiveBackend%write_container)) &
+        call ActiveBackend%write_container(containers(iCont_1DTHM), iBLK, iTimeArray)
+      call containers(iCont_1DTHM)%reset()
+    elseif (cType == '1DCHM') then
+      call fill_1dchm(containers(iCont_1DCHM), iBlock)
+      if (associated(ActiveBackend%write_container)) &
+        call ActiveBackend%write_container(containers(iCont_1DCHM), iBLK, iTimeArray)
+      call containers(iCont_1DCHM)%reset()
+    elseif (cType == '1DNEW') then
+      call fill_1dnew(containers(iCont_1DNEW), iBlock, iiLon, iiLat, rLon, rLat)
+      if (associated(ActiveBackend%write_container)) &
+        call ActiveBackend%write_container(containers(iCont_1DNEW), iBLK, iTimeArray)
+      call containers(iCont_1DNEW)%reset()
+    elseif (cType == '3DUSR') then
+      call fill_3dusr(containers(iCont_3DUSR), iBlock)
+      if (associated(ActiveBackend%write_container)) &
+        call ActiveBackend%write_container(containers(iCont_3DUSR), iBLK, iTimeArray)
+      call containers(iCont_3DUSR)%reset()
+    elseif (cType == '2DUSR') then
+      call fill_2dusr(containers(iCont_2DUSR), iBlock)
+      if (associated(ActiveBackend%write_container)) &
+        call ActiveBackend%write_container(containers(iCont_2DUSR), iBLK, iTimeArray)
+      call containers(iCont_2DUSR)%reset()
+    elseif (cType == '1DUSR') then
+      call fill_1dusr(containers(iCont_1DUSR), iBlock, iiLon, iiLat, rLon, rLat)
+      if (associated(ActiveBackend%write_container)) &
+        call ActiveBackend%write_container(containers(iCont_1DUSR), iBLK, iTimeArray)
+      call containers(iCont_1DUSR)%reset()
+    elseif (cType == '0DUSR') then
+      call fill_0dusr(containers(iCont_0DUSR), iBlock, iiLon, iiLat, iiAlt, rLon, rLat, rAlt)
+      if (associated(ActiveBackend%write_container)) &
+        call ActiveBackend%write_container(containers(iCont_0DUSR), iBLK, iTimeArray)
+      call containers(iCont_0DUSR)%reset()
+    endif
   endif
 
   if (iOutputType <= -1 .or. ActiveBackend%uses_external_file) &
     close(unit=iOutputUnit_)
 
   !! Now write the header file (skipped for backends where metadata lives in the data file)
-
 
   if (ActiveBackend%writes_header .and. &
       ((iProc == 0 .and. iBlock == nBlocks) .or. iOutputType <= -1)) then

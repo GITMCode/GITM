@@ -1497,9 +1497,9 @@ subroutine set_inputs
         call read_in_string(NetCdfAppendOption, iError)
         ! Verify: can be 'daily', 'single', or 'none' (default)
         if ((trim(NetCdfAppendOption) == 'single') &
-          .or. (trim(NetCdfAppendOption) == 'daily')) then
-            UseNetcdfMultiTime = .true.
-          elseif (trim(NetCdfAppendOption) == 'none') then
+            .or. (trim(NetCdfAppendOption) == 'daily')) then
+          UseNetcdfMultiTime = .true.
+        elseif (trim(NetCdfAppendOption) == 'none') then
           ! This is default, but set it anyways...
           UseNetcdfMultiTime = .false.
         else

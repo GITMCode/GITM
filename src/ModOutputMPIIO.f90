@@ -89,7 +89,7 @@ contains
              int(bytes_per_element, MPI_OFFSET_KIND)
 
     call MPI_File_write_at_all(mpiio_fh, offset, buffer(1, 1, 1, 1), nWords, MPI_REAL, &
-                           status, ierr)
+                               status, ierr)
     if (ierr /= MPI_SUCCESS) &
       write(*, *) 'ModOutputMPIIO: MPI_File_write_at failed, iBLK=', iBLK
   end subroutine mpiio_write_block
@@ -231,12 +231,12 @@ contains
         nX = max(nX, c%vars(i)%shape3(1))
         nY = max(nY, c%vars(i)%shape3(2))
         nZ = max(nZ, c%vars(i)%shape3(3))
-      end if
-    end do
+      endif
+    enddo
     if (nX == 0 .or. nY == 0 .or. nZ == 0) return
 
     nV = c%nVars
-    nTotal = nV * nX * nY * nZ
+    nTotal = nV*nX*nY*nZ
     allocate(tmpbuf(nV, nX, nY, nZ))
 
     ! Axis vars are identified by position: first is_axis var = lon, second = lat.
@@ -250,20 +250,20 @@ contains
           do iz = 1, nZ
             do iy = 1, nY
               tmpbuf(i, :, iy, iz) = c%vars(i)%data(:, 1, 1)
-            end do
-          end do
+            enddo
+          enddo
         else
           ! Latitude axis: replicate 1D data along lon and alt dimensions.
           do iz = 1, nZ
             do ix = 1, nX
               tmpbuf(i, ix, :, iz) = c%vars(i)%data(:, 1, 1)
-            end do
-          end do
-        end if
+            enddo
+          enddo
+        endif
       else
         tmpbuf(i, :, :, :) = c%vars(i)%data
-      end if
-    end do
+      endif
+    enddo
 
     call MPI_Type_size(MPI_REAL, bytes_per_element, ierr)
     ! Offset is derived from gridKind so it stays consistent with the
@@ -273,13 +273,13 @@ contains
     if (c%gridKind == GRID_MAG_2D) then
       offset = 0_MPI_OFFSET_KIND
     else
-      offset = int(iBlock - 1, MPI_OFFSET_KIND) * &
-               int(nTotal, MPI_OFFSET_KIND) * &
+      offset = int(iBlock - 1, MPI_OFFSET_KIND)* &
+               int(nTotal, MPI_OFFSET_KIND)* &
                int(bytes_per_element, MPI_OFFSET_KIND)
     endif
 
     call MPI_File_write_at_all(mpiio_fh, offset, tmpbuf(1, 1, 1, 1), nTotal, &
-                           MPI_REAL, status, ierr)
+                               MPI_REAL, status, ierr)
     if (ierr /= MPI_SUCCESS) &
       write(*, *) 'ModOutputMPIIO: mpiio_write_container failed, iBlock=', iBlock
 

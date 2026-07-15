@@ -31,29 +31,29 @@ module ModOutputContainer
   integer, parameter :: GRID_GEO_3D = 1  ! geographic 3D block-partitioned
   integer, parameter :: GRID_GEO_2D = 2  ! geographic 2D / 1D / 0D (all ranks participate)
   integer, parameter :: GRID_MAG_2D = 3  ! magnetic 2D (e.g. 2DMEL); iProc==0 only
-  integer, parameter :: GRID_HIME   = 4  ! regional (only DoSaveHIMEPlot ranks write)
+  integer, parameter :: GRID_HIME = 4  ! regional (only DoSaveHIMEPlot ranks write)
 
   integer, parameter :: MaxContainerVars = 300
 
   type :: Variable
-    character(len=64)  :: name     = ''
+    character(len=64)  :: name = ''
     character(len=128) :: longName = ''
-    character(len=32)  :: units    = ''
-    logical            :: is_axis  = .false.  ! netcdf: write as coordinate variable
-    integer            :: rank     = 0        ! 0..3
+    character(len=32)  :: units = ''
+    logical            :: is_axis = .false.  ! netcdf: write as coordinate variable
+    integer            :: rank = 0        ! 0..3
     integer            :: shape3(3) = [1, 1, 1]  ! padded with 1s; drives allocation
-    logical            :: defined  = .false.
+    logical            :: defined = .false.
     real(output_kind), allocatable :: data(:, :, :)
   end type Variable
 
   type :: OutputContainer
-    character(len=5)            :: cType     = '     '
-    integer                     :: gridKind  = GRID_GEO_3D
+    character(len=5)            :: cType = '     '
+    integer                     :: gridKind = GRID_GEO_3D
     type(Variable), allocatable :: vars(:)
-    integer                     :: nVars     = 0
+    integer                     :: nVars = 0
     logical                     :: this_rank_writes = .false.
-    logical                     :: any_rank_skips   = .false.  ! set at file open via allreduce
-    logical                     :: schema_locked    = .false.  ! true after open_file
+    logical                     :: any_rank_skips = .false.  ! set at file open via allreduce
+    logical                     :: schema_locked = .false.  ! true after open_file
     ! Per-type ghost cell width (per side). Default 0 = interior-only outputs.
     ! Set to 2 in define_schema_<type> to include GITM's ghost cells in legacy/mpiio
     ! output; netcdf backend strips them automatically for GEO_* gridKinds.
@@ -83,9 +83,9 @@ contains
     class(OutputContainer), intent(inout) :: this
     character(len=*), intent(in) :: name
     character(len=*), intent(in) :: units
-    integer,          intent(in) :: shape3(3)
+    integer, intent(in) :: shape3(3)
     character(len=*), intent(in), optional :: longName
-    logical,          intent(in), optional :: is_axis
+    logical, intent(in), optional :: is_axis
 
     type(Variable), allocatable :: tmp(:)
     integer :: n
@@ -94,36 +94,36 @@ contains
       write(*, '(a,a,a)') 'ModOutputContainer: WARNING define_var called after schema locked for ', &
         trim(this%cType), ' — ignored'
       return
-    end if
+    endif
 
     ! Grow vars array by one
     n = this%nVars + 1
     if (.not. allocated(this%vars)) then
       allocate(this%vars(MaxContainerVars))
-    end if
+    endif
 
-    this%vars(n)%name   = trim(name)
-    this%vars(n)%units  = trim(units)
+    this%vars(n)%name = trim(name)
+    this%vars(n)%units = trim(units)
     this%vars(n)%shape3 = shape3
-    this%vars(n)%rank   = count(shape3 > 1)  ! non-degenerate dims
+    this%vars(n)%rank = count(shape3 > 1)  ! non-degenerate dims
     this%vars(n)%defined = .true.
 
     if (present(longName)) then
       this%vars(n)%longName = trim(longName)
     else
       this%vars(n)%longName = trim(name)
-    end if
+    endif
 
     if (present(is_axis)) then
       this%vars(n)%is_axis = is_axis
     else
       this%vars(n)%is_axis = .false.
-    end if
+    endif
 
     ! Allocate storage once; reused across timesteps.
     if (.not. allocated(this%vars(n)%data)) then
       allocate(this%vars(n)%data(shape3(1), shape3(2), shape3(3)))
-    end if
+    endif
     this%vars(n)%data = 0.0_output_kind
 
     this%nVars = n
@@ -158,7 +158,7 @@ contains
   subroutine reset(this)
     class(OutputContainer), intent(inout) :: this
     this%this_rank_writes = .false.
-    this%any_rank_skips   = .false.
+    this%any_rank_skips = .false.
   end subroutine reset
 
   ! ---------------------------------------------------------------------------
@@ -174,8 +174,8 @@ contains
       if (trim(this%vars(i)%name) == trim(name)) then
         find_var = i
         return
-      end if
-    end do
+      endif
+    enddo
   end function find_var
 
   ! ---------------------------------------------------------------------------
@@ -215,7 +215,7 @@ contains
       write(errmsg, '(a,a,a,i0,a,i0)') 'ModOutputContainer: put_1d shape mismatch for "', &
         trim(name), '": expected ', this%vars(idx)%shape3(1), ', got ', n
       call stop_gitm(trim(errmsg))
-    end if
+    endif
     this%vars(idx)%data(:, 1, 1) = arr
   end subroutine put_1d
 
@@ -241,7 +241,7 @@ contains
         this%vars(idx)%shape3(1), 'x', this%vars(idx)%shape3(2), ', got ', &
         s1, 'x', s2, ''
       call stop_gitm(trim(errmsg))
-    end if
+    endif
     this%vars(idx)%data(:, :, 1) = arr
   end subroutine put_2d
 
@@ -269,7 +269,7 @@ contains
         this%vars(idx)%shape3(1), 'x', this%vars(idx)%shape3(2), 'x', &
         this%vars(idx)%shape3(3), ', got ', s1, 'x', s2, 'x', s3, ''
       call stop_gitm(trim(errmsg))
-    end if
+    endif
     this%vars(idx)%data = arr
   end subroutine put_3d
 
