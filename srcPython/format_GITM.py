@@ -79,7 +79,7 @@ def check_line_lengths(input_args=None):
         if nLines_over_err_len > 0:
             err_files.append(f)
             problem_lines.append(
-                [l for l in range(len(all_lens)) if all_lens[l] > max_line_length])
+                [l + 1 for l in range(len(all_lens)) if all_lens[l] > max_line_length])
 
 
         if nLines_over_warn_len > 0:
