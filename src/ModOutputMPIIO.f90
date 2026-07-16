@@ -26,7 +26,7 @@
 
 module ModOutputMPIIO
 
-  use ModOutputContainer, only: OutputContainer, output_kind, GRID_MAG_2D
+  use ModOutputContainer, only: OutputContainer, output_kind, GRID_MAG_2D, GRID_HIME
   use ModMpi
 
   implicit none
@@ -278,8 +278,19 @@ contains
                int(bytes_per_element, MPI_OFFSET_KIND)
     endif
 
-    call MPI_File_write_at_all(mpiio_fh, offset, tmpbuf(1, 1, 1, 1), nTotal, &
-                               MPI_REAL, status, ierr)
+    ! Collective write_at_all requires EVERY rank to call in.
+    ! For grids where only some ranks write (MAG_2D = rank 0 only;
+    ! HIME = in-region ranks), the non-writing ranks returned early above, so a
+    ! collective call would deadlock. Use the independent variant there 
+    ! "normal", block-partitioned geo grids, keep the faster
+    ! collective path since all ranks participate.
+    if (c%gridKind == GRID_MAG_2D .or. c%gridKind == GRID_HIME) then
+      call MPI_File_write_at(mpiio_fh, offset, tmpbuf(1, 1, 1, 1), nTotal, &
+                             MPI_REAL, status, ierr)
+    else
+      call MPI_File_write_at_all(mpiio_fh, offset, tmpbuf(1, 1, 1, 1), nTotal, &
+                                 MPI_REAL, status, ierr)
+    endif
     if (ierr /= MPI_SUCCESS) &
       write(*, *) 'ModOutputMPIIO: mpiio_write_container failed, iBlock=', iBlock
 
