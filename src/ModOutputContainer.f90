@@ -3,11 +3,32 @@
 !
 ! ModOutputContainer.f90
 !
-! Containerized outputs for GITM.  Each output type defines its
-! variables once (define_var, schema phase), then fills them per timestep
-! (put, data phase).  Backends consume the container.
+! Containerized outputs for GITM.  Backends consume the container.
 !
-! Two-phase design:
+! Two APIs coexist; both leave the container in the same state, so no backend
+! can tell which one built it.
+!
+! ONE-SHOT (put_field/put_axis) — preferred, used by the converted GEO types:
+!   A single fill_<type> both defines and fills.  The first put of a name
+!   defines the variable (shape = size(arr) VERBATIM, metadata from
+!   ModOutputVarRegistry); later puts overwrite it and must match that shape.
+!   One list means define and fill cannot drift apart.  The schema is
+!   materialized eagerly by a priming pass (init_output_containers calls each
+!   fill once, then sets schema_locked), so the schema is complete before
+!   open_file — which the netcdf backend requires, since it issues collective
+!   nfmpi_def_var for the whole file there.
+!
+!   The CALLER owns the slice: put stores exactly what it is handed, with no
+!   ghost-cell or grid-kind inference.  This is forced by real schemas — 2DANC
+!   holds a 2-ghost VTEC, a 0-ghost synthesized LT, and a single altitude LEVEL
+!   of a 3-D array side by side; no container-level rule expresses all three.
+!   nGhostCells is therefore pure metadata (what the netcdf backend strips),
+!   decoupled from the slice the caller actually stored.
+!
+! EXPLICIT TWO-PHASE (define_var + put) — retained for the types not converted:
+!   magnetic grids, HME/HIME regionals, and USR.  USR is permanent by design:
+!   users put from anywhere, so a put-derived schema would be empty at the first
+!   output; registration IS its eager schema.
 !   Phase 1 — SCHEMA: call define_var() once per file open, all ranks.
 !   Phase 2 — DATA:   call prepare(iBlock), then put() on participating ranks.
 !
@@ -16,6 +37,8 @@
 ! This matches mpiio's MPI_REAL convention and avoids silent precision loss.
 
 module ModOutputContainer
+
+  use ModOutputVarRegistry, only: lookup_var_meta
 
   implicit none
 
@@ -53,7 +76,25 @@ module ModOutputContainer
     integer                     :: nVars = 0
     logical                     :: this_rank_writes = .false.
     logical                     :: any_rank_skips = .false.  ! set at file open via allreduce
-    logical                     :: schema_locked = .false.  ! true after open_file
+    ! Set for one-shot types once priming has materialized the schema.  After
+    ! this, a put of an UNKNOWN name is a hard error rather than a silent new
+    ! variable: a schema that varies by rank or by timestep would desync the
+    ! collective nfmpi_def_var at scale (a hang), and this turns that into a
+    ! clean abort at -np 4.  Unconverted types never set it.
+    logical                     :: schema_locked = .false.
+    ! True once a one-shot type has been primed.  Distinct from schema_locked
+    ! (which is only about rejecting new names) because this drives the
+    ! per-fill wipe and put-count guards, which must never touch the
+    ! unconverted types: USR in particular depends on values PERSISTING
+    ! between puts when its put cadence differs from the output cadence.
+    logical                     :: is_one_shot = .false.
+    ! Puts seen since the last prepare(), or -1 when no one-shot fill is in
+    ! progress (unconverted type, or a rank that does not write this block).
+    ! The sentinel is what lets finish_fill be called from ONE place in
+    ! output_common after the dispatch chain, rather than from every fill:
+    ! by then reset() has already cleared this_rank_writes, so participation
+    ! has to be remembered here instead of re-tested.
+    integer                     :: nPuts = -1
     ! Per-type ghost cell width (per side). Default 0 = interior-only outputs.
     ! Set to 2 in define_schema_<type> to include GITM's ghost cells in legacy/mpiio
     ! output; netcdf backend strips them automatically for GEO_* gridKinds.
@@ -69,6 +110,15 @@ module ModOutputContainer
     procedure :: put_2d
     procedure :: put_3d
     generic   :: put => put_0d, put_1d, put_2d, put_3d
+    ! One-shot API.  A generic works here (unlike a shape selector) because the
+    ! array's RANK is part of the signature, so the compiler dispatches on it.
+    procedure :: put_field_1d
+    procedure :: put_field_2d
+    procedure :: put_field_3d
+    generic   :: put_field => put_field_1d, put_field_2d, put_field_3d
+    procedure :: put_axis => put_axis_1d
+    procedure :: finish_fill
+    procedure, private :: ensure_var
   end type OutputContainer
 
 contains
@@ -87,7 +137,6 @@ contains
     character(len=*), intent(in), optional :: longName
     logical, intent(in), optional :: is_axis
 
-    type(Variable), allocatable :: tmp(:)
     integer :: n
 
     if (this%schema_locked) then
@@ -96,7 +145,10 @@ contains
       return
     endif
 
-    ! Grow vars array by one
+    if (this%nVars >= MaxContainerVars) &
+      call stop_gitm('ModOutputContainer: too many variables in type '//trim(this%cType)// &
+                     ' — raise MaxContainerVars')
+
     n = this%nVars + 1
     if (.not. allocated(this%vars)) then
       allocate(this%vars(MaxContainerVars))
@@ -130,6 +182,189 @@ contains
   end subroutine define_var
 
   ! ---------------------------------------------------------------------------
+  ! ensure_var — resolve name to a variable index, defining it on first touch.
+  !
+  ! First touch: append the variable, taking its shape verbatim from the caller
+  ! and its metadata from the registry (units=/longName= override it, which is
+  ! how the computed species/ion names carry metadata a static table cannot).
+  ! Later touches: return the existing index after checking the shape still
+  ! matches — a fill whose slice changes size mid-run would silently corrupt
+  ! every subsequent file.
+  !
+  ! Leaves exactly the state define_var would, so backends cannot distinguish
+  ! the two paths.
+  ! ---------------------------------------------------------------------------
+  subroutine ensure_var(this, name, shape3, is_axis, idx, units, longName)
+    class(OutputContainer), intent(inout) :: this
+    character(len=*), intent(in) :: name
+    integer, intent(in) :: shape3(3)
+    logical, intent(in) :: is_axis
+    integer, intent(out) :: idx
+    character(len=*), intent(in), optional :: units
+    character(len=*), intent(in), optional :: longName
+
+    character(len=32)  :: varUnits
+    character(len=128) :: varLongName
+    logical :: inRegistry
+    character(len=160) :: errmsg
+
+    if (this%nPuts >= 0) this%nPuts = this%nPuts + 1  ! -1 = not counting (see prepare)
+    idx = this%find_var(name)
+
+    if (idx > 0) then
+      ! Overwrite path — shape is fixed at first touch.
+      if (any(this%vars(idx)%shape3 /= shape3)) then
+        write(errmsg, '(a,a,a,a,a,3(i0,a),3(i0,a))') &
+          'ModOutputContainer: put shape mismatch for "', trim(name), '" in type ', trim(this%cType), &
+          ': defined as ', this%vars(idx)%shape3(1), 'x', this%vars(idx)%shape3(2), 'x', &
+          this%vars(idx)%shape3(3), ', got ', shape3(1), 'x', shape3(2), 'x', shape3(3), ''
+        call stop_gitm(trim(errmsg))
+      endif
+      return
+    endif
+
+    ! ---- first touch: define ----
+    if (this%schema_locked) &
+      call stop_gitm('ModOutputContainer: put of unknown variable "'//trim(name)//'" in type '// &
+                     trim(this%cType)//' after the schema was primed.  A converted fill_<type> must '// &
+                     'put the same variables on every rank and every timestep — no conditional puts.')
+
+    if (this%nVars >= MaxContainerVars) &
+      call stop_gitm('ModOutputContainer: too many variables in type '//trim(this%cType)// &
+                     ' — raise MaxContainerVars')
+
+    if (.not. allocated(this%vars)) allocate(this%vars(MaxContainerVars))
+
+    varUnits = ''
+    varLongName = ''
+    inRegistry = lookup_var_meta(name, varUnits, varLongName)
+    if (.not. inRegistry) then
+      ! Not a registered name (a computed species/ion name): the call site owns
+      ! the metadata.  longName falls back to the name, matching define_var, but
+      ! units cannot be guessed — refuse rather than emit empty units.
+      varLongName = trim(name)
+      if (.not. present(units)) &
+        call stop_gitm('ModOutputContainer: variable "'//trim(name)//'" in type '//trim(this%cType)// &
+                       ' has no ModOutputVarRegistry entry; pass units= at the put site or register it')
+    endif
+    if (present(units)) varUnits = trim(units)
+    if (present(longName)) varLongName = trim(longName)
+
+    idx = this%nVars + 1
+    this%vars(idx)%name = trim(name)
+    this%vars(idx)%units = varUnits
+    this%vars(idx)%longName = varLongName
+    this%vars(idx)%shape3 = shape3
+    this%vars(idx)%rank = count(shape3 > 1)  ! non-degenerate dims, as define_var
+    this%vars(idx)%is_axis = is_axis
+    this%vars(idx)%defined = .true.
+
+    if (.not. allocated(this%vars(idx)%data)) then
+      allocate(this%vars(idx)%data(shape3(1), shape3(2), shape3(3)))
+    endif
+    this%vars(idx)%data = 0.0_output_kind
+
+    this%nVars = idx
+  end subroutine ensure_var
+
+  ! ---------------------------------------------------------------------------
+  ! finish_fill — assert a one-shot fill put EVERY variable exactly once.
+  !
+  ! This is the primary guard against a stale variable: without it, a fill that
+  ! quietly stops putting some name keeps shipping whatever was in %data (with
+  ! prepare's wipe, zeros), and nothing in the file says so.  It equally catches
+  ! a double put, and a fill that puts nothing at all.
+  !
+  ! Called from ONE place — output_common, after the fill/write dispatch chain —
+  ! so that adding an output type cannot forget it.  It therefore runs after
+  ! reset() has cleared this_rank_writes, which is why participation is read
+  ! from the nPuts sentinel (armed in prepare) rather than re-tested here.
+  ! Unconverted types and non-writing ranks sit at -1 and are skipped.
+  ! ---------------------------------------------------------------------------
+  subroutine finish_fill(this)
+    class(OutputContainer), intent(inout) :: this
+    character(len=160) :: errmsg
+
+    if (this%nPuts < 0) return  ! no one-shot fill ran on this rank
+
+    if (this%nPuts /= this%nVars) then
+      write(errmsg, '(a,a,a,i0,a,i0,a)') &
+        'ModOutputContainer: fill_', trim(this%cType), ' made ', this%nPuts, &
+        ' put(s) but the type has ', this%nVars, &
+        ' variable(s); every variable must be put exactly once, unconditionally.'
+      call stop_gitm(trim(errmsg))
+    endif
+
+    ! Disarm so a finish_fill reached without an intervening prepare() cannot
+    ! pass on this fill's stale count.
+    this%nPuts = -1
+  end subroutine finish_fill
+
+  ! ---------------------------------------------------------------------------
+  ! put_axis_1d — store a 1D coordinate variable (netcdf writes it as a
+  ! coordinate).  Otherwise identical to put_field_1d.
+  ! ---------------------------------------------------------------------------
+  subroutine put_axis_1d(this, name, arr, units, longName)
+    class(OutputContainer), intent(inout) :: this
+    character(len=*), intent(in) :: name
+    real, intent(in) :: arr(:)
+    character(len=*), intent(in), optional :: units
+    character(len=*), intent(in), optional :: longName
+    integer :: idx
+
+    if (.not. this%this_rank_writes) return
+    call this%ensure_var(name, [size(arr), 1, 1], .true., idx, units, longName)
+    this%vars(idx)%data(:, 1, 1) = real(arr, output_kind)
+  end subroutine put_axis_1d
+
+  ! ---------------------------------------------------------------------------
+  ! put_field_1d/2d/3d — define-on-first-touch + store, verbatim.
+  !
+  ! The dummy is default real (the model's kind), NOT output_kind: taking model
+  ! reals lets the r8 -> output_kind conversion happen in the same assignment
+  ! that stores, so there is exactly ONE copy and call sites need no
+  ! real(..., output_kind) wrapper (which would itself materialize a temp).
+  ! ---------------------------------------------------------------------------
+  subroutine put_field_1d(this, name, arr, units, longName)
+    class(OutputContainer), intent(inout) :: this
+    character(len=*), intent(in) :: name
+    real, intent(in) :: arr(:)
+    character(len=*), intent(in), optional :: units
+    character(len=*), intent(in), optional :: longName
+    integer :: idx
+
+    if (.not. this%this_rank_writes) return
+    call this%ensure_var(name, [size(arr), 1, 1], .false., idx, units, longName)
+    this%vars(idx)%data(:, 1, 1) = real(arr, output_kind)
+  end subroutine put_field_1d
+
+  subroutine put_field_2d(this, name, arr, units, longName)
+    class(OutputContainer), intent(inout) :: this
+    character(len=*), intent(in) :: name
+    real, intent(in) :: arr(:, :)
+    character(len=*), intent(in), optional :: units
+    character(len=*), intent(in), optional :: longName
+    integer :: idx
+
+    if (.not. this%this_rank_writes) return
+    call this%ensure_var(name, [size(arr, 1), size(arr, 2), 1], .false., idx, units, longName)
+    this%vars(idx)%data(:, :, 1) = real(arr, output_kind)
+  end subroutine put_field_2d
+
+  subroutine put_field_3d(this, name, arr, units, longName)
+    class(OutputContainer), intent(inout) :: this
+    character(len=*), intent(in) :: name
+    real, intent(in) :: arr(:, :, :)
+    character(len=*), intent(in), optional :: units
+    character(len=*), intent(in), optional :: longName
+    integer :: idx
+
+    if (.not. this%this_rank_writes) return
+    call this%ensure_var(name, [size(arr, 1), size(arr, 2), size(arr, 3)], .false., idx, units, longName)
+    this%vars(idx)%data = real(arr, output_kind)
+  end subroutine put_field_3d
+
+  ! ---------------------------------------------------------------------------
   ! prepare — set this_rank_writes for this block, per container's gridKind.
   !
   ! Called by the producer at the start of each fill_<type> call.
@@ -138,6 +373,7 @@ contains
     use ModGITM, only: iProc
     class(OutputContainer), intent(inout) :: this
     integer, intent(in) :: iBlock
+    integer :: i
 
     select case (this%gridKind)
     case (GRID_GEO_3D, GRID_GEO_2D)
@@ -150,6 +386,23 @@ contains
     case default
       this%this_rank_writes = .true.
     end select
+
+    ! One-shot fill about to run on this rank: arm the put counter and start
+    ! from a known state, so what lands in the file depends only on THIS fill's
+    ! puts and never on a previous block or timestep.  finish_fill turns a
+    ! skipped variable into an error rather than a silent zero, so the wipe
+    ! costs a memset (sub-ms) to buy determinism against seconds of write time.
+    ! Everything else — unconverted types, and ranks that do not write this
+    ! block — keeps nPuts = -1 and is left alone: USR in particular relies on
+    ! last-known values persisting between puts.
+    if (this%is_one_shot .and. this%this_rank_writes) then
+      this%nPuts = 0
+      do i = 1, this%nVars
+        if (allocated(this%vars(i)%data)) this%vars(i)%data = 0.0_output_kind
+      enddo
+    else
+      this%nPuts = -1
+    endif
   end subroutine prepare
 
   ! ---------------------------------------------------------------------------

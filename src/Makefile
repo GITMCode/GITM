@@ -55,6 +55,7 @@ MODULES = \
 	ModReadGitm3d.o\
 	ModSami.o\
 	ModSatellites.o\
+	ModOutputVarRegistry.o\
 	ModOutputContainer.o\
 	ModOutputProducers.o\
 	ModOutputBackend.o\

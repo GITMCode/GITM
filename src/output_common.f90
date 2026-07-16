@@ -393,6 +393,9 @@ subroutine output(dir, iBlock, iOutputType)
         call ActiveBackend%write_container(containers(iCont_0DUSR), iBLK, iTimeArray)
       call containers(iCont_0DUSR)%reset()
     endif
+
+    ! Check that one-shot fills have "put" each variable exactly once.
+    call containers(iContIdx)%finish_fill()
   endif
 
   if (iOutputType <= -1 .or. ActiveBackend%uses_external_file) &
