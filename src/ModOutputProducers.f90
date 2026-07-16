@@ -390,18 +390,7 @@ contains
     if (containers_initialized) return
     allocate(containers(nContainers))
     call define_schema_2dmel(containers(iCont_2DMEL))
-    call define_schema_2dtec(containers(iCont_2DTEC))
-    call define_schema_2dgel(containers(iCont_2DGEL))
-    call define_schema_3dneu(containers(iCont_3DNEU))
-    call define_schema_3dion(containers(iCont_3DION))
-    call define_schema_3dthm(containers(iCont_3DTHM))
-    call define_schema_3dchm(containers(iCont_3DCHM))
-    call define_schema_3dlst(containers(iCont_3DLST))
-    call define_schema_3dglo(containers(iCont_3DGLO))
-    call define_schema_3dmag(containers(iCont_3DMAG))
     call define_schema_3dhme(containers(iCont_3DHME))
-    call define_schema_3dmoh(containers(iCont_3DMOH))
-    call define_schema_3dmov(containers(iCont_3DMOV))
     call define_schema_2dhme(containers(iCont_2DHME))
     call define_schema_1dall(containers(iCont_1DALL))
     call define_schema_0dall(containers(iCont_0DALL))
@@ -426,6 +415,28 @@ contains
     call finish_priming(containers(iCont_3DALL))
     call fill_2danc(containers(iCont_2DANC), 1)
     call finish_priming(containers(iCont_2DANC))
+    call fill_3dneu(containers(iCont_3DNEU), 1)
+    call finish_priming(containers(iCont_3DNEU))
+    call fill_3dion(containers(iCont_3DION), 1)
+    call finish_priming(containers(iCont_3DION))
+    call fill_3dmag(containers(iCont_3DMAG), 1)
+    call finish_priming(containers(iCont_3DMAG))
+    call fill_2dtec(containers(iCont_2DTEC), 1)
+    call finish_priming(containers(iCont_2DTEC))
+    call fill_2dgel(containers(iCont_2DGEL), 1)
+    call finish_priming(containers(iCont_2DGEL))
+    call fill_3dthm(containers(iCont_3DTHM), 1)
+    call finish_priming(containers(iCont_3DTHM))
+    call fill_3dchm(containers(iCont_3DCHM), 1)
+    call finish_priming(containers(iCont_3DCHM))
+    call fill_3dmoh(containers(iCont_3DMOH), 1)
+    call finish_priming(containers(iCont_3DMOH))
+    call fill_3dmov(containers(iCont_3DMOV), 1)
+    call finish_priming(containers(iCont_3DMOV))
+    call fill_3dlst(containers(iCont_3DLST), 1)
+    call finish_priming(containers(iCont_3DLST))
+    call fill_3dglo(containers(iCont_3DGLO), 1)
+    call finish_priming(containers(iCont_3DGLO))
   end subroutine init_output_containers
 
   ! ---------------------------------------------------------------------------
@@ -604,276 +615,124 @@ contains
   end subroutine fill_2dmel
 
   ! ---------------------------------------------------------------------------
-  ! define_schema_2dtec — register all 2DTEC variables.
+  ! fill_2dtec — 2DTEC schema AND data, one-shot (no define_schema_2dtec).
   !
-  ! Grid: geographic 2D, per-block, nLons x nLats.
-  ! Longitude/Latitude stored in radians in model; converted to degrees at put time.
-  ! ---------------------------------------------------------------------------
-  subroutine define_schema_2dtec(c)
-    use ModGITM, only: nLons, nLats
-    type(OutputContainer), intent(inout) :: c
-    integer :: nGC
-
-    c%cType = '2DTEC'
-    c%gridKind = GRID_GEO_2D
-    c%nGhostCells = 0
-    nGC = c%nGhostCells
-
-    ! Axis variables (1D coordinate arrays).
-    call c%define_var('Longitude', units='degrees_east', &
-                      shape3=[nLons + 2*nGC, 1, 1], is_axis=.true., &
-                      longName='Geographic longitude')
-    call c%define_var('Latitude', units='degrees_north', &
-                      shape3=[nLats + 2*nGC, 1, 1], is_axis=.true., &
-                      longName='Geographic latitude')
-
-    ! 2D data variables (nLons x nLats x 1).
-    call c%define_var('Altitude', units='m', &
-                      shape3=[nLons + 2*nGC, nLats + 2*nGC, 1], &
-                      longName='Altitude above surface')
-    call c%define_var('SZA', units='rad', &
-                      shape3=[nLons + 2*nGC, nLats + 2*nGC, 1], &
-                      longName='Solar zenith angle')
-    call c%define_var('TEC', units='TECU', &
-                      shape3=[nLons + 2*nGC, nLats + 2*nGC, 1], &
-                      longName='Vertical total electron content')
-  end subroutine define_schema_2dtec
-
-  ! ---------------------------------------------------------------------------
-  ! fill_2dtec — put 2DTEC data into the container for iBlock.
-  !
-  ! All blocks participate (GRID_GEO_2D).
-  ! Longitude/Latitude are in radians in the model; converted to degrees here.
+  ! Interior-writing (nGhostCells = 0), like 2DANC. Longitude/Latitude/
+  ! Altitude_GB/VTEC are ghosted (-1:nLons+2, ...) and sliced to the interior;
+  ! Sza is (nLons, nLats, nBlocksMax) — NO ghosts — so the block slice already
+  ! IS the interior.
   ! ---------------------------------------------------------------------------
   subroutine fill_2dtec(c, iBlock)
     use ModGITM
     use ModEUV, only: Sza
     use ModConst, only: cRadToDeg
     type(OutputContainer), intent(inout) :: c
-    integer :: nGC
     integer, intent(in) :: iBlock
+
+    c%cType = '2DTEC'
+    c%gridKind = GRID_GEO_2D
+    c%nGhostCells = 0  ! metadata: no ghosts are stored in %data
 
     call c%prepare(iBlock)
     if (.not. c%this_rank_writes) return
-    nGC = c%nGhostCells
 
     call calc_vtec(iBlock)
 
-    call c%put('Longitude', real(Longitude(1 - nGC:nLons + nGC, iBlock)*cRadToDeg, output_kind))
-    call c%put('Latitude', real(Latitude(1 - nGC:nLats + nGC, iBlock)*cRadToDeg, output_kind))
-    call c%put('Altitude', real(Altitude_GB(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1, iBlock), output_kind))
-    call c%put('SZA', real(Sza(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, iBlock), output_kind))
-    call c%put('TEC', real(VTEC(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, iBlock), output_kind))
+    ! NOTE: put order is the file's variable order for legacy/mpiio — keep it.
+    call c%put_axis('Longitude', Longitude(1:nLons, iBlock)*cRadToDeg)   ! ghosted
+    call c%put_axis('Latitude', Latitude(1:nLats, iBlock)*cRadToDeg)     ! ghosted
+    call c%put_field('Altitude', Altitude_GB(1:nLons, 1:nLats, 1, iBlock))  ! ghosted, one level
+    call c%put_field('SZA', Sza(:, :, iBlock))                           ! no ghosts
+    ! longName override: the registry's canonical 'Total electron content' is
+    ! what 2DANC writes, but 2DTEC has always written this as 'Vertical total
+    ! electron content'. Overriding keeps the output byte-identical; the
+    ! override is removed when the drifted longNames are canonicalized.
+    call c%put_field('TEC', VTEC(1:nLons, 1:nLats, iBlock), &            ! ghosted
+                     longName='Vertical total electron content')
   end subroutine fill_2dtec
 
   ! ---------------------------------------------------------------------------
-  ! define_schema_2dgel — register all 2DGEL variables.
+  ! fill_2dgel — 2DGEL schema AND data, one-shot (no define_schema_2dgel).
   !
-  ! Grid: geographic 2D, per-block, nLons x nLats.
-  ! Longitude/Latitude stored in radians in model; converted to degrees at put time.
-  ! ---------------------------------------------------------------------------
-  subroutine define_schema_2dgel(c)
-    use ModGITM, only: nLons, nLats
-    type(OutputContainer), intent(inout) :: c
-    integer :: nGC
-
-    c%cType = '2DGEL'
-    c%gridKind = GRID_GEO_2D
-    c%nGhostCells = 0
-    nGC = c%nGhostCells
-
-    ! Axis variables (1D coordinate arrays).
-    call c%define_var('Longitude', units='degrees_east', &
-                      shape3=[nLons + 2*nGC, 1, 1], is_axis=.true., &
-                      longName='Geographic longitude')
-    call c%define_var('Latitude', units='degrees_north', &
-                      shape3=[nLats + 2*nGC, 1, 1], is_axis=.true., &
-                      longName='Geographic latitude')
-
-    ! 2D data variables (nLons x nLats x 1).
-    call c%define_var('Altitude', units='m', &
-                      shape3=[nLons + 2*nGC, nLats + 2*nGC, 1], &
-                      longName='Altitude above surface')
-    call c%define_var('pot', units='V', &
-                      shape3=[nLons + 2*nGC, nLats + 2*nGC, 1], &
-                      longName='Electric potential')
-    call c%define_var('PedCond', units='S', &
-                      shape3=[nLons + 2*nGC, nLats + 2*nGC, 1], &
-                      longName='Height-integrated Pedersen conductance')
-    call c%define_var('HalCond', units='S', &
-                      shape3=[nLons + 2*nGC, nLats + 2*nGC, 1], &
-                      longName='Height-integrated Hall conductance')
-    call c%define_var('AveE', units='keV', &
-                      shape3=[nLons + 2*nGC, nLats + 2*nGC, 1], &
-                      longName='Diffuse electron precipitation average energy')
-    call c%define_var('eFlux', units='ergs/cm2/s', &
-                      shape3=[nLons + 2*nGC, nLats + 2*nGC, 1], &
-                      longName='Diffuse electron precipitation energy flux')
-    call c%define_var('AveE_W', units='keV', &
-                      shape3=[nLons + 2*nGC, nLats + 2*nGC, 1], &
-                      longName='Wave-driven electron precipitation average energy')
-    call c%define_var('eFlux_W', units='ergs/cm2/s', &
-                      shape3=[nLons + 2*nGC, nLats + 2*nGC, 1], &
-                      longName='Wave-driven electron precipitation energy flux')
-    call c%define_var('AveE_M', units='keV', &
-                      shape3=[nLons + 2*nGC, nLats + 2*nGC, 1], &
-                      longName='Monoenergetic electron precipitation average energy')
-    call c%define_var('eFlux_M', units='ergs/cm2/s', &
-                      shape3=[nLons + 2*nGC, nLats + 2*nGC, 1], &
-                      longName='Monoenergetic electron precipitation energy flux')
-    call c%define_var('AveE_I', units='keV', &
-                      shape3=[nLons + 2*nGC, nLats + 2*nGC, 1], &
-                      longName='Ion precipitation average energy')
-    call c%define_var('eFlux_I', units='ergs/cm2/s', &
-                      shape3=[nLons + 2*nGC, nLats + 2*nGC, 1], &
-                      longName='Ion precipitation energy flux')
-    call c%define_var('DivJuAlt', units='A/m2', &
-                      shape3=[nLons + 2*nGC, nLats + 2*nGC, 1], &
-                      longName='Height-integrated divergence of horizontal current')
-    call c%define_var('PedFLCond', units='S', &
-                      shape3=[nLons + 2*nGC, nLats + 2*nGC, 1], &
-                      longName='Field-line integrated Pedersen conductance')
-    call c%define_var('HalFLCond', units='S', &
-                      shape3=[nLons + 2*nGC, nLats + 2*nGC, 1], &
-                      longName='Field-line integrated Hall conductance')
-    call c%define_var('DivJuFL', units='A/m2', &
-                      shape3=[nLons + 2*nGC, nLats + 2*nGC, 1], &
-                      longName='Field-line divergence of current')
-    call c%define_var('FL_length', units='m', &
-                      shape3=[nLons + 2*nGC, nLats + 2*nGC, 1], &
-                      longName='Field line length')
-  end subroutine define_schema_2dgel
-
-  ! ---------------------------------------------------------------------------
-  ! fill_2dgel — put 2DGEL data into the container for iBlock.
-  !
-  ! All blocks participate (GRID_GEO_2D).
-  ! Longitude/Latitude are in radians in the model; converted to degrees here.
-  ! ModElectrodynamics 2D arrays (ElectronAverageEnergyDiffuse etc.) are
-  ! block-local: no iBlock index, hold the current block's data at call time.
+  ! Interior-writing (nGhostCells = 0). Unlike 2DTEC, every array here is
+  ! ghosted (-1:nLons+2, -1:nLats+2, ...): Potential/PedersenConductance/
+  ! HallConductance carry a block dim, the precipitation and field-line arrays
+  ! do not — every put still slices to the interior explicitly.
+  ! ModGITM/ModElectrodynamics 2D arrays (ElectronAverageEnergyDiffuse etc.)
+  ! are block-local: no iBlock index, hold the current block's data at call
+  ! time.
   ! ---------------------------------------------------------------------------
   subroutine fill_2dgel(c, iBlock)
     use ModGITM
     use ModElectrodynamics
     use ModConst, only: cRadToDeg
     type(OutputContainer), intent(inout) :: c
-    integer :: nGC
     integer, intent(in) :: iBlock
+
+    c%cType = '2DGEL'
+    c%gridKind = GRID_GEO_2D
+    c%nGhostCells = 0  ! metadata: no ghosts are stored in %data
 
     call c%prepare(iBlock)
     if (.not. c%this_rank_writes) return
-    nGC = c%nGhostCells
 
-    call c%put('Longitude', real(Longitude(1 - nGC:nLons + nGC, iBlock)*cRadToDeg, output_kind))
-    call c%put('Latitude', real(Latitude(1 - nGC:nLats + nGC, iBlock)*cRadToDeg, output_kind))
-    call c%put('Altitude', real(Altitude_GB(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1, iBlock), output_kind))
-    call c%put('pot', real(Potential(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1, iBlock), output_kind))
-    call c%put('PedCond', real(PedersenConductance(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, iBlock), output_kind))
-    call c%put('HalCond', real(HallConductance(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, iBlock), output_kind))
-    call c%put('AveE', real(ElectronAverageEnergyDiffuse(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC), output_kind))
-    call c%put('eFlux', real(ElectronEnergyFluxDiffuse(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC), output_kind))
-    call c%put('AveE_W', real(ElectronAverageEnergyWave(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC), output_kind))
-    call c%put('eFlux_W', real(ElectronEnergyFluxWave(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC), output_kind))
-    call c%put('AveE_M', real(ElectronAverageEnergyMono(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC), output_kind))
-    call c%put('eFlux_M', real(ElectronEnergyFluxMono(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC), output_kind))
-    call c%put('AveE_I', real(IonAverageEnergy(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC), output_kind))
-    call c%put('eFlux_I', real(IonEnergyFlux(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC), output_kind))
-    call c%put('DivJuAlt', real(DivJuAlt(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC), output_kind))
-    call c%put('PedFLCond', real(PedersenFieldLine(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC), output_kind))
-    call c%put('HalFLCond', real(HallFieldLine(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC), output_kind))
-    call c%put('DivJuFL', real(DivJuFieldLine(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC), output_kind))
-    call c%put('FL_length', real(LengthFieldLine(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC), output_kind))
+    call c%put_axis('Longitude', Longitude(1:nLons, iBlock)*cRadToDeg)   ! ghosted
+    call c%put_axis('Latitude', Latitude(1:nLats, iBlock)*cRadToDeg)     ! ghosted
+    call c%put_field('Altitude', Altitude_GB(1:nLons, 1:nLats, 1, iBlock))  ! ghosted, one level
+    call c%put_field('pot', Potential(1:nLons, 1:nLats, 1, iBlock))         ! ghosted, one level
+    call c%put_field('PedCond', PedersenConductance(1:nLons, 1:nLats, iBlock))  ! ghosted
+    call c%put_field('HalCond', HallConductance(1:nLons, 1:nLats, iBlock))      ! ghosted
+    call c%put_field('AveE', ElectronAverageEnergyDiffuse(1:nLons, 1:nLats))    ! ghosted
+    call c%put_field('eFlux', ElectronEnergyFluxDiffuse(1:nLons, 1:nLats))      ! ghosted
+    call c%put_field('AveE_W', ElectronAverageEnergyWave(1:nLons, 1:nLats))     ! ghosted
+    call c%put_field('eFlux_W', ElectronEnergyFluxWave(1:nLons, 1:nLats))       ! ghosted
+    call c%put_field('AveE_M', ElectronAverageEnergyMono(1:nLons, 1:nLats))     ! ghosted
+    call c%put_field('eFlux_M', ElectronEnergyFluxMono(1:nLons, 1:nLats))       ! ghosted
+    call c%put_field('AveE_I', IonAverageEnergy(1:nLons, 1:nLats))              ! ghosted
+    call c%put_field('eFlux_I', IonEnergyFlux(1:nLons, 1:nLats))                ! ghosted
+    call c%put_field('DivJuAlt', DivJuAlt(1:nLons, 1:nLats))                    ! ghosted
+    call c%put_field('PedFLCond', PedersenFieldLine(1:nLons, 1:nLats))          ! ghosted
+    call c%put_field('HalFLCond', HallFieldLine(1:nLons, 1:nLats))              ! ghosted
+    call c%put_field('DivJuFL', DivJuFieldLine(1:nLons, 1:nLats))               ! ghosted
+    call c%put_field('FL_length', LengthFieldLine(1:nLons, 1:nLats))            ! ghosted
   end subroutine fill_2dgel
 
   ! ---------------------------------------------------------------------------
-  ! define_schema_3dneu — register all 3DNEU variables.
-  ! ---------------------------------------------------------------------------
-  subroutine define_schema_3dneu(c)
-    use ModGITM, only: nLons, nLats, nAlts
-    use ModPlanet, only: nSpeciesTotal, nSpecies, cSpecies
-    type(OutputContainer), intent(inout) :: c
-    integer :: nGC
-    integer :: i
-
-    c%cType = '3DNEU'
-    c%gridKind = GRID_GEO_3D
-    c%nGhostCells = 2
-    nGC = c%nGhostCells
-
-    call c%define_var('Longitude', units='degrees_east', &
-                      shape3=[nLons + 2*nGC, 1, 1], is_axis=.true., &
-                      longName='Geographic longitude')
-    call c%define_var('Latitude', units='degrees_north', &
-                      shape3=[nLats + 2*nGC, 1, 1], is_axis=.true., &
-                      longName='Geographic latitude')
-    call c%define_var('Altitude', units='m', &
-                      shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], &
-                      longName='Altitude above surface')
-    call c%define_var('Rho', units='kg/m3', &
-                      shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], &
-                      longName='Total neutral mass density')
-    do i = 1, nSpeciesTotal
-      call c%define_var('['//trim(cSpecies(i))//']', units='/m3', &
-                        shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], &
-                        longName='Number density of '//trim(cSpecies(i)))
-    enddo
-    call c%define_var('Temperature', units='K', &
-                      shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], &
-                      longName='Neutral temperature')
-    call c%define_var('Vn (east)', units='m/s', &
-                      shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], &
-                      longName='Eastward neutral wind')
-    call c%define_var('Vn (north)', units='m/s', &
-                      shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], &
-                      longName='Northward neutral wind')
-    call c%define_var('Vn (up)', units='m/s', &
-                      shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], &
-                      longName='Vertical neutral wind')
-    do i = 1, nSpecies
-      call c%define_var('Vn (up,'//trim(cSpecies(i))//')', units='m/s', &
-                        shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], &
-                        longName='Vertical neutral wind for '//trim(cSpecies(i)))
-    enddo
-  end subroutine define_schema_3dneu
-
-  ! ---------------------------------------------------------------------------
-  ! fill_3dneu — put 3DNEU data into the container for iBlock.
+  ! fill_3dneu — 3DNEU schema AND data, one-shot (no define_schema_3dneu).
+  !
+  ! Uniformly 2-ghosted like 3DALL — every array touched is declared
+  ! (-1:nLons+2, -1:nLats+2, -1:nAlts+2, ...), so the whole array IS the slice.
   ! ---------------------------------------------------------------------------
   subroutine fill_3dneu(c, iBlock)
     use ModGITM
     use ModConst, only: cRadToDeg
     use ModPlanet, only: nSpeciesTotal, nSpecies, cSpecies
     type(OutputContainer), intent(inout) :: c
-    integer :: nGC
     integer, intent(in) :: iBlock
     integer :: i
 
+    c%cType = '3DNEU'
+    c%gridKind = GRID_GEO_3D  ! participation only — who writes, never shape
+    c%nGhostCells = 2
+
     call c%prepare(iBlock)
     if (.not. c%this_rank_writes) return
-    nGC = c%nGhostCells
 
-    call c%put('Longitude', real(Longitude(1 - nGC:nLons + nGC, iBlock)*cRadToDeg, output_kind))
-    call c%put('Latitude', real(Latitude(1 - nGC:nLats + nGC, iBlock)*cRadToDeg, output_kind))
-    call c%put('Altitude', &
-               real(Altitude_GB(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, iBlock), output_kind))
-    call c%put('Rho', &
-               real(Rho(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, iBlock), output_kind))
+    call c%put_axis('Longitude', Longitude(:, iBlock)*cRadToDeg)
+    call c%put_axis('Latitude', Latitude(:, iBlock)*cRadToDeg)
+    call c%put_field('Altitude', Altitude_GB(:, :, :, iBlock))
+    call c%put_field('Rho', Rho(:, :, :, iBlock))
     do i = 1, nSpeciesTotal
-      call c%put('['//trim(cSpecies(i))//']', &
-                 real(NDensityS(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, i, iBlock), output_kind))
+      call c%put_field('['//trim(cSpecies(i))//']', NDensityS(:, :, :, i, iBlock), &
+                       units='/m3', longName='Number density of '//trim(cSpecies(i)))
     enddo
-    call c%put('Temperature', &
-               real(Temperature(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, iBlock)* &
-                    TempUnit(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC), output_kind))
-    call c%put('Vn (east)', &
-               real(Velocity(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, 1, iBlock), output_kind))
-    call c%put('Vn (north)', &
-               real(Velocity(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, 2, iBlock), output_kind))
-    call c%put('Vn (up)', &
-               real(Velocity(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, 3, iBlock), output_kind))
+    call c%put_field('Temperature', Temperature(:, :, :, iBlock)*TempUnit)
+    call c%put_field('Vn (east)', Velocity(:, :, :, 1, iBlock))
+    call c%put_field('Vn (north)', Velocity(:, :, :, 2, iBlock))
+    call c%put_field('Vn (up)', Velocity(:, :, :, 3, iBlock))
     do i = 1, nSpecies
-      call c%put('Vn (up,'//trim(cSpecies(i))//')', &
-          real(VerticalVelocity(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, i, iBlock), output_kind))
+      call c%put_field('Vn (up,'//trim(cSpecies(i))//')', VerticalVelocity(:, :, :, i, iBlock), &
+                       units='m/s', longName='Vertical neutral wind for '//trim(cSpecies(i)))
     enddo
   end subroutine fill_3dneu
 
@@ -939,88 +798,12 @@ contains
   end subroutine fill_3dall
 
   ! ---------------------------------------------------------------------------
-  ! define_schema_3dion — register all 3DION variables.
-  ! ---------------------------------------------------------------------------
-  subroutine define_schema_3dion(c)
-    use ModGITM, only: nLons, nLats, nAlts
-    use ModPlanet, only: nIons, cIons
-    type(OutputContainer), intent(inout) :: c
-    integer :: nGC
-    integer :: i
-
-    c%cType = '3DION'
-    c%gridKind = GRID_GEO_3D
-    c%nGhostCells = 2
-    nGC = c%nGhostCells
-
-    call c%define_var('Longitude', units='degrees_east', &
-                      shape3=[nLons + 2*nGC, 1, 1], is_axis=.true., &
-                      longName='Geographic longitude')
-    call c%define_var('Latitude', units='degrees_north', &
-                      shape3=[nLats + 2*nGC, 1, 1], is_axis=.true., &
-                      longName='Geographic latitude')
-    call c%define_var('Altitude', units='m', &
-                      shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], &
-                      longName='Altitude above surface')
-    do i = 1, nIons
-      call c%define_var('['//trim(cIons(i))//']', units='/m3', &
-                        shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], &
-                        longName='Number density of '//trim(cIons(i)))
-    enddo
-    call c%define_var('eTemperature', units='K', &
-                      shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], &
-                      longName='Electron temperature')
-    call c%define_var('iTemperature', units='K', &
-                      shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], &
-                      longName='Ion temperature')
-    call c%define_var('Vi (east)', units='m/s', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], &
-                      longName='Eastward ion drift')
-    call c%define_var('Vi (north)', units='m/s', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], &
-                      longName='Northward ion drift')
-    call c%define_var('Vi (up)', units='m/s', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], &
-                      longName='Vertical ion drift')
-    call c%define_var('Ed1', units='V/m', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], &
-                      longName='Electric field component 1 (magnetic east)')
-    call c%define_var('Ed2', units='V/m', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], &
-                      longName='Electric field component 2 (magnetic north)')
-    call c%define_var('Je1', units='A/m2', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], &
-                      longName='Current density component 1 (magnetic east)')
-    call c%define_var('Je2', units='A/m2', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], &
-                      longName='Current density component 2 (magnetic north)')
-    call c%define_var('Magnetic Latitude', units='deg', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], &
-                      longName='Magnetic latitude')
-    call c%define_var('Magnetic Longitude', units='deg', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], &
-                      longName='Magnetic longitude')
-    call c%define_var('B.F. East', units='T', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], &
-                      longName='Eastward magnetic field component')
-    call c%define_var('B.F. North', units='T', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], &
-                      longName='Northward magnetic field component')
-    call c%define_var('B.F. Vertical', units='T', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], &
-                      longName='Vertical magnetic field component')
-    call c%define_var('B.F. Magnitude', units='T', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], &
-                      longName='Magnetic field magnitude')
-    call c%define_var('Potential', units='V', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], &
-                      longName='Electric potential')
-    call c%define_var('E.F. East', units='V/m', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], &
-                      longName='Eastward electric field component')
-    call c%define_var('E.F. North', units='V/m', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], &
-                      longName='Northward electric field component')
-    call c%define_var('E.F. Vertical', units='V/m', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], &
-                      longName='Vertical electric field component')
-    call c%define_var('E.F. Magnitude', units='V/m', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], &
-                      longName='Electric field magnitude')
-    call c%define_var('IN Collision Freq', units='Hz', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], &
-                      longName='Ion-neutral collision frequency')
-    call c%define_var('PressGrad (east)', units='m/s2', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], &
-                      longName='Pressure gradient acceleration eastward')
-    call c%define_var('PressGrad (north)', units='m/s2', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], &
-                      longName='Pressure gradient acceleration northward')
-    call c%define_var('PressGrad (up)', units='m/s2', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], &
-                      longName='Pressure gradient acceleration upward')
-  end subroutine define_schema_3dion
-
-  ! ---------------------------------------------------------------------------
-  ! fill_3dion — put 3DION data into the container for iBlock.
+  ! fill_3dion — 3DION schema AND data, one-shot (no define_schema_3dion).
+  !
+  ! Uniformly 2-ghosted like 3DALL — every array touched (incl. Collisions,
+  ! MLatitude, MLongitude, B0, EField, Potential, IonPressureGradient) is
+  ! declared (-1:nLons+2, -1:nLats+2, -1:nAlts+2, ...), so the whole array IS
+  ! the slice.
   ! ---------------------------------------------------------------------------
   subroutine fill_3dion(c, iBlock)
     use ModGITM
@@ -1028,142 +811,58 @@ contains
     use ModPlanet, only: nIons, cIons
     use ModElectrodynamics
     type(OutputContainer), intent(inout) :: c
-    integer :: nGC
     integer, intent(in) :: iBlock
     integer :: i
 
+    c%cType = '3DION'
+    c%gridKind = GRID_GEO_3D  ! participation only — who writes, never shape
+    c%nGhostCells = 2
+
     call c%prepare(iBlock)
     if (.not. c%this_rank_writes) return
-    nGC = c%nGhostCells
 
-    call c%put('Longitude', real(Longitude(1 - nGC:nLons + nGC, iBlock)*cRadToDeg, output_kind))
-    call c%put('Latitude', real(Latitude(1 - nGC:nLats + nGC, iBlock)*cRadToDeg, output_kind))
-    call c%put('Altitude',  real(Altitude_GB(1-nGC:nLons+nGC, 1-nGC:nLats+nGC, 1-nGC:nAlts+nGC, iBlock), output_kind))
+    call c%put_axis('Longitude', Longitude(:, iBlock)*cRadToDeg)
+    call c%put_axis('Latitude', Latitude(:, iBlock)*cRadToDeg)
+    call c%put_field('Altitude', Altitude_GB(:, :, :, iBlock))
     do i = 1, nIons
-      call c%put('['//trim(cIons(i))//']', &
-                 real(IDensityS(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, i, iBlock), output_kind))
+      call c%put_field('['//trim(cIons(i))//']', IDensityS(:, :, :, i, iBlock), &
+                       units='/m3', longName='Number density of '//trim(cIons(i)))
     enddo
-    call c%put('eTemperature', &
-               real(eTemperature(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, iBlock), output_kind))
-    call c%put('iTemperature', &
-               real(ITemperature(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, iBlock), output_kind))
-    call c%put('Vi (east)', &
-               real(IVelocity(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, 1, iBlock), output_kind))
-    call c%put('Vi (north)', &
-               real(IVelocity(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, 2, iBlock), output_kind))
-    call c%put('Vi (up)', &
-               real(IVelocity(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, 3, iBlock), output_kind))
-    call c%put('Ed1', &
-               real(ed1 &
-                    (1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC), output_kind))
-    call c%put('Ed2', &
-               real(ed2 &
-                    (1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC), output_kind))
-    call c%put('Je1', &
-               real(je1 &
-                    (1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC), output_kind))
-    call c%put('Je2', &
-               real(je2 &
-                    (1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC), output_kind))
-    call c%put('Magne&
-&tic Latit&
-&ude', &
- real(MLatitude(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, iBlock), output_kind))
-    call c%put('Magne&
-&tic Longi&
-&tude', &
- real(MLongitude(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, iBlock), output_kind))
-    call c%put('B.F. &
-&East', &
- real &
-(B0(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, 1, iBlock), output_kind))
-    call c%put('B.F. North', &
-               real &
-               (B0(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, 2, iBlock), output_kind))
-    call c%put('B.F. Vertical', &
-               real(B0(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, 3, iBlock), output_kind))
-    call c%put('B.F. Magnitude', &
-               real(B0(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, 4, iBlock), output_kind))
-    call c%put('Potential', &
-               real(Potential(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, iBlock), output_kind))
-    call c%put('E.F. East', &
-               real(EField(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, 1), output_kind))
-    call c%put('E.F. North', &
-               real(EField(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, 2), output_kind))
-    call c%put('E.F. Vertical', &
-               real(EField(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, 3), output_kind))
-    call c%put('E.F. Magnitude', &
-       real(sqrt(sum(EField(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, :)**2, dim=4)), output_kind))
-    call c%put('IN Collision Freq', &
-               real(Collisions(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, iVIN_), output_kind))
-    call c%put('PressGrad (east)', &
-       real(IonPressureGradient(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, 1, iBlock), output_kind))
-    call c%put('PressGrad (north)', &
-       real(IonPressureGradient(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, 2, iBlock), output_kind))
-    call c%put('PressGrad (up)', &
-       real(IonPressureGradient(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, 3, iBlock), output_kind))
+    call c%put_field('eTemperature', eTemperature(:, :, :, iBlock))
+    call c%put_field('iTemperature', ITemperature(:, :, :, iBlock))
+    call c%put_field('Vi (east)', IVelocity(:, :, :, 1, iBlock))
+    call c%put_field('Vi (north)', IVelocity(:, :, :, 2, iBlock))
+    call c%put_field('Vi (up)', IVelocity(:, :, :, 3, iBlock))
+    call c%put_field('Ed1', ed1)
+    call c%put_field('Ed2', ed2)
+    call c%put_field('Je1', je1)
+    call c%put_field('Je2', je2)
+    call c%put_field('Magnetic Latitude', MLatitude(:, :, :, iBlock))
+    call c%put_field('Magnetic Longitude', MLongitude(:, :, :, iBlock))
+    call c%put_field('B.F. East', B0(:, :, :, 1, iBlock))
+    call c%put_field('B.F. North', B0(:, :, :, 2, iBlock))
+    call c%put_field('B.F. Vertical', B0(:, :, :, 3, iBlock))
+    call c%put_field('B.F. Magnitude', B0(:, :, :, 4, iBlock))
+    call c%put_field('Potential', Potential(:, :, :, iBlock))
+    call c%put_field('E.F. East', EField(:, :, :, 1))
+    call c%put_field('E.F. North', EField(:, :, :, 2))
+    call c%put_field('E.F. Vertical', EField(:, :, :, 3))
+    call c%put_field('E.F. Magnitude', sqrt(sum(EField**2, dim=4)))
+    call c%put_field('IN Collision Freq', Collisions(:, :, :, iVIN_))
+    call c%put_field('PressGrad (east)', IonPressureGradient(:, :, :, 1, iBlock))
+    call c%put_field('PressGrad (north)', IonPressureGradient(:, :, :, 2, iBlock))
+    call c%put_field('PressGrad (up)', IonPressureGradient(:, :, :, 3, iBlock))
   end subroutine fill_3dion
 
   ! ---------------------------------------------------------------------------
-  ! define_schema_3dthm — register all 3DTHM variables.
-  ! ---------------------------------------------------------------------------
-  subroutine define_schema_3dthm(c)
-    use ModGITM, only: nLons, nLats, nAlts
-    type(OutputContainer), intent(inout) :: c
-    integer :: nGC
-
-    c%cType = '3DTHM'
-    c%gridKind = GRID_GEO_3D
-    c%nGhostCells = 0
-    nGC = c%nGhostCells
-
-    call c%define_var('Longitude', units='degrees_east', &
-                      shape3=[nLons + 2*nGC, 1, 1], is_axis=.true., &
-                      longName='Geographic longitude')
-    call c%define_var('Latitude', units='degrees_north', &
-                      shape3=[nLats + 2*nGC, 1, 1], is_axis=.true., &
-                      longName='Geographic latitude')
-    call c%define_var('Altitude', units='m', &
-                      shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], &
-                      longName='Altitude above surface')
-    call c%define_var('EUV Heating (K/s)', &
-                      units='K/s', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], longName='EUV heating rate')
-    call c%define_var('Conduction (K/s)', &
-          units='K/s', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], longName='Thermal conduction heating rate')
-    call c%define_var('Molecular Conduction (K/s)', &
-        units='K/s', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], longName='Molecular conduction heating rate')
-    call c%define_var('Eddy Conduction (K/s)', &
-             units='K/s', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], longName='Eddy conduction heating rate')
-    call c%define_var('Eddy Adiabatic Conduction (K/s)', &
-   units='K/s', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], longName='Eddy adiabatic conduction heating rate')
-    call c%define_var('Chemical Heating (K/s)', &
-                    units='K/s', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], longName='Chemical heating rate')
-    call c%define_var('Joule Heating (K/s)', &
-                      units='K/s', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], longName='Joule heating rate')
-    call c%define_var('NO Cooling (K/s)', &
-                 units='K/s', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], longName='NO infrared cooling rate')
-    call c%define_var('O Cooling (K/s)', &
-                  units='K/s', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], longName='O infrared cooling rate')
-    call c%define_var('Total Abs EUV', &
-                 units='W/m2', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], longName='Total absorbed EUV flux')
-    call c%define_var('Cp', &
-    units='J/kg/K', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], longName='Specific heat at constant pressure')
-    call c%define_var('Rho', &
-             units='kg/m3', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], longName='Total neutral mass density')
-    call c%define_var('E-Field Mag', &
-                 units='V/m', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], longName='Electric field magnitude')
-    call c%define_var('Sigma Ped', &
-                    units='S/m', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], longName='Pedersen conductivity')
-    call c%define_var('Ionization Rate O_3P', &
-                 units='/s', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], longName='Ionization rate for O(3P)')
-    call c%define_var('Ionization Rate O2', &
-                    units='/s', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], longName='Ionization rate for O2')
-    call c%define_var('Ionization Rate N2', &
-                    units='/s', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], longName='Ionization rate for N2')
-  end subroutine define_schema_3dthm
-
-  ! ---------------------------------------------------------------------------
-  ! fill_3dthm — put 3DTHM data into the container for iBlock.
+  ! fill_3dthm — 3DTHM schema AND data, one-shot (no define_schema_3dthm).
+  !
+  ! Interior-writing (nGhostCells = 0), MIXED ghosting: Longitude/Latitude/
+  ! Altitude_GB/Rho/TempUnit/EField/Sigma_Pedersen are 2-ghost and sliced to
+  ! the interior; Conduction/MoleConduction carry ghosts only in altitude
+  ! (sliced to 1:nAlts); cp is per-dimension (whole lon/lat, sliced altitude);
+  ! EuvHeating/EuvTotal/AuroralIonRateS/JouleHeating/EddyCond/EddyCondAdia/
+  ! ChemicalHeatingRate/NOCooling/OCooling are ghost-less and pass whole.
   ! ---------------------------------------------------------------------------
   subroutine fill_3dthm(c, iBlock)
     use ModGITM
@@ -1172,110 +871,51 @@ contains
     use ModElectrodynamics, only: Sigma_Pedersen
     use ModEUV, only: EuvTotal
     type(OutputContainer), intent(inout) :: c
-    integer :: nGC
     integer, intent(in) :: iBlock
+
+    c%cType = '3DTHM'
+    c%gridKind = GRID_GEO_3D  ! participation only — who writes, never shape
+    c%nGhostCells = 0  ! metadata: no ghosts are stored in %data
 
     call c%prepare(iBlock)
     if (.not. c%this_rank_writes) return
-    nGC = c%nGhostCells
 
-    call c%put('Longitude', real(Longitude(1 - nGC:nLons + nGC, iBlock)*cRadToDeg, output_kind))
-    call c%put('Latitude', real(Latitude(1 - nGC:nLats + nGC, iBlock)*cRadToDeg, output_kind))
-    call c%put('Altitude',  real(Altitude_GB(1-nGC:nLons+nGC, 1-nGC:nLats+nGC, 1-nGC:nAlts+nGC, iBlock), output_kind))
-    call c%put('EUV Heating (K/s)', &
-               real(EuvHeating(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, iBlock)* &
-                    TempUnit(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC), output_kind))
-    call c%put('Conduction (K/s)', &
-               real(Conduction(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC)* &
-                    TempUnit(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC)/dt, output_kind))
-    call c%put('Molecular Conduction (K/s)', &
-               real(MoleConduction(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC), output_kind))
-    call c%put('Eddy Conduction (K/s)', &
-               real(EddyCond(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC), output_kind))
-    call c%put('Eddy Adiabatic Conduction (K/s)', &
-               real(EddyCondAdia(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC), output_kind))
-    call c%put('Chemical Heating (K/s)', &
-               real(ChemicalHeatingRate(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC)* &
-                    TempUnit(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC)/dt, output_kind))
-    call c%put('Joule Heating (K/s)', &
-               real(JouleHeating(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC)* &
-                    TempUnit(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC), output_kind))
-    call c%put('NO Cooling (K/s)', &
-               real(-NOCooling(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC)* &
-                    TempUnit(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC), output_kind))
-    call c%put('O Cooling (K/s)', &
-               real(-OCooling(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC)* &
-                    TempUnit(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC), output_kind))
-    call c%put('Total Abs EUV', real(EuvTotal(1-nGC:nLons+nGC, 1-nGC:nLats+nGC, 1-nGC:nAlts+nGC, iBlock), output_kind))
-    call c%put('Cp', real(cp(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, iBlock), output_kind))
-    call c%put('Rho', real(Rho(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, iBlock), output_kind))
-    call c%put('E-Field Mag', &
-       real(sqrt(sum(EField(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, :)**2, dim=4)), output_kind))
-    call c%put('Sigma Ped',     real(Sigma_Pedersen(1-nGC:nLons+nGC, 1-nGC:nLats+nGC, 1-nGC:nAlts+nGC), output_kind))
-    call c%put('Ionization Rate O_3P', &
-      real(AuroralIonRateS(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, iO_3P_, iBlock), output_kind))
-    call c%put('Ionization Rate O2', &
-        real(AuroralIonRateS(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, iO2_, iBlock), output_kind))
-    call c%put('Ionization Rate N2', &
-        real(AuroralIonRateS(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, iN2_, iBlock), output_kind))
+    call c%put_axis('Longitude', Longitude(1:nLons, iBlock)*cRadToDeg)      ! ghosted
+    call c%put_axis('Latitude', Latitude(1:nLats, iBlock)*cRadToDeg)        ! ghosted
+    call c%put_field('Altitude', Altitude_GB(1:nLons, 1:nLats, 1:nAlts, iBlock))  ! ghosted
+    call c%put_field('EUV Heating (K/s)', &                                  ! no ghosts * ghosted
+                     EuvHeating(:, :, :, iBlock)*TempUnit(1:nLons, 1:nLats, 1:nAlts))
+    call c%put_field('Conduction (K/s)', &                                  ! alt ghosts only * ghosted
+                     Conduction(:, :, 1:nAlts)*TempUnit(1:nLons, 1:nLats, 1:nAlts)/dt)
+    call c%put_field('Molecular Conduction (K/s)', MoleConduction(:, :, 1:nAlts))  ! alt ghosts only
+    call c%put_field('Eddy Conduction (K/s)', EddyCond)                     ! no ghosts
+    call c%put_field('Eddy Adiabatic Conduction (K/s)', EddyCondAdia)       ! no ghosts
+    call c%put_field('Chemical Heating (K/s)', &                            ! no ghosts * ghosted
+                     ChemicalHeatingRate*TempUnit(1:nLons, 1:nLats, 1:nAlts)/dt)
+    call c%put_field('Joule Heating (K/s)', &                               ! no ghosts * ghosted
+                     JouleHeating*TempUnit(1:nLons, 1:nLats, 1:nAlts))
+    call c%put_field('NO Cooling (K/s)', &                                  ! no ghosts * ghosted
+                     -NOCooling*TempUnit(1:nLons, 1:nLats, 1:nAlts))
+    call c%put_field('O Cooling (K/s)', &                                   ! no ghosts * ghosted
+                     -OCooling*TempUnit(1:nLons, 1:nLats, 1:nAlts))
+    call c%put_field('Total Abs EUV', EuvTotal(:, :, :, iBlock))            ! no ghosts
+    call c%put_field('Cp', cp(:, :, 1:nAlts, iBlock))                       ! per-dim: lon/lat whole, alt sliced
+    call c%put_field('Rho', Rho(1:nLons, 1:nLats, 1:nAlts, iBlock))         ! ghosted
+    call c%put_field('E-Field Mag', &                                       ! ghosted
+                     sqrt(sum(EField(1:nLons, 1:nLats, 1:nAlts, :)**2, dim=4)))
+    call c%put_field('Sigma Ped', Sigma_Pedersen(1:nLons, 1:nLats, 1:nAlts))    ! ghosted
+    call c%put_field('Ionization Rate O_3P', AuroralIonRateS(:, :, :, iO_3P_, iBlock))  ! no ghosts
+    call c%put_field('Ionization Rate O2', AuroralIonRateS(:, :, :, iO2_, iBlock))  ! no ghosts
+    call c%put_field('Ionization Rate N2', AuroralIonRateS(:, :, :, iN2_, iBlock))  ! no ghosts
   end subroutine fill_3dthm
 
   ! ---------------------------------------------------------------------------
-  ! define_schema_3dchm — register all 3DCHM variables.
-  ! ---------------------------------------------------------------------------
-  subroutine define_schema_3dchm(c)
-    use ModGITM, only: nLons, nLats, nAlts
-    type(OutputContainer), intent(inout) :: c
-    integer :: nGC
-
-    c%cType = '3DCHM'
-    c%gridKind = GRID_GEO_3D
-    c%nGhostCells = 0
-    nGC = c%nGhostCells
-
-    call c%define_var('Longitude', units='degrees_east', &
-                      shape3=[nLons + 2*nGC, 1, 1], is_axis=.true., &
-                      longName='Geographic longitude')
-    call c%define_var('Latitude', units='degrees_north', &
-                      shape3=[nLats + 2*nGC, 1, 1], is_axis=.true., &
-                      longName='Geographic latitude')
-    call c%define_var('Altitude', units='m', &
-                      shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], &
-                      longName='Altitude above surface')
-    call c%define_var('N2+ + e', units='/m3/s', shape3=[nLons, nLats, nAlts], longName='N2+ + e recombination rate')
-    call c%define_var('O2+ + e', units='/m3/s', shape3=[nLons, nLats, nAlts], longName='O2+ + e recombination rate')
-    call c%define_var('N2+ + O', units='/m3/s', shape3=[nLons, nLats, nAlts], longName='N2+ + O reaction rate')
-    call c%define_var('NO+ + e', units='/m3/s', shape3=[nLons, nLats, nAlts], longName='NO+ + e recombination rate')
-    call c%define_var('N+ + O2', units='/m3/s', shape3=[nLons, nLats, nAlts], longName='N+ + O2 reaction rate')
-    call c%define_var('NO + N', units='/m3/s', shape3=[nLons, nLats, nAlts], longName='NO + N reaction rate')
-    call c%define_var('O+ + O2', units='/m3/s', shape3=[nLons, nLats, nAlts], longName='O+ + O2 reaction rate')
-    call c%define_var('N + O2', units='/m3/s', shape3=[nLons, nLats, nAlts], longName='N + O2 reaction rate')
-    call c%define_var('O2+ + N', units='/m3/s', shape3=[nLons, nLats, nAlts], longName='O2+ + N reaction rate')
-    call c%define_var('O2+ + NO', units='/m3/s', shape3=[nLons, nLats, nAlts], longName='O2+ + NO reaction rate')
-    call c%define_var('O2+ + N2', units='/m3/s', shape3=[nLons, nLats, nAlts], longName='O2+ + N2 reaction rate')
-    call c%define_var('N2+ + O2', units='/m3/s', shape3=[nLons, nLats, nAlts], longName='N2+ + O2 reaction rate')
-    call c%define_var('N+ + O', units='/m3/s', shape3=[nLons, nLats, nAlts], longName='N+ + O reaction rate')
-    call c%define_var('O+ + N2', units='/m3/s', shape3=[nLons, nLats, nAlts], longName='O+ + N2 reaction rate')
-    call c%define_var('O(1D) + N2', units='/m3/s', shape3=[nLons, nLats, nAlts], longName='O(1D) + N2 quench rate')
-    call c%define_var('O(1D) + O2', units='/m3/s', shape3=[nLons, nLats, nAlts], longName='O(1D) + O2 quench rate')
-    call c%define_var('O(1D) + O', units='/m3/s', shape3=[nLons, nLats, nAlts], longName='O(1D) + O quench rate')
-    call c%define_var('O(1D) + e', units='/m3/s', shape3=[nLons, nLats, nAlts], longName='O(1D) + e quench rate')
-    call c%define_var('N(2D) + O2', units='/m3/s', shape3=[nLons, nLats, nAlts], longName='N(2D) + O2 reaction rate')
-    call c%define_var('O+(2D)+e', &
-                      units='/m3/s', shape3=[nLons, nLats, nAlts], longName='O+(2D) + e recombination rate')
-    call c%define_var('N(2D) + O', units='/m3/s', shape3=[nLons, nLats, nAlts], longName='N(2D) + O quench rate')
-    call c%define_var('N(2D) + e', units='/m3/s', shape3=[nLons, nLats, nAlts], longName='N(2D) + e quench rate')
-    call c%define_var('O+(2D + N2', units='/m3/s', shape3=[nLons, nLats, nAlts], longName='O+(2D) + N2 reaction rate')
-    call c%define_var('O+(2P) + e', &
-                      units='/m3/s', shape3=[nLons, nLats, nAlts], longName='O+(2P) + e recombination rate')
-    call c%define_var('O+(2P) + O', units='/m3/s', shape3=[nLons, nLats, nAlts], longName='O+(2P) + O reaction rate')
-    call c%define_var('O+(2P) + N2', units='/m3/s', shape3=[nLons, nLats, nAlts], longName='O+(2P) + N2 reaction rate')
-    call c%define_var('Chemical Heating Rate', units='K/s', shape3=[nLons, nLats, nAlts], &
-                      longName='Chemical heating rate')
-  end subroutine define_schema_3dchm
-
-  ! ---------------------------------------------------------------------------
-  ! fill_3dchm — put 3DCHM data into the container for iBlock.
+  ! fill_3dchm — 3DCHM schema AND data, one-shot (no define_schema_3dchm).
+  !
+  ! Interior-writing (nGhostCells = 0), MIXED ghosting: Longitude/Latitude/
+  ! Altitude_GB/Rho/TempUnit are 2-ghost and sliced to the interior; cp is
+  ! per-dimension (whole lon/lat, sliced altitude); ChemicalHeatingSpecies and
+  ! ChemicalHeatingRate are ghost-less and pass whole.
   ! ---------------------------------------------------------------------------
   subroutine fill_3dchm(c, iBlock)
     use ModGITM
@@ -1283,7 +923,6 @@ contains
     use ModSources
     use ModConstants, only: Element_Charge
     type(OutputContainer), intent(inout) :: c
-    integer :: nGC
     integer, intent(in) :: iBlock
     integer :: i
     character(len=20), parameter :: chem_names(nReactions) = [ &
@@ -1296,298 +935,173 @@ contains
                                     'N(2D) + O2          ', 'O+(2D)+e            ', 'N(2D) + O           ', &
                                     'N(2D) + e           ', 'O+(2D + N2          ', 'O+(2P) + e          ', &
                                     'O+(2P) + O          ', 'O+(2P) + N2         ']
+    ! Parallels chem_names index-for-index.
+    character(len=40), parameter :: chem_longnames(nReactions) = [character(len=40) :: &
+                                                           'N2+ + e recombination rate', 'O2+ + e recombination rate', &
+                                                                'N2+ + O reaction rate', 'NO+ + e recombination rate', &
+                                                                  'N+ + O2 reaction rate', 'NO + N reaction rate', &
+                                                                  'O+ + O2 reaction rate', 'N + O2 reaction rate', &
+                                                                  'O2+ + N reaction rate', 'O2+ + NO reaction rate', &
+                                                                  'O2+ + N2 reaction rate', 'N2+ + O2 reaction rate', &
+                                                                  'N+ + O reaction rate', 'O+ + N2 reaction rate', &
+                                                                  'O(1D) + N2 quench rate', 'O(1D) + O2 quench rate', &
+                                                                  'O(1D) + O quench rate', 'O(1D) + e quench rate', &
+                                                          'N(2D) + O2 reaction rate', 'O+(2D) + e recombination rate', &
+                                                                  'N(2D) + O quench rate', 'N(2D) + e quench rate', &
+                                                         'O+(2D) + N2 reaction rate', 'O+(2P) + e recombination rate', &
+                                                                'O+(2P) + O reaction rate', 'O+(2P) + N2 reaction rate']
+
+    c%cType = '3DCHM'
+    c%gridKind = GRID_GEO_3D  ! participation only — who writes, never shape
+    c%nGhostCells = 0  ! metadata: no ghosts are stored in %data
 
     call c%prepare(iBlock)
     if (.not. c%this_rank_writes) return
-    nGC = c%nGhostCells
 
-    call c%put('Longitude', real(Longitude(1 - nGC:nLons + nGC, iBlock)*cRadToDeg, output_kind))
-    call c%put('Latitude', real(Latitude(1 - nGC:nLats + nGC, iBlock)*cRadToDeg, output_kind))
-    call c%put('Altitude',  real(Altitude_GB(1-nGC:nLons+nGC, 1-nGC:nLats+nGC, 1-nGC:nAlts+nGC, iBlock), output_kind))
+    call c%put_axis('Longitude', Longitude(1:nLons, iBlock)*cRadToDeg)      ! ghosted
+    call c%put_axis('Latitude', Latitude(1:nLats, iBlock)*cRadToDeg)        ! ghosted
+    call c%put_field('Altitude', Altitude_GB(1:nLons, 1:nLats, 1:nAlts, iBlock))  ! ghosted
     do i = 1, nReactions
-      call c%put(trim(chem_names(i)), &
-         real(ChemicalHeatingSpecies(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, i)/Element_Charge, &
-                      output_kind))
+      call c%put_field(trim(chem_names(i)), ChemicalHeatingSpecies(:, :, :, i)/Element_Charge, &  ! no ghosts
+                       units='/m3/s', longName=trim(chem_longnames(i)))
     enddo
-    call c%put('Chemical Heating Rate', &
-               real(ChemicalHeatingRate(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC)* &
-                    cp(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, iBlock)* &
-                    Rho(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, iBlock)* &
-                   TempUnit(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC)/Element_Charge, output_kind))
+    call c%put_field('Chemical Heating Rate', &                             ! no ghosts * per-dim * ghosted * ghosted
+                     ChemicalHeatingRate*cp(:, :, 1:nAlts, iBlock)* &
+                     Rho(1:nLons, 1:nLats, 1:nAlts, iBlock)* &
+                     TempUnit(1:nLons, 1:nLats, 1:nAlts)/Element_Charge)
   end subroutine fill_3dchm
 
   ! ---------------------------------------------------------------------------
-  ! define_schema_3dlst — register variables for 3DLST dynamically.
-  ! ---------------------------------------------------------------------------
-  subroutine define_schema_3dlst(c)
-    use ModGITM, only: nLons, nLats, nAlts
-    use ModPlanet, only: nSpeciesTotal, nSpecies, nIons, cSpecies, cIons
-    use ModInputs, only: iRhoOutputList, iNeutralDensityOutputList, &
-                         iNeutralWindOutputList, iIonDensityOutputList, &
-                         iIonWindOutputList, iTemperatureOutputList
-    type(OutputContainer), intent(inout) :: c
-    integer :: nGC
-    integer :: i
-
-    c%cType = '3DLST'
-    c%gridKind = GRID_GEO_3D
-    c%nGhostCells = 2
-    nGC = c%nGhostCells
-
-    call c%define_var('Longitude', units='degrees_east', &
-                      shape3=[nLons + 2*nGC, 1, 1], is_axis=.true., &
-                      longName='Geographic longitude')
-    call c%define_var('Latitude', units='degrees_north', &
-                      shape3=[nLats + 2*nGC, 1, 1], is_axis=.true., &
-                      longName='Geographic latitude')
-    call c%define_var('Altitude', units='m', &
-                      shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], &
-                      longName='Altitude')
-
-    if (iRhoOutputList) then
-      call c%define_var('Rho', &
-             units='kg/m3', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], longName='Total neutral mass density')
-    endif
-    do i = 1, nSpeciesTotal
-      if (iNeutralDensityOutputList(i)) then
-        call c%define_var('['//trim(cSpecies(i))//']', &
-                          units='/m3', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], &
-                          longName='Number density of '//trim(cSpecies(i)))
-      endif
-    enddo
-    if (iNeutralWindOutputList(1)) then
-      call c%define_var('Vn (east)', &
-                    units='m/s', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], longName='Eastward neutral wind')
-    endif
-    if (iNeutralWindOutputList(2)) then
-      call c%define_var('Vn (north)', &
-                   units='m/s', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], longName='Northward neutral wind')
-    endif
-    if (iNeutralWindOutputList(3)) then
-      call c%define_var('Vn (up)', &
-                    units='m/s', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], longName='Vertical neutral wind')
-    endif
-    do i = 1, nIons
-      if (iIonDensityOutputList(i)) then
-        call c%define_var('['//trim(cIons(i))//']', &
-                          units='/m3', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], &
-                          longName='Number density of '//trim(cIons(i)))
-      endif
-    enddo
-    if (iIonWindOutputList(1)) then
-      call c%define_var('Vi (east)', &
-                       units='m/s', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], longName='Eastward ion drift')
-    endif
-    if (iIonWindOutputList(2)) then
-      call c%define_var('Vi (north)', &
-                      units='m/s', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], longName='Northward ion drift')
-    endif
-    if (iIonWindOutputList(3)) then
-      call c%define_var('Vi (up)', &
-                       units='m/s', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], longName='Vertical ion drift')
-    endif
-    if (iTemperatureOutputList(1)) then
-      call c%define_var('Neutral Temperature', &
-                        units='K', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], longName='Neutral temperature')
-    endif
-    if (iTemperatureOutputList(2)) then
-      call c%define_var('Ion Temperature', &
-                        units='K', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], longName='Ion temperature')
-    endif
-    if (iTemperatureOutputList(3)) then
-      call c%define_var('Electron Temperature', &
-                       units='K', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], longName='Electron temperature')
-    endif
-  end subroutine define_schema_3dlst
-
-  ! ---------------------------------------------------------------------------
-  ! fill_3dlst — put 3DLST data into the container for iBlock.
+  ! fill_3dlst — 3DLST schema AND data, one-shot (no define_schema_3dlst).
+  !
+  ! Uniformly 2-ghosted like 3DALL — every array touched is declared
+  ! (-1:nLons+2, -1:nLats+2, -1:nAlts+2, ...), so the whole array IS the slice.
+  ! Puts are gated by the UAM.in-derived i*OutputList flags, which are
+  ! globally uniform and time-invariant — priming and every real fill see
+  ! identical conditions, so this is the one sanctioned form of conditional
+  ! put (step-9 checklist #5 / Amendment 8). All list flags default .true.
+  ! and the gate sweep does not override them, so every branch is exercised.
   ! ---------------------------------------------------------------------------
   subroutine fill_3dlst(c, iBlock)
     use ModGITM
     use ModConst, only: cRadToDeg
-    use ModPlanet, only: nSpeciesTotal, nSpecies, nIons, cSpecies, cIons
+    use ModPlanet, only: nSpeciesTotal, nIons, cSpecies, cIons
     use ModInputs, only: iRhoOutputList, iNeutralDensityOutputList, &
                          iNeutralWindOutputList, iIonDensityOutputList, &
                          iIonWindOutputList, iTemperatureOutputList
     type(OutputContainer), intent(inout) :: c
-    integer :: nGC
     integer, intent(in) :: iBlock
     integer :: i
 
+    c%cType = '3DLST'
+    c%gridKind = GRID_GEO_3D  ! participation only — who writes, never shape
+    c%nGhostCells = 2
+
     call c%prepare(iBlock)
     if (.not. c%this_rank_writes) return
-    nGC = c%nGhostCells
 
-    call c%put('Longitude', real(Longitude(1 - nGC:nLons + nGC, iBlock)*cRadToDeg, output_kind))
-    call c%put('Latitude', real(Latitude(1 - nGC:nLats + nGC, iBlock)*cRadToDeg, output_kind))
-    call c%put('Altitude',  real(Altitude_GB(1-nGC:nLons+nGC, 1-nGC:nLats+nGC, 1-nGC:nAlts+nGC, iBlock), output_kind))
+    call c%put_axis('Longitude', Longitude(:, iBlock)*cRadToDeg)
+    call c%put_axis('Latitude', Latitude(:, iBlock)*cRadToDeg)
+    ! longName override: registry's canonical 'Altitude above surface' is what
+    ! 3DALL/3DTHM write; 3DLST has always written this as plain 'Altitude'.
+    call c%put_field('Altitude', Altitude_GB(:, :, :, iBlock), longName='Altitude')
 
-    if (iRhoOutputList) then
-      call c%put('Rho', real(Rho(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, iBlock), output_kind))
-    endif
+    if (iRhoOutputList) call c%put_field('Rho', Rho(:, :, :, iBlock))
     do i = 1, nSpeciesTotal
       if (iNeutralDensityOutputList(i)) then
-        call c%put('['//trim(cSpecies(i))//']', &
-                 real(NDensityS(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, i, iBlock), output_kind))
+        call c%put_field('['//trim(cSpecies(i))//']', NDensityS(:, :, :, i, iBlock), &
+                         units='/m3', longName='Number density of '//trim(cSpecies(i)))
       endif
     enddo
-    if (iNeutralWindOutputList(1)) then
-      call c%put('Vn (east)', &
-                 real(Velocity(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, 1, iBlock), output_kind))
-    endif
-    if (iNeutralWindOutputList(2)) then
-      call c%put('Vn (north)', &
-                 real(Velocity(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, 2, iBlock), output_kind))
-    endif
-    if (iNeutralWindOutputList(3)) then
-      call c%put('Vn (up)', &
-                 real(Velocity(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, 3, iBlock), output_kind))
-    endif
+    if (iNeutralWindOutputList(1)) call c%put_field('Vn (east)', Velocity(:, :, :, 1, iBlock))
+    if (iNeutralWindOutputList(2)) call c%put_field('Vn (north)', Velocity(:, :, :, 2, iBlock))
+    if (iNeutralWindOutputList(3)) call c%put_field('Vn (up)', Velocity(:, :, :, 3, iBlock))
     do i = 1, nIons
       if (iIonDensityOutputList(i)) then
-        call c%put('['//trim(cIons(i))//']', &
-                 real(IDensityS(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, i, iBlock), output_kind))
+        call c%put_field('['//trim(cIons(i))//']', IDensityS(:, :, :, i, iBlock), &
+                         units='/m3', longName='Number density of '//trim(cIons(i)))
       endif
     enddo
-    if (iIonWindOutputList(1)) then
-      call c%put('Vi (east)', &
-                 real(IVelocity(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, 1, iBlock), output_kind))
-    endif
-    if (iIonWindOutputList(2)) then
-      call c%put('Vi (north)', &
-                 real(IVelocity(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, 2, iBlock), output_kind))
-    endif
-    if (iIonWindOutputList(3)) then
-      call c%put('Vi (up)', &
-                 real(IVelocity(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, 3, iBlock), output_kind))
-    endif
+    if (iIonWindOutputList(1)) call c%put_field('Vi (east)', IVelocity(:, :, :, 1, iBlock))
+    if (iIonWindOutputList(2)) call c%put_field('Vi (north)', IVelocity(:, :, :, 2, iBlock))
+    if (iIonWindOutputList(3)) call c%put_field('Vi (up)', IVelocity(:, :, :, 3, iBlock))
     if (iTemperatureOutputList(1)) then
-      call c%put('Neutral Temperature', &
-                 real(Temperature(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, iBlock)* &
-                      TempUnit(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC), output_kind))
+      call c%put_field('Neutral Temperature', Temperature(:, :, :, iBlock)*TempUnit)
     endif
-    if (iTemperatureOutputList(2)) then
-      call c%put('Ion Temperature', &
-                 real(ITemperature(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, iBlock), output_kind))
-    endif
-    if (iTemperatureOutputList(3)) then
-      call c%put('Electron Temperature', &
-                 real(eTemperature(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, iBlock), output_kind))
-    endif
+    if (iTemperatureOutputList(2)) call c%put_field('Ion Temperature', ITemperature(:, :, :, iBlock))
+    if (iTemperatureOutputList(3)) call c%put_field('Electron Temperature', eTemperature(:, :, :, iBlock))
   end subroutine fill_3dlst
 
   ! ---------------------------------------------------------------------------
-  ! define_schema_3dglo — register variables for 3DGLO (glow emission stub).
-  ! ---------------------------------------------------------------------------
-  subroutine define_schema_3dglo(c)
-    use ModGITM, only: nLons, nLats, nAlts
-    type(OutputContainer), intent(inout) :: c
-    integer :: nGC
-
-    c%cType = '3DGLO'
-    c%gridKind = GRID_GEO_3D
-    c%nGhostCells = 2
-    nGC = c%nGhostCells
-
-    call c%define_var('Longitude', units='degrees_east', shape3=[nLons + 2*nGC, 1, 1], is_axis=.true., &
-                      longName='Geographic longitude')
-    call c%define_var('Latitude', units='degrees_north', shape3=[nLats + 2*nGC, 1, 1], is_axis=.true., &
-                      longName='Geographic latitude')
-    call c%define_var('Altitude', &
-                      units='m', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], longName='Altitude')
-    call c%define_var('6300 A Emission', &
-                      units='', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], longName='6300 Angstrom emission')
-    call c%define_var('PhotoElectronUp', &
-                      units='', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], longName='Photoelectron flux up')
-    call c%define_var('PhotoElectronDown', &
-                     units='', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], longName='Photoelectron flux down')
-  end subroutine define_schema_3dglo
-
-  ! ---------------------------------------------------------------------------
-  ! fill_3dglo — put 3DGLO stub data into the container.
+  ! fill_3dglo — 3DGLO schema AND data, one-shot (no define_schema_3dglo).
+  !
+  ! Uniformly 2-ghosted like 3DALL — Longitude/Latitude/Altitude_GB are
+  ! declared (-1:nLons+2, ...), so the whole array IS the slice. The three
+  ! emission/photoelectron fields are placeholders (not yet computed);
+  ! zero_buf is a default-real scratch buffer sized to the full 2-ghost
+  ! extent (put_field converts inside, so no output_kind wrapper here). Their
+  ! units are the empty string on the old define side, carried through as
+  ! registry rows so today's output is unchanged.
   ! ---------------------------------------------------------------------------
   subroutine fill_3dglo(c, iBlock)
     use ModGITM
     use ModConst, only: cRadToDeg
     type(OutputContainer), intent(inout) :: c
-    integer :: nGC
     integer, intent(in) :: iBlock
-    real(output_kind), allocatable :: zero_buf(:, :, :)
+    real, allocatable :: zero_buf(:, :, :)  ! model kind, to match the put_field dummy
+
+    c%cType = '3DGLO'
+    c%gridKind = GRID_GEO_3D  ! participation only — who writes, never shape
+    c%nGhostCells = 2
 
     call c%prepare(iBlock)
     if (.not. c%this_rank_writes) return
-    nGC = c%nGhostCells
 
-    call c%put('Longitude', real(Longitude(1 - nGC:nLons + nGC, iBlock)*cRadToDeg, output_kind))
-    call c%put('Latitude', real(Latitude(1 - nGC:nLats + nGC, iBlock)*cRadToDeg, output_kind))
-    call c%put('Altitude',  real(Altitude_GB(1-nGC:nLons+nGC, 1-nGC:nLats+nGC, 1-nGC:nAlts+nGC, iBlock), output_kind))
+    call c%put_axis('Longitude', Longitude(:, iBlock)*cRadToDeg)
+    call c%put_axis('Latitude', Latitude(:, iBlock)*cRadToDeg)
+    ! longName override: registry's canonical 'Altitude above surface' is what
+    ! 3DALL/3DTHM write; 3DGLO has always written this as plain 'Altitude'.
+    call c%put_field('Altitude', Altitude_GB(:, :, :, iBlock), longName='Altitude')
 
-    allocate(zero_buf(nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC))
-    zero_buf = 0.0_output_kind
-    call c%put('6300 A Emission', zero_buf)
-    call c%put('PhotoElectronUp', zero_buf)
-    call c%put('PhotoElectronDown', zero_buf)
+    allocate(zero_buf(nLons + 2*c%nGhostCells, nLats + 2*c%nGhostCells, nAlts + 2*c%nGhostCells))
+    zero_buf = 0.0
+    call c%put_field('6300 A Emission', zero_buf)
+    call c%put_field('PhotoElectronUp', zero_buf)
+    call c%put_field('PhotoElectronDown', zero_buf)
     deallocate(zero_buf)
   end subroutine fill_3dglo
 
   ! ---------------------------------------------------------------------------
-  ! define_schema_3dmag — register variables for 3DMAG.
-  ! ---------------------------------------------------------------------------
-  subroutine define_schema_3dmag(c)
-    use ModGITM, only: nLons, nLats, nAlts
-    type(OutputContainer), intent(inout) :: c
-    integer :: nGC
-
-    c%cType = '3DMAG'
-    c%gridKind = GRID_GEO_3D
-    c%nGhostCells = 2
-    nGC = c%nGhostCells
-
-    call c%define_var('Longitude', units='degrees_east', shape3=[nLons + 2*nGC, 1, 1], is_axis=.true., &
-                      longName='Geographic longitude')
-    call c%define_var('Latitude', units='degrees_north', shape3=[nLats + 2*nGC, 1, 1], is_axis=.true., &
-                      longName='Geographic latitude')
-    call c%define_var('Altitude', units='m', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], longName='Altitude')
-    call c%define_var('Magnetic Latitude', &
-                      units='deg', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], longName='Magnetic latitude')
-    call c%define_var('Magnetic Longitude', &
-                      units='deg', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], longName='Magnetic longitude')
-    call c%define_var('B.F. East', &
-                    units='T', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], longName='Magnetic field eastward')
-    call c%define_var('B.F. North', &
-                   units='T', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], longName='Magnetic field northward')
-    call c%define_var('B.F. Vertical', &
-                    units='T', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], longName='Magnetic field vertical')
-    call c%define_var('B.F. Magnitude', &
-                   units='T', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], longName='Magnetic field magnitude')
-  end subroutine define_schema_3dmag
-
-  ! ---------------------------------------------------------------------------
-  ! fill_3dmag — put 3DMAG variables into the container.
+  ! fill_3dmag — 3DMAG schema AND data, one-shot (no define_schema_3dmag).
+  !
+  ! Uniformly 2-ghosted like 3DALL — every array touched is declared
+  ! (-1:nLons+2, -1:nLats+2, -1:nAlts+2, ...), so the whole array IS the slice.
+  ! longName overrides below preserve 3DMAG's current-exact strings, which
+  ! differ from the registry's canonical ones (shared with 3DALL's 'Altitude'
+  ! and 3DION's 'B.F. *') — a known, documented drift; see step 10.
   ! ---------------------------------------------------------------------------
   subroutine fill_3dmag(c, iBlock)
     use ModGITM
     use ModConst, only: cRadToDeg
     type(OutputContainer), intent(inout) :: c
-    integer :: nGC
     integer, intent(in) :: iBlock
+
+    c%cType = '3DMAG'
+    c%gridKind = GRID_GEO_3D  ! participation only — who writes, never shape
+    c%nGhostCells = 2
 
     call c%prepare(iBlock)
     if (.not. c%this_rank_writes) return
-    nGC = c%nGhostCells
 
-    call c%put('Longitude', real(Longitude(1 - nGC:nLons + nGC, iBlock)*cRadToDeg, output_kind))
-    call c%put('Latitude', real(Latitude(1 - nGC:nLats + nGC, iBlock)*cRadToDeg, output_kind))
-    call c%put('Altitude',  real(Altitude_GB(1-nGC:nLons+nGC, 1-nGC:nLats+nGC, 1-nGC:nAlts+nGC, iBlock), output_kind))
-    call c%put('Magnetic Latitude', &
-               real(mLatitude(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, iBlock), output_kind))
-    call c%put('Magnetic Longitude', &
-               real(mLongitude(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, iBlock), output_kind))
-call c%put('B.F. East', real(B0(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, 1, iBlock), output_kind))
-    call c%put('B.F. North', real(B0(1-nGC:nLons+nGC, 1-nGC:nLats+nGC, 1-nGC:nAlts+nGC, 2, iBlock), output_kind))
-    call c%put('B.F. Vertical', real(B0(1-nGC:nLons+nGC, 1-nGC:nLats+nGC, 1-nGC:nAlts+nGC, 3, iBlock), output_kind))
-    call c%put('B.F. Magnitude', real(B0(1-nGC:nLons+nGC, 1-nGC:nLats+nGC, 1-nGC:nAlts+nGC, 4, iBlock), output_kind))
+    call c%put_axis('Longitude', Longitude(:, iBlock)*cRadToDeg)
+    call c%put_axis('Latitude', Latitude(:, iBlock)*cRadToDeg)
+    call c%put_field('Altitude', Altitude_GB(:, :, :, iBlock), longName='Altitude')
+    call c%put_field('Magnetic Latitude', MLatitude(:, :, :, iBlock))
+    call c%put_field('Magnetic Longitude', MLongitude(:, :, :, iBlock))
+    call c%put_field('B.F. East', B0(:, :, :, 1, iBlock), longName='Magnetic field eastward')
+    call c%put_field('B.F. North', B0(:, :, :, 2, iBlock), longName='Magnetic field northward')
+    call c%put_field('B.F. Vertical', B0(:, :, :, 3, iBlock), longName='Magnetic field vertical')
+    call c%put_field('B.F. Magnitude', B0(:, :, :, 4, iBlock))
   end subroutine fill_3dmag
 
   ! ---------------------------------------------------------------------------
@@ -1762,165 +1276,106 @@ call c%put('E.F. Vertical', real(EField(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC
   end subroutine fill_3dhme
 
   ! ---------------------------------------------------------------------------
-  ! define_schema_3dmoh — register variables for 3DMOH.
-  ! ---------------------------------------------------------------------------
-  subroutine define_schema_3dmoh(c)
-    use ModGITM, only: nLons, nLats, nAlts
-    type(OutputContainer), intent(inout) :: c
-    integer :: nGC
-
-    c%cType = '3DMOH'
-    c%gridKind = GRID_GEO_3D
-    c%nGhostCells = 0
-    nGC = c%nGhostCells
-
-    call c%define_var('Longitude', units='degrees_east', shape3=[nLons + 2*nGC, 1, 1], is_axis=.true., &
-                      longName='Geographic longitude')
-    call c%define_var('Latitude', units='degrees_north', shape3=[nLats + 2*nGC, 1, 1], is_axis=.true., &
-                      longName='Geographic latitude')
-    call c%define_var('Altitude', units='m', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], longName='Altitude')
-    call c%define_var('Rho', units='kg/m3', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], &
-                      longName='Mass density')
-    call c%define_var('Vn (east)', units='m/s', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], &
-                      longName='Eastward wind')
-    call c%define_var('Vn (north)', units='m/s', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], &
-                      longName='Northward wind')
-    call c%define_var('Visc_Ve_rshear', units='m/s2', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], &
-                      longName='Viscous east shear accel')
-    call c%define_var('Visc_Vn_rshear', units='m/s2', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], &
-                      longName='Viscous north shear accel')
-    call c%define_var('IonDrag_east', units='m/s2', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], &
-                      longName='Ion drag east accel')
-    call c%define_var('IonDrag_north', units='m/s2', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], &
-                      longName='Ion drag north accel')
-    call c%define_var('Horiz_Adv_Ve', units='m/s2', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], &
-                      longName='Horiz advection east accel')
-    call c%define_var('Horiz_Adv_Vn', units='m/s2', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], &
-                      longName='Horiz advection north accel')
-    call c%define_var('PressGrad (east)', units='m/s2', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], &
-                      longName='Press gradient east accel')
-    call c%define_var('PressGrad (north)', units='m/s2', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], &
-                      longName='Press gradient north accel')
-    call c%define_var('Coriolis_east', units='m/s2', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], &
-                      longName='Coriolis east accel')
-    call c%define_var('Coriolis_north', units='m/s2', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], &
-                      longName='Coriolis north accel')
-    call c%define_var('Centrifugal_north', units='m/s2', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], &
-                      longName='Centrifugal north accel')
-  end subroutine define_schema_3dmoh
-
-  ! ---------------------------------------------------------------------------
-  ! fill_3dmoh — put 3DMOH variables into the container.
+  ! fill_3dmoh — 3DMOH schema AND data, one-shot (no define_schema_3dmoh).
+  !
+  ! Interior-writing (nGhostCells = 0), MIXED ghosting: Longitude/Latitude/
+  ! Altitude_GB/Rho/Velocity are 2-ghost and sliced to the interior; Viscosity
+  ! carries ghosts only in altitude (sliced to 1:nAlts); IonDrag/
+  ! HorizAdvection/HorizPressureGrad/HorizCoriolis/Centrifugal are ghost-less
+  ! and pass whole.
   ! ---------------------------------------------------------------------------
   subroutine fill_3dmoh(c, iBlock)
     use ModGITM
     use ModConst, only: cRadToDeg
     use ModSources
     type(OutputContainer), intent(inout) :: c
-    integer :: nGC
     integer, intent(in) :: iBlock
+
+    c%cType = '3DMOH'
+    c%gridKind = GRID_GEO_3D  ! participation only — who writes, never shape
+    c%nGhostCells = 0  ! metadata: no ghosts are stored in %data
 
     call c%prepare(iBlock)
     if (.not. c%this_rank_writes) return
-    nGC = c%nGhostCells
 
-    call c%put('Longitude', real(Longitude(1 - nGC:nLons + nGC, iBlock)*cRadToDeg, output_kind))
-    call c%put('Latitude', real(Latitude(1 - nGC:nLats + nGC, iBlock)*cRadToDeg, output_kind))
-    call c%put('Altitude',  real(Altitude_GB(1-nGC:nLons+nGC, 1-nGC:nLats+nGC, 1-nGC:nAlts+nGC, iBlock), output_kind))
-    call c%put('Rho', real(Rho(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, iBlock), output_kind))
-    call c%put('Vn (east)', &
-             real(Velocity(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, iEast_, iBlock), output_kind))
-    call c%put('Vn (north)', &
-            real(Velocity(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, iNorth_, iBlock), output_kind))
-    call c%put('Visc_Ve_rshear', &
-               real(Viscosity(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, iEast_)/dt, output_kind))
-    call c%put('Visc_Vn_rshear', &
-               real(Viscosity(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, iNorth_)/dt, output_kind))
-    call c%put('IonDrag_east', real(IonDrag(1-nGC:nLons+nGC, 1-nGC:nLats+nGC, 1-nGC:nAlts+nGC, iEast_), output_kind))
-    call c%put('IonDrag_north', real(IonDrag(1-nGC:nLons+nGC, 1-nGC:nLats+nGC, 1-nGC:nAlts+nGC, iNorth_), output_kind))
-    call c%put('Horiz_Adv_Ve', real(HorizAdvection(1-nGC:nLons+nGC, 1-nGC:nLats+nGC, 1-nGC:nAlts+nGC, 1), output_kind))
-    call c%put('Horiz_Adv_Vn', real(HorizAdvection(1-nGC:nLons+nGC, 1-nGC:nLats+nGC, 1-nGC:nAlts+nGC, 2), output_kind))
-    call c%put('PressGrad (east)', &
-               real(HorizPressureGrad(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, 1), output_kind))
-    call c%put('PressGrad (north)', &
-               real(HorizPressureGrad(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, 2), output_kind))
-    call c%put('Coriolis_east', real(HorizCoriolis(1-nGC:nLons+nGC, 1-nGC:nLats+nGC, 1-nGC:nAlts+nGC, 1), output_kind))
-    call c%put('Coriolis_north', real(HorizCoriolis(1-nGC:nLons+nGC, 1-nGC:nLats+nGC, 1-nGC:nAlts+nGC, 2), output_kind))
-    call c%put('Centrifugal_north', &
-               real(Centrifugal(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, 2), output_kind))
+    call c%put_axis('Longitude', Longitude(1:nLons, iBlock)*cRadToDeg)      ! ghosted
+    call c%put_axis('Latitude', Latitude(1:nLats, iBlock)*cRadToDeg)        ! ghosted
+    ! longName override: registry's canonical 'Altitude above surface' is what
+    ! 3DALL/3DTHM write; 3DMOH has always written this as plain 'Altitude'.
+    call c%put_field('Altitude', Altitude_GB(1:nLons, 1:nLats, 1:nAlts, iBlock), &  ! ghosted
+                     longName='Altitude')
+    ! longName override: registry's canonical 'Total neutral mass density' is
+    ! what 3DALL/3DTHM write; 3DMOH has always written this as 'Mass density'.
+    call c%put_field('Rho', Rho(1:nLons, 1:nLats, 1:nAlts, iBlock), &       ! ghosted
+                     longName='Mass density')
+    ! longName overrides: registry's canonical wind longNames ('Eastward/
+    ! Northward neutral wind') are what 3DALL/3DNEU write; 3DMOH has always
+    ! written these as plain 'Eastward wind'/'Northward wind'.
+    call c%put_field('Vn (east)', Velocity(1:nLons, 1:nLats, 1:nAlts, iEast_, iBlock), &   ! ghosted
+                     longName='Eastward wind')
+    call c%put_field('Vn (north)', Velocity(1:nLons, 1:nLats, 1:nAlts, iNorth_, iBlock), & ! ghosted
+                     longName='Northward wind')
+    call c%put_field('Visc_Ve_rshear', Viscosity(:, :, 1:nAlts, iEast_)/dt)     ! alt ghosts only
+    call c%put_field('Visc_Vn_rshear', Viscosity(:, :, 1:nAlts, iNorth_)/dt)    ! alt ghosts only
+    call c%put_field('IonDrag_east', IonDrag(:, :, :, iEast_))      ! no ghosts
+    call c%put_field('IonDrag_north', IonDrag(:, :, :, iNorth_))    ! no ghosts
+    call c%put_field('Horiz_Adv_Ve', HorizAdvection(:, :, :, 1))    ! no ghosts
+    call c%put_field('Horiz_Adv_Vn', HorizAdvection(:, :, :, 2))    ! no ghosts
+    ! longName overrides: registry's canonical 'Pressure gradient acceleration
+    ! eastward/northward' are what 3DION writes; 3DMOH has always written
+    ! these as 'Press gradient east/north accel'.
+    call c%put_field('PressGrad (east)', HorizPressureGrad(:, :, :, 1), &   ! no ghosts
+                     longName='Press gradient east accel')
+    call c%put_field('PressGrad (north)', HorizPressureGrad(:, :, :, 2), &  ! no ghosts
+                     longName='Press gradient north accel')
+    call c%put_field('Coriolis_east', HorizCoriolis(:, :, :, 1))     ! no ghosts
+    call c%put_field('Coriolis_north', HorizCoriolis(:, :, :, 2))    ! no ghosts
+    call c%put_field('Centrifugal_north', Centrifugal(:, :, :, 2))   ! no ghosts
   end subroutine fill_3dmoh
 
   ! ---------------------------------------------------------------------------
-  ! define_schema_3dmov — register variables for 3DMOV.
-  ! ---------------------------------------------------------------------------
-  subroutine define_schema_3dmov(c)
-    use ModGITM, only: nLons, nLats, nAlts
-    use ModPlanet, only: nSpecies, cSpecies
-    type(OutputContainer), intent(inout) :: c
-    integer :: nGC
-    integer :: i
-
-    c%cType = '3DMOV'
-    c%gridKind = GRID_GEO_3D
-    c%nGhostCells = 0
-    nGC = c%nGhostCells
-
-    call c%define_var('Longitude', units='degrees_east', shape3=[nLons + 2*nGC, 1, 1], is_axis=.true., &
-                      longName='Geographic longitude')
-    call c%define_var('Latitude', units='degrees_north', shape3=[nLats + 2*nGC, 1, 1], is_axis=.true., &
-                      longName='Geographic latitude')
-    call c%define_var('Altitude', units='m', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], longName='Altitude')
-    do i = 1, nSpecies
-      call c%define_var('Vn (up,'//trim(cSpecies(i))//')', units='m/s', &
-                        shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], &
-                        longName='Vertical wind for '//trim(cSpecies(i)))
-      call c%define_var('IonDrag_up_'//trim(cSpecies(i)), units='m/s2', &
-                        shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], &
-                        longName='Ion drag upward for '//trim(cSpecies(i)))
-      call c%define_var('Horiz_Adv_Vn (up,'//trim(cSpecies(i))//')', units='m/s2', &
-                        shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], &
-                        longName='Horiz advection upward for '//trim(cSpecies(i)))
-    enddo
-    call c%define_var('Coriolis_up', units='m/s2', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], &
-                      longName='Coriolis upward accel')
-    call c%define_var('Centrif_up', units='m/s2', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], &
-                      longName='Centrifugal upward accel')
-    call c%define_var('EffectiveGravity', units='m/s2', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], &
-                      longName='Effective gravity accel')
-  end subroutine define_schema_3dmov
-
-  ! ---------------------------------------------------------------------------
-  ! fill_3dmov — put 3DMOV variables into the container.
+  ! fill_3dmov — 3DMOV schema AND data, one-shot (no define_schema_3dmov).
+  !
+  ! Interior-writing (nGhostCells = 0), MIXED ghosting: Longitude/Latitude/
+  ! Altitude_GB/VerticalVelocity are 2-ghost and sliced to the interior;
+  ! VerticalIonDrag/VertAdvection/VertCoriolis/VertCentrifugal/
+  ! EffectiveGravity are ghost-less and pass whole.
   ! ---------------------------------------------------------------------------
   subroutine fill_3dmov(c, iBlock)
     use ModGITM
     use ModConst, only: cRadToDeg
     use ModSources
     type(OutputContainer), intent(inout) :: c
-    integer :: nGC
     integer, intent(in) :: iBlock
     integer :: iSpecies
 
+    c%cType = '3DMOV'
+    c%gridKind = GRID_GEO_3D  ! participation only — who writes, never shape
+    c%nGhostCells = 0  ! metadata: no ghosts are stored in %data
+
     call c%prepare(iBlock)
     if (.not. c%this_rank_writes) return
-    nGC = c%nGhostCells
 
-    call c%put('Longitude', real(Longitude(1 - nGC:nLons + nGC, iBlock)*cRadToDeg, output_kind))
-    call c%put('Latitude', real(Latitude(1 - nGC:nLats + nGC, iBlock)*cRadToDeg, output_kind))
-    call c%put('Altitude',  real(Altitude_GB(1-nGC:nLons+nGC, 1-nGC:nLats+nGC, 1-nGC:nAlts+nGC, iBlock), output_kind))
+    call c%put_axis('Longitude', Longitude(1:nLons, iBlock)*cRadToDeg)      ! ghosted
+    call c%put_axis('Latitude', Latitude(1:nLats, iBlock)*cRadToDeg)        ! ghosted
+    ! longName override: registry's canonical 'Altitude above surface' is what
+    ! 3DALL/3DTHM write; 3DMOV has always written this as plain 'Altitude'.
+    call c%put_field('Altitude', Altitude_GB(1:nLons, 1:nLats, 1:nAlts, iBlock), &  ! ghosted
+                     longName='Altitude')
     do iSpecies = 1, nSpecies
-      call c%put('Vn (up,'//trim(cSpecies(iSpecies))//')', &
-               real(VerticalVelocity(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, iSpecies, iBlock), &
-                      output_kind))
-      call c%put('IonDrag_up_'//trim(cSpecies(iSpecies)), &
-            real(VerticalIonDrag(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, iSpecies), output_kind))
-      call c%put('Horiz_Adv_Vn (up,'//trim(cSpecies(iSpecies))//')', &
-              real(VertAdvection(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, iSpecies), output_kind))
+      call c%put_field('Vn (up,'//trim(cSpecies(iSpecies))//')', &   ! ghosted
+                       VerticalVelocity(1:nLons, 1:nLats, 1:nAlts, iSpecies, iBlock), &
+                       units='m/s', longName='Vertical wind for '//trim(cSpecies(iSpecies)))
+      call c%put_field('IonDrag_up_'//trim(cSpecies(iSpecies)), &    ! no ghosts
+                       VerticalIonDrag(:, :, :, iSpecies), &
+                       units='m/s2', longName='Ion drag upward for '//trim(cSpecies(iSpecies)))
+      call c%put_field('Horiz_Adv_Vn (up,'//trim(cSpecies(iSpecies))//')', &  ! no ghosts
+                       VertAdvection(:, :, :, iSpecies), &
+                       units='m/s2', longName='Horiz advection upward for '//trim(cSpecies(iSpecies)))
     enddo
-    call c%put('Coriolis_up', real(VertCoriolis(1-nGC:nLons+nGC, 1-nGC:nLats+nGC, 1-nGC:nAlts+nGC), output_kind))
-    call c%put('Centrif_up', real(VertCentrifugal(1-nGC:nLons+nGC, 1-nGC:nLats+nGC, 1-nGC:nAlts+nGC), output_kind))
-    call c%put('EffectiveGravity', &
-               real(EffectiveGravity(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC), output_kind))
+    call c%put_field('Coriolis_up', VertCoriolis)          ! no ghosts
+    call c%put_field('Centrif_up', VertCentrifugal)        ! no ghosts
+    call c%put_field('EffectiveGravity', EffectiveGravity)  ! no ghosts
   end subroutine fill_3dmov
 
   ! ---------------------------------------------------------------------------
