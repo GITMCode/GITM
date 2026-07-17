@@ -57,7 +57,7 @@ module ModInputs
 
   logical :: UseCCMCFileName = .false.
 
-  logical :: UseSecondsInFilename = .true.    !xianjing
+  logical :: UseSecondsInFilename = .false.
 
   !!! Xing Meng Nov 2018 to use ISR E field in a local region + Weimer elsewhere
   ! This is currently not working with the new Electrodynamics setup.
@@ -197,14 +197,19 @@ module ModInputs
   logical :: UseMsis21 = .false.
   real, dimension(25) :: sw_msis = 1.0
   logical :: UseIRI = .true.
-  logical :: UseMSISTides = .true.
-  logical :: UseMSISOnly = .false.
-  logical :: UseGSWMTides = .false.
-  logical :: UseHmeTides = .false.
-  logical :: UseWACCMTides = .false.
+  character(len=iCharLen_) :: cTidalModel = "zero"
+
+  !logical :: UseMSISTides = .true.
+  !logical :: UseMSISOnly = .false.
   logical :: UseMSISDiurnal = .true.
   logical :: UseMSISSemidiurnal = .true.
   logical :: UseMSISTerdiurnal = .true.
+
+  logical :: UseHmeTides = .false.
+  logical :: UseFileTides = .false.
+  ! We are not going to support these things anymore:
+  !logical :: UseWACCMTides = .false.
+  !logical :: UseGSWMTides = .false.
   logical :: UseStatisticalModelsOnly = .false.
   real    :: DtStatisticalModels = 3600.0
   logical :: UseOBCExperiment = .false.

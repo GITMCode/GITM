@@ -320,51 +320,24 @@ subroutine set_inputs
           enddo
         endif
 
-      case ("#TIDES")
-        call read_in_logical(UseMSISOnly, iError)
-        call read_in_logical(UseMSISTides, iError)
-        call read_in_logical(UseGSWMTides, iError)
-        call read_in_logical(UseWACCMTides, iError)
-        call read_in_logical(UseHmeTides, iError)
+      case ('#TIDALMODEL')
+        call read_in_string(cTidalModel, iError)
         if (iError /= 0) then
-          write(*, *) 'Incorrect format for #TIDES:'
-          write(*, *) 'This says how to use tides.  The first one is using'
-          write(*, *) 'MSIS with no tides.  The second is using MSIS with'
-          write(*, *) 'full up tides. The third is using GSWM tides, while'
-          write(*, *) 'the forth is for experimentation with using WACCM'
-          write(*, *) 'tides.'
-          write(*, *) '#TIDES'
-          write(*, *) 'UseMSISOnly        (logical)'
-          write(*, *) 'UseMSISTides       (logical)'
-          write(*, *) 'UseGSWMTides       (logical)'
-          write(*, *) 'UseWACCMTides      (logical)'
-          write(*, *) 'UseHmeTides        (logical)'
-        else
-          if (UseGSWMTides) UseMSISOnly = .true.
-          if (UseWACCMTides) UseMSISOnly = .true.
-
-          if (UseHmeTides) then
-            UseMSISOnly = .true.
-            UseMSISDiurnal = .false.
-            UseMSISSemidiurnal = .false.
-            UseMSISTerdiurnal = .false.
-          endif
-        endif
-
-      case ("#MSISTIDES")
-        call read_in_logical(UseMSISDiurnal, iError)
-        call read_in_logical(UseMSISSemidiurnal, iError)
-        call read_in_logical(UseMSISTerdiurnal, iError)
-        if (iError /= 0) then
-          write(*, *) 'Incorrect format for #MSISTIDES:'
-          write(*, *) 'This says how to use msis tides.  '
-          write(*, *) 'The first one is using diurnal tide'
-          write(*, *) 'The first one is using semi-diurnal tide'
-          write(*, *) 'The first one is using terdiurnal tide'
-          write(*, *) '#MSISTIDES'
-          write(*, *) 'UseMSISDiurnal        (logical)'
-          write(*, *) 'UseMSISSemidiurnal    (logical)'
-          write(*, *) 'UseMSISTerdiurnal     (logical)'
+          write(*, *) 'Incorrect format for #TIDALMODEL:'
+          write(*, *) '#TIDALMODEL'
+          write(*, *) 'cTidalModel        (string)'
+          write(*, *) ''
+          write(*, *) 'options include:'
+          ! These set flags in set_tidal_flags (in tides.f90)
+          write(*, *) 'MSIS_NONE - use MSIS with NO tides'
+          write(*, *) 'MSIS_ALL - use MSIS diurnal, semi-diurnal, and terdiurnal tides (Earth default)'
+          write(*, *) 'MSIS_D - use MSIS diurnal only'
+          write(*, *) 'MSIS_S - use MSIS semi-diurnal only'
+          write(*, *) 'MSIS_T - use MSIS terdiurnal only'
+          write(*, *) 'MSIS_DS - use MSIS diurnal and semi-diurnal only'
+          write(*, *) 'MSIS_DST - use MSIS diurnal, semi-diurnal, and terdiurnal tides'
+          write(*, *) 'HME - Use TIDI Hough Mode Extension tides'
+          write(*, *) 'FILE - Use GITM-style 3D files to specify tides'
         endif
 
       case ("#MSISOBC")
@@ -390,7 +363,6 @@ subroutine set_inputs
           write(*, *) 'UseMsis21       (logical)'
         endif
 
-        !xianjing
       case ("#USESECONDSINFILENAME")
         call read_in_logical(UseSecondsInFilename, iError)
         if (iError /= 0) then
@@ -2031,6 +2003,8 @@ subroutine set_inputs
     call stop_gitm("Must Stop!!")
   endif
 
+  call set_tidal_flags
+
   ! We need to check to see if the current time and end time are
   ! larger than the last F107 time.  If that is the case, the code
   ! should stop
@@ -2052,8 +2026,6 @@ subroutine set_inputs
     endif
   endif
   RestartTime = CurrentTime
-
-!  KappaTemp0 = 3.6e-4
 
 contains
 

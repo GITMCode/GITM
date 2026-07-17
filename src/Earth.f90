@@ -416,6 +416,12 @@ subroutine set_planet_defaults
 
   implicit none
 
+  cTidalModel = "MSIS_ALL"
+  UseMSIS = .true.
+  UseMSISDiurnal = .true.
+  UseMSISSemidiurnal = .true.
+  UseMSISTerdiurnal = .true.
+
   iNeutralDensityOutputList(iN_4S_) = .false.
   iNeutralDensityOutputList(iHe_) = .false.
   iNeutralDensityOutputList(iN_2D_) = .false.
