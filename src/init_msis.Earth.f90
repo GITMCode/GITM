@@ -27,6 +27,7 @@ subroutine call_msis(lonDeg, latDeg, altKm, f107, f107a, densities10, temp)
   use ModMsis21, only: gtd8d
   use ModInputs, only: useMsis21
   use ModConstants, only: Boltzmanns_Constant, AMU
+  use ModIndicesInterfaces, only: get_HPI
 
   implicit none
 
@@ -52,10 +53,16 @@ subroutine call_msis(lonDeg, latDeg, altKm, f107, f107a, densities10, temp)
   real, dimension(7) :: AP
 
   real :: Lst
-  real :: ffactor, no, h
+  real :: ffactor, no, h, hp
+  integer :: iError
 
   LST = mod(utime/3600.0 + LonDeg/15.0, 24.0)
   AP = 10
+
+  ! We don't often have Ap, but have hemispheric power. So, use that:
+  call get_HPI(CurrentTime, HP, iError)
+  if (iError > 0) hp = 40.0
+  Ap = min(200., max(-40.72 + 1.3*HP, 10.))
 
   if (useMsis21) then
     iyd = iJulianDay
@@ -198,7 +205,7 @@ end subroutine get_msis_temperature
 
 subroutine initialize_msis_routines
 
-  use ModInputs, only: UseMsisTides, useMsis21, UseMsisOnly, sw_msis
+  use ModInputs, only: UseMsis, UseMSISDiurnal, UseMSISSemidiurnal, UseMSISTerdiurnal, useMsis21, sw_msis
   use EUA_ModMsis00, ONLY: meters, tselec
   use msis_init, only: msisinit
 
@@ -218,17 +225,21 @@ subroutine initialize_msis_routines
 
   call meters(.true.)
 
-  if (UseMsisTides) then
+  if (UseMsis) then
     sw_msis = 1
-  ELSE IF (UseMSISOnly) THEN
-    ! Diurnal, semidiurnal, and terdiurnal variations are excluded,
-    ! EYigit:16June09
-    CALL report("...Using MSIS without tidal variations...", 0)
-    sw_msis = 1
-    sw_msis(7) = 0
-    sw_msis(8) = 0
-    sw_msis(14) = 0
-  ELSE
+    if (.not. UseMSISDiurnal) then
+      CALL report("...Using MSIS without diurnal tidal variations...", 0)
+      sw_msis(7) = 0
+    endif
+    if (.not. UseMSISSemidiurnal) then
+      CALL report("...Using MSIS without semi-diurnal tidal variations...", 0)
+      sw_msis(8) = 0
+    endif
+    if (.not. UseMSISTerdiurnal) then
+      CALL report("...Using MSIS without terdiurnal tidal variations...", 0)
+      sw_msis(14) = 0
+    endif
+  else
     sw_msis = 0
     sw_msis(1) = 1
     sw_msis(9) = 1
@@ -463,9 +474,7 @@ subroutine init_msis
           hwm_ap(1) = -1.0
           hwm_ap(2) = 4.0
 
-!              call HWM07(iyd,hwm_utime,hwm_alt,hwm_lat,hwm_lon,hwm_lst,&
-!                   hwm_f107a,hwm_f107,hwm_ap,qw)
-          if (UseMsisTides) then
+          if (UseMSISDiurnal .and. UseMSISSemidiurnal .and. UseMSISTerdiurnal) then
 
             call hwm14(iyd, hwm_utime, hwm_alt, hwm_lat, hwm_lon, hwm_lst, &
                        hwm_f107a, hwm_f107, hwm_ap, path, qw)
@@ -513,7 +522,7 @@ subroutine msis_bcs(iJulianDay, UTime, Alt, LatIn, LonIn, Lst, &
 
   use ModTime, only: iTimeArray
   use ModPlanet
-  use ModInputs, only: UseMSISTides, sw_msis, UseOBCExperiment
+  use ModInputs, only: UseMSISDiurnal, UseMSISSemidiurnal, UseMSISTerdiurnal, UseOBCExperiment, sw_msis
   use EUA_ModMsis00, ONLY: gtd7, tselec
 
   implicit none
@@ -554,13 +563,9 @@ subroutine msis_bcs(iJulianDay, UTime, Alt, LatIn, LonIn, Lst, &
   !----------------------------------------------------------------------------
   AP_I = AP
 
-  !CALL GTD7(iJulianDay, uTime, Alt, Lat, Lon, LST, &
-  !     F107A, F107, AP_I, 48, msis_dens, msis_temp)
   call call_msis(lon, lat, alt, f107, f107a, msis_dens10, msis_temp1)
   msis_dens = msis_dens10(1:9)
   msis_temp = msis_temp1
-
-  !  write(*,*) msis_dens(2), msis_dens(3), msis_dens(4), msis_dens(8), msis_dens(6), msis_temp(2)
 
   LogNS(iO_3P_) = alog(max(msis_dens(2), 1.0))
   LogNS(iO2_) = alog(max(msis_dens(4), 1.0))
@@ -590,10 +595,7 @@ subroutine msis_bcs(iJulianDay, UTime, Alt, LatIn, LonIn, Lst, &
   hwm_ap(1) = -1.0
   hwm_ap(2) = -1.0
 
-!  call HWM07(iyd,hwm_utime,hwm_alt,hwm_lat,hwm_lon,hwm_lst,&
-!       hwm_f107a,hwm_f107,hwm_ap,qw)
-
-  if (UseMSISTides) then
+  if (UseMSISDiurnal .and. UseMSISSemidiurnal .and. UseMSISTerdiurnal) then
     call hwm14(iyd, hwm_utime, hwm_alt, hwm_lat, hwm_lon, hwm_lst, &
                hwm_f107a, hwm_f107, hwm_ap, path, qw)
     ! qw is north&east
