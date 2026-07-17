@@ -450,11 +450,8 @@ subroutine write_code_information(dir)
     write(iCodeInfoFileUnit_, *) UseStatisticalModelsOnly
     write(iCodeInfoFileUnit_, *) ""
 
-    write(iCodeInfoFileUnit_, *) "#TIDES"
-    write(iCodeInfoFileUnit_, *) UseMSISOnly
-    write(iCodeInfoFileUnit_, *) UseMSISTides
-    write(iCodeInfoFileUnit_, *) UseGSWMTides
-    write(iCodeInfoFileUnit_, *) UseWACCMTides
+    write(iCodeInfoFileUnit_, *) "#TIDALMODEL"
+    write(iCodeInfoFileUnit_, *) cTidalModel
     write(iCodeInfoFileUnit_, *) ""
 
     write(iCodeInfoFileUnit_, *) "#DUSTDATA"
