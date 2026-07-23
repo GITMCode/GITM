@@ -95,7 +95,7 @@ contains
     integer(kind=MPI_OFFSET_KIND) :: tstart(1), tcnt(1)
     character(len=80) :: varname
     character(len=20) :: cDate
-    real(kind=8) :: time_val(1)
+    real(kind=4) :: time_val(1)
 
     ! The open path runs before the block loop, so containers may not be built
     ! yet (init_output_containers normally runs during the first fill). Ensure
@@ -212,7 +212,7 @@ contains
     tstart(1) = int(nc_time_record, MPI_OFFSET_KIND)
     tcnt(1) = 1_MPI_OFFSET_KIND
     time_val(1) = CurrentTime
-    ierr = nfmpi_put_vara_double_all(ncid, nc_varid_time, tstart, tcnt, time_val)
+    ierr = nfmpi_put_vara_real_all(ncid, nc_varid_time, tstart, tcnt, time_val)
     if (ierr /= NF_NOERR) &
       write(*, *) "ModOutputNetCDF: failed to write time variable: ", nfmpi_strerror(ierr)
 
@@ -268,10 +268,10 @@ contains
   !
   ! For types with conditionalIO flag (magnetic grids, regional outputs):
   !   - File opened in independent data mode (via nfmpi_begin_indep_data)
-  !   - Uses non-collective nfmpi_put_vara_double; only block 1 (or blocks in
+  !   - Uses non-collective nfmpi_put_vara_real; only block 1 (or blocks in
   !     region) write; others skip without deadlock
   ! For regular block-partitioned types:
-  !   - File in collective mode; all blocks call collective nfmpi_put_vara_double_all
+  !   - File in collective mode; all blocks call collective nfmpi_put_vara_real_all
   !
   ! Dispatches on nc_nDims cached from open_file:
   !   3D: strip 2 ghost cells each side; write to (lon×lat×alt[×time]) var
@@ -291,8 +291,8 @@ contains
     integer(kind=MPI_OFFSET_KIND) :: cstart(1), ccnt(1)
     integer :: nLi, nLai, nAi, lo_x, hi_x, lo_y, hi_y, lo_z, hi_z
     integer :: ndimid, iV, ierr
-    real, allocatable :: slice(:, :, :)
-    real(kind=8), allocatable :: coord1d(:)
+    real(kind=4), allocatable :: slice(:, :, :)
+    real(kind=4), allocatable :: coord1d(:)
 
     if (ncid == -1) return
 
@@ -337,14 +337,14 @@ contains
       do iV = 1, nV
         slice = buffer(iV, lo_x:hi_x, lo_y:hi_y, lo_z:hi_z)
         if (UseNetcdfMultiTime) then
-          ierr = nfmpi_put_vara_double(ncid, varids(iV), &
-                                       start(1:ndimid + 1), cnt(1:ndimid + 1), slice)
+          ierr = nfmpi_put_vara_real(ncid, varids(iV), &
+                                     start(1:ndimid + 1), cnt(1:ndimid + 1), slice)
         else
-          ierr = nfmpi_put_vara_double(ncid, varids(iV), &
-                                       start(1:ndimid), cnt(1:ndimid), slice)
+          ierr = nfmpi_put_vara_real(ncid, varids(iV), &
+                                     start(1:ndimid), cnt(1:ndimid), slice)
         endif
         if (ierr /= NF_NOERR) &
-          write(*, *) "netcdf_write_block: put_vara_double failed for var ", iV, &
+          write(*, *) "netcdf_write_block: put_vara_real failed for var ", iV, &
           ": ", nfmpi_strerror(ierr)
       enddo
 
@@ -358,15 +358,15 @@ contains
         cstart(1) = 1_MPI_OFFSET_KIND
         ccnt(1) = int(nLi, MPI_OFFSET_KIND)
         allocate(coord1d(nLi))
-        coord1d = real(MagLonMC(1:nLi, 1), kind=8)
-        ierr = nfmpi_put_vara_double(ncid, coordids(1), cstart, ccnt, coord1d)
+        coord1d = real(MagLonMC(1:nLi, 1), kind=4)
+        ierr = nfmpi_put_vara_real(ncid, coordids(1), cstart, ccnt, coord1d)
         deallocate(coord1d)
 
         cstart(1) = 1_MPI_OFFSET_KIND
         ccnt(1) = int(nLai, MPI_OFFSET_KIND)
         allocate(coord1d(nLai))
-        coord1d = real(MagLatMC(1, 1:nLai), kind=8)
-        ierr = nfmpi_put_vara_double(ncid, coordids(2), cstart, ccnt, coord1d)
+        coord1d = real(MagLatMC(1, 1:nLai), kind=4)
+        ierr = nfmpi_put_vara_real(ncid, coordids(2), cstart, ccnt, coord1d)
         deallocate(coord1d)
       endif
     else
@@ -374,14 +374,14 @@ contains
       do iV = 1, nV
         slice = buffer(iV, lo_x:hi_x, lo_y:hi_y, lo_z:hi_z)
         if (UseNetcdfMultiTime) then
-          ierr = nfmpi_put_vara_double_all(ncid, varids(iV), &
-                                           start(1:ndimid + 1), cnt(1:ndimid + 1), slice)
+          ierr = nfmpi_put_vara_real_all(ncid, varids(iV), &
+                                         start(1:ndimid + 1), cnt(1:ndimid + 1), slice)
         else
-          ierr = nfmpi_put_vara_double_all(ncid, varids(iV), &
-                                           start(1:ndimid), cnt(1:ndimid), slice)
+          ierr = nfmpi_put_vara_real_all(ncid, varids(iV), &
+                                         start(1:ndimid), cnt(1:ndimid), slice)
         endif
         if (ierr /= NF_NOERR) &
-          write(*, *) "netcdf_write_block: put_vara_double_all failed for var ", iV, &
+          write(*, *) "netcdf_write_block: put_vara_real_all failed for var ", iV, &
           ": ", nfmpi_strerror(ierr)
       enddo
 
@@ -392,16 +392,16 @@ contains
         cstart(1) = start(1)
         ccnt(1) = cnt(1)
         allocate(coord1d(nLi))
-        coord1d = real(Longitude(1:nLi, 1), kind=8)*cRadToDeg
-        ierr = nfmpi_put_vara_double_all(ncid, coordids(1), cstart, ccnt, coord1d)
+        coord1d = real(Longitude(1:nLi, 1)*cRadToDeg, kind=4)
+        ierr = nfmpi_put_vara_real_all(ncid, coordids(1), cstart, ccnt, coord1d)
         deallocate(coord1d)
 
         ! lat: each block writes its own interior lat range (degrees north)
         cstart(1) = start(2)
         ccnt(1) = cnt(2)
         allocate(coord1d(nLai))
-        coord1d = real(Latitude(1:nLai, 1), kind=8)*cRadToDeg
-        ierr = nfmpi_put_vara_double_all(ncid, coordids(2), cstart, ccnt, coord1d)
+        coord1d = real(Latitude(1:nLai, 1)*cRadToDeg, kind=4)
+        ierr = nfmpi_put_vara_real_all(ncid, coordids(2), cstart, ccnt, coord1d)
         deallocate(coord1d)
 
         ! z (3D only): all blocks cover the same altitude levels (km)
@@ -409,8 +409,8 @@ contains
           cstart(1) = 1_MPI_OFFSET_KIND
           ccnt(1) = cnt(3)
           allocate(coord1d(nAi))
-          coord1d = real(Altitude_GB(1, 1, 1:nAi, 1), kind=8)/1000.0d0
-          ierr = nfmpi_put_vara_double_all(ncid, coordids(3), cstart, ccnt, coord1d)
+          coord1d = real(Altitude_GB(1, 1, 1:nAi, 1)/1000.0d0, kind=4)
+          ierr = nfmpi_put_vara_real_all(ncid, coordids(3), cstart, ccnt, coord1d)
           deallocate(coord1d)
         endif
       endif
@@ -509,8 +509,8 @@ contains
         write(*, *) "netcdf_open: def_var '", trim(varname), "' failed: ", nfmpi_strerror(ierr)
       if (doFillNaN) then
         ierr = nfmpi_def_var_fill(ncid, varids(iV), 0, fillNaN)
-        ierr = nfmpi_put_att_double(ncid, varids(iV), "_FillValue", NF_FLOAT, &
-                                    1_MPI_OFFSET_KIND, [fillNaN])
+        ierr = nfmpi_put_att_real(ncid, varids(iV), "_FillValue", NF_FLOAT, &
+                                  1_MPI_OFFSET_KIND, [real(fillNaN, kind=4)])
       endif
       if (len_trim(containers(iTypeIdx)%vars(iV)%units) > 0) then
         attlen = int(len_trim(containers(iTypeIdx)%vars(iV)%units), MPI_OFFSET_KIND)
@@ -686,7 +686,7 @@ contains
     integer :: iBlockLon_0, iBlockLat_0
     integer :: nGC, ax_lo, ay_lo, az_lo
     logical :: is3d, doStrip
-    real(kind=8), allocatable :: buf2d(:, :), buf3d(:, :, :), coord1d(:)
+    real(kind=4), allocatable :: buf2d(:, :), buf3d(:, :, :), coord1d(:)
 
     if (.not. c%this_rank_writes) return
     if (ncid == -1) return
@@ -764,14 +764,14 @@ contains
             ! Longitude axis: replicate along Y and Z.
             do iz = 1, nZ
               do iy = 1, nY
-                buf3d(:, iy, iz) = real(c%vars(i)%data(ax_lo:ax_lo + nX - 1, 1, 1), kind=8)
+                buf3d(:, iy, iz) = real(c%vars(i)%data(ax_lo:ax_lo + nX - 1, 1, 1), kind=4)
               enddo
             enddo
           else
             ! Latitude axis: replicate along X and Z.
             do iz = 1, nZ
               do ix = 1, nX
-                buf3d(ix, :, iz) = real(c%vars(i)%data(ay_lo:ay_lo + nY - 1, 1, 1), kind=8)
+                buf3d(ix, :, iz) = real(c%vars(i)%data(ay_lo:ay_lo + nY - 1, 1, 1), kind=4)
               enddo
             enddo
           endif
@@ -779,12 +779,12 @@ contains
           if (iAxis == 1) then
             ! Longitude axis: replicate along Y.
             do iy = 1, nY
-              buf2d(:, iy) = real(c%vars(i)%data(ax_lo:ax_lo + nX - 1, 1, 1), kind=8)
+              buf2d(:, iy) = real(c%vars(i)%data(ax_lo:ax_lo + nX - 1, 1, 1), kind=4)
             enddo
           else
             ! Latitude axis: replicate along X.
             do ix = 1, nX
-              buf2d(ix, :) = real(c%vars(i)%data(ay_lo:ay_lo + nY - 1, 1, 1), kind=8)
+              buf2d(ix, :) = real(c%vars(i)%data(ay_lo:ay_lo + nY - 1, 1, 1), kind=4)
             enddo
           endif
         endif
@@ -792,39 +792,39 @@ contains
         if (is3d) then
           buf3d = real(c%vars(i)%data(ax_lo:ax_lo + nX - 1, &
                                       ay_lo:ay_lo + nY - 1, &
-                                      az_lo:az_lo + nZ - 1), kind=8)
+                                      az_lo:az_lo + nZ - 1), kind=4)
         else
           buf2d = real(c%vars(i)%data(ax_lo:ax_lo + nX - 1, &
-                                      ay_lo:ay_lo + nY - 1, 1), kind=8)
+                                      ay_lo:ay_lo + nY - 1, 1), kind=4)
         endif
       endif
 
       if (is3d) then
         if (nc_needsIndepWrite) then
           if (UseNetcdfMultiTime) then
-            ierr = nfmpi_put_vara_double(ncid, varids(i), start(1:4), cnt(1:4), buf3d)
+            ierr = nfmpi_put_vara_real(ncid, varids(i), start(1:4), cnt(1:4), buf3d)
           else
-            ierr = nfmpi_put_vara_double(ncid, varids(i), start(1:3), cnt(1:3), buf3d)
+            ierr = nfmpi_put_vara_real(ncid, varids(i), start(1:3), cnt(1:3), buf3d)
           endif
         else
           if (UseNetcdfMultiTime) then
-            ierr = nfmpi_put_vara_double_all(ncid, varids(i), start(1:4), cnt(1:4), buf3d)
+            ierr = nfmpi_put_vara_real_all(ncid, varids(i), start(1:4), cnt(1:4), buf3d)
           else
-            ierr = nfmpi_put_vara_double_all(ncid, varids(i), start(1:3), cnt(1:3), buf3d)
+            ierr = nfmpi_put_vara_real_all(ncid, varids(i), start(1:3), cnt(1:3), buf3d)
           endif
         endif
       else
         if (nc_needsIndepWrite) then
           if (UseNetcdfMultiTime) then
-            ierr = nfmpi_put_vara_double(ncid, varids(i), start(1:3), cnt(1:3), buf2d)
+            ierr = nfmpi_put_vara_real(ncid, varids(i), start(1:3), cnt(1:3), buf2d)
           else
-            ierr = nfmpi_put_vara_double(ncid, varids(i), start(1:2), cnt(1:2), buf2d)
+            ierr = nfmpi_put_vara_real(ncid, varids(i), start(1:2), cnt(1:2), buf2d)
           endif
         else
           if (UseNetcdfMultiTime) then
-            ierr = nfmpi_put_vara_double_all(ncid, varids(i), start(1:3), cnt(1:3), buf2d)
+            ierr = nfmpi_put_vara_real_all(ncid, varids(i), start(1:3), cnt(1:3), buf2d)
           else
-            ierr = nfmpi_put_vara_double_all(ncid, varids(i), start(1:2), cnt(1:2), buf2d)
+            ierr = nfmpi_put_vara_real_all(ncid, varids(i), start(1:2), cnt(1:2), buf2d)
           endif
         endif
       endif
@@ -846,11 +846,11 @@ contains
       ccnt(1) = int(nX, MPI_OFFSET_KIND)
       cstart(1) = start(1)
       allocate(coord1d(nX))
-      coord1d = real(c%vars(1)%data(ax_lo:ax_lo + nX - 1, 1, 1), kind=8)
+      coord1d = real(c%vars(1)%data(ax_lo:ax_lo + nX - 1, 1, 1), kind=4)
       if (nc_needsIndepWrite) then
-        ierr = nfmpi_put_vara_double(ncid, coordids(1), cstart, ccnt, coord1d)
+        ierr = nfmpi_put_vara_real(ncid, coordids(1), cstart, ccnt, coord1d)
       else
-        ierr = nfmpi_put_vara_double_all(ncid, coordids(1), cstart, ccnt, coord1d)
+        ierr = nfmpi_put_vara_real_all(ncid, coordids(1), cstart, ccnt, coord1d)
       endif
       deallocate(coord1d)
 
@@ -858,11 +858,11 @@ contains
       ccnt(1) = int(nY, MPI_OFFSET_KIND)
       cstart(1) = start(2)
       allocate(coord1d(nY))
-      coord1d = real(c%vars(2)%data(ay_lo:ay_lo + nY - 1, 1, 1), kind=8)
+      coord1d = real(c%vars(2)%data(ay_lo:ay_lo + nY - 1, 1, 1), kind=4)
       if (nc_needsIndepWrite) then
-        ierr = nfmpi_put_vara_double(ncid, coordids(2), cstart, ccnt, coord1d)
+        ierr = nfmpi_put_vara_real(ncid, coordids(2), cstart, ccnt, coord1d)
       else
-        ierr = nfmpi_put_vara_double_all(ncid, coordids(2), cstart, ccnt, coord1d)
+        ierr = nfmpi_put_vara_real_all(ncid, coordids(2), cstart, ccnt, coord1d)
       endif
       deallocate(coord1d)
 
@@ -871,11 +871,11 @@ contains
         ccnt(1) = int(nZ, MPI_OFFSET_KIND)
         cstart(1) = 1_MPI_OFFSET_KIND
         allocate(coord1d(nZ))
-        coord1d = real(c%vars(3)%data(ax_lo, ay_lo, az_lo:az_lo + nZ - 1), kind=8)/1000.0d0
+        coord1d = real(c%vars(3)%data(ax_lo, ay_lo, az_lo:az_lo + nZ - 1)/1000.0d0, kind=4)
         if (nc_needsIndepWrite) then
-          ierr = nfmpi_put_vara_double(ncid, coordids(3), cstart, ccnt, coord1d)
+          ierr = nfmpi_put_vara_real(ncid, coordids(3), cstart, ccnt, coord1d)
         else
-          ierr = nfmpi_put_vara_double_all(ncid, coordids(3), cstart, ccnt, coord1d)
+          ierr = nfmpi_put_vara_real_all(ncid, coordids(3), cstart, ccnt, coord1d)
         endif
         deallocate(coord1d)
       endif
