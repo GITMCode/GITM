@@ -557,7 +557,7 @@ contains
     call c%define_var('Kphi', units='', &
                       shape3=[nMagLons + 1, nMagLats, 1], &
                       longName='Dynamo Kphi coefficient')
-    call c%define_var('Klamda', units='', &
+    call c%define_var('Klambda', units='', &
                       shape3=[nMagLons + 1, nMagLats, 1], &
                       longName='Dynamo Klambda coefficient')
   end subroutine define_schema_2dmel
@@ -611,7 +611,7 @@ contains
     call c%put('Ed1new', real(Ed1new, output_kind))
     call c%put('Ed2new', real(Ed2new, output_kind))
     call c%put('Kphi', real(kpmMC, output_kind))
-    call c%put('Klamda', real(klmMC, output_kind))
+    call c%put('Klambda', real(klmMC, output_kind))
   end subroutine fill_2dmel
 
   ! ---------------------------------------------------------------------------
@@ -644,11 +644,7 @@ contains
     call c%put_field('Altitude', Altitude_GB(1:nLons, 1:nLats, 1, iBlock))  ! ghosted, one level
     call c%put_field('SZA', Sza(:, :, iBlock))                           ! no ghosts
     ! longName override: the registry's canonical 'Total electron content' is
-    ! what 2DANC writes, but 2DTEC has always written this as 'Vertical total
-    ! electron content'. Overriding keeps the output byte-identical; the
-    ! override is removed when the drifted longNames are canonicalized.
-    call c%put_field('TEC', VTEC(1:nLons, 1:nLats, iBlock), &            ! ghosted
-                     longName='Vertical total electron content')
+    call c%put_field('TEC', VTEC(1:nLons, 1:nLats, iBlock)) ! ghosted
   end subroutine fill_2dtec
 
   ! ---------------------------------------------------------------------------
@@ -679,7 +675,7 @@ contains
     call c%put_axis('Longitude', Longitude(1:nLons, iBlock)*cRadToDeg)   ! ghosted
     call c%put_axis('Latitude', Latitude(1:nLats, iBlock)*cRadToDeg)     ! ghosted
     call c%put_field('Altitude', Altitude_GB(1:nLons, 1:nLats, 1, iBlock))  ! ghosted, one level
-    call c%put_field('pot', Potential(1:nLons, 1:nLats, 1, iBlock))         ! ghosted, one level
+    call c%put_field('Potential', Potential(1:nLons, 1:nLats, 1, iBlock))       ! ghosted, one level
     call c%put_field('PedCond', PedersenConductance(1:nLons, 1:nLats, iBlock))  ! ghosted
     call c%put_field('HalCond', HallConductance(1:nLons, 1:nLats, iBlock))      ! ghosted
     call c%put_field('AveE', ElectronAverageEnergyDiffuse(1:nLons, 1:nLats))    ! ghosted
@@ -749,8 +745,8 @@ contains
   ! passing it plainly says that, where an explicit 1-nGC:nLons+nGC range would
   ! just be a no-op dressed up as a decision.  nGhostCells stays as metadata
   ! describing what is in %data: legacy/mpiio write it as-is, netcdf strips that
-  ! many cells per side.  (Types that write an interior subset — 2DANC — must
-  ! still slice explicitly; there the range is real, not a no-op.)
+  ! many cells per side.  (Types that write an interior subset (2DANC, for
+  ! example) must still slice explicitly.)
   ! ---------------------------------------------------------------------------
   subroutine fill_3dall(c, iBlock)
     use ModGITM
@@ -849,9 +845,9 @@ contains
     call c%put_field('E.F. Vertical', EField(:, :, :, 3))
     call c%put_field('E.F. Magnitude', sqrt(sum(EField**2, dim=4)))
     call c%put_field('IN Collision Freq', Collisions(:, :, :, iVIN_))
-    call c%put_field('PressGrad (east)', IonPressureGradient(:, :, :, 1, iBlock))
-    call c%put_field('PressGrad (north)', IonPressureGradient(:, :, :, 2, iBlock))
-    call c%put_field('PressGrad (up)', IonPressureGradient(:, :, :, 3, iBlock))
+    call c%put_field('IonPressGrad (east)', IonPressureGradient(:, :, :, 1, iBlock))
+    call c%put_field('IonPressGrad (north)', IonPressureGradient(:, :, :, 2, iBlock))
+    call c%put_field('IonPressGrad (up)', IonPressureGradient(:, :, :, 3, iBlock))
   end subroutine fill_3dion
 
   ! ---------------------------------------------------------------------------
@@ -883,25 +879,25 @@ contains
     call c%put_axis('Longitude', Longitude(1:nLons, iBlock)*cRadToDeg)      ! ghosted
     call c%put_axis('Latitude', Latitude(1:nLats, iBlock)*cRadToDeg)        ! ghosted
     call c%put_field('Altitude', Altitude_GB(1:nLons, 1:nLats, 1:nAlts, iBlock))  ! ghosted
-    call c%put_field('EUV Heating (K/s)', &                                  ! no ghosts * ghosted
+    call c%put_field('EUV Heating Rate', &                                  ! no ghosts * ghosted
                      EuvHeating(:, :, :, iBlock)*TempUnit(1:nLons, 1:nLats, 1:nAlts))
-    call c%put_field('Conduction (K/s)', &                                  ! alt ghosts only * ghosted
+    call c%put_field('Conduction', &                                  ! alt ghosts only * ghosted
                      Conduction(:, :, 1:nAlts)*TempUnit(1:nLons, 1:nLats, 1:nAlts)/dt)
-    call c%put_field('Molecular Conduction (K/s)', MoleConduction(:, :, 1:nAlts))  ! alt ghosts only
-    call c%put_field('Eddy Conduction (K/s)', EddyCond)                     ! no ghosts
-    call c%put_field('Eddy Adiabatic Conduction (K/s)', EddyCondAdia)       ! no ghosts
-    call c%put_field('Chemical Heating (K/s)', &                            ! no ghosts * ghosted
+    call c%put_field('Molecular Conduction', MoleConduction(:, :, 1:nAlts))  ! alt ghosts only
+    call c%put_field('Eddy Conduction', EddyCond)                     ! no ghosts
+    call c%put_field('Eddy Adiabatic Conduction', EddyCondAdia)       ! no ghosts
+    call c%put_field('Chemical Heating Rate', &                            ! no ghosts * ghosted
                      ChemicalHeatingRate*TempUnit(1:nLons, 1:nLats, 1:nAlts)/dt)
-    call c%put_field('Joule Heating (K/s)', &                               ! no ghosts * ghosted
+    call c%put_field('Joule Heating Rate', &                               ! no ghosts * ghosted
                      JouleHeating*TempUnit(1:nLons, 1:nLats, 1:nAlts))
-    call c%put_field('NO Cooling (K/s)', &                                  ! no ghosts * ghosted
+    call c%put_field('NO Cooling Rate', &                                  ! no ghosts * ghosted
                      -NOCooling*TempUnit(1:nLons, 1:nLats, 1:nAlts))
-    call c%put_field('O Cooling (K/s)', &                                   ! no ghosts * ghosted
+    call c%put_field('O Cooling Rate', &                                   ! no ghosts * ghosted
                      -OCooling*TempUnit(1:nLons, 1:nLats, 1:nAlts))
     call c%put_field('Total Abs EUV', EuvTotal(:, :, :, iBlock))            ! no ghosts
     call c%put_field('Cp', cp(:, :, 1:nAlts, iBlock))                       ! per-dim: lon/lat whole, alt sliced
     call c%put_field('Rho', Rho(1:nLons, 1:nLats, 1:nAlts, iBlock))         ! ghosted
-    call c%put_field('E-Field Mag', &                                       ! ghosted
+    call c%put_field('E.F. Magnitude', &                                       ! ghosted
                      sqrt(sum(EField(1:nLons, 1:nLats, 1:nAlts, :)**2, dim=4)))
     call c%put_field('Sigma Ped', Sigma_Pedersen(1:nLons, 1:nLats, 1:nAlts))    ! ghosted
     call c%put_field('Ionization Rate O_3P', AuroralIonRateS(:, :, :, iO_3P_, iBlock))  ! no ghosts
@@ -925,31 +921,34 @@ contains
     type(OutputContainer), intent(inout) :: c
     integer, intent(in) :: iBlock
     integer :: i
-    character(len=20), parameter :: chem_names(nReactions) = [ &
-                                    'N2+ + e             ', 'O2+ + e             ', 'N2+ + O             ', &
-                                    'NO+ + e             ', 'N+ + O2             ', 'NO + N              ', &
-                                    'O+ + O2             ', 'N + O2              ', 'O2+ + N             ', &
-                                    'O2+ + NO            ', 'O2+ + N2            ', 'N2+ + O2            ', &
-                                    'N+ + O              ', 'O+ + N2             ', 'O(1D) + N2          ', &
-                                    'O(1D) + O2          ', 'O(1D) + O           ', 'O(1D) + e           ', &
-                                    'N(2D) + O2          ', 'O+(2D)+e            ', 'N(2D) + O           ', &
-                                    'N(2D) + e           ', 'O+(2D + N2          ', 'O+(2P) + e          ', &
-                                    'O+(2P) + O          ', 'O+(2P) + N2         ']
+    character(len=20), parameter :: &
+      chem_names(nReactions) = [ &
+      'N2+ + e             ', 'O2+ + e             ', 'N2+ + O             ', &
+      'NO+ + e             ', 'N+ + O2             ', 'NO + N              ', &
+      'O+ + O2             ', 'N + O2              ', 'O2+ + N             ', &
+      'O2+ + NO            ', 'O2+ + N2            ', 'N2+ + O2            ', &
+      'N+ + O              ', 'O+ + N2             ', 'O(1D) + N2          ', &
+      'O(1D) + O2          ', 'O(1D) + O           ', 'O(1D) + e           ', &
+      'N(2D) + O2          ', 'O+(2D) + e          ', 'N(2D) + O           ', &
+      'N(2D) + e           ', 'O+(2D) + N2         ', 'O+(2P) + e          ', &
+      'O+(2P) + O          ', 'O+(2P) + N2         ']
     ! Parallels chem_names index-for-index.
-    character(len=40), parameter :: chem_longnames(nReactions) = [character(len=40) :: &
-                                                           'N2+ + e recombination rate', 'O2+ + e recombination rate', &
-                                                                'N2+ + O reaction rate', 'NO+ + e recombination rate', &
-                                                                  'N+ + O2 reaction rate', 'NO + N reaction rate', &
-                                                                  'O+ + O2 reaction rate', 'N + O2 reaction rate', &
-                                                                  'O2+ + N reaction rate', 'O2+ + NO reaction rate', &
-                                                                  'O2+ + N2 reaction rate', 'N2+ + O2 reaction rate', &
-                                                                  'N+ + O reaction rate', 'O+ + N2 reaction rate', &
-                                                                  'O(1D) + N2 quench rate', 'O(1D) + O2 quench rate', &
-                                                                  'O(1D) + O quench rate', 'O(1D) + e quench rate', &
-                                                          'N(2D) + O2 reaction rate', 'O+(2D) + e recombination rate', &
-                                                                  'N(2D) + O quench rate', 'N(2D) + e quench rate', &
-                                                         'O+(2D) + N2 reaction rate', 'O+(2P) + e recombination rate', &
-                                                                'O+(2P) + O reaction rate', 'O+(2P) + N2 reaction rate']
+    character(len=40), parameter :: &
+      chem_longnames(nReactions) = &
+      [character(len=40) :: &
+       'N2+ + e recombination rate', 'O2+ + e recombination rate', &
+       'N2+ + O reaction rate', 'NO+ + e recombination rate', &
+       'N+ + O2 reaction rate', 'NO + N reaction rate', &
+       'O+ + O2 reaction rate', 'N + O2 reaction rate', &
+       'O2+ + N reaction rate', 'O2+ + NO reaction rate', &
+       'O2+ + N2 reaction rate', 'N2+ + O2 reaction rate', &
+       'N+ + O reaction rate', 'O+ + N2 reaction rate', &
+       'O(1D) + N2 quench rate', 'O(1D) + O2 quench rate', &
+       'O(1D) + O quench rate', 'O(1D) + e quench rate', &
+       'N(2D) + O2 reaction rate', 'O+(2D) + e recombination rate', &
+       'N(2D) + O quench rate', 'N(2D) + e quench rate', &
+       'O+(2D) + N2 reaction rate', 'O+(2P) + e recombination rate', &
+       'O+(2P) + O reaction rate', 'O+(2P) + N2 reaction rate']
 
     c%cType = '3DCHM'
     c%gridKind = GRID_GEO_3D  ! participation only — who writes, never shape
@@ -965,7 +964,7 @@ contains
       call c%put_field(trim(chem_names(i)), ChemicalHeatingSpecies(:, :, :, i)/Element_Charge, &  ! no ghosts
                        units='/m3/s', longName=trim(chem_longnames(i)))
     enddo
-    call c%put_field('Chemical Heating Rate', &                             ! no ghosts * per-dim * ghosted * ghosted
+    call c%put_field('Chemical Heating', &                                  ! no ghosts * per-dim * ghosted * ghosted
                      ChemicalHeatingRate*cp(:, :, 1:nAlts, iBlock)* &
                      Rho(1:nLons, 1:nLats, 1:nAlts, iBlock)* &
                      TempUnit(1:nLons, 1:nLats, 1:nAlts)/Element_Charge)
@@ -1002,9 +1001,7 @@ contains
 
     call c%put_axis('Longitude', Longitude(:, iBlock)*cRadToDeg)
     call c%put_axis('Latitude', Latitude(:, iBlock)*cRadToDeg)
-    ! longName override: registry's canonical 'Altitude above surface' is what
-    ! 3DALL/3DTHM write; 3DLST has always written this as plain 'Altitude'.
-    call c%put_field('Altitude', Altitude_GB(:, :, :, iBlock), longName='Altitude')
+    call c%put_field('Altitude', Altitude_GB(:, :, :, iBlock))
 
     if (iRhoOutputList) call c%put_field('Rho', Rho(:, :, :, iBlock))
     do i = 1, nSpeciesTotal
@@ -1025,11 +1022,10 @@ contains
     if (iIonWindOutputList(1)) call c%put_field('Vi (east)', IVelocity(:, :, :, 1, iBlock))
     if (iIonWindOutputList(2)) call c%put_field('Vi (north)', IVelocity(:, :, :, 2, iBlock))
     if (iIonWindOutputList(3)) call c%put_field('Vi (up)', IVelocity(:, :, :, 3, iBlock))
-    if (iTemperatureOutputList(1)) then
-      call c%put_field('Neutral Temperature', Temperature(:, :, :, iBlock)*TempUnit)
-    endif
-    if (iTemperatureOutputList(2)) call c%put_field('Ion Temperature', ITemperature(:, :, :, iBlock))
-    if (iTemperatureOutputList(3)) call c%put_field('Electron Temperature', eTemperature(:, :, :, iBlock))
+    if (iTemperatureOutputList(1)) &
+      call c%put_field('Temperature', Temperature(:, :, :, iBlock)*TempUnit)
+    if (iTemperatureOutputList(2)) call c%put_field('iTemperature', ITemperature(:, :, :, iBlock))
+    if (iTemperatureOutputList(3)) call c%put_field('eTemperature', eTemperature(:, :, :, iBlock))
   end subroutine fill_3dlst
 
   ! ---------------------------------------------------------------------------
@@ -1059,9 +1055,7 @@ contains
 
     call c%put_axis('Longitude', Longitude(:, iBlock)*cRadToDeg)
     call c%put_axis('Latitude', Latitude(:, iBlock)*cRadToDeg)
-    ! longName override: registry's canonical 'Altitude above surface' is what
-    ! 3DALL/3DTHM write; 3DGLO has always written this as plain 'Altitude'.
-    call c%put_field('Altitude', Altitude_GB(:, :, :, iBlock), longName='Altitude')
+    call c%put_field('Altitude', Altitude_GB(:, :, :, iBlock))
 
     allocate(zero_buf(nLons + 2*c%nGhostCells, nLats + 2*c%nGhostCells, nAlts + 2*c%nGhostCells))
     zero_buf = 0.0
@@ -1076,9 +1070,6 @@ contains
   !
   ! Uniformly 2-ghosted like 3DALL — every array touched is declared
   ! (-1:nLons+2, -1:nLats+2, -1:nAlts+2, ...), so the whole array IS the slice.
-  ! longName overrides below preserve 3DMAG's current-exact strings, which
-  ! differ from the registry's canonical ones (shared with 3DALL's 'Altitude'
-  ! and 3DION's 'B.F. *') — a known, documented drift; see step 10.
   ! ---------------------------------------------------------------------------
   subroutine fill_3dmag(c, iBlock)
     use ModGITM
@@ -1095,12 +1086,12 @@ contains
 
     call c%put_axis('Longitude', Longitude(:, iBlock)*cRadToDeg)
     call c%put_axis('Latitude', Latitude(:, iBlock)*cRadToDeg)
-    call c%put_field('Altitude', Altitude_GB(:, :, :, iBlock), longName='Altitude')
+    call c%put_field('Altitude', Altitude_GB(:, :, :, iBlock))
     call c%put_field('Magnetic Latitude', MLatitude(:, :, :, iBlock))
     call c%put_field('Magnetic Longitude', MLongitude(:, :, :, iBlock))
-    call c%put_field('B.F. East', B0(:, :, :, 1, iBlock), longName='Magnetic field eastward')
-    call c%put_field('B.F. North', B0(:, :, :, 2, iBlock), longName='Magnetic field northward')
-    call c%put_field('B.F. Vertical', B0(:, :, :, 3, iBlock), longName='Magnetic field vertical')
+    call c%put_field('B.F. East', B0(:, :, :, 1, iBlock))
+    call c%put_field('B.F. North', B0(:, :, :, 2, iBlock))
+    call c%put_field('B.F. Vertical', B0(:, :, :, 3, iBlock))
     call c%put_field('B.F. Magnitude', B0(:, :, :, 4, iBlock))
   end subroutine fill_3dmag
 
@@ -1123,69 +1114,71 @@ contains
                       longName='Geographic longitude')
     call c%define_var('Latitude', units='degrees_north', shape3=[nLats + 2*nGC, 1, 1], is_axis=.true., &
                       longName='Geographic latitude')
-    call c%define_var('Altitude', units='m', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], longName='Altitude')
-    call c%define_var('Rho', &
-             units='kg/m3', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], longName='Total neutral mass density')
+    call c%define_var('Altitude', units='m', longName='Altitude', &
+                      shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC])
+    call c%define_var('Rho', units='kg/m3', longName='Total neutral mass density', &
+                      shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC])
     do i = 1, nSpeciesTotal
       call c%define_var('['//trim(cSpecies(i))//']', units='/m3', &
-                        shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], &
-                        longName='Number density of '//trim(cSpecies(i)))
+                        longName='Number density of '//trim(cSpecies(i)), &
+                        shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC])
     enddo
-    call c%define_var('Temperature', &
-                      units='K', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], longName='Neutral temperature')
-    call c%define_var('Vn (east)', &
-                    units='m/s', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], longName='Eastward neutral wind')
-    call c%define_var('Vn (north)', &
-                   units='m/s', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], longName='Northward neutral wind')
-    call c%define_var('Vn (up)', &
-                    units='m/s', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], longName='Vertical neutral wind')
+    call c%define_var('Temperature', units='K', longName='Neutral temperature', &
+                      shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC])
+    call c%define_var('Vn (east)', units='m/s', longName='Eastward neutral wind', &
+                      shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC])
+    call c%define_var('Vn (north)', units='m/s', longName='Northward neutral wind', &
+                      shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC])
+    call c%define_var('Vn (up)', units='m/s', longName='Vertical neutral wind', &
+                      shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC])
     do i = 1, nSpecies
-      call c%define_var('Vn (up,'//trim(cSpecies(i))//')', &
-                        units='m/s', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], &
-                        longName='Vertical neutral wind for '//trim(cSpecies(i)))
+      call c%define_var('Vn (up,'//trim(cSpecies(i))//')', units='m/s', &
+                        longName='Vertical neutral wind for '//trim(cSpecies(i)), &
+                        shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC])
     enddo
     do i = 1, nIons
-      call c%define_var('['//trim(cIons(i))//']', units='/m3', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], &
-                        longName='Number density of '//trim(cIons(i)))
+      call c%define_var('['//trim(cIons(i))//']', units='/m3', &
+                        longName='Number density of '//trim(cIons(i)), &
+                        shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC])
     enddo
-    call c%define_var('eTemperature', &
-                      units='K', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], longName='Electron temperature')
-    call c%define_var('iTemperature', &
-                      units='K', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], longName='Ion temperature')
-    call c%define_var('Vi (east)', &
-                      units='m/s', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], longName='Eastward ion drift')
-    call c%define_var('Vi (north)', &
-                      units='m/s', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], longName='Northward ion drift')
-    call c%define_var('Vi (up)', &
-                      units='m/s', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], longName='Vertical ion drift')
-    call c%define_var('PhotoElectron Heating', &
-                      units='K', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], longName='Photoelectron heating')
-    call c%define_var('Joule Heating', &
-                      units='K', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], longName='Joule heating')
-    call c%define_var('Specific Heat', &
-                      units='J/kg/K', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], longName='Specific heat Cp')
-    call c%define_var('Magnetic Latitude', &
-                      units='deg', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], longName='Magnetic latitude')
-    call c%define_var('Magnetic Longitude', &
-                      units='deg', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], longName='Magnetic longitude')
-    call c%define_var('B.F. East', &
-                    units='T', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], longName='Magnetic field eastward')
-    call c%define_var('B.F. North', &
-                   units='T', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], longName='Magnetic field northward')
-    call c%define_var('B.F. Vertical', &
-                    units='T', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], longName='Magnetic field vertical')
-    call c%define_var('B.F. Magnitude', &
-                   units='T', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], longName='Magnetic field magnitude')
-    call c%define_var('Potential', &
-                      units='V', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], longName='Electric potential')
-    call c%define_var('PotentialY', &
-                      units='V', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], longName='Potential Y component')
-    call c%define_var('E.F. East', &
-                  units='V/m', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], longName='Electric field eastward')
-    call c%define_var('E.F. North', &
-                 units='V/m', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], longName='Electric field northward')
-    call c%define_var('E.F. Vertical', &
-                  units='V/m', shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC], longName='Electric field vertical')
+    call c%define_var('eTemperature', units='K', longName='Electron temperature', &
+                      shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC])
+    call c%define_var('iTemperature', units='K', longName='Ion temperature', &
+                      shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC])
+    call c%define_var('Vi (east)', units='m/s', longName='Eastward ion drift', &
+                      shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC])
+    call c%define_var('Vi (north)', units='m/s', longName='Northward ion drift', &
+                      shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC])
+    call c%define_var('Vi (up)', units='m/s', longName='Vertical ion drift', &
+                      shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC])
+    call c%define_var('PhotoElectron Heating', units='K', longName='Photoelectron heating', &
+                      shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC])
+    call c%define_var('Joule Heating', units='K', longName='Joule heating', &
+                      shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC])
+    call c%define_var('Specific Heat', units='J/kg/K', longName='Specific heat Cp', &
+                      shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC])
+    call c%define_var('Magnetic Latitude', units='deg', longName='Magnetic latitude', &
+                      shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC])
+    call c%define_var('Magnetic Longitude', units='deg', longName='Magnetic longitude', &
+                      shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC])
+    call c%define_var('B.F. East', units='T', longName='Eastward magnetic field', &
+                      shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC])
+    call c%define_var('B.F. North', units='T', longName='Northward magnetic field', &
+                      shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC])
+    call c%define_var('B.F. Vertical', units='T', longName='Vertical magnetic field', &
+                      shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC])
+    call c%define_var('B.F. Magnitude', units='T', longName='Magnetic field magnitude', &
+                      shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC])
+    call c%define_var('Potential', units='V', longName='Electric potential', &
+                      shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC])
+    call c%define_var('PotentialY', units='V', longName='Potential Y component', &
+                      shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC])
+    call c%define_var('E.F. East', units='V/m', longName='Eastward electric field', &
+                      shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC])
+    call c%define_var('E.F. North', units='V/m', longName='Northward electric field', &
+                      shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC])
+    call c%define_var('E.F. Vertical', units='V/m', longName='Vertical electric field', &
+                      shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC])
   end subroutine define_schema_3dhme
 
   ! ---------------------------------------------------------------------------
@@ -1223,56 +1216,98 @@ contains
 
     call c%put('Longitude', real(Longitude(1 - nGC:nLons + nGC, iBlock)*cRadToDeg, output_kind))
     call c%put('Latitude', real(Latitude(1 - nGC:nLats + nGC, iBlock)*cRadToDeg, output_kind))
-    call c%put('Altitude',  real(Altitude_GB(1-nGC:nLons+nGC, 1-nGC:nLats+nGC, 1-nGC:nAlts+nGC, iBlock), output_kind))
-    call c%put('Rho', real(Rho(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, iBlock), output_kind))
+    call c%put('Altitude', &
+               real(Altitude_GB(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, iBlock), &
+                    output_kind))
+    call c%put('Rho', real(Rho(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, iBlock), &
+                           output_kind))
     do i = 1, nSpeciesTotal
       call c%put('['//trim(cSpecies(i))//']', &
-                 real(NDensityS(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, i, iBlock), output_kind))
+                 real(NDensityS(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, i, iBlock), &
+                      output_kind))
     enddo
     call c%put('Temperature', &
-               real(Temperature(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, iBlock)* &
-                    TempUnit(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC), output_kind))
-    call c%put('Vn (east)',  real(Velocity(1-nGC:nLons+nGC, 1-nGC:nLats+nGC, 1-nGC:nAlts+nGC, 1, iBlock), output_kind))
-    call c%put('Vn (north)', real(Velocity(1-nGC:nLons+nGC, 1-nGC:nLats+nGC, 1-nGC:nAlts+nGC, 2, iBlock), output_kind))
-    call c%put('Vn (up)',    real(Velocity(1-nGC:nLons+nGC, 1-nGC:nLats+nGC, 1-nGC:nAlts+nGC, 3, iBlock), output_kind))
+               real(Temperature(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, iBlock) &
+                    *TempUnit(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC), &
+                    output_kind))
+    call c%put('Vn (east)', &
+               real(Velocity(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, 1, iBlock), &
+                    output_kind))
+    call c%put('Vn (north)', &
+               real(Velocity(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, 2, iBlock), &
+                    output_kind))
+    call c%put('Vn (up)', &
+               real(Velocity(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, 3, iBlock), &
+                    output_kind))
     do i = 1, nSpecies
       call c%put('Vn (up,'//trim(cSpecies(i))//')', &
-          real(VerticalVelocity(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, i, iBlock), output_kind))
+                 real(VerticalVelocity(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, i, iBlock), &
+                      output_kind))
     enddo
     do i = 1, nIons
       call c%put('['//trim(cIons(i))//']', &
-                 real(IDensityS(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, i, iBlock), output_kind))
+                 real(IDensityS(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, i, iBlock), &
+                      output_kind))
     enddo
     call c%put('eTemperature', &
-               real(eTemperature(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, iBlock), output_kind))
+               real(eTemperature(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, iBlock), &
+                    output_kind))
     call c%put('iTemperature', &
-               real(ITemperature(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, iBlock), output_kind))
+               real(ITemperature(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, iBlock), &
+                    output_kind))
     call c%put('Vi (east)', &
-               real(IVelocity(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, 1, iBlock), output_kind))
+               real(IVelocity(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, 1, iBlock), &
+                    output_kind))
     call c%put('Vi (north)', &
-               real(IVelocity(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, 2, iBlock), output_kind))
+               real(IVelocity(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, 2, iBlock), &
+                    output_kind))
     call c%put('Vi (up)', &
-               real(IVelocity(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, 3, iBlock), output_kind))
+               real(IVelocity(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, 3, iBlock), &
+                    output_kind))
     call c%put('PhotoElectron Heating', &
-               real(PhotoElectronHeating(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, iBlock)* &
-                    dt*TempUnit(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC), output_kind))
+               real(PhotoElectronHeating(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, iBlock) &
+                    *dt*TempUnit(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC), &
+                    output_kind))
     call c%put('Joule Heating', &
-               real(JouleHeating(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC)* &
-                    dt*TempUnit(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC), output_kind))
-    call c%put('Specific Heat', real(cp(1-nGC:nLons+nGC, 1-nGC:nLats+nGC, 1-nGC:nAlts+nGC, iBlock), output_kind))
+               real(JouleHeating(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC) &
+                    *dt*TempUnit(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC), &
+                    output_kind))
+    call c%put('Specific Heat', &
+               real(cp(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, iBlock), &
+                    output_kind))
     call c%put('Magnetic Latitude', &
-               real(mLatitude(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, iBlock), output_kind))
+               real(mLatitude(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, iBlock), &
+                    output_kind))
     call c%put('Magnetic Longitude', &
-               real(mLongitude(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, iBlock), output_kind))
-call c%put('B.F. East', real(B0(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, 1, iBlock), output_kind))
-    call c%put('B.F. North', real(B0(1-nGC:nLons+nGC, 1-nGC:nLats+nGC, 1-nGC:nAlts+nGC, 2, iBlock), output_kind))
-    call c%put('B.F. Vertical', real(B0(1-nGC:nLons+nGC, 1-nGC:nLats+nGC, 1-nGC:nAlts+nGC, 3, iBlock), output_kind))
-    call c%put('B.F. Magnitude', real(B0(1-nGC:nLons+nGC, 1-nGC:nLats+nGC, 1-nGC:nAlts+nGC, 4, iBlock), output_kind))
-    call c%put('Potential', real(Potential(1-nGC:nLons+nGC, 1-nGC:nLats+nGC, 1-nGC:nAlts+nGC, iBlock), output_kind))
-    call c%put('PotentialY', real(PotentialY(1-nGC:nLons+nGC, 1-nGC:nLats+nGC, 1-nGC:nAlts+nGC, iBlock), output_kind))
-    call c%put('E.F. East', real(EField(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, 1), output_kind))
-   call c%put('E.F. North', real(EField(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, 2), output_kind))
-call c%put('E.F. Vertical', real(EField(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, 3), output_kind))
+               real(mLongitude(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, iBlock), &
+                    output_kind))
+    call c%put('B.F. East', &
+               real(B0(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, 1, iBlock), &
+                    output_kind))
+    call c%put('B.F. North', &
+               real(B0(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, 2, iBlock), &
+                    output_kind))
+    call c%put('B.F. Vertical', &
+               real(B0(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, 3, iBlock), &
+                    output_kind))
+    call c%put('B.F. Magnitude', &
+               real(B0(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, 4, iBlock), &
+                    output_kind))
+    call c%put('Potential', &
+               real(Potential(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, iBlock), &
+                    output_kind))
+    call c%put('PotentialY', &
+               real(PotentialY(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, iBlock), &
+                    output_kind))
+    call c%put('E.F. East', &
+               real(EField(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, 1), &
+                    output_kind))
+    call c%put('E.F. North', &
+               real(EField(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, 2), &
+                    output_kind))
+    call c%put('E.F. Vertical', &
+               real(EField(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, 3), &
+                    output_kind))
   end subroutine fill_3dhme
 
   ! ---------------------------------------------------------------------------
@@ -1300,34 +1335,18 @@ call c%put('E.F. Vertical', real(EField(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC
 
     call c%put_axis('Longitude', Longitude(1:nLons, iBlock)*cRadToDeg)      ! ghosted
     call c%put_axis('Latitude', Latitude(1:nLats, iBlock)*cRadToDeg)        ! ghosted
-    ! longName override: registry's canonical 'Altitude above surface' is what
-    ! 3DALL/3DTHM write; 3DMOH has always written this as plain 'Altitude'.
-    call c%put_field('Altitude', Altitude_GB(1:nLons, 1:nLats, 1:nAlts, iBlock), &  ! ghosted
-                     longName='Altitude')
-    ! longName override: registry's canonical 'Total neutral mass density' is
-    ! what 3DALL/3DTHM write; 3DMOH has always written this as 'Mass density'.
-    call c%put_field('Rho', Rho(1:nLons, 1:nLats, 1:nAlts, iBlock), &       ! ghosted
-                     longName='Mass density')
-    ! longName overrides: registry's canonical wind longNames ('Eastward/
-    ! Northward neutral wind') are what 3DALL/3DNEU write; 3DMOH has always
-    ! written these as plain 'Eastward wind'/'Northward wind'.
-    call c%put_field('Vn (east)', Velocity(1:nLons, 1:nLats, 1:nAlts, iEast_, iBlock), &   ! ghosted
-                     longName='Eastward wind')
-    call c%put_field('Vn (north)', Velocity(1:nLons, 1:nLats, 1:nAlts, iNorth_, iBlock), & ! ghosted
-                     longName='Northward wind')
+    call c%put_field('Altitude', Altitude_GB(1:nLons, 1:nLats, 1:nAlts, iBlock)) ! ghosted
+    call c%put_field('Rho', Rho(1:nLons, 1:nLats, 1:nAlts, iBlock))       ! ghosted
+    call c%put_field('Vn (east)', Velocity(1:nLons, 1:nLats, 1:nAlts, iEast_, iBlock))   ! ghosted
+    call c%put_field('Vn (north)', Velocity(1:nLons, 1:nLats, 1:nAlts, iNorth_, iBlock)) ! ghosted
     call c%put_field('Visc_Ve_rshear', Viscosity(:, :, 1:nAlts, iEast_)/dt)     ! alt ghosts only
     call c%put_field('Visc_Vn_rshear', Viscosity(:, :, 1:nAlts, iNorth_)/dt)    ! alt ghosts only
     call c%put_field('IonDrag_east', IonDrag(:, :, :, iEast_))      ! no ghosts
     call c%put_field('IonDrag_north', IonDrag(:, :, :, iNorth_))    ! no ghosts
     call c%put_field('Horiz_Adv_Ve', HorizAdvection(:, :, :, 1))    ! no ghosts
     call c%put_field('Horiz_Adv_Vn', HorizAdvection(:, :, :, 2))    ! no ghosts
-    ! longName overrides: registry's canonical 'Pressure gradient acceleration
-    ! eastward/northward' are what 3DION writes; 3DMOH has always written
-    ! these as 'Press gradient east/north accel'.
-    call c%put_field('PressGrad (east)', HorizPressureGrad(:, :, :, 1), &   ! no ghosts
-                     longName='Press gradient east accel')
-    call c%put_field('PressGrad (north)', HorizPressureGrad(:, :, :, 2), &  ! no ghosts
-                     longName='Press gradient north accel')
+    call c%put_field('PressGrad (east)', HorizPressureGrad(:, :, :, 1))   ! no ghosts
+    call c%put_field('PressGrad (north)', HorizPressureGrad(:, :, :, 2))  ! no ghosts
     call c%put_field('Coriolis_east', HorizCoriolis(:, :, :, 1))     ! no ghosts
     call c%put_field('Coriolis_north', HorizCoriolis(:, :, :, 2))    ! no ghosts
     call c%put_field('Centrifugal_north', Centrifugal(:, :, :, 2))   ! no ghosts
@@ -1358,10 +1377,7 @@ call c%put('E.F. Vertical', real(EField(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC
 
     call c%put_axis('Longitude', Longitude(1:nLons, iBlock)*cRadToDeg)      ! ghosted
     call c%put_axis('Latitude', Latitude(1:nLats, iBlock)*cRadToDeg)        ! ghosted
-    ! longName override: registry's canonical 'Altitude above surface' is what
-    ! 3DALL/3DTHM write; 3DMOV has always written this as plain 'Altitude'.
-    call c%put_field('Altitude', Altitude_GB(1:nLons, 1:nLats, 1:nAlts, iBlock), &  ! ghosted
-                     longName='Altitude')
+    call c%put_field('Altitude', Altitude_GB(1:nLons, 1:nLats, 1:nAlts, iBlock))  ! ghosted
     do iSpecies = 1, nSpecies
       call c%put_field('Vn (up,'//trim(cSpecies(iSpecies))//')', &   ! ghosted
                        VerticalVelocity(1:nLons, 1:nLats, 1:nAlts, iSpecies, iBlock), &
@@ -1422,12 +1438,9 @@ call c%put('E.F. Vertical', real(EField(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC
     ! Ghosted arrays are sliced 1:nLons/1:nLats; ghost-less ones pass whole.
     call c%put_axis('Longitude', Longitude(1:nLons, iBlock)*cRadToDeg)   ! ghosted
     call c%put_axis('Latitude', Latitude(1:nLats, iBlock)*cRadToDeg)     ! ghosted
-    ! longName override: the registry's canonical 'Altitude above surface' is
-    ! what 3DALL writes, but 2DANC has always written this as plain 'Altitude'.
-    ! Overriding keeps the output byte-identical; the override is removed when
-    ! the drifted longNames are canonicalized as a deliberate output change.
-    call c%put_field('Altitude', Altitude_GB(1:nLons, 1:nLats, nAlts, iBlock), &  ! ghosted, one level
-                     longName='Altitude')
+    ! Candidate for removal (along with dropping Altitude from other 2D types) once
+    ! PyITM's altitude handling no longer depends on it.
+    call c%put_field('Altitude', Altitude_GB(1:nLons, 1:nLats, nAlts, iBlock))  ! ghosted, one level
 
     ! Replicate the interior of LocalTime (ghosted) along the Latitude dimension
     do iLat = 1, nLats
@@ -1507,7 +1520,8 @@ call c%put('E.F. Vertical', real(EField(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC
 
     call c%put('Longitude', real(Longitude(1 - nGC:nLons + nGC, iBlock)*cRadToDeg, output_kind))
     call c%put('Latitude', real(Latitude(1 - nGC:nLats + nGC, iBlock)*cRadToDeg, output_kind))
-    call c%put('Altitude', real(Altitude_GB(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1, iBlock), output_kind))
+    call c%put('Altitude', real(Altitude_GB(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1, iBlock), &
+                                output_kind))
 
     do iLat = 1, nLats
       lt_buf(:, iLat) = real(LocalTime(1 - nGC:nLons + nGC), output_kind)
@@ -1721,25 +1735,32 @@ call c%put('E.F. Vertical', real(EField(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC
                real((rLat*Latitude(iiLat, iBlock) + (1.0 - rLat)*Latitude(iiLat + 1, iBlock))*cRadToDeg, &
                     output_kind))
     call c%put('Altitude', real(rAlt*Altitude_GB(iiLon, iiLat, iiAlt, iBlock) + &
-                                (1.0 - rAlt)*Altitude_GB(iiLon + 1, iiLat + 1, iiAlt + 1, iBlock), output_kind))
+                                (1.0 - rAlt)*Altitude_GB(iiLon + 1, iiLat + 1, iiAlt + 1, iBlock), &
+                                output_kind))
 
     Tmp3d = Rho(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1, iBlock)
-    call c%put('Rho', real(inter3d(Tmp3d, iiLon, iiLat, iiAlt, rLon, rLat, rAlt), output_kind))
+    call c%put('Rho', real(inter3d(Tmp3d, iiLon, iiLat, iiAlt, rLon, rLat, rAlt), &
+                           output_kind))
 
     do i = 1, nSpeciesTotal
       Tmp3d = NDensityS(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1, i, iBlock)
-      call c%put('['//trim(cSpecies(i))//']', real(inter3d(Tmp3d, iiLon, iiLat, iiAlt, rLon, rLat, rAlt), output_kind))
+      call c%put('['//trim(cSpecies(i))//']', real(inter3d(Tmp3d, iiLon, iiLat, iiAlt, rLon, rLat, rAlt), &
+                                                   output_kind))
     enddo
 
     Tmp3d = Temperature(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1, iBlock)* &
             TempUnit(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1)
-    call c%put('Temperature', real(inter3d(Tmp3d, iiLon, iiLat, iiAlt, rLon, rLat, rAlt), output_kind))
+    call c%put('Temperature', real(inter3d(Tmp3d, iiLon, iiLat, iiAlt, rLon, rLat, rAlt), &
+                                   output_kind))
 
     do i = 1, 3
       Tmp3d = Velocity(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1, i, iBlock)
-      if (i == 1) call c%put('Vn (east)', real(inter3d(Tmp3d, iiLon, iiLat, iiAlt, rLon, rLat, rAlt), output_kind))
-      if (i == 2) call c%put('Vn (north)', real(inter3d(Tmp3d, iiLon, iiLat, iiAlt, rLon, rLat, rAlt), output_kind))
-      if (i == 3) call c%put('Vn (up)', real(inter3d(Tmp3d, iiLon, iiLat, iiAlt, rLon, rLat, rAlt), output_kind))
+      if (i == 1) call c%put('Vn (east)', real(inter3d(Tmp3d, iiLon, iiLat, iiAlt, rLon, rLat, rAlt), &
+                                               output_kind))
+      if (i == 2) call c%put('Vn (north)', real(inter3d(Tmp3d, iiLon, iiLat, iiAlt, rLon, rLat, rAlt), &
+                                                output_kind))
+      if (i == 3) call c%put('Vn (up)', real(inter3d(Tmp3d, iiLon, iiLat, iiAlt, rLon, rLat, rAlt), &
+                                             output_kind))
     enddo
 
     do i = 1, nSpecies
@@ -1750,7 +1771,8 @@ call c%put('E.F. Vertical', real(EField(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC
 
     do i = 1, nIons
       Tmp3d = IDensityS(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1, i, iBlock)
-      call c%put('['//trim(cIons(i))//']', real(inter3d(Tmp3d, iiLon, iiLat, iiAlt, rLon, rLat, rAlt), output_kind))
+      call c%put('['//trim(cIons(i))//']', real(inter3d(Tmp3d, iiLon, iiLat, iiAlt, rLon, rLat, rAlt), &
+                                                output_kind))
     enddo
 
     Tmp3d = eTemperature(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1, iBlock)
@@ -1992,20 +2014,20 @@ call c%put('E.F. Vertical', real(EField(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC
     call c%define_var('O2+ + N2', units='/m3/s', shape3=[nAlts, 1, 1])
     call c%define_var('N2+ + O2', units='/m3/s', shape3=[nAlts, 1, 1])
     call c%define_var('N+ + O', units='/m3/s', shape3=[nAlts, 1, 1])
-    call c%define_var('O!+ + N2', units='/m3/s', shape3=[nAlts, 1, 1])
+    call c%define_var('O+ + N2', units='/m3/s', shape3=[nAlts, 1, 1])
     call c%define_var('O(1D) + N2', units='/m3/s', shape3=[nAlts, 1, 1])
     call c%define_var('O(1D) + O2', units='/m3/s', shape3=[nAlts, 1, 1])
     call c%define_var('O(1D) + O', units='/m3/s', shape3=[nAlts, 1, 1])
     call c%define_var('O(1D) + e', units='/m3/s', shape3=[nAlts, 1, 1])
     call c%define_var('N(2D) + O2', units='/m3/s', shape3=[nAlts, 1, 1])
-    call c%define_var('O+(2D)+e', units='/m3/s', shape3=[nAlts, 1, 1])
+    call c%define_var('O+(2D) + e', units='/m3/s', shape3=[nAlts, 1, 1])
     call c%define_var('N(2D) + O', units='/m3/s', shape3=[nAlts, 1, 1])
     call c%define_var('N(2D) + e', units='/m3/s', shape3=[nAlts, 1, 1])
-    call c%define_var('O+(2D + N2', units='/m3/s', shape3=[nAlts, 1, 1])
+    call c%define_var('O+(2D) + N2', units='/m3/s', shape3=[nAlts, 1, 1])
     call c%define_var('O+(2P) + e', units='/m3/s', shape3=[nAlts, 1, 1])
     call c%define_var('O+(2P) + O', units='/m3/s', shape3=[nAlts, 1, 1])
     call c%define_var('O+(2P) + N2', units='/m3/s', shape3=[nAlts, 1, 1])
-    call c%define_var('Chemical Heating Rate', units='K/s', shape3=[nAlts, 1, 1])
+    call c%define_var('Chemical Heating', units='eV/m3', shape3=[nAlts, 1, 1])
   end subroutine define_schema_1dchm
 
   ! ---------------------------------------------------------------------------
@@ -2052,16 +2074,16 @@ call c%put('E.F. Vertical', real(EField(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC
       if (i == 11) call c%put('O2+ + N2', tmp_data)
       if (i == 12) call c%put('N2+ + O2', tmp_data)
       if (i == 13) call c%put('N+ + O', tmp_data)
-      if (i == 14) call c%put('O!+ + N2', tmp_data)
+      if (i == 14) call c%put('O+ + N2', tmp_data)
       if (i == 15) call c%put('O(1D) + N2', tmp_data)
       if (i == 16) call c%put('O(1D) + O2', tmp_data)
       if (i == 17) call c%put('O(1D) + O', tmp_data)
       if (i == 18) call c%put('O(1D) + e', tmp_data)
       if (i == 19) call c%put('N(2D) + O2', tmp_data)
-      if (i == 20) call c%put('O+(2D)+e', tmp_data)
+      if (i == 20) call c%put('O+(2D) + e', tmp_data)
       if (i == 21) call c%put('N(2D) + O', tmp_data)
       if (i == 22) call c%put('N(2D) + e', tmp_data)
-      if (i == 23) call c%put('O+(2D + N2', tmp_data)
+      if (i == 23) call c%put('O+(2D) + N2', tmp_data)
       if (i == 24) call c%put('O+(2P) + e', tmp_data)
       if (i == 25) call c%put('O+(2P) + O', tmp_data)
       if (i == 26) call c%put('O+(2P) + N2', tmp_data)
@@ -2074,7 +2096,7 @@ call c%put('E.F. Vertical', real(EField(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC
                             Rho(1, 1, iiAlt, 1)* &
                             TempUnit(1, 1, iiAlt)/Element_Charge, output_kind)
     enddo
-    call c%put('Chemical Heating Rate', tmp_data)
+    call c%put('Chemical Heating', tmp_data)
   end subroutine fill_1dchm
 
   ! ---------------------------------------------------------------------------

@@ -49,115 +49,113 @@ module ModOutputVarRegistry
   ! variable as plain 'Altitude'; that call site overrides longName= to keep
   ! output byte-identical, and the override goes away when the drifted
   ! longNames are canonicalized as a deliberate, one-time output change.
-  type(VarMeta), parameter :: VarTable(95) = [ &
-                              ! -- coordinates (shared by every geographic type) ----------------------
-                              VarMeta('Longitude', 'degrees_east', 'Geographic longitude'), &
-                              VarMeta('Latitude', 'degrees_north', 'Geographic latitude'), &
-                              VarMeta('Altitude', 'm', 'Altitude above surface'), &
-                              ! -- neutral state ------------------------------------------------------
-                              VarMeta('Rho', 'kg/m3', 'Total neutral mass density'), &
-                              VarMeta('Temperature', 'K', 'Neutral temperature'), &
-                              VarMeta('Vn (east)', 'm/s', 'Eastward neutral wind'), &
-                              VarMeta('Vn (north)', 'm/s', 'Northward neutral wind'), &
-                              VarMeta('Vn (up)', 'm/s', 'Vertical neutral wind'), &
-                              ! -- ionosphere ---------------------------------------------------------
-                              VarMeta('eTemperature', 'K', 'Electron temperature'), &
-                              VarMeta('iTemperature', 'K', 'Ion temperature'), &
-                              VarMeta('Vi (east)', 'm/s', 'Eastward ion drift'), &
-                              VarMeta('Vi (north)', 'm/s', 'Northward ion drift'), &
-                              VarMeta('Vi (up)', 'm/s', 'Vertical ion drift'), &
-                              ! -- 2D ancillary -------------------------------------------------------
-                              VarMeta('LT', 'hr', 'Local Time'), &
-                              VarMeta('SZA', 'rad', 'Solar zenith angle'), &
-                              VarMeta('TEC', 'TECU', 'Total electron content'), &
-                              VarMeta('JH_int', 'W/m2', 'Alt-integrated Joule heating'), &
-                              VarMeta('HT_int', 'W/m2', 'Alt-integrated Heat transfer'), &
-                              VarMeta('EUV_int', 'W/m2', 'Alt-integrated EUV heating'), &
-                              VarMeta('PE_int', 'W/m2', 'Alt-integrated PE heating'), &
-                              VarMeta('Chem_int', 'W/m2', 'Alt-integrated Chem heating'), &
-                              VarMeta('RadCool_int', 'W/m2', 'Alt-integrated Rad cooling'), &
-                              VarMeta('CO2Cool_int', 'W/m2', 'Alt-integrated CO2 cooling'), &
-                              VarMeta('NOCool_int', 'W/m2', 'Alt-integrated NO cooling'), &
-                              VarMeta('OCool_int', 'W/m2', 'Alt-integrated O cooling'), &
-                              ! -- electrodynamics (introduced by 3DION) ------------------------------
-                              VarMeta('Ed1', 'V/m', 'Electric field component 1 (magnetic east)'), &
-                              VarMeta('Ed2', 'V/m', 'Electric field component 2 (magnetic north)'), &
-                              VarMeta('Je1', 'A/m2', 'Current density component 1 (magnetic east)'), &
-                              VarMeta('Je2', 'A/m2', 'Current density component 2 (magnetic north)'), &
-                              VarMeta('Magnetic Latitude', 'deg', 'Magnetic latitude'), &
-                              VarMeta('Magnetic Longitude', 'deg', 'Magnetic longitude'), &
-                              VarMeta('B.F. East', 'T', 'Eastward magnetic field component'), &
-                              VarMeta('B.F. North', 'T', 'Northward magnetic field component'), &
-                              VarMeta('B.F. Vertical', 'T', 'Vertical magnetic field component'), &
-                              VarMeta('B.F. Magnitude', 'T', 'Magnetic field magnitude'), &
-                              VarMeta('Potential', 'V', 'Electric potential'), &
-                              VarMeta('E.F. East', 'V/m', 'Eastward electric field component'), &
-                              VarMeta('E.F. North', 'V/m', 'Northward electric field component'), &
-                              VarMeta('E.F. Vertical', 'V/m', 'Vertical electric field component'), &
-                              VarMeta('E.F. Magnitude', 'V/m', 'Electric field magnitude'), &
-                              VarMeta('IN Collision Freq', 'Hz', 'Ion-neutral collision frequency'), &
-                              VarMeta('PressGrad (east)', 'm/s2', 'Pressure gradient acceleration eastward'), &
-                              VarMeta('PressGrad (north)', 'm/s2', 'Pressure gradient acceleration northward'), &
-                              VarMeta('PressGrad (up)', 'm/s2', 'Pressure gradient acceleration upward'), &
-                              ! -- 2D electrodynamics (introduced by 2DGEL) ---------------------------
-                              VarMeta('pot', 'V', 'Electric potential'), &
-                              VarMeta('PedCond', 'S', 'Height-integrated Pedersen conductance'), &
-                              VarMeta('HalCond', 'S', 'Height-integrated Hall conductance'), &
-                              VarMeta('AveE', 'keV', 'Diffuse electron precipitation average energy'), &
-                              VarMeta('eFlux', 'ergs/cm2/s', 'Diffuse electron precipitation energy flux'), &
-                              VarMeta('AveE_W', 'keV', 'Wave-driven electron precipitation average energy'), &
-                              VarMeta('eFlux_W', 'ergs/cm2/s', 'Wave-driven electron precipitation energy flux'), &
-                              VarMeta('AveE_M', 'keV', 'Monoenergetic electron precipitation average energy'), &
-                              VarMeta('eFlux_M', 'ergs/cm2/s', 'Monoenergetic electron precipitation energy flux'), &
-                              VarMeta('AveE_I', 'keV', 'Ion precipitation average energy'), &
-                              VarMeta('eFlux_I', 'ergs/cm2/s', 'Ion precipitation energy flux'), &
-                              VarMeta('DivJuAlt', 'A/m2', 'Height-integrated divergence of horizontal current'), &
-                              VarMeta('PedFLCond', 'S', 'Field-line integrated Pedersen conductance'), &
-                              VarMeta('HalFLCond', 'S', 'Field-line integrated Hall conductance'), &
-                              VarMeta('DivJuFL', 'A/m2', 'Field-line divergence of current'), &
-                              VarMeta('FL_length', 'm', 'Field line length'), &
-                              ! -- thermal budget (introduced by 3DTHM) -------------------------------
-                              VarMeta('EUV Heating (K/s)', 'K/s', 'EUV heating rate'), &
-                              VarMeta('Conduction (K/s)', 'K/s', 'Thermal conduction heating rate'), &
-                              VarMeta('Molecular Conduction (K/s)', 'K/s', 'Molecular conduction heating rate'), &
-                              VarMeta('Eddy Conduction (K/s)', 'K/s', 'Eddy conduction heating rate'), &
-                              VarMeta('Eddy Adiabatic Conduction (K/s)', 'K/s', &
-                                      'Eddy adiabatic conduction heating rate'), &
-                              VarMeta('Chemical Heating (K/s)', 'K/s', 'Chemical heating rate'), &
-                              VarMeta('Joule Heating (K/s)', 'K/s', 'Joule heating rate'), &
-                              VarMeta('NO Cooling (K/s)', 'K/s', 'NO infrared cooling rate'), &
-                              VarMeta('O Cooling (K/s)', 'K/s', 'O infrared cooling rate'), &
-                              VarMeta('Total Abs EUV', 'W/m2', 'Total absorbed EUV flux'), &
-                              VarMeta('Cp', 'J/kg/K', 'Specific heat at constant pressure'), &
-                              VarMeta('E-Field Mag', 'V/m', 'Electric field magnitude'), &
-                              VarMeta('Sigma Ped', 'S/m', 'Pedersen conductivity'), &
-                              VarMeta('Ionization Rate O_3P', '/s', 'Ionization rate for O(3P)'), &
-                              VarMeta('Ionization Rate O2', '/s', 'Ionization rate for O2'), &
-                              VarMeta('Ionization Rate N2', '/s', 'Ionization rate for N2'), &
-                              ! -- chemistry (introduced by 3DCHM) -------------------------------------
-                              VarMeta('Chemical Heating Rate', 'K/s', 'Chemical heating rate'), &
-                              ! -- horizontal momentum budget (introduced by 3DMOH) --------------------
-                              VarMeta('Visc_Ve_rshear', 'm/s2', 'Viscous east shear accel'), &
-                              VarMeta('Visc_Vn_rshear', 'm/s2', 'Viscous north shear accel'), &
-                              VarMeta('IonDrag_east', 'm/s2', 'Ion drag east accel'), &
-                              VarMeta('IonDrag_north', 'm/s2', 'Ion drag north accel'), &
-                              VarMeta('Horiz_Adv_Ve', 'm/s2', 'Horiz advection east accel'), &
-                              VarMeta('Horiz_Adv_Vn', 'm/s2', 'Horiz advection north accel'), &
-                              VarMeta('Coriolis_east', 'm/s2', 'Coriolis east accel'), &
-                              VarMeta('Coriolis_north', 'm/s2', 'Coriolis north accel'), &
-                              VarMeta('Centrifugal_north', 'm/s2', 'Centrifugal north accel'), &
-                              ! -- vertical momentum budget (introduced by 3DMOV) -----------------------
-                              VarMeta('Coriolis_up', 'm/s2', 'Coriolis upward accel'), &
-                              VarMeta('Centrif_up', 'm/s2', 'Centrifugal upward accel'), &
-                              VarMeta('EffectiveGravity', 'm/s2', 'Effective gravity accel'), &
-                              ! -- list-gated temperatures (introduced by 3DLST) -----------------------
-                              VarMeta('Neutral Temperature', 'K', 'Neutral temperature'), &
-                              VarMeta('Ion Temperature', 'K', 'Ion temperature'), &
-                              VarMeta('Electron Temperature', 'K', 'Electron temperature'), &
-                              ! -- glow placeholders (introduced by 3DGLO) -------------------------------
-                              VarMeta('6300 A Emission', '', '6300 Angstrom emission'), &
-                              VarMeta('PhotoElectronUp', '', 'Photoelectron flux up'), &
-                              VarMeta('PhotoElectronDown', '', 'Photoelectron flux down')]
+  type(VarMeta), parameter :: &
+    VarTable(*) = [ &
+    ! -- coordinates (shared by every geographic type) ----------------------
+    VarMeta('Longitude', 'degrees_east', 'Geographic longitude'), &
+    VarMeta('Latitude', 'degrees_north', 'Geographic latitude'), &
+    VarMeta('Altitude', 'm', 'Altitude above surface'), &
+    ! -- neutral state ------------------------------------------------------
+    VarMeta('Rho', 'kg/m3', 'Total neutral mass density'), &
+    VarMeta('Temperature', 'K', 'Neutral temperature'), &
+    VarMeta('Vn (east)', 'm/s', 'Eastward neutral wind'), &
+    VarMeta('Vn (north)', 'm/s', 'Northward neutral wind'), &
+    VarMeta('Vn (up)', 'm/s', 'Vertical neutral wind'), &
+    ! -- ionosphere ---------------------------------------------------------
+    VarMeta('eTemperature', 'K', 'Electron temperature'), &
+    VarMeta('iTemperature', 'K', 'Ion temperature'), &
+    VarMeta('Vi (east)', 'm/s', 'Eastward ion drift'), &
+    VarMeta('Vi (north)', 'm/s', 'Northward ion drift'), &
+    VarMeta('Vi (up)', 'm/s', 'Vertical ion drift'), &
+    ! -- 2D ancillary -------------------------------------------------------
+    VarMeta('LT', 'hr', 'Local Time'), &
+    VarMeta('SZA', 'rad', 'Solar zenith angle'), &
+    VarMeta('TEC', 'TECU', 'Total electron content'), &
+    VarMeta('JH_int', 'W/m2', 'Alt-integrated Joule heating'), &
+    VarMeta('HT_int', 'W/m2', 'Alt-integrated Heat transfer'), &
+    VarMeta('EUV_int', 'W/m2', 'Alt-integrated EUV heating'), &
+    VarMeta('PE_int', 'W/m2', 'Alt-integrated PE heating'), &
+    VarMeta('Chem_int', 'W/m2', 'Alt-integrated Chem heating'), &
+    VarMeta('RadCool_int', 'W/m2', 'Alt-integrated Rad cooling'), &
+    VarMeta('CO2Cool_int', 'W/m2', 'Alt-integrated CO2 cooling'), &
+    VarMeta('NOCool_int', 'W/m2', 'Alt-integrated NO cooling'), &
+    VarMeta('OCool_int', 'W/m2', 'Alt-integrated O cooling'), &
+    ! -- electrodynamics (introduced by 3DION) ------------------------------
+    VarMeta('Ed1', 'V/m', 'Electric field component 1 (magnetic east)'), &
+    VarMeta('Ed2', 'V/m', 'Electric field component 2 (magnetic north)'), &
+    VarMeta('Je1', 'A/m2', 'Current density component 1 (magnetic east)'), &
+    VarMeta('Je2', 'A/m2', 'Current density component 2 (magnetic north)'), &
+    VarMeta('Magnetic Latitude', 'deg', 'Magnetic latitude'), &
+    VarMeta('Magnetic Longitude', 'deg', 'Magnetic longitude'), &
+    VarMeta('B.F. East', 'T', 'Eastward magnetic field'), &
+    VarMeta('B.F. North', 'T', 'Northward magnetic field'), &
+    VarMeta('B.F. Vertical', 'T', 'Vertical magnetic field'), &
+    VarMeta('B.F. Magnitude', 'T', 'Magnetic field magnitude'), &
+    VarMeta('Potential', 'V', 'Electric potential'), &
+    VarMeta('E.F. East', 'V/m', 'Eastward electric field'), &
+    VarMeta('E.F. North', 'V/m', 'Northward electric field'), &
+    VarMeta('E.F. Vertical', 'V/m', 'Vertical electric field'), &
+    VarMeta('E.F. Magnitude', 'V/m', 'Electric field magnitude'), &
+    VarMeta('IN Collision Freq', 'Hz', 'Ion-neutral collision frequency'), &
+    VarMeta('PressGrad (east)', 'm/s2', 'Neutral Pressure gradient acceleration eastward'), &
+    VarMeta('PressGrad (north)', 'm/s2', 'Neutral Pressure gradient acceleration northward'), &
+    VarMeta('IonPressGrad (east)', 'm/s2', 'Ion Pressure gradient acceleration eastward'), &
+    VarMeta('IonPressGrad (north)', 'm/s2', 'Ion Pressure gradient acceleration northward'), &
+    VarMeta('IonPressGrad (up)', 'm/s2', 'Ion Pressure gradient acceleration upward'), &
+    ! -- 2D electrodynamics (introduced by 2DGEL) ---------------------------
+    VarMeta('PedCond', 'S', 'Height-integrated Pedersen conductance'), &
+    VarMeta('HalCond', 'S', 'Height-integrated Hall conductance'), &
+    VarMeta('AveE', 'keV', 'Diffuse electron precipitation average energy'), &
+    VarMeta('eFlux', 'ergs/cm2/s', 'Diffuse electron precipitation energy flux'), &
+    VarMeta('AveE_W', 'keV', 'Wave-driven electron precipitation average energy'), &
+    VarMeta('eFlux_W', 'ergs/cm2/s', 'Wave-driven electron precipitation energy flux'), &
+    VarMeta('AveE_M', 'keV', 'Monoenergetic electron precipitation average energy'), &
+    VarMeta('eFlux_M', 'ergs/cm2/s', 'Monoenergetic electron precipitation energy flux'), &
+    VarMeta('AveE_I', 'keV', 'Ion precipitation average energy'), &
+    VarMeta('eFlux_I', 'ergs/cm2/s', 'Ion precipitation energy flux'), &
+    VarMeta('DivJuAlt', 'A/m2', 'Height-integrated divergence of horizontal current'), &
+    VarMeta('PedFLCond', 'S', 'Field-line integrated Pedersen conductance'), &
+    VarMeta('HalFLCond', 'S', 'Field-line integrated Hall conductance'), &
+    VarMeta('DivJuFL', 'A/m2', 'Field-line divergence of current'), &
+    VarMeta('FL_length', 'm', 'Field line length'), &
+    ! -- thermal budget (introduced by 3DTHM) -------------------------------
+    VarMeta('EUV Heating Rate', 'K/s', 'EUV heating rate'), &
+    VarMeta('Conduction', 'K/s', 'Thermal conduction heating rate'), &
+    VarMeta('Molecular Conduction', 'K/s', 'Molecular conduction heating rate'), &
+    VarMeta('Eddy Conduction', 'K/s', 'Eddy conduction heating rate'), &
+    VarMeta('Eddy Adiabatic Conduction', 'K/s', 'Eddy adiabatic conduction heating rate'), &
+    VarMeta('Chemical Heating Rate', 'K/s', 'Chemical heating rate'), &
+    VarMeta('Joule Heating Rate', 'K/s', 'Joule heating rate'), &
+    VarMeta('NO Cooling Rate', 'K/s', 'NO infrared cooling rate'), &
+    VarMeta('O Cooling Rate', 'K/s', 'O infrared cooling rate'), &
+    VarMeta('Total Abs EUV', 'W/m2', 'Total absorbed EUV flux'), &
+    VarMeta('Cp', 'J/kg/K', 'Specific heat at constant pressure'), &
+    VarMeta('Sigma Ped', 'S/m', 'Pedersen conductivity'), &
+    VarMeta('Ionization Rate O_3P', '/s', 'Ionization rate for O(3P)'), &
+    VarMeta('Ionization Rate O2', '/s', 'Ionization rate for O2'), &
+    VarMeta('Ionization Rate N2', '/s', 'Ionization rate for N2'), &
+    ! -- chemistry (introduced by 3DCHM) -------------------------------------
+    ! Volumetric energy deposited over the current timestep -- distinct from
+    ! 3DTHM's 'Chemical Heating Rate' (K/s); no /dt in the producer expression.
+    VarMeta('Chemical Heating', 'eV/m3', 'Volumetric chemical heating per timestep'), &
+    ! -- horizontal momentum budget (introduced by 3DMOH) --------------------
+    VarMeta('Visc_Ve_rshear', 'm/s2', 'Viscous east shear accel'), &
+    VarMeta('Visc_Vn_rshear', 'm/s2', 'Viscous north shear accel'), &
+    VarMeta('IonDrag_east', 'm/s2', 'Ion drag east accel'), &
+    VarMeta('IonDrag_north', 'm/s2', 'Ion drag north accel'), &
+    VarMeta('Horiz_Adv_Ve', 'm/s2', 'Horiz advection east accel'), &
+    VarMeta('Horiz_Adv_Vn', 'm/s2', 'Horiz advection north accel'), &
+    VarMeta('Coriolis_east', 'm/s2', 'Coriolis east accel'), &
+    VarMeta('Coriolis_north', 'm/s2', 'Coriolis north accel'), &
+    VarMeta('Centrifugal_north', 'm/s2', 'Centrifugal north accel'), &
+    ! -- vertical momentum budget (introduced by 3DMOV) -----------------------
+    VarMeta('Coriolis_up', 'm/s2', 'Coriolis upward accel'), &
+    VarMeta('Centrif_up', 'm/s2', 'Centrifugal upward accel'), &
+    VarMeta('EffectiveGravity', 'm/s2', 'Effective gravity accel'), &
+    ! -- glow placeholders (introduced by 3DGLO) -------------------------------
+    VarMeta('6300 A Emission', '', '6300 Angstrom emission'), &
+    VarMeta('PhotoElectronUp', '', 'Photoelectron flux up'), &
+    VarMeta('PhotoElectronDown', '', 'Photoelectron flux down')]
 
 contains
 

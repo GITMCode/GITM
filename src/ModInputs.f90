@@ -10,6 +10,7 @@ module ModInputs
 
   implicit none
 
+  ! Which values to output in the LST files - 3DLST can optionally include a few fields.
   logical :: iRhoOutputList = .true.
   logical :: iNeutralDensityOutputList(nSpeciesTotal) = .true.
   logical :: iNeutralWindOutputList(3) = .true.
