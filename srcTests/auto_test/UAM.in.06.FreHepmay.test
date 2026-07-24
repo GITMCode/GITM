@@ -70,6 +70,9 @@ T					convert SME to Hemispheric Power
 #NGDC_INDICES
 UA/DataIn/f107.txt
 
+#KP
+4.0
+
 ------------ Some options ------------
 
 Low-latitude dynamo (only run with higher res). Turn on for higher res sims:
