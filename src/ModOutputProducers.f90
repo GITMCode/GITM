@@ -507,17 +507,13 @@ contains
                       shape3=[nMagLons + 1, nMagLats, 1], &
                       longName='Geographic longitude')
     call c%define_var('PedCond', units='S', &
-                      shape3=[nMagLons + 1, nMagLats, 1], &
-                      longName='Height-integrated Pedersen conductance')
+                      shape3=[nMagLons + 1, nMagLats, 1])
     call c%define_var('HalCond', units='S', &
-                      shape3=[nMagLons + 1, nMagLats, 1], &
-                      longName='Height-integrated Hall conductance')
+                      shape3=[nMagLons + 1, nMagLats, 1])
     call c%define_var('DivJuAlt', units='A/m2', &
-                      shape3=[nMagLons + 1, nMagLats, 1], &
-                      longName='Height-integrated divergence of horizontal current')
+                      shape3=[nMagLons + 1, nMagLats, 1])
     call c%define_var('FL_length', units='m', &
-                      shape3=[nMagLons + 1, nMagLats, 1], &
-                      longName='Field line length')
+                      shape3=[nMagLons + 1, nMagLats, 1])
     call c%define_var('Sigma_PP', units='S', &
                       shape3=[nMagLons + 1, nMagLats, 1], &
                       longName='Sigma PP conductance component')
@@ -1111,26 +1107,24 @@ contains
     c%nGhostCells = 0
     nGC = c%nGhostCells
 
-    call c%define_var('Longitude', units='degrees_east', shape3=[nLons + 2*nGC, 1, 1], is_axis=.true., &
-                      longName='Geographic longitude')
-    call c%define_var('Latitude', units='degrees_north', shape3=[nLats + 2*nGC, 1, 1], is_axis=.true., &
-                      longName='Geographic latitude')
-    call c%define_var('Altitude', units='m', longName='Altitude', &
+    call c%define_var('Longitude', units='degrees_east', shape3=[nLons + 2*nGC, 1, 1], is_axis=.true.)
+    call c%define_var('Latitude', units='degrees_north', shape3=[nLats + 2*nGC, 1, 1], is_axis=.true.)
+    call c%define_var('Altitude', units='m', &
                       shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC])
-    call c%define_var('Rho', units='kg/m3', longName='Total neutral mass density', &
+    call c%define_var('Rho', units='kg/m3', &
                       shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC])
     do i = 1, nSpeciesTotal
       call c%define_var('['//trim(cSpecies(i))//']', units='/m3', &
                         longName='Number density of '//trim(cSpecies(i)), &
                         shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC])
     enddo
-    call c%define_var('Temperature', units='K', longName='Neutral temperature', &
+    call c%define_var('Temperature', units='K', &
                       shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC])
-    call c%define_var('Vn (east)', units='m/s', longName='Eastward neutral wind', &
+    call c%define_var('Vn (east)', units='m/s', &
                       shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC])
-    call c%define_var('Vn (north)', units='m/s', longName='Northward neutral wind', &
+    call c%define_var('Vn (north)', units='m/s', &
                       shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC])
-    call c%define_var('Vn (up)', units='m/s', longName='Vertical neutral wind', &
+    call c%define_var('Vn (up)', units='m/s', &
                       shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC])
     do i = 1, nSpecies
       call c%define_var('Vn (up,'//trim(cSpecies(i))//')', units='m/s', &
@@ -1142,15 +1136,15 @@ contains
                         longName='Number density of '//trim(cIons(i)), &
                         shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC])
     enddo
-    call c%define_var('eTemperature', units='K', longName='Electron temperature', &
+    call c%define_var('eTemperature', units='K', &
                       shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC])
-    call c%define_var('iTemperature', units='K', longName='Ion temperature', &
+    call c%define_var('iTemperature', units='K', &
                       shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC])
-    call c%define_var('Vi (east)', units='m/s', longName='Eastward ion drift', &
+    call c%define_var('Vi (east)', units='m/s', &
                       shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC])
-    call c%define_var('Vi (north)', units='m/s', longName='Northward ion drift', &
+    call c%define_var('Vi (north)', units='m/s', &
                       shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC])
-    call c%define_var('Vi (up)', units='m/s', longName='Vertical ion drift', &
+    call c%define_var('Vi (up)', units='m/s', &
                       shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC])
     call c%define_var('PhotoElectron Heating', units='K', longName='Photoelectron heating', &
                       shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC])
@@ -1158,27 +1152,27 @@ contains
                       shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC])
     call c%define_var('Specific Heat', units='J/kg/K', longName='Specific heat Cp', &
                       shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC])
-    call c%define_var('Magnetic Latitude', units='deg', longName='Magnetic latitude', &
+    call c%define_var('Magnetic Latitude', units='deg', &
                       shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC])
-    call c%define_var('Magnetic Longitude', units='deg', longName='Magnetic longitude', &
+    call c%define_var('Magnetic Longitude', units='deg', &
                       shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC])
-    call c%define_var('B.F. East', units='T', longName='Eastward magnetic field', &
+    call c%define_var('B.F. East', units='T', &
                       shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC])
-    call c%define_var('B.F. North', units='T', longName='Northward magnetic field', &
+    call c%define_var('B.F. North', units='T', &
                       shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC])
-    call c%define_var('B.F. Vertical', units='T', longName='Vertical magnetic field', &
+    call c%define_var('B.F. Vertical', units='T', &
                       shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC])
-    call c%define_var('B.F. Magnitude', units='T', longName='Magnetic field magnitude', &
+    call c%define_var('B.F. Magnitude', units='T', &
                       shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC])
-    call c%define_var('Potential', units='V', longName='Electric potential', &
+    call c%define_var('Potential', units='V', &
                       shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC])
     call c%define_var('PotentialY', units='V', longName='Potential Y component', &
                       shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC])
-    call c%define_var('E.F. East', units='V/m', longName='Eastward electric field', &
+    call c%define_var('E.F. East', units='V/m', &
                       shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC])
-    call c%define_var('E.F. North', units='V/m', longName='Northward electric field', &
+    call c%define_var('E.F. North', units='V/m', &
                       shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC])
-    call c%define_var('E.F. Vertical', units='V/m', longName='Vertical electric field', &
+    call c%define_var('E.F. Vertical', units='V/m', &
                       shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC])
   end subroutine define_schema_3dhme
 
@@ -1473,13 +1467,11 @@ contains
     c%nGhostCells = 0
     nGC = c%nGhostCells
 
-    call c%define_var('Longitude', units='degrees_east', shape3=[nLons + 2*nGC, 1, 1], is_axis=.true., &
-                      longName='Geographic longitude')
-    call c%define_var('Latitude', units='degrees_north', shape3=[nLats + 2*nGC, 1, 1], is_axis=.true., &
-                      longName='Geographic latitude')
-    call c%define_var('Altitude', units='m', shape3=[nLons + 2*nGC, nLats + 2*nGC, 1], longName='Altitude')
-    call c%define_var('LT', units='hr', shape3=[nLons + 2*nGC, nLats + 2*nGC, 1], longName='Local Time')
-    call c%define_var('TEC', units='TECU', shape3=[nLons + 2*nGC, nLats + 2*nGC, 1], longName='Total electron content')
+    call c%define_var('Longitude', units='degrees_east', shape3=[nLons + 2*nGC, 1, 1], is_axis=.true.)
+    call c%define_var('Latitude', units='degrees_north', shape3=[nLats + 2*nGC, 1, 1], is_axis=.true.)
+    call c%define_var('Altitude', units='m', shape3=[nLons + 2*nGC, nLats + 2*nGC, 1])
+    call c%define_var('LT', units='hr', shape3=[nLons + 2*nGC, nLats + 2*nGC, 1])
+    call c%define_var('TEC', units='TECU', shape3=[nLons + 2*nGC, nLats + 2*nGC, 1])
   end subroutine define_schema_2dhme
 
   ! ---------------------------------------------------------------------------
@@ -2159,12 +2151,9 @@ contains
     c%gridKind = GRID_GEO_3D
     c%nGhostCells = 0
 
-    call c%define_var('Longitude', units='degrees_east', shape3=[nLons, 1, 1], &
-                      is_axis=.true., longName='Geographic longitude')
-    call c%define_var('Latitude', units='degrees_north', shape3=[nLats, 1, 1], &
-                      is_axis=.true., longName='Geographic latitude')
-    call c%define_var('Altitude', units='m', shape3=[nLons, nLats, nAlts], &
-                      longName='Altitude')
+    call c%define_var('Longitude', units='degrees_east', shape3=[nLons, 1, 1], is_axis=.true.)
+    call c%define_var('Latitude', units='degrees_north', shape3=[nLats, 1, 1], is_axis=.true.)
+    call c%define_var('Altitude', units='m', shape3=[nLons, nLats, nAlts])
     do i = 1, nUsrVars3D
       call c%define_var(trim(UsrVars3D(i)%name), units=trim(UsrVars3D(i)%units), &
                         shape3=[nLons, nLats, nAlts], longName=trim(UsrVars3D(i)%longName))
@@ -2205,11 +2194,9 @@ contains
     c%gridKind = GRID_GEO_2D
     c%nGhostCells = 0
 
-    call c%define_var('Longitude', units='degrees_east', shape3=[nLons, 1, 1], is_axis=.true., &
-                      longName='Geographic longitude')
-    call c%define_var('Latitude', units='degrees_north', shape3=[nLats, 1, 1], is_axis=.true., &
-                      longName='Geographic latitude')
-    call c%define_var('Altitude', units='m', shape3=[nLons, nLats, 1], longName='Altitude')
+    call c%define_var('Longitude', units='degrees_east', shape3=[nLons, 1, 1], is_axis=.true.)
+    call c%define_var('Latitude', units='degrees_north', shape3=[nLats, 1, 1], is_axis=.true.)
+    call c%define_var('Altitude', units='m', shape3=[nLons, nLats, 1])
     do i = 1, nUsrVars2D
       call c%define_var(trim(UsrVars2D(i)%name), units=trim(UsrVars2D(i)%units), &
                         shape3=[nLons, nLats, 1], longName=trim(UsrVars2D(i)%longName))

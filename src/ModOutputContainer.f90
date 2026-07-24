@@ -127,6 +127,9 @@ contains
     logical, intent(in), optional :: is_axis
 
     integer :: n
+    character(len=32)  :: regUnits
+    character(len=128) :: regLongName
+    logical :: inRegistry
 
     if (this%schema_locked) then
       write(*, '(a,a,a)') 'ModOutputContainer: WARNING define_var called after schema locked for ', &
@@ -152,7 +155,18 @@ contains
     if (present(longName)) then
       this%vars(n)%longName = trim(longName)
     else
-      this%vars(n)%longName = trim(name)
+      ! No explicit longName: adopt the registry's canonical text when the name
+      ! is registered, matching ensure_var, so define-path types cannot drift
+      ! from the central registry.  Registry units are discarded here; units is a
+      ! required argument and is never overridden.
+      regUnits = ''
+      regLongName = ''
+      inRegistry = lookup_var_meta(name, regUnits, regLongName)
+      if (inRegistry) then
+        this%vars(n)%longName = trim(regLongName)
+      else
+        this%vars(n)%longName = trim(name)
+      endif
     endif
 
     if (present(is_axis)) then
