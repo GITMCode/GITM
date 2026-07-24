@@ -250,8 +250,9 @@ contains
       ! ----------------------------------------------------------------
       ! Single-time mode (default): one file per output type per timestep.
       ! The run name applies here too (same-directory ensembles); no restart
-      ! stamp and no guard; colliding epochs are recomputed identical data,
-      ! overwritten in place like the legacy/mpiio backends.
+      ! stamp and no guard; colliding epochs are recomputed and overwritten
+      ! in place like the legacy/mpiio backends (not guaranteed bit-identical
+      ! on restart; known GITM behavior).
       ! ----------------------------------------------------------------
       nc_time_record = 1
       filename = trim(dir)//"/"//trim(cType)//trim(nc_name_part)// &

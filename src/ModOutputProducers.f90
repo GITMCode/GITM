@@ -982,6 +982,9 @@ contains
   ! ranks and time-invariant, so priming sees the same conditions as every fill.
   ! That is what makes the conditional puts safe; a rank- or time-dependent
   ! condition would desync the schema. All list flags default .true.
+  ! HARD INVARIANT: the flags are set once (input parse / init_planet) before
+  ! the first output and never written again. Anything that mutates them
+  ! mid-run, or moves priming earlier, breaks the locked schema and aborts.
   ! ---------------------------------------------------------------------------
   subroutine fill_3dlst(c, iBlock)
     use ModGITM
@@ -1671,7 +1674,8 @@ contains
 
     do i = 1, nSpeciesTotal
       Tmp3d = NDensityS(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1, i, iBlock)
-      call c%put_field('['//trim(cSpecies(i))//']', [inter3d(Tmp3d, iiLon, iiLat, iiAlt, rLon, rLat, rAlt)], units='/m3')
+      call c%put_field('['//trim(cSpecies(i))//']', &
+                       [inter3d(Tmp3d, iiLon, iiLat, iiAlt, rLon, rLat, rAlt)], units='/m3')
     enddo
 
     Tmp3d = Temperature(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1, iBlock)* &

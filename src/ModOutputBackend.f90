@@ -8,6 +8,8 @@
 ! Contains backends for:
 !   legacy: per-block unformatted sequential files (original format)
 !   mpiio:  single combined .bin file written collectively via MPI-IO, single header
+!   netcdf: pointer wiring only; implemented in ModOutputNetCDF.F90 (one
+!           self-describing .nc file per type per timestep, no header file)
 
 module ModOutputBackend
 

@@ -214,7 +214,8 @@ build requirements.
 
 ### NETCDFOPTIONS
 
-Options for the `netcdf` backend. Both flags are sequential and optional.
+Options for the `netcdf` backend. The block itself is optional; when present,
+`netCDFAppendMethod` is required and `netCDFFileName` is optional.
 
 `netCDFAppendMethod` sets how often files are created:
 

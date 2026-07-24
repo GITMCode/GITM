@@ -59,7 +59,7 @@ raw name is kept in each variable's `gitm_name` attribute). Notes:
   user code registered. The tables below show one example configuration.
 - **Not listed** (absent from the generating run): `3DHME` (regional,
   3DALL-like variable set), the 1-D probe types (`1DALL`, `1DGLO`, `1DTHM`,
-  `1DCHM`, `1DNEW`), and the 0-D satellite types (`0DALL`, `0DUSR`).
+  `1DCHM`, `1DNEW`, `1DUSR`), and the 0-D satellite types (`0DALL`, `0DUSR`).
   Regenerate from a run that includes them for their tables.
 
 ### 2DANC

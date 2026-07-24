@@ -75,7 +75,8 @@ NetCDF-aware tool.
 
 By default the NetCDF backend creates one file per output type per timestep
 (e.g., `3DALL_t230101_000000.nc`, `3DALL_t230101_000500.nc`, ...). `#NETCDFOPTIONS`
-controls this with two sequential, optional flags:
+controls this with two sequential flags (the first required, the second
+optional):
 
 ```
 #NETCDFOPTIONS
@@ -90,7 +91,7 @@ storm1          netCDFFileName (optional run name)
 - `single`: one file per output type for the entire run, e.g. `3DALL.nc`.
 
 `daily` and `single` files use an unlimited time dimension; data variables are
-shaped `(lon, lat[, alt], time)` and read natively by xarray:
+shaped `(time, [z,] lat, lon)` (time first) and read natively by xarray:
 
 ```python
 import xarray as xr
@@ -116,8 +117,10 @@ times, keeping the later leg.
     directory). An unnamed, non-restart run keeps the historical behavior of
     overwriting. An unnamed restart always trips the guard, so set
     `netCDFFileName` to continue a run across restarts. `none` mode and the
-    `legacy`/`mpiio` backends are unguarded: colliding epochs are recomputed,
-    identical data, and are overwritten in place.
+    `legacy`/`mpiio` backends are unguarded: colliding epochs are recomputed
+    and overwritten in place. (The recompute is not guaranteed bit-identical:
+    restarted runs are known to diverge slightly, likely via the dynamo /
+    high-latitude electric fields.)
 
 `#NETCDFOPTIONS` only affects the `netcdf` backend; it is ignored for
 `legacy` and `mpiio`.
