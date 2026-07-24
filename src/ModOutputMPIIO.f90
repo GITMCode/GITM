@@ -278,12 +278,10 @@ contains
                int(bytes_per_element, MPI_OFFSET_KIND)
     endif
 
-    ! Collective write_at_all requires EVERY rank to call in.
-    ! For grids where only some ranks write (MAG_2D = rank 0 only;
-    ! HIME = in-region ranks), the non-writing ranks returned early above, so a
-    ! collective call would deadlock. Use the independent variant there 
-    ! "normal", block-partitioned geo grids, keep the faster
-    ! collective path since all ranks participate.
+    ! MAG_2D/HIME: non-writing ranks already returned above, so a collective
+    ! write_at_all would deadlock waiting on them -- use independent write_at.
+    ! Normal block-partitioned geo grids: all ranks participate; keep the
+    ! faster collective path.
     if (c%gridKind == GRID_MAG_2D .or. c%gridKind == GRID_HIME) then
       call MPI_File_write_at(mpiio_fh, offset, tmpbuf(1, 1, 1, 1), nTotal, &
                              MPI_REAL, status, ierr)

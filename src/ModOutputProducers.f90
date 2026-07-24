@@ -437,7 +437,33 @@ contains
     call finish_priming(containers(iCont_3DLST))
     call fill_3dglo(containers(iCont_3DGLO), 1)
     call finish_priming(containers(iCont_3DGLO))
+
+    call assert_types_fully_wired()
   end subroutine init_output_containers
+
+  ! ---------------------------------------------------------------------------
+  ! assert_types_fully_wired — init-time self-check over containers(:).
+  ! Catches the silent add-a-type mistakes at startup instead of at analysis
+  ! time: a slot whose define/prime call was forgotten (no cType or empty
+  ! schema), a cType missing from the lookup lists, or an index/cType mismatch.
+  ! ---------------------------------------------------------------------------
+  subroutine assert_types_fully_wired()
+    integer :: i
+    do i = 1, nContainers
+      if (len_trim(containers(i)%cType) == 0) &
+        call stop_gitm('output container slot has no cType'// &
+                       ' (forgot its define/prime call in init_output_containers?)')
+      if (get_container_idx(containers(i)%cType) /= i) &
+        call stop_gitm('output container index/cType mismatch: '// &
+                       trim(containers(i)%cType))
+      if (.not. is_known_output_type(containers(i)%cType)) &
+        call stop_gitm('output type missing from is_known_output_type: '// &
+                       trim(containers(i)%cType))
+      if (containers(i)%nVars == 0) &
+        call stop_gitm('output container has an empty schema'// &
+                       ' (forgot define/prime?): '//trim(containers(i)%cType))
+    enddo
+  end subroutine assert_types_fully_wired
 
   ! ---------------------------------------------------------------------------
   ! finish_priming — close out a converted type's priming pass.
@@ -975,11 +1001,11 @@ contains
   !
   ! Uniformly 2-ghosted like 3DALL — every array touched is declared
   ! (-1:nLons+2, -1:nLats+2, -1:nAlts+2, ...), so the whole array IS the slice.
-  ! Puts are gated by the UAM.in-derived i*OutputList flags, which are
-  ! globally uniform and time-invariant — priming and every real fill see
-  ! identical conditions, so this is the one sanctioned form of conditional
-  ! put (step-9 checklist #5 / Amendment 8). All list flags default .true.
-  ! and the gate sweep does not override them, so every branch is exercised.
+  ! Puts are gated by the UAM.in-derived i*OutputList flags — uniform across
+  ! ranks and time-invariant, so priming sees the same conditions as every
+  ! real fill. That property is what makes conditional puts safe here; a
+  ! rank- or time-dependent condition would desync the schema. All list
+  ! flags default .true.
   ! ---------------------------------------------------------------------------
   subroutine fill_3dlst(c, iBlock)
     use ModGITM

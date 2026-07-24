@@ -392,6 +392,11 @@ subroutine output(dir, iBlock, iOutputType)
       if (associated(ActiveBackend%write_container)) &
         call ActiveBackend%write_container(containers(iCont_0DUSR), iBLK, iTimeArray)
       call containers(iCont_0DUSR)%reset()
+    else
+      ! A type that is registered (it has a container) but has no dispatch
+      ! branch would otherwise produce a valid-looking file of fill values.
+      call stop_gitm('output_common: no dispatch branch for output type '// &
+                     trim(cType)//' -- add its elseif above')
     endif
 
     ! Check that one-shot fills have "put" each variable exactly once.
