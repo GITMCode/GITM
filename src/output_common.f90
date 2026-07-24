@@ -71,6 +71,7 @@ subroutine output(dir, iBlock, iOutputType)
   character(len=5) :: proc_str, cBlock, cType
   character(len=24) :: cTime = '', cTimeSave = ''
   integer :: iiLat, iiLon, iiAlt, nGCs, cL = 0
+  integer :: iOpenStatus
   integer :: iLon, iLat, iAlt, nlines, iBLK, iSpecies, i
   logical :: done, IsFirstTime = .true., IsThere, DoSaveHIMEPlot
 
@@ -236,13 +237,21 @@ subroutine output(dir, iBlock, iOutputType)
     inquire(file=trim(dir)//"/"//trim(CurrentSatelliteName)//"_"//cTime(1:cL)//".sat", &
             EXIST=IsThere)
     if (.not. DoAppendFiles .or. tSimulation < 0.1 .or. .not. IsThere) then
-      open(unit=iOutputUnit_, form="unformatted", &
+      open(unit=iOutputUnit_, form="unformatted", iostat=iOpenStatus, &
            file=trim(dir)//"/"//trim(CurrentSatelliteName)//"_"//cTime(1:cL)//".sat", &
            status="unknown")
     else
-      open(unit=iOutputUnit_, form="unformatted", &
+      open(unit=iOutputUnit_, form="unformatted", iostat=iOpenStatus, &
            file=trim(dir)//"/"//trim(CurrentSatelliteName)//"_"//cTime(1:cL)//".sat", &
            status="unknown", position='append')
+    endif
+    ! Rank-local open: a bare failure would abort only this rank (no MPI_Abort)
+    ! and hang the others at the next collective, so route it through stop_gitm.
+    if (iOpenStatus /= 0) then
+      write(*, *) "output (legacy): cannot open satellite file ", &
+        trim(dir)//"/"//trim(CurrentSatelliteName)//"_"//cTime(1:cL)//".sat", &
+        " iostat=", iOpenStatus
+      call stop_gitm("output (legacy): cannot open satellite .sat file; see message above")
     endif
   elseif (ActiveBackend%uses_external_file) then
     ! Legacy backend: open per-block file here.
@@ -253,13 +262,20 @@ subroutine output(dir, iBlock, iOutputType)
       inquire(file=trim(dir)//"/"//cType//"_"//cTime(1:cL)//"."//cBlock, &
               EXIST=IsThere)
       if (.not. DoAppendFiles .or. tSimulation < 0.1 .or. .not. IsThere) then
-        open(unit=iOutputUnit_, form="unformatted", &
+        open(unit=iOutputUnit_, form="unformatted", iostat=iOpenStatus, &
              file=trim(dir)//"/"//cType//"_"//cTime(1:cL)//"."//cBlock, &
              status="unknown")
       else
-        open(unit=iOutputUnit_, form="unformatted", &
+        open(unit=iOutputUnit_, form="unformatted", iostat=iOpenStatus, &
              file=trim(dir)//"/"//cType//"_"//cTime(1:cL)//"."//cBlock, &
              status="unknown", position='append')
+      endif
+      ! Rank-local per-block open (see satellite note above): halt via stop_gitm.
+      if (iOpenStatus /= 0) then
+        write(*, *) "output (legacy): cannot open block file ", &
+          trim(dir)//"/"//cType//"_"//cTime(1:cL)//"."//cBlock, &
+          " iostat=", iOpenStatus
+        call stop_gitm("output (legacy): cannot open per-block data file; see message above")
       endif
     endif
   else
@@ -294,25 +310,39 @@ subroutine output(dir, iBlock, iOutputType)
     if (iOutputType <= -1) then
       inquire(file=trim(dir)//"/"//trim(CurrentSatelliteName)//"_"//cTime(1:cL)//".header", EXIST=IsThere)
       if (.not. DoAppendFiles .or. tSimulation < 0.1 .or. .not. IsThere) then
-        open(unit=iOutputUnit_, &
+        open(unit=iOutputUnit_, iostat=iOpenStatus, &
              file=trim(dir)//"/"//trim(CurrentSatelliteName)//"_"//cTime(1:cL)//".header", &
              status="unknown")
       else
-        open(unit=iOutputUnit_, &
+        open(unit=iOutputUnit_, iostat=iOpenStatus, &
              file=trim(dir)//"/"//trim(CurrentSatelliteName)//"_"//cTime(1:cL)//".header", &
              status="unknown", position='append')
+      endif
+      ! Rank-local header open (see satellite note above): halt via stop_gitm.
+      if (iOpenStatus /= 0) then
+        write(*, *) "output (legacy): cannot open satellite header file ", &
+          trim(dir)//"/"//trim(CurrentSatelliteName)//"_"//cTime(1:cL)//".header", &
+          " iostat=", iOpenStatus
+        call stop_gitm("output (legacy): cannot open satellite .header file; see message above")
       endif
     else
       inquire(file=trim(dir)//"/"//cType//"_"//cTime(1:cL)//".header", &
               EXIST=IsThere)
       if (.not. DoAppendFiles .or. tSimulation < 0.1 .or. .not. IsThere) then
-        open(unit=iOutputUnit_, &
+        open(unit=iOutputUnit_, iostat=iOpenStatus, &
              file=trim(dir)//"/"//cType//"_"//cTime(1:cL)//".header", &
              status="unknown")
       else
-        open(unit=iOutputUnit_, &
+        open(unit=iOutputUnit_, iostat=iOpenStatus, &
              file=trim(dir)//"/"//cType//"_"//cTime(1:cL)//".header", &
              status="unknown", position='append')
+      endif
+      ! Rank-0-only header open (see satellite note above): halt via stop_gitm.
+      if (iOpenStatus /= 0) then
+        write(*, *) "output (legacy): cannot open header file ", &
+          trim(dir)//"/"//cType//"_"//cTime(1:cL)//".header", &
+          " iostat=", iOpenStatus
+        call stop_gitm("output (legacy): cannot open .header file; see message above")
       endif
     endif
 

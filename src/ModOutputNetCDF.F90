@@ -59,7 +59,7 @@ module ModOutputNetCDF
   integer :: nc_varid_time = -1        ! varid of the time coordinate variable
   integer :: nc_type_records(nc_max_types)  ! records written per output type so far
   data nc_type_records/nc_max_types*0/
-  character(len=300) :: nc_type_filenames(nc_max_types)  ! last filename opened per type
+  character(len=600) :: nc_type_filenames(nc_max_types)  ! last filename opened per type
   data nc_type_filenames/nc_max_types*' '/
 
   ! Leg naming (#NETCDFOPTIONS), computed once per process by build_leg_names:
@@ -72,7 +72,7 @@ module ModOutputNetCDF
   !                  refuse (stop_gitm) to overwrite an existing target file;
   !                  unnamed fresh runs keep the status-quo clobber
   logical :: nc_names_built = .false.
-  character(len=120) :: nc_name_part = ''
+  character(len=200) :: nc_name_part = ''
   character(len=40) :: nc_restart_part = ''
   logical :: nc_guard_active = .false.
 
@@ -106,7 +106,7 @@ contains
     integer, intent(in) :: cL
 
 #ifdef HavePNetCDF
-    character(len=300) :: filename
+    character(len=600) :: filename
     integer :: iTypeIdx, nVars, nDims, iV, ierr, ndimid
     integer(kind=MPI_OFFSET_KIND) :: nLons_g, nLats_g, nAlts_g
     integer(kind=MPI_OFFSET_KIND) :: tstart(1), tcnt(1)
@@ -210,8 +210,11 @@ contains
                               IOR(NF_CLOBBER, NF_64BIT_DATA), MPI_INFO_NULL, ncid)
         endif
         if (ierr /= NF_NOERR) then
-          write(*, *) "ModOutputNetCDF: nfmpi_create failed: ", nfmpi_strerror(ierr)
-          ncid = -1; return
+          ! Collective create over iCommGITM: ierr is consistent across ranks,
+          ! and stop_gitm calls MPI_Abort, so halting here cannot deadlock.
+          write(*, *) "ModOutputNetCDF: nfmpi_create failed for ", trim(filename), &
+            ": ", nfmpi_strerror(ierr)
+          call stop_gitm("ModOutputNetCDF: cannot create output file; see message above")
         endif
         call define_file_structure(nDims, nVars, iTypeIdx, nLons_g, nLats_g, nAlts_g, &
                                    iTimeArray, isMultiTime=.true.)
@@ -220,8 +223,10 @@ contains
         nc_type_records(iTypeIdx) = nc_type_records(iTypeIdx) + 1
         ierr = nfmpi_open(iCommGITM, trim(filename), NF_WRITE, MPI_INFO_NULL, ncid)
         if (ierr /= NF_NOERR) then
-          write(*, *) "ModOutputNetCDF: nfmpi_open failed: ", nfmpi_strerror(ierr)
-          ncid = -1; return
+          ! Collective reopen over iCommGITM: consistent ierr, MPI_Abort backstop.
+          write(*, *) "ModOutputNetCDF: nfmpi_open failed for ", trim(filename), &
+            ": ", nfmpi_strerror(ierr)
+          call stop_gitm("ModOutputNetCDF: cannot reopen output file; see message above")
         endif
         if (allocated(varids)) deallocate(varids, coordids)
         ndimid = merge(3, 2, nDims == 3)
@@ -254,8 +259,10 @@ contains
       ierr = nfmpi_create(iCommGITM, trim(filename), &
                           IOR(NF_CLOBBER, NF_64BIT_DATA), MPI_INFO_NULL, ncid)
       if (ierr /= NF_NOERR) then
-        write(*, *) "ModOutputNetCDF: nfmpi_create failed: ", nfmpi_strerror(ierr)
-        ncid = -1; return
+        ! Collective create over iCommGITM: consistent ierr, MPI_Abort backstop.
+        write(*, *) "ModOutputNetCDF: nfmpi_create failed for ", trim(filename), &
+          ": ", nfmpi_strerror(ierr)
+        call stop_gitm("ModOutputNetCDF: cannot create output file; see message above")
       endif
       call define_file_structure(nDims, nVars, iTypeIdx, nLons_g, nLats_g, nAlts_g, &
                                  iTimeArray, isMultiTime=.false.)
@@ -280,12 +287,14 @@ contains
     endif
 
 #else
-    if (iProc == 1) then
+    ! Every rank stops (a rank-0-only stop would leave the others running
+    ! with no output); rank 0 prints the message.
+    if (iProc == 0) then
       write(*, *) ""
       write(*, *) "ERROR: GITM was built without PnetCDF support."
       write(*, *) "       Recompile in an environment where pnetcdf-config is available."
-      call stop_gitm("NetCDF cannot be used")
     endif
+    call stop_gitm("NetCDF cannot be used")
 #endif
   end subroutine netcdf_open_file
 
@@ -309,6 +318,10 @@ contains
     if (nc_names_built) return
     nc_names_built = .true.
 
+    ! A name too long for nc_name_part would silently truncate the filename
+    ! (and could alias two runs onto one file); refuse instead.
+    if (len_trim(NetCdfFileName) > len(nc_name_part) - 1) &
+      call stop_gitm("ModOutputNetCDF: netCDFFileName is too long")
     if (len_trim(NetCdfFileName) > 0) &
       nc_name_part = '_'//trim(NetCdfFileName)
 

@@ -52,8 +52,15 @@ contains
     call MPI_File_open(iCommGITM, trim(filename), &
                        MPI_MODE_WRONLY + MPI_MODE_CREATE, &
                        MPI_INFO_NULL, mpiio_fh, ierr)
-    if (ierr /= MPI_SUCCESS) &
-      write(*, *) 'ModOutputMPIIO: MPI_File_open failed for ', trim(filename)
+    ! Collective open over iCommGITM (default file error handler is
+    ! MPI_ERRORS_RETURN, so ierr is meaningful). A swallowed failure would
+    ! leave the run producing no output; halt loudly instead. stop_gitm calls
+    ! MPI_Abort, so a stop from any rank tears down the whole job.
+    if (ierr /= MPI_SUCCESS) then
+      write(*, *) 'ModOutputMPIIO: MPI_File_open failed for ', trim(filename), &
+        ' ierr=', ierr
+      call stop_gitm('ModOutputMPIIO: cannot open output file; see message above')
+    endif
   end subroutine mpiio_open_file
 
   ! ------------------------------------------------------------------
