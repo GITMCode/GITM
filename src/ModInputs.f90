@@ -135,6 +135,10 @@ module ModInputs
   character(len=iCharLen_), dimension(nMaxOutputTypes) :: OutputType
   logical :: UseNetcdfMultiTime = .false.
   character(iCharLen_) :: NetCdfAppendOption = 'none'
+  ! Optional run name inserted into netcdf filenames (#NETCDFOPTIONS flag 2).
+  ! Empty = bare cType names. A named single/daily run refuses to overwrite an
+  ! existing target file; see ModOutputNetCDF.
+  character(iCharLen_) :: NetCdfFileName = ''
 
   real :: DtPlot(nMaxOutputTypes)
   real :: DtPlotSave(nMaxOutputTypes)

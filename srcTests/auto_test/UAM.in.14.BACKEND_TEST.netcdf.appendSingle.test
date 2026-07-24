@@ -92,7 +92,7 @@ Output file stuff
 #OUTPUTBACKEND
 netcdf
 
-#NETCDFAPPEND
+#NETCDFOPTIONS
 single
 
 ------------ Electrodynamics Drivers ------------

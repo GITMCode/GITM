@@ -60,6 +60,20 @@ module ModOutputNetCDF
   character(len=300) :: nc_type_filenames(nc_max_types)  ! last filename opened per type
   data nc_type_filenames/nc_max_types*' '/
 
+  ! Leg naming (#NETCDFOPTIONS), computed once per process by build_leg_names:
+  ! nc_name_part   = '_<runname>' when netCDFFileName is set (all modes)
+  ! nc_restart_part= '_restart_yymmdd_hhmmss' at the restart-file simulation
+  !                  time (leg start, NOT wall clock) -- only for named
+  !                  single/daily restart legs, and kept for the whole leg so
+  !                  daily rollover files carry it too
+  ! nc_guard_active: single/daily runs that are restarts or carry a run name
+  !                  refuse (stop_gitm) to overwrite an existing target file;
+  !                  unnamed fresh runs keep the status-quo clobber
+  logical :: nc_names_built = .false.
+  character(len=120) :: nc_name_part = ''
+  character(len=40) :: nc_restart_part = ''
+  logical :: nc_guard_active = .false.
+
 #endif
 
 contains
@@ -79,7 +93,8 @@ contains
     use ModInputs, only: nBlocksLon, nBlocksLat, UseNetcdfMultiTime, NetCdfAppendOption
     use ModSizeGitm, only: nLons, nLats, nAlts
     use ModElectrodynamics, only: nMagLons, nMagLats
-    use ModOutputProducers, only: get_container_idx, containers, init_output_containers
+    use ModOutputProducers, only: get_container_idx, containers, init_output_containers, &
+                                  nContainers
     use ModOutputContainer, only: GRID_MAG_2D, GRID_HIME
     use ModTime, only: iTimeArray, CurrentTime
     ! Not compiled in standalone. Change 1965 when it is!
@@ -101,6 +116,15 @@ contains
     ! yet (init_output_containers normally runs during the first fill). Ensure
     ! the schemas exist before reading metadata; the call is idempotent.
     call init_output_containers()
+
+    ! The per-type filename/record caches are fixed-size; overflow would make
+    ! types share a cache slot, re-creating (and with the guard below, refusing)
+    ! files mid-run. Fail loudly at the first open instead.
+    if (nContainers > nc_max_types) &
+      call stop_gitm("ModOutputNetCDF: nContainers exceeds nc_max_types"// &
+                     " -- raise nc_max_types in ModOutputNetCDF")
+
+    call build_leg_names()
 
     ! Look up variable metadata from the output container
     iTypeIdx = get_container_idx(cType)
@@ -142,24 +166,47 @@ contains
       ! - single: one file per output type, accumulates all times.
       ! - daily: one output file, per type, per day
       ! ----------------------------------------------------------------
-      if (iTypeIdx > nc_max_types) iTypeIdx = nc_max_types
       ! Build filename first; create-vs-reopen is driven by whether this filename
       ! has been opened in this session.
       ! This correctly handles daily rollover (new date -> new file) and fresh
       ! runs in the same directory (not-yet-used filename -> always create).
       if (NetCdfAppendOption == 'single') then
-        filename = trim(dir)//"/"//trim(cType)//".nc"
+        filename = trim(dir)//"/"//trim(cType)//trim(nc_name_part)// &
+                   trim(nc_restart_part)//".nc"
       else ! Add date to 'daily' files
         write(cDate, '(i4.4,"-",i2.2,"-",i2.2)') iTimeArray(1), iTimeArray(2), iTimeArray(3)
-        filename = trim(dir)//"/"//trim(cType)//"_"//trim(cDate)//".nc"
+        filename = trim(dir)//"/"//trim(cType)//trim(nc_name_part)// &
+                   trim(nc_restart_part)//"_"//trim(cDate)//".nc"
       endif
 
       if (trim(filename) /= trim(nc_type_filenames(iTypeIdx))) then
         ! ---- New file: create and define everything ----
         nc_type_records(iTypeIdx) = 1
         nc_type_filenames(iTypeIdx) = trim(filename)
-        ierr = nfmpi_create(iCommGITM, trim(filename), &
-                            IOR(NF_CLOBBER, NF_64BIT_DATA), MPI_INFO_NULL, ncid)
+        if (nc_guard_active) then
+          ! Restart legs and named runs must never overwrite prior data: an
+          ! existing target means a same-leg re-run or a scenario branch in
+          ! place. NF_NOCLOBBER makes the existence check atomic.
+          ierr = nfmpi_create(iCommGITM, trim(filename), &
+                              IOR(NF_NOCLOBBER, NF_64BIT_DATA), MPI_INFO_NULL, ncid)
+          if (ierr == NF_EEXIST) then
+            if (iProc == 0) then
+              write(*, *) ""
+              write(*, *) "ModOutputNetCDF: output file already exists: ", trim(filename)
+              write(*, *) "Refusing to overwrite it. To proceed:"
+              write(*, *) " - re-running the same leg: move/delete the file, or"
+              write(*, *) "   change netCDFFileName in #NETCDFOPTIONS"
+              write(*, *) " - restarting an unnamed run: set netCDFFileName in"
+              write(*, *) "   #NETCDFOPTIONS (each leg then gets its own file)"
+              write(*, *) " - branching a scenario: use a fresh run directory"
+              write(*, *) ""
+            endif
+            call stop_gitm("netcdf output target exists -- see message above")
+          endif
+        else
+          ierr = nfmpi_create(iCommGITM, trim(filename), &
+                              IOR(NF_CLOBBER, NF_64BIT_DATA), MPI_INFO_NULL, ncid)
+        endif
         if (ierr /= NF_NOERR) then
           write(*, *) "ModOutputNetCDF: nfmpi_create failed: ", nfmpi_strerror(ierr)
           ncid = -1; return
@@ -194,10 +241,14 @@ contains
 
     else
       ! ----------------------------------------------------------------
-      ! Single-time mode (default): one file per output type per timestep
+      ! Single-time mode (default): one file per output type per timestep.
+      ! The run name applies here too (same-directory ensembles); no restart
+      ! stamp and no guard -- colliding epochs are recomputed identical data,
+      ! overwritten in place like the legacy/mpiio backends.
       ! ----------------------------------------------------------------
       nc_time_record = 1
-      filename = trim(dir)//"/"//trim(cType)//"_"//cTime(1:cL)//".nc"
+      filename = trim(dir)//"/"//trim(cType)//trim(nc_name_part)// &
+                 "_"//cTime(1:cL)//".nc"
       ierr = nfmpi_create(iCommGITM, trim(filename), &
                           IOR(NF_CLOBBER, NF_64BIT_DATA), MPI_INFO_NULL, ncid)
       if (ierr /= NF_NOERR) then
@@ -235,6 +286,46 @@ contains
     endif
 #endif
   end subroutine netcdf_open_file
+
+#ifdef HavePNetCDF
+  ! ==================================================================
+  ! Compute the leg's filename parts once per process (#NETCDFOPTIONS).
+  !
+  ! The restart stamp uses the restart-file SIMULATION time (= leg start),
+  ! not wall clock: filenames stay reproducible, and re-running the same
+  ! leg collides with its own earlier file so the NF_NOCLOBBER guard in
+  ! netcdf_open_file fires instead of silently minting a second file.
+  ! Computed once and never rebuilt, so every file this leg opens --
+  ! including daily-rollover files on later days -- carries the same stamp.
+  ! ==================================================================
+  subroutine build_leg_names()
+    use ModInputs, only: NetCdfFileName, DoRestart, UseNetcdfMultiTime
+    use ModTime, only: RestartTime
+
+    integer :: iLegTime(7)
+
+    if (nc_names_built) return
+    nc_names_built = .true.
+
+    if (len_trim(NetCdfFileName) > 0) &
+      nc_name_part = '_'//trim(NetCdfFileName)
+
+    ! Restart stamp: only named single/daily legs get one. Unnamed restarted
+    ! legs target the prior leg's file and are stopped by the guard instead
+    ! (multi-leg append runs must opt in with a run name).
+    if (UseNetcdfMultiTime .and. DoRestart .and. &
+        len_trim(NetCdfFileName) > 0) then
+      call time_real_to_int(RestartTime, iLegTime)
+      write(nc_restart_part, &
+            '("_restart_",3i2.2,"_",3i2.2)') &
+        mod(iLegTime(1), 100), iLegTime(2), iLegTime(3), &
+        iLegTime(4), iLegTime(5), iLegTime(6)
+    endif
+
+    nc_guard_active = UseNetcdfMultiTime .and. &
+                      (DoRestart .or. len_trim(NetCdfFileName) > 0)
+  end subroutine build_leg_names
+#endif
 
   ! ==================================================================
   ! Close the PnetCDF file (collective).

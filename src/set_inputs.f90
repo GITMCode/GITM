@@ -36,7 +36,7 @@ subroutine set_inputs
 
   logical :: IsDone, IsStartFound, doUseAeForHp, didDeclareHP = .false.
   integer :: iDebugProc = 0
-  character(len=iCharLen_) :: cLine
+  character(len=iCharLen_) :: cLine, cPeekLine
   integer :: iLine, iSpecies, iSat
   integer :: i, iError, iOutputTypes, iErrorFile, iFreq, iFile
   integer, dimension(7) :: iTimeEnd
@@ -1493,9 +1493,11 @@ subroutine set_inputs
           write(*, *) 'Must be a string!'
         endif
 
-      case ('#NETCDFAPPEND')
+      case ('#NETCDFOPTIONS')
+        ! Sequential, optional flags; more can be appended later.
+        ! Flag 1 (required): append method 'single'/'daily'/'none'.
+        ! Flag 2 (optional): run name inserted into netcdf filenames.
         call read_in_string(NetCdfAppendOption, iError)
-        ! Verify: can be 'daily', 'single', or 'none' (default)
         if ((trim(NetCdfAppendOption) == 'single') &
             .or. (trim(NetCdfAppendOption) == 'daily')) then
           UseNetcdfMultiTime = .true.
@@ -1506,15 +1508,30 @@ subroutine set_inputs
           iError = iError + 1
         endif
 
+        if (iError == 0 .and. iLine + 1 <= nInputLines) then
+          cPeekLine = cInputText(iLine + 1)
+          if (len_trim(cPeekLine) > 0 .and. cPeekLine(1:1) /= '#') then
+            call read_in_string(NetCdfFileName, iError)
+          endif
+        endif
+
         if (iError /= 0) then
           write(*, *) ""
-          write(*, *) "Incorrect format for #NETCDFAPPEND"
+          write(*, *) "Incorrect format for #NETCDFOPTIONS"
           write(*, *) "> Received:  ", trim(NetCdfAppendOption)
           write(*, *) ""
-          write(*, *) "Must be one of: 'single'/'daily'/'none':"
+          write(*, *) "#NETCDFOPTIONS"
+          write(*, *) "netCDFAppendMethod (string: 'single'/'daily'/'none')"
+          write(*, *) "netCDFFileName     (string, optional run name)"
+          write(*, *) ""
+          write(*, *) "netCDFAppendMethod must be one of:"
           write(*, *) " - 'none' makes one file per outputDt"
           write(*, *) " - 'daily' creates a new file each day"
           write(*, *) " - 'single' uses the same file for the whole run"
+          write(*, *) "netCDFFileName is inserted into every netcdf filename"
+          write(*, *) "(e.g. 3DALL_storm1.nc); restarted single/daily runs"
+          write(*, *) "with a name get a restart_yymmdd_hhmmss stamp so each"
+          write(*, *) "leg writes its own file."
           write(*, *) ""
         endif
 
