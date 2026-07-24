@@ -1508,6 +1508,9 @@ subroutine set_inputs
           iError = iError + 1
         endif
 
+        ! Safe against a #END-less file: read_inputs blanks the slot its EOF
+        ! iteration touches, so a peek past the last real line sees '' and
+        ! fails the len_trim test below.
         if (iError == 0 .and. iLine + 1 <= nInputLines) then
           cPeekLine = cInputText(iLine + 1)
           if (len_trim(cPeekLine) > 0 .and. cPeekLine(1:1) /= '#') then

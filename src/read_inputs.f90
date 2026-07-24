@@ -31,6 +31,11 @@ subroutine read_inputs(cFile)
 
       read(iInputUnit_, '(a)', iostat=iError) line
 
+      ! A failed (EOF) read leaves line holding stale text; blank it so the
+      ! slot this iteration still writes cannot be mistaken for a real input
+      ! line (e.g. by parsers peeking ahead for optional trailing flags).
+      if (iError /= 0) line = ""
+
       if (nInputLines > nInputMaxLines) &
         call stop_gitm("Too many lines of input in read_inputs")
 
