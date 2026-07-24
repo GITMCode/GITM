@@ -25,9 +25,11 @@
 ! For 2D types (nGhostCells=0): nX=nLons, nY=nLats, nZ=1
 !   No stripping: full buffer used
 !
-! All registered variables (including Longitude/Latitude/Altitude from
-! add_coord_vars) are written as data variables via varids(:).  Separate
-! 1-D NetCDF coordinate variables are not defined to avoid name conflicts.
+! All registered variables (including the full Longitude/Latitude/Altitude
+! fields) are written as data variables via varids(:).  Separate 1-D
+! coordinate variables (time, and lon/lat/z in degrees/km) are also defined
+! in define_file_structure; data variables additionally reference the full
+! coordinate fields through their CF coordinates= attribute.
 !
 ! Build requirements (auto-detected by src/Makefile via pnetcdf-config):
 !   Compile: -I$(PNETCDF_INC)  and  -DHavePNetCDF
@@ -541,6 +543,8 @@ contains
     character(len=80) :: varname
     character(len=80) :: coord_units
     character(len=30) :: coord_str
+    character(len=40) :: coordTag
+    logical :: isCoordField
     character(len=8)  :: dstr
     character(len=10) :: tstr
     ! Types where only some blocks write (magnetic-grid, regional) leave the
@@ -566,6 +570,9 @@ contains
                   tstr(1:2)//":"//tstr(3:4)//":"//tstr(5:6)//" Created by GITM"
     attlen = int(len_trim(coord_units), MPI_OFFSET_KIND)
     ierr = nfmpi_put_att_text(ncid, NF_GLOBAL, "history", attlen, trim(coord_units))
+    coord_units = "CF-1.8"
+    attlen = int(len_trim(coord_units), MPI_OFFSET_KIND)
+    ierr = nfmpi_put_att_text(ncid, NF_GLOBAL, "Conventions", attlen, trim(coord_units))
 
     ! Spatial dims
     ierr = nfmpi_def_dim(ncid, "lon", nLons_g, dimid_lon)
@@ -590,9 +597,24 @@ contains
     if (allocated(varids)) deallocate(varids, coordids)
     allocate(varids(nVars), coordids(ndimid))
 
+    ! CF auxiliary coordinates: the full Longitude/Latitude/Altitude fields
+    ! are stored as data variables; every other data variable references them
+    ! via a coordinates= attribute (CF ch. 5) so consumers can associate them
+    ! without guessing. Types without those fields (e.g. magnetic grids) get
+    ! no tag.
+    coordTag = ''
+    do iV = 1, nVars
+      varname = trim(containers(iTypeIdx)%vars(iV)%name)
+      if (varname == 'Longitude' .or. varname == 'Latitude' .or. &
+          varname == 'Altitude') coordTag = trim(coordTag)//' '//trim(varname)
+    enddo
+    coordTag = adjustl(coordTag)
+
     ! Data variables
     do iV = 1, nVars
       varname = trim(containers(iTypeIdx)%vars(iV)%name)
+      isCoordField = varname == 'Longitude' .or. varname == 'Latitude' .or. &
+                     varname == 'Altitude'
       call sanitize_nc_name(varname)
       ierr = nfmpi_def_var(ncid, trim(varname), NF_FLOAT, ndimid_var, &
                            dimid_vars(1:ndimid_var), varids(iV))
@@ -618,6 +640,11 @@ contains
       attlen = int(len_trim(containers(iTypeIdx)%vars(iV)%name), MPI_OFFSET_KIND)
       ierr = nfmpi_put_att_text(ncid, varids(iV), "gitm_name", attlen, &
                                 trim(containers(iTypeIdx)%vars(iV)%name))
+      if (len_trim(coordTag) > 0 .and. .not. isCoordField) then
+        attlen = int(len_trim(coordTag), MPI_OFFSET_KIND)
+        ierr = nfmpi_put_att_text(ncid, varids(iV), "coordinates", attlen, &
+                                  trim(coordTag))
+      endif
     enddo
 
     ! Time coordinate variable
@@ -628,20 +655,38 @@ contains
     ierr = nfmpi_put_att_text(ncid, nc_varid_time, "units", attlen, trim(coord_units))
     attlen = 8_MPI_OFFSET_KIND
     ierr = nfmpi_put_att_text(ncid, nc_varid_time, "calendar", attlen, "standard")
+    attlen = 1_MPI_OFFSET_KIND
+    ierr = nfmpi_put_att_text(ncid, nc_varid_time, "axis", attlen, "T")
+    attlen = 4_MPI_OFFSET_KIND
+    ierr = nfmpi_put_att_text(ncid, nc_varid_time, "standard_name", attlen, "time")
 
     ! Spatial coordinate variables
     ierr = nfmpi_def_var(ncid, "lon", NF_FLOAT, 1, [dimid_lon], coordids(1))
     attlen = 12_MPI_OFFSET_KIND
     ierr = nfmpi_put_att_text(ncid, coordids(1), "units", attlen, "degrees_east")
+    attlen = 1_MPI_OFFSET_KIND
+    ierr = nfmpi_put_att_text(ncid, coordids(1), "axis", attlen, "X")
+    attlen = 9_MPI_OFFSET_KIND
+    ierr = nfmpi_put_att_text(ncid, coordids(1), "standard_name", attlen, "longitude")
 
     ierr = nfmpi_def_var(ncid, "lat", NF_FLOAT, 1, [dimid_lat], coordids(2))
     attlen = 13_MPI_OFFSET_KIND
     ierr = nfmpi_put_att_text(ncid, coordids(2), "units", attlen, "degrees_north")
+    attlen = 1_MPI_OFFSET_KIND
+    ierr = nfmpi_put_att_text(ncid, coordids(2), "axis", attlen, "Y")
+    attlen = 8_MPI_OFFSET_KIND
+    ierr = nfmpi_put_att_text(ncid, coordids(2), "standard_name", attlen, "latitude")
 
     if (nDims == 3) then
       ierr = nfmpi_def_var(ncid, "z", NF_FLOAT, 1, [dimid_alt], coordids(3))
       attlen = 2_MPI_OFFSET_KIND
       ierr = nfmpi_put_att_text(ncid, coordids(3), "units", attlen, "km")
+      attlen = 1_MPI_OFFSET_KIND
+      ierr = nfmpi_put_att_text(ncid, coordids(3), "axis", attlen, "Z")
+      attlen = 8_MPI_OFFSET_KIND
+      ierr = nfmpi_put_att_text(ncid, coordids(3), "standard_name", attlen, "altitude")
+      attlen = 2_MPI_OFFSET_KIND
+      ierr = nfmpi_put_att_text(ncid, coordids(3), "positive", attlen, "up")
     endif
 
     ! Single-time: write current time as ISO global attribute
