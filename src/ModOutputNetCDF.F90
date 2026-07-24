@@ -112,7 +112,9 @@ contains
     integer(kind=MPI_OFFSET_KIND) :: tstart(1), tcnt(1)
     character(len=80) :: varname
     character(len=20) :: cDate
-    real(kind=4) :: time_val(1)
+    ! Double, not the container's real*4: float32 seconds-since-1965 can only
+    ! resolve ~128 s at modern dates, which visibly corrupts the time axis.
+    real(kind=8) :: time_val(1)
 
     ! The open path runs before the block loop, so containers may not be built
     ! yet (init_output_containers normally runs during the first fill). Ensure
@@ -273,7 +275,7 @@ contains
     tstart(1) = int(nc_time_record, MPI_OFFSET_KIND)
     tcnt(1) = 1_MPI_OFFSET_KIND
     time_val(1) = CurrentTime
-    ierr = nfmpi_put_vara_real_all(ncid, nc_varid_time, tstart, tcnt, time_val)
+    ierr = nfmpi_put_vara_double_all(ncid, nc_varid_time, tstart, tcnt, time_val)
     if (ierr /= NF_NOERR) &
       write(*, *) "ModOutputNetCDF: failed to write time variable: ", nfmpi_strerror(ierr)
 
@@ -664,7 +666,7 @@ contains
     ! Time coordinate variable
     ! 1965 is left out in case we need to change the base-year
     write(coord_units, '("seconds since ",i4.4,"-01-01 00:00:00")') 1965
-    ierr = nfmpi_def_var(ncid, "time", NF_FLOAT, 1, [dimid_time], nc_varid_time)
+    ierr = nfmpi_def_var(ncid, "time", NF_DOUBLE, 1, [dimid_time], nc_varid_time)
     attlen = int(len_trim(coord_units), MPI_OFFSET_KIND)
     ierr = nfmpi_put_att_text(ncid, nc_varid_time, "units", attlen, trim(coord_units))
     attlen = 8_MPI_OFFSET_KIND
@@ -674,22 +676,30 @@ contains
     attlen = 4_MPI_OFFSET_KIND
     ierr = nfmpi_put_att_text(ncid, nc_varid_time, "standard_name", attlen, "time")
 
-    ! Spatial coordinate variables
+    ! Spatial coordinate variables. Magnetic grids (2DMEL) hold magnetic
+    ! lon/lat in these variables: the geographic CF identifiers (axis X/Y,
+    ! standard_name longitude/latitude) are reserved for geographic
+    ! coordinates and would make CF-aware tools georeference the magnetic
+    ! frame, so they are skipped there (units stay as-is).
     ierr = nfmpi_def_var(ncid, "lon", NF_FLOAT, 1, [dimid_lon], coordids(1))
     attlen = 12_MPI_OFFSET_KIND
     ierr = nfmpi_put_att_text(ncid, coordids(1), "units", attlen, "degrees_east")
-    attlen = 1_MPI_OFFSET_KIND
-    ierr = nfmpi_put_att_text(ncid, coordids(1), "axis", attlen, "X")
-    attlen = 9_MPI_OFFSET_KIND
-    ierr = nfmpi_put_att_text(ncid, coordids(1), "standard_name", attlen, "longitude")
+    if (containers(iTypeIdx)%gridKind /= GRID_MAG_2D) then
+      attlen = 1_MPI_OFFSET_KIND
+      ierr = nfmpi_put_att_text(ncid, coordids(1), "axis", attlen, "X")
+      attlen = 9_MPI_OFFSET_KIND
+      ierr = nfmpi_put_att_text(ncid, coordids(1), "standard_name", attlen, "longitude")
+    endif
 
     ierr = nfmpi_def_var(ncid, "lat", NF_FLOAT, 1, [dimid_lat], coordids(2))
     attlen = 13_MPI_OFFSET_KIND
     ierr = nfmpi_put_att_text(ncid, coordids(2), "units", attlen, "degrees_north")
-    attlen = 1_MPI_OFFSET_KIND
-    ierr = nfmpi_put_att_text(ncid, coordids(2), "axis", attlen, "Y")
-    attlen = 8_MPI_OFFSET_KIND
-    ierr = nfmpi_put_att_text(ncid, coordids(2), "standard_name", attlen, "latitude")
+    if (containers(iTypeIdx)%gridKind /= GRID_MAG_2D) then
+      attlen = 1_MPI_OFFSET_KIND
+      ierr = nfmpi_put_att_text(ncid, coordids(2), "axis", attlen, "Y")
+      attlen = 8_MPI_OFFSET_KIND
+      ierr = nfmpi_put_att_text(ncid, coordids(2), "standard_name", attlen, "latitude")
+    endif
 
     if (nDims == 3) then
       ierr = nfmpi_def_var(ncid, "z", NF_FLOAT, 1, [dimid_alt], coordids(3))
