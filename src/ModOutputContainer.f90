@@ -100,6 +100,12 @@ module ModOutputContainer
     ! output; netcdf backend strips them automatically for GEO_* gridKinds.
     ! When > 0, every variable's spatial dims must be padded by 2*nGhostCells.
     integer                     :: nGhostCells = 0
+    ! Per-type fill routine, registered in init_output_containers (same nopass
+    ! pointer pattern as ActiveBackend). The container is passed explicitly so
+    ! fills keep their plain subroutine form. fill_iface is declared AFTER this
+    ! type on purpose: an interface importing OutputContainer cannot precede it,
+    ! and gfortran resolves the forward reference within one specification part.
+    procedure(fill_iface), pointer, nopass :: fill => null()
   contains
     procedure :: define_var
     procedure :: prepare
@@ -120,6 +126,14 @@ module ModOutputContainer
     procedure :: finish_fill
     procedure, private :: ensure_var
   end type OutputContainer
+
+  abstract interface
+    subroutine fill_iface(c, iBlock)
+      import :: OutputContainer
+      type(OutputContainer), intent(inout) :: c
+      integer, intent(in) :: iBlock
+    end subroutine fill_iface
+  end interface
 
 contains
 

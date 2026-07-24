@@ -29,36 +29,27 @@ module ModOutputProducers
 
   type(OutputContainer), allocatable, target :: containers(:)
 
-  ! Index constants — one per output type handled here.
-  integer, parameter :: iCont_2DMEL = 1
-  integer, parameter :: iCont_2DTEC = 2
-  integer, parameter :: iCont_2DGEL = 3
-  integer, parameter :: iCont_3DNEU = 4
-  integer, parameter :: iCont_3DALL = 5
-  integer, parameter :: iCont_3DION = 6
-  integer, parameter :: iCont_3DTHM = 7
-  integer, parameter :: iCont_3DCHM = 8
-  integer, parameter :: iCont_3DLST = 9
-  integer, parameter :: iCont_3DGLO = 10
-  integer, parameter :: iCont_3DMAG = 11
-  integer, parameter :: iCont_3DHME = 12
-  integer, parameter :: iCont_3DMOH = 13
-  integer, parameter :: iCont_3DMOV = 14
-  integer, parameter :: iCont_2DANC = 15
-  integer, parameter :: iCont_2DHME = 16
-  integer, parameter :: iCont_1DALL = 17
-  integer, parameter :: iCont_0DALL = 18
-  integer, parameter :: iCont_1DGLO = 19
-  integer, parameter :: iCont_1DTHM = 20
-  integer, parameter :: iCont_1DCHM = 21
-  integer, parameter :: iCont_1DNEW = 22
-  integer, parameter :: iCont_3DUSR = 23
-  integer, parameter :: iCont_2DUSR = 24
-  integer, parameter :: iCont_1DUSR = 25
-  integer, parameter :: iCont_0DUSR = 26
-  integer, parameter :: nContainers = 26
+  ! Canonical type list — the single source for container identity and order.
+  ! Container i holds type cContainerTypes(i); get_container_idx and
+  ! is_known_output_type derive from this array (no container state involved,
+  ! so both are safe before init — bad_outputtype calls at input parse time),
+  ! and assert_types_fully_wired verifies every container landed in its slot.
+  character(len=5), parameter :: cContainerTypes(26) = [ &
+    '2DMEL', '2DTEC', '2DGEL', '3DNEU', '3DALL', '3DION', '3DTHM', '3DCHM', &
+    '3DLST', '3DGLO', '3DMAG', '3DHME', '3DMOH', '3DMOV', '2DANC', '2DHME', &
+    '1DALL', '0DALL', '1DGLO', '1DTHM', '1DCHM', '1DNEW', &
+    '3DUSR', '2DUSR', '1DUSR', '0DUSR']
+  integer, parameter :: nContainers = size(cContainerTypes)
 
   logical :: containers_initialized = .false.
+
+  ! Probe location for the 1D/0D point-output fills (Route A1). Set by the
+  ! output driver (output_common) before dispatch; read by the probe fills.
+  ! Module state instead of fill arguments so every fill shares the uniform
+  ! (c, iBlock) signature. Defaults are the dummy-index priming values: safe
+  ! on every rank, and what init-time priming of the probe types uses.
+  integer :: iProbeLon = 1, iProbeLat = 1, iProbeAlt = 1
+  real :: rProbeLon = 0.5, rProbeLat = 0.5, rProbeAlt = 0.5
 
   ! ---------------------------------------------------------------------------
   ! USR variable registry — populated by register_usr_var() from user.f90 before
@@ -105,52 +96,23 @@ contains
   ! ---------------------------------------------------------------------------
   logical function is_known_output_type(cType)
     character(len=5), intent(in) :: cType
-    select case (trim(cType))
-    case ('2DMEL', '2DTEC', '2DGEL', '3DNEU', '3DALL', '3DION', '3DTHM', '3DCHM', &
-          '3DLST', '3DGLO', '3DMAG', '3DHME', '3DMOH', '3DMOV', '2DANC', '2DHME', &
-          '1DALL', '0DALL', '1DGLO', '1DTHM', '1DCHM', '1DNEW', &
-          '3DUSR', '2DUSR', '1DUSR', '0DUSR')
-      is_known_output_type = .true.
-    case default
-      is_known_output_type = .false.
-    end select
+    is_known_output_type = get_container_idx(cType) > 0
   end function is_known_output_type
 
   ! ---------------------------------------------------------------------------
   ! get_container_idx — return the containers(:) index for cType, or -1.
-  ! Requires init_output_containers() to have been called.
+  ! Position in cContainerTypes; no container state required (safe before init).
   ! ---------------------------------------------------------------------------
   integer function get_container_idx(cType)
     character(len=5), intent(in) :: cType
-    select case (trim(cType))
-    case ('2DMEL'); get_container_idx = iCont_2DMEL
-    case ('2DTEC'); get_container_idx = iCont_2DTEC
-    case ('2DGEL'); get_container_idx = iCont_2DGEL
-    case ('3DNEU'); get_container_idx = iCont_3DNEU
-    case ('3DALL'); get_container_idx = iCont_3DALL
-    case ('3DION'); get_container_idx = iCont_3DION
-    case ('3DTHM'); get_container_idx = iCont_3DTHM
-    case ('3DCHM'); get_container_idx = iCont_3DCHM
-    case ('3DLST'); get_container_idx = iCont_3DLST
-    case ('3DGLO'); get_container_idx = iCont_3DGLO
-    case ('3DMAG'); get_container_idx = iCont_3DMAG
-    case ('3DHME'); get_container_idx = iCont_3DHME
-    case ('3DMOH'); get_container_idx = iCont_3DMOH
-    case ('3DMOV'); get_container_idx = iCont_3DMOV
-    case ('2DANC'); get_container_idx = iCont_2DANC
-    case ('2DHME'); get_container_idx = iCont_2DHME
-    case ('1DALL'); get_container_idx = iCont_1DALL
-    case ('0DALL'); get_container_idx = iCont_0DALL
-    case ('1DGLO'); get_container_idx = iCont_1DGLO
-    case ('1DTHM'); get_container_idx = iCont_1DTHM
-    case ('1DCHM'); get_container_idx = iCont_1DCHM
-    case ('1DNEW'); get_container_idx = iCont_1DNEW
-    case ('3DUSR'); get_container_idx = iCont_3DUSR
-    case ('2DUSR'); get_container_idx = iCont_2DUSR
-    case ('1DUSR'); get_container_idx = iCont_1DUSR
-    case ('0DUSR'); get_container_idx = iCont_0DUSR
-    case default; get_container_idx = -1
-    end select
+    integer :: i
+    do i = 1, nContainers
+      if (cType == cContainerTypes(i)) then
+        get_container_idx = i
+        return
+      endif
+    enddo
+    get_container_idx = -1
   end function get_container_idx
 
   ! ---------------------------------------------------------------------------
@@ -387,59 +349,86 @@ contains
   ! the names/shapes/metadata it establishes matter.
   ! ---------------------------------------------------------------------------
   subroutine init_output_containers()
+    integer :: i
     if (containers_initialized) return
     allocate(containers(nContainers))
-    call define_schema_2dmel(containers(iCont_2DMEL))
-    call define_schema_3dhme(containers(iCont_3DHME))
-    call define_schema_2dhme(containers(iCont_2DHME))
-    call define_schema_1dall(containers(iCont_1DALL))
-    call define_schema_0dall(containers(iCont_0DALL))
-    call define_schema_1dglo(containers(iCont_1DGLO))
-    call define_schema_1dthm(containers(iCont_1DTHM))
-    call define_schema_1dchm(containers(iCont_1DCHM))
-    call define_schema_1dnew(containers(iCont_1DNEW))
-    call define_schema_3dusr(containers(iCont_3DUSR))
-    call define_schema_2dusr(containers(iCont_2DUSR))
-    call define_schema_1dusr(containers(iCont_1DUSR))
-    call define_schema_0dusr(containers(iCont_0DUSR))
+
+    ! ---- Unconverted types: schemas declared explicitly -------------------
+    call define_schema_2dmel(containers(get_container_idx('2DMEL')))
+    call define_schema_3dhme(containers(get_container_idx('3DHME')))
+    call define_schema_2dhme(containers(get_container_idx('2DHME')))
+    call define_schema_1dall(containers(get_container_idx('1DALL')))
+    call define_schema_0dall(containers(get_container_idx('0DALL')))
+    call define_schema_1dglo(containers(get_container_idx('1DGLO')))
+    call define_schema_1dthm(containers(get_container_idx('1DTHM')))
+    call define_schema_1dchm(containers(get_container_idx('1DCHM')))
+    call define_schema_1dnew(containers(get_container_idx('1DNEW')))
+    call define_schema_3dusr(containers(get_container_idx('3DUSR')))
+    call define_schema_2dusr(containers(get_container_idx('2DUSR')))
+    call define_schema_1dusr(containers(get_container_idx('1DUSR')))
+    call define_schema_0dusr(containers(get_container_idx('0DUSR')))
+
+    ! ---- Fill registration: one line per type -----------------------------
+    ! Adding a type = write fill_<type> + one line here (+ registry rows for
+    ! fixed names). The dispatch in output_common runs whatever is registered.
+    call set_fill('3DALL', fill_3dall)
+    call set_fill('2DANC', fill_2danc)
+    call set_fill('3DNEU', fill_3dneu)
+    call set_fill('3DION', fill_3dion)
+    call set_fill('3DMAG', fill_3dmag)
+    call set_fill('2DTEC', fill_2dtec)
+    call set_fill('2DGEL', fill_2dgel)
+    call set_fill('3DTHM', fill_3dthm)
+    call set_fill('3DCHM', fill_3dchm)
+    call set_fill('3DMOH', fill_3dmoh)
+    call set_fill('3DMOV', fill_3dmov)
+    call set_fill('3DLST', fill_3dlst)
+    call set_fill('3DGLO', fill_3dglo)
+    call set_fill('2DMEL', fill_2dmel)
+    call set_fill('3DHME', fill_3dhme)
+    call set_fill('2DHME', fill_2dhme)
+    call set_fill('1DGLO', fill_1dglo)
+    call set_fill('1DTHM', fill_1dthm)
+    call set_fill('1DCHM', fill_1dchm)
+    call set_fill('3DUSR', fill_3dusr)
+    call set_fill('2DUSR', fill_2dusr)
+    ! Probe fills read the iProbe*/rProbe* module state (set by the driver
+    ! before dispatch) instead of taking interpolation arguments.
+    call set_fill('1DALL', fill_1dall)
+    call set_fill('0DALL', fill_0dall)
+    call set_fill('1DNEW', fill_1dnew)
+    call set_fill('1DUSR', fill_1dusr)
+    call set_fill('0DUSR', fill_0dusr)
 
     ! Set before priming: the flag's job is idempotency, and priming runs real
     ! fill code, so it must not be able to re-enter this routine.
     containers_initialized = .true.
 
     ! ---- Converted one-shot types: the schema IS the fill routine ----------
-    ! Each fill is run once against block 1 purely for its define-on-first-touch
-    ! side effect; the data it stores is garbage that the first real fill
-    ! overwrites.  finish_priming then locks the schema.
-    call fill_3dall(containers(iCont_3DALL), 1)
-    call finish_priming(containers(iCont_3DALL))
-    call fill_2danc(containers(iCont_2DANC), 1)
-    call finish_priming(containers(iCont_2DANC))
-    call fill_3dneu(containers(iCont_3DNEU), 1)
-    call finish_priming(containers(iCont_3DNEU))
-    call fill_3dion(containers(iCont_3DION), 1)
-    call finish_priming(containers(iCont_3DION))
-    call fill_3dmag(containers(iCont_3DMAG), 1)
-    call finish_priming(containers(iCont_3DMAG))
-    call fill_2dtec(containers(iCont_2DTEC), 1)
-    call finish_priming(containers(iCont_2DTEC))
-    call fill_2dgel(containers(iCont_2DGEL), 1)
-    call finish_priming(containers(iCont_2DGEL))
-    call fill_3dthm(containers(iCont_3DTHM), 1)
-    call finish_priming(containers(iCont_3DTHM))
-    call fill_3dchm(containers(iCont_3DCHM), 1)
-    call finish_priming(containers(iCont_3DCHM))
-    call fill_3dmoh(containers(iCont_3DMOH), 1)
-    call finish_priming(containers(iCont_3DMOH))
-    call fill_3dmov(containers(iCont_3DMOV), 1)
-    call finish_priming(containers(iCont_3DMOV))
-    call fill_3dlst(containers(iCont_3DLST), 1)
-    call finish_priming(containers(iCont_3DLST))
-    call fill_3dglo(containers(iCont_3DGLO), 1)
-    call finish_priming(containers(iCont_3DGLO))
+    ! Any container still without a schema is a converted type: run its fill
+    ! once against block 1 purely for its define-on-first-touch side effect
+    ! (the data it stores is garbage that the first real fill overwrites),
+    ! then finish_priming locks the schema. Unconverted types were populated
+    ! above (nVars > 0), so the loop never runs their fills at init — which
+    ! is what keeps the lazily-allocated mag-grid types out.
+    do i = 1, nContainers
+      if (containers(i)%nVars == 0 .and. associated(containers(i)%fill)) then
+        call containers(i)%fill(containers(i), 1)
+        call finish_priming(containers(i))
+      endif
+    enddo
 
     call assert_types_fully_wired()
   end subroutine init_output_containers
+
+  ! ---------------------------------------------------------------------------
+  ! set_fill — register a type's fill routine on its container.
+  ! ---------------------------------------------------------------------------
+  subroutine set_fill(cType, f)
+    character(len=*), intent(in) :: cType
+    procedure(fill_iface) :: f
+    containers(get_container_idx(cType))%fill => f
+  end subroutine set_fill
 
   ! ---------------------------------------------------------------------------
   ! assert_types_fully_wired — init-time self-check over containers(:).
@@ -462,6 +451,9 @@ contains
       if (containers(i)%nVars == 0) &
         call stop_gitm('output container has an empty schema'// &
                        ' (forgot define/prime?): '//trim(containers(i)%cType))
+      if (.not. associated(containers(i)%fill)) &
+        call stop_gitm('output container has no fill registered'// &
+                       ' (forgot its set_fill line?): '//trim(containers(i)%cType))
     enddo
   end subroutine assert_types_fully_wired
 
@@ -1595,16 +1587,21 @@ contains
   ! ---------------------------------------------------------------------------
   ! fill_1dall — put 1DALL interpolated vertical column data.
   ! ---------------------------------------------------------------------------
-  subroutine fill_1dall(c, iBlock, iiLon, iiLat, rLon, rLat)
+  subroutine fill_1dall(c, iBlock)
     use ModGITM
     use ModConst, only: cRadToDeg
     use ModPlanet, only: nSpeciesTotal, nSpecies, nIons, cSpecies, cIons
     type(OutputContainer), intent(inout) :: c
-    integer, intent(in) :: iBlock, iiLon, iiLat
-    real, intent(in) :: rLon, rLat
+    integer, intent(in) :: iBlock
+    ! Route A1: probe location comes from module state (set by the driver).
+    integer :: iiLon, iiLat
+    real :: rLon, rLat
     real(output_kind) :: tmp_lon(nAlts), tmp_lat(nAlts), tmp_data(nAlts)
     real :: slice2d(0:nLons + 1, 0:nLats + 1)
     integer :: iAlt, i
+
+    iiLon = iProbeLon; iiLat = iProbeLat
+    rLon = rProbeLon; rLat = rProbeLat
 
     call c%prepare(iBlock)
     if (.not. c%this_rank_writes) return
@@ -1737,17 +1734,22 @@ contains
   ! ---------------------------------------------------------------------------
   ! fill_0dall — put 0DALL 3D-interpolated point data.
   ! ---------------------------------------------------------------------------
-  subroutine fill_0dall(c, iBlock, iiLon, iiLat, iiAlt, rLon, rLat, rAlt)
+  subroutine fill_0dall(c, iBlock)
     use ModGITM
     use ModConst, only: cRadToDeg
     use ModEUV, only: HeatingEfficiency_CB
     use ModSources, only: JouleHeating, RadCooling, EuvHeating, Conduction
     use ModPlanet, only: nSpeciesTotal, nSpecies, nIons, cSpecies, cIons
     type(OutputContainer), intent(inout) :: c
-    integer, intent(in) :: iBlock, iiLon, iiLat, iiAlt
-    real, intent(in) :: rLon, rLat, rAlt
+    integer, intent(in) :: iBlock
+    ! Route A1: probe location comes from module state (set by the driver).
+    integer :: iiLon, iiLat, iiAlt
+    real :: rLon, rLat, rAlt
     real :: Tmp3d(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1)
     integer :: jAlt, i
+
+    iiLon = iProbeLon; iiLat = iProbeLat; iiAlt = iProbeAlt
+    rLon = rProbeLon; rLat = rProbeLat; rAlt = rProbeAlt
 
     call c%prepare(iBlock)
     if (.not. c%this_rank_writes) return
@@ -2169,17 +2171,22 @@ contains
   ! ---------------------------------------------------------------------------
   ! fill_1dnew — put 1DNEW interpolated vertical column variables.
   ! ---------------------------------------------------------------------------
-  subroutine fill_1dnew(c, iBlock, iiLon, iiLat, rLon, rLat)
+  subroutine fill_1dnew(c, iBlock)
     use ModGITM
     use ModConst, only: cRadToDeg
     use ModEUV, only: Sza
     use ModPlanet, only: nSpeciesTotal, nSpecies, nIons, cSpecies, cIons
     type(OutputContainer), intent(inout) :: c
-    integer, intent(in) :: iBlock, iiLon, iiLat
-    real, intent(in) :: rLon, rLat
+    integer, intent(in) :: iBlock
+    ! Route A1: probe location comes from module state (set by the driver).
+    integer :: iiLon, iiLat
+    real :: rLon, rLat
     real(output_kind) :: tmp_lon(nAlts), tmp_lat(nAlts), tmp_lt(nAlts), tmp_sza(nAlts), tmp_data(nAlts)
     real :: slice2d(0:nLons + 1, 0:nLats + 1)
     integer :: iAlt, i
+
+    iiLon = iProbeLon; iiLat = iProbeLat
+    rLon = rProbeLon; rLat = rProbeLat
 
     call c%prepare(iBlock)
     if (.not. c%this_rank_writes) return
@@ -2398,15 +2405,20 @@ contains
   ! ---------------------------------------------------------------------------
   ! fill_1dusr — put 1DUSR variables into the container.
   ! ---------------------------------------------------------------------------
-  subroutine fill_1dusr(c, iBlock, iiLon, iiLat, rLon, rLat)
+  subroutine fill_1dusr(c, iBlock)
     use ModGITM
     use ModConst, only: cRadToDeg
     use ModUserGITM, only: UserData1D
     type(OutputContainer), intent(inout) :: c
-    integer, intent(in) :: iBlock, iiLon, iiLat
-    real, intent(in) :: rLon, rLat
+    integer, intent(in) :: iBlock
+    ! Route A1: probe location comes from module state (set by the driver).
+    integer :: iiLon, iiLat
+    real :: rLon, rLat
     real(output_kind) :: tmp(nAlts)
     integer :: i, iAlt
+
+    iiLon = iProbeLon; iiLat = iProbeLat
+    rLon = rProbeLon; rLat = rProbeLat
 
     call c%prepare(iBlock)
     if (.not. c%this_rank_writes) return
@@ -2450,14 +2462,19 @@ contains
   ! ---------------------------------------------------------------------------
   ! fill_0dusr — put 0DUSR variables into the container.
   ! ---------------------------------------------------------------------------
-  subroutine fill_0dusr(c, iBlock, iiLon, iiLat, iiAlt, rLon, rLat, rAlt)
+  subroutine fill_0dusr(c, iBlock)
     use ModGITM
     use ModConst, only: cRadToDeg
     use ModUserGITM, only: UserData1D
     type(OutputContainer), intent(inout) :: c
-    integer, intent(in) :: iBlock, iiLon, iiLat, iiAlt
-    real, intent(in) :: rLon, rLat, rAlt
+    integer, intent(in) :: iBlock
+    ! Route A1: probe location comes from module state (set by the driver).
+    integer :: iiLon, iiLat, iiAlt
+    real :: rLon, rLat, rAlt
     integer :: i
+
+    iiLon = iProbeLon; iiLat = iProbeLat; iiAlt = iProbeAlt
+    rLon = rProbeLon; rLat = rProbeLat; rAlt = rProbeAlt
 
     call c%prepare(iBlock)
     if (.not. c%this_rank_writes) return
