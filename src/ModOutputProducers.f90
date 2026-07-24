@@ -357,12 +357,9 @@ contains
     call define_schema_2dmel(containers(get_container_idx('2DMEL')))
     call define_schema_3dhme(containers(get_container_idx('3DHME')))
     call define_schema_2dhme(containers(get_container_idx('2DHME')))
-    call define_schema_1dall(containers(get_container_idx('1DALL')))
-    call define_schema_0dall(containers(get_container_idx('0DALL')))
     call define_schema_1dglo(containers(get_container_idx('1DGLO')))
     call define_schema_1dthm(containers(get_container_idx('1DTHM')))
     call define_schema_1dchm(containers(get_container_idx('1DCHM')))
-    call define_schema_1dnew(containers(get_container_idx('1DNEW')))
     call define_schema_3dusr(containers(get_container_idx('3DUSR')))
     call define_schema_2dusr(containers(get_container_idx('2DUSR')))
     call define_schema_1dusr(containers(get_container_idx('1DUSR')))
@@ -1549,42 +1546,6 @@ contains
   end subroutine fill_2dhme
 
   ! ---------------------------------------------------------------------------
-  ! define_schema_1dall — register variables for 1DALL.
-  ! ---------------------------------------------------------------------------
-  subroutine define_schema_1dall(c)
-    use ModGITM, only: nAlts
-    use ModPlanet, only: nSpeciesTotal, nSpecies, nIons, cSpecies, cIons
-    type(OutputContainer), intent(inout) :: c
-    integer :: i
-
-    c%cType = '1DALL'
-    c%gridKind = GRID_GEO_2D
-
-    call c%define_var('Longitude', units='degrees_east', shape3=[nAlts, 1, 1], is_axis=.true.)
-    call c%define_var('Latitude', units='degrees_north', shape3=[nAlts, 1, 1], is_axis=.true.)
-    call c%define_var('Altitude', units='m', shape3=[nAlts, 1, 1])
-    call c%define_var('Rho', units='kg/m3', shape3=[nAlts, 1, 1])
-    do i = 1, nSpeciesTotal
-      call c%define_var('['//trim(cSpecies(i))//']', units='/m3', shape3=[nAlts, 1, 1])
-    enddo
-    call c%define_var('Temperature', units='K', shape3=[nAlts, 1, 1])
-    call c%define_var('Vn (east)', units='m/s', shape3=[nAlts, 1, 1])
-    call c%define_var('Vn (north)', units='m/s', shape3=[nAlts, 1, 1])
-    call c%define_var('Vn (up)', units='m/s', shape3=[nAlts, 1, 1])
-    do i = 1, nSpecies
-      call c%define_var('Vn (up,'//trim(cSpecies(i))//')', units='m/s', shape3=[nAlts, 1, 1])
-    enddo
-    do i = 1, nIons
-      call c%define_var('['//trim(cIons(i))//']', units='/m3', shape3=[nAlts, 1, 1])
-    enddo
-    call c%define_var('eTemperature', units='K', shape3=[nAlts, 1, 1])
-    call c%define_var('iTemperature', units='K', shape3=[nAlts, 1, 1])
-    call c%define_var('Vi (east)', units='m/s', shape3=[nAlts, 1, 1])
-    call c%define_var('Vi (north)', units='m/s', shape3=[nAlts, 1, 1])
-    call c%define_var('Vi (up)', units='m/s', shape3=[nAlts, 1, 1])
-  end subroutine define_schema_1dall
-
-  ! ---------------------------------------------------------------------------
   ! fill_1dall — put 1DALL interpolated vertical column data.
   ! ---------------------------------------------------------------------------
   subroutine fill_1dall(c, iBlock)
@@ -1596,140 +1557,98 @@ contains
     ! Route A1: probe location comes from module state (set by the driver).
     integer :: iiLon, iiLat
     real :: rLon, rLat
-    real(output_kind) :: tmp_lon(nAlts), tmp_lat(nAlts), tmp_data(nAlts)
+    real :: tmp_lon(nAlts), tmp_lat(nAlts), tmp_data(nAlts)
     real :: slice2d(0:nLons + 1, 0:nLats + 1)
     integer :: iAlt, i
 
     iiLon = iProbeLon; iiLat = iProbeLat
     rLon = rProbeLon; rLat = rProbeLat
 
+    c%cType = '1DALL'
+    c%gridKind = GRID_GEO_2D
+
     call c%prepare(iBlock)
     if (.not. c%this_rank_writes) return
 
-    tmp_lon = real((rLon*Longitude(iiLon, iBlock) + (1.0 - rLon)*Longitude(iiLon + 1, iBlock))*cRadToDeg, &
-                   output_kind)
-    tmp_lat = real((rLat*Latitude(iiLat, iBlock) + (1.0 - rLat)*Latitude(iiLat + 1, iBlock))*cRadToDeg, &
-                   output_kind)
-    call c%put('Longitude', tmp_lon)
-    call c%put('Latitude', tmp_lat)
+    tmp_lon = (rLon*Longitude(iiLon, iBlock) + (1.0 - rLon)*Longitude(iiLon + 1, iBlock))*cRadToDeg
+    tmp_lat = (rLat*Latitude(iiLat, iBlock) + (1.0 - rLat)*Latitude(iiLat + 1, iBlock))*cRadToDeg
+    call c%put_axis('Longitude', tmp_lon)
+    call c%put_axis('Latitude', tmp_lat)
 
     do iAlt = 1, nAlts
-      tmp_data(iAlt) = real(Altitude_GB(iiLon, iiLat, iAlt, iBlock), output_kind)
+      tmp_data(iAlt) = Altitude_GB(iiLon, iiLat, iAlt, iBlock)
     enddo
-    call c%put('Altitude', tmp_data)
+    call c%put_field('Altitude', tmp_data)
 
     do iAlt = 1, nAlts
       slice2d = Rho(0:nLons + 1, 0:nLats + 1, iAlt, iBlock)
-      tmp_data(iAlt) = real(inter2d(slice2d, iiLon, iiLat, rLon, rLat), output_kind)
+      tmp_data(iAlt) = inter2d(slice2d, iiLon, iiLat, rLon, rLat)
     enddo
-    call c%put('Rho', tmp_data)
+    call c%put_field('Rho', tmp_data)
 
     do i = 1, nSpeciesTotal
       do iAlt = 1, nAlts
         slice2d = NDensityS(0:nLons + 1, 0:nLats + 1, iAlt, i, iBlock)
-        tmp_data(iAlt) = real(inter2d(slice2d, iiLon, iiLat, rLon, rLat), output_kind)
+        tmp_data(iAlt) = inter2d(slice2d, iiLon, iiLat, rLon, rLat)
       enddo
-      call c%put('['//trim(cSpecies(i))//']', tmp_data)
+      call c%put_field('['//trim(cSpecies(i))//']', tmp_data, units='/m3')
     enddo
 
     do iAlt = 1, nAlts
       slice2d = Temperature(0:nLons + 1, 0:nLats + 1, iAlt, iBlock)* &
                 TempUnit(0:nLons + 1, 0:nLats + 1, iAlt)
-      tmp_data(iAlt) = real(inter2d(slice2d, iiLon, iiLat, rLon, rLat), output_kind)
+      tmp_data(iAlt) = inter2d(slice2d, iiLon, iiLat, rLon, rLat)
     enddo
-    call c%put('Temperature', tmp_data)
+    call c%put_field('Temperature', tmp_data)
 
     do i = 1, 3
       do iAlt = 1, nAlts
         slice2d = Velocity(0:nLons + 1, 0:nLats + 1, iAlt, i, iBlock)
-        tmp_data(iAlt) = real(inter2d(slice2d, iiLon, iiLat, rLon, rLat), output_kind)
+        tmp_data(iAlt) = inter2d(slice2d, iiLon, iiLat, rLon, rLat)
       enddo
-      if (i == 1) call c%put('Vn (east)', tmp_data)
-      if (i == 2) call c%put('Vn (north)', tmp_data)
-      if (i == 3) call c%put('Vn (up)', tmp_data)
+      if (i == 1) call c%put_field('Vn (east)', tmp_data)
+      if (i == 2) call c%put_field('Vn (north)', tmp_data)
+      if (i == 3) call c%put_field('Vn (up)', tmp_data)
     enddo
 
     do i = 1, nSpecies
       do iAlt = 1, nAlts
         slice2d = VerticalVelocity(0:nLons + 1, 0:nLats + 1, iAlt, i, iBlock)
-        tmp_data(iAlt) = real(inter2d(slice2d, iiLon, iiLat, rLon, rLat), output_kind)
+        tmp_data(iAlt) = inter2d(slice2d, iiLon, iiLat, rLon, rLat)
       enddo
-      call c%put('Vn (up,'//trim(cSpecies(i))//')', tmp_data)
+      call c%put_field('Vn (up,'//trim(cSpecies(i))//')', tmp_data, units='m/s')
     enddo
 
     do i = 1, nIons
       do iAlt = 1, nAlts
         slice2d = IDensityS(0:nLons + 1, 0:nLats + 1, iAlt, i, iBlock)
-        tmp_data(iAlt) = real(inter2d(slice2d, iiLon, iiLat, rLon, rLat), output_kind)
+        tmp_data(iAlt) = inter2d(slice2d, iiLon, iiLat, rLon, rLat)
       enddo
-      call c%put('['//trim(cIons(i))//']', tmp_data)
+      call c%put_field('['//trim(cIons(i))//']', tmp_data, units='/m3')
     enddo
 
     do iAlt = 1, nAlts
       slice2d = eTemperature(0:nLons + 1, 0:nLats + 1, iAlt, iBlock)
-      tmp_data(iAlt) = real(inter2d(slice2d, iiLon, iiLat, rLon, rLat), output_kind)
+      tmp_data(iAlt) = inter2d(slice2d, iiLon, iiLat, rLon, rLat)
     enddo
-    call c%put('eTemperature', tmp_data)
+    call c%put_field('eTemperature', tmp_data)
 
     do iAlt = 1, nAlts
       slice2d = ITemperature(0:nLons + 1, 0:nLats + 1, iAlt, iBlock)
-      tmp_data(iAlt) = real(inter2d(slice2d, iiLon, iiLat, rLon, rLat), output_kind)
+      tmp_data(iAlt) = inter2d(slice2d, iiLon, iiLat, rLon, rLat)
     enddo
-    call c%put('iTemperature', tmp_data)
+    call c%put_field('iTemperature', tmp_data)
 
     do i = 1, 3
       do iAlt = 1, nAlts
         slice2d = IVelocity(0:nLons + 1, 0:nLats + 1, iAlt, i, iBlock)
-        tmp_data(iAlt) = real(inter2d(slice2d, iiLon, iiLat, rLon, rLat), output_kind)
+        tmp_data(iAlt) = inter2d(slice2d, iiLon, iiLat, rLon, rLat)
       enddo
-      if (i == 1) call c%put('Vi (east)', tmp_data)
-      if (i == 2) call c%put('Vi (north)', tmp_data)
-      if (i == 3) call c%put('Vi (up)', tmp_data)
+      if (i == 1) call c%put_field('Vi (east)', tmp_data)
+      if (i == 2) call c%put_field('Vi (north)', tmp_data)
+      if (i == 3) call c%put_field('Vi (up)', tmp_data)
     enddo
   end subroutine fill_1dall
-
-  ! ---------------------------------------------------------------------------
-  ! define_schema_0dall — register variables for 0DALL.
-  ! ---------------------------------------------------------------------------
-  subroutine define_schema_0dall(c)
-    use ModPlanet, only: nSpeciesTotal, nSpecies, nIons, cSpecies, cIons
-    type(OutputContainer), intent(inout) :: c
-    integer :: i
-
-    c%cType = '0DALL'
-    c%gridKind = GRID_GEO_2D
-
-    call c%define_var('Longitude', units='degrees_east', shape3=[1, 1, 1], is_axis=.true.)
-    call c%define_var('Latitude', units='degrees_north', shape3=[1, 1, 1], is_axis=.true.)
-    call c%define_var('Altitude', units='m', shape3=[1, 1, 1])
-    call c%define_var('Rho', units='kg/m3', shape3=[1, 1, 1])
-    do i = 1, nSpeciesTotal
-      call c%define_var('['//trim(cSpecies(i))//']', units='/m3', shape3=[1, 1, 1])
-    enddo
-    call c%define_var('Temperature', units='K', shape3=[1, 1, 1])
-    call c%define_var('Vn (east)', units='m/s', shape3=[1, 1, 1])
-    call c%define_var('Vn (north)', units='m/s', shape3=[1, 1, 1])
-    call c%define_var('Vn (up)', units='m/s', shape3=[1, 1, 1])
-    do i = 1, nSpecies
-      call c%define_var('Vn (up,'//trim(cSpecies(i))//')', units='m/s', shape3=[1, 1, 1])
-    enddo
-    do i = 1, nIons
-      call c%define_var('['//trim(cIons(i))//']', units='/m3', shape3=[1, 1, 1])
-    enddo
-    call c%define_var('eTemperature', units='K', shape3=[1, 1, 1])
-    call c%define_var('iTemperature', units='K', shape3=[1, 1, 1])
-    call c%define_var('Vi (east)', units='m/s', shape3=[1, 1, 1])
-    call c%define_var('Vi (north)', units='m/s', shape3=[1, 1, 1])
-    call c%define_var('Vi (up)', units='m/s', shape3=[1, 1, 1])
-    do i = 1, nSpecies
-      call c%define_var(trim(cSpecies(i))//' Mixing Ratio', units='', shape3=[1, 1, 1])
-    enddo
-    call c%define_var('RadCooling', units='K/s', shape3=[1, 1, 1])
-    call c%define_var('EuvHeating', units='K/s', shape3=[1, 1, 1])
-    call c%define_var('Conduction', units='K/s', shape3=[1, 1, 1])
-    call c%define_var('Heat Balance Total', units='K/s', shape3=[1, 1, 1])
-    call c%define_var('Heating Efficiency', units='', shape3=[1, 1, 1])
-  end subroutine define_schema_0dall
 
   ! ---------------------------------------------------------------------------
   ! fill_0dall — put 0DALL 3D-interpolated point data.
@@ -1751,84 +1670,77 @@ contains
     iiLon = iProbeLon; iiLat = iProbeLat; iiAlt = iProbeAlt
     rLon = rProbeLon; rLat = rProbeLat; rAlt = rProbeAlt
 
+    c%cType = '0DALL'
+    c%gridKind = GRID_GEO_2D
+
     call c%prepare(iBlock)
     if (.not. c%this_rank_writes) return
 
     jAlt = max(min(iiAlt, nAlts), 1)
 
-    call c%put('Longitude', &
-               real((rLon*Longitude(iiLon, iBlock) + (1.0 - rLon)*Longitude(iiLon + 1, iBlock))*cRadToDeg, &
-                    output_kind))
-    call c%put('Latitude', &
-               real((rLat*Latitude(iiLat, iBlock) + (1.0 - rLat)*Latitude(iiLat + 1, iBlock))*cRadToDeg, &
-                    output_kind))
-    call c%put('Altitude', real(rAlt*Altitude_GB(iiLon, iiLat, iiAlt, iBlock) + &
-                                (1.0 - rAlt)*Altitude_GB(iiLon + 1, iiLat + 1, iiAlt + 1, iBlock), &
-                                output_kind))
+    call c%put_axis('Longitude', &
+               [(rLon*Longitude(iiLon, iBlock) + (1.0 - rLon)*Longitude(iiLon + 1, iBlock))*cRadToDeg])
+    call c%put_axis('Latitude', &
+               [(rLat*Latitude(iiLat, iBlock) + (1.0 - rLat)*Latitude(iiLat + 1, iBlock))*cRadToDeg])
+    call c%put_field('Altitude', [rAlt*Altitude_GB(iiLon, iiLat, iiAlt, iBlock) + &
+                                (1.0 - rAlt)*Altitude_GB(iiLon + 1, iiLat + 1, iiAlt + 1, iBlock)])
 
     Tmp3d = Rho(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1, iBlock)
-    call c%put('Rho', real(inter3d(Tmp3d, iiLon, iiLat, iiAlt, rLon, rLat, rAlt), &
-                           output_kind))
+    call c%put_field('Rho', [inter3d(Tmp3d, iiLon, iiLat, iiAlt, rLon, rLat, rAlt)])
 
     do i = 1, nSpeciesTotal
       Tmp3d = NDensityS(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1, i, iBlock)
-      call c%put('['//trim(cSpecies(i))//']', real(inter3d(Tmp3d, iiLon, iiLat, iiAlt, rLon, rLat, rAlt), &
-                                                   output_kind))
+      call c%put_field('['//trim(cSpecies(i))//']', [inter3d(Tmp3d, iiLon, iiLat, iiAlt, rLon, rLat, rAlt)], units='/m3')
     enddo
 
     Tmp3d = Temperature(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1, iBlock)* &
             TempUnit(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1)
-    call c%put('Temperature', real(inter3d(Tmp3d, iiLon, iiLat, iiAlt, rLon, rLat, rAlt), &
-                                   output_kind))
+    call c%put_field('Temperature', [inter3d(Tmp3d, iiLon, iiLat, iiAlt, rLon, rLat, rAlt)])
 
     do i = 1, 3
       Tmp3d = Velocity(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1, i, iBlock)
-      if (i == 1) call c%put('Vn (east)', real(inter3d(Tmp3d, iiLon, iiLat, iiAlt, rLon, rLat, rAlt), &
-                                               output_kind))
-      if (i == 2) call c%put('Vn (north)', real(inter3d(Tmp3d, iiLon, iiLat, iiAlt, rLon, rLat, rAlt), &
-                                                output_kind))
-      if (i == 3) call c%put('Vn (up)', real(inter3d(Tmp3d, iiLon, iiLat, iiAlt, rLon, rLat, rAlt), &
-                                             output_kind))
+      if (i == 1) call c%put_field('Vn (east)', [inter3d(Tmp3d, iiLon, iiLat, iiAlt, rLon, rLat, rAlt)])
+      if (i == 2) call c%put_field('Vn (north)', [inter3d(Tmp3d, iiLon, iiLat, iiAlt, rLon, rLat, rAlt)])
+      if (i == 3) call c%put_field('Vn (up)', [inter3d(Tmp3d, iiLon, iiLat, iiAlt, rLon, rLat, rAlt)])
     enddo
 
     do i = 1, nSpecies
       Tmp3d = VerticalVelocity(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1, i, iBlock)
-      call c%put('Vn (up,'//trim(cSpecies(i))//')', &
-                 real(inter3d(Tmp3d, iiLon, iiLat, iiAlt, rLon, rLat, rAlt), output_kind))
+      call c%put_field('Vn (up,'//trim(cSpecies(i))//')', &
+                 [inter3d(Tmp3d, iiLon, iiLat, iiAlt, rLon, rLat, rAlt)], units='m/s')
     enddo
 
     do i = 1, nIons
       Tmp3d = IDensityS(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1, i, iBlock)
-      call c%put('['//trim(cIons(i))//']', real(inter3d(Tmp3d, iiLon, iiLat, iiAlt, rLon, rLat, rAlt), &
-                                                output_kind))
+      call c%put_field('['//trim(cIons(i))//']', [inter3d(Tmp3d, iiLon, iiLat, iiAlt, rLon, rLat, rAlt)], units='/m3')
     enddo
 
     Tmp3d = eTemperature(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1, iBlock)
-    call c%put('eTemperature', real(inter3d(Tmp3d, iiLon, iiLat, iiAlt, rLon, rLat, rAlt), output_kind))
+    call c%put_field('eTemperature', [inter3d(Tmp3d, iiLon, iiLat, iiAlt, rLon, rLat, rAlt)])
     Tmp3d = iTemperature(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1, iBlock)
-    call c%put('iTemperature', real(inter3d(Tmp3d, iiLon, iiLat, iiAlt, rLon, rLat, rAlt), output_kind))
+    call c%put_field('iTemperature', [inter3d(Tmp3d, iiLon, iiLat, iiAlt, rLon, rLat, rAlt)])
 
     Tmp3d = IVelocity(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1, iEast_, iBlock)
-    call c%put('Vi (east)', real(inter3d(Tmp3d, iiLon, iiLat, iiAlt, rLon, rLat, rAlt), output_kind))
+    call c%put_field('Vi (east)', [inter3d(Tmp3d, iiLon, iiLat, iiAlt, rLon, rLat, rAlt)])
     Tmp3d = IVelocity(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1, iNorth_, iBlock)
-    call c%put('Vi (north)', real(inter3d(Tmp3d, iiLon, iiLat, iiAlt, rLon, rLat, rAlt), output_kind))
+    call c%put_field('Vi (north)', [inter3d(Tmp3d, iiLon, iiLat, iiAlt, rLon, rLat, rAlt)])
     Tmp3d = IVelocity(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1, iUp_, iBlock)
-    call c%put('Vi (up)', real(inter3d(Tmp3d, iiLon, iiLat, iiAlt, rLon, rLat, rAlt), output_kind))
+    call c%put_field('Vi (up)', [inter3d(Tmp3d, iiLon, iiLat, iiAlt, rLon, rLat, rAlt)])
 
     do i = 1, nSpecies
       Tmp3d = NDensityS(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1, i, iBlock)/ &
               NDensity(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1, iBlock)
-      call c%put(trim(cSpecies(i))//' Mixing Ratio', &
-                 real(inter3d(Tmp3d, iiLon, iiLat, iiAlt, rLon, rLat, rAlt), output_kind))
+      call c%put_field(trim(cSpecies(i))//' Mixing Ratio', &
+                 [inter3d(Tmp3d, iiLon, iiLat, iiAlt, rLon, rLat, rAlt)], units='')
     enddo
 
-    call c%put('RadCooling', real(dt*RadCooling(1, 1, jAlt, iBlock)*TempUnit(1, 1, jAlt), output_kind))
-    call c%put('EuvHeating', real(dt*EuvHeating(1, 1, jAlt, iBlock)*TempUnit(1, 1, jAlt), output_kind))
-    call c%put('Conduction', real(Conduction(1, 1, jAlt)*TempUnit(1, 1, jAlt), output_kind))
-    call c%put('Heat Balance Total', real((dt*EuvHeating(1, 1, jAlt, iBlock)*TempUnit(1, 1, jAlt) - &
+    call c%put_field('RadCooling', [dt*RadCooling(1, 1, jAlt, iBlock)*TempUnit(1, 1, jAlt)], units='K/s')
+    call c%put_field('EuvHeating', [dt*EuvHeating(1, 1, jAlt, iBlock)*TempUnit(1, 1, jAlt)], units='K/s')
+    call c%put_field('Conduction', [Conduction(1, 1, jAlt)*TempUnit(1, 1, jAlt)])
+    call c%put_field('Heat Balance Total', [(dt*EuvHeating(1, 1, jAlt, iBlock)*TempUnit(1, 1, jAlt) - &
                                            dt*RadCooling(1, 1, jAlt, iBlock)*TempUnit(1, 1, jAlt) + &
-                                           Conduction(1, 1, jAlt)*TempUnit(1, 1, jAlt)), output_kind))
-    call c%put('Heating Efficiency', real(HeatingEfficiency_CB(1, 1, jAlt, iBlock), output_kind))
+                                           Conduction(1, 1, jAlt)*TempUnit(1, 1, jAlt))], units='K/s')
+    call c%put_field('Heating Efficiency', [HeatingEfficiency_CB(1, 1, jAlt, iBlock)], units='')
   end subroutine fill_0dall
 
   ! ---------------------------------------------------------------------------
@@ -2128,47 +2040,6 @@ contains
   end subroutine fill_1dchm
 
   ! ---------------------------------------------------------------------------
-  ! define_schema_1dnew — register variables for 1DNEW.
-  ! ---------------------------------------------------------------------------
-  subroutine define_schema_1dnew(c)
-    use ModGITM, only: nAlts
-    use ModPlanet, only: nSpeciesTotal, nSpecies, nIons, cSpecies, cIons
-    type(OutputContainer), intent(inout) :: c
-    integer :: i
-
-    c%cType = '1DNEW'
-    c%gridKind = GRID_GEO_2D
-
-    call c%define_var('Longitude', units='degrees_east', shape3=[nAlts, 1, 1], is_axis=.true.)
-    call c%define_var('Local Time', units='hr', shape3=[nAlts, 1, 1])
-    call c%define_var('Latitude', units='degrees_north', shape3=[nAlts, 1, 1])
-    call c%define_var('Solar Zenith Angle', units='rad', shape3=[nAlts, 1, 1])
-    call c%define_var('Altitude', units='m', shape3=[nAlts, 1, 1])
-    call c%define_var('Rho', units='kg/m3', shape3=[nAlts, 1, 1])
-    do i = 1, nSpeciesTotal
-      call c%define_var('['//trim(cSpecies(i))//']', units='/m3', shape3=[nAlts, 1, 1])
-    enddo
-    call c%define_var('Temperature', units='K', shape3=[nAlts, 1, 1])
-    call c%define_var('Vn (east)', units='m/s', shape3=[nAlts, 1, 1])
-    call c%define_var('Vn (north)', units='m/s', shape3=[nAlts, 1, 1])
-    call c%define_var('Vn (up)', units='m/s', shape3=[nAlts, 1, 1])
-    do i = 1, nSpecies
-      call c%define_var('Vn (up,'//trim(cSpecies(i))//')', units='m/s', shape3=[nAlts, 1, 1])
-    enddo
-    do i = 1, nIons
-      call c%define_var('['//trim(cIons(i))//']', units='/m3', shape3=[nAlts, 1, 1])
-    enddo
-    call c%define_var('eTemperature', units='K', shape3=[nAlts, 1, 1])
-    call c%define_var('iTemperature', units='K', shape3=[nAlts, 1, 1])
-    call c%define_var('Vi (east)', units='m/s', shape3=[nAlts, 1, 1])
-    call c%define_var('Vi (north)', units='m/s', shape3=[nAlts, 1, 1])
-    call c%define_var('Vi (up)', units='m/s', shape3=[nAlts, 1, 1])
-    do i = 1, nSpecies
-      call c%define_var(trim(cSpecies(i))//' Mixing Ratio', units='', shape3=[nAlts, 1, 1])
-    enddo
-  end subroutine define_schema_1dnew
-
-  ! ---------------------------------------------------------------------------
   ! fill_1dnew — put 1DNEW interpolated vertical column variables.
   ! ---------------------------------------------------------------------------
   subroutine fill_1dnew(c, iBlock)
@@ -2181,112 +2052,113 @@ contains
     ! Route A1: probe location comes from module state (set by the driver).
     integer :: iiLon, iiLat
     real :: rLon, rLat
-    real(output_kind) :: tmp_lon(nAlts), tmp_lat(nAlts), tmp_lt(nAlts), tmp_sza(nAlts), tmp_data(nAlts)
+    real :: tmp_lon(nAlts), tmp_lat(nAlts), tmp_lt(nAlts), tmp_sza(nAlts), tmp_data(nAlts)
     real :: slice2d(0:nLons + 1, 0:nLats + 1)
     integer :: iAlt, i
 
     iiLon = iProbeLon; iiLat = iProbeLat
     rLon = rProbeLon; rLat = rProbeLat
 
+    c%cType = '1DNEW'
+    c%gridKind = GRID_GEO_2D
+
     call c%prepare(iBlock)
     if (.not. c%this_rank_writes) return
 
-    tmp_lon = real((rLon*Longitude(iiLon, iBlock) + (1.0 - rLon)*Longitude(iiLon + 1, iBlock))*cRadToDeg, &
-                   output_kind)
-    tmp_lat = real((rLat*Latitude(iiLat, iBlock) + (1.0 - rLat)*Latitude(iiLat + 1, iBlock))*cRadToDeg, &
-                   output_kind)
-    tmp_lt = real(LocalTime(iiLon), output_kind)
-    tmp_sza = real(rLon*rLat*Sza(iiLon, iiLat, iBlock) + &
+    tmp_lon = (rLon*Longitude(iiLon, iBlock) + (1.0 - rLon)*Longitude(iiLon + 1, iBlock))*cRadToDeg
+    tmp_lat = (rLat*Latitude(iiLat, iBlock) + (1.0 - rLat)*Latitude(iiLat + 1, iBlock))*cRadToDeg
+    tmp_lt = LocalTime(iiLon)
+    tmp_sza = rLon*rLat*Sza(iiLon, iiLat, iBlock) + &
                    (1.0 - rLon)*rLat*Sza(iiLon + 1, iiLat, iBlock) + &
                    rLon*(1.0 - rLat)*Sza(iiLon, iiLat + 1, iBlock) + &
-                   (1.0 - rLon)*(1.0 - rLat)*Sza(iiLon + 1, iiLat + 1, iBlock), output_kind)
+                   (1.0 - rLon)*(1.0 - rLat)*Sza(iiLon + 1, iiLat + 1, iBlock)
 
-    call c%put('Longitude', tmp_lon)
-    call c%put('Local Time', tmp_lt)
-    call c%put('Latitude', tmp_lat)
-    call c%put('Solar Zenith Angle', tmp_sza)
+    call c%put_axis('Longitude', tmp_lon)
+    call c%put_field('Local Time', tmp_lt, units='hr')
+    call c%put_field('Latitude', tmp_lat)
+    call c%put_field('Solar Zenith Angle', tmp_sza, units='rad')
 
     do iAlt = 1, nAlts
-      tmp_data(iAlt) = real(Altitude_GB(iiLon, iiLat, iAlt, iBlock), output_kind)
+      tmp_data(iAlt) = Altitude_GB(iiLon, iiLat, iAlt, iBlock)
     enddo
-    call c%put('Altitude', tmp_data)
+    call c%put_field('Altitude', tmp_data)
 
     do iAlt = 1, nAlts
       slice2d = Rho(0:nLons + 1, 0:nLats + 1, iAlt, iBlock)
-      tmp_data(iAlt) = real(inter2d(slice2d, iiLon, iiLat, rLon, rLat), output_kind)
+      tmp_data(iAlt) = inter2d(slice2d, iiLon, iiLat, rLon, rLat)
     enddo
-    call c%put('Rho', tmp_data)
+    call c%put_field('Rho', tmp_data)
 
     do i = 1, nSpeciesTotal
       do iAlt = 1, nAlts
         slice2d = NDensityS(0:nLons + 1, 0:nLats + 1, iAlt, i, iBlock)
-        tmp_data(iAlt) = real(inter2d(slice2d, iiLon, iiLat, rLon, rLat), output_kind)
+        tmp_data(iAlt) = inter2d(slice2d, iiLon, iiLat, rLon, rLat)
       enddo
-      call c%put('['//trim(cSpecies(i))//']', tmp_data)
+      call c%put_field('['//trim(cSpecies(i))//']', tmp_data, units='/m3')
     enddo
 
     do iAlt = 1, nAlts
       slice2d = Temperature(0:nLons + 1, 0:nLats + 1, iAlt, iBlock)* &
                 TempUnit(0:nLons + 1, 0:nLats + 1, iAlt)
-      tmp_data(iAlt) = real(inter2d(slice2d, iiLon, iiLat, rLon, rLat), output_kind)
+      tmp_data(iAlt) = inter2d(slice2d, iiLon, iiLat, rLon, rLat)
     enddo
-    call c%put('Temperature', tmp_data)
+    call c%put_field('Temperature', tmp_data)
 
     do i = 1, 3
       do iAlt = 1, nAlts
         slice2d = Velocity(0:nLons + 1, 0:nLats + 1, iAlt, i, iBlock)
-        tmp_data(iAlt) = real(inter2d(slice2d, iiLon, iiLat, rLon, rLat), output_kind)
+        tmp_data(iAlt) = inter2d(slice2d, iiLon, iiLat, rLon, rLat)
       enddo
-      if (i == 1) call c%put('Vn (east)', tmp_data)
-      if (i == 2) call c%put('Vn (north)', tmp_data)
-      if (i == 3) call c%put('Vn (up)', tmp_data)
+      if (i == 1) call c%put_field('Vn (east)', tmp_data)
+      if (i == 2) call c%put_field('Vn (north)', tmp_data)
+      if (i == 3) call c%put_field('Vn (up)', tmp_data)
     enddo
 
     do i = 1, nSpecies
       do iAlt = 1, nAlts
         slice2d = VerticalVelocity(0:nLons + 1, 0:nLats + 1, iAlt, i, iBlock)
-        tmp_data(iAlt) = real(inter2d(slice2d, iiLon, iiLat, rLon, rLat), output_kind)
+        tmp_data(iAlt) = inter2d(slice2d, iiLon, iiLat, rLon, rLat)
       enddo
-      call c%put('Vn (up,'//trim(cSpecies(i))//')', tmp_data)
+      call c%put_field('Vn (up,'//trim(cSpecies(i))//')', tmp_data, units='m/s')
     enddo
 
     do i = 1, nIons
       do iAlt = 1, nAlts
         slice2d = IDensityS(0:nLons + 1, 0:nLats + 1, iAlt, i, iBlock)
-        tmp_data(iAlt) = real(inter2d(slice2d, iiLon, iiLat, rLon, rLat), output_kind)
+        tmp_data(iAlt) = inter2d(slice2d, iiLon, iiLat, rLon, rLat)
       enddo
-      call c%put('['//trim(cIons(i))//']', tmp_data)
+      call c%put_field('['//trim(cIons(i))//']', tmp_data, units='/m3')
     enddo
 
     do iAlt = 1, nAlts
       slice2d = eTemperature(0:nLons + 1, 0:nLats + 1, iAlt, iBlock)
-      tmp_data(iAlt) = real(inter2d(slice2d, iiLon, iiLat, rLon, rLat), output_kind)
+      tmp_data(iAlt) = inter2d(slice2d, iiLon, iiLat, rLon, rLat)
     enddo
-    call c%put('eTemperature', tmp_data)
+    call c%put_field('eTemperature', tmp_data)
 
     do iAlt = 1, nAlts
       slice2d = ITemperature(0:nLons + 1, 0:nLats + 1, iAlt, iBlock)
-      tmp_data(iAlt) = real(inter2d(slice2d, iiLon, iiLat, rLon, rLat), output_kind)
+      tmp_data(iAlt) = inter2d(slice2d, iiLon, iiLat, rLon, rLat)
     enddo
-    call c%put('iTemperature', tmp_data)
+    call c%put_field('iTemperature', tmp_data)
 
     do i = 1, 3
       do iAlt = 1, nAlts
         slice2d = IVelocity(0:nLons + 1, 0:nLats + 1, iAlt, i, iBlock)
-        tmp_data(iAlt) = real(inter2d(slice2d, iiLon, iiLat, rLon, rLat), output_kind)
+        tmp_data(iAlt) = inter2d(slice2d, iiLon, iiLat, rLon, rLat)
       enddo
-      if (i == 1) call c%put('Vi (east)', tmp_data)
-      if (i == 2) call c%put('Vi (north)', tmp_data)
-      if (i == 3) call c%put('Vi (up)', tmp_data)
+      if (i == 1) call c%put_field('Vi (east)', tmp_data)
+      if (i == 2) call c%put_field('Vi (north)', tmp_data)
+      if (i == 3) call c%put_field('Vi (up)', tmp_data)
     enddo
 
     do i = 1, nSpecies
       do iAlt = 1, nAlts
         slice2d = NDensityS(0:nLons + 1, 0:nLats + 1, iAlt, i, iBlock)/ &
                   NDensity(0:nLons + 1, 0:nLats + 1, iAlt, iBlock)
-        tmp_data(iAlt) = real(inter2d(slice2d, iiLon, iiLat, rLon, rLat), output_kind)
+        tmp_data(iAlt) = inter2d(slice2d, iiLon, iiLat, rLon, rLat)
       enddo
-      call c%put(trim(cSpecies(i))//' Mixing Ratio', tmp_data)
+      call c%put_field(trim(cSpecies(i))//' Mixing Ratio', tmp_data, units='')
     enddo
   end subroutine fill_1dnew
 
