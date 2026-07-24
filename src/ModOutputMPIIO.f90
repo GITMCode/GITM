@@ -201,7 +201,7 @@ contains
   end subroutine mpiio_write_header
 
   ! ---------------------------------------------------------------------------
-  ! mpiio_write_container — pack container vars into a single tmpbuf and write
+  ! mpiio_write_container: pack container vars into a single tmpbuf and write
   ! at the file offset determined by iBlock (= global block index iBLK).
   !
   ! Axis vars (is_axis=.true.) are 1D in the container but expanded to the
@@ -279,7 +279,7 @@ contains
     endif
 
     ! MAG_2D/HIME: non-writing ranks already returned above, so a collective
-    ! write_at_all would deadlock waiting on them -- use independent write_at.
+    ! write_at_all would deadlock waiting on them; use independent write_at.
     ! Normal block-partitioned geo grids: all ranks participate; keep the
     ! faster collective path.
     if (c%gridKind == GRID_MAG_2D .or. c%gridKind == GRID_HIME) then

@@ -122,9 +122,10 @@ The DtRestart variable sets the time in between writing full restart
 files to the UA/restartOUT directory. This sets the output files. The most common
 type is 3DALL, which outputs all primary state variables. 
 
-Other types include : 3DALL, 3DNEU, 3DION, 3DTHM,
-3DCHM, 3DUSR, 3DGLO, 2DGEL, 2DMEL, 2DUSR, 1DALL, 1DGLO, 1DTHM, 1DNEW,
-1DCHM, 1DCMS, 1DUSR. DtPlot sets the frequency of output
+Other types include : 3DALL, 3DNEU, 3DION, 3DTHM, 3DCHM, 3DLST, 3DGLO,
+3DMAG, 3DMOH, 3DMOV, 3DHME, 3DUSR, 2DGEL, 2DMEL, 2DTEC, 2DANC, 2DHME,
+2DUSR, 1DALL, 1DGLO, 1DTHM, 1DNEW, 1DCHM, 1DUSR, 0DALL, 0DUSR. DtPlot sets
+the frequency of output
 
     #SAVEPLOT
     DtRestart     (real, seconds)
@@ -200,9 +201,9 @@ files. It only works for satellite files now.
 
 Selects the I/O backend used to write output files. Three backends are available:
 
-- `legacy` — per-block binary files (default; backwards-compatible with all existing tools)
-- `mpiio` — single shared binary file written collectively via MPI-IO
-- `netcdf` — single self-describing NetCDF file per output type per timestep (requires PnetCDF)
+- `legacy`: per-block binary files (default; backwards-compatible with all existing tools)
+- `mpiio`: single shared binary file written collectively via MPI-IO
+- `netcdf`: single self-describing NetCDF file per output type per timestep (requires PnetCDF)
 
     #OUTPUTBACKEND
     BackendName    (string: legacy | mpiio | netcdf)
@@ -211,25 +212,38 @@ If this block is absent, the `legacy` backend is used. See the
 [Output Backends](outputs/output_backends.md) page for a full description and
 build requirements.
 
-### NETCDFAPPEND
+### NETCDFOPTIONS
 
-When using the `netcdf` backend, there are three choices for how often to write files.
-Specify that option here!
+Options for the `netcdf` backend. Both flags are sequential and optional.
 
-- `none` (default)" Writes one file per output type, per outputDt. This is the same as 
-  the other backends (e.g. `3DALL_t021221_235000.nc`)
-- `single`: Combines all outputDt into one file. This file can easily reach hundreds of 
-  GB, but some find that easier to manage than many small files. (e.g., `3DALL.nc`)
-- `daily`: Is a blend of the two. Creates a new file per day, for each output type
-  (e.g., `3DALL_2002-12-21.nc`).
+`netCDFAppendMethod` sets how often files are created:
 
-Any of the append options (other than `none`) enable multi-time mode.
-Data variables gain an unlimited time dimension as their last axis,
-making files directly usable with xarray and other time-series tools. Has no effect
-when `#OUTPUTBACKEND` is `legacy` or `mpiio`.
+- `none` (default): one file per output type per outputDt, like the other
+  backends (e.g. `3DALL_t021221_235000.nc`).
+- `single`: all outputDt in one file per output type (e.g. `3DALL.nc`). Such a
+  file can reach hundreds of GB, but some find that easier to manage than many
+  small files.
+- `daily`: a blend of the two, a new file per day per output type
+  (e.g. `3DALL_2002-12-21.nc`).
 
-    #NETCDFAPPEND
-    UseNetcdfMultiTime    (character)
+`single` and `daily` enable multi-time mode: data variables gain an unlimited
+time dimension as their last axis, making files directly usable with xarray
+and other time-series tools.
+
+`netCDFFileName`, when given, is a run name inserted into every netcdf
+filename (e.g. `3DALL_storm1.nc`), letting several runs share one directory.
+Restarted `single`/`daily` runs with a name write one file per leg (a
+`restart_yymmdd_hhmmss` stamp is appended); `single`/`daily` runs that are
+restarts or named refuse to overwrite an existing target file and stop.
+An unnamed run cannot continue a `single`/`daily` file across a restart;
+set a run name for that. See
+[Output Backends](outputs/output_backends.md) for details.
+
+Has no effect when `#OUTPUTBACKEND` is `legacy` or `mpiio`.
+
+    #NETCDFOPTIONS
+    netCDFAppendMethod    (string: single | daily | none)
+    netCDFFileName        (string, optional run name)
 
 ## Drivers
 

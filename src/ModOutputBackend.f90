@@ -6,8 +6,8 @@
 ! pointers for runtime backend selection.
 !
 ! Contains backends for:
-!   legacy  -- per-block unformatted sequential files (original format)
-!   mpiio   -- single combined .bin file written collectively via MPI-IO, single header
+!   legacy: per-block unformatted sequential files (original format)
+!   mpiio:  single combined .bin file written collectively via MPI-IO, single header
 
 module ModOutputBackend
 
@@ -38,8 +38,8 @@ module ModOutputBackend
     end subroutine
 
     ! Write one block's data buffer to the output file.
-    ! iUnit -- Fortran unit (legacy only; mpiio ignores it)
-    ! iBLK  -- global block index (mpiio uses for byte offset)
+    ! iUnit: Fortran unit (legacy only; mpiio ignores it)
+    ! iBLK:  global block index (mpiio uses for byte offset)
     subroutine backend_write_block_iface(iUnit, buffer, nV, nX, nY, nZ, iBLK)
       integer, intent(in) :: iUnit, nV, nX, nY, nZ, iBLK
       real, intent(in) :: buffer(nV, nX, nY, nZ)
@@ -266,7 +266,7 @@ contains
   end subroutine legacy_write_header
 
   ! ---------------------------------------------------------------------------
-  ! legacy_write_container — pack container vars into a single tmpbuf and write
+  ! legacy_write_container: pack container vars into a single tmpbuf and write
   ! to the legacy unformatted file for the current block.
   ! Replicates the legacy per-grid-point write pattern exactly:
   !   do iz, do iy, do ix: write(unit) buffer(:, ix, iy, iz)

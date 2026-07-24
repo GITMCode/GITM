@@ -3,38 +3,27 @@
 !
 ! ModOutputContainer.f90
 !
-! Containerized outputs for GITM.  Backends consume the container.
+! Containerized outputs for GITM.  Backends consume the container; both APIs
+! below leave it in the same state, so no backend can tell which built it.
 !
-! Two APIs coexist; both leave the container in the same state, so no backend
-! can tell which one built it.
-!
-! ONE-SHOT (put_field/put_axis) — preferred, used by the converted GEO types:
-!   A single fill_<type> both defines and fills.  The first put of a name
-!   defines the variable (shape = size(arr) VERBATIM, metadata from
-!   ModOutputVarRegistry); later puts overwrite it and must match that shape.
-!   One list means define and fill cannot drift apart.  The schema is
-!   materialized eagerly by a priming pass (init_output_containers calls each
-!   fill once, then sets schema_locked), so the schema is complete before
-!   open_file — which the netcdf backend requires, since it issues collective
-!   nfmpi_def_var for the whole file there.
-!
+! ONE-SHOT (put_field/put_axis) is preferred: a single fill_<type> both defines
+!   and fills.  The first put of a name defines the variable (shape = size(arr)
+!   VERBATIM, metadata from ModOutputVarRegistry); later puts must match.  A
+!   priming pass (init_output_containers runs each fill once, then locks the
+!   schema) makes the schema complete before open_file, where netcdf issues
+!   collective nfmpi_def_var for the whole file.
 !   The CALLER owns the slice: put stores exactly what it is handed, with no
-!   ghost-cell or grid-kind inference.  This is forced by real schemas — 2DANC
-!   holds a 2-ghost VTEC, a 0-ghost synthesized LT, and a single altitude LEVEL
-!   of a 3-D array side by side; no container-level rule expresses all three.
-!   nGhostCells is therefore pure metadata (what the netcdf backend strips),
-!   decoupled from the slice the caller actually stored.
+!   ghost-cell or grid-kind inference (2DANC holds a 2-ghost VTEC, a 0-ghost
+!   LT, and one altitude LEVEL of a 3-D array side by side).  nGhostCells is
+!   metadata (what the netcdf backend strips), decoupled from the stored slice.
 !
-! EXPLICIT TWO-PHASE (define_var + put) — retained for the types not converted:
-!   magnetic grids, HME/HIME regionals, and USR.  USR is permanent by design:
-!   users put from anywhere, so a put-derived schema would be empty at the first
-!   output; registration IS its eager schema.
-!   Phase 1 — SCHEMA: call define_var() once per file open, all ranks.
-!   Phase 2 — DATA:   call prepare(iBlock), then put() on participating ranks.
+! EXPLICIT TWO-PHASE (define_var once per open on all ranks, then prepare +
+!   put on participating ranks): for magnetic grids, HME/HIME regionals, and
+!   USR.  USR is permanent by design: users put from anywhere, so a put-derived
+!   schema would be empty at the first output; registration IS its schema.
 !
-! Container precision = kind(1.0) — tracks compile-time `real`.  A double
-! build (real = real*8) produces 8-byte output; a single build produces 4.
-! This matches mpiio's MPI_REAL convention and avoids silent precision loss.
+! Container precision = kind(1.0), tracking compile-time `real`, matching
+! mpiio's MPI_REAL convention.
 
 module ModOutputContainer
 
@@ -45,11 +34,11 @@ module ModOutputContainer
   ! Container storage precision tracks the model's compile-time precision
   integer, parameter :: output_kind = kind(1.0)
 
-  ! Grid kind constants — controls how backends interpret dims and participation.
+  ! Grid kind constants: controls how backends interpret dims and participation.
   ! Participation rules are set in prepare(): GEO_3D/GEO_2D = all ranks write,
   ! MAG_2D = only iProc==0, HIME = caller sets per-rank flag externally.
   ! GRID_GEO_2D doubles as the "all geographic ranks participate" default for
-  ! 1D and 0D outputs (no dedicated GRID_GEO_1D/_0D — participation rule is
+  ! 1D and 0D outputs (no dedicated GRID_GEO_1D/_0D; participation rule is
   ! identical, and the dim count is carried by each variable's shape3).
   integer, parameter :: GRID_GEO_3D = 1  ! geographic 3D block-partitioned
   integer, parameter :: GRID_GEO_2D = 2  ! geographic 2D / 1D / 0D (all ranks participate)
@@ -76,35 +65,21 @@ module ModOutputContainer
     integer                     :: nVars = 0
     logical                     :: this_rank_writes = .false.
     logical                     :: any_rank_skips = .false.  ! set at file open via allreduce
-    ! Set for one-shot types once priming has materialized the schema.  After
-    ! this, a put of an UNKNOWN name is a hard error rather than a silent new
-    ! variable: a schema that varies by rank or by timestep would desync the
-    ! collective nfmpi_def_var at scale (a hang), and this turns that into a
-    ! clean abort at -np 4.  Unconverted types never set it.
+    ! Once primed, a put of an unknown name is a hard error: a per-rank or
+    ! per-timestep schema change would desync the collective def_var.
     logical                     :: schema_locked = .false.
-    ! True once a one-shot type has been primed.  Distinct from schema_locked
-    ! (which is only about rejecting new names) because this drives the
-    ! per-fill wipe and put-count guards, which must never touch the
-    ! unconverted types: USR in particular depends on values PERSISTING
-    ! between puts when its put cadence differs from the output cadence.
+    ! Drives the per-fill wipe and put-count guards. Off for unconverted types;
+    ! USR in particular needs its values to persist between puts.
     logical                     :: is_one_shot = .false.
-    ! Puts seen since the last prepare(), or -1 when no one-shot fill is in
-    ! progress (unconverted type, or a rank that does not write this block).
-    ! The sentinel is what lets finish_fill be called from ONE place in
-    ! output_common after the dispatch chain, rather than from every fill:
-    ! by then reset() has already cleared this_rank_writes, so participation
-    ! has to be remembered here instead of re-tested.
+    ! Puts since the last prepare(); -1 when no one-shot fill is active. The
+    ! sentinel lets finish_fill run from one place after the dispatch chain.
     integer                     :: nPuts = -1
-    ! Per-type ghost cell width (per side). Default 0 = interior-only outputs.
-    ! Set to 2 in define_schema_<type> to include GITM's ghost cells in legacy/mpiio
-    ! output; netcdf backend strips them automatically for GEO_* gridKinds.
-    ! When > 0, every variable's spatial dims must be padded by 2*nGhostCells.
+    ! Per-type ghost cell width (per side); 0 = interior-only. Set to 2 to keep
+    ! GITM's ghosts in legacy/mpiio; netcdf strips them for GEO_* gridKinds.
     integer                     :: nGhostCells = 0
-    ! Per-type fill routine, registered in init_output_containers (same nopass
-    ! pointer pattern as ActiveBackend). The container is passed explicitly so
-    ! fills keep their plain subroutine form. fill_iface is declared AFTER this
-    ! type on purpose: an interface importing OutputContainer cannot precede it,
-    ! and gfortran resolves the forward reference within one specification part.
+    ! Per-type fill routine, registered in init_output_containers. fill_iface is
+    ! declared after this type: an interface importing OutputContainer cannot
+    ! precede it, and gfortran resolves the forward reference within one spec part.
     procedure(fill_iface), pointer, nopass :: fill => null()
   contains
     procedure :: define_var
@@ -138,7 +113,7 @@ module ModOutputContainer
 contains
 
   ! ---------------------------------------------------------------------------
-  ! define_var — register a variable in the schema.
+  ! define_var: register a variable in the schema.
   !
   ! Must be called before open_file (schema phase).  All ranks call identically.
   ! Allocates data storage (reused across timesteps).
@@ -155,13 +130,13 @@ contains
 
     if (this%schema_locked) then
       write(*, '(a,a,a)') 'ModOutputContainer: WARNING define_var called after schema locked for ', &
-        trim(this%cType), ' — ignored'
+        trim(this%cType), ': ignored'
       return
     endif
 
     if (this%nVars >= MaxContainerVars) &
       call stop_gitm('ModOutputContainer: too many variables in type '//trim(this%cType)// &
-                     ' — raise MaxContainerVars')
+                     '; raise MaxContainerVars')
 
     n = this%nVars + 1
     if (.not. allocated(this%vars)) then
@@ -196,13 +171,13 @@ contains
   end subroutine define_var
 
   ! ---------------------------------------------------------------------------
-  ! ensure_var — resolve name to a variable index, defining it on first touch.
+  ! ensure_var: resolve name to a variable index, defining it on first touch.
   !
   ! First touch: append the variable, taking its shape verbatim from the caller
   ! and its metadata from the registry (units=/longName= override it, which is
   ! how the computed species/ion names carry metadata a static table cannot).
   ! Later touches: return the existing index after checking the shape still
-  ! matches — a fill whose slice changes size mid-run would silently corrupt
+  ! matches; a fill whose slice changes size mid-run would silently corrupt
   ! every subsequent file.
   !
   ! Leaves exactly the state define_var would, so backends cannot distinguish
@@ -226,7 +201,7 @@ contains
     idx = this%find_var(name)
 
     if (idx > 0) then
-      ! Overwrite path — shape is fixed at first touch.
+      ! Overwrite path: shape is fixed at first touch.
       if (any(this%vars(idx)%shape3 /= shape3)) then
         write(errmsg, '(a,a,a,a,a,3(i0,a),3(i0,a))') &
           'ModOutputContainer: put shape mismatch for "', trim(name), '" in type ', trim(this%cType), &
@@ -241,11 +216,11 @@ contains
     if (this%schema_locked) &
       call stop_gitm('ModOutputContainer: put of unknown variable "'//trim(name)//'" in type '// &
                      trim(this%cType)//' after the schema was primed.  A converted fill_<type> must '// &
-                     'put the same variables on every rank and every timestep — no conditional puts.')
+                     'put the same variables on every rank and every timestep; no conditional puts.')
 
     if (this%nVars >= MaxContainerVars) &
       call stop_gitm('ModOutputContainer: too many variables in type '//trim(this%cType)// &
-                     ' — raise MaxContainerVars')
+                     '; raise MaxContainerVars')
 
     if (.not. allocated(this%vars)) allocate(this%vars(MaxContainerVars))
 
@@ -255,7 +230,7 @@ contains
     if (.not. inRegistry) then
       ! Not a registered name (a computed species/ion name): the call site owns
       ! the metadata.  longName falls back to the name, matching define_var, but
-      ! units cannot be guessed — refuse rather than emit empty units.
+      ! units cannot be guessed; refuse rather than emit empty units.
       varLongName = trim(name)
       if (.not. present(units)) &
         call stop_gitm('ModOutputContainer: variable "'//trim(name)//'" in type '//trim(this%cType)// &
@@ -282,14 +257,14 @@ contains
   end subroutine ensure_var
 
   ! ---------------------------------------------------------------------------
-  ! finish_fill — assert a one-shot fill put EVERY variable exactly once.
+  ! finish_fill: assert a one-shot fill put EVERY variable exactly once.
   !
   ! This is the primary guard against a stale variable: without it, a fill that
   ! quietly stops putting some name keeps shipping whatever was in %data (with
   ! prepare's wipe, zeros), and nothing in the file says so.  It equally catches
   ! a double put, and a fill that puts nothing at all.
   !
-  ! Called from ONE place — output_common, after the fill/write dispatch chain —
+  ! Called from ONE place (output_common, after the fill/write dispatch chain)
   ! so that adding an output type cannot forget it.  It therefore runs after
   ! reset() has cleared this_rank_writes, which is why participation is read
   ! from the nPuts sentinel (armed in prepare) rather than re-tested here.
@@ -315,7 +290,7 @@ contains
   end subroutine finish_fill
 
   ! ---------------------------------------------------------------------------
-  ! put_axis_1d — store a 1D coordinate variable (netcdf writes it as a
+  ! put_axis_1d: store a 1D coordinate variable (netcdf writes it as a
   ! coordinate).  Otherwise identical to put_field_1d.
   ! ---------------------------------------------------------------------------
   subroutine put_axis_1d(this, name, arr, units, longName)
@@ -332,7 +307,7 @@ contains
   end subroutine put_axis_1d
 
   ! ---------------------------------------------------------------------------
-  ! put_field_1d/2d/3d — define-on-first-touch + store, verbatim.
+  ! put_field_1d/2d/3d: define-on-first-touch + store, verbatim.
   !
   ! The dummy is default real (the model's kind), NOT output_kind: taking model
   ! reals lets the r8 -> output_kind conversion happen in the same assignment
@@ -379,7 +354,7 @@ contains
   end subroutine put_field_3d
 
   ! ---------------------------------------------------------------------------
-  ! prepare — set this_rank_writes for this block, per container's gridKind.
+  ! prepare: set this_rank_writes for this block, per container's gridKind.
   !
   ! Called by the producer at the start of each fill_<type> call.
   ! ---------------------------------------------------------------------------
@@ -401,13 +376,10 @@ contains
       this%this_rank_writes = .true.
     end select
 
-    ! One-shot fill about to run on this rank: arm the put counter and start
-    ! from a known state, so what lands in the file depends only on THIS fill's
-    ! puts and never on a previous block or timestep.  finish_fill turns a
-    ! skipped variable into an error rather than a silent zero, so the wipe
-    ! costs a memset (sub-ms) to buy determinism against seconds of write time.
-    ! Everything else — unconverted types, and ranks that do not write this
-    ! block — keeps nPuts = -1 and is left alone: USR in particular relies on
+    ! One-shot fill about to run on this rank: arm the put counter and wipe the
+    ! data, so what lands in the file depends only on THIS fill's puts and never
+    ! on a previous block or timestep. Unconverted types and non-writing ranks
+    ! keep nPuts = -1 and are left alone: USR in particular relies on
     ! last-known values persisting between puts.
     if (this%is_one_shot .and. this%this_rank_writes) then
       this%nPuts = 0
@@ -420,7 +392,7 @@ contains
   end subroutine prepare
 
   ! ---------------------------------------------------------------------------
-  ! reset — clear participation flag between timesteps.  Keeps allocations.
+  ! reset: clear participation flag between timesteps.  Keeps allocations.
   ! ---------------------------------------------------------------------------
   subroutine reset(this)
     class(OutputContainer), intent(inout) :: this
@@ -429,7 +401,7 @@ contains
   end subroutine reset
 
   ! ---------------------------------------------------------------------------
-  ! find_var — return index of named variable, or 0 if not found.
+  ! find_var: return index of named variable, or 0 if not found.
   ! ---------------------------------------------------------------------------
   integer function find_var(this, name)
     class(OutputContainer), intent(in) :: this
@@ -446,7 +418,7 @@ contains
   end function find_var
 
   ! ---------------------------------------------------------------------------
-  ! put_0d — store a scalar value.
+  ! put_0d: store a scalar value.
   ! ---------------------------------------------------------------------------
   subroutine put_0d(this, name, scalar)
     class(OutputContainer), intent(inout) :: this
@@ -463,7 +435,7 @@ contains
   end subroutine put_0d
 
   ! ---------------------------------------------------------------------------
-  ! put_1d — store a 1D array.
+  ! put_1d: store a 1D array.
   ! ---------------------------------------------------------------------------
   subroutine put_1d(this, name, arr)
     class(OutputContainer), intent(inout) :: this
@@ -487,7 +459,7 @@ contains
   end subroutine put_1d
 
   ! ---------------------------------------------------------------------------
-  ! put_2d — store a 2D array.
+  ! put_2d: store a 2D array.
   ! ---------------------------------------------------------------------------
   subroutine put_2d(this, name, arr)
     class(OutputContainer), intent(inout) :: this
@@ -513,7 +485,7 @@ contains
   end subroutine put_2d
 
   ! ---------------------------------------------------------------------------
-  ! put_3d — store a 3D array.
+  ! put_3d: store a 3D array.
   ! ---------------------------------------------------------------------------
   subroutine put_3d(this, name, arr)
     class(OutputContainer), intent(inout) :: this

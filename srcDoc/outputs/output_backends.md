@@ -29,7 +29,7 @@ block file independently, producing:
 - One binary `.b####` file per MPI rank (e.g., `.b0001`, `.b0002`, ...)
 
 These per-block files must be merged into a single `.bin` file before they can be
-analysed. `post_process.py` handles this step automatically — see
+analysed. `post_process.py` handles this step automatically. See
 [Postprocessing](../postprocessing.md) for details.
 
 !!! warning "Lustre and parallel filesystems"
@@ -42,8 +42,8 @@ analysed. `post_process.py` handles this step automatically — see
 ## mpiio
 
 The MPI-IO backend writes all blocks into a single shared file using MPI collective
-I/O[^collectiveio] (`MPI_File_open` / `MPI_File_write_at`). Each rank writes its block(s)
-at a fixed byte offset[^byteoffset], so all ranks write simultaneously without
+I/O (`MPI_File_open` / `MPI_File_write_at`). Each rank writes its block(s)
+at a fixed byte offset, so all ranks write simultaneously without
 serialization. The result is:
 
 - One ASCII `.header` file (same format as legacy, with an added `FORMAT/mpiio` line)
@@ -62,52 +62,65 @@ independent ones.
 
 ## netcdf
 
-The NetCDF backend uses PnetCDF[^pnetcdf] to write a single self-describing file per
-output type per timestep. Each MPI rank writes its interior grid slices[^interiorslices]
+The NetCDF backend uses PnetCDF to write a single self-describing file per
+output type per timestep. Each MPI rank writes its interior (non-ghost) grid slices
 directly into the correct position in the global array, and ghost cells are stripped
 automatically.
 
-The result is a single `.nc` file per output type per timestep — no post-processing or
+The result is a single `.nc` file per output type per timestep. No post-processing or
 merging is required. Files can be read directly with xarray, NCO, PyITM, or any
 NetCDF-aware tool.
 
-### Multi-time files
+### Multi-time files, run names, and restarts
 
 By default the NetCDF backend creates one file per output type per timestep
-(e.g., `3DALL_t230101_000000.nc`, `3DALL_t230101_000500.nc`, …). For long runs this
-produces a large number of files. Enable **multi-time mode** to accumulate all
-timesteps in a single file per output type instead:
+(e.g., `3DALL_t230101_000000.nc`, `3DALL_t230101_000500.nc`, ...). `#NETCDFOPTIONS`
+controls this with two sequential, optional flags:
 
 ```
-#OUTPUTBACKEND
-netcdf
-
-#NETCDFAPPEND
-'daily'/'single'/('none'=default)
+#NETCDFOPTIONS
+single          netCDFAppendMethod ('single'/'daily'/'none'=default)
+storm1          netCDFFileName (optional run name)
 ```
 
-With multi-time mode enabled the output files use an **unlimited time dimension** so
-additional times can be placed in the same file.
-The backend fitst creates the filename, then checks if it has written to that file yet.
-If not, the file is created. If it has written to that file, it just appends.
-This means additional runs in the same directory ***will overwrite files***.
+`netCDFAppendMethod` selects the file layout:
 
-Data variables are shaped `(lon, lat[, alt], time)`. 
-These can be natively read by xarray:
+- `none` (default): one file per output type per timestep.
+- `daily`: one file per output type per day, e.g. `3DALL_2002-12-21.nc`.
+- `single`: one file per output type for the entire run, e.g. `3DALL.nc`.
+
+`daily` and `single` files use an unlimited time dimension; data variables are
+shaped `(lon, lat[, alt], time)` and read natively by xarray:
 
 ```python
 import xarray as xr
 ds = xr.open_dataset("3DALL.nc", decode_times=True)
 ```
 
-Options for `#NETCDFAPPEND` are:
-- 'none': default. Writes .nc files instead of .bin. No time appending
-- 'daily': One file per day, e.g. `3DALL_2002-12-21.nc`  `3DALL_2002-12-22.nc`, etc.
-- 'single': Puts each output type into the same file for the entire run (e.g. `3DALL.nc`)
+`netCDFFileName`, when set, is inserted into every netcdf filename after the
+type code (`3DALL_storm1.nc`, `3DALL_storm1_t021221_000000.nc`), in every
+append mode. This lets several scenario runs share one directory without
+colliding.
 
-!!! note
-    Multi-time mode is only effective with the `netcdf` backend. The `#NETCDFAPPEND`
-    line is silently ignored if `#OUTPUTBACKEND` is `legacy` or `mpiio`.
+A restarted `single`/`daily` run with a run name appends a
+`restart_yymmdd_hhmmss` stamp (the restart's simulation time) to the name.
+Each leg of the run writes its own file and prior legs are never reopened,
+so a crash can only affect the current leg. Consecutive legs share the
+restart epoch (it is re-emitted), so analysis tools should drop duplicate
+times, keeping the later leg.
+
+!!! warning "Overwrite guard"
+    In `single`/`daily` mode, a run that is a restart or carries a run name
+    refuses to overwrite an existing target file and stops with instructions
+    (move/delete the file, change `netCDFFileName`, or use a fresh run
+    directory). An unnamed, non-restart run keeps the historical behavior of
+    overwriting. An unnamed restart always trips the guard, so set
+    `netCDFFileName` to continue a run across restarts. `none` mode and the
+    `legacy`/`mpiio` backends are unguarded: colliding epochs are recomputed,
+    identical data, and are overwritten in place.
+
+`#NETCDFOPTIONS` only affects the `netcdf` backend; it is ignored for
+`legacy` and `mpiio`.
 
 ### Conditional participation types
 
@@ -116,9 +129,9 @@ collective to **independent I/O mode** (`nfmpi_begin_indep_data` / `nfmpi_end_in
 Participation is driven by the container's `gridKind` (see
 `src/ModOutputContainer.f90`):
 
-- **`GRID_MAG_2D`** (e.g., 2DMEL) — output is on the magnetic grid; only `iProc == 0`
+- **`GRID_MAG_2D`** (e.g., 2DMEL): output is on the magnetic grid; only `iProc == 0`
   has the data and writes. `prepare()` sets `this_rank_writes` accordingly.
-- **`GRID_HIME`** (e.g., 2DHME/3DHME) — regional output; only blocks whose cells fall
+- **`GRID_HIME`** (e.g., 2DHME/3DHME): regional output; only blocks whose cells fall
   inside the user-defined HIME region write. Participation is set externally before
   `prepare()` is called.
 
@@ -129,30 +142,15 @@ configuration is needed.
 The `mpiio` backend handles conditional participation by striping output by global
 block offset and leaving non-participating slots zero-filled (no separate per-block
 file to mark NaN). A `0` value in a regional `mpiio` output file is therefore
-expected for cells outside the region — `validate_outputs.py` recognises HME/HIME
+expected for cells outside the region. `validate_outputs.py` recognises HME/HIME
 files and skips the `altitude > 0` sanity check accordingly. The `legacy` backend
 simply skips file creation on non-participating ranks.
 
 !!! note "Build requirements"
-    PnetCDF must be installed and `pnetcdf-config` must be on your `PATH` when
-    compiling. The build system detects it automatically and defines `-DHavePNetCDF`.
-    Without this flag, the NetCDF module compiles as a stub and GITM will stop if
-    `netcdf` is requested at runtime.
-
-    NetCDF is entirely optional. The `legacy` and `mpiio` backends have no additional
-    external dependencies beyond MPI.
+    PnetCDF must be installed and `pnetcdf-config` on `PATH` when compiling;
+    the build system detects it and defines `-DHavePNetCDF`. Without it the
+    NetCDF module compiles as a stub and GITM stops if `netcdf` is requested
+    at runtime. NetCDF is entirely optional: `legacy` and `mpiio` need
+    nothing beyond MPI.
 
 ---
-
-[^collectiveio]: Collective I/O — an MPI operation where all ranks coordinate file writes
-    simultaneously rather than independently, reducing metadata server load.
-
-[^byteoffset]: Byte offset — the starting position (in bytes) within a file where data
-    should be written. Each rank writes at a pre-computed offset so blocks do not overlap.
-
-[^interiorslices]: Interior grid slices — the portion of each rank's grid excluding ghost
-    cells (indices 1:nLons, 1:nLats, [1:nAlts for 3D]). This interior data is written to
-    the global array at the correct position.
-
-[^pnetcdf]: PnetCDF (Parallel NetCDF) — a parallel-capable version of NetCDF that allows
-    multiple MPI ranks to write a single file simultaneously without serialization.

@@ -4,8 +4,8 @@
 ! ModOutputProducers.f90
 !
 ! Container-based output producers.  Each output type has two procedures:
-!   define_schema_<type>(c)   — register variable names/units/shapes once
-!   fill_<type>(c, iBlock)    — put data into the container each timestep
+!   define_schema_<type>(c)   register variable names/units/shapes once
+!   fill_<type>(c, iBlock)    put data into the container each timestep
 !
 ! Module-level containers(:) array lives for the whole run; allocated once in
 ! init_output_containers, reused across timesteps.
@@ -17,7 +17,7 @@
 !   then `put`s ghost-inclusive slices (e.g. -1-nGC:nLons+nGC+2).  Legacy and mpiio
 !   backends write the padded container as-is; the netcdf backend strips ghost
 !   cells automatically for geographic gridKinds (mag-grid types are never
-!   stripped).  Magnetic, 1D, and 0D types have no ghost concept — leave the
+!   stripped).  Magnetic, 1D, and 0D types have no ghost concept, so leave the
 !   default 0.
 
 module ModOutputProducers
@@ -29,10 +29,10 @@ module ModOutputProducers
 
   type(OutputContainer), allocatable, target :: containers(:)
 
-  ! Canonical type list — the single source for container identity and order.
+  ! Canonical type list: the single source for container identity and order.
   ! Container i holds type cContainerTypes(i); get_container_idx and
   ! is_known_output_type derive from this array (no container state involved,
-  ! so both are safe before init — bad_outputtype calls at input parse time),
+  ! so both are safe before init, as bad_outputtype calls them at input parse time),
   ! and assert_types_fully_wired verifies every container landed in its slot.
   character(len=5), parameter :: cContainerTypes(26) = [ &
     '2DMEL', '2DTEC', '2DGEL', '3DNEU', '3DALL', '3DION', '3DTHM', '3DCHM', &
@@ -52,12 +52,12 @@ module ModOutputProducers
   real :: rProbeLon = 0.5, rProbeLat = 0.5, rProbeAlt = 0.5
 
   ! ---------------------------------------------------------------------------
-  ! USR variable registry — populated by register_usr_var() from user.f90 before
+  ! USR variable registry: populated by register_usr_var() from user.f90 before
   ! the first output timestep.  Coord vars (Longitude/Latitude/Altitude) are
   ! always defined unconditionally in define_schema_*dusr and are NOT listed here.
   !
   ! Storage strategy: allocatable, grows on demand (doubling) starting from
-  ! UsrInitCap.  The registry itself is uncapped — the real ceiling is
+  ! UsrInitCap.  The registry itself is uncapped; the real ceiling is
   ! nUserOutputs (from ModUserGITM), which sizes the actual UserData*D arrays.
   ! Decoupling them means raising nUserOutputs is the only knob users ever touch
   ! to support more USR variables.
@@ -91,7 +91,7 @@ module ModOutputProducers
 contains
 
   ! ---------------------------------------------------------------------------
-  ! is_known_output_type — return .true. if cType is a registered output code.
+  ! is_known_output_type: return .true. if cType is a registered output code.
   ! Pure string check, no container state required (safe to call before init).
   ! ---------------------------------------------------------------------------
   logical function is_known_output_type(cType)
@@ -100,7 +100,7 @@ contains
   end function is_known_output_type
 
   ! ---------------------------------------------------------------------------
-  ! get_container_idx — return the containers(:) index for cType, or -1.
+  ! get_container_idx: return the containers(:) index for cType, or -1.
   ! Position in cContainerTypes; no container state required (safe before init).
   ! ---------------------------------------------------------------------------
   integer function get_container_idx(cType)
@@ -116,7 +116,7 @@ contains
   end function get_container_idx
 
   ! ---------------------------------------------------------------------------
-  ! register_usr_var — add one user-defined variable to the appropriate USR list.
+  ! register_usr_var: add one user-defined variable to the appropriate USR list.
   ! Called from init_usr_output_registry in user.f90 before the first output.
   ! dims: 3, 2, 1, or 0 (spatial dimensionality of the output type).
   ! Coord vars (Longitude, Latitude, Altitude) must NOT be registered here;
@@ -132,37 +132,37 @@ contains
     if (present(longName)) lName = longName
 
     ! The cap check guards the UserData*D data arrays (sized nUserOutputs).
-    ! The registry itself is uncapped — grow_usr_registry handles allocation.
+    ! The registry itself is uncapped; grow_usr_registry handles allocation.
     select case (dims)
     case (3)
       nUsrVars3D = nUsrVars3D + 1
       if (nUsrVars3D > nUserOutputs) &
-        call stop_gitm("register_usr_var: too many 3DUSR vars — increase nUserOutputs in ModUser.f90")
+        call stop_gitm("register_usr_var: too many 3DUSR vars; increase nUserOutputs in ModUser.f90")
       call grow_usr_registry(UsrVars3D, nUsrVars3D)
       UsrVars3D(nUsrVars3D) = UsrVarEntry(name, units, lName)
     case (2)
       nUsrVars2D = nUsrVars2D + 1
       if (nUsrVars2D > nUserOutputs) call &
-        stop_gitm("register_usr_var: too many 2DUSR vars — increase nUserOutputs in ModUser.f90")
+        stop_gitm("register_usr_var: too many 2DUSR vars; increase nUserOutputs in ModUser.f90")
       call grow_usr_registry(UsrVars2D, nUsrVars2D)
       UsrVars2D(nUsrVars2D) = UsrVarEntry(name, units, lName)
     case (1)
       nUsrVars1D = nUsrVars1D + 1
       if (nUsrVars1D > nUserOutputs) &
-        call stop_gitm("register_usr_var: too many 1DUSR vars — increase nUserOutputs in ModUser.f90")
+        call stop_gitm("register_usr_var: too many 1DUSR vars; increase nUserOutputs in ModUser.f90")
       call grow_usr_registry(UsrVars1D, nUsrVars1D)
       UsrVars1D(nUsrVars1D) = UsrVarEntry(name, units, lName)
     case (0)
       nUsrVars0D = nUsrVars0D + 1
       if (nUsrVars0D > nUserOutputs) &
-        call stop_gitm("register_usr_var: too many 0DUSR vars — increase nUserOutputs in ModUser.f90")
+        call stop_gitm("register_usr_var: too many 0DUSR vars; increase nUserOutputs in ModUser.f90")
       call grow_usr_registry(UsrVars0D, nUsrVars0D)
       UsrVars0D(nUsrVars0D) = UsrVarEntry(name, units, lName)
     end select
   end subroutine register_usr_var
 
   ! ---------------------------------------------------------------------------
-  ! grow_usr_registry — ensure arr is allocated and has capacity >= n.
+  ! grow_usr_registry: ensure arr is allocated and has capacity >= n.
   ! Doubling growth from UsrInitCap.  Registration is one-time at startup so
   ! the copy cost is negligible (tiny string records, few growth events).
   ! ---------------------------------------------------------------------------
@@ -187,7 +187,7 @@ contains
   end subroutine grow_usr_registry
 
   ! ---------------------------------------------------------------------------
-  ! find_usr_var_idx — return 1-based index of name in UsrVars*D, or -1.
+  ! find_usr_var_idx: return 1-based index of name in UsrVars*D, or -1.
   ! ---------------------------------------------------------------------------
   integer function find_usr_var_idx(dim, name) result(idx)
     integer, intent(in)          :: dim
@@ -215,17 +215,17 @@ contains
   end function find_usr_var_idx
 
   ! ---------------------------------------------------------------------------
-  ! add_usr_output_3d — store a 3D (lon×lat×alt) user-defined field.
+  ! add_usr_output_3d: store a 3D (lon×lat×alt) user-defined field.
   !
   ! Call from physics code each timestep to provide data for 3DUSR output.
   ! First call with a new name registers the variable; subsequent calls update
   ! the stored data.  All new-name calls must occur before the first output
-  ! write — see init_usr_output_registry in user.f90.
+  ! write; see init_usr_output_registry in user.f90.
   !
   ! Ghost cell detection (size(arr,1)):
-  !   nLons     — interior array, stored as-is
-  !   nLons+4   — ghost-inclusive array (2 ghosts each side), stripped to interior
-  !   anything else (incl. magnetic grid sizes) — stop_gitm
+  !   nLons     : interior array, stored as-is
+  !   nLons+4   : ghost-inclusive array (2 ghosts each side), stripped to interior
+  !   anything else (incl. magnetic grid sizes): stop_gitm
   !
   ! iBlock defaults to 1 when not supplied.
   ! ---------------------------------------------------------------------------
@@ -246,7 +246,7 @@ contains
       call stop_gitm("add_usr_output: magnetic grid arrays not supported ('"//trim(name)//"')")
     if (n1 /= nLons .and. n1 /= nLons + 4) &
       call stop_gitm("add_usr_output: unrecognized shape for '" &
-                     //trim(name)//"' — pass (nLons,nLats,nAlts) or ghost-inclusive")
+                     //trim(name)//"'; pass (nLons,nLats,nAlts) or ghost-inclusive")
 
     idx = find_usr_var_idx(3, name)
     if (idx < 0) then
@@ -262,8 +262,8 @@ contains
   end subroutine add_usr_output_3d
 
   ! ---------------------------------------------------------------------------
-  ! add_usr_output_2d — store a 2D (lon×lat) user-defined field.
-  ! Ghost detection: nLons → interior; nLons+4 → ghost-inclusive, stripped.
+  ! add_usr_output_2d: store a 2D (lon×lat) user-defined field.
+  ! Ghost detection: nLons -> interior; nLons+4 -> ghost-inclusive, stripped.
   ! ---------------------------------------------------------------------------
   subroutine add_usr_output_2d(arr, name, units, iBlock, longName)
     use ModSizeGitm, only: nLons, nLats
@@ -282,7 +282,7 @@ contains
       call stop_gitm("add_usr_output: magnetic grid arrays not supported ('"//trim(name)//"')")
     if (n1 /= nLons .and. n1 /= nLons + 4) &
       call stop_gitm("add_usr_output: unrecognized shape for '" &
-                     //trim(name)//"' — pass (nLons,nLats) or ghost-inclusive")
+                     //trim(name)//"'; pass (nLons,nLats) or ghost-inclusive")
 
     idx = find_usr_var_idx(2, name)
     if (idx < 0) then
@@ -298,7 +298,7 @@ contains
   end subroutine add_usr_output_2d
 
   ! ---------------------------------------------------------------------------
-  ! add_usr_output_1d — store a 1D (altitude profile) user-defined field.
+  ! add_usr_output_1d: store a 1D (altitude profile) user-defined field.
   ! Data is stored globally (not per-block); iBlock is accepted but ignored.
   ! arr must have size nAlts.
   ! ---------------------------------------------------------------------------
@@ -324,7 +324,7 @@ contains
   end subroutine add_usr_output_1d
 
   ! ---------------------------------------------------------------------------
-  ! init_output_containers — allocate and populate every container's schema.
+  ! init_output_containers: allocate and populate every container's schema.
   ! Called once (idempotent); both output_common and netcdf_open_file call it.
   !
   ! Two kinds of type coexist here and the backends cannot tell them apart:
@@ -332,20 +332,20 @@ contains
   !   * Unconverted types (mag grids, HME/HIME regionals, USR) declare their
   !     schema explicitly via define_schema_<type>.
   !
-  !   * Converted one-shot types have no define side at all — their schema is
+  !   * Converted one-shot types have no define side at all; their schema is
   !     materialized by PRIMING: call fill_<type>(c, 1) once so the first put of
   !     each name defines it, then lock the schema.  This is what lets the
   !     schema be DERIVED from the fill code while still being complete before
   !     open_file, where netcdf issues collective nfmpi_def_var for the whole
   !     file.  (Deferring definition to the block loop instead would make
-  !     def_var rank-dependent — the same bug class as the 2DMEL write deadlock.)
+  !     def_var rank-dependent, the same bug class as the 2DMEL write deadlock.)
   !
   ! Priming is safe because it runs at the first output, after the model is
   ! initialized: every array a converted fill touches has been allocated by
   ! then.  That allocation-timing precondition must hold for EVERY converted
-  ! fill in EVERY run — priming runs them all, whether or not the type was
-  ! requested — and is what keeps the lazily-allocated mag-grid types out.
-  ! Priming's VALUES are thrown away — every real fill overwrites them — so only
+  ! fill in EVERY run (priming runs them all, whether or not the type was
+  ! requested) and is what keeps the lazily-allocated mag-grid types out.
+  ! Priming's VALUES are thrown away (every real fill overwrites them), so only
   ! the names/shapes/metadata it establishes matter.
   ! ---------------------------------------------------------------------------
   subroutine init_output_containers()
@@ -406,7 +406,7 @@ contains
     ! once against block 1 purely for its define-on-first-touch side effect
     ! (the data it stores is garbage that the first real fill overwrites),
     ! then finish_priming locks the schema. Unconverted types were populated
-    ! above (nVars > 0), so the loop never runs their fills at init — which
+    ! above (nVars > 0), so the loop never runs their fills at init, which
     ! is what keeps the lazily-allocated mag-grid types out.
     do i = 1, nContainers
       if (containers(i)%nVars == 0 .and. associated(containers(i)%fill)) then
@@ -419,7 +419,7 @@ contains
   end subroutine init_output_containers
 
   ! ---------------------------------------------------------------------------
-  ! set_fill — register a type's fill routine on its container.
+  ! set_fill: register a type's fill routine on its container.
   ! ---------------------------------------------------------------------------
   subroutine set_fill(cType, f)
     character(len=*), intent(in) :: cType
@@ -428,7 +428,7 @@ contains
   end subroutine set_fill
 
   ! ---------------------------------------------------------------------------
-  ! assert_types_fully_wired — init-time self-check over containers(:).
+  ! assert_types_fully_wired: init-time self-check over containers(:).
   ! Catches the silent add-a-type mistakes at startup instead of at analysis
   ! time: a slot whose define/prime call was forgotten (no cType or empty
   ! schema), a cType missing from the lookup lists, or an index/cType mismatch.
@@ -455,7 +455,7 @@ contains
   end subroutine assert_types_fully_wired
 
   ! ---------------------------------------------------------------------------
-  ! finish_priming — close out a converted type's priming pass.
+  ! finish_priming: close out a converted type's priming pass.
   !
   ! Clears the participation flag that the priming fill's prepare() set (the
   ! real per-block fills set it again), then locks the schema so any later put
@@ -470,7 +470,7 @@ contains
   end subroutine finish_priming
 
   ! ---------------------------------------------------------------------------
-  ! define_schema_2dmel — register all 2DMEL variables.
+  ! define_schema_2dmel: register all 2DMEL variables.
   !
   ! Grid: magnetic (nMagLons+1) x nMagLats, no altitude.
   ! Axis variables are 1D; all others are 2D (degenerate 3rd dim = 1).
@@ -578,7 +578,7 @@ contains
   end subroutine define_schema_2dmel
 
   ! ---------------------------------------------------------------------------
-  ! fill_2dmel — put 2DMEL data into the container for iBlock.
+  ! fill_2dmel: put 2DMEL data into the container for iBlock.
   !
   ! Only iBlock == 1 writes (GRID_MAG_2D); all others return after prepare().
   ! GeoLat/GeoLon are in radians in the model; multiplied by cRadToDeg here.
@@ -630,11 +630,11 @@ contains
   end subroutine fill_2dmel
 
   ! ---------------------------------------------------------------------------
-  ! fill_2dtec — 2DTEC schema AND data, one-shot (no define_schema_2dtec).
+  ! fill_2dtec: 2DTEC schema AND data, one-shot (no define_schema_2dtec).
   !
   ! Interior-writing (nGhostCells = 0), like 2DANC. Longitude/Latitude/
   ! Altitude_GB/VTEC are ghosted (-1:nLons+2, ...) and sliced to the interior;
-  ! Sza is (nLons, nLats, nBlocksMax) — NO ghosts — so the block slice already
+  ! Sza is (nLons, nLats, nBlocksMax) with NO ghosts, so the block slice already
   ! IS the interior.
   ! ---------------------------------------------------------------------------
   subroutine fill_2dtec(c, iBlock)
@@ -646,29 +646,28 @@ contains
 
     c%cType = '2DTEC'
     c%gridKind = GRID_GEO_2D
-    c%nGhostCells = 0  ! metadata: no ghosts are stored in %data
+    c%nGhostCells = 0
 
     call c%prepare(iBlock)
     if (.not. c%this_rank_writes) return
 
     call calc_vtec(iBlock)
 
-    ! NOTE: put order is the file's variable order for legacy/mpiio — keep it.
-    call c%put_axis('Longitude', Longitude(1:nLons, iBlock)*cRadToDeg)   ! ghosted
-    call c%put_axis('Latitude', Latitude(1:nLats, iBlock)*cRadToDeg)     ! ghosted
+    ! NOTE: put order is the file's variable order for legacy/mpiio, so keep it.
+    call c%put_axis('Longitude', Longitude(1:nLons, iBlock)*cRadToDeg)
+    call c%put_axis('Latitude', Latitude(1:nLats, iBlock)*cRadToDeg)
     call c%put_field('Altitude', Altitude_GB(1:nLons, 1:nLats, 1, iBlock))  ! ghosted, one level
-    call c%put_field('SZA', Sza(:, :, iBlock))                           ! no ghosts
-    ! longName override: the registry's canonical 'Total electron content' is
-    call c%put_field('TEC', VTEC(1:nLons, 1:nLats, iBlock)) ! ghosted
+    call c%put_field('SZA', Sza(:, :, iBlock))
+    call c%put_field('TEC', VTEC(1:nLons, 1:nLats, iBlock))
   end subroutine fill_2dtec
 
   ! ---------------------------------------------------------------------------
-  ! fill_2dgel — 2DGEL schema AND data, one-shot (no define_schema_2dgel).
+  ! fill_2dgel: 2DGEL schema AND data, one-shot (no define_schema_2dgel).
   !
   ! Interior-writing (nGhostCells = 0). Unlike 2DTEC, every array here is
   ! ghosted (-1:nLons+2, -1:nLats+2, ...): Potential/PedersenConductance/
   ! HallConductance carry a block dim, the precipitation and field-line arrays
-  ! do not — every put still slices to the interior explicitly.
+  ! do not; every put still slices to the interior explicitly.
   ! ModGITM/ModElectrodynamics 2D arrays (ElectronAverageEnergyDiffuse etc.)
   ! are block-local: no iBlock index, hold the current block's data at call
   ! time.
@@ -682,37 +681,35 @@ contains
 
     c%cType = '2DGEL'
     c%gridKind = GRID_GEO_2D
-    c%nGhostCells = 0  ! metadata: no ghosts are stored in %data
+    c%nGhostCells = 0
 
     call c%prepare(iBlock)
     if (.not. c%this_rank_writes) return
 
-    call c%put_axis('Longitude', Longitude(1:nLons, iBlock)*cRadToDeg)   ! ghosted
-    call c%put_axis('Latitude', Latitude(1:nLats, iBlock)*cRadToDeg)     ! ghosted
+    call c%put_axis('Longitude', Longitude(1:nLons, iBlock)*cRadToDeg)
+    call c%put_axis('Latitude', Latitude(1:nLats, iBlock)*cRadToDeg)
     call c%put_field('Altitude', Altitude_GB(1:nLons, 1:nLats, 1, iBlock))  ! ghosted, one level
     call c%put_field('Potential', Potential(1:nLons, 1:nLats, 1, iBlock))       ! ghosted, one level
-    call c%put_field('PedCond', PedersenConductance(1:nLons, 1:nLats, iBlock))  ! ghosted
-    call c%put_field('HalCond', HallConductance(1:nLons, 1:nLats, iBlock))      ! ghosted
-    call c%put_field('AveE', ElectronAverageEnergyDiffuse(1:nLons, 1:nLats))    ! ghosted
-    call c%put_field('eFlux', ElectronEnergyFluxDiffuse(1:nLons, 1:nLats))      ! ghosted
-    call c%put_field('AveE_W', ElectronAverageEnergyWave(1:nLons, 1:nLats))     ! ghosted
-    call c%put_field('eFlux_W', ElectronEnergyFluxWave(1:nLons, 1:nLats))       ! ghosted
-    call c%put_field('AveE_M', ElectronAverageEnergyMono(1:nLons, 1:nLats))     ! ghosted
-    call c%put_field('eFlux_M', ElectronEnergyFluxMono(1:nLons, 1:nLats))       ! ghosted
-    call c%put_field('AveE_I', IonAverageEnergy(1:nLons, 1:nLats))              ! ghosted
-    call c%put_field('eFlux_I', IonEnergyFlux(1:nLons, 1:nLats))                ! ghosted
-    call c%put_field('DivJuAlt', DivJuAlt(1:nLons, 1:nLats))                    ! ghosted
-    call c%put_field('PedFLCond', PedersenFieldLine(1:nLons, 1:nLats))          ! ghosted
-    call c%put_field('HalFLCond', HallFieldLine(1:nLons, 1:nLats))              ! ghosted
-    call c%put_field('DivJuFL', DivJuFieldLine(1:nLons, 1:nLats))               ! ghosted
-    call c%put_field('FL_length', LengthFieldLine(1:nLons, 1:nLats))            ! ghosted
+    call c%put_field('PedCond', PedersenConductance(1:nLons, 1:nLats, iBlock))
+    call c%put_field('HalCond', HallConductance(1:nLons, 1:nLats, iBlock))
+    call c%put_field('AveE', ElectronAverageEnergyDiffuse(1:nLons, 1:nLats))
+    call c%put_field('eFlux', ElectronEnergyFluxDiffuse(1:nLons, 1:nLats))
+    call c%put_field('AveE_W', ElectronAverageEnergyWave(1:nLons, 1:nLats))
+    call c%put_field('eFlux_W', ElectronEnergyFluxWave(1:nLons, 1:nLats))
+    call c%put_field('AveE_M', ElectronAverageEnergyMono(1:nLons, 1:nLats))
+    call c%put_field('eFlux_M', ElectronEnergyFluxMono(1:nLons, 1:nLats))
+    call c%put_field('AveE_I', IonAverageEnergy(1:nLons, 1:nLats))
+    call c%put_field('eFlux_I', IonEnergyFlux(1:nLons, 1:nLats))
+    call c%put_field('DivJuAlt', DivJuAlt(1:nLons, 1:nLats))
+    call c%put_field('PedFLCond', PedersenFieldLine(1:nLons, 1:nLats))
+    call c%put_field('HalFLCond', HallFieldLine(1:nLons, 1:nLats))
+    call c%put_field('DivJuFL', DivJuFieldLine(1:nLons, 1:nLats))
+    call c%put_field('FL_length', LengthFieldLine(1:nLons, 1:nLats))
   end subroutine fill_2dgel
 
   ! ---------------------------------------------------------------------------
-  ! fill_3dneu — 3DNEU schema AND data, one-shot (no define_schema_3dneu).
-  !
-  ! Uniformly 2-ghosted like 3DALL — every array touched is declared
-  ! (-1:nLons+2, -1:nLats+2, -1:nAlts+2, ...), so the whole array IS the slice.
+  ! fill_3dneu: 3DNEU schema AND data, one-shot (no define_schema_3dneu).
+  ! 2-ghosted like 3DALL: the whole array is the slice.
   ! ---------------------------------------------------------------------------
   subroutine fill_3dneu(c, iBlock)
     use ModGITM
@@ -723,7 +720,7 @@ contains
     integer :: i
 
     c%cType = '3DNEU'
-    c%gridKind = GRID_GEO_3D  ! participation only — who writes, never shape
+    c%gridKind = GRID_GEO_3D
     c%nGhostCells = 2
 
     call c%prepare(iBlock)
@@ -748,20 +745,15 @@ contains
   end subroutine fill_3dneu
 
   ! ---------------------------------------------------------------------------
-  ! fill_3dall — 3DALL schema AND data, one-shot (no define_schema_3dall).
+  ! fill_3dall: 3DALL schema AND data, one-shot (no define_schema_3dall).
   !
-  ! The first call (priming, from init_output_containers) defines every variable
-  ! as a side effect of putting it; later calls just refill.  One list, so the
-  ! schema and the data can never disagree about what 3DALL contains.
-  !
-  ! Every variable here is a whole block, and GITM's model arrays are
-  ! declared with exactly the 2 ghost cells this type writes
-  ! (-1:nLons+2, -1:nLats+2, -1:nAlts+2), so the whole array IS the slice —
-  ! passing it plainly says that, where an explicit 1-nGC:nLons+nGC range would
-  ! just be a no-op dressed up as a decision.  nGhostCells stays as metadata
-  ! describing what is in %data: legacy/mpiio write it as-is, netcdf strips that
-  ! many cells per side.  (Types that write an interior subset (2DANC, for
-  ! example) must still slice explicitly.)
+  ! Priming (init_output_containers) defines every variable as a side effect of
+  ! the first put; later calls just refill, so schema and data can't disagree.
+  ! This is the canonical 2-ghost 3D type: every array is declared with exactly
+  ! the ghosts written (-1:nLons+2, -1:nLats+2, -1:nAlts+2), so the whole array
+  ! is the slice and is passed plainly. nGhostCells records that width;
+  ! legacy/mpiio write it as-is, netcdf strips that many cells per side. Types
+  ! that write an interior subset (e.g. 2DANC) slice explicitly instead.
   ! ---------------------------------------------------------------------------
   subroutine fill_3dall(c, iBlock)
     use ModGITM
@@ -775,7 +767,7 @@ contains
     ! and nGhostCells before it ever calls this routine (priming establishes
     ! them for that first read).
     c%cType = '3DALL'
-    c%gridKind = GRID_GEO_3D  ! participation only — who writes, never shape
+    c%gridKind = GRID_GEO_3D
     c%nGhostCells = 2
 
     call c%prepare(iBlock)
@@ -809,12 +801,9 @@ contains
   end subroutine fill_3dall
 
   ! ---------------------------------------------------------------------------
-  ! fill_3dion — 3DION schema AND data, one-shot (no define_schema_3dion).
-  !
-  ! Uniformly 2-ghosted like 3DALL — every array touched (incl. Collisions,
-  ! MLatitude, MLongitude, B0, EField, Potential, IonPressureGradient) is
-  ! declared (-1:nLons+2, -1:nLats+2, -1:nAlts+2, ...), so the whole array IS
-  ! the slice.
+  ! fill_3dion: 3DION schema AND data, one-shot (no define_schema_3dion).
+  ! 2-ghosted like 3DALL, including Collisions, MLatitude, MLongitude, B0,
+  ! EField, Potential, IonPressureGradient: the whole array is the slice.
   ! ---------------------------------------------------------------------------
   subroutine fill_3dion(c, iBlock)
     use ModGITM
@@ -826,7 +815,7 @@ contains
     integer :: i
 
     c%cType = '3DION'
-    c%gridKind = GRID_GEO_3D  ! participation only — who writes, never shape
+    c%gridKind = GRID_GEO_3D
     c%nGhostCells = 2
 
     call c%prepare(iBlock)
@@ -866,7 +855,7 @@ contains
   end subroutine fill_3dion
 
   ! ---------------------------------------------------------------------------
-  ! fill_3dthm — 3DTHM schema AND data, one-shot (no define_schema_3dthm).
+  ! fill_3dthm: 3DTHM schema AND data, one-shot (no define_schema_3dthm).
   !
   ! Interior-writing (nGhostCells = 0), MIXED ghosting: Longitude/Latitude/
   ! Altitude_GB/Rho/TempUnit/EField/Sigma_Pedersen are 2-ghost and sliced to
@@ -885,22 +874,22 @@ contains
     integer, intent(in) :: iBlock
 
     c%cType = '3DTHM'
-    c%gridKind = GRID_GEO_3D  ! participation only — who writes, never shape
-    c%nGhostCells = 0  ! metadata: no ghosts are stored in %data
+    c%gridKind = GRID_GEO_3D
+    c%nGhostCells = 0
 
     call c%prepare(iBlock)
     if (.not. c%this_rank_writes) return
 
-    call c%put_axis('Longitude', Longitude(1:nLons, iBlock)*cRadToDeg)      ! ghosted
-    call c%put_axis('Latitude', Latitude(1:nLats, iBlock)*cRadToDeg)        ! ghosted
-    call c%put_field('Altitude', Altitude_GB(1:nLons, 1:nLats, 1:nAlts, iBlock))  ! ghosted
+    call c%put_axis('Longitude', Longitude(1:nLons, iBlock)*cRadToDeg)
+    call c%put_axis('Latitude', Latitude(1:nLats, iBlock)*cRadToDeg)
+    call c%put_field('Altitude', Altitude_GB(1:nLons, 1:nLats, 1:nAlts, iBlock))
     call c%put_field('EUV Heating Rate', &                                  ! no ghosts * ghosted
                      EuvHeating(:, :, :, iBlock)*TempUnit(1:nLons, 1:nLats, 1:nAlts))
     call c%put_field('Conduction', &                                  ! alt ghosts only * ghosted
                      Conduction(:, :, 1:nAlts)*TempUnit(1:nLons, 1:nLats, 1:nAlts)/dt)
     call c%put_field('Molecular Conduction', MoleConduction(:, :, 1:nAlts))  ! alt ghosts only
-    call c%put_field('Eddy Conduction', EddyCond)                     ! no ghosts
-    call c%put_field('Eddy Adiabatic Conduction', EddyCondAdia)       ! no ghosts
+    call c%put_field('Eddy Conduction', EddyCond)
+    call c%put_field('Eddy Adiabatic Conduction', EddyCondAdia)
     call c%put_field('Chemical Heating Rate', &                            ! no ghosts * ghosted
                      ChemicalHeatingRate*TempUnit(1:nLons, 1:nLats, 1:nAlts)/dt)
     call c%put_field('Joule Heating Rate', &                               ! no ghosts * ghosted
@@ -909,19 +898,19 @@ contains
                      -NOCooling*TempUnit(1:nLons, 1:nLats, 1:nAlts))
     call c%put_field('O Cooling Rate', &                                   ! no ghosts * ghosted
                      -OCooling*TempUnit(1:nLons, 1:nLats, 1:nAlts))
-    call c%put_field('Total Abs EUV', EuvTotal(:, :, :, iBlock))            ! no ghosts
+    call c%put_field('Total Abs EUV', EuvTotal(:, :, :, iBlock))
     call c%put_field('Cp', cp(:, :, 1:nAlts, iBlock))                       ! per-dim: lon/lat whole, alt sliced
-    call c%put_field('Rho', Rho(1:nLons, 1:nLats, 1:nAlts, iBlock))         ! ghosted
-    call c%put_field('E.F. Magnitude', &                                       ! ghosted
+    call c%put_field('Rho', Rho(1:nLons, 1:nLats, 1:nAlts, iBlock))
+    call c%put_field('E.F. Magnitude', &
                      sqrt(sum(EField(1:nLons, 1:nLats, 1:nAlts, :)**2, dim=4)))
-    call c%put_field('Sigma Ped', Sigma_Pedersen(1:nLons, 1:nLats, 1:nAlts))    ! ghosted
-    call c%put_field('Ionization Rate O_3P', AuroralIonRateS(:, :, :, iO_3P_, iBlock))  ! no ghosts
-    call c%put_field('Ionization Rate O2', AuroralIonRateS(:, :, :, iO2_, iBlock))  ! no ghosts
-    call c%put_field('Ionization Rate N2', AuroralIonRateS(:, :, :, iN2_, iBlock))  ! no ghosts
+    call c%put_field('Sigma Ped', Sigma_Pedersen(1:nLons, 1:nLats, 1:nAlts))
+    call c%put_field('Ionization Rate O_3P', AuroralIonRateS(:, :, :, iO_3P_, iBlock))
+    call c%put_field('Ionization Rate O2', AuroralIonRateS(:, :, :, iO2_, iBlock))
+    call c%put_field('Ionization Rate N2', AuroralIonRateS(:, :, :, iN2_, iBlock))
   end subroutine fill_3dthm
 
   ! ---------------------------------------------------------------------------
-  ! fill_3dchm — 3DCHM schema AND data, one-shot (no define_schema_3dchm).
+  ! fill_3dchm: 3DCHM schema AND data, one-shot (no define_schema_3dchm).
   !
   ! Interior-writing (nGhostCells = 0), MIXED ghosting: Longitude/Latitude/
   ! Altitude_GB/Rho/TempUnit are 2-ghost and sliced to the interior; cp is
@@ -966,17 +955,17 @@ contains
        'O+(2P) + O reaction rate', 'O+(2P) + N2 reaction rate']
 
     c%cType = '3DCHM'
-    c%gridKind = GRID_GEO_3D  ! participation only — who writes, never shape
-    c%nGhostCells = 0  ! metadata: no ghosts are stored in %data
+    c%gridKind = GRID_GEO_3D
+    c%nGhostCells = 0
 
     call c%prepare(iBlock)
     if (.not. c%this_rank_writes) return
 
-    call c%put_axis('Longitude', Longitude(1:nLons, iBlock)*cRadToDeg)      ! ghosted
-    call c%put_axis('Latitude', Latitude(1:nLats, iBlock)*cRadToDeg)        ! ghosted
-    call c%put_field('Altitude', Altitude_GB(1:nLons, 1:nLats, 1:nAlts, iBlock))  ! ghosted
+    call c%put_axis('Longitude', Longitude(1:nLons, iBlock)*cRadToDeg)
+    call c%put_axis('Latitude', Latitude(1:nLats, iBlock)*cRadToDeg)
+    call c%put_field('Altitude', Altitude_GB(1:nLons, 1:nLats, 1:nAlts, iBlock))
     do i = 1, nReactions
-      call c%put_field(trim(chem_names(i)), ChemicalHeatingSpecies(:, :, :, i)/Element_Charge, &  ! no ghosts
+      call c%put_field(trim(chem_names(i)), ChemicalHeatingSpecies(:, :, :, i)/Element_Charge, &
                        units='/m3/s', longName=trim(chem_longnames(i)))
     enddo
     call c%put_field('Chemical Heating', &                                  ! no ghosts * per-dim * ghosted * ghosted
@@ -986,15 +975,13 @@ contains
   end subroutine fill_3dchm
 
   ! ---------------------------------------------------------------------------
-  ! fill_3dlst — 3DLST schema AND data, one-shot (no define_schema_3dlst).
+  ! fill_3dlst: 3DLST schema AND data, one-shot (no define_schema_3dlst).
+  ! 2-ghosted like 3DALL: the whole array is the slice.
   !
-  ! Uniformly 2-ghosted like 3DALL — every array touched is declared
-  ! (-1:nLons+2, -1:nLats+2, -1:nAlts+2, ...), so the whole array IS the slice.
-  ! Puts are gated by the UAM.in-derived i*OutputList flags — uniform across
-  ! ranks and time-invariant, so priming sees the same conditions as every
-  ! real fill. That property is what makes conditional puts safe here; a
-  ! rank- or time-dependent condition would desync the schema. All list
-  ! flags default .true.
+  ! Puts are gated by the UAM.in i*OutputList flags, which are uniform across
+  ! ranks and time-invariant, so priming sees the same conditions as every fill.
+  ! That is what makes the conditional puts safe; a rank- or time-dependent
+  ! condition would desync the schema. All list flags default .true.
   ! ---------------------------------------------------------------------------
   subroutine fill_3dlst(c, iBlock)
     use ModGITM
@@ -1008,7 +995,7 @@ contains
     integer :: i
 
     c%cType = '3DLST'
-    c%gridKind = GRID_GEO_3D  ! participation only — who writes, never shape
+    c%gridKind = GRID_GEO_3D
     c%nGhostCells = 2
 
     call c%prepare(iBlock)
@@ -1044,15 +1031,13 @@ contains
   end subroutine fill_3dlst
 
   ! ---------------------------------------------------------------------------
-  ! fill_3dglo — 3DGLO schema AND data, one-shot (no define_schema_3dglo).
+  ! fill_3dglo: 3DGLO schema AND data, one-shot (no define_schema_3dglo).
+  ! 2-ghosted like 3DALL: the whole array is the slice.
   !
-  ! Uniformly 2-ghosted like 3DALL — Longitude/Latitude/Altitude_GB are
-  ! declared (-1:nLons+2, ...), so the whole array IS the slice. The three
-  ! emission/photoelectron fields are placeholders (not yet computed);
-  ! zero_buf is a default-real scratch buffer sized to the full 2-ghost
-  ! extent (put_field converts inside, so no output_kind wrapper here). Their
-  ! units are the empty string on the old define side, carried through as
-  ! registry rows so today's output is unchanged.
+  ! The three emission/photoelectron fields are placeholders (not yet computed);
+  ! zero_buf is a default-real scratch buffer at the full 2-ghost extent. Their
+  ! units are empty strings carried through as registry rows, so today's output
+  ! is unchanged.
   ! ---------------------------------------------------------------------------
   subroutine fill_3dglo(c, iBlock)
     use ModGITM
@@ -1062,7 +1047,7 @@ contains
     real, allocatable :: zero_buf(:, :, :)  ! model kind, to match the put_field dummy
 
     c%cType = '3DGLO'
-    c%gridKind = GRID_GEO_3D  ! participation only — who writes, never shape
+    c%gridKind = GRID_GEO_3D
     c%nGhostCells = 2
 
     call c%prepare(iBlock)
@@ -1081,10 +1066,8 @@ contains
   end subroutine fill_3dglo
 
   ! ---------------------------------------------------------------------------
-  ! fill_3dmag — 3DMAG schema AND data, one-shot (no define_schema_3dmag).
-  !
-  ! Uniformly 2-ghosted like 3DALL — every array touched is declared
-  ! (-1:nLons+2, -1:nLats+2, -1:nAlts+2, ...), so the whole array IS the slice.
+  ! fill_3dmag: 3DMAG schema AND data, one-shot (no define_schema_3dmag).
+  ! 2-ghosted like 3DALL: the whole array is the slice.
   ! ---------------------------------------------------------------------------
   subroutine fill_3dmag(c, iBlock)
     use ModGITM
@@ -1093,7 +1076,7 @@ contains
     integer, intent(in) :: iBlock
 
     c%cType = '3DMAG'
-    c%gridKind = GRID_GEO_3D  ! participation only — who writes, never shape
+    c%gridKind = GRID_GEO_3D
     c%nGhostCells = 2
 
     call c%prepare(iBlock)
@@ -1111,7 +1094,7 @@ contains
   end subroutine fill_3dmag
 
   ! ---------------------------------------------------------------------------
-  ! define_schema_3dhme — register variables for 3DHME.
+  ! define_schema_3dhme: register variables for 3DHME.
   ! ---------------------------------------------------------------------------
   subroutine define_schema_3dhme(c)
     use ModGITM, only: nLons, nLats, nAlts
@@ -1197,7 +1180,7 @@ contains
   end subroutine define_schema_3dhme
 
   ! ---------------------------------------------------------------------------
-  ! fill_3dhme — put 3DHME regional variables into the container.
+  ! fill_3dhme: put 3DHME regional variables into the container.
   ! ---------------------------------------------------------------------------
   subroutine fill_3dhme(c, iBlock)
     use ModGITM
@@ -1326,7 +1309,7 @@ contains
   end subroutine fill_3dhme
 
   ! ---------------------------------------------------------------------------
-  ! fill_3dmoh — 3DMOH schema AND data, one-shot (no define_schema_3dmoh).
+  ! fill_3dmoh: 3DMOH schema AND data, one-shot (no define_schema_3dmoh).
   !
   ! Interior-writing (nGhostCells = 0), MIXED ghosting: Longitude/Latitude/
   ! Altitude_GB/Rho/Velocity are 2-ghost and sliced to the interior; Viscosity
@@ -1342,33 +1325,33 @@ contains
     integer, intent(in) :: iBlock
 
     c%cType = '3DMOH'
-    c%gridKind = GRID_GEO_3D  ! participation only — who writes, never shape
-    c%nGhostCells = 0  ! metadata: no ghosts are stored in %data
+    c%gridKind = GRID_GEO_3D
+    c%nGhostCells = 0
 
     call c%prepare(iBlock)
     if (.not. c%this_rank_writes) return
 
-    call c%put_axis('Longitude', Longitude(1:nLons, iBlock)*cRadToDeg)      ! ghosted
-    call c%put_axis('Latitude', Latitude(1:nLats, iBlock)*cRadToDeg)        ! ghosted
-    call c%put_field('Altitude', Altitude_GB(1:nLons, 1:nLats, 1:nAlts, iBlock)) ! ghosted
-    call c%put_field('Rho', Rho(1:nLons, 1:nLats, 1:nAlts, iBlock))       ! ghosted
-    call c%put_field('Vn (east)', Velocity(1:nLons, 1:nLats, 1:nAlts, iEast_, iBlock))   ! ghosted
-    call c%put_field('Vn (north)', Velocity(1:nLons, 1:nLats, 1:nAlts, iNorth_, iBlock)) ! ghosted
+    call c%put_axis('Longitude', Longitude(1:nLons, iBlock)*cRadToDeg)
+    call c%put_axis('Latitude', Latitude(1:nLats, iBlock)*cRadToDeg)
+    call c%put_field('Altitude', Altitude_GB(1:nLons, 1:nLats, 1:nAlts, iBlock))
+    call c%put_field('Rho', Rho(1:nLons, 1:nLats, 1:nAlts, iBlock))
+    call c%put_field('Vn (east)', Velocity(1:nLons, 1:nLats, 1:nAlts, iEast_, iBlock))
+    call c%put_field('Vn (north)', Velocity(1:nLons, 1:nLats, 1:nAlts, iNorth_, iBlock))
     call c%put_field('Visc_Ve_rshear', Viscosity(:, :, 1:nAlts, iEast_)/dt)     ! alt ghosts only
     call c%put_field('Visc_Vn_rshear', Viscosity(:, :, 1:nAlts, iNorth_)/dt)    ! alt ghosts only
-    call c%put_field('IonDrag_east', IonDrag(:, :, :, iEast_))      ! no ghosts
-    call c%put_field('IonDrag_north', IonDrag(:, :, :, iNorth_))    ! no ghosts
-    call c%put_field('Horiz_Adv_Ve', HorizAdvection(:, :, :, 1))    ! no ghosts
-    call c%put_field('Horiz_Adv_Vn', HorizAdvection(:, :, :, 2))    ! no ghosts
-    call c%put_field('PressGrad (east)', HorizPressureGrad(:, :, :, 1))   ! no ghosts
-    call c%put_field('PressGrad (north)', HorizPressureGrad(:, :, :, 2))  ! no ghosts
-    call c%put_field('Coriolis_east', HorizCoriolis(:, :, :, 1))     ! no ghosts
-    call c%put_field('Coriolis_north', HorizCoriolis(:, :, :, 2))    ! no ghosts
-    call c%put_field('Centrifugal_north', Centrifugal(:, :, :, 2))   ! no ghosts
+    call c%put_field('IonDrag_east', IonDrag(:, :, :, iEast_))
+    call c%put_field('IonDrag_north', IonDrag(:, :, :, iNorth_))
+    call c%put_field('Horiz_Adv_Ve', HorizAdvection(:, :, :, 1))
+    call c%put_field('Horiz_Adv_Vn', HorizAdvection(:, :, :, 2))
+    call c%put_field('PressGrad (east)', HorizPressureGrad(:, :, :, 1))
+    call c%put_field('PressGrad (north)', HorizPressureGrad(:, :, :, 2))
+    call c%put_field('Coriolis_east', HorizCoriolis(:, :, :, 1))
+    call c%put_field('Coriolis_north', HorizCoriolis(:, :, :, 2))
+    call c%put_field('Centrifugal_north', Centrifugal(:, :, :, 2))
   end subroutine fill_3dmoh
 
   ! ---------------------------------------------------------------------------
-  ! fill_3dmov — 3DMOV schema AND data, one-shot (no define_schema_3dmov).
+  ! fill_3dmov: 3DMOV schema AND data, one-shot (no define_schema_3dmov).
   !
   ! Interior-writing (nGhostCells = 0), MIXED ghosting: Longitude/Latitude/
   ! Altitude_GB/VerticalVelocity are 2-ghost and sliced to the interior;
@@ -1384,50 +1367,48 @@ contains
     integer :: iSpecies
 
     c%cType = '3DMOV'
-    c%gridKind = GRID_GEO_3D  ! participation only — who writes, never shape
-    c%nGhostCells = 0  ! metadata: no ghosts are stored in %data
+    c%gridKind = GRID_GEO_3D
+    c%nGhostCells = 0
 
     call c%prepare(iBlock)
     if (.not. c%this_rank_writes) return
 
-    call c%put_axis('Longitude', Longitude(1:nLons, iBlock)*cRadToDeg)      ! ghosted
-    call c%put_axis('Latitude', Latitude(1:nLats, iBlock)*cRadToDeg)        ! ghosted
-    call c%put_field('Altitude', Altitude_GB(1:nLons, 1:nLats, 1:nAlts, iBlock))  ! ghosted
+    call c%put_axis('Longitude', Longitude(1:nLons, iBlock)*cRadToDeg)
+    call c%put_axis('Latitude', Latitude(1:nLats, iBlock)*cRadToDeg)
+    call c%put_field('Altitude', Altitude_GB(1:nLons, 1:nLats, 1:nAlts, iBlock))
     do iSpecies = 1, nSpecies
-      call c%put_field('Vn (up,'//trim(cSpecies(iSpecies))//')', &   ! ghosted
+      call c%put_field('Vn (up,'//trim(cSpecies(iSpecies))//')', &
                        VerticalVelocity(1:nLons, 1:nLats, 1:nAlts, iSpecies, iBlock), &
                        units='m/s', longName='Vertical wind for '//trim(cSpecies(iSpecies)))
-      call c%put_field('IonDrag_up_'//trim(cSpecies(iSpecies)), &    ! no ghosts
+      call c%put_field('IonDrag_up_'//trim(cSpecies(iSpecies)), &
                        VerticalIonDrag(:, :, :, iSpecies), &
                        units='m/s2', longName='Ion drag upward for '//trim(cSpecies(iSpecies)))
-      call c%put_field('Horiz_Adv_Vn (up,'//trim(cSpecies(iSpecies))//')', &  ! no ghosts
+      call c%put_field('Horiz_Adv_Vn (up,'//trim(cSpecies(iSpecies))//')', &
                        VertAdvection(:, :, :, iSpecies), &
                        units='m/s2', longName='Horiz advection upward for '//trim(cSpecies(iSpecies)))
     enddo
-    call c%put_field('Coriolis_up', VertCoriolis)          ! no ghosts
-    call c%put_field('Centrif_up', VertCentrifugal)        ! no ghosts
-    call c%put_field('EffectiveGravity', EffectiveGravity)  ! no ghosts
+    call c%put_field('Coriolis_up', VertCoriolis)
+    call c%put_field('Centrif_up', VertCentrifugal)
+    call c%put_field('EffectiveGravity', EffectiveGravity)
   end subroutine fill_3dmov
 
   ! ---------------------------------------------------------------------------
-  ! fill_2danc — 2DANC schema AND data, one-shot (no define_schema_2danc).
+  ! fill_2danc: 2DANC schema AND data, one-shot (no define_schema_2danc).
   !
-  ! This is the schema that forces verbatim put, and it is worth being precise
-  ! about why: the arrays feeding ONE container disagree about ghost cells.
+  ! The arrays feeding this ONE container disagree about ghost cells:
   !   * VTEC, Altitude_GB, Longitude, Latitude, LocalTime are ghosted
   !     (-1:nLons+2, ...) and must be sliced down to the interior here;
-  !   * Sza and the ModSources *2d arrays are declared (nLons, nLats) — they
+  !   * Sza and the ModSources *2d arrays are declared (nLons, nLats): they
   !     have NO ghosts, so the whole array already IS the interior;
   !   * lt_buf is synthesized at interior size;
   !   * Altitude is a single altitude LEVEL of a 3-D array.
-  ! No container-level "strip N ghosts" rule can describe that set, which is
-  ! exactly why the caller owns the slice.
+  ! No container-level "strip N ghosts" rule can describe that set, so the
+  ! caller owns the slice.
   !
-  ! Do NOT reintroduce a 1-nGC:nLons+nGC idiom here.  It would read as if the
-  ! ghost width were a knob, but it is only ever correct at nGC=0: raising it
-  ! would send Sza and JouleHeating2d out of bounds while VTEC kept working.
-  ! Slicing ghosted arrays explicitly and passing ghost-less ones whole makes
-  ! the difference visible at each call site instead of hiding it in nGC.
+  ! Do NOT reintroduce a 1-nGC:nLons+nGC idiom here: it is only ever correct
+  ! at nGC=0, and raising it would send Sza and JouleHeating2d out of bounds
+  ! while VTEC kept working.  Explicit slices keep the difference visible at
+  ! each call site.
   ! ---------------------------------------------------------------------------
   subroutine fill_2danc(c, iBlock)
     use ModGITM
@@ -1442,17 +1423,17 @@ contains
 
     c%cType = '2DANC'
     c%gridKind = GRID_GEO_2D
-    c%nGhostCells = 0  ! metadata: no ghosts are stored in %data
+    c%nGhostCells = 0
 
     call c%prepare(iBlock)
     if (.not. c%this_rank_writes) return
 
     call calc_vtec(iBlock)
 
-    ! NOTE: put order is the file's variable order for legacy/mpiio — keep it.
+    ! NOTE: put order is the file's variable order for legacy/mpiio, so keep it.
     ! Ghosted arrays are sliced 1:nLons/1:nLats; ghost-less ones pass whole.
-    call c%put_axis('Longitude', Longitude(1:nLons, iBlock)*cRadToDeg)   ! ghosted
-    call c%put_axis('Latitude', Latitude(1:nLats, iBlock)*cRadToDeg)     ! ghosted
+    call c%put_axis('Longitude', Longitude(1:nLons, iBlock)*cRadToDeg)
+    call c%put_axis('Latitude', Latitude(1:nLats, iBlock)*cRadToDeg)
     ! Candidate for removal (along with dropping Altitude from other 2D types) once
     ! PyITM's altitude handling no longer depends on it.
     call c%put_field('Altitude', Altitude_GB(1:nLons, 1:nLats, nAlts, iBlock))  ! ghosted, one level
@@ -1463,8 +1444,8 @@ contains
     enddo
     call c%put_field('LT', lt_buf)                                       ! interior-sized already
 
-    call c%put_field('SZA', Sza(:, :, iBlock))                           ! no ghosts
-    call c%put_field('TEC', VTEC(1:nLons, 1:nLats, iBlock))              ! ghosted
+    call c%put_field('SZA', Sza(:, :, iBlock))
+    call c%put_field('TEC', VTEC(1:nLons, 1:nLats, iBlock))
     call c%put_field('JH_int', JouleHeating2d)                           ! no ghosts, no block dim
     call c%put_field('HT_int', HeatTransfer2d)
     call c%put_field('EUV_int', EuvHeating2d)
@@ -1477,7 +1458,7 @@ contains
   end subroutine fill_2danc
 
   ! ---------------------------------------------------------------------------
-  ! define_schema_2dhme — register variables for 2DHME.
+  ! define_schema_2dhme: register variables for 2DHME.
   ! ---------------------------------------------------------------------------
   subroutine define_schema_2dhme(c)
     use ModGITM, only: nLons, nLats
@@ -1499,7 +1480,7 @@ contains
   end subroutine define_schema_2dhme
 
   ! ---------------------------------------------------------------------------
-  ! fill_2dhme — put 2DHME regional variables into the container.
+  ! fill_2dhme: put 2DHME regional variables into the container.
   ! ---------------------------------------------------------------------------
   subroutine fill_2dhme(c, iBlock)
     use ModGITM
@@ -1546,7 +1527,7 @@ contains
   end subroutine fill_2dhme
 
   ! ---------------------------------------------------------------------------
-  ! fill_1dall — put 1DALL interpolated vertical column data.
+  ! fill_1dall: put 1DALL interpolated vertical column data.
   ! ---------------------------------------------------------------------------
   subroutine fill_1dall(c, iBlock)
     use ModGITM
@@ -1651,7 +1632,7 @@ contains
   end subroutine fill_1dall
 
   ! ---------------------------------------------------------------------------
-  ! fill_0dall — put 0DALL 3D-interpolated point data.
+  ! fill_0dall: put 0DALL 3D-interpolated point data.
   ! ---------------------------------------------------------------------------
   subroutine fill_0dall(c, iBlock)
     use ModGITM
@@ -1744,7 +1725,7 @@ contains
   end subroutine fill_0dall
 
   ! ---------------------------------------------------------------------------
-  ! define_schema_1dglo — register variables for 1DGLO.
+  ! define_schema_1dglo: register variables for 1DGLO.
   ! ---------------------------------------------------------------------------
   subroutine define_schema_1dglo(c)
     use ModGITM, only: nAlts
@@ -1762,7 +1743,7 @@ contains
   end subroutine define_schema_1dglo
 
   ! ---------------------------------------------------------------------------
-  ! fill_1dglo — put 1DGLO stub variables.
+  ! fill_1dglo: put 1DGLO stub variables.
   ! ---------------------------------------------------------------------------
   subroutine fill_1dglo(c, iBlock)
     use ModGITM
@@ -1792,7 +1773,7 @@ contains
   end subroutine fill_1dglo
 
   ! ---------------------------------------------------------------------------
-  ! define_schema_1dthm — register variables for 1DTHM.
+  ! define_schema_1dthm: register variables for 1DTHM.
   ! ---------------------------------------------------------------------------
   subroutine define_schema_1dthm(c)
     use ModGITM, only: nAlts
@@ -1825,7 +1806,7 @@ contains
   end subroutine define_schema_1dthm
 
   ! ---------------------------------------------------------------------------
-  ! fill_1dthm — put 1DTHM variables at point (1,1).
+  ! fill_1dthm: put 1DTHM variables at point (1,1).
   ! ---------------------------------------------------------------------------
   subroutine fill_1dthm(c, iBlock)
     use ModGITM
@@ -1929,7 +1910,7 @@ contains
   end subroutine fill_1dthm
 
   ! ---------------------------------------------------------------------------
-  ! define_schema_1dchm — register variables for 1DCHM.
+  ! define_schema_1dchm: register variables for 1DCHM.
   ! ---------------------------------------------------------------------------
   subroutine define_schema_1dchm(c)
     use ModGITM, only: nAlts
@@ -1971,7 +1952,7 @@ contains
   end subroutine define_schema_1dchm
 
   ! ---------------------------------------------------------------------------
-  ! fill_1dchm — put 1DCHM variables at point (1,1).
+  ! fill_1dchm: put 1DCHM variables at point (1,1).
   ! ---------------------------------------------------------------------------
   subroutine fill_1dchm(c, iBlock)
     use ModGITM
@@ -2040,7 +2021,7 @@ contains
   end subroutine fill_1dchm
 
   ! ---------------------------------------------------------------------------
-  ! fill_1dnew — put 1DNEW interpolated vertical column variables.
+  ! fill_1dnew: put 1DNEW interpolated vertical column variables.
   ! ---------------------------------------------------------------------------
   subroutine fill_1dnew(c, iBlock)
     use ModGITM
@@ -2163,7 +2144,7 @@ contains
   end subroutine fill_1dnew
 
   ! ---------------------------------------------------------------------------
-  ! define_schema_3dusr — define variables for the 3DUSR container.
+  ! define_schema_3dusr: define variables for the 3DUSR container.
   ! ---------------------------------------------------------------------------
   subroutine define_schema_3dusr(c)
     use ModSizeGitm, only: nLons, nLats, nAlts
@@ -2187,7 +2168,7 @@ contains
   end subroutine define_schema_3dusr
 
   ! ---------------------------------------------------------------------------
-  ! fill_3dusr — put 3DUSR variables into the container.
+  ! fill_3dusr: put 3DUSR variables into the container.
   ! ---------------------------------------------------------------------------
   subroutine fill_3dusr(c, iBlock)
     use ModGITM
@@ -2209,7 +2190,7 @@ contains
   end subroutine fill_3dusr
 
   ! ---------------------------------------------------------------------------
-  ! define_schema_2dusr — define variables for the 2DUSR container.
+  ! define_schema_2dusr: define variables for the 2DUSR container.
   ! ---------------------------------------------------------------------------
   subroutine define_schema_2dusr(c)
     use ModGITM, only: nLons, nLats
@@ -2232,7 +2213,7 @@ contains
   end subroutine define_schema_2dusr
 
   ! ---------------------------------------------------------------------------
-  ! fill_2dusr — put 2DUSR variables into the container.
+  ! fill_2dusr: put 2DUSR variables into the container.
   ! ---------------------------------------------------------------------------
   subroutine fill_2dusr(c, iBlock)
     use ModGITM
@@ -2254,7 +2235,7 @@ contains
   end subroutine fill_2dusr
 
   ! ---------------------------------------------------------------------------
-  ! define_schema_1dusr — define variables for the 1DUSR container.
+  ! define_schema_1dusr: define variables for the 1DUSR container.
   ! ---------------------------------------------------------------------------
   subroutine define_schema_1dusr(c)
     use ModGITM, only: nAlts
@@ -2275,7 +2256,7 @@ contains
   end subroutine define_schema_1dusr
 
   ! ---------------------------------------------------------------------------
-  ! fill_1dusr — put 1DUSR variables into the container.
+  ! fill_1dusr: put 1DUSR variables into the container.
   ! ---------------------------------------------------------------------------
   subroutine fill_1dusr(c, iBlock)
     use ModGITM
@@ -2312,7 +2293,7 @@ contains
   end subroutine fill_1dusr
 
   ! ---------------------------------------------------------------------------
-  ! define_schema_0dusr — define variables for the 0DUSR container.
+  ! define_schema_0dusr: define variables for the 0DUSR container.
   ! ---------------------------------------------------------------------------
   subroutine define_schema_0dusr(c)
     type(OutputContainer), intent(inout) :: c
@@ -2332,7 +2313,7 @@ contains
   end subroutine define_schema_0dusr
 
   ! ---------------------------------------------------------------------------
-  ! fill_0dusr — put 0DUSR variables into the container.
+  ! fill_0dusr: put 0DUSR variables into the container.
   ! ---------------------------------------------------------------------------
   subroutine fill_0dusr(c, iBlock)
     use ModGITM
@@ -2365,7 +2346,7 @@ contains
   end subroutine fill_0dusr
 
   ! ---------------------------------------------------------------------------
-  ! inter2d — Bilinear interpolation on a 2D grid slice.
+  ! inter2d: Bilinear interpolation on a 2D grid slice.
   ! ---------------------------------------------------------------------------
   real function inter2d(variable, iiLon, iiLat, rLon, rLat)
     real, intent(in) :: variable(:, :), rLon, rLat
@@ -2379,7 +2360,7 @@ contains
   end function inter2d
 
   ! ---------------------------------------------------------------------------
-  ! inter3d — Trilinear interpolation on a 3D grid.
+  ! inter3d: Trilinear interpolation on a 3D grid.
   ! ---------------------------------------------------------------------------
   real function inter3d(variable, iiLon, iiLat, iiAlt, rLon, rLat, rAlt)
     real, intent(in) :: variable(:, :, :)

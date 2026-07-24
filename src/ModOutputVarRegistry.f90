@@ -5,24 +5,17 @@
 !
 ! Central metadata registry for container outputs: one canonical (units,
 ! longName) pair per physical variable, keyed by the variable's short name.
+! Before this, each define_schema_<type> re-typed its own units/longName
+! strings, so the same quantity could be described differently in two types
+! ('Rho' had two longNames).  Naming a variable once here avoids that drift.
 !
-! Why this exists: before the registry, every define_schema_<type> re-typed the
-! units and longName strings for the variables it happened to contain, so the
-! same physical quantity could be described differently in two output types
-! ('Rho' had two longNames; 'Altitude' still does).  Naming a variable once,
-! here, makes that drift structurally impossible.
-!
-! Contract: put_field/put_axis (ModOutputContainer) consult lookup_var_meta on
-! FIRST TOUCH only, so this costs nothing per timestep.  Names that cannot live
-! in a static table -- the computed species/ion names built in loops, e.g.
-! '['//trim(cSpecies(i))//']' -- are not registered; those call sites pass
-! units=/longName= override arguments to put_field instead.  A name that is
-! neither registered nor given an explicit units= is an error, so a variable can
-! never reach a file with silently empty metadata.
-!
-! Scope note: this table currently covers the fixed (non-computed) variables of
-! the output types converted to the one-shot put API.  It grows as more types
-! are converted; entries are shared across types by name, which is the point.
+! put_field/put_axis consult lookup_var_meta on first touch only, so it costs
+! nothing per timestep.  Computed names built in loops (e.g.
+! '['//trim(cSpecies(i))//']') are not in the table; those call sites pass
+! units=/longName= to put_field instead.  A name that is neither registered nor
+! given an explicit units= is an error, so nothing reaches a file with empty
+! metadata.  The table covers the fixed variables of the converted one-shot
+! types and grows as more are converted; entries are shared across types by name.
 
 module ModOutputVarRegistry
 
@@ -43,12 +36,7 @@ module ModOutputVarRegistry
   end type VarMeta
 
   ! One row per PHYSICAL variable, not per schema appearance.  Order is
-  ! irrelevant -- lookup is by name.
-  !
-  ! 'Altitude' carries 3DALL's longName.  2DANC currently writes the same
-  ! variable as plain 'Altitude'; that call site overrides longName= to keep
-  ! output byte-identical, and the override goes away when the drifted
-  ! longNames are canonicalized as a deliberate, one-time output change.
+  ! irrelevant; lookup is by name.
   type(VarMeta), parameter :: &
     VarTable(*) = [ &
     ! -- coordinates (shared by every geographic type) ----------------------
@@ -135,7 +123,7 @@ module ModOutputVarRegistry
     VarMeta('Ionization Rate O2', '/s', 'Ionization rate for O2'), &
     VarMeta('Ionization Rate N2', '/s', 'Ionization rate for N2'), &
     ! -- chemistry (introduced by 3DCHM) -------------------------------------
-    ! Volumetric energy deposited over the current timestep -- distinct from
+    ! Volumetric energy deposited over the current timestep, distinct from
     ! 3DTHM's 'Chemical Heating Rate' (K/s); no /dt in the producer expression.
     VarMeta('Chemical Heating', 'eV/m3', 'Volumetric chemical heating per timestep'), &
     ! -- horizontal momentum budget (introduced by 3DMOH) --------------------
@@ -160,7 +148,7 @@ module ModOutputVarRegistry
 contains
 
   ! ---------------------------------------------------------------------------
-  ! lookup_var_meta — canonical metadata for name.
+  ! lookup_var_meta: canonical metadata for name.
   !
   ! Returns .true. and fills units/longName when name is registered; returns
   ! .false. and leaves them untouched otherwise (computed species/ion names).

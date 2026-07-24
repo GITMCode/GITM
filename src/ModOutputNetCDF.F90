@@ -65,7 +65,7 @@ module ModOutputNetCDF
   ! Leg naming (#NETCDFOPTIONS), computed once per process by build_leg_names:
   ! nc_name_part   = '_<runname>' when netCDFFileName is set (all modes)
   ! nc_restart_part= '_restart_yymmdd_hhmmss' at the restart-file simulation
-  !                  time (leg start, NOT wall clock) -- only for named
+  !                  time (leg start, NOT wall clock), only for named
   !                  single/daily restart legs, and kept for the whole leg so
   !                  daily rollover files carry it too
   ! nc_guard_active: single/daily runs that are restarts or carry a run name
@@ -124,7 +124,7 @@ contains
     ! files mid-run. Fail loudly at the first open instead.
     if (nContainers > nc_max_types) &
       call stop_gitm("ModOutputNetCDF: nContainers exceeds nc_max_types"// &
-                     " -- raise nc_max_types in ModOutputNetCDF")
+                     "; raise nc_max_types in ModOutputNetCDF")
 
     call build_leg_names()
 
@@ -203,7 +203,7 @@ contains
               write(*, *) " - branching a scenario: use a fresh run directory"
               write(*, *) ""
             endif
-            call stop_gitm("netcdf output target exists -- see message above")
+            call stop_gitm("netcdf output target exists; see message above")
           endif
         else
           ierr = nfmpi_create(iCommGITM, trim(filename), &
@@ -245,7 +245,7 @@ contains
       ! ----------------------------------------------------------------
       ! Single-time mode (default): one file per output type per timestep.
       ! The run name applies here too (same-directory ensembles); no restart
-      ! stamp and no guard -- colliding epochs are recomputed identical data,
+      ! stamp and no guard; colliding epochs are recomputed identical data,
       ! overwritten in place like the legacy/mpiio backends.
       ! ----------------------------------------------------------------
       nc_time_record = 1
@@ -297,8 +297,8 @@ contains
   ! not wall clock: filenames stay reproducible, and re-running the same
   ! leg collides with its own earlier file so the NF_NOCLOBBER guard in
   ! netcdf_open_file fires instead of silently minting a second file.
-  ! Computed once and never rebuilt, so every file this leg opens --
-  ! including daily-rollover files on later days -- carries the same stamp.
+  ! Computed once and never rebuilt, so every file this leg opens
+  ! (including daily-rollover files on later days) carries the same stamp.
   ! ==================================================================
   subroutine build_leg_names()
     use ModInputs, only: NetCdfFileName, DoRestart, UseNetcdfMultiTime
@@ -356,8 +356,8 @@ contains
   ! ==================================================================
   ! Write one block's interior data to the open PnetCDF file.
   !
-  ! buffer(nV, nX, nY, nZ) — full buffer for this block
-  ! iBLK                   — 1-based global block index
+  ! buffer(nV, nX, nY, nZ): full buffer for this block
+  ! iBLK:                   1-based global block index
   !
   ! For types with conditionalIO flag (magnetic grids, regional outputs):
   !   - File opened in independent data mode (via nfmpi_begin_indep_data)
@@ -635,8 +635,8 @@ contains
         ierr = nfmpi_put_att_text(ncid, varids(iV), "long_name", attlen, &
                                   trim(containers(iTypeIdx)%vars(iV)%longName))
       endif
-      ! Add attribute 'gitm_name' containing the name that's written in .bin files
-      ! Unnecessary, but makes comparisons between .bin and .nc files *so* much easier
+      ! 'gitm_name' holds the raw (unsanitized) name as written in .bin files,
+      ! for matching variables across the two formats
       attlen = int(len_trim(containers(iTypeIdx)%vars(iV)%name), MPI_OFFSET_KIND)
       ierr = nfmpi_put_att_text(ncid, varids(iV), "gitm_name", attlen, &
                                 trim(containers(iTypeIdx)%vars(iV)%name))
@@ -723,7 +723,7 @@ contains
     do i = 1, len_trim(name)
       select case (name(i:i))
       case ('(', ')', '[', ']')
-        ! remove — do not copy
+        ! remove: do not copy
       case ('+')
         j = j + 1
         if (j <= len(tmp)) tmp(j:j) = 'p'
@@ -779,7 +779,7 @@ contains
 #endif
 
   ! ---------------------------------------------------------------------------
-  ! netcdf_write_container — write a filled OutputContainer to the open PnetCDF file.
+  ! netcdf_write_container: write a filled OutputContainer to the open PnetCDF file.
   !
   ! Called from output_common.f90 after fill_<type>().  The file is already open
   ! (netcdf_open_file ran before the block loop).
@@ -799,8 +799,8 @@ contains
   !     start(2) = iBlockLat_0 * nY + 1
   !
   ! Axis vars (is_axis=T) are 1D in the container but 2D in the data variables:
-  !   lon axis (shape3(1)==nX): replicate along Y → buf2d(:, iy)
-  !   lat axis (shape3(1)==nY): replicate along X → buf2d(ix, :)
+  !   lon axis (shape3(1)==nX): replicate along Y -> buf2d(:, iy)
+  !   lat axis (shape3(1)==nY): replicate along X -> buf2d(ix, :)
   !
   ! 1D coord variables (lon, lat) are written once per file (nc_time_record==1)
   ! from the first axis var encountered for each axis, at the block's offset.
