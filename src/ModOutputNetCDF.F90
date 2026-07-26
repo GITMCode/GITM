@@ -97,7 +97,7 @@ contains
     use ModElectrodynamics, only: nMagLons, nMagLats
     use ModOutputProducers, only: get_container_idx, containers, init_output_containers, &
                                   nContainers
-    use ModOutputContainer, only: GRID_MAG_2D, GRID_HIME
+    use ModOutputContainer, only: GRID_MAG_2D, GRID_HIME, GRID_GEO_3D
     use ModTime, only: iTimeArray, CurrentTime
     ! Not compiled in standalone. Change 1965 when it is!
     ! use ModTimeConvert, only: iYearBase
@@ -108,6 +108,7 @@ contains
 #ifdef HavePNetCDF
     character(len=600) :: filename
     integer :: iTypeIdx, nVars, nDims, iV, ierr, ndimid
+    integer :: nX, nY, nZ, nGC
     integer(kind=MPI_OFFSET_KIND) :: nLons_g, nLats_g, nAlts_g
     integer(kind=MPI_OFFSET_KIND) :: tstart(1), tcnt(1)
     character(len=80) :: varname
@@ -132,16 +133,29 @@ contains
 
     ! Look up variable metadata from the output container
     iTypeIdx = get_container_idx(cType)
-    if (iTypeIdx < 1) then
-      write(*, *) "ModOutputNetCDF: unknown output type '", trim(cType), "'"
-      ncid = -1
-      return
-    endif
+    ! An unregistered type reaching open_file is a programming error (e.g. the
+    ! Is1D 3D->1D rename producing a name with no container); silently skipping
+    ! it would drop the user's requested output.
+    if (iTypeIdx < 1) &
+      call stop_gitm("ModOutputNetCDF: unknown output type '"//trim(cType)//"'")
     nVars = containers(iTypeIdx)%nVars
-    ! nDims is not stored on the container; derive it from the leading digit of
-    ! the type code (3DALL->3, 2DMEL->2, ...). This also distinguishes 2DHME from
-    ! 3DHME, which share the same gridKind.
-    read(cType(1:1), '(i1)') nDims
+    ! Probe types (1DTHM, 0DALL, ...) have no netcdf file layout yet: forcing
+    ! them through the 2D path would write a degenerate lon x lat file whose
+    ! x-dimension is really altitude. Until a probe layout is designed, halt
+    ! loudly (the pre-fix behavior was worse: no file, no error).
+    if (cType(1:1) == '0' .or. cType(1:1) == '1') &
+      call stop_gitm("ModOutputNetCDF: probe type "//trim(cType)// &
+                     " is not supported by the netcdf backend yet; use legacy or mpiio")
+    ! On-disk rank comes from gridKind, not the type-name digit: 2D types on
+    ! a 3D grid would otherwise mis-parse. Only the HIME pair needs the digit
+    ! (2DHME/3DHME share GRID_HIME).
+    if (containers(iTypeIdx)%gridKind == GRID_GEO_3D) then
+      nDims = 3
+    elseif (containers(iTypeIdx)%gridKind == GRID_HIME) then
+      read(cType(1:1), '(i1)') nDims
+    else
+      nDims = 2
+    endif
     nc_nBlocksLon = nBlocksLon
     nc_nDims = nDims
     ! Use independent I/O mode for types where not all blocks participate:
@@ -149,20 +163,34 @@ contains
     nc_needsIndepWrite = containers(iTypeIdx)%gridKind == GRID_MAG_2D .or. &
                          containers(iTypeIdx)%gridKind == GRID_HIME
 
-    ! Only 2D and 3D output supported in PnetCDF backend
-    if (nDims < 2) then
-      ncid = -1
-      return
-    endif
-
+    ! Global on-disk dims from the container's own variable shapes (max over
+    ! non-axis vars, ghost padding removed) — the same rule the write path
+    ! uses for start/cnt — instead of hardcoded per-gridKind grid sizes.
+    ! MAG_2D holds one full grid written by a single rank (for 2DMEL this
+    ! reproduces the old nMagLons+1 x nMagLats sizing exactly); geographic
+    ! grids tile the per-block interior across the block decomposition.
+    nX = 0; nY = 0; nZ = 0
+    do iV = 1, nVars
+      if (.not. containers(iTypeIdx)%vars(iV)%is_axis) then
+        nX = max(nX, containers(iTypeIdx)%vars(iV)%shape3(1))
+        nY = max(nY, containers(iTypeIdx)%vars(iV)%shape3(2))
+        nZ = max(nZ, containers(iTypeIdx)%vars(iV)%shape3(3))
+      endif
+    enddo
+    if (nX == 0 .or. nY == 0 .or. nZ == 0) &
+      call stop_gitm("ModOutputNetCDF: type "//trim(cType)// &
+                     " has no non-axis variables to size its file from")
+    nGC = 0
+    if (containers(iTypeIdx)%gridKind /= GRID_MAG_2D) &
+      nGC = containers(iTypeIdx)%nGhostCells
     if (containers(iTypeIdx)%gridKind == GRID_MAG_2D) then
-      nLons_g = int(nMagLons + 1, MPI_OFFSET_KIND)
-      nLats_g = int(nMagLats, MPI_OFFSET_KIND)
+      nLons_g = int(nX, MPI_OFFSET_KIND)
+      nLats_g = int(nY, MPI_OFFSET_KIND)
     else
-      nLons_g = int(nBlocksLon*nLons, MPI_OFFSET_KIND)
-      nLats_g = int(nBlocksLat*nLats, MPI_OFFSET_KIND)
+      nLons_g = int(nBlocksLon*(nX - 2*nGC), MPI_OFFSET_KIND)
+      nLats_g = int(nBlocksLat*(nY - 2*nGC), MPI_OFFSET_KIND)
     endif
-    nAlts_g = int(nAlts, MPI_OFFSET_KIND)
+    nAlts_g = int(max(nZ - 2*nGC, 1), MPI_OFFSET_KIND)
 
     if (UseNetcdfMultiTime) then
       ! ----------------------------------------------------------------
