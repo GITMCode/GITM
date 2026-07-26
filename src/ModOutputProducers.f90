@@ -883,7 +883,9 @@ contains
                      EuvHeating(:, :, :, iBlock)*TempUnit(1:nLons, 1:nLats, 1:nAlts))
     call c%put_field('Conduction', &                                  ! alt ghosts only * ghosted
                      Conduction(:, :, 1:nAlts)*TempUnit(1:nLons, 1:nLats, 1:nAlts)/dt)
-    call c%put_field('Molecular Conduction', MoleConduction(:, :, 1:nAlts))  ! alt ghosts only
+    ! MoleConduction from the last (full-Dt) calc_conduction_1d call is a
+    ! Kelvin temperature change over the step, so /dt alone gives K/s.
+    call c%put_field('Molecular Conduction', MoleConduction(:, :, 1:nAlts)/dt)  ! alt ghosts only
     call c%put_field('Eddy Conduction', EddyCond)
     call c%put_field('Eddy Adiabatic Conduction', EddyCondAdia)
     call c%put_field('Chemical Heating Rate', &                            ! no ghosts * ghosted
@@ -936,19 +938,19 @@ contains
     character(len=40), parameter :: &
       chem_longnames(nReactions) = &
       [character(len=40) :: &
-       'N2+ + e recombination rate', 'O2+ + e recombination rate', &
-       'N2+ + O reaction rate', 'NO+ + e recombination rate', &
-       'N+ + O2 reaction rate', 'NO + N reaction rate', &
-       'O+ + O2 reaction rate', 'N + O2 reaction rate', &
-       'O2+ + N reaction rate', 'O2+ + NO reaction rate', &
-       'O2+ + N2 reaction rate', 'N2+ + O2 reaction rate', &
-       'N+ + O reaction rate', 'O+ + N2 reaction rate', &
-       'O(1D) + N2 quench rate', 'O(1D) + O2 quench rate', &
-       'O(1D) + O quench rate', 'O(1D) + e quench rate', &
-       'N(2D) + O2 reaction rate', 'O+(2D) + e recombination rate', &
-       'N(2D) + O quench rate', 'N(2D) + e quench rate', &
-       'O+(2D) + N2 reaction rate', 'O+(2P) + e recombination rate', &
-       'O+(2P) + O reaction rate', 'O+(2P) + N2 reaction rate']
+       'N2+ + e recombination heating rate', 'O2+ + e recombination heating rate', &
+       'N2+ + O reaction heating rate', 'NO+ + e recombination heating rate', &
+       'N+ + O2 reaction heating rate', 'NO + N reaction heating rate', &
+       'O+ + O2 reaction heating rate', 'N + O2 reaction heating rate', &
+       'O2+ + N reaction heating rate', 'O2+ + NO reaction heating rate', &
+       'O2+ + N2 reaction heating rate', 'N2+ + O2 reaction heating rate', &
+       'N+ + O reaction heating rate', 'O+ + N2 reaction heating rate', &
+       'O(1D) + N2 quench heating rate', 'O(1D) + O2 quench heating rate', &
+       'O(1D) + O quench heating rate', 'O(1D) + e quench heating rate', &
+       'N(2D) + O2 reaction heating rate', 'O+(2D) + e recombination heating rate', &
+       'N(2D) + O quench heating rate', 'N(2D) + e quench heating rate', &
+       'O+(2D) + N2 reaction heating rate', 'O+(2P) + e recombination heating rate', &
+       'O+(2P) + O reaction heating rate', 'O+(2P) + N2 reaction heating rate']
 
     c%cType = '3DCHM'
     c%gridKind = GRID_GEO_3D
@@ -961,13 +963,16 @@ contains
     call c%put_axis('Latitude', Latitude(1:nLats, iBlock)*cRadToDeg)
     call c%put_field('Altitude', Altitude_GB(1:nLons, 1:nLats, 1:nAlts, iBlock))
     do i = 1, nReactions
-      call c%put_field(trim(chem_names(i)), ChemicalHeatingSpecies(:, :, :, i)/Element_Charge, &
-                       units='/m3/s', longName=trim(chem_longnames(i)))
+      ! calc_chemistry accumulates ChemicalHeatingSpecies as <term>*DtSub over
+      ! one physics step, so /Dt recovers the mean heating rate over the step
+      ! (Dt at write time is still the step the accumulation integrated over).
+      call c%put_field(trim(chem_names(i)), ChemicalHeatingSpecies(:, :, :, i)/Element_Charge/Dt, &
+                       units='eV/m3/s', longName=trim(chem_longnames(i)))
     enddo
     call c%put_field('Chemical Heating', &                                  ! no ghosts * per-dim * ghosted * ghosted
                      ChemicalHeatingRate*cp(:, :, 1:nAlts, iBlock)* &
                      Rho(1:nLons, 1:nLats, 1:nAlts, iBlock)* &
-                     TempUnit(1:nLons, 1:nLats, 1:nAlts)/Element_Charge)
+                     TempUnit(1:nLons, 1:nLats, 1:nAlts)/Element_Charge/Dt)
   end subroutine fill_3dchm
 
   ! ---------------------------------------------------------------------------
@@ -1447,7 +1452,9 @@ contains
     call c%put_field('HT_int', HeatTransfer2d)
     call c%put_field('EUV_int', EuvHeating2d)
     call c%put_field('PE_int', PhotoElectronHeating2d)
-    call c%put_field('Chem_int', ChemicalHeating2d)
+    ! ChemicalHeating2d is J/m2 deposited over the step; /Dt gives the W/m2
+    ! the registry promises.
+    call c%put_field('Chem_int', ChemicalHeating2d/Dt)
     call c%put_field('RadCool_int', RadiativeCooling2d)
     call c%put_field('CO2Cool_int', CO2Cooling2d)
     call c%put_field('NOCool_int', NOCooling2d)
@@ -1711,12 +1718,12 @@ contains
                  [inter3d(Tmp3d, iiLon, iiLat, iiAlt, rLon, rLat, rAlt)], units='')
     enddo
 
-    call c%put_field('RadCooling', [dt*RadCooling(1, 1, jAlt, iBlock)*TempUnit(1, 1, jAlt)], units='K/s')
-    call c%put_field('EuvHeating', [dt*EuvHeating(1, 1, jAlt, iBlock)*TempUnit(1, 1, jAlt)], units='K/s')
-    call c%put_field('Conduction', [Conduction(1, 1, jAlt)*TempUnit(1, 1, jAlt)])
-    call c%put_field('Heat Balance Total', [(dt*EuvHeating(1, 1, jAlt, iBlock)*TempUnit(1, 1, jAlt) - &
-                                           dt*RadCooling(1, 1, jAlt, iBlock)*TempUnit(1, 1, jAlt) + &
-                                           Conduction(1, 1, jAlt)*TempUnit(1, 1, jAlt))], units='K/s')
+    call c%put_field('RadCooling', [RadCooling(1, 1, jAlt, iBlock)*TempUnit(1, 1, jAlt)], units='K/s')
+    call c%put_field('EuvHeating', [EuvHeating(1, 1, jAlt, iBlock)*TempUnit(1, 1, jAlt)], units='K/s')
+    call c%put_field('Conduction', [Conduction(1, 1, jAlt)*TempUnit(1, 1, jAlt)/dt])
+    call c%put_field('Heat Balance Total', [(EuvHeating(1, 1, jAlt, iBlock)*TempUnit(1, 1, jAlt) - &
+                                           RadCooling(1, 1, jAlt, iBlock)*TempUnit(1, 1, jAlt) + &
+                                           Conduction(1, 1, jAlt)*TempUnit(1, 1, jAlt)/dt)], units='K/s')
     call c%put_field('Heating Efficiency', [HeatingEfficiency_CB(1, 1, jAlt, iBlock)], units='')
   end subroutine fill_0dall
 
@@ -1830,19 +1837,21 @@ contains
 
     do iAlt = 1, nAlts
       iiAlt = max(min(iAlt, nAlts), 1)
-      tmp_data(iAlt) = real(EuvHeating(1, 1, iiAlt, 1)*dt*TempUnit(1, 1, iiAlt), output_kind)
+      tmp_data(iAlt) = real(EuvHeating(1, 1, iiAlt, 1)*TempUnit(1, 1, iiAlt), output_kind)
     enddo
     call c%put('EUV Heating (K/s)', tmp_data)
 
     do iAlt = 1, nAlts
       iiAlt = max(min(iAlt, nAlts), 1)
-      tmp_data(iAlt) = real(Conduction(1, 1, iiAlt)*TempUnit(1, 1, iiAlt), output_kind)
+      tmp_data(iAlt) = real(Conduction(1, 1, iiAlt)*TempUnit(1, 1, iiAlt)/dt, output_kind)
     enddo
     call c%put('Conduction (K/s)', tmp_data)
 
     do iAlt = 1, nAlts
       iiAlt = max(min(iAlt, nAlts), 1)
-      tmp_data(iAlt) = real(MoleConduction(1, 1, iiAlt), output_kind)
+      ! MoleConduction from the last (full-Dt) calc_conduction_1d call is a
+      ! Kelvin temperature change over the step, so /dt alone gives K/s.
+      tmp_data(iAlt) = real(MoleConduction(1, 1, iiAlt)/dt, output_kind)
     enddo
     call c%put('Molecular Conduction (K/s)', tmp_data)
 
@@ -1860,31 +1869,31 @@ contains
 
     do iAlt = 1, nAlts
       iiAlt = max(min(iAlt, nAlts), 1)
-      tmp_data(iAlt) = real(ChemicalHeatingRate(1, 1, iiAlt)*TempUnit(1, 1, iiAlt), output_kind)
+      tmp_data(iAlt) = real(ChemicalHeatingRate(1, 1, iiAlt)*TempUnit(1, 1, iiAlt)/dt, output_kind)
     enddo
     call c%put('Chemical Heating (K/s)', tmp_data)
 
     do iAlt = 1, nAlts
       iiAlt = max(min(iAlt, nAlts), 1)
-      tmp_data(iAlt) = real(JouleHeating(1, 1, iiAlt)*dt*TempUnit(1, 1, iiAlt), output_kind)
+      tmp_data(iAlt) = real(JouleHeating(1, 1, iiAlt)*TempUnit(1, 1, iiAlt), output_kind)
     enddo
     call c%put('Joule Heating (K/s)', tmp_data)
 
     do iAlt = 1, nAlts
       iiAlt = max(min(iAlt, nAlts), 1)
-      tmp_data(iAlt) = real(-RadCooling(1, 1, iiAlt, 1)*dt*TempUnit(1, 1, iiAlt), output_kind)
+      tmp_data(iAlt) = real(-RadCooling(1, 1, iiAlt, 1)*TempUnit(1, 1, iiAlt), output_kind)
     enddo
     call c%put('NO Cooling (K/s)', tmp_data)
 
     do iAlt = 1, nAlts
       iiAlt = max(min(iAlt, nAlts), 1)
-      tmp_data(iAlt) = real(-OCooling(1, 1, iiAlt)*dt*TempUnit(1, 1, iiAlt), output_kind)
+      tmp_data(iAlt) = real(-OCooling(1, 1, iiAlt)*TempUnit(1, 1, iiAlt), output_kind)
     enddo
     call c%put('O Cooling (K/s)', tmp_data)
 
     do iAlt = 1, nAlts
       iiAlt = max(min(iAlt, nAlts), 1)
-      tmp_data(iAlt) = real(EuvTotal(1, 1, iiAlt, 1)*dt, output_kind)
+      tmp_data(iAlt) = real(EuvTotal(1, 1, iiAlt, 1), output_kind)
     enddo
     call c%put('Total Abs EUV', tmp_data)
 
@@ -1918,33 +1927,35 @@ contains
     call c%define_var('Longitude', units='degrees_east', shape3=[nAlts, 1, 1], is_axis=.true.)
     call c%define_var('Latitude', units='degrees_north', shape3=[nAlts, 1, 1], is_axis=.true.)
     call c%define_var('Altitude', units='m', shape3=[nAlts, 1, 1])
-    call c%define_var('N2+ + e', units='/m3/s', shape3=[nAlts, 1, 1])
-    call c%define_var('O2+ + e', units='/m3/s', shape3=[nAlts, 1, 1])
-    call c%define_var('N2+ + O', units='/m3/s', shape3=[nAlts, 1, 1])
-    call c%define_var('NO+ + e', units='/m3/s', shape3=[nAlts, 1, 1])
-    call c%define_var('N+ + O2', units='/m3/s', shape3=[nAlts, 1, 1])
-    call c%define_var('NO + N', units='/m3/s', shape3=[nAlts, 1, 1])
-    call c%define_var('O+ + O2', units='/m3/s', shape3=[nAlts, 1, 1])
-    call c%define_var('N + O2', units='/m3/s', shape3=[nAlts, 1, 1])
-    call c%define_var('O2+ + N', units='/m3/s', shape3=[nAlts, 1, 1])
-    call c%define_var('O2+ + NO', units='/m3/s', shape3=[nAlts, 1, 1])
-    call c%define_var('O2+ + N2', units='/m3/s', shape3=[nAlts, 1, 1])
-    call c%define_var('N2+ + O2', units='/m3/s', shape3=[nAlts, 1, 1])
-    call c%define_var('N+ + O', units='/m3/s', shape3=[nAlts, 1, 1])
-    call c%define_var('O+ + N2', units='/m3/s', shape3=[nAlts, 1, 1])
-    call c%define_var('O(1D) + N2', units='/m3/s', shape3=[nAlts, 1, 1])
-    call c%define_var('O(1D) + O2', units='/m3/s', shape3=[nAlts, 1, 1])
-    call c%define_var('O(1D) + O', units='/m3/s', shape3=[nAlts, 1, 1])
-    call c%define_var('O(1D) + e', units='/m3/s', shape3=[nAlts, 1, 1])
-    call c%define_var('N(2D) + O2', units='/m3/s', shape3=[nAlts, 1, 1])
-    call c%define_var('O+(2D) + e', units='/m3/s', shape3=[nAlts, 1, 1])
-    call c%define_var('N(2D) + O', units='/m3/s', shape3=[nAlts, 1, 1])
-    call c%define_var('N(2D) + e', units='/m3/s', shape3=[nAlts, 1, 1])
-    call c%define_var('O+(2D) + N2', units='/m3/s', shape3=[nAlts, 1, 1])
-    call c%define_var('O+(2P) + e', units='/m3/s', shape3=[nAlts, 1, 1])
-    call c%define_var('O+(2P) + O', units='/m3/s', shape3=[nAlts, 1, 1])
-    call c%define_var('O+(2P) + N2', units='/m3/s', shape3=[nAlts, 1, 1])
-    call c%define_var('Chemical Heating', units='eV/m3', shape3=[nAlts, 1, 1])
+    ! Same ChemicalHeatingSpecies/Element_Charge/Dt heating rates that 3DCHM
+    ! writes; they sum to the 'Chemical Heating' total below. See fill_1dchm.
+    call c%define_var('N2+ + e', units='eV/m3/s', shape3=[nAlts, 1, 1])
+    call c%define_var('O2+ + e', units='eV/m3/s', shape3=[nAlts, 1, 1])
+    call c%define_var('N2+ + O', units='eV/m3/s', shape3=[nAlts, 1, 1])
+    call c%define_var('NO+ + e', units='eV/m3/s', shape3=[nAlts, 1, 1])
+    call c%define_var('N+ + O2', units='eV/m3/s', shape3=[nAlts, 1, 1])
+    call c%define_var('NO + N', units='eV/m3/s', shape3=[nAlts, 1, 1])
+    call c%define_var('O+ + O2', units='eV/m3/s', shape3=[nAlts, 1, 1])
+    call c%define_var('N + O2', units='eV/m3/s', shape3=[nAlts, 1, 1])
+    call c%define_var('O2+ + N', units='eV/m3/s', shape3=[nAlts, 1, 1])
+    call c%define_var('O2+ + NO', units='eV/m3/s', shape3=[nAlts, 1, 1])
+    call c%define_var('O2+ + N2', units='eV/m3/s', shape3=[nAlts, 1, 1])
+    call c%define_var('N2+ + O2', units='eV/m3/s', shape3=[nAlts, 1, 1])
+    call c%define_var('N+ + O', units='eV/m3/s', shape3=[nAlts, 1, 1])
+    call c%define_var('O+ + N2', units='eV/m3/s', shape3=[nAlts, 1, 1])
+    call c%define_var('O(1D) + N2', units='eV/m3/s', shape3=[nAlts, 1, 1])
+    call c%define_var('O(1D) + O2', units='eV/m3/s', shape3=[nAlts, 1, 1])
+    call c%define_var('O(1D) + O', units='eV/m3/s', shape3=[nAlts, 1, 1])
+    call c%define_var('O(1D) + e', units='eV/m3/s', shape3=[nAlts, 1, 1])
+    call c%define_var('N(2D) + O2', units='eV/m3/s', shape3=[nAlts, 1, 1])
+    call c%define_var('O+(2D) + e', units='eV/m3/s', shape3=[nAlts, 1, 1])
+    call c%define_var('N(2D) + O', units='eV/m3/s', shape3=[nAlts, 1, 1])
+    call c%define_var('N(2D) + e', units='eV/m3/s', shape3=[nAlts, 1, 1])
+    call c%define_var('O+(2D) + N2', units='eV/m3/s', shape3=[nAlts, 1, 1])
+    call c%define_var('O+(2P) + e', units='eV/m3/s', shape3=[nAlts, 1, 1])
+    call c%define_var('O+(2P) + O', units='eV/m3/s', shape3=[nAlts, 1, 1])
+    call c%define_var('O+(2P) + N2', units='eV/m3/s', shape3=[nAlts, 1, 1])
+    call c%define_var('Chemical Heating', units='eV/m3/s', shape3=[nAlts, 1, 1])
   end subroutine define_schema_1dchm
 
   ! ---------------------------------------------------------------------------
@@ -1976,7 +1987,7 @@ contains
     do i = 1, nReactions
       do iAlt = 1, nAlts
         iiAlt = max(min(iAlt, nAlts), 1)
-        tmp_data(iAlt) = real(ChemicalHeatingSpecies(1, 1, iiAlt, i)/Element_Charge, output_kind)
+        tmp_data(iAlt) = real(ChemicalHeatingSpecies(1, 1, iiAlt, i)/Element_Charge/Dt, output_kind)
       enddo
       if (i == 1) call c%put('N2+ + e', tmp_data)
       if (i == 2) call c%put('O2+ + e', tmp_data)
@@ -2011,7 +2022,7 @@ contains
       tmp_data(iAlt) = real(ChemicalHeatingRate(1, 1, iiAlt)* &
                             cp(1, 1, iiAlt, 1)* &
                             Rho(1, 1, iiAlt, 1)* &
-                            TempUnit(1, 1, iiAlt)/Element_Charge, output_kind)
+                            TempUnit(1, 1, iiAlt)/Element_Charge/Dt, output_kind)
     enddo
     call c%put('Chemical Heating', tmp_data)
   end subroutine fill_1dchm

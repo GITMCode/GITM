@@ -112,7 +112,7 @@ raw name is kept in each variable's `gitm_name` attribute). Notes:
 |---|---|---|
 | Longitude | degrees_east | Geographic longitude |
 | Latitude | degrees_north | Geographic latitude |
-| Altitude | m | Altitude |
+| Altitude | m | Altitude above surface |
 | LT | hr | Local Time |
 | TEC | TECU | Total electron content |
 
@@ -165,7 +165,7 @@ raw name is kept in each variable's `gitm_name` attribute). Notes:
 |---|---|---|
 | Longitude | degrees_east | Geographic longitude |
 | Latitude | degrees_north | Geographic latitude |
-| Altitude | m | Altitude |
+| Altitude | m | Altitude above surface |
 | Potential (kV) | kV | Potential (kV) |
 | Average Energy (keV) | keV | Average Energy (keV) |
 | Total Energy (ergs) | ergs/cm2/s | Total Energy (ergs) |
@@ -226,33 +226,33 @@ raw name is kept in each variable's `gitm_name` attribute). Notes:
 | Longitude | degrees_east | Geographic longitude |
 | Latitude | degrees_north | Geographic latitude |
 | Altitude | m | Altitude above surface |
-| N2+ + e | /m3/s | N2+ + e recombination rate |
-| O2+ + e | /m3/s | O2+ + e recombination rate |
-| N2+ + O | /m3/s | N2+ + O reaction rate |
-| NO+ + e | /m3/s | NO+ + e recombination rate |
-| N+ + O2 | /m3/s | N+ + O2 reaction rate |
-| NO + N | /m3/s | NO + N reaction rate |
-| O+ + O2 | /m3/s | O+ + O2 reaction rate |
-| N + O2 | /m3/s | N + O2 reaction rate |
-| O2+ + N | /m3/s | O2+ + N reaction rate |
-| O2+ + NO | /m3/s | O2+ + NO reaction rate |
-| O2+ + N2 | /m3/s | O2+ + N2 reaction rate |
-| N2+ + O2 | /m3/s | N2+ + O2 reaction rate |
-| N+ + O | /m3/s | N+ + O reaction rate |
-| O+ + N2 | /m3/s | O+ + N2 reaction rate |
-| O(1D) + N2 | /m3/s | O(1D) + N2 quench rate |
-| O(1D) + O2 | /m3/s | O(1D) + O2 quench rate |
-| O(1D) + O | /m3/s | O(1D) + O quench rate |
-| O(1D) + e | /m3/s | O(1D) + e quench rate |
-| N(2D) + O2 | /m3/s | N(2D) + O2 reaction rate |
-| O+(2D) + e | /m3/s | O+(2D) + e recombination rate |
-| N(2D) + O | /m3/s | N(2D) + O quench rate |
-| N(2D) + e | /m3/s | N(2D) + e quench rate |
-| O+(2D) + N2 | /m3/s | O+(2D) + N2 reaction rate |
-| O+(2P) + e | /m3/s | O+(2P) + e recombination rate |
-| O+(2P) + O | /m3/s | O+(2P) + O reaction rate |
-| O+(2P) + N2 | /m3/s | O+(2P) + N2 reaction rate |
-| Chemical Heating | eV/m3 | Volumetric chemical heating per timestep |
+| N2+ + e | eV/m3/s | N2+ + e recombination heating rate |
+| O2+ + e | eV/m3/s | O2+ + e recombination heating rate |
+| N2+ + O | eV/m3/s | N2+ + O reaction heating rate |
+| NO+ + e | eV/m3/s | NO+ + e recombination heating rate |
+| N+ + O2 | eV/m3/s | N+ + O2 reaction heating rate |
+| NO + N | eV/m3/s | NO + N reaction heating rate |
+| O+ + O2 | eV/m3/s | O+ + O2 reaction heating rate |
+| N + O2 | eV/m3/s | N + O2 reaction heating rate |
+| O2+ + N | eV/m3/s | O2+ + N reaction heating rate |
+| O2+ + NO | eV/m3/s | O2+ + NO reaction heating rate |
+| O2+ + N2 | eV/m3/s | O2+ + N2 reaction heating rate |
+| N2+ + O2 | eV/m3/s | N2+ + O2 reaction heating rate |
+| N+ + O | eV/m3/s | N+ + O reaction heating rate |
+| O+ + N2 | eV/m3/s | O+ + N2 reaction heating rate |
+| O(1D) + N2 | eV/m3/s | O(1D) + N2 quench heating rate |
+| O(1D) + O2 | eV/m3/s | O(1D) + O2 quench heating rate |
+| O(1D) + O | eV/m3/s | O(1D) + O quench heating rate |
+| O(1D) + e | eV/m3/s | O(1D) + e quench heating rate |
+| N(2D) + O2 | eV/m3/s | N(2D) + O2 reaction heating rate |
+| O+(2D) + e | eV/m3/s | O+(2D) + e recombination heating rate |
+| N(2D) + O | eV/m3/s | N(2D) + O quench heating rate |
+| N(2D) + e | eV/m3/s | N(2D) + e quench heating rate |
+| O+(2D) + N2 | eV/m3/s | O+(2D) + N2 reaction heating rate |
+| O+(2P) + e | eV/m3/s | O+(2P) + e recombination heating rate |
+| O+(2P) + O | eV/m3/s | O+(2P) + O reaction heating rate |
+| O+(2P) + N2 | eV/m3/s | O+(2P) + N2 reaction heating rate |
+| Chemical Heating | eV/m3/s | Volumetric chemical heating rate |
 
 ### 3DGLO
 
@@ -458,7 +458,7 @@ raw name is kept in each variable's `gitm_name` attribute). Notes:
 |---|---|---|
 | Longitude | degrees_east | Geographic longitude |
 | Latitude | degrees_north | Geographic latitude |
-| Altitude | m | Altitude |
+| Altitude | m | Altitude above surface |
 | Joule Heating | K/s | Joule Heating |
 | JPara | A/m2 | JPara |
 

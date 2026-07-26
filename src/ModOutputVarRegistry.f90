@@ -123,9 +123,9 @@ module ModOutputVarRegistry
     VarMeta('Ionization Rate O2', '/s', 'Ionization rate for O2'), &
     VarMeta('Ionization Rate N2', '/s', 'Ionization rate for N2'), &
     ! -- chemistry (introduced by 3DCHM) -------------------------------------
-    ! Volumetric energy deposited over the current timestep, distinct from
-    ! 3DTHM's 'Chemical Heating Rate' (K/s); no /dt in the producer expression.
-    VarMeta('Chemical Heating', 'eV/m3', 'Volumetric chemical heating per timestep'), &
+    ! Same energy source as 3DTHM's 'Chemical Heating Rate' but volumetric
+    ! (eV/m3/s) instead of a temperature tendency (K/s).
+    VarMeta('Chemical Heating', 'eV/m3/s', 'Volumetric chemical heating rate'), &
     ! -- horizontal momentum budget (introduced by 3DMOH) --------------------
     VarMeta('Visc_Ve_rshear', 'm/s2', 'Viscous east shear accel'), &
     VarMeta('Visc_Vn_rshear', 'm/s2', 'Viscous north shear accel'), &
