@@ -306,18 +306,27 @@ contains
     do i = 1, nV
       if (c%vars(i)%is_axis) then
         iAxis = iAxis + 1
+        ! Copy exactly the target extent: probe types store length-nAlts axes
+        ! against nX=nY=1 fields, so an unclamped full-extent copy would be
+        ! nonconforming (heap overrun).
         if (iAxis == 1) then
           ! Longitude axis: replicate 1D data along lat and alt dimensions.
+          if (c%vars(i)%shape3(1) < nX) &
+            call stop_gitm("legacy_write_container: axis '"// &
+                           trim(c%vars(i)%name)//"' shorter than grid extent")
           do iz = 1, nZ
             do iy = 1, nY
-              tmpbuf(i, :, iy, iz) = c%vars(i)%data(:, 1, 1)
+              tmpbuf(i, :, iy, iz) = c%vars(i)%data(1:nX, 1, 1)
             enddo
           enddo
         else
           ! Latitude axis: replicate 1D data along lon and alt dimensions.
+          if (c%vars(i)%shape3(1) < nY) &
+            call stop_gitm("legacy_write_container: axis '"// &
+                           trim(c%vars(i)%name)//"' shorter than grid extent")
           do iz = 1, nZ
             do ix = 1, nX
-              tmpbuf(i, ix, :, iz) = c%vars(i)%data(:, 1, 1)
+              tmpbuf(i, ix, :, iz) = c%vars(i)%data(1:nY, 1, 1)
             enddo
           enddo
         endif

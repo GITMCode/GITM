@@ -13,9 +13,10 @@
 !   schema) makes the schema complete before open_file, where netcdf issues
 !   collective nfmpi_def_var for the whole file.
 !   The CALLER owns the slice: put stores exactly what it is handed, with no
-!   ghost-cell or grid-kind inference (2DANC holds a 2-ghost VTEC, a 0-ghost
-!   LT, and one altitude LEVEL of a 3-D array side by side).  nGhostCells is
-!   metadata (what the netcdf backend strips), decoupled from the stored slice.
+!   ghost-cell or grid-kind inference (3DALL puts 2-ghost full blocks; 2DANC
+!   puts 0-ghost interior slices plus one altitude LEVEL of a 3-D array).
+!   nGhostCells is metadata (what the netcdf backend strips), decoupled from
+!   the stored slice.
 !
 ! EXPLICIT TWO-PHASE (define_var once per open on all ranks, then prepare +
 !   put on participating ranks): for magnetic grids, HME/HIME regionals, and
