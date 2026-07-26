@@ -437,8 +437,6 @@ raw name is kept in each variable's `gitm_name` attribute). Notes:
 | EUV Heating Rate | K/s | EUV heating rate |
 | Conduction | K/s | Thermal conduction heating rate |
 | Molecular Conduction | K/s | Molecular conduction heating rate |
-| Eddy Conduction | K/s | Eddy conduction heating rate |
-| Eddy Adiabatic Conduction | K/s | Eddy adiabatic conduction heating rate |
 | Chemical Heating Rate | K/s | Chemical heating rate |
 | Joule Heating Rate | K/s | Joule heating rate |
 | NO Cooling Rate | K/s | NO infrared cooling rate |

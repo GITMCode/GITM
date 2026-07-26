@@ -93,7 +93,6 @@ subroutine advance_vertical_1stage( &
   use ModTime
   use ModInputs
   use ModConstants
-  use ModSources, only: EddyCondAdia
   use ModUserGITM, only: userdata1d
 
   implicit none

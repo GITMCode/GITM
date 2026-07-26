@@ -436,7 +436,6 @@ subroutine advance_vertical_1stage_ausm(DtIn, LogRho, LogNS, Vel_GD, Temp, NewLo
   use ModTime
   use ModInputs
   use ModConstants
-  use ModSources, only: EddyCondAdia
   implicit none
 
   real, intent(in) :: DtIn

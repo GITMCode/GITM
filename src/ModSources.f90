@@ -12,8 +12,7 @@ module ModSources
 
   real, dimension(nLons, nLats, nAlts) :: &
     NOCooling, OCooling, ElectronHeating, &
-    JouleHeating, IonPrecipHeating, &
-    EddyCond, EddyCondAdia
+    JouleHeating, IonPrecipHeating
 
   real, dimension(nLons, nLats, 0:nAlts + 1) :: MoleConduction
 

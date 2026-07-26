@@ -110,8 +110,6 @@ module ModOutputVarRegistry
     VarMeta('EUV Heating Rate', 'K/s', 'EUV heating rate'), &
     VarMeta('Conduction', 'K/s', 'Thermal conduction heating rate'), &
     VarMeta('Molecular Conduction', 'K/s', 'Molecular conduction heating rate'), &
-    VarMeta('Eddy Conduction', 'K/s', 'Eddy conduction heating rate'), &
-    VarMeta('Eddy Adiabatic Conduction', 'K/s', 'Eddy adiabatic conduction heating rate'), &
     VarMeta('Chemical Heating Rate', 'K/s', 'Chemical heating rate'), &
     VarMeta('Joule Heating Rate', 'K/s', 'Joule heating rate'), &
     VarMeta('NO Cooling Rate', 'K/s', 'NO infrared cooling rate'), &

@@ -857,8 +857,8 @@ contains
   ! Altitude_GB/Rho/TempUnit/EField/Sigma_Pedersen are 2-ghost and sliced to
   ! the interior; Conduction/MoleConduction carry ghosts only in altitude
   ! (sliced to 1:nAlts); cp is per-dimension (whole lon/lat, sliced altitude);
-  ! EuvHeating/EuvTotal/AuroralIonRateS/JouleHeating/EddyCond/EddyCondAdia/
-  ! ChemicalHeatingRate/NOCooling/OCooling are ghost-less and pass whole.
+  ! EuvHeating/EuvTotal/AuroralIonRateS/JouleHeating/ChemicalHeatingRate/
+  ! NOCooling/OCooling are ghost-less and pass whole.
   ! ---------------------------------------------------------------------------
   subroutine fill_3dthm(c, iBlock)
     use ModGITM
@@ -886,8 +886,6 @@ contains
     ! MoleConduction from the last (full-Dt) calc_conduction_1d call is a
     ! Kelvin temperature change over the step, so /dt alone gives K/s.
     call c%put_field('Molecular Conduction', MoleConduction(:, :, 1:nAlts)/dt)  ! alt ghosts only
-    call c%put_field('Eddy Conduction', EddyCond)
-    call c%put_field('Eddy Adiabatic Conduction', EddyCondAdia)
     call c%put_field('Chemical Heating Rate', &                            ! no ghosts * ghosted
                      ChemicalHeatingRate*TempUnit(1:nLons, 1:nLats, 1:nAlts)/dt)
     call c%put_field('Joule Heating Rate', &                               ! no ghosts * ghosted
@@ -1793,8 +1791,6 @@ contains
     call c%define_var('EUV Heating (K/s)', units='K/s', shape3=[nAlts, 1, 1])
     call c%define_var('Conduction (K/s)', units='K/s', shape3=[nAlts, 1, 1])
     call c%define_var('Molecular Conduction (K/s)', units='K/s', shape3=[nAlts, 1, 1])
-    call c%define_var('Eddy Conduction (K/s)', units='K/s', shape3=[nAlts, 1, 1])
-    call c%define_var('Eddy Adiabatic Conduction (K/s)', units='K/s', shape3=[nAlts, 1, 1])
     call c%define_var('Chemical Heating (K/s)', units='K/s', shape3=[nAlts, 1, 1])
     call c%define_var('Joule Heating (K/s)', units='K/s', shape3=[nAlts, 1, 1])
     call c%define_var('NO Cooling (K/s)', units='K/s', shape3=[nAlts, 1, 1])
@@ -1854,18 +1850,6 @@ contains
       tmp_data(iAlt) = real(MoleConduction(1, 1, iiAlt)/dt, output_kind)
     enddo
     call c%put('Molecular Conduction (K/s)', tmp_data)
-
-    do iAlt = 1, nAlts
-      iiAlt = max(min(iAlt, nAlts), 1)
-      tmp_data(iAlt) = real(EddyCond(1, 1, iiAlt), output_kind)
-    enddo
-    call c%put('Eddy Conduction (K/s)', tmp_data)
-
-    do iAlt = 1, nAlts
-      iiAlt = max(min(iAlt, nAlts), 1)
-      tmp_data(iAlt) = real(EddyCondAdia(1, 1, iiAlt), output_kind)
-    enddo
-    call c%put('Eddy Adiabatic Conduction (K/s)', tmp_data)
 
     do iAlt = 1, nAlts
       iiAlt = max(min(iAlt, nAlts), 1)
