@@ -48,7 +48,7 @@ module ModOutputNetCDF
   integer :: ncid = -1       ! PnetCDF file handle; -1 = no file open
   integer, allocatable :: varids(:), & ! variable IDs for all data variables
                           coordids(:) ! ID's for coordinates (1-D data)
-  ! Cached from open_file for use in write_block
+  ! Cached from open_file for use in write_container
   integer :: nc_nBlocksLon = 0
   integer :: nc_nDims = 3    ! spatial dims of open file: 2 or 3
   logical :: nc_needsIndepWrite = .false.  ! whether open file uses magnetic grid
@@ -93,8 +93,6 @@ contains
     use ModGITM, only: iCommGITM, iProc
 #ifdef HavePNetCDF
     use ModInputs, only: nBlocksLon, nBlocksLat, UseNetcdfMultiTime, NetCdfAppendOption
-    use ModSizeGitm, only: nLons, nLats, nAlts
-    use ModElectrodynamics, only: nMagLons, nMagLats
     use ModOutputProducers, only: get_container_idx, containers, init_output_containers, &
                                   nContainers
     use ModOutputContainer, only: GRID_MAG_2D, GRID_HIME, GRID_GEO_3D
@@ -397,167 +395,6 @@ contains
 #endif
   end subroutine netcdf_close_file
 
-  ! ==================================================================
-  ! Write one block's interior data to the open PnetCDF file.
-  !
-  ! buffer(nV, nX, nY, nZ): full buffer for this block
-  ! iBLK:                   1-based global block index
-  !
-  ! For types with conditionalIO flag (magnetic grids, regional outputs):
-  !   - File opened in independent data mode (via nfmpi_begin_indep_data)
-  !   - Uses non-collective nfmpi_put_vara_real; only block 1 (or blocks in
-  !     region) write; others skip without deadlock
-  ! For regular block-partitioned types:
-  !   - File in collective mode; all blocks call collective nfmpi_put_vara_real_all
-  !
-  ! Dispatches on nc_nDims cached from open_file:
-  !   3D: strip 2 ghost cells each side; write to (lon×lat×alt[×time]) var
-  !   2D: no ghost cells (nZ=1); write to (lon×lat[×time]) var
-  ! ==================================================================
-  subroutine netcdf_write_block(iUnit, buffer, nV, nX, nY, nZ, iBLK)
-    use ModGITM, only: Longitude, Latitude, Altitude_GB
-    use ModElectrodynamics, only: MagLonMC, MagLatMC
-    use ModConst, only: cRadToDeg
-    use ModInputs, only: UseNetcdfMultiTime
-    integer, intent(in) :: iUnit, nV, nX, nY, nZ, iBLK
-    real, intent(in) :: buffer(nV, nX, nY, nZ)
-
-#ifdef HavePNetCDF
-    integer :: iBlockLon_0, iBlockLat_0
-    integer(kind=MPI_OFFSET_KIND) :: start(4), cnt(4)
-    integer(kind=MPI_OFFSET_KIND) :: cstart(1), ccnt(1)
-    integer :: nLi, nLai, nAi, lo_x, hi_x, lo_y, hi_y, lo_z, hi_z
-    integer :: ndimid, iV, ierr
-    real(kind=4), allocatable :: slice(:, :, :)
-    real(kind=4), allocatable :: coord1d(:)
-
-    if (ncid == -1) return
-
-    ! 0-based block spatial indices
-    iBlockLon_0 = mod(iBLK - 1, nc_nBlocksLon)
-    iBlockLat_0 = (iBLK - 1)/nc_nBlocksLon
-
-    if (nc_nDims == 3) then
-      ! 3D type: buffer has 2 ghost cells each side
-      nLi = nX - 4; lo_x = 3; hi_x = nX - 2
-      nLai = nY - 4; lo_y = 3; hi_y = nY - 2
-      nAi = nZ - 4; lo_z = 3; hi_z = nZ - 2
-      ndimid = 3
-    else
-      ! 2D type: buffer has no ghost cells (nX=nLons, nY=nLats, nZ=1)
-      nLi = nX; lo_x = 1; hi_x = nX
-      nLai = nY; lo_y = 1; hi_y = nY
-      nAi = nZ; lo_z = 1; hi_z = nZ
-      ndimid = 2
-    endif
-
-    start(1) = int(iBlockLon_0*nLi, MPI_OFFSET_KIND) + 1_MPI_OFFSET_KIND
-    start(2) = int(iBlockLat_0*nLai, MPI_OFFSET_KIND) + 1_MPI_OFFSET_KIND
-    start(3) = 1_MPI_OFFSET_KIND
-    start(ndimid + 1) = int(nc_time_record, MPI_OFFSET_KIND)
-
-    cnt(1) = int(nLi, MPI_OFFSET_KIND)
-    cnt(2) = int(nLai, MPI_OFFSET_KIND)
-    cnt(3) = int(nAi, MPI_OFFSET_KIND)
-    cnt(4) = 1_MPI_OFFSET_KIND
-
-    allocate(slice(nLi, nLai, nAi))
-
-    ! ndimid_var: spatial dims only (single-time) or spatial+time (multi-time)
-    ! For 2D: ndimid=2, so start/cnt(3) = time; for 3D: ndimid=3, start/cnt(4) = time.
-    ! We always pass start(1:ndimid+1) / cnt(1:ndimid+1) in multi-time mode
-    ! so that start(ndimid+1)=nc_time_record, cnt(ndimid+1)=1.
-
-    if (nc_needsIndepWrite) then
-      ! For magnetic grid types, use non-collective I/O to avoid MPI deadlock
-      ! (only block 1 has data to write, but all processes must reach close_file() together).
-      do iV = 1, nV
-        slice = buffer(iV, lo_x:hi_x, lo_y:hi_y, lo_z:hi_z)
-        if (UseNetcdfMultiTime) then
-          ierr = nfmpi_put_vara_real(ncid, varids(iV), &
-                                     start(1:ndimid + 1), cnt(1:ndimid + 1), slice)
-        else
-          ierr = nfmpi_put_vara_real(ncid, varids(iV), &
-                                     start(1:ndimid), cnt(1:ndimid), slice)
-        endif
-        if (ierr /= NF_NOERR) &
-          write(*, *) "netcdf_write_block: put_vara_real failed for var ", iV, &
-          ": ", nfmpi_strerror(ierr)
-      enddo
-
-      ! Coordinate variables: only block 1 writes, only on the first time record.
-      ! MagLonMC/MagLatMC are separable grids so the 1D axes are column/row slices.
-      ! Guard against configurations where UA_calc_electrodynamics never ran its
-      ! IsFirstTime block (e.g. UseDynamo=F, DipoleStrength=0, Is1D) leaving
-      ! MagLatMC/MagLonMC unallocated.
-      if (iBLK == 1 .and. nc_time_record == 1 .and. &
-          allocated(MagLonMC) .and. allocated(MagLatMC)) then
-        cstart(1) = 1_MPI_OFFSET_KIND
-        ccnt(1) = int(nLi, MPI_OFFSET_KIND)
-        allocate(coord1d(nLi))
-        coord1d = real(MagLonMC(1:nLi, 1), kind=4)
-        ierr = nfmpi_put_vara_real(ncid, coordids(1), cstart, ccnt, coord1d)
-        deallocate(coord1d)
-
-        cstart(1) = 1_MPI_OFFSET_KIND
-        ccnt(1) = int(nLai, MPI_OFFSET_KIND)
-        allocate(coord1d(nLai))
-        coord1d = real(MagLatMC(1, 1:nLai), kind=4)
-        ierr = nfmpi_put_vara_real(ncid, coordids(2), cstart, ccnt, coord1d)
-        deallocate(coord1d)
-      endif
-    else
-      ! Collective put for regular block-partitioned types
-      do iV = 1, nV
-        slice = buffer(iV, lo_x:hi_x, lo_y:hi_y, lo_z:hi_z)
-        if (UseNetcdfMultiTime) then
-          ierr = nfmpi_put_vara_real_all(ncid, varids(iV), &
-                                         start(1:ndimid + 1), cnt(1:ndimid + 1), slice)
-        else
-          ierr = nfmpi_put_vara_real_all(ncid, varids(iV), &
-                                         start(1:ndimid), cnt(1:ndimid), slice)
-        endif
-        if (ierr /= NF_NOERR) &
-          write(*, *) "netcdf_write_block: put_vara_real_all failed for var ", iV, &
-          ": ", nfmpi_strerror(ierr)
-      enddo
-
-      ! --- 1-D coordinate variables ---
-      ! Written only on the first time record; coordinates don't change between timesteps.
-      if (nc_time_record == 1) then
-        ! lon: each block writes its own interior lon range (radians east)
-        cstart(1) = start(1)
-        ccnt(1) = cnt(1)
-        allocate(coord1d(nLi))
-        coord1d = real(Longitude(1:nLi, 1)*cRadToDeg, kind=4)
-        ierr = nfmpi_put_vara_real_all(ncid, coordids(1), cstart, ccnt, coord1d)
-        deallocate(coord1d)
-
-        ! lat: each block writes its own interior lat range (degrees north)
-        cstart(1) = start(2)
-        ccnt(1) = cnt(2)
-        allocate(coord1d(nLai))
-        coord1d = real(Latitude(1:nLai, 1)*cRadToDeg, kind=4)
-        ierr = nfmpi_put_vara_real_all(ncid, coordids(2), cstart, ccnt, coord1d)
-        deallocate(coord1d)
-
-        ! z (3D only): all blocks cover the same altitude levels (km)
-        if (nc_nDims == 3) then
-          cstart(1) = 1_MPI_OFFSET_KIND
-          ccnt(1) = cnt(3)
-          allocate(coord1d(nAi))
-          coord1d = real(Altitude_GB(1, 1, 1:nAi, 1)/1000.0d0, kind=4)
-          ierr = nfmpi_put_vara_real_all(ncid, coordids(3), cstart, ccnt, coord1d)
-          deallocate(coord1d)
-        endif
-      endif
-
-    endif
-
-    deallocate(slice)
-#endif
-  end subroutine netcdf_write_block
-
   ! netcdf_write_header is intentionally absent.
   ! ActiveBackend%writes_header = .false. for the netcdf backend, so
   ! output_common.f90 never calls write_header and no .header file is created.
@@ -844,7 +681,7 @@ contains
   !
   !   nc_needsIndepWrite=F (GEO_2D block-partitioned):
   !     File is in collective data mode.  All ranks participate; each writes
-  !     its block at the correct global offset (mirrors netcdf_write_block).
+  !     its block at the correct global offset.
   !     iBlockLon_0 = mod(iBlock-1, nc_nBlocksLon)
   !     iBlockLat_0 = (iBlock-1) / nc_nBlocksLon
   !     start(1) = iBlockLon_0 * nX + 1
@@ -907,7 +744,10 @@ contains
     ay_lo = nGC + 1
     az_lo = nGC + 1
 
-    is3d = (c%gridKind == GRID_GEO_3D)
+    ! On-disk rank, not gridKind: GRID_HIME carries both 2DHME (rank 2) and
+    ! 3DHME (rank 3), so keying on GEO_3D alone would push 3DHME through the
+    ! 2-D path — 2-element start/cnt against 3-dim variables, alt level 1 only.
+    is3d = (nc_nDims == 3)
 
     if (nc_needsIndepWrite .and. c%gridKind == GRID_MAG_2D) then
       ! MAG_2D: single rank writes the full magnetic grid starting at (1,1).

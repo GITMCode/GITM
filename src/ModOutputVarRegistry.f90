@@ -148,9 +148,10 @@ contains
   ! ---------------------------------------------------------------------------
   ! lookup_var_meta: canonical metadata for name.
   !
-  ! Returns .true. and fills units/longName when name is registered; returns
-  ! .false. and leaves them untouched otherwise (computed species/ion names).
-  ! Callers supply their own metadata in that case.
+  ! Returns .true. and fills units/longName when name is registered. Returns
+  ! .false. otherwise (computed species/ion names) — units/longName are
+  ! intent(out), so on a miss they come back undefined, not preserved;
+  ! callers must check the result before using them.
   ! ---------------------------------------------------------------------------
   logical function lookup_var_meta(name, units, longName)
     character(len=*), intent(in)  :: name

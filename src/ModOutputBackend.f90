@@ -39,14 +39,6 @@ module ModOutputBackend
     subroutine backend_close_file_iface()
     end subroutine
 
-    ! Write one block's data buffer to the output file.
-    ! iUnit: Fortran unit (legacy only; mpiio ignores it)
-    ! iBLK:  global block index (mpiio uses for byte offset)
-    subroutine backend_write_block_iface(iUnit, buffer, nV, nX, nY, nZ, iBLK)
-      integer, intent(in) :: iUnit, nV, nX, nY, nZ, iBLK
-      real, intent(in) :: buffer(nV, nX, nY, nZ)
-    end subroutine
-
     subroutine backend_write_header_iface(iUnit, c, cType, &
                                           nAlts, nLats, nLons, nGCs, &
                                           nBlocksLat, nBlocksLon, &
@@ -88,7 +80,6 @@ module ModOutputBackend
     logical :: writes_header = .true.
     procedure(backend_open_file_iface), pointer, nopass :: open_file => null()
     procedure(backend_close_file_iface), pointer, nopass :: close_file => null()
-    procedure(backend_write_block_iface), pointer, nopass :: write_block => null()
     procedure(backend_write_header_iface), pointer, nopass :: write_header => null()
     procedure(backend_write_container_iface), pointer, nopass :: write_container => null()
   end type OutputBackend
@@ -102,10 +93,9 @@ contains
   ! ------------------------------------------------------------------
   subroutine init_output_backend(backend_name)
     use ModOutputMPIIO, only: mpiio_open_file, mpiio_close_file, &
-                              mpiio_write_block, mpiio_write_header, &
-                              mpiio_write_container
+                              mpiio_write_header, mpiio_write_container
     use ModOutputNetCDF, only: netcdf_open_file, netcdf_close_file, &
-                               netcdf_write_block, netcdf_write_container
+                               netcdf_write_container
     character(len=*), intent(in) :: backend_name
 
     select case (trim(backend_name))
@@ -114,7 +104,6 @@ contains
       ActiveBackend%uses_external_file = .false.
       ActiveBackend%open_file => mpiio_open_file
       ActiveBackend%close_file => mpiio_close_file
-      ActiveBackend%write_block => mpiio_write_block
       ActiveBackend%write_header => mpiio_write_header
       ActiveBackend%write_container => mpiio_write_container
     case ('netcdf')
@@ -123,7 +112,6 @@ contains
       ActiveBackend%writes_header = .false.
       ActiveBackend%open_file => netcdf_open_file
       ActiveBackend%close_file => netcdf_close_file
-      ActiveBackend%write_block => netcdf_write_block
       ActiveBackend%write_container => netcdf_write_container
       ! write_header left null: output_common.f90 checks writes_header before calling it
     case default
@@ -134,7 +122,6 @@ contains
       ActiveBackend%uses_external_file = .true.
       ActiveBackend%open_file => legacy_open_file
       ActiveBackend%close_file => legacy_close_file
-      ActiveBackend%write_block => legacy_write_block
       ActiveBackend%write_header => legacy_write_header
       ActiveBackend%write_container => legacy_write_container
     end select
@@ -153,25 +140,6 @@ contains
   subroutine legacy_close_file()
     ! No-op: legacy closes files inside output()
   end subroutine legacy_close_file
-
-  ! ------------------------------------------------------------------
-  ! Write a data block from buffer to an already-opened unit.
-  ! Reproduces the legacy per-grid-point write pattern exactly:
-  !   do iz, do iy, do ix: write(unit) buffer(:, ix, iy, iz)
-  ! ------------------------------------------------------------------
-  subroutine legacy_write_block(iUnit, buffer, nV, nX, nY, nZ, iBLK)
-    integer, intent(in) :: iUnit, nV, nX, nY, nZ, iBLK
-    real, intent(in) :: buffer(nV, nX, nY, nZ)
-    integer :: ix, iy, iz
-
-    do iz = 1, nZ
-      do iy = 1, nY
-        do ix = 1, nX
-          write(iUnit) buffer(1:nV, ix, iy, iz)
-        enddo
-      enddo
-    enddo
-  end subroutine legacy_write_block
 
   ! ------------------------------------------------------------------
   ! Write a complete header file from the registry info.
@@ -331,6 +299,12 @@ contains
           enddo
         endif
       else
+        ! Non-axis vars must fill the buffer exactly; a smaller stored shape
+        ! would be the same nonconforming assignment the axis clamp above
+        ! guards against (silent heap overrun on the read side).
+        if (any(c%vars(i)%shape3 /= [nX, nY, nZ])) &
+          call stop_gitm("legacy_write_container: variable '"// &
+                         trim(c%vars(i)%name)//"' shape does not match grid extent")
         tmpbuf(i, :, :, :) = c%vars(i)%data
       endif
     enddo

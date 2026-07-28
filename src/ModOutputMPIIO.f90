@@ -75,33 +75,6 @@ contains
   end subroutine mpiio_close_file
 
   ! ------------------------------------------------------------------
-  ! Write block data at the byte offset determined by iBLK.
-  !
-  ! offset = (iBLK - 1) * nV * nX * nY * nZ * bytes_per_element
-  !
-  ! iUnit is ignored (the module holds the open file handle).
-  ! ------------------------------------------------------------------
-  subroutine mpiio_write_block(iUnit, buffer, nV, nX, nY, nZ, iBLK)
-    integer, intent(in) :: iUnit, nV, nX, nY, nZ, iBLK
-    real, intent(in) :: buffer(nV, nX, nY, nZ)
-    integer(kind=MPI_OFFSET_KIND) :: offset
-    integer :: nWords, bytes_per_element, ierr
-    integer :: status(MPI_STATUS_SIZE)
-
-    call MPI_Type_size(MPI_REAL, bytes_per_element, ierr)
-
-    nWords = nV*nX*nY*nZ
-    offset = int(iBLK - 1, MPI_OFFSET_KIND)* &
-             int(nWords, MPI_OFFSET_KIND)* &
-             int(bytes_per_element, MPI_OFFSET_KIND)
-
-    call MPI_File_write_at_all(mpiio_fh, offset, buffer(1, 1, 1, 1), nWords, MPI_REAL, &
-                               status, ierr)
-    if (ierr /= MPI_SUCCESS) &
-      write(*, *) 'ModOutputMPIIO: MPI_File_write_at failed, iBLK=', iBLK
-  end subroutine mpiio_write_block
-
-  ! ------------------------------------------------------------------
   ! Write the ASCII header file to an already-opened unit (iUnit).
   ! Called from output() on rank 0 after all blocks are written.
   ! Content mirrors legacy_write_header with a FORMAT/mpiio section
@@ -277,6 +250,12 @@ contains
           enddo
         endif
       else
+        ! Non-axis vars must fill the buffer exactly; a smaller stored shape
+        ! would be the same nonconforming assignment the axis clamp above
+        ! guards against (silent heap overrun on the read side).
+        if (any(c%vars(i)%shape3 /= [nX, nY, nZ])) &
+          call stop_gitm("mpiio write_container: variable '"// &
+                         trim(c%vars(i)%name)//"' shape does not match grid extent")
         tmpbuf(i, :, :, :) = c%vars(i)%data
       endif
     enddo
