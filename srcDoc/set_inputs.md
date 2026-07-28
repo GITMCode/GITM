@@ -130,7 +130,7 @@ the frequency of output
     #SAVEPLOT
     DtRestart     (real, seconds)
     nOutputTypes  (integer)
-    Outputtype    (string, 3D, 2D, ION, NEUTRAL, ...)
+    Outputtype    (string; 5-character type code, e.g. 3DALL, matched exactly)
     DtPlot        (real, seconds)
 
 ### PLOTTIMECHANGE

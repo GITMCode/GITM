@@ -6,6 +6,15 @@ output [containers](../outputs.md#output-system) (defined in
 only in how files are laid out on disk. All three are supported by `pGITM.py`.
 Which one you use depends on your system and workflow.
 
+Two current restrictions to know up front:
+
+- The `netcdf` backend does not support the probe-style `1D*`/`0D*` types
+  (including 3D types renamed to `1D*` by a 1-D `nLons=nLats=1` run) and
+  stops with an error naming the type; use `legacy` or `mpiio` for those.
+- The `.nc` files this backend writes are a different dialect from the ones
+  `pGITM.py` produces when converting legacy/mpiio output — see the warning
+  in [Outputs](../outputs.md). Don't mix the two in one analysis.
+
 To select a backend, add this block to `UAM.in`:
 
 ```
@@ -138,9 +147,8 @@ Participation is driven by the container's `gridKind` (see
   inside the user-defined HIME region write. Participation is set externally before
   `prepare()` is called.
 
-Independent mode allows only certain blocks/processors to write without causing MPI collective
-operation deadlocks. The transition happens transparently during file open/close; no special
-configuration is needed.
+The switch exists because a collective call that only some ranks reach is a
+deadlock; independent mode lets the participating ranks write alone.
 
 The `mpiio` backend handles conditional participation by striping output by global
 block offset and leaving non-participating slots zero-filled (no separate per-block

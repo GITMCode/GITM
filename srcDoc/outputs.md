@@ -11,8 +11,18 @@ file and one file per output type per timestep in whichever formats you
 specified in `#SAVEPLOT` (see [`#SAVEPLOT`](set_inputs.md#saveplot)).
 `mpiio` and `netcdf` outputs are usable as written; only the `legacy`
 backend's per-block files need [postprocessing](postprocessing.md) to be
-merged (running `post_process.py` is still convenient with the other
-backends if you use the standard Python analysis tools).
+merged.
+
+!!! warning "Two netcdf dialects — pick one"
+    `post_process.py`/`pGITM.py` can also convert legacy/mpiio output to
+    netcdf, but the files it produces are **not** the same format the
+    `netcdf` backend writes: variable names come from a different
+    vocabulary (short names, no `gitm_name` attribute), the dimension
+    order is reversed, edge ghost cells are kept on some types, and there
+    are no CF attributes. Tools written for one dialect will not read the
+    other. If you run the `netcdf` backend, use its files directly and
+    skip the netcdf conversion in postprocessing; convert with pGITM only
+    when starting from legacy/mpiio output.
 
 The log file provides useful information about the run, such as whether a
 restart was performed, which physical processes were used, and a list of some
@@ -27,10 +37,11 @@ GITM's output system is built around **containers** (`src/ModOutputContainer.f90
 one per output type, holding the variable schema (names, units, shapes), the
 data, and a pointer to the type's `fill_<type>` routine. For most types the
 schema is derived from the fill itself. It runs once at init and each first
-`put_field` defines its variable ("one-shot"). A few types whose data isn't
-available at init (magnetic-grid, HME, USR) declare their schema explicitly
-in a `define_schema_<type>` routine instead; the `ModOutputContainer.f90`
-header describes both patterns. Either way the backends consume the container
+`put_field` defines its variable ("one-shot"). The rest declare their schema
+explicitly in a `define_schema_<type>` routine instead (the authoritative
+list is the `define_schema_*` calls in `init_output_containers`: the
+magnetic-grid, HME, USR, and rank-0 probe types); the
+`ModOutputContainer.f90` header describes both patterns. Either way the backends consume the container
 directly, so headers, NetCDF metadata, and on-disk layout all come from one
 schema and cannot drift from the data. None of the three backends
 (`legacy`, `mpiio`, `netcdf`) has per-type code paths. Adding or modifying a
@@ -45,10 +56,12 @@ The tables below are generated from GITM output by
 `srcPython/generate_output_docs.py`: variable names, units, and descriptions
 are read straight from the netcdf files, not typed by hand. To regenerate
 after changing an output type, run a sweep with the types you care about on
-the `netcdf` backend, then:
+the `netcdf` backend, then splice the script's stdout into this page,
+replacing everything between this section heading and the generation marker
+at the bottom of the file:
 
 ```bash
-python srcPython/generate_output_docs.py <run>/UA/data > variable_lists.md
+python srcPython/generate_output_docs.py <run>/UA/data
 ```
 
 The `Variable` column is the GITM name as it appears in legacy/mpiio

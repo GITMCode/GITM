@@ -144,7 +144,15 @@ raw outputs.
 #### nc
 
 `-nc` creates NetCDF files as outputs, instead of `.bin`. 
-This requires [PyITMN](https://github.com/GITMCode/PyITM) be installed.
+This requires [PyITM](https://github.com/GITMCode/PyITM) be installed.
+
+!!! warning "Not the same format as the `netcdf` backend"
+    The `.nc` files produced here are a different dialect from the ones
+    GITM's own `netcdf` [output backend](outputs/output_backends.md)
+    writes: different variable names, reversed dimension order, edge ghost
+    cells kept on some types, no CF attributes. If the run used
+    `#OUTPUTBACKEND netcdf`, use those files directly and skip `-nc`;
+    reserve `-nc` for converting legacy/mpiio output.
 
 #### combine
 

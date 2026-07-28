@@ -5,12 +5,37 @@ recompile:
 
 | You want to... | Use | Effort |
 |---|---|---|
-| Add a variable to an existing output | A **USR** output (`3DUSR`, `2DUSR`, `1DUSR`, `0DUSR`) | Register the name once, plus a one-line `add_usr_output` call |
+| Add a variable to an existing output type | Edit its `fill_<type>` routine | One `put_field` call plus one registry row — see [Modify an existing output type](#modify-an-existing-output-type) |
+| Add a variable without changing any existing file's format | A **USR** output (`3DUSR`, `2DUSR`, `1DUSR`, `0DUSR`) | Register the name once, plus a one-line `add_usr_output` call |
 | Create a whole new output file | A **new output type** | One fill routine plus one registration line |
 
-Adding to a USR output is by far the common case. Start there.
+USR outputs are the low-friction path for personal diagnostics: they leave
+the standard types' file formats (and everyone else's analysis scripts)
+untouched. Adding to an existing type is just as easy, but it changes that
+type's variable list for every user of the file.
 
 [TOC]
+
+!!! note "Coming from the old output system (`output_common.f90` on develop)"
+    If you last added a variable before the container refactor, four things
+    changed:
+
+    - The per-type header `write` lists are gone. A type's variable names,
+      units, and long names come from its `fill_<type>` routine plus the
+      shared table in `src/ModOutputVarRegistry.f90`; headers and netcdf
+      metadata are generated from that one schema, so they can no longer
+      disagree with the data — and you never write header strings again.
+    - Units are no longer part of the name string (`'Rho (kg/m3)'` is now
+      name `'Rho'` plus a units field). `.header` variable lists show bare
+      names.
+    - The old conditional-write idiom (gating a variable on an
+      `i*OutputList`-style flag) now aborts at startup unless the flag is
+      fixed before init: the schema is derived by running each fill once at
+      init ("priming"), and every later fill must put exactly the same
+      variables. See [Containers](#containers).
+    - `1DCMS` was removed, and type codes are matched exactly (5
+      characters), not by substring — an old `UAM.in` requesting `1DCMS`
+      or a truncated code stops at input parsing with `bad output type`.
 
 ---
 
@@ -95,6 +120,15 @@ The best-case scenario: one line of code plus one metadata row.
    call c%put_field('My Variable', MyVar(:, :, :, iBlock))
    ```
 
+   Match the slicing of the puts already in that fill — it follows the
+   type's `nGhostCells`: `fill_3dall` (`nGhostCells = 2`) puts whole
+   ghosted arrays (`Altitude_GB(:, :, :, iBlock)`) while `fill_2dtec`
+   (`nGhostCells = 0`) puts explicit interior slices
+   (`Altitude_GB(1:nLons, 1:nLats, 1, iBlock)`). Position matters too: put
+   order is the column order of legacy/mpiio files, so inserting mid-list
+   renumbers every later column for scripts that index by position.
+   Appending at the end is the safe default.
+
 2. Give the name metadata: either add a row to the table in
    `src/ModOutputVarRegistry.f90` (preferred for fixed names: units and
    long_name live in one shared place), or pass it inline for computed names:
@@ -103,13 +137,44 @@ The best-case scenario: one line of code plus one metadata row.
    call c%put_field('['//trim(cSpecies(i))//']', NDensityS(:, :, :, i, iBlock), units='/m3')
    ```
 
+   A registry row looks like this. The table is one long Fortran array
+   constructor, so when you append, the previous last row needs a trailing
+   `, &` and the closing `]` moves to your new row. There is no count to
+   bump — the table is assumed-shape:
+
+   ```fortran
+   VarMeta('My Variable', 'units', 'One-line description')]
+   ```
+
 A `put_field` of a name with no registry row and no inline `units=` is a hard
 `stop_gitm`: units cannot be guessed. Every variable must be put exactly once
 per fill, unconditionally (see [Containers](#containers) under
 [Under the hood](#under-the-hood) for why).
 
-For the few types still using `define_schema_<type>` (magnetic-grid, HME,
-USR, see below), also add a matching `define_var` line in schema order.
+For the types that declare schemas with `define_schema_<type>` instead of
+priming (the authoritative list is the set of `define_schema_*` calls in
+`init_output_containers` — currently the magnetic-grid, HME, USR, and
+rank-0 probe types; see [below](#types-with-explicit-schemas)), also add a
+matching `define_var` line in schema order.
+
+### Changing an existing name or units
+
+Renaming is safe to attempt: change the registry row and the put site
+together, and if you miss one, the run stops at startup — priming runs every
+registered fill at init, so a put-site name with no metadata is caught on
+the very next run, not months later on the one run that outputs that type.
+
+Two things to check anyway:
+
+- **A registry row is shared by every type that puts that name.** That is
+  the point (units and long_name cannot drift between types), but it also
+  means editing the `'Rho'` row changes 3DALL, 3DNEU, 3DLST, 3DMOH, and
+  3DTHM at once — and a units-only edit produces **no error anywhere**.
+  Grep the put sites before editing a shared row.
+- Renames propagate to files and user scripts: the `.header` variable
+  list, the netcdf variable name after sanitization (the original name is
+  kept in the `gitm_name` attribute — see [Outputs](outputs.md)), and any
+  analysis code keyed on the old string.
 
 ---
 
@@ -160,25 +225,38 @@ full priming rule (every variable put exactly once, unconditionally).
 ### 2. Register the type
 
 In `src/ModOutputProducers.f90`, add `'3DMYT'` to the `cContainerTypes`
-array, and one line in `init_output_containers`:
+array **and bump its declared size** (`cContainerTypes(26)` becomes `(27)`
+— the constructor's length must match the declaration or the build fails
+with a shape mismatch). Then add one line in `init_output_containers`:
 
 ```fortran
 call set_fill('3DMYT', fill_3dmyt)
 ```
 
-That's the whole wiring: the lookup functions and the dispatch in
-`output_common.f90` are data-driven, and `assert_types_fully_wired` stops the
-run at init if anything is missing.
+Type codes are exactly 5 characters and are matched exactly against
+`#SAVEPLOT` entries. With the count bumped, that's the whole wiring: the
+lookup functions and the dispatch in `output_common.f90` are data-driven,
+and `assert_types_fully_wired` stops the run at init if anything else is
+missing.
 
 ### 3. Turn it on and rebuild
 
-Add `3DMYT` to a `#SAVEPLOT` block in `UAM.in` and `make`. `pGITM.py` and all three
-backends pick up the new type automatically. There is nothing else to change.
+Add `3DMYT` to a `#SAVEPLOT` block in `UAM.in` and `make`. `pGITM.py` and all
+three backends pick up the new type automatically. Nothing else changes in
+the code — but do add the new code to the `#SAVEPLOT` type list in
+[set_inputs](../set_inputs.md), and regenerate the variable tables in
+[Outputs](outputs.md) once the type produces data. (Note: the netcdf backend
+does not support probe-style `1D*`/`0D*` types and stops with an error if
+one is requested; use legacy or mpiio for those.)
 
-### Types with explicit schemas (mag-grid / HIME / USR)
+### Types with explicit schemas
 
 A few types cannot be primed at init: magnetic-grid types read lazily
-allocated arrays, and USR schemas depend on runtime registration. Those keep
+allocated arrays, USR schemas depend on runtime registration, and the
+rank-0 probe types share the magnetic-grid participation rule. The
+authoritative list is the set of `define_schema_*` calls in
+`init_output_containers` (currently 3DHME, 2DHME, 1DGLO, 1DTHM, 1DCHM,
+2DMEL, and the four USR types). Those keep
 the older two-routine pattern: a `define_schema_<type>` (called in
 `init_output_containers`) declaring every variable with `define_var`, and a
 fill using the plain `put` API against the declared schema. Only use this
@@ -217,16 +295,29 @@ on anything that varies by rank or timestep (that would desync the schema across
 ranks or steps), and since priming runs in every configuration, the fill must only
 touch arrays that are always allocated.
 
+The precise form of the no-conditional-puts rule: a put may be gated only on
+state that is identical on every writing rank and fixed before priming runs.
+`fill_3dlst` is the sanctioned example — its `i*OutputList` flags are set
+once in `src/Earth.f90` before init and never change, so its conditional
+puts resolve identically at priming and at every later fill. A flag that can
+change mid-run, or differ across ranks, aborts in `finish_fill`. A container
+holds at most `MaxContainerVars` (300) variables; the overflow message names
+the parameter to raise (`src/ModOutputContainer.f90`).
+
 ### gridKind
 
 `gridKind` tells the backends which ranks have data for a given timestep:
 
-| Constant | Grid | Who writes |
+| Constant | Used by | Who writes |
 |---|---|---|
 | `GRID_GEO_3D` | geographic 3D (3DALL, 3DNEU, etc.) | all ranks |
-| `GRID_GEO_2D` | geographic 2D / 1D / 0D (2DTEC, 2DGEL, etc.) | all ranks |
-| `GRID_MAG_2D` | magnetic 2D (2DMEL) | `iProc == 0` only |
+| `GRID_GEO_2D` | geographic 2D (2DTEC, 2DGEL, etc.) and the all-rank probe types (1DALL, 0DALL, 1DNEW, 1DUSR, 0DUSR) | all ranks |
+| `GRID_MAG_2D` | magnetic 2D (2DMEL) — and, purely as a "one rank writes" switch, the probe types 1DGLO, 1DTHM, 1DCHM | `iProc == 0` only |
 | `GRID_HIME` | regional (2DHME, 3DHME) | blocks inside the region (set externally) |
+
+For 1-D/0-D types the choice is a participation rule, not a grid statement:
+pick `GRID_MAG_2D` for a probe-like type that should write once from one
+rank, `GRID_GEO_2D` only if every rank should contribute its own values.
 
 For `GRID_MAG_2D` and `GRID_HIME`, the netcdf backend switches to independent I/O to
 avoid MPI collective deadlocks; see
@@ -266,3 +357,17 @@ must then match name and shape exactly.
 Only netcdf writes `units` and `long_name` to files; legacy and mpiio use just the
 name and shape. By convention a container defines its axes first (Longitude, then
 Latitude), then Altitude, then the physics variables.
+
+### When it stops: the error messages
+
+The output system fails loudly at startup rather than writing malformed
+files. The messages you are most likely to meet:
+
+| Message (abridged) | Cause | Fix |
+|---|---|---|
+| `put of unknown variable "X" in type Y after the schema was primed. A converted fill_<type> must put the same variables on every rank and every timestep; no conditional puts.` | A `put_field` gated on something that changed since init, or a name edited in the fill but not re-primed | Make the put unconditional (or gate only on pre-init-fixed state); rebuild after name changes |
+| `variable "X" in type Y has no ModOutputVarRegistry entry; pass units= at the put site or register it` | A new or renamed name with no metadata | Add the registry row, or `units=` inline for computed names |
+| `fill_X made N put(s) but the type has M variable(s); every variable must be put exactly once, unconditionally.` | A put skipped (conditional or early return) or duplicated relative to the primed schema | Every variable, exactly once, on every writing rank |
+| `put shape mismatch for "X" ... defined as AxBxC, got DxExF` | The put's slice doesn't match the primed shape | Match the slicing of the fill's other puts (check `nGhostCells`) |
+| `output container has no fill registered (forgot its set_fill line?): X` | A type added to `cContainerTypes` without its `set_fill` line | Add the line in `init_output_containers` |
+| `ModOutputNetCDF: probe type X is not supported by the netcdf backend yet; use legacy or mpiio` | A `1D*`/`0D*` type requested under the netcdf backend — including 3D types renamed to `1D*` by a 1-D (`nLons=nLats=1`) run | Use the legacy or mpiio backend for probe types and 1-D runs |
