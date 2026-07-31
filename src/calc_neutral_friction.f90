@@ -26,7 +26,6 @@ subroutine calc_neutral_friction(DtIn, oVel, EddyCoef_1d, NDensity_1d, NDensityS
   real :: Vel(nSpecies), Parity
   integer :: iPivot(nSpecies)
 
-! Added by Jared 11-29-2007
   real :: TempDij
   real :: InvDij(nSpecies)
   real :: Dij(nSpecies)
@@ -65,9 +64,12 @@ subroutine calc_neutral_friction(DtIn, oVel, EddyCoef_1d, NDensity_1d, NDensityS
         if (jSpecies == iSpecies) cycle
 
         if (DoCheckForNans) then
-          if (ieee_is_nan(Temp(iAlt))) write(*, *) "Friction : Temp is nan", iAlt
-          if (ieee_is_nan(NDensity_1d(iAlt))) write(*, *) "Friction : NDen is nan", iAlt
-          if (ieee_is_nan(NDensityS_1d(iAlt, jSpecies))) write(*, *) "Friction : NDenS is nan", iAlt, jSpecies
+           if (ieee_is_nan(Temp(iAlt))) &
+                write(*, *) "Friction : Temp is nan", iAlt
+           if (ieee_is_nan(NDensity_1d(iAlt))) &
+                write(*, *) "Friction : NDen is nan", iAlt
+           if (ieee_is_nan(NDensityS_1d(iAlt, jSpecies))) &
+                write(*, *) "Friction : NDenS is nan", iAlt, jSpecies
         endif
 
         ! TempDij are the Dij binary coefficients
@@ -77,11 +79,12 @@ subroutine calc_neutral_friction(DtIn, oVel, EddyCoef_1d, NDensity_1d, NDensityS
         ! (2) Additionally, the Dij's are in cm^2/s, thus the 1.0e-04 factor
         TempDij = (1.0e-04)* &              ! Scales the Dij from cm^2/s -> m^2/s
                   (Diff0(iSpecies, jSpecies)*(Temp(iAlt)**DiffExp(iSpecies, jSpecies)))/ &
-                  (NDensity_1d(iAlt)*(1.0e-06))     ! Converts to #/cm^-3
+                  (NDensity_1d(iAlt)*(1.0e-06)) ! Converts to #/cm^-3
 
+        ! Add the eddy coefficient:
+        TempDij = TempDij + EddyCoef_1d(iAlt)
         CoefMatrix(iSpecies, jSpecies) = &
-          kTOverM*denscale*NDensityS_1d(iAlt, jSpecies)/ &
-          TempDij
+          - DtIn * kTOverM * denscale* NDensityS_1d(iAlt, jSpecies) / TempDij
 
         InvDij(iSpecies) = InvDij(iSpecies) + &
                            denscale*NDensityS_1d(iAlt, jSpecies)/ &
@@ -94,10 +97,10 @@ subroutine calc_neutral_friction(DtIn, oVel, EddyCoef_1d, NDensity_1d, NDensityS
 
     enddo  !End DO Over iSpecies
 
-    Matrix = -DtIn*CoefMatrix
+    Matrix = CoefMatrix
     do iSpecies = 1, nSpecies
       Matrix(iSpecies, iSpecies) = &
-        1.0 + DtIn*(sum(CoefMatrix(iSpecies, :)))
+        1.0 - sum(CoefMatrix(iSpecies, :))
     enddo
     call ludcmp(Matrix, nSpecies, nSpecies, iPivot, Parity)
     call lubksb(Matrix, nSpecies, nSpecies, iPivot, Vel)

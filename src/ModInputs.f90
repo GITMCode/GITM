@@ -42,7 +42,7 @@ module ModInputs
   character(len=iCharLen_) :: cInputText(nInputMaxLines) = ''
 
   character(len=iCharLen_) :: cInputFile = "UAM.in"
-
+  character(len=iCharLen_) :: cFomichevFile = "UA/DataIn/Earth/Fomichev_Tables.txt"
   character(len=iCharLen_) :: cAMIEFileSouth = "none"
   character(len=iCharLen_) :: cAMIEFileNorth = "none"
 
@@ -149,6 +149,7 @@ module ModInputs
   real :: DtRestart = 60.0*60.0
   real :: DtReport = 1.0*60.0
   real :: DtAurora = 60.0*1.0
+  real :: DtEUV = 60.0*1.0
   real :: DtPotential = 60.0*1.0
   real :: DtGlow = 60.0
   real :: TimeDelayHighLat = 0.0
@@ -289,8 +290,9 @@ module ModInputs
   logical :: UseVerAdvectionT = .true.
 
   logical :: UseCO2Cooling = .true.
+  logical :: UseCO2FomichevCooling = .false.
   real    :: CO2ppm = 225.0
-
+  
   logical :: DoN4SHack = .false.
 
   ! Allow the user to change the planet's characteristics:
@@ -458,7 +460,7 @@ contains
     use ModPlanet, only: IsEarth
 
     call set_strings
-
+    
     sInputIonChemType = sChemType(cSubCycleChemType_)
     sInputNeutralChemType = sChemType(cSubCycleChemType_)
     iInputIonChemType = cSubCycleChemType_

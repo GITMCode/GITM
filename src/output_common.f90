@@ -310,7 +310,7 @@ subroutine output(dir, iBlock, iOutputType)
 
   case ('3DTHM')
 
-    nvars_to_write = 16 + 4
+    nvars_to_write = 21
     call output_3dthm(iBlock)
 
   case ('1DCHM')
@@ -339,6 +339,16 @@ subroutine output(dir, iBlock, iOutputType)
 
     nvars_to_write = 5 + 4
     call output_3dmag(iBlock)
+
+  case ('1DEMI')
+
+    nvars_to_write = 3 + nEmissions
+    call output_1demi(iBlock)
+
+  case ('3DEMI')
+
+    nvars_to_write = 3 + nEmissions
+    call output_3demi(iBlock)
 
   case ('3DHME')
 
@@ -402,7 +412,7 @@ subroutine output(dir, iBlock, iOutputType)
   case ('1DTHM')
 
     nGCs = 0
-    nvars_to_write = 14 + (nspeciestotal*2)
+    nvars_to_write = 3 + 11 + (nspeciestotal*2)
     call output_1dthm
 
   case ('1DNEW')
@@ -496,7 +506,7 @@ contains
 
     use ModElectrodynamics, only: nMagLats, nMagLons
 
-    integer :: iOff, iSpecies, iIon
+    integer :: iOff, iSpecies, iIon, iEmission
 
     write(iOutputUnit_, *) "NUMERICAL VALUES"
 
@@ -688,25 +698,32 @@ contains
 
     endif
 
+    if (cType(3:5) == "EMI") then
+       do iEmission = 1, nEmissions
+          write(iOutputUnit_, "(I7,A1,a,a)") 3 + iEmission, " ", &
+               "Emission ", cEmissions(iEmission)
+       enddo
+    endif
+    
     if (cType(3:5) == "THM") then
-
       write(iOutputUnit_, "(I7,A1,a)") 4, " ", "EUV Heating (K/s)"
       write(iOutputUnit_, "(I7,A1,a)") 5, " ", "Conduction (K/s)"
       write(iOutputUnit_, "(I7,A1,a)") 6, " ", "Molecular Conduction (K/s)"
       write(iOutputUnit_, "(I7,A1,a)") 7, " ", "Eddy Conduction (K/s)"
       write(iOutputUnit_, "(I7,A1,a)") 8, " ", "Eddy Adiabatic Conduction (K/s)"
       write(iOutputUnit_, "(I7,A1,a)") 9, " ", "Chemical Heating (K/s)"
-      write(iOutputUnit_, "(I7,A1,a)") 11, " ", "Joule Heating (K/s)"
+      write(iOutputUnit_, "(I7,A1,a)") 10, " ", "Joule Heating (K/s)"
+      write(iOutputUnit_, "(I7,A1,a)") 11, " ", "CO2 Cooling (K/s)"
       write(iOutputUnit_, "(I7,A1,a)") 12, " ", "NO Cooling (K/s)"
       write(iOutputUnit_, "(I7,A1,a)") 13, " ", "O Cooling (K/s)"
       write(iOutputUnit_, "(I7,A1,a)") 14, " ", "Total Abs EUV"
       if (cType(1:2) == "1D") then
         do iSpecies = 1, nSpeciesTotal
-          write(iOutputUnit_, "(I7,A1,a,a)") 11 + iSpecies, " ", &
+          write(iOutputUnit_, "(I7,A1,a,a)") 14 + iSpecies, " ", &
             "Production Rate ", cSpecies(iSpecies)
         enddo
         do iSpecies = 1, nSpeciesTotal
-          write(iOutputUnit_, "(I7,A1,a,a)") 11 + nSpeciesTotal + iSpecies, " ", &
+          write(iOutputUnit_, "(I7,A1,a,a)") 14 + nSpeciesTotal + iSpecies, " ", &
             "Loss Rate ", cSpecies(iSpecies)
 
         enddo
@@ -715,9 +732,9 @@ contains
         write(iOutputUnit_, "(I7,A1,a)") 16, " ", "Rho"
         write(iOutputUnit_, "(I7,A1,a)") 17, " ", "E-Field Mag"
         write(iOutputUnit_, "(I7,A1,a)") 18, " ", "Sigma Ped"
-        write(iOutputUnit_, "(I7,A1,a)") 18, " ", "Ionization Rate O_3P"
-        write(iOutputUnit_, "(I7,A1,a)") 18, " ", "Ionization Rate O2"
-        write(iOutputUnit_, "(I7,A1,a)") 18, " ", "Ionization Rate N2"
+        write(iOutputUnit_, "(I7,A1,a)") 19, " ", "Ionization Rate O_3P"
+        write(iOutputUnit_, "(I7,A1,a)") 20, " ", "Ionization Rate O2"
+        write(iOutputUnit_, "(I7,A1,a)") 21, " ", "Ionization Rate N2"
       endif
 
     endif
@@ -1325,6 +1342,65 @@ end subroutine output_3dneu
 !
 !----------------------------------------------------------------
 
+subroutine output_3demi(iBlock)
+
+  use ModGITM
+  use ModInputs
+
+  implicit none
+
+  integer, intent(in) :: iBlock
+  integer :: iAlt, iLat, iLon, iiAlt, iiLat, iiLon
+
+  do iAlt = -1, nAlts + 2
+    iiAlt = max(min(iAlt, nAlts), 1)
+    do iLat = -1, nLats + 2
+      iiLat = min(max(iLat, 1), nLats)
+      do iLon = -1, nLons + 2
+        iiLon = min(max(iLon, 1), nLons)
+        write(iOutputUnit_) &
+          Longitude(iLon, iBlock), &
+          Latitude(iLat, iBlock), &
+          Altitude_GB(iLon, iLat, iAlt, iBlock), &
+          Emissions(iLon, iLat, iAlt, :, iBlock)
+      enddo
+    enddo
+  enddo
+
+end subroutine output_3demi
+
+!----------------------------------------------------------------
+!
+!----------------------------------------------------------------
+
+subroutine output_1demi(iBlock)
+
+  use ModGITM
+  use ModInputs
+
+  implicit none
+
+  integer, intent(in) :: iBlock
+  integer :: iAlt, iLat, iLon, iiAlt, iiLat, iiLon
+
+  iLon = 1
+  iLat = 1
+  
+  do iAlt = -1, nAlts + 2
+    iiAlt = max(min(iAlt, nAlts), 1)
+    write(iOutputUnit_) &
+         Longitude(iLon, iBlock), &
+         Latitude(iLat, iBlock), &
+         Altitude_GB(iLon, iLat, iAlt, iBlock), &
+         Emissions(iLon, iLat, iAlt, :, iBlock)
+  enddo
+
+end subroutine output_1demi
+
+!----------------------------------------------------------------
+!
+!----------------------------------------------------------------
+
 subroutine output_3dion(iBlock)
 
   use ModGITM
@@ -1399,6 +1475,7 @@ subroutine output_3dthm(iBlock)
           EddyCondAdia(iiLon, iiLat, iiAlt), &
           ChemicalHeatingRate(iiLon, iiLat, iiAlt)*TempUnit(iiLon, iiLat, iiAlt)/dt, &
           JouleHeating(iiLon, iiLat, iiAlt)*TempUnit(iiLon, iiLat, iiAlt), &
+          -CO2Cooling(iiLon, iiLat, iiAlt)*TempUnit(iiLon, iiLat, iiAlt), &
           -NOCooling(iiLon, iiLat, iiAlt)*TempUnit(iiLon, iiLat, iiAlt), &
           -OCooling(iiLon, iiLat, iiAlt)*TempUnit(iiLon, iiLat, iiAlt), &
           EuvTotal(iiLon, iiLat, iiAlt, iBlock), &
@@ -1486,20 +1563,22 @@ subroutine output_1dthm
       varsL(iSpecies) = NeutralLossesTotal(iialt, iSpecies)
     enddo
 
+    ! 3 + 10 + nSpeciesTotal * 2
     write(iOutputUnit_) &
       Longitude(1, 1), &
       Latitude(1, 1), &
       Altitude_GB(1, 1, iAlt, 1), &
-      EuvHeating(1, 1, iiAlt, 1)*dt*TempUnit(1, 1, iiAlt), &
+      EuvHeating(1, 1, iiAlt, 1)*TempUnit(1, 1, iiAlt), &
       Conduction(1, 1, iiAlt)*TempUnit(1, 1, iiAlt), &
       MoleConduction(1, 1, iiAlt), &
       EddyCond(1, 1, iiAlt), &
       EddyCondAdia(1, 1, iiAlt), &
       ChemicalHeatingRate(1, 1, iiAlt)*TempUnit(1, 1, iiAlt), &
-      JouleHeating(1, 1, iiAlt)*dt*TempUnit(1, 1, iiAlt), &
-      -RadCooling(1, 1, iiAlt, 1)*dt*TempUnit(1, 1, iiAlt), &
-      -OCooling(1, 1, iiAlt)*dt*TempUnit(1, 1, iiAlt), &
-      EuvTotal(1, 1, iiAlt, 1)*dt, &
+      JouleHeating(1, 1, iiAlt)*TempUnit(1, 1, iiAlt), &
+      -CO2Cooling(1, 1, iiAlt)*TempUnit(1, 1, iiAlt), &
+      -NOCooling(1, 1, iiAlt)*TempUnit(1, 1, iiAlt), &
+      -OCooling(1, 1, iiAlt)*TempUnit(1, 1, iiAlt), &
+      EuvTotal(1, 1, iiAlt, 1), &
       varsS, varsL
 
   enddo
@@ -1899,7 +1978,9 @@ subroutine output_1dall(iiLon, iiLat, iBlock, rLon, rLat, iUnit)
   integer, intent(in) :: iiLat, iiLon, iBlock, iUnit
   real, intent(in)    :: rLon, rLat
 
-  integer, parameter :: nVars = 13 + nSpeciesTotal + nSpecies + nIons + nSpecies + 5
+  integer, parameter :: nVars = 13 + nSpeciesTotal + nSpecies + nIons
+  ! this is old: + nSpecies + 5
+  
   real :: Vars(nVars)
   real :: Tmp(0:nLons + 1, 0:nLats + 1)
   integer :: iAlt, iiAlt, iOff, iIon, iSpecies, iDir
