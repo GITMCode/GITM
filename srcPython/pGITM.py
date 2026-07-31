@@ -58,7 +58,19 @@ def get_args_pgitm():
 # 
 # ----------------------------------------------------------------------------
 
-def write_gitm_file(file, data, isVerbose = False):
+def reverse_array(dataIn):
+    nLons, nLats, nAlts = np.shape(dataIn)
+    dataOut = np.zeros((nAlts, nLats, nLons))
+    for iLat in range(nLats):
+        for iLon in range(nLons):
+            dataOut[:, iLat, iLon] = dataIn[iLon, iLat, :]
+    return dataOut
+
+# ----------------------------------------------------------------------------
+# 
+# ----------------------------------------------------------------------------
+
+def write_gitm_file(file, data, doReverse = False, isVerbose = False):
 
     if (isVerbose):
         print(' -> Writing Fortran Binary file : ', file)
@@ -86,10 +98,14 @@ def write_gitm_file(file, data, isVerbose = False):
                         int(data["time"].microsecond/1000.0)], \
                       dtype=np.int32)
     fp.write_record(ymdhmsm)
-            
+
     for iVar in np.arange(data["nVars"]):
         v = data["vars"][iVar]
-        vals = np.array(data[v], dtype = np.float64)
+        if (doReverse):
+            singleVarData = reverse_array(data[v])
+        else:
+            singleVarData = data[v]
+        vals = np.array(singleVarData, dtype = np.float64)
         fp.write_record(vals)
     
     fp.close()

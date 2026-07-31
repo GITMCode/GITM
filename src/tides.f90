@@ -1,6 +1,81 @@
 ! Copyright 2021, the GITM Development Team (see srcDoc/dev_team.md for members)
 ! Full license can be found in LICENSE
 
+subroutine set_tidal_flags
+
+  use ModInputs
+  implicit none
+
+  !write(*, *) 'MSIS_NONE - use MSIS with NO tides'
+  !write(*, *) 'MSIS_ALL - use MSIS diurnal, semi-diurnal, and terdiurnal tides (Earth default)'
+  !write(*, *) 'MSIS_D - use MSIS diurnal only'
+  !write(*, *) 'MSIS_S - use MSIS semi-diurnal only'
+  !write(*, *) 'MSIS_T - use MSIS terdiurnal only'
+  !write(*, *) 'MSIS_DS - use MSIS diurnal and semi-diurnal only'
+  !write(*, *) 'MSIS_DST - use MSIS diurnal, semi-diurnal, and terdiurnal tides'
+  !write(*, *) 'HME - Use TIDI Hough Mode Extension tides'
+  !write(*, *) 'FILE - Use GITM-style 3D files to specify tides'
+
+  if (cTidalModel(1:3) == 'HME') then
+    UseHmeTides = .true.
+    UseMsis = .true.
+    UseMSISDiurnal = .false.
+    UseMSISSemidiurnal = .false.
+    UseMSISTerdiurnal = .false.
+    call report('Using HME tides',0)
+  endif
+  if (cTidalModel(1:4) == 'FILE') then
+    UseFileTides = .true.
+    UseMsis = .true.
+    UseMSISDiurnal = .false.
+    UseMSISSemidiurnal = .false.
+    UseMSISTerdiurnal = .false.
+    call report('Using File tides',0)
+  endif
+  if (cTidalModel(1:4) == 'MSIS') then
+    UseMsis = .true.
+    call report('Using MSIS tides',0)
+    ! set everything to false to begin with
+    UseMSISDiurnal = .false.
+    UseMSISSemidiurnal = .false.
+    UseMSISTerdiurnal = .false.
+    if (cTidalModel(6:9) == 'NONE') then
+      UseMSISDiurnal = .false.
+      UseMSISSemidiurnal = .false.
+      UseMSISTerdiurnal = .false.
+    endif
+    if (cTidalModel(6:8) == 'ALL') then
+      UseMSISDiurnal = .true.
+      UseMSISSemidiurnal = .true.
+      UseMSISTerdiurnal = .true.
+    endif
+    if (cTidalModel(6:8) == 'DST') then
+      UseMSISDiurnal = .true.
+      UseMSISSemidiurnal = .true.
+      UseMSISTerdiurnal = .true.
+    endif
+    if (cTidalModel(6:7) == 'DS') then
+      UseMSISDiurnal = .true.
+      UseMSISSemidiurnal = .true.
+    endif
+    if (cTidalModel(6:6) == 'D') then
+      UseMSISDiurnal = .true.
+    endif
+    if (cTidalModel(6:6) == 'S') then
+      UseMSISSemidiurnal = .true.
+    endif
+    if (cTidalModel(6:6) == 'T') then
+      UseMSISTerdiurnal = .true.
+    endif
+    if (UseMSISDiurnal) call report(' -> Diurnal is True',0)
+    if (UseMSISSemidiurnal) call report(' -> Semiurnal is True',0)
+    if (UseMSISTerdiurnal) call report(' -> Terdiurnal is True',0)
+
+  endif
+
+end subroutine set_tidal_flags
+
+
 subroutine modify_initial_after_tides
 
   use ModGitm
@@ -390,6 +465,165 @@ subroutine update_waccm_tides
 end subroutine update_waccm_tides
 
 !-----------------------------------------------------------------------
+! Initialize File-based Tides
+!-----------------------------------------------------------------------
+
+subroutine init_file_tides
+
+  use ModGITM, only: Longitude, Altitude_GB, Latitude
+  use ModTime
+  use ModTides
+  use ModInputs
+  use ModReadGITM3d
+
+  implicit none
+
+  character(len=nGitmVarCharLength), allocatable :: vars(:)
+  real, allocatable :: lonsBCs(:), latsBCs(:), altsBCs(:)
+  integer :: nPoints, iPoint, nVars, iVar
+  integer :: iError, iBlock, iLon, iLat, iAlt
+
+  iError = 0
+
+  call report('Setting File BCs for tides', 0)
+
+  call GitmSetDir(GitmBCsDir)
+  call GetGitmFileList(iError)
+  if (iError /= 0) then
+    call stop_gitm("Error in trying to read GITM 3D Filelist in horizontal bcs")
+  endif
+
+  call GetGitmGeneralHeaderInfo(iError)
+  if (iError /= 0) then
+    call stop_gitm("Error in reading gitm header information in horizontal bcs")
+  endif
+
+  call GitmGetnVars(nVars)
+  if (iError /= 0) then
+    call stop_gitm("Error in getting number of variables in horizontal bcs")
+  endif
+
+  allocate(vars(nVars))
+  call GitmGetVars(vars)
+  iTn_ = -1
+  iRho_ = -1
+  iVn_ = -1
+  iVe_ = -1
+  do iVar = 1, nVars
+    if (trim(vars(iVar)) == 'Tpert') then
+      call report(' -> Found Tpert!', 0)
+      iTn_ = iVar
+    endif
+    if (trim(vars(iVar)) == 'Ve') then
+      call report(' -> Found Ve!', 0)
+      iVe_ = iVar
+    endif
+    if (trim(vars(iVar)) == 'Vn') then
+      call report(' -> Found Vn!', 0)
+      iVn_ = iVar
+    endif
+    if (trim(vars(iVar)) == 'Npert') then
+      call report(' -> Found Npert!', 0)
+      iRho_ = iVar
+    endif
+  enddo
+
+  if (iTn_ < 0) call report(' -> Tpert not found in tide file!', 0)
+  if (iRho_ < 0) call report(' -> Npert not found in tide file!', 0)
+  if (iVn_ < 0) call report(' -> Vn not found in tide file!', 0)
+  if (iVe_ < 0) call report(' -> Ve not found in tide file!', 0)
+
+  ! Need to calculate the number of boundary points.
+
+  nPoints = (2)*(nLats + 4)*(nLons + 4)
+  call GitmSetnPointsToGet(nPoints)
+
+  allocate(GitmFileData(nPoints, nVars))
+  allocate(lonsBCs(nPoints))
+  allocate(latsBCs(nPoints))
+  allocate(altsBCs(nPoints))
+
+  iPoint = 1
+  iBlock = 1
+  do iAlt = -1, 0
+    do iLat = -1, nLats + 2
+      do iLon = -1, nLons + 2
+        lonsBCs(iPoint) = longitude(iLon, iBlock)
+        latsBCs(iPoint) = latitude(iLat, iBlock)
+        altsBCs(iPoint) = Altitude_GB(iLon, iLat, iAlt, iBlock)
+        iPoint = iPoint + 1
+      enddo
+    enddo
+  enddo
+
+  ! Convert to degrees and km
+  lonsBCs = lonsBCs*360.0/twopi
+  latsBCs = latsBCs*360.0/twopi
+  altsBCs = altsBCs/1000.0
+
+  call GitmSetGrid(lonsBCs, latsBCs, altsBCs)
+
+  call GitmUpdateTime(CurrentTime, iError)
+  if (iError == 0) then
+    call GitmGetData(GitmFileData)
+  else
+    write(*, *) 'Error in getting GITM data in initialize!'
+    call stop_gitm('Must Stop!')
+  endif
+
+  deallocate(vars, lonsBCs, latsBCs, altsBCs)
+  !call GitmShutDown
+
+end subroutine init_file_tides
+
+!-----------------------------------------------------------------------
+! Update the files, then put the values in the right place
+!-----------------------------------------------------------------------
+
+subroutine update_file_tides
+
+  use ModTime
+  use ModTides
+  use ModReadGITM3d
+
+  implicit none
+
+  integer :: nPoints, iPoint, nVars
+  integer :: iError, iBlock, iLon, iLat, iAlt
+
+  iError = 0
+
+  call GitmUpdateTime(CurrentTime, iError)
+  if (iError == 0) then
+    call GitmGetData(GitmFileData)
+  else
+    write(*, *) 'Error in getting GITM data in initialize!'
+    call stop_gitm('Must Stop!')
+  endif
+
+  iPoint = 1
+  iBlock = 1
+  do iAlt = -1, 0
+    do iLat = -1, nLats + 2
+      do iLon = -1, nLons + 2
+        TidesEast(iLon, iLat, iAlt + 2, iBlock) = &
+          GitmFileData(iPoint, iVe_)
+        TidesNorth(iLon, iLat, iAlt + 2, iBlock) = &
+          GitmFileData(iPoint, iVn_)
+        TidesTemp(iLon, iLat, iAlt + 2, iBlock) = &
+          GitmFileData(iPoint, iTn_)
+        ! turn this into a multiplicative ratio, so 1 + r
+        TidesRhoRat(iLon, iLat, iAlt + 2, iBlock) = 1.0 + &
+          GitmFileData(iPoint, iRho_)
+        iPoint = iPoint + 1
+      enddo
+    enddo
+  enddo
+
+end subroutine update_file_tides
+
+
+!-----------------------------------------------------------------------
 ! Hough Mode Extension Tides
 !-----------------------------------------------------------------------
 
@@ -496,7 +730,7 @@ end subroutine init_hme
 subroutine update_hme_tides
 
   use ModHmeModel
-  use ModTime, only: utime, iJulianDay
+  use ModTime, only: utime, iJulianDay, iTimeArray
   use ModTides
   use ModGITM, only: iProc
 
@@ -515,6 +749,7 @@ subroutine update_hme_tides
   else
     ReadFiles = .false.
   endif
+  iYear = iTimeArray(1)
 
   ut = utime/3600.0
 

@@ -118,7 +118,7 @@ subroutine get_potential(iBlock)
   use ModInputs
   use ModUserGITM
   use ModErrors
-  use ModElectrodynamics, only: IEModel_
+  use ModElectrodynamics, only: IEModel_, DynamoSolveLatBound
   use ModIndicesInterfaces
   use ModMpi
 
@@ -212,29 +212,45 @@ subroutine get_potential(iBlock)
         ! Set latitude boundary between region of high lat convection
         ! and region of neutral wind dyanmo based on if SWMF potential
         ! is being used:
-        if (IsFramework) then
+        if (DynamoFracPotentialCutoff > 0.0) then
+          ! Dynamic boundary: track the dynamo solve boundary so the blend
+          ! region matches where the dynamo was actually solved. Otherwise
+          ! the gap between the solve boundary and DynamoHighLatBoundary
+          ! blends convection toward an unsolved dynamo (=0).
+          LatBoundNow = DynamoSolveLatBound
+        else if (IsFramework) then
           LatBoundNow = 45.
         else
           LatBoundNow = DynamoHighLatBoundary
         endif
 
-        do iDir = 1, nDir
-          do iLon = -1, nLons + 2
-            do iLat = -1, nLats + 2
-              if (abs(MLatitude(iLon, iLat, iAlt, iBlock)) < LatBoundNow) then
-                dis = (LatBoundNow - &
-                       abs(MLatitude(iLon, iLat, iAlt, iBlock)))/20.0
-                if (dis > 1.0) then
-                  TempPotential(iLon, iLat, iDir) = dynamo(iLon, iLat)
-                else
-                  TempPotential(iLon, iLat, iDir) = &
-                    (1.0 - dis)*TempPotential(iLon, iLat, iDir) + &
-                    dis*dynamo(iLon, iLat)
+        if (doDynamoLatBlend) then
+          ! Latitude blend: linearly ramp from convection to dynamo over a
+          ! 20 deg band equatorward of LatBoundNow.
+          do iDir = 1, nDir
+            do iLon = -1, nLons + 2
+              do iLat = -1, nLats + 2
+                if (abs(MLatitude(iLon, iLat, iAlt, iBlock)) < LatBoundNow) then
+                  dis = (LatBoundNow - &
+                         abs(MLatitude(iLon, iLat, iAlt, iBlock)))/20.0
+                  if (dis > 1.0) then
+                    TempPotential(iLon, iLat, iDir) = dynamo(iLon, iLat)
+                  else
+                    TempPotential(iLon, iLat, iDir) = &
+                      (1.0 - dis)*TempPotential(iLon, iLat, iDir) + &
+                      dis*dynamo(iLon, iLat)
+                  endif
                 endif
-              endif
+              enddo
             enddo
           enddo
-        enddo
+        else
+          ! No blend: simply add the dynamo potential to the high-latitude
+          ! convection potential.
+          do iDir = 1, nDir
+            TempPotential(:, :, iDir) = TempPotential(:, :, iDir) + dynamo(:, :)
+          enddo
+        endif
 
       endif
 

@@ -23,7 +23,7 @@ module ModElectrodynamics
   real, dimension(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2) :: ed1, ed2, je1, je2
 
   ! This is the field aligned integral in magnetic coordinates
-  real, dimension(:, :), allocatable :: DivJuAltMC
+  real, dimension(:, :), allocatable :: DivJuFieldLineMC
 
   ! These are the conductances in magnetic coordinates
   real, dimension(:, :), allocatable :: SigmaHallMC
@@ -64,18 +64,26 @@ module ModElectrodynamics
     dKDpmdpMC, dKDlmdlMC, DynamoPotentialMC, &
     dKpmdpMC, dKlmdlMC
 
-  real, dimension(:, :), allocatable :: oldpotmc
+  real, dimension(:, :), allocatable :: oldpotmc, FullPotentialMC
 
   real, dimension(:), allocatable :: &
     x, y, rhs, b, d_I, e_I, e1_I, f_I, f1_I
-
-  real, dimension(:, :), allocatable :: &
-    SmallMagLocTimeMC, SmallMagLatMC, SmallPotentialMC
 
   integer :: nMagLats = 140  ! 1 degrees
   integer :: nMagLons = 90  ! 4 degrees
   real :: MagLatRes = 0.5
   real :: MagLonRes = 4.0
+
+  ! Dynamo solver latitude-boundary state (see UA_calc_electrodynamics).
+  ! iLatSolveStart/End are the solver-domain boundary indices, shared with
+  ! matvec_gitm. PrevLatBoundOffset persists across timesteps for smoothing.
+  integer :: iLatSolveStart, iLatSolveEnd
+  real :: PrevLatBoundOffset = -1.0
+
+  ! Poleward latitude of the dynamo solve domain (deg). Exported to
+  ! get_potential so the convection<->dynamo blend tracks the dynamic
+  ! solve boundary instead of the fixed DynamoHighLatBoundary.
+  real :: DynamoSolveLatBound = -1.0
 
   !----------------------------------------------------------------------
   ! These are in geographic coordinates :

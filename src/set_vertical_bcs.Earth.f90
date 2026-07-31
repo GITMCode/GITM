@@ -159,17 +159,7 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
     VertVel(-1:0, :) = 0.0
   endif
 
-  if (UseGSWMTides) then
-    Vel_GD(-1:0, iEast_) = TidesEast(iLon1D, iLat1D, 1:2, iBlock1D)
-    Vel_GD(-1:0, iNorth_) = TidesNorth(iLon1D, iLat1D, 1:2, iBlock1D)
-    Temp(-1:0) = TidesTemp(iLon1D, iLat1D, 1:2, iBlock1D) + Temp(-1:0)
-  endif
-  if (UseWACCMTides) then
-    Vel_GD(-1:0, iEast_) = TidesEast(iLon1D, iLat1D, 1:2, iBlock1D)
-    Vel_GD(-1:0, iNorth_) = TidesNorth(iLon1D, iLat1D, 1:2, iBlock1D)
-    Temp(-1:0) = TidesTemp(iLon1D, iLat1D, 1:2, iBlock1D)
-  endif
-  if (UseHmeTides) then
+  if (UseHmeTides .or. UseFileTides) then
     Vel_GD(-1:0, iEast_) = TidesEast(iLon1D, iLat1D, 1:2, iBlock1D)
     Vel_GD(-1:0, iNorth_) = TidesNorth(iLon1D, iLat1D, 1:2, iBlock1D)
     Temp(-1:0) = TidesTemp(iLon1D, iLat1D, 1:2, iBlock1D) + Temp(-1:0)

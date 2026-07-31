@@ -99,6 +99,16 @@ if ($Install and not $IsCompGitm){
     my $command = "touch ext/Electrodynamics/src/Makefile.DEPEND";
     print "creating DEPEND file in electrodynamics:\n\t $command\n";
     my $exit_status = `$command`;
+
+    # Write Makefile.local for ext/* libraries so they can find GITM's build
+    # config: Makefile.dirs for paths, Makefile.conf for compiler rules
+    my $GitMDir = `pwd`; chomp $GitMDir;
+    open(my $fh, ">", "ext/Electrodynamics/build/Makefile.local")
+        or die "Cannot write ext/Electrodynamics/build/Makefile.local: $!";
+    print $fh "DIRSFILE := $GitMDir/Makefile.def\n";
+    print $fh "BUILDDIR  := $GitMDir\n";
+    close($fh);
+    print "Created ext/Electrodynamics/build/Makefile.local\n";
 }
 
 &modify_utilities if $NoFlush;

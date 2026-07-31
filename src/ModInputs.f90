@@ -57,7 +57,7 @@ module ModInputs
 
   logical :: UseCCMCFileName = .false.
 
-  logical :: UseSecondsInFilename = .true.    !xianjing
+  logical :: UseSecondsInFilename = .false.
 
   !!! Xing Meng Nov 2018 to use ISR E field in a local region + Weimer elsewhere
   ! This is currently not working with the new Electrodynamics setup.
@@ -198,26 +198,25 @@ module ModInputs
   logical :: UseMsis21 = .false.
   real, dimension(25) :: sw_msis = 1.0
   logical :: UseIRI = .true.
-  logical :: UseMSISTides = .true.
-  logical :: UseMSISOnly = .false.
-  logical :: UseGSWMTides = .false.
-  logical :: UseHmeTides = .false.
-  logical :: UseWACCMTides = .false.
+  character(len=iCharLen_) :: cTidalModel = "zero"
+
+  !logical :: UseMSISTides = .true.
+  !logical :: UseMSISOnly = .false.
   logical :: UseMSISDiurnal = .true.
   logical :: UseMSISSemidiurnal = .true.
   logical :: UseMSISTerdiurnal = .true.
+
+  logical :: UseHmeTides = .false.
+  logical :: UseFileTides = .false.
+  ! We are not going to support these things anymore:
+  !logical :: UseWACCMTides = .false.
+  !logical :: UseGSWMTides = .false.
   logical :: UseStatisticalModelsOnly = .false.
   real    :: DtStatisticalModels = 3600.0
   logical :: UseOBCExperiment = .false.
   real :: MsisOblateFactor = 0.0
 
   logical :: UseGswmComp(4) = .true.
-
-  real :: MagneticPoleRotation = 0.0
-  real :: MagneticPoleTilt = 0.0
-  real :: xDipoleCenter = 0.0
-  real :: yDipoleCenter = 0.0
-  real :: zDipoleCenter = 0.0
 
   logical :: IsFixedTilt = .false.
 
@@ -264,6 +263,11 @@ module ModInputs
   real    :: MaxResidual = 1.0
   logical :: IncludeCowling = .false.
   real    :: DynamoLonAverage = 10.0
+  real    :: DynamoFracPotentialCutoff = 0.0
+  logical :: doDynamoHemisphericMirror = .true.
+  logical :: doUseMagnetoPotentialBCs = .true.
+  logical :: doDynamoLatBlend = .true.
+  logical :: doDynamoSubtractEquatorialAvg = .true.
 
   logical :: UseImprovedIonAdvection = .true.
   logical :: UseNighttimeIonBCs = .true.

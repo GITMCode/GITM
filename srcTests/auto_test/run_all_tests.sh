@@ -11,16 +11,16 @@ get_help(){
   - All UAM files matching the pattern UAM.*.test
     are automatically tested on GitHub
 
-> When adding a new feature, it is recommended to create a test. 
+> When adding a new feature, it is recommended to create a test.
   - To do this, first create a UAM.in file which uses the new feature.
-  - Then, run this script with: 
+  - Then, run this script with:
     > ./run_all_tests.sh -d -c --save_solution -o [your uam file]
   - Add a few words to the file name to explain the test. See below for more.
   - Please try to keep the numbers increasing sequentially, if possible.
 
-Additional notes about the test may be added. Name must conform to: 
+Additional notes about the test may be added. Name must conform to:
             UAM.in.##.*.test
-and no spaces can be added. Numbers do not need to be increasing, but will be useful 
+and no spaces can be added. Numbers do not need to be increasing, but will be useful
 when comparing outputs. It is recommended to follow the pattern:
             UAM.in.##.[anything_you_want].test
 
@@ -87,7 +87,7 @@ Using --save_solution will overwrite the reference logfiles
 
 Only use this if you know what you are doing.
 
-If you just created a new test, run with -o/--only 
+If you just created a new test, run with -o/--only
 to save a solution for the test you created.
 
 Cancel with Ctrl+C
@@ -115,7 +115,7 @@ checkoutputs(){
   if [ $do_compare = true ]; then
     echo
     ../../../share/Scripts/DiffNum.pl -r=5e-5 -a=1e-1 -t ../ref_solns/log.$test_uam UA/data/log*.dat
-    
+
     if [ $? = 0 ]; then
       # test was a success. no differences found.
       return 
@@ -164,16 +164,16 @@ run_a_test(){
 
 do_tests(){
     # Configure & compile
-    cd ../../ 
+    cd ../../
     
     if [ $clean = true ]; then
       make clean
     elif [ $distclean = true ]; then
-      make distclean    
+      make distclean
     fi
 
     if [ $config = true ]; then
-        ./Config.pl -install -earth -compiler=gfortran10 $debug
+        ./Config.pl -install -earth -compiler=gfortran -debug
     fi
 
     make -j
@@ -185,28 +185,10 @@ do_tests(){
       exit 1
     fi
 
-    # make GITM/run to srcTest/auto_test/run
-    # - Old rundir's can cause unintended issues.
-    # - Rename GITM/run it if it exists & make a new rundir
-    if [[ -d run ]]; then
-      echo
-      echo " ==========================================================="
-      echo " Found a run directory at GITM's root folder!!"
-      echo " Moving its contents to run_madebytestscript/, just in case"
-      echo " You have 10 seconds to cancel ..."
-      echo 
-      echo " > ls" $(pwd)"/run"
-      ls run/
-      sleep 10
-
-      mv run run_madebytestscript
-    fi
-
-    # Cnsecutive test runs won't have to sleep for 10 seconds
     # Since we can't tell when (or how) srcTest/auto_test/run was made, replace it
-    make rundir
+    # 'make rundir' defaults to creating 'run', if we set RUNDIR, it creates that instead.
     rm -rf srcTests/auto_test/run
-    mv run srcTests/auto_test/
+    make rundir RUNDIR=srcTests/auto_test/run
 
     # Copy the test files into run/
     cd srcTests/auto_test/
@@ -246,12 +228,6 @@ while [[ $# -gt 0 ]]; do
     -h|--help)
       get_help
       exit 1
-      ;;
-
-    -d|--debug)
-      echo "Using -debug"
-      debug="-debug"
-      shift
       ;;
 
     -c|--clean)
@@ -297,8 +273,9 @@ while [[ $# -gt 0 ]]; do
       ;;
 
     *)
-      echo "Unrecognized argument: $1"
-      if [ -e $1 ]; then echo "Run with '-o $1' to test one file"; fi
+      get_help
+      echo "> Unrecognized argument: $1"
+      if [ -e $1 ]; then echo "  Run with '-o $1' to test one file"; fi
       exit 1
 
   # end arg parsing
@@ -309,7 +286,6 @@ done
 if [ $do_save = true ]; then warnsavesolution; fi
 
 # wait a sec to show users that settings are being used
-sleep 1.5
+sleep 2
 
 do_tests
-done

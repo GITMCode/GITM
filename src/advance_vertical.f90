@@ -49,7 +49,9 @@ subroutine advance_vertical(iLon, iLat, iBlock)
   use ModGITM
   use ModPlanet, only: nSpecies, nIonsAdvect
   use ModConstants, only: pi
-  use ModSources, only: EUVHeating, KappaEddyDiffusion
+  !use ModSources, only: EUVHeating, KappaEddyDiffusion
+  !Atheer Alhothali, Jan, 2026: Add VertCoriolis, EffectiveGravity, and VertCentrifugal
+  use ModSources, only: EUVHeating, KappaEddyDiffusion, VertCoriolis, EffectiveGravity, VertCentrifugal
   use ModInputs
   use ModVertical, ONLY: &
     LogRho, &
@@ -168,6 +170,23 @@ subroutine advance_vertical(iLon, iLat, iBlock)
   enddo
 
   Temperature(iLon, iLat, :, iBlock) = Temp/TempUnit(iLon, iLat, :)
+
+  !Atheer Alhothali, Jan, 2026: Store Coriolis Vertical component
+  if (UseCoriolis) then
+    VertCoriolis(iLon, iLat, 1:nAlts) = &
+      Coriolis*Vel_GD(1:nAlts, iEast_)
+  endif
+
+  !Atheer Alhothali, Jan, 2026: Store Effective Gravity (gravity + centrifugal)
+  !EffectiveGravity(iLon, iLat, 1:nAlts) = &
+  !Gravity_G(1:nAlts) + Centrifugal / InvRadialDistance_C(1:nAlts)
+
+  !Atheer Alhothali, Feb, 2026: Separate the terms
+  ! 1. Calculate the Vertical Centrifugal component
+  VertCentrifugal(iLon, iLat, 1:nAlts) = Centrifugal/InvRadialDistance_C(1:nAlts)
+
+  ! 2. Calculate Effective Gravity (gravity + vertical centrifugal)
+  EffectiveGravity(iLon, iLat, 1:nAlts) = Gravity_G(1:nAlts) + VertCentrifugal(iLon, iLat, 1:nAlts)
 
   do iSpecies = 1, nSpecies
     LogNS(iLon, iLat, :, iSpecies, iBlock) = LogNS1(:, iSpecies)
