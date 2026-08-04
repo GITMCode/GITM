@@ -105,6 +105,7 @@ subroutine read_MHDIMF_Indices_new(iOutputError, StartTime, EndTime)
             iSW = iSW + 1
           endif
 
+
         else
 
           call time_int_to_real(iTime, IndexTimes_TV(iIMF, imf_bx_))
@@ -146,9 +147,11 @@ subroutine read_MHDIMF_Indices_new(iOutputError, StartTime, EndTime)
           if (IndexTimes_TV(iIMF, imf_bx_) >= StartTime - BufferTime .and. &
               IndexTimes_TV(iIMF, imf_bx_) <= EndTime + BufferTime .and. &
               iIMF < MaxIndicesEntries) then
-            if (abs(Indices_TV(iIMF, imf_bz_)) < 200.0) iIMF = iIMF + 1
-            if ((abs(Indices_TV(iSW, sw_n_)) < 900.0) .and. &
-                (abs(Indices_TV(iSW, sw_v_)) < 3000.0)) iSW = iSW + 1
+            !if (abs(Indices_TV(iIMF, imf_bz_)) < 200.0) iIMF = iIMF + 1
+            !if ((abs(Indices_TV(iSW, sw_n_)) < 900.0) .and. &
+            !    (abs(Indices_TV(iSW, sw_v_)) < 3000.0)) iSW = iSW + 1
+            iIMF = iIMF+1
+            iSW = iSW+1
           else
 
             ! This means that the GITM time is all BEFORE the first
@@ -177,6 +180,8 @@ subroutine read_MHDIMF_Indices_new(iOutputError, StartTime, EndTime)
   iIMF = iIMF - 2
   iSW = iSW - 2
 
+ ! write(*,*) 'here',iIMF,MaxIndicesEntries,ReReadIMFFile,iIMF,iSW
+
   ! There is sometimes a problem where the end time is in the middle of
   ! a data gap. Let's check this:
   if (iIMF > 2) then
@@ -203,6 +208,8 @@ subroutine read_MHDIMF_Indices_new(iOutputError, StartTime, EndTime)
       Indices_TV(iSW, sw_v_) = Indices_TV(iSW - 1, sw_v_)
       Indices_TV(iSW, sw_n_) = Indices_TV(iSW - 1, sw_n_)
       Indices_TV(iSW, sw_t_) = Indices_TV(iSW - 1, sw_t_)
+
+      write(*,*) '-->EndTime',EndTime
 
     endif
   endif

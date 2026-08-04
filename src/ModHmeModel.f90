@@ -469,7 +469,8 @@ contains
         dr_rho_p3 = StorageR_phase(i, :, :)
       else
 
-        call hme_3alt(hme_tmp(5:7), u_a3, u_p3, v_a3, v_p3, geopt_a3, geopt_p3, &
+        !call hme_3alt(hme_tmp(5:7), u_a3, u_p3, v_a3, v_p3, geopt_a3, geopt_p3, &
+        call hme_3alt(hme_tmp, u_a3, u_p3, v_a3, v_p3, geopt_a3, geopt_p3, &
                       temp_a3, temp_p3, dr_rho_a3, dr_rho_p3)
 
         StorageU_amp(i, :, :) = u_a3
@@ -572,10 +573,14 @@ contains
     integer :: i
 
     tmp = trim(thme)
+
     do i = 1, nAltHme
 
       NameOfHMEFile = (trim(hmeDir)//'HME_3alt/'//'HME_'//trim(tmp)// &
                        trim('_')//trim(altn(i))//trim('00m-F75.txt'))
+
+      write(*,*) tmp,'-> ', trim(tmp), '/',thme ,'-> ',trim(thme),'',NameOfHMEFile
+
       call read_hme_file(NameOfHMEFile, u_a, u_p, v_a, v_p, &
                          geopt_a, geopt_p, temp_a, temp_p, &
                          dr_rho_a, dr_rho_p)
