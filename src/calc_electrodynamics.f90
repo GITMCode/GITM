@@ -76,7 +76,8 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
   integer :: iStart, iEnd, iAve
 
   logical :: UseNewTrace = .false.
-
+  logical :: useGmres = .false.
+  
   external :: matvec_gitm
 
   if (Debug) &
@@ -1591,9 +1592,17 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
     DoTestMe = .false.
   endif
 
-  call gmres(matvec_gitm, b, x, .true., nX, &
-             MaxIteration, Residual, 'abs', nIteration, iError, DoTestMe)
+  useGmres = .false.
 
+  if (useGmres) then
+     call gmres(matvec_gitm, b, x, .true., nX, &
+          MaxIteration, Residual, 'abs', nIteration, iError, DoTestMe)
+  else
+     nIteration = MaxIteration
+     call bicgstab(matvec_gitm, b, x, .true., nX, &
+          Residual, 'abs', nIteration, iError, DoTestMe)     
+  endif
+  
   call end_timing("dynamo_solver")
 
   if (iDebugLevel > 0) &
