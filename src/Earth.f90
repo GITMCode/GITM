@@ -421,7 +421,8 @@ subroutine set_planet_defaults
   UseMSISDiurnal = .true.
   UseMSISSemidiurnal = .true.
   UseMSISTerdiurnal = .true.
-
+  UseMSIS21 = .true.
+  
   iNeutralDensityOutputList(iN_4S_) = .false.
   iNeutralDensityOutputList(iHe_) = .false.
   iNeutralDensityOutputList(iN_2D_) = .false.
