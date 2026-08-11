@@ -59,29 +59,13 @@ Output file stuff
 3DALL		second output style
 300.0		dt for output (1 every 5 min)
 
-
 --------------------------------------------------------------------------
 Specify Drivers:
 
 ------------ Solar Drivers ------------
 
-#F107
-150.0		f10.7
-150.0		f10.7 averaged over 81 days
-
-or
-
-NGDC_INDICES
+#NGDC_INDICES
 UA/DataIn/f107.txt
-
-(All false below is new model of EUV!)
-EUVMODEL
-F			UseEUVAC
-F			UseTobiska
-F			UseAboveHigh
-F			UseBelowLow
-
-or
 
 #EUV_DATA
 F						Use FISM solar flux data
