@@ -670,7 +670,18 @@ subroutine set_inputs
 
         endif
 
-      case ("#ELECTRODYNAMICS")
+      case ("#DTEUV")
+        call read_in_real(dTEUV, iError)
+
+        if (iError /= 0) then
+          write(*, *) 'Incorrect format for #DTEUV'
+          write(*, *) 'Sets the time for updating the EUV drivers'
+          write(*, *) '#DTEUV'
+          write(*, *) 'dtEUV      (real, seconds, 60 default)'
+          IsDone = .true.
+       endif
+       
+       case ("#ELECTRODYNAMICS")
         call read_in_string(cAuroralModel, iError)
         call read_in_real(dTAurora, iError)
         call read_in_string(cPotentialModel, iError)
@@ -993,6 +1004,18 @@ subroutine set_inputs
           IsDone = .true.
         endif
 
+      case ("#CO2FOMICHEV")
+        call read_in_logical(UseCO2FomichevCooling, iError)
+        call read_in_real(CO2ppm, iError)
+        if (iError /= 0) then
+           write(*, *) 'Incorrect format for #CO2FOMICHEV:'
+           write(*, *) ''
+           write(*, *) '#CO2FOMICHEV'
+           write(*, *) "UseCO2FomichevCooling   (logical)"
+           write(*, *) "CO2ppm   (real)"
+          IsDone = .true.
+        endif
+        
       case ("#THERMO")
         call read_in_logical(UseSolarHeating, iError)
         call read_in_logical(UseJouleHeating, iError)

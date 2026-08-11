@@ -10,7 +10,8 @@ subroutine calc_chemistry(iBlock)
   use ModEUV
   use ModSources
   use ModInputs, only: &
-    iDebugLevel, UseIonChemistry, UseNeutralChemistry, f107, DoCheckForNans
+       iDebugLevel, UseIonChemistry, UseNeutralChemistry, f107, DoCheckForNans, &
+       minIonDensity, MinIonDensityAdvect
   use ModConstants
   use ieee_arithmetic
 
@@ -305,6 +306,14 @@ subroutine calc_chemistry(iBlock)
 
         Ions = IDensityS(iLon, iLat, iAlt, :, iBlock)
 
+        ! Can get very weird values if the densities are floored, so zero them out
+        do iIon = 1, nIonsAdvect
+           if (Ions(iIon) <= MinIonDensityAdvect) Ions(iIon) = 1.0e-6
+        enddo
+        do iIon = nIonsAdvect + 1, nIons - 1
+           if (Ions(iIon) <= MinIonDensity) Ions(iIon) = 1.0e-6
+        enddo
+        
         Neutrals = NDensityS(iLon, iLat, iAlt, :, iBlock)
 
         niters = 0
@@ -2286,6 +2295,14 @@ subroutine calc_chemistry(iBlock)
                          (1 + DtSub*ionlo)
             ! sum for e-
             Ions(ie_) = Ions(ie_) + Ions(iIon)
+          enddo
+
+          ! Can get very weird values if the densities are floored, so zero them out
+          do iIon = 1, nIonsAdvect
+             if (Ions(iIon) <= MinIonDensityAdvect) Ions(iIon) = MinIonDensityAdvect
+          enddo
+          do iIon = nIonsAdvect + 1, nIons - 1
+             if (Ions(iIon) <= MinIonDensity) Ions(iIon) = MinIonDensity
           enddo
 
           do iNeutral = 1, nSpeciesTotal
