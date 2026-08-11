@@ -5,10 +5,6 @@
 60.0		dt between normal code output to stdout
 F		usebarriers - forces the code to stop and wait more often
 
---------------------------------------------------------------------------
-start and end times:
-  - don't change start time on restart (code will set correct time!)
-
 #TIMESTART
 2002		year
 12		month
@@ -25,11 +21,6 @@ start and end times:
 05		minute
 00		second
 
---------------------------------------------------------------------------
-Set blocks in lon and lat. 
-  - total cells in a direction = nBlocks x nCells (set in ModSize)
-  - res = (max - min) / num cells
-
 #GRID
 2		number of blocks in longitude
 2		number of blocks in latitude
@@ -38,27 +29,18 @@ Set blocks in lon and lat.
 0.0		longitude start to model (set to 0.0 for whole Earth)
 0.0             longitude end to model (set to 0.0 for whole Earth)
 
---------------------------------------------------------------------------
-Output file stuff
-
 #SAVEPLOTS
 7200.0		dt for writing restart files
 1		how many output files do you want
 2DGEL		second output style
 60.0		dt for output (1 every 5 min)
 
------------- Electrodynamics Drivers ------------
-
-New auroral model from Wu and Ridley, which is driven by AU/AL/AE
 #ELECTRODYNAMICS
 pem
 60.0
 weimer05
 60.0
 
------------ Data Files ------------------
-
-This is the most common thing - specify an IMF file:
 #MHD_INDICES
 UA/DataIn/Examples/imf20021221.dat
 
@@ -66,13 +48,11 @@ UA/DataIn/Examples/imf20021221.dat
 UA/DataIn/Examples/ae20021221.dat		SME Filename
 none              			onset time delay file
 T					convert SME to Hemispheric Power
+T
 
 #NGDC_INDICES
 UA/DataIn/f107.txt
 
------------- Some options ------------
-
-Low-latitude dynamo (only run with higher res). Turn on for higher res sims:
 #DYNAMO
 F		UseDynamo
 45.0		DynamoHighLatBoundary
