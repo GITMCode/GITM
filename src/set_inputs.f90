@@ -19,7 +19,7 @@ subroutine set_inputs
   use ModInputs
   use ModSizeGitm
   use ModGITM, only: iProc, f107_est, f107a_est, f107_msis, f107a_msis, &
-                     PhotoElectronHeatingEfficiency_est, EDC_est !! Ankit23May16: Added EDC_est
+                     PhotoElectronHeatingEfficiency_est, EDC_est
   use ModTime
   use ModPlanet
   use ModSatellites
@@ -358,8 +358,9 @@ subroutine set_inputs
         call read_in_logical(UseMsis21, iError)
         if (iError /= 0) then
           write(*, *) 'Incorrect format for #MSIS21:'
-          write(*, *) 'This toggles between using MSIS00 (false) and MSIS-2.1 (true)'
-          write(*, *) '#MSISOBC'
+          write(*, *) 'This toggles between using MSIS00 (false)'
+          write(*, *) 'and MSIS-2.1 (true)'
+          write(*, *) '#MSIS21'
           write(*, *) 'UseMsis21       (logical)'
         endif
 
