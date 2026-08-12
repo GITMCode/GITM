@@ -53,6 +53,9 @@ T
 #NGDC_INDICES
 UA/DataIn/f107.txt
 
+#KP
+4.0
+
 #DYNAMO
 F		UseDynamo
 45.0		DynamoHighLatBoundary

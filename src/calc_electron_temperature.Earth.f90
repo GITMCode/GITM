@@ -709,7 +709,7 @@ subroutine calc_electron_ion_sources(iBlock) !,eHeatingp,iHeatingp,eHeatingm,iHe
   Qenc_v = ne*Mass_Electron*dv2_en* &
            (2.33e-11*nn2*1.e-6*(1 - 1.21e-4*te)*te*Mass(iN2_)/(Mass_Electron + Mass(iN2_)) &
             + 1.82e-10*no2*1.e-6*(1 + 3.60e-2*te**0.5)*te**0.5*Mass(iO2_)/(Mass_Electron + Mass(iO2_)) &
-            + 8.90e-11*no*1.e-6*(1 + 5.70e-4*te)*te**0.5*Mass(iO2_)/(Mass_Electron + Mass(iO_3P_)) &
+            + 8.90e-11*no*1.e-6*(1 + 5.70e-4*te)*te**0.5*Mass(iO_3P_)/(Mass_Electron + Mass(iO_3P_)) &
             ! !      +  4.6e-10  * nhe * 1.e-6 * te**0.5  / (Mass_Electron + Mass(iH_)) + &
             ! !      +  4.5e-9   * nh  * 1.e-6 * (1 - 1.35e-4 * te) * te**0.5  / (Mass_Electron + Mass(iHe_))  &
             )
