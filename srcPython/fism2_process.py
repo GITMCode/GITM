@@ -320,6 +320,15 @@ def read_ap107_file(local_file = "apf107_temp.txt"):
 #  some bins are single wavelength, and some span lots of wavelenghts
 #------------------------------------------------------------------------------
 
+# Reference line intensities in A (F74113 spectrum, 1e9 photons/cm2/s)
+# (Torr & Torr 1979)
+# Used to split a single FISM sample (0.1 nm) that two line bins share
+# (Si XI 303.31 and He II 303.78 are 0.47 A apart).
+# Splitting by a fixed reference ratio conserves the integral
+# and populates both line bins.
+
+LINE_REF_FLUX = {303.31: 0.24, 303.78: 6.00}
+
 def rebin_fism(fism_waves, fism_vals, wavelengths):
 
     shorts = wavelengths['short']
@@ -328,16 +337,36 @@ def rebin_fism(fism_waves, fism_vals, wavelengths):
     new_irr = np.zeros(nWaves)
     ave_wav = np.zeros(nWaves)
 
-    # first go through all of the wavelengths that are singular
+    # Lines read from the original values; the ranges pass reads from a copy with every
+    # line-consumed sample zeroed
+    fism_vals_ranges = np.array(fism_vals)
+
+    # first go through all of the wavelengths that are singular (lines)
+    lines_at_sample = {}
     for iWave, short in enumerate(shorts):
-        long = longs[iWave]
-        if (long == short):
+        if (longs[iWave] == short):
             d = np.abs(fism_waves - short)
             i = np.argmin(d)
-            new_irr[iWave] = fism_vals[i] * \
-                (fism_waves[i+1] - fism_waves[i])
-            # zero out bin so we don't double count it.
-            # fism_vals[i] = 0.0
+            lines_at_sample.setdefault(i, []).append(iWave)
+
+    for i, iWaves in lines_at_sample.items():
+        sample_irr = fism_vals[i] * (fism_waves[i+1] - fism_waves[i])
+        if (len(iWaves) == 1):
+            new_irr[iWaves[0]] = sample_irr
+        else:
+            # shared sample: split by the reference-spectrum ratio
+            weights = np.array([LINE_REF_FLUX.get(round(shorts[j]*10, 2), -1.0)
+                                for j in iWaves])
+            if (np.any(weights < 0)):  # Unlikely, 
+                print(
+                    'rebin_fism: line bins at ', [shorts[j]*10 for j in iWaves],
+                    ' A share a FISM sample but have no reference flux. splitting equally')
+                weights = np.ones(len(iWaves))
+            weights = weights/np.sum(weights)
+            for j, w in zip(iWaves, weights):
+                new_irr[j] = sample_irr * w
+        # zero out the sample so the ranges pass doesn't recount it
+        fism_vals_ranges[i] = 0.0
 
     # then go through the ranges
     for iWave, short in enumerate(shorts):
@@ -350,7 +379,7 @@ def rebin_fism(fism_waves, fism_vals, wavelengths):
             iEnd = np.argmin(d)
             wave_int = 0.0
             for i in range(iStart+1, iEnd+1):
-                new_irr[iWave] += fism_vals[i] * \
+                new_irr[iWave] += fism_vals_ranges[i] * \
                     (fism_waves[i+1] - fism_waves[i])
                 wave_int += (fism_waves[i+1] - fism_waves[i])
     return new_irr, ave_wav
