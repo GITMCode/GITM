@@ -26,7 +26,6 @@ subroutine calc_chemistry(iBlock)
   real :: l, t, m1, m2, y1, y2, k1, k2
   real :: Ions(nIons), Neutrals(nSpeciesTotal)
   real :: tli(nIons), tsi(nIons), tln(nSpeciesTotal), tsn(nSpeciesTotal)
-  real :: szap
 
   integer :: iLon, iLat, iAlt, iIon, nIters, iNeutral
 
@@ -248,9 +247,6 @@ subroutine calc_chemistry(iBlock)
 
   do iLon = 1, nLons
     do iLat = 1, nLats
-
-      szap = cos(sza(iLon, iLat, iBlock))
-      if (szap < 0.0) szap = 0.0
 
       ChemicalHeating2d(iLon, iLat) = 0.0
 
@@ -1419,9 +1415,16 @@ subroutine calc_chemistry(iBlock)
           NeutralLosses(iHe_) = NeutralLosses(iHe_) + Reaction
           IonSources(iHeP_) = IonSources(iHeP_) + Reaction
 
-! ----------------------------
-! NO Photoionization
+          ! ----------------------------
+          ! NO Photoionization
+          ! ----------------------------
+          ! ----------------------------------------------------------
+          ! NO + hv -> NO+ + e-
+          ! ----------------------------------------------------------
+          Reaction = EuvIonRateS(iLon, iLat, iAlt, iNOP_, iBlock)
 
+          IonSources(iNOP_) = IonSources(iNOP_) + Reaction
+          NeutralLosses(iNO_) = NeutralLosses(iNO_) + Reaction
 !              IonSources(iO_2PP_) = IonSources(iO_2PP_) + Reaction
 !              NeutralLosses(iO_3P_)  = NeutralLosses(iO_3P_)  + Reaction
 
@@ -1879,14 +1882,19 @@ subroutine calc_chemistry(iBlock)
           Emission(iE5200_) = Emission(iE5200_) + Reaction
 
           ! -----------
-          ! NO -> N(4S) + O
+          ! NO + hv -> N(4S) + O
           ! -----------
 
-          rr = 4.5e-6*exp(-1.e-8*(Neutrals(iO2_)*1.e-6)**0.38)
+          ! Add Chapman ~ optical depth, without this there's no SZA dep and GITM
+          ! photodissociates NO at the full rate. 0.5e26 is the "shadow"
+          if (Chapman(iLon, iLat, iAlt, iO2_, iBlock) >= 0.5*ChapmanShadow) then
+            rr = 0.0
+          else
+            rr = 4.5e-6*(1 + 0.11*(f107-65)/165) &
+              *exp(-1.e-8*(Chapman(iLon, iLat, iAlt, iO2_, iBlock)*1.e-4)**0.38)
+          endif
 
-          Reaction = &
-            rr* &
-            Neutrals(iNO_)
+          Reaction = rr*Neutrals(iNO_)
 
           NeutralSources(iN_4S_) = NeutralSources(iN_4S_) + Reaction
           NeutralSources(iO_3P_) = NeutralSources(iO_3P_) + Reaction
@@ -2246,16 +2254,13 @@ subroutine calc_chemistry(iBlock)
           ! NO
           ! ----------------------------------------------------------
           ! -----------
-          ! NO -> NO+ + e
+          ! NO + hv -> NO+ + e
           ! -----------
 
-!              rr = 6.0e-7
+          rr = 5.88e-7*(1 + 0.2*(f107 - 65)/100)&
+          *exp(-2.115e-18*(Chapman(iLon, iLat, iAlt, iO2_, iBlock)*1.e-4)**0.8855)
 
-          rr = 5.88e-7*(1 + 0.2*(f107 - 65)/100)*exp(-2.115e-18* &
-                                                     (Neutrals(iO2_)*1.e-6)**0.8855)*szap
-          Reaction = &
-            rr* &
-            Neutrals(iNO_)
+          Reaction = rr*Neutrals(iNO_)
 
           IonSources(iNOP_) = IonSources(iNOP_) + Reaction
           NeutralLosses(iNO_) = NeutralLosses(iNO_) + Reaction
