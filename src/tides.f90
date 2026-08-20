@@ -16,65 +16,85 @@ subroutine set_tidal_flags
   !write(*, *) 'HME - Use TIDI Hough Mode Extension tides'
   !write(*, *) 'FILE - Use GITM-style 3D files to specify tides'
 
-  if (cTidalModel(1:3) == 'HME') then
+  character(len=iCharLen_) :: cTidal
+  integer :: i
+
+  ! Match on upper-case (a copy)
+  ! cTidalModel itself is left alone -- logfile.f90 writes it out verbatim.
+  cTidal = cTidalModel
+  do i = 1, len_trim(cTidal)
+    if (cTidal(i:i) >= 'a' .and. cTidal(i:i) <= 'z') &
+      cTidal(i:i) = achar(iachar(cTidal(i:i)) - 32)
+  enddo
+
+  if (cTidal(1:3) == 'HME') then
     UseHmeTides = .true.
     UseMsis = .true.
     UseMSISDiurnal = .false.
     UseMSISSemidiurnal = .false.
     UseMSISTerdiurnal = .false.
-    call report('Using HME tides',0)
-  endif
-  if (cTidalModel(1:4) == 'FILE') then
+    call report('Using HME tides', 0)
+
+  elseif (cTidal(1:4) == 'FILE') then
     UseFileTides = .true.
     UseMsis = .true.
     UseMSISDiurnal = .false.
     UseMSISSemidiurnal = .false.
     UseMSISTerdiurnal = .false.
-    call report('Using File tides',0)
-  endif
-  if (cTidalModel(1:4) == 'MSIS') then
+    call report('Using File tides', 0)
+
+  elseif (cTidal(1:4) == 'MSIS') then
     UseMsis = .true.
-    call report('Using MSIS tides',0)
+    call report('Using MSIS tides', 0)
     ! set everything to false to begin with
     UseMSISDiurnal = .false.
     UseMSISSemidiurnal = .false.
     UseMSISTerdiurnal = .false.
-    if (cTidalModel(6:9) == 'NONE') then
-      UseMSISDiurnal = .false.
-      UseMSISSemidiurnal = .false.
-      UseMSISTerdiurnal = .false.
-    endif
-    if (cTidalModel(6:8) == 'ALL') then
+
+    ! Turn on only the requested tidal model
+    select case (trim(cTidal(6:)))
+    case ('NONE')
+      ! all three are already false
+    case ('ALL', 'DST')
       UseMSISDiurnal = .true.
       UseMSISSemidiurnal = .true.
       UseMSISTerdiurnal = .true.
-    endif
-    if (cTidalModel(6:8) == 'DST') then
+    case ('DS')
       UseMSISDiurnal = .true.
       UseMSISSemidiurnal = .true.
+    case ('D')
+      UseMSISDiurnal = .true.
+    case ('S')
+      UseMSISSemidiurnal = .true.
+    case ('T')
       UseMSISTerdiurnal = .true.
-    endif
-    if (cTidalModel(6:7) == 'DS') then
-      UseMSISDiurnal = .true.
-      UseMSISSemidiurnal = .true.
-    endif
-    if (cTidalModel(6:6) == 'D') then
-      UseMSISDiurnal = .true.
-    endif
-    if (cTidalModel(6:6) == 'S') then
-      UseMSISSemidiurnal = .true.
-    endif
-    if (cTidalModel(6:6) == 'T') then
-      UseMSISTerdiurnal = .true.
-    endif
-    if (UseMSISDiurnal) call report(' -> Diurnal is True',0)
-    if (UseMSISSemidiurnal) call report(' -> Semiurnal is True',0)
-    if (UseMSISTerdiurnal) call report(' -> Terdiurnal is True',0)
+    case default
+      call bad_tidal_model
+    end select
+
+    if (UseMSISDiurnal) call report(' -> Diurnal is True', 0)
+    if (UseMSISSemidiurnal) call report(' -> Semiurnal is True', 0)
+    if (UseMSISTerdiurnal) call report(' -> Terdiurnal is True', 0)
+
+  elseif (trim(cTidal) /= 'ZERO') then
+    ! 'zero' is the default and used on every planet other than Earth
+    call bad_tidal_model
 
   endif
 
-end subroutine set_tidal_flags
+contains
 
+  subroutine bad_tidal_model
+
+    write(*, *) 'Unrecognised #TIDALMODEL setting: "'//trim(cTidalModel)//'"'
+    write(*, *) 'Valid settings (case-insensitive):'
+    write(*, *) '  MSIS_NONE  MSIS_ALL  MSIS_DST  MSIS_DS  MSIS_D  MSIS_S  MSIS_T'
+    write(*, *) '  HME  FILE'
+    call stop_gitm('Bad #TIDALMODEL setting (set_tidal_flags)')
+
+  end subroutine bad_tidal_model
+
+end subroutine set_tidal_flags
 
 subroutine modify_initial_after_tides
 
@@ -614,14 +634,13 @@ subroutine update_file_tides
           GitmFileData(iPoint, iTn_)
         ! turn this into a multiplicative ratio, so 1 + r
         TidesRhoRat(iLon, iLat, iAlt + 2, iBlock) = 1.0 + &
-          GitmFileData(iPoint, iRho_)
+                                                    GitmFileData(iPoint, iRho_)
         iPoint = iPoint + 1
       enddo
     enddo
   enddo
 
 end subroutine update_file_tides
-
 
 !-----------------------------------------------------------------------
 ! Hough Mode Extension Tides

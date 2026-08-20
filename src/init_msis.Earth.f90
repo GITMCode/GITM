@@ -480,7 +480,7 @@ subroutine msis_bcs(iJulianDay, UTime, Alt, LatIn, LonIn, Lst, &
   use ModTime, only: iTimeArray
   use ModPlanet
   use ModInputs, only: &
-       UseMSISDiurnal, UseMSISSemidiurnal, UseMSISTerdiurnal, &
+       UseHmeTides, UseFileTides, &
        UseOBCExperiment, sw_msis, UseMSIS21, co2ppm
   use EUA_ModMsis00, ONLY: gtd7, tselec
 
@@ -549,15 +549,16 @@ subroutine msis_bcs(iJulianDay, UTime, Alt, LatIn, LonIn, Lst, &
   hwm_ap(1) = -1.0
   hwm_ap(2) = -1.0
 
-  if (UseMSISDiurnal .and. UseMSISSemidiurnal .and. UseMSISTerdiurnal) then
+  if (UseHmeTides .or. UseFileTides) then
+    ! set_vertical_bcs replaces these with TidesEast/TidesNorth.
+    V(1) = 0.0
+    V(2) = 0.0
+  else
     call hwm14(iyd, hwm_utime, hwm_alt, hwm_lat, hwm_lon, hwm_lst, &
                hwm_f107a, hwm_f107, hwm_ap, path, qw)
     ! qw is north&east
     V(1) = qw(2)
     V(2) = qw(1)
-  else
-    V(1) = 0.0
-    V(2) = 0.0
   endif
 
   ! Do some O experimentation (ONLY for MSIS00!):
