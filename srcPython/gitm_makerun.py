@@ -232,6 +232,43 @@ def write_uam(file, uam):
 #
 # ----------------------------------------------------------------------
 
+def write_sme_file(data, message = "none"):
+
+    ymd = data['times'][0].strftime('%Y%m%d')
+    fileout = 'ae' + ymd + '.dat'
+    print('  --> Writing file ' + fileout)
+        
+    l0 = 'File created by python code using write_sme_file\n'
+    l1 = '============================================================\n'
+    l2 = '<year>  <month>  <day>  <hour>  <min>  <sec>  '
+    l2 = l2 + '<SME (nT)>  <SML (nT)>  <SMU (nT)>\n'
+
+    fp = open(fileout, 'wb')
+    fp.write(l0.encode())
+    fp.write("\n".encode())
+    if (message != "none"):
+        m = message + "\n"
+        fp.write(m.encode())
+    fp.write(l1.encode())
+    fp.write(l2.encode())
+
+    for i, t in enumerate(data['times']):
+        ae = data['ae'][i]
+        al = data['al'][i]
+        au = data['au'][i]
+        out = " %8.2f %8.2f %8.2f" % (ae, al, au)
+        ymdhms = t.strftime('%Y  %m  %d  %H  %M  %S')
+        line = ymdhms + out + "\n"
+        fp.write(line.encode())
+
+    fp.close()
+
+    return fileout
+
+# ----------------------------------------------------------------------
+#
+# ----------------------------------------------------------------------
+
 def download_sme_data(start, end):
 
     startStr = start.strftime('%Y-%m-%dT%M:%D')
@@ -240,8 +277,11 @@ def download_sme_data(start, end):
     userid = 'ridley'
     (status,idxdata) = SuperMAGGetIndices(userid, start, length, 'all')
 
-    nPts = len(idxdata['tval'])
-    print('  --> Found %d points' % nPts)
+    if ('tval' in idxdata.keys()):
+        nPts = len(idxdata['tval'])
+        print('  --> Found %d points' % nPts)
+    else:
+        nPts = 0
 
     if (nPts > 0):
         
@@ -276,8 +316,7 @@ def download_sme_data(start, end):
         fp.close()
 
     else:
-        
-        fileout = 'none.txt'
+        fileout = 'none'
         print('  --> ERROR!! No AE data downloaded, no file written!!')
 
     return fileout
@@ -499,6 +538,8 @@ uam['#GRID'] = {
 # ----------------------------------------
 # Grab IMF from OMNIWeb:
 
+omniSmeFile = 'none'
+
 if (args.imf):
     print('--> Processing IMF file : ')
 
@@ -511,6 +552,10 @@ if (args.imf):
         message = "Downloaded from OMNIWeb and processed by omniweb_read.py\n"
         write_swmf_imf_file(data, imfFile, message)
         print(' --> Downloaded IMF file : ', imfFile)
+        # write an AE file also, since SuperMAG is not always available
+        message = "Data downloaded from OMNIWeb and written in SME format\n"
+        print("-> Writing SME type of file")
+        omniSmeFile = write_sme_file(data, message = message)
     else:
         imfFile = args.imf
         
@@ -639,6 +684,13 @@ if (args.sme):
     # find hemispheric power file:
     if (args.sme.find('find') == 0):
         smeFile = download_sme_data(start, end)
+        if (smeFile == 'none'):
+            if (omniSmeFile == 'none'):
+                print('Requested AE indices download, but that did not happen!')
+                print('Was not able to find AE/SME files!')
+                exit()
+            else:
+                smeFile = omniSmeFile
     else:
         smeFile = args.sme
     if (os.path.exists(smeFile)):
@@ -651,7 +703,7 @@ if (args.sme):
     else:
         print('--> ERROR : SME file does not exist : ', smeFile)
         print('  Taking no action! Check output file!!!')
-
+        exit()
         
 # ----------------------------------------
 # Thermal Conduction
