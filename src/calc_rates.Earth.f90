@@ -99,7 +99,7 @@ subroutine calc_collisions(iBlock)
 
   integer, intent(in) :: iBlock
 
-  integer :: iError, iSpecies, iLon, iLat, iAlt
+  integer :: iError, iSpecies, iLon, iLat, iAlt, iIon
 
   real, dimension(-1:nLons + 2, -1:nLats + 2, -1:nAlts + 2) :: &
     Ne, mnd, Te, tmp, Tn, Ti, Tr, &
@@ -130,10 +130,10 @@ subroutine calc_collisions(iBlock)
     NDensityS(:, :, :, iN_2P_, iBlock) + &
     NDensityS(:, :, :, iN_2D_, iBlock)
 
-  ! We include O+, O2+, NO+ below
+  ! We include all species below
   NeMajor = 0.0
-  do iSpecies = 1, nIonsAdvect
-    NeMajor = NeMajor + IDensityS(:, :, :, iSpecies, iBlock)
+  do iIon = 1, nIons
+    NeMajor = NeMajor + IDensityS(:, :, :, iIon, iBlock)
   enddo
 
   !\
@@ -243,33 +243,42 @@ subroutine calc_collisions(iBlock)
   ! This is an average of O2 and N2, since NO doesn't exist
   IonCollisions(:, :, :, iNP_, iNO_) = 7.36e-16*NDensityS(:, :, :, iNO_, iBlock)
 
-  ! I don't think that this method is right, but here we go:
+  !! I don't think that this method is right, but here we go:
+  !
+  !Collisions(:,:,:,iVIN_) = 0.0
+  !
+  !do iIon = 1, nIons
+  !   Frac = IDensityS(:,:,:,iIon,iBlock) / NeMajor
+  !   do iSpecies = 1, nSpecies
+  !      Collisions(:,:,:,iVIN_) = &
+  !           Collisions(:,:,:,iVIN_) + &
+  !           IonCollisions(:,:,:,iIon,iSpecies) * Frac
+  !   enddo
+  !enddo
 
-!  Collisions(:,:,:,iVIN_) = 0.0
-!
-!  ! O+
-!  do iSpecies = 1, nSpecies
-!     Frac = IDensityS(:,:,:,iO_4SP_,iBlock) / NeMajor
-!     Collisions(:,:,:,iVIN_) = &
-!          Collisions(:,:,:,iVIN_) + &
-!          IonCollisions(:,:,:,iO_4SP_,iSpecies) * Frac
-!  enddo
-!
-!  ! O2+
-!  do iSpecies = 1, nSpecies
-!     Frac = IDensityS(:,:,:,iO2P_,iBlock) / NeMajor
-!     Collisions(:,:,:,iVIN_) = &
-!          Collisions(:,:,:,iVIN_) + &
-!          IonCollisions(:,:,:,iO2P_,iSpecies) * Frac
-!  enddo
-!
-!  ! NO+
-!  do iSpecies = 1, nSpecies
-!     Frac = IDensityS(:,:,:,iNOP_,iBlock) / NeMajor
-!     Collisions(:,:,:,iVIN_) = &
-!          Collisions(:,:,:,iVIN_) + &
-!          IonCollisions(:,:,:,iNOP_,iSpecies) * Frac
-!  enddo
+  !! O+
+  !do iSpecies = 1, nSpecies
+  !   Frac = IDensityS(:,:,:,iO_4SP_,iBlock) / NeMajor
+  !   Collisions(:,:,:,iVIN_) = &
+  !        Collisions(:,:,:,iVIN_) + &
+  !        IonCollisions(:,:,:,iO_4SP_,iSpecies) * Frac
+  !enddo
+  !
+  !! O2+
+  !do iSpecies = 1, nSpecies
+  !   Frac = IDensityS(:,:,:,iO2P_,iBlock) / NeMajor
+  !   Collisions(:,:,:,iVIN_) = &
+  !        Collisions(:,:,:,iVIN_) + &
+  !        IonCollisions(:,:,:,iO2P_,iSpecies) * Frac
+  !enddo
+  !
+  !! NO+
+  !do iSpecies = 1, nSpecies
+  !   Frac = IDensityS(:,:,:,iNOP_,iBlock) / NeMajor
+  !   Collisions(:,:,:,iVIN_) = &
+  !        Collisions(:,:,:,iVIN_) + &
+  !        IonCollisions(:,:,:,iNOP_,iSpecies) * Frac
+  !enddo
 
 !
 ! Electron Neutral Collision Frequency
