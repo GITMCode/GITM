@@ -330,8 +330,8 @@ module ModInputs
   real :: MaxVParallel = 100.0
   real :: MaxEField = 0.1
   ! Lower limit on ion density
-  real :: MinIonDensity = 100.0
-  real :: MinIonDensityAdvect = 1e5
+  real :: MinIonDensity = 10.0
+  real :: MinIonDensityAdvect = 10.0
   !Lower limits on neutral density
   real :: MinNeutralDensity = 200.0
   real :: MinNeutralDensityAdvect = 1e5
