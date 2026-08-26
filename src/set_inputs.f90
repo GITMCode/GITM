@@ -1316,6 +1316,17 @@ subroutine set_inputs
           AltMax = AltMax*1000.0
         endif
 
+      case ("#DHFACTOR")
+        call read_in_real(dHFactor, iError)
+        if (iError /= 0) then
+          write(*, *) 'Incorrect format for #DHFACTOR'
+          write(*, *) 'This sets the vertical spacing in units of scale height'
+          write(*, *) 'at localtime=Noon on the equator'
+          write(*, *) 'Likely does not need to be changed from 0.3'
+          write(*, *) '#DHFactor'
+          write(*, *) 'dHFactor              (real, scale-height)'
+      endif
+
       case ("#GRID")
         if (nLats == 1 .and. nLons == 1) Is1D = .true.
         call read_in_int(nBlocksLon, iError)

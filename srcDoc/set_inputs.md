@@ -59,12 +59,23 @@ This sets the ending time of the simulation.
 
 For Earth, the AltMin is the only variable used here. The altitudes are
 set to 0.3 times the scale height reported by MSIS, at the equator for
-the specified F107 and F107a values.`
+the specified F107 and F107a values.
 
     #ALTITUDE
     AltMin                (real, km)
     AltMax                (real, km)
     UseStretchedAltitude  (logical)
+
+
+### DHFACTOR
+
+This sets the vertical spacing, in units of scale height. The altitudes
+are spaced this many scale heights apart, using MSIS (on Earth) near the
+subsolar point. 
+
+    #DHFACTOR
+    dHFactor              (real, scale-heights)
+
 
 ### GRID
 

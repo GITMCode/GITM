@@ -372,6 +372,14 @@ subroutine write_code_information(dir)
     write(iCodeInfoFileUnit_, *) LonEnd
     write(iCodeInfoFileUnit_, *) ""
 
+    write(iCodeInfoFileUnit_, *) "#ALTITUDE"
+    write(iCodeInfoFileUnit_, *) AltMin
+    write(iCodeInfoFileUnit_, *) AltMax
+    write(iCodeInfoFileUnit_, *) UseStretchedAltitude
+
+    write(iCodeInfoFileUnit_, *) "#DHFACTOR"
+    write(iCodeInfoFileUnit_, *) dHFactor
+
     write(iCodeInfoFileUnit_, *) "#DIFFUSION"
     write(iCodeInfoFileUnit_, *) UseDiffusion
     write(iCodeInfoFileUnit_, *) EddyDiffusionCoef
@@ -430,9 +438,9 @@ subroutine write_code_information(dir)
     write(iCodeInfoFileUnit_, *) ""
 
     write(iCodeInfoFileUnit_, *) "#ELECTRODYNAMICS"
-    write(iCodeInfoFileUnit_, *) cAuroralModel
+    write(iCodeInfoFileUnit_, *) trim(cAuroralModel)
     write(iCodeInfoFileUnit_, *) dTAurora
-    write(iCodeInfoFileUnit_, *) cPotentialModel
+    write(iCodeInfoFileUnit_, *) trim(cPotentialModel)
     write(iCodeInfoFileUnit_, *) dTPotential
     write(iCodeInfoFileUnit_, *) ""
 
@@ -459,7 +467,7 @@ subroutine write_code_information(dir)
        write(iCodeInfoFileUnit_, *) "#AMIENORTH"
        write(iCodeInfoFileUnit_, *) nAmieNorth
        do iFile = 1, nAMIENorth
-          write(iCodeInfoFileUnit_, *) cAMIEListNorth(iFile)
+          write(iCodeInfoFileUnit_, *) trim(cAMIEListNorth(iFile))
        enddo
        write(iCodeInfoFileUnit_, *) ""
     endif
@@ -467,7 +475,7 @@ subroutine write_code_information(dir)
        write(iCodeInfoFileUnit_, *) "#AMIESOUTH"
        write(iCodeInfoFileUnit_, *) nAmieSouth
        do iFile = 1, nAMIESouth
-          write(iCodeInfoFileUnit_, *) cAMIEListSouth(iFile)
+          write(iCodeInfoFileUnit_, *) trim(cAMIEListSouth(iFile))
        enddo
        write(iCodeInfoFileUnit_, *) ""
     endif

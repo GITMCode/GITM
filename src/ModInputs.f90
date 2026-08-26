@@ -159,6 +159,8 @@ module ModInputs
   real :: f107a = 150.0
   integer :: iModelSolar = 0
 
+  real :: dHFactor = 0.3
+
   real :: AltMin = 100.0*1000.0
   real :: AltMax = 500.0*1000.0
 
