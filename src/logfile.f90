@@ -566,10 +566,6 @@ subroutine write_code_information(dir)
     write(iCodeInfoFileUnit_, *) zDipoleCenter
     write(iCodeInfoFileUnit_, *) ""
 
-    write(iCodeInfoFileUnit_, *) "#APEX"
-    write(iCodeInfoFileUnit_, *) UseApex
-    write(iCodeInfoFileUnit_, *) ""
-
     write(iCodeInfoFileUnit_, *) "#NEWSTRETCH"
     write(iCodeInfoFileUnit_, *) NewStretchedGrid
     write(iCodeInfoFileUnit_, *) ConcentrationLatitude
