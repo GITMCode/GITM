@@ -393,6 +393,10 @@ subroutine write_code_information(dir)
     write(iCodeInfoFileUnit_, *) ThermalConduction_s
     write(iCodeInfoFileUnit_, *) ""
 
+    
+    write(iCodeInfoFileUnit_, *) "#USETESTVISCOSITY"
+    write(iCodeInfoFileUnit_, *) TestViscosityFactor
+
     write(iCodeInfoFileUnit_, *) "#PHOTOELECTRON"
     write(iCodeInfoFileUnit_, *) PhotoElectronHeatingEfficiency
     write(iCodeInfoFileUnit_, *) ""
