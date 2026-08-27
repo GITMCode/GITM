@@ -503,6 +503,7 @@ subroutine write_code_information(dir)
 
     write(iCodeInfoFileUnit_, *) "#DON4SHACK"
     write(iCodeInfoFileUnit_, *) DoN4SHack
+    write(iCodeInfoFileUnit_, *) ""
 
     write(iCodeInfoFileUnit_, *) '#MSIS21'
     write(iCodeInfoFileUnit_, *) UseMsis21
@@ -613,8 +614,10 @@ subroutine write_code_information(dir)
     write(iCodeInfoFileUnit_, *) "IncludeEclipse", IncludeEclipse
     write(iCodeInfoFileUnit_, *) ""
     write(iCodeInfoFileUnit_, *) "#ECLIPSE"
-    write(iCodeInfoFileUnit_, *) EclipseStartTime
-    write(iCodeInfoFileUnit_, *) EclipseEndTime
+    call time_real_to_int(EclipseStartTime, iTime)
+    write(iCodeInfoFileUnit_, *) iTime
+    call time_real_to_int(EclipseEndTime, iTime)
+    write(iCodeInfoFileUnit_, *) iTime
     write(iCodeInfoFileUnit_, *) EclipseStartY
     write(iCodeInfoFileUnit_, *) EclipseStartZ
     write(iCodeInfoFileUnit_, *) EclipseEndY
