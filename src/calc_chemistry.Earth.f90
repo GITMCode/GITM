@@ -10,8 +10,8 @@ subroutine calc_chemistry(iBlock)
   use ModEUV
   use ModSources
   use ModInputs, only: &
-       iDebugLevel, UseIonChemistry, UseNeutralChemistry, f107, DoCheckForNans, &
-       minIonDensity, MinIonDensityAdvect
+    iDebugLevel, UseIonChemistry, UseNeutralChemistry, f107, DoCheckForNans, &
+    minIonDensity, MinIonDensityAdvect
   use ModConstants
   use ieee_arithmetic
 
@@ -304,12 +304,12 @@ subroutine calc_chemistry(iBlock)
 
         ! Can get very weird values if the densities are floored, so zero them out
         do iIon = 1, nIonsAdvect
-           if (Ions(iIon) <= MinIonDensityAdvect) Ions(iIon) = 1.0e-6
+          if (Ions(iIon) <= MinIonDensityAdvect) Ions(iIon) = 1.0e-6
         enddo
         do iIon = nIonsAdvect + 1, nIons - 1
-           if (Ions(iIon) <= MinIonDensity) Ions(iIon) = 1.0e-6
+          if (Ions(iIon) <= MinIonDensity) Ions(iIon) = 1.0e-6
         enddo
-        
+
         Neutrals = NDensityS(iLon, iLat, iAlt, :, iBlock)
 
         niters = 0
@@ -1890,8 +1890,8 @@ subroutine calc_chemistry(iBlock)
           if (Chapman(iLon, iLat, iAlt, iO2_, iBlock) >= 0.5*ChapmanShadow) then
             rr = 0.0
           else
-            rr = 4.5e-6*(1 + 0.11*(f107-65)/165) &
-              *exp(-1.e-8*(Chapman(iLon, iLat, iAlt, iO2_, iBlock)*1.e-4)**0.38)
+            rr = 4.5e-6*(1 + 0.11*(f107 - 65)/165) &
+                 *exp(-1.e-8*(Chapman(iLon, iLat, iAlt, iO2_, iBlock)*1.e-4)**0.38)
           endif
 
           Reaction = rr*Neutrals(iNO_)
@@ -2257,8 +2257,8 @@ subroutine calc_chemistry(iBlock)
           ! NO + hv -> NO+ + e
           ! -----------
 
-          rr = 5.88e-7*(1 + 0.2*(f107 - 65)/100)&
-          *exp(-2.115e-18*(Chapman(iLon, iLat, iAlt, iO2_, iBlock)*1.e-4)**0.8855)
+          rr = 5.88e-7*(1 + 0.2*(f107 - 65)/100) &
+               *exp(-2.115e-18*(Chapman(iLon, iLat, iAlt, iO2_, iBlock)*1.e-4)**0.8855)
 
           Reaction = rr*Neutrals(iNO_)
 
@@ -2304,10 +2304,10 @@ subroutine calc_chemistry(iBlock)
 
           ! Can get very weird values if the densities are floored, so zero them out
           do iIon = 1, nIonsAdvect
-             if (Ions(iIon) <= MinIonDensityAdvect) Ions(iIon) = MinIonDensityAdvect
+            if (Ions(iIon) <= MinIonDensityAdvect) Ions(iIon) = MinIonDensityAdvect
           enddo
           do iIon = nIonsAdvect + 1, nIons - 1
-             if (Ions(iIon) <= MinIonDensity) Ions(iIon) = MinIonDensity
+            if (Ions(iIon) <= MinIonDensity) Ions(iIon) = MinIonDensity
           enddo
 
           do iNeutral = 1, nSpeciesTotal

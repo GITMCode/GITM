@@ -679,9 +679,9 @@ subroutine set_inputs
           write(*, *) '#DTEUV'
           write(*, *) 'dtEUV      (real, seconds, 60 default)'
           IsDone = .true.
-       endif
-       
-       case ("#ELECTRODYNAMICS")
+        endif
+
+      case ("#ELECTRODYNAMICS")
         call read_in_string(cAuroralModel, iError)
         call read_in_real(dTAurora, iError)
         call read_in_string(cPotentialModel, iError)
@@ -1008,14 +1008,14 @@ subroutine set_inputs
         call read_in_logical(UseCO2FomichevCooling, iError)
         call read_in_real(CO2ppm, iError)
         if (iError /= 0) then
-           write(*, *) 'Incorrect format for #CO2FOMICHEV:'
-           write(*, *) ''
-           write(*, *) '#CO2FOMICHEV'
-           write(*, *) "UseCO2FomichevCooling   (logical)"
-           write(*, *) "CO2ppm   (real)"
+          write(*, *) 'Incorrect format for #CO2FOMICHEV:'
+          write(*, *) ''
+          write(*, *) '#CO2FOMICHEV'
+          write(*, *) "UseCO2FomichevCooling   (logical)"
+          write(*, *) "CO2ppm   (real)"
           IsDone = .true.
         endif
-        
+
       case ("#THERMO")
         call read_in_logical(UseSolarHeating, iError)
         call read_in_logical(UseJouleHeating, iError)
@@ -1326,7 +1326,7 @@ subroutine set_inputs
           write(*, *) 'Likely does not need to be changed from 0.3'
           write(*, *) '#DHFactor'
           write(*, *) 'dHFactor              (real, scale-height)'
-      endif
+        endif
 
       case ("#GRID")
         if (nLats == 1 .and. nLons == 1) Is1D = .true.

@@ -24,8 +24,8 @@
 !----------------------------------------------------------------------------
 
 subroutine get_log_info(SSLon, SSLat, GlobalMinTemp, GlobalMaxTemp, &
-     GlobalMinVertVel, GlobalMaxVertVel, AverageTemp, &
-     AverageVertVel, TotalVolume, SSVTEC)
+                        GlobalMinVertVel, GlobalMaxVertVel, AverageTemp, &
+                        AverageVertVel, TotalVolume, SSVTEC)
 
   use ModGITM
 
@@ -395,7 +395,6 @@ subroutine write_code_information(dir)
     write(iCodeInfoFileUnit_, *) ThermalConduction_s
     write(iCodeInfoFileUnit_, *) ""
 
-    
     write(iCodeInfoFileUnit_, *) "#USETESTVISCOSITY"
     write(iCodeInfoFileUnit_, *) TestViscosityFactor
     write(iCodeInfoFileUnit_, *) ""
@@ -430,7 +429,6 @@ subroutine write_code_information(dir)
     write(iCodeInfoFileUnit_, *) UseConduction
     write(iCodeInfoFileUnit_, *) UseTurbulentCond
     write(iCodeInfoFileUnit_, *) ""
-
 
     write(iCodeInfoFileUnit_, *) "#FORCING"
     write(iCodeInfoFileUnit_, *) UsePressureGradient
@@ -472,20 +470,20 @@ subroutine write_code_information(dir)
     write(iCodeInfoFileUnit_, *) ""
 
     if (nAMIENorth > 0) then
-       write(iCodeInfoFileUnit_, *) "#AMIENORTH"
-       write(iCodeInfoFileUnit_, *) nAmieNorth
-       do iFile = 1, nAMIENorth
-          write(iCodeInfoFileUnit_, *) trim(cAMIEListNorth(iFile))
-       enddo
-       write(iCodeInfoFileUnit_, *) ""
+      write(iCodeInfoFileUnit_, *) "#AMIENORTH"
+      write(iCodeInfoFileUnit_, *) nAmieNorth
+      do iFile = 1, nAMIENorth
+        write(iCodeInfoFileUnit_, *) trim(cAMIEListNorth(iFile))
+      enddo
+      write(iCodeInfoFileUnit_, *) ""
     endif
     if (nAMIESouth > 0) then
-       write(iCodeInfoFileUnit_, *) "#AMIESOUTH"
-       write(iCodeInfoFileUnit_, *) nAmieSouth
-       do iFile = 1, nAMIESouth
-          write(iCodeInfoFileUnit_, *) trim(cAMIEListSouth(iFile))
-       enddo
-       write(iCodeInfoFileUnit_, *) ""
+      write(iCodeInfoFileUnit_, *) "#AMIESOUTH"
+      write(iCodeInfoFileUnit_, *) nAmieSouth
+      do iFile = 1, nAMIESouth
+        write(iCodeInfoFileUnit_, *) trim(cAMIEListSouth(iFile))
+      enddo
+      write(iCodeInfoFileUnit_, *) ""
     endif
 
     write(iCodeInfoFileUnit_, *) "#STATISTICALMODELSONLY"
@@ -508,7 +506,7 @@ subroutine write_code_information(dir)
     write(iCodeInfoFileUnit_, *) '#MSIS21'
     write(iCodeInfoFileUnit_, *) UseMsis21
     write(iCodeInfoFileUnit_, *) ""
-    
+
     write(iCodeInfoFileUnit_, *) "#DUSTDATA"
     write(iCodeInfoFileUnit_, *) UseDustDistribution
     write(iCodeInfoFileUnit_, *) trim(cDustFile)

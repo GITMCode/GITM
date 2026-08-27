@@ -160,11 +160,11 @@ contains
       ! Lons First
       if (GitmInLons(iPoint) < 0.0) GitmInLons(iPoint) = GitmInLons(iPoint) + 360.0
       if (GitmInLats(iPoint) < -90.0) then
-        GitmInLats(iPoint) = -180.0 - GitmInLats(iPoint) 
+        GitmInLats(iPoint) = -180.0 - GitmInLats(iPoint)
         GitmInLons(iPoint) = GitmInLons(iPoint) + 180.0
       endif
       if (GitmInLats(iPoint) > 90.0) then
-        GitmInLats(iPoint) = 180.0 - GitmInLats(iPoint) 
+        GitmInLats(iPoint) = 180.0 - GitmInLats(iPoint)
         GitmInLons(iPoint) = GitmInLons(iPoint) + 180.0
       endif
       if (GitmInLons(iPoint) > 360.0) GitmInLons(iPoint) = GitmInLons(iPoint) - 360.0

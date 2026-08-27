@@ -295,7 +295,7 @@ module ModInputs
   logical :: UseCO2Cooling = .true.
   logical :: UseCO2FomichevCooling = .false.
   real    :: CO2ppm = 400.0
-  
+
   logical :: DoN4SHack = .true.
 
   ! Allow the user to change the planet's characteristics:
@@ -463,7 +463,7 @@ contains
     use ModPlanet, only: IsEarth
 
     call set_strings
-    
+
     sInputIonChemType = sChemType(cSubCycleChemType_)
     sInputNeutralChemType = sChemType(cSubCycleChemType_)
     iInputIonChemType = cSubCycleChemType_
