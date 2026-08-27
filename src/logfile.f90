@@ -604,6 +604,19 @@ subroutine write_code_information(dir)
     write(iCodeInfoFileUnit_, *) AltMinUniform
     write(iCodeInfoFileUnit_, *) ""
 
+    write(iCodeInfoFileUnit_, *) "#ECLIPSE"
+    write(iCodeInfoFileUnit_, *) EclipseStartTime
+    write(iCodeInfoFileUnit_, *) EclipseEndTime
+    write(iCodeInfoFileUnit_, *) EclipseStartY
+    write(iCodeInfoFileUnit_, *) EclipseStartZ
+    write(iCodeInfoFileUnit_, *) EclipseEndY
+    write(iCodeInfoFileUnit_, *) EclipseEndZ
+    write(iCodeInfoFileUnit_, *) EclipsePeak
+    write(iCodeInfoFileUnit_, *) EclipseMaxDistance
+    write(iCodeInfoFileUnit_, *) EclipseExpAmp
+    write(iCodeInfoFileUnit_, *) EclipseExpWidth
+    write(iCodeInfoFileUnit_, *) ""
+
     !write(iCodeInfoFileUnit_,*) "#RCMR"
     !write(iCodeInfoFileUnit_,*) RCMRInType
     !write(iCodeInfoFileUnit_,*) RCMROutType
