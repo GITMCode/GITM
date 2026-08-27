@@ -309,9 +309,9 @@ module ModInputs
   real :: NeutralHeatingEfficiency = 0.05
 
   real :: KappaTemp0 = 5.6e-4
-  real :: ThermalConduction_AO2 = 5.6e-4
-  real :: ThermalConduction_AO = 7.6e-4
-  real :: ThermalConduction_s = 0.72
+  real :: ThermalConduction_AO2 = 3.6e-4
+  real :: ThermalConduction_AO = 5.6e-4
+  real :: ThermalConduction_s = 0.69
   !! Pawlowski says AO2 = 3.6e-4 - 5.6e-4
   !!                AO  = 5.6e-4 - 7.6e-4
   !!                s   = 0.69 - 0.75
