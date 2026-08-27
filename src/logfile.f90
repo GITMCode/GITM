@@ -428,6 +428,11 @@ subroutine write_code_information(dir)
     write(iCodeInfoFileUnit_, *) UseTurbulentCond
     write(iCodeInfoFileUnit_, *) ""
 
+    write(iCodeInfoFileUnit_, *) "#CO2FOMICHEV"
+    write(iCodeInfoFileUnit_, *) UseCO2FomichevCooling
+    write(iCodeInfoFileUnit_, *) CO2ppm
+    write(iCodeInfoFileUnit_, *) ""
+
     write(iCodeInfoFileUnit_, *) "#FORCING"
     write(iCodeInfoFileUnit_, *) UsePressureGradient
     write(iCodeInfoFileUnit_, *) UseIonDrag

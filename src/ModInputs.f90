@@ -294,7 +294,7 @@ module ModInputs
 
   logical :: UseCO2Cooling = .true.
   logical :: UseCO2FomichevCooling = .false.
-  real    :: CO2ppm = 225.0
+  real    :: CO2ppm = 400.0
   
   logical :: DoN4SHack = .true.
 
