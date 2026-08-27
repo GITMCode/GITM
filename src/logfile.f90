@@ -558,6 +558,13 @@ subroutine write_code_information(dir)
     write(iCodeInfoFileUnit_, *) DynamoHighLatBoundary
     write(iCodeInfoFileUnit_, *) nItersMax
     write(iCodeInfoFileUnit_, *) MaxResidual
+    write(iCodeInfoFileUnit_, *) IncludeCowling
+    write(iCodeInfoFileUnit_, *) DynamoLonAverage
+    write(iCodeInfoFileUnit_, *) DynamoFracPotentialCutoff
+    write(iCodeInfoFileUnit_, *) doDynamoHemisphericMirror
+    write(iCodeInfoFileUnit_, *) doUseMagnetoPotentialBCs
+    write(iCodeInfoFileUnit_, *) doDynamoLatBlend
+    write(iCodeInfoFileUnit_, *) doDynamoSubtractEquatorialAvg
     write(iCodeInfoFileUnit_, *) ""
 
     write(iCodeInfoFileUnit_, *) "#IONFORCING"

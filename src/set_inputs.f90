@@ -1194,6 +1194,7 @@ subroutine set_inputs
           write(*, *) "doUseMagnetoPotentialBCs    (optional, logical)"
           write(*, *) "doDynamoLatBlend            (optional, logical)"
         endif
+        ! These settings are optional, code will not complain if they aren't included
         call read_in_real(DynamoFracPotentialCutoff, iError)
         call read_in_logical(doDynamoHemisphericMirror, iError)
         call read_in_logical(doUseMagnetoPotentialBCs, iError)

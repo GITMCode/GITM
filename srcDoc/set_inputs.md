@@ -677,6 +677,34 @@ defaults are fine.
     IncludeCowling         (logical)
     DynamoLonAverage       (real)
 
+A number of additional, experimental options are also available. These do not need 
+to be included. After the above options:
+
+    DynamoFracPotentialCutoff        (real, default 0.0)
+    doDynamoHemisphericMirror        (logical, default T)
+    doUseMagnetoPotentialBCs         (logical, default T)
+    doDynamoLatBlend                 (logical, default T)
+    doDynamoSubtractEquatorialAvg    (logical, default T)
+
+In order:
+
+- **DynamoFracPotentialCutoff** allows the DynamoHighLatBoundary to move with the
+  high-latitude potential pattern. The default value of `0.0` keeps the boundary fixed at
+  `DynamoHighLatBoundary`. For values between (0-1], the dynamo boundary is placed where
+  the high-latitude potential falls below this percent of its maximum. In other words, if
+  `DynamoFracPotentialCutoff=0.05`, the dynamo is only solved in the region equatorward of
+  where the high-latitude potential is 5% of its maximum.
+- **doDynamoHemisphericMirror** toggles the hemispheric mirroring of the dynamo potential
+  after the solve.
+- **doUseMagnetoPotentialBCs** changes the boundary conditions used in the dynamo solve,
+  when True the high-latitude/magnetospheric potential is used as the boundary conditions.
+- **doDynamoLatBlend** toggles whether the high-latitude and dynamo potentials are
+  "blended" in a 20 degree latitude window. When False, the two are added together without
+  any transition region.
+- **doDynamoSubtractEquatorialAvg** by default, the equatorial average of the dynamo
+  potential is subteracted. Change this to False to not do that.
+
+
 ### DIFFUSION
 
 If you use eddy diffusion, you must specify two pressure levels - under
