@@ -493,6 +493,9 @@ subroutine write_code_information(dir)
     write(iCodeInfoFileUnit_, *) MsisOblateFactor
     write(iCodeInfoFileUnit_, *) ""
 
+    write(iCodeInfoFileUnit_, *) "#DON4SHACK"
+    write(iCodeInfoFileUnit_, *) DoN4SHack
+
     write(iCodeInfoFileUnit_, *) '#MSIS21'
     write(iCodeInfoFileUnit_, *) UseMsis21
     write(iCodeInfoFileUnit_, *) ""

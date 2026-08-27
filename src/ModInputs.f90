@@ -296,7 +296,7 @@ module ModInputs
   logical :: UseCO2FomichevCooling = .false.
   real    :: CO2ppm = 225.0
   
-  logical :: DoN4SHack = .false.
+  logical :: DoN4SHack = .true.
 
   ! Allow the user to change the planet's characteristics:
   real :: RotationPeriodInput = Rotation_Period
