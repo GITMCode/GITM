@@ -376,9 +376,11 @@ subroutine write_code_information(dir)
     write(iCodeInfoFileUnit_, *) AltMin
     write(iCodeInfoFileUnit_, *) AltMax
     write(iCodeInfoFileUnit_, *) UseStretchedAltitude
+    write(iCodeInfoFileUnit_, *) ""
 
     write(iCodeInfoFileUnit_, *) "#DHFACTOR"
     write(iCodeInfoFileUnit_, *) dHFactor
+    write(iCodeInfoFileUnit_, *) ""
 
     write(iCodeInfoFileUnit_, *) "#DIFFUSION"
     write(iCodeInfoFileUnit_, *) UseDiffusion
@@ -396,6 +398,7 @@ subroutine write_code_information(dir)
     
     write(iCodeInfoFileUnit_, *) "#USETESTVISCOSITY"
     write(iCodeInfoFileUnit_, *) TestViscosityFactor
+    write(iCodeInfoFileUnit_, *) ""
 
     write(iCodeInfoFileUnit_, *) "#PHOTOELECTRON"
     write(iCodeInfoFileUnit_, *) PhotoElectronHeatingEfficiency
@@ -428,10 +431,6 @@ subroutine write_code_information(dir)
     write(iCodeInfoFileUnit_, *) UseTurbulentCond
     write(iCodeInfoFileUnit_, *) ""
 
-    write(iCodeInfoFileUnit_, *) "#CO2FOMICHEV"
-    write(iCodeInfoFileUnit_, *) UseCO2FomichevCooling
-    write(iCodeInfoFileUnit_, *) CO2ppm
-    write(iCodeInfoFileUnit_, *) ""
 
     write(iCodeInfoFileUnit_, *) "#FORCING"
     write(iCodeInfoFileUnit_, *) UsePressureGradient
@@ -611,6 +610,8 @@ subroutine write_code_information(dir)
     write(iCodeInfoFileUnit_, *) AltMinUniform
     write(iCodeInfoFileUnit_, *) ""
 
+    write(iCodeInfoFileUnit_, *) "IncludeEclipse", IncludeEclipse
+    write(iCodeInfoFileUnit_, *) ""
     write(iCodeInfoFileUnit_, *) "#ECLIPSE"
     write(iCodeInfoFileUnit_, *) EclipseStartTime
     write(iCodeInfoFileUnit_, *) EclipseEndTime
@@ -647,8 +648,12 @@ subroutine write_code_information(dir)
     write(iCodeInfoFileUnit_, *) DoRestart
     write(iCodeInfoFileUnit_, *) ""
 
+    write(iCodeInfoFileUnit_, *) "#CO2FOMICHEV"
+    write(iCodeInfoFileUnit_, *) UseCO2FomichevCooling
+    write(iCodeInfoFileUnit_, *) CO2ppm
+    write(iCodeInfoFileUnit_, *) ""
+
     write(iCodeInfoFileUnit_, *) "UseCO2Cooling", UseCO2Cooling
-    write(iCodeInfoFileUnit_, *) "CO2ppm", CO2ppm
     write(iCodeInfoFileUnit_, *) "iInputIonChemType", iInputIonChemType
     write(iCodeInfoFileUnit_, *) "iInputNeutralChemType", iInputNeutralChemType
     write(iCodeInfoFileUnit_, *) "RPTAU", RPTAU
