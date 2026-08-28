@@ -247,7 +247,7 @@ module ModInputs
   logical :: UseVerAdvection = .true.
   logical :: UseNeutralFriction = .true.
 
-  logical :: UseAUSMSolver = .false.
+  logical :: UseAUSMSolver = .true.
 
   logical :: UseIonPressureGradient = .true.
   logical :: UseIonGravity = .true.
