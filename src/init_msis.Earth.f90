@@ -507,6 +507,8 @@ subroutine msis_bcs(iJulianDay, UTime, Alt, LatIn, LonIn, Lst, &
 
   character(250) :: path = './DataIn/LowerBCs/'
 
+  real :: base, season, vari
+  
   lat = LatIn
   lon = mod(LonIn + 360.0, 360.0)
 
@@ -562,6 +564,16 @@ subroutine msis_bcs(iJulianDay, UTime, Alt, LatIn, LonIn, Lst, &
   endif
 
   ! Do some O experimentation (ONLY for MSIS00!):
+
+  if (UseOBCExperiment .and. UseMSIS21) then
+     oMSIS = exp(LogNS(iO_3P_))
+     # base should be around 1:
+     base = 1.2
+     # Add more O to the summer hemisphere:
+     season = sin((iJulianDay - 90) * 2 * PI / 365)
+     vari = 0.2 * sin(Lat * Pi / 180) * season
+     LogNS(iO_3P_) = alog( oMSIS * (base + vari))
+  endif
 
   if (UseOBCExperiment .and. .not. UseMSIS21) then
 
