@@ -812,8 +812,10 @@ if (fileout.find('none') == 0):
 if ((doRestart) and (len(args.restarttime) >= 8)):
     fileStart = fileout + '.Start'
     fileRestart = fileout + '.Restart'
-    fileout = fileStart
-
+else:
+    fileStart = fileout + '.Start'
+fileout = fileStart
+    
 # Want a restart, but don't write out two files:
 if ((doRestart) and (len(args.restarttime) < 8)):
     print(' --> Turning Restart to True')
