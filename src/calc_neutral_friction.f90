@@ -64,12 +64,12 @@ subroutine calc_neutral_friction(DtIn, oVel, EddyCoef_1d, NDensity_1d, NDensityS
         if (jSpecies == iSpecies) cycle
 
         if (DoCheckForNans) then
-           if (ieee_is_nan(Temp(iAlt))) &
-                write(*, *) "Friction : Temp is nan", iAlt
-           if (ieee_is_nan(NDensity_1d(iAlt))) &
-                write(*, *) "Friction : NDen is nan", iAlt
-           if (ieee_is_nan(NDensityS_1d(iAlt, jSpecies))) &
-                write(*, *) "Friction : NDenS is nan", iAlt, jSpecies
+          if (ieee_is_nan(Temp(iAlt))) &
+            write(*, *) "Friction : Temp is nan", iAlt
+          if (ieee_is_nan(NDensity_1d(iAlt))) &
+            write(*, *) "Friction : NDen is nan", iAlt
+          if (ieee_is_nan(NDensityS_1d(iAlt, jSpecies))) &
+            write(*, *) "Friction : NDenS is nan", iAlt, jSpecies
         endif
 
         ! TempDij are the Dij binary coefficients
@@ -84,7 +84,7 @@ subroutine calc_neutral_friction(DtIn, oVel, EddyCoef_1d, NDensity_1d, NDensityS
         ! Add the eddy coefficient:
         TempDij = TempDij + EddyCoef_1d(iAlt)
         CoefMatrix(iSpecies, jSpecies) = &
-          - DtIn * kTOverM * denscale* NDensityS_1d(iAlt, jSpecies) / TempDij
+          -DtIn*kTOverM*denscale*NDensityS_1d(iAlt, jSpecies)/TempDij
 
         InvDij(iSpecies) = InvDij(iSpecies) + &
                            denscale*NDensityS_1d(iAlt, jSpecies)/ &

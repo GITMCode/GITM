@@ -95,13 +95,6 @@ sme_2010.txt      SME Filename
 none              onset time delay file
 T		  convert SME to Hemispheric Power
 
-This is for OVATION-PRIME:
-#NEWELLAURORA
-F                 Use Newell Ovation model of the aurora
-
-#FANGENERGY
-T		Use Fang 2010 and 2013 energy deposition
-
 Can add a cusp:
 #USECUSP
 F		Add a cusp to the electron precipitation
@@ -122,8 +115,6 @@ F		normalize to hemispheric power
 F		iskappa
 4.0		kappa (3 min; higher is maxwellian)
 
-#IONPRECIPITATION
-F		If ions are included in the AMIE file, use them. FangEnergy=T!
 
 ------------ E-Field Drivers ------------
 

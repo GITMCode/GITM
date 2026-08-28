@@ -157,30 +157,30 @@ subroutine calc_planet_sources(iBlock)
 
   if (UseCO2Cooling) then
 
-     ! The 0.165 is derived from the TIEGCM (2.65e-13 / 1.602e-12)
-     ! multiplied by 1e6 for /cm2 to /m2
-     CO2Cooling = 0.0
+    ! The 0.165 is derived from the TIEGCM (2.65e-13 / 1.602e-12)
+    ! multiplied by 1e6 for /cm2 to /m2
+    CO2Cooling = 0.0
 
-     if (UseCO2FomichevCooling) then
-        call calc_co2fomichev_cooling
-     endif
-     
-     CO2Cooling2d = 0.0
-     do iAlt = 1, nAlts
-        RadiativeCooling2d(1:nLons, 1:nLats) = &
-             RadiativeCooling2d(1:nLons, 1:nLats) + &
-             CO2Cooling(1:nLons, 1:nLats, iAlt)* &
-             dAlt_GB(1:nLons, 1:nLats, iAlt, iBlock)
-        CO2Cooling2d = CO2Cooling2d + &
-             CO2Cooling(1:nLons, 1:nLats, iAlt)* &
-             dAlt_GB(1:nLons, 1:nLats, iAlt, iBlock)
-     enddo
+    if (UseCO2FomichevCooling) then
+      call calc_co2fomichev_cooling
+    endif
 
-     CO2Cooling = CO2Cooling/TempUnit(1:nLons, 1:nLats, 1:nAlts)/ &
-          (Rho(1:nLons, 1:nLats, 1:nAlts, iBlock)*cp(:, :, 1:nAlts, iBlock))
+    CO2Cooling2d = 0.0
+    do iAlt = 1, nAlts
+      RadiativeCooling2d(1:nLons, 1:nLats) = &
+        RadiativeCooling2d(1:nLons, 1:nLats) + &
+        CO2Cooling(1:nLons, 1:nLats, iAlt)* &
+        dAlt_GB(1:nLons, 1:nLats, iAlt, iBlock)
+      CO2Cooling2d = CO2Cooling2d + &
+                     CO2Cooling(1:nLons, 1:nLats, iAlt)* &
+                     dAlt_GB(1:nLons, 1:nLats, iAlt, iBlock)
+    enddo
+
+    CO2Cooling = CO2Cooling/TempUnit(1:nLons, 1:nLats, 1:nAlts)/ &
+                 (Rho(1:nLons, 1:nLats, 1:nAlts, iBlock)*cp(:, :, 1:nAlts, iBlock))
 
   else
-     CO2Cooling = 0.0
+    CO2Cooling = 0.0
   endif
 
   if (UseNOCooling) then
@@ -416,7 +416,7 @@ subroutine set_planet_defaults
   UseMSISSemidiurnal = .true.
   UseMSISTerdiurnal = .true.
   UseMSIS21 = .true.
-  
+
   iNeutralDensityOutputList(iN_4S_) = .false.
   iNeutralDensityOutputList(iHe_) = .false.
   iNeutralDensityOutputList(iN_2D_) = .false.

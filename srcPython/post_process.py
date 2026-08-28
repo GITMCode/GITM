@@ -388,6 +388,24 @@ def transfer_model_output_files(user, server, dir):
     filelist = sorted(glob(data_here + '/' + file))
     DidWork = transfer(filelist, user, server, dir, DoRemove)
 
+    # netCDF data files - remove by default
+    DoRemove = True
+    file = '3D*.nc'
+    filelist = sorted(glob(data_here + '/' + file))
+    DidWork = transfer(filelist, user, server, dir, DoRemove)
+
+    file = '2D*.nc'
+    filelist = sorted(glob(data_here + '/' + file))
+    DidWork = transfer(filelist, user, server, dir, DoRemove)
+
+    file = '1D*.nc'
+    filelist = sorted(glob(data_here + '/' + file))
+    DidWork = transfer(filelist, user, server, dir, DoRemove)
+
+    file = '0D*.nc'
+    filelist = sorted(glob(data_here + '/' + file))
+    DidWork = transfer(filelist, user, server, dir, DoRemove)
+
     # tar and zip - remove by default
     DoRemove = True
     file = '3D*.tgz'

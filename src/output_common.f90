@@ -699,12 +699,12 @@ contains
     endif
 
     if (cType(3:5) == "EMI") then
-       do iEmission = 1, nEmissions
-          write(iOutputUnit_, "(I7,A1,a,a)") 3 + iEmission, " ", &
-               "Emission ", cEmissions(iEmission)
-       enddo
+      do iEmission = 1, nEmissions
+        write(iOutputUnit_, "(I7,A1,a,a)") 3 + iEmission, " ", &
+          "Emission ", cEmissions(iEmission)
+      enddo
     endif
-    
+
     if (cType(3:5) == "THM") then
       write(iOutputUnit_, "(I7,A1,a)") 4, " ", "EUV Heating (K/s)"
       write(iOutputUnit_, "(I7,A1,a)") 5, " ", "Conduction (K/s)"
@@ -1385,14 +1385,14 @@ subroutine output_1demi(iBlock)
 
   iLon = 1
   iLat = 1
-  
+
   do iAlt = -1, nAlts + 2
     iiAlt = max(min(iAlt, nAlts), 1)
     write(iOutputUnit_) &
-         Longitude(iLon, iBlock), &
-         Latitude(iLat, iBlock), &
-         Altitude_GB(iLon, iLat, iAlt, iBlock), &
-         Emissions(iLon, iLat, iAlt, :, iBlock)
+      Longitude(iLon, iBlock), &
+      Latitude(iLat, iBlock), &
+      Altitude_GB(iLon, iLat, iAlt, iBlock), &
+      Emissions(iLon, iLat, iAlt, :, iBlock)
   enddo
 
 end subroutine output_1demi
@@ -1980,7 +1980,7 @@ subroutine output_1dall(iiLon, iiLat, iBlock, rLon, rLat, iUnit)
 
   integer, parameter :: nVars = 13 + nSpeciesTotal + nSpecies + nIons
   ! this is old: + nSpecies + 5
-  
+
   real :: Vars(nVars)
   real :: Tmp(0:nLons + 1, 0:nLats + 1)
   integer :: iAlt, iiAlt, iOff, iIon, iSpecies, iDir

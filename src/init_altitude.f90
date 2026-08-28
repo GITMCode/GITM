@@ -81,13 +81,11 @@ subroutine init_altitude
   logical :: IsDone
 
   real :: ScaleHeights(nAlts)
-  real :: OlddHFactor, dHFactor
+  real :: OlddHFactor
   real :: geo_lat, geo_lst, geo_lon, geo_alt, h, t
   !----------------------------------------------------------------------------
 
   IsDone = .false.
-
-  dHFactor = 0.3
 
   do iAlt = 1, nAlts
 
@@ -146,7 +144,7 @@ subroutine init_altitude_old
   logical :: IsDone
 
   real :: ScaleHeights(nAlts)
-  real :: OlddHFactor, dHFactor
+  real :: OlddHFactor
   real :: geo_lat, geo_lst, geo_lon, geo_alt, h, t
 
   !----------------------------------------------------------------------------
