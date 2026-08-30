@@ -590,7 +590,7 @@ subroutine cofrm(date)
              -0.3, -0.4, -0.5/)
 
 !
-  g2(1:80, 8) = (/ & ! 2026
+  g2(1:80, 8) = (/ & ! 2025-2030
                 12.6, 10.0, -21.5, -11.2, -5.3, -27.3, &
                 -8.3, -11.1, -1.5, -4.4, 3.8, 0.4, &
                 -0.2, -15.6, -3.9, -1.7, -2.3, -1.3, &
@@ -644,14 +644,26 @@ subroutine cofrm(date)
       tc = -0.2
       t = 0.2
     endif
-  else ! date >= 2020
-    t = date - 2020.0
+  else if (date < 2025.) then
+    t = 0.2*(date - 2020.0)
+    tc = 1.0 - t
+    if (isv .eq. 1) then
+      tc = -0.2
+      t = 0.2
+    endif
+    ll = n1*ncn1 + 5*n2
+    nmx = 13
+    nc = nmx*(nmx + 2)
+    kmx = (nmx + 1)*(nmx + 2)/2
+  else ! date >= 2025
+    ! Extrapolate from the last main-field epoch
+    t = date - 2025.0
     tc = 1.0
     if (isv .eq. 1) then
       t = 1.0
       tc = 0.0
     endif
-    ll = 3255
+    ll = n1*ncn1 + 6*n2
     nmx = 13
     nc = nmx*(nmx + 2)
     kmx = (nmx + 1)*(nmx + 2)/2
