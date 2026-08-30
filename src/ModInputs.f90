@@ -159,6 +159,8 @@ module ModInputs
   real :: f107a = 150.0
   integer :: iModelSolar = 0
 
+  real :: dHFactor = 0.3
+
   real :: AltMin = 100.0*1000.0
   real :: AltMax = 500.0*1000.0
 
@@ -239,7 +241,7 @@ module ModInputs
   logical :: UseGravity = .true.
   logical :: UseIonDrag = .true.
   logical :: UseViscosity = .true.
-  real    :: TestViscosityFactor = 1.0
+  real    :: TestViscosityFactor = 0.5
   logical :: UseCoriolis = .true.
   logical :: UseGravityWave = .false.
 
@@ -247,6 +249,7 @@ module ModInputs
   logical :: UseVerAdvection = .true.
   logical :: UseNeutralFriction = .true.
 
+  ! AUSM+-up solver is ON by default
   logical :: UseAUSMSolver = .true.
 
   logical :: UseIonPressureGradient = .true.
@@ -291,9 +294,9 @@ module ModInputs
 
   logical :: UseCO2Cooling = .true.
   logical :: UseCO2FomichevCooling = .false.
-  real    :: CO2ppm = 225.0
+  real    :: CO2ppm = 400.0
   
-  logical :: DoN4SHack = .false.
+  logical :: DoN4SHack = .true.
 
   ! Allow the user to change the planet's characteristics:
   real :: RotationPeriodInput = Rotation_Period
@@ -306,9 +309,9 @@ module ModInputs
   real :: NeutralHeatingEfficiency = 0.05
 
   real :: KappaTemp0 = 5.6e-4
-  real :: ThermalConduction_AO2 = 5.6e-4
-  real :: ThermalConduction_AO = 7.6e-4
-  real :: ThermalConduction_s = 0.72
+  real :: ThermalConduction_AO2 = 3.6e-4
+  real :: ThermalConduction_AO = 5.6e-4
+  real :: ThermalConduction_s = 0.69
   !! Pawlowski says AO2 = 3.6e-4 - 5.6e-4
   !!                AO  = 5.6e-4 - 7.6e-4
   !!                s   = 0.69 - 0.75
@@ -330,8 +333,8 @@ module ModInputs
   real :: MaxVParallel = 100.0
   real :: MaxEField = 0.1
   ! Lower limit on ion density
-  real :: MinIonDensity = 100.0
-  real :: MinIonDensityAdvect = 1e5
+  real :: MinIonDensity = 10.0
+  real :: MinIonDensityAdvect = 10.0
   !Lower limits on neutral density
   real :: MinNeutralDensity = 200.0
   real :: MinNeutralDensityAdvect = 1e5

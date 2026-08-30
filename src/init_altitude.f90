@@ -81,7 +81,7 @@ subroutine init_altitude
   logical :: IsDone
 
   real :: ScaleHeights(nAlts)
-  real :: OlddHFactor, dHFactor
+  real :: OlddHFactor
   real :: geo_lat, geo_lst, geo_lon, geo_alt, h, t
   !----------------------------------------------------------------------------
 
@@ -110,7 +110,7 @@ subroutine init_altitude
 
   do iAlt = 2, nAlts + 1
     Altitude_GB(:, :, iAlt, 1:nBlocks) = Altitude_GB(:, :, iAlt - 1, 1:nBlocks) &
-                                         + dHFactor*ScaleHeights(iAlt - 1)
+                                         + dHFatcor*ScaleHeights(iAlt - 1)
     if (iDebugLevel > 3) write(*, *) "Altitude, dHFactor, ScaleHeight : ", &
       Altitude_GB(1, 1, iAlt, 1), dHFactor, ScaleHeights(iAlt - 1)
   enddo
@@ -146,7 +146,7 @@ subroutine init_altitude_old
   logical :: IsDone
 
   real :: ScaleHeights(nAlts)
-  real :: OlddHFactor, dHFactor
+  real :: OlddHFactor
   real :: geo_lat, geo_lst, geo_lon, geo_alt, h, t
 
   !----------------------------------------------------------------------------
