@@ -15,7 +15,7 @@ subroutine initialize_gitm(TimeIn)
   use ModReadGitm3d
   use ModKind, ONLY: Real8_
   use ModCO2Fomichev, only: initialize_fomichev_cooling
-  
+
   implicit none
 
   type(UAM_ITER) :: r_iter
@@ -496,6 +496,12 @@ subroutine initialize_gitm(TimeIn)
     deallocate(vars, GitmFileData, lonsICs, latsICs, altsICs)
     call GitmShutDown
 
+    if (DoCheckForNans) then
+       call check_for_nans_ions("Set ICs 3DGITM")
+       call check_for_nans_neutrals("Set ICs 3DGITM")
+       call check_for_nans_temps("Set ICs 3DGITM")
+    endif
+
   endif
 
   if (UseHmeTides) then
@@ -547,9 +553,9 @@ subroutine initialize_gitm(TimeIn)
   enddo
 
   if (UseCO2FomichevCooling) then
-     call initialize_fomichev_cooling()
+    call initialize_fomichev_cooling()
   endif
-  
+
   call end_timing("initialize")
 
 end subroutine initialize_gitm

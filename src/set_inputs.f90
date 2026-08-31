@@ -679,9 +679,9 @@ subroutine set_inputs
           write(*, *) '#DTEUV'
           write(*, *) 'dtEUV      (real, seconds, 60 default)'
           IsDone = .true.
-       endif
-       
-       case ("#ELECTRODYNAMICS")
+        endif
+
+      case ("#ELECTRODYNAMICS")
         call read_in_string(cAuroralModel, iError)
         call read_in_real(dTAurora, iError)
         call read_in_string(cPotentialModel, iError)
@@ -1008,14 +1008,14 @@ subroutine set_inputs
         call read_in_logical(UseCO2FomichevCooling, iError)
         call read_in_real(CO2ppm, iError)
         if (iError /= 0) then
-           write(*, *) 'Incorrect format for #CO2FOMICHEV:'
-           write(*, *) ''
-           write(*, *) '#CO2FOMICHEV'
-           write(*, *) "UseCO2FomichevCooling   (logical)"
-           write(*, *) "CO2ppm   (real)"
+          write(*, *) 'Incorrect format for #CO2FOMICHEV:'
+          write(*, *) ''
+          write(*, *) '#CO2FOMICHEV'
+          write(*, *) "UseCO2FomichevCooling   (logical)"
+          write(*, *) "CO2ppm   (real)"
           IsDone = .true.
         endif
-        
+
       case ("#THERMO")
         call read_in_logical(UseSolarHeating, iError)
         call read_in_logical(UseJouleHeating, iError)
@@ -1194,6 +1194,7 @@ subroutine set_inputs
           write(*, *) "doUseMagnetoPotentialBCs    (optional, logical)"
           write(*, *) "doDynamoLatBlend            (optional, logical)"
         endif
+        ! These settings are optional, code will not complain if they aren't included
         call read_in_real(DynamoFracPotentialCutoff, iError)
         call read_in_logical(doDynamoHemisphericMirror, iError)
         call read_in_logical(doUseMagnetoPotentialBCs, iError)
@@ -1314,6 +1315,17 @@ subroutine set_inputs
         else
           AltMin = AltMin*1000.0
           AltMax = AltMax*1000.0
+        endif
+
+      case ("#DHFACTOR")
+        call read_in_real(dHFactor, iError)
+        if (iError /= 0) then
+          write(*, *) 'Incorrect format for #DHFACTOR'
+          write(*, *) 'This sets the vertical spacing in units of scale height'
+          write(*, *) 'at localtime=Noon on the equator'
+          write(*, *) 'Likely does not need to be changed from 0.3'
+          write(*, *) '#DHFactor'
+          write(*, *) 'dHFactor              (real, scale-height)'
         endif
 
       case ("#GRID")

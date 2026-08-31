@@ -6,17 +6,22 @@ module ModReadGitm3d
   use ModGITM, only: iCommGITM
   use ModInputs, only: iCharLen_, iDebugLevel
   use ModKind, ONLY: Real8_
+  use ModPlanet, ONLY: nSpecies, nSpeciesTotal, nIons
 
   integer, parameter :: i3dall_ = 1
   integer, parameter :: i3dlst_ = 2
   integer, parameter :: nGitmCharLength = iCharLen_
   integer, parameter :: nGitmVarCharLength = 40
 
-  integer :: iRho_ = 4
-  integer :: iNeutralStart_ = 5
-  integer :: iTn_ = 16, iVn_ = 17, iVe_ = 17
-  integer :: iIonStart_ = 26
-  integer :: iTe_ = 36, iVi_ = 38
+  ! These indices need to be set correctly
+  integer :: iRho_ 
+  integer :: iNeutralStart_
+  integer :: iTn_
+  integer :: iVn_
+  integer :: iVe_
+  integer :: iIonStart_
+  integer :: iTe_
+  integer :: iVi_
   ! This is the array that is loaded with data in set_horizontal_bcs
   real, allocatable :: GitmFileData(:, :)
 
@@ -90,6 +95,14 @@ contains
 
     OutVars(1:nVarsGitm) = GitmVariables(1:nVarsGitm)
 
+    iRho_ = 4
+    iNeutralStart_ = 5
+    iTn_ = iNeutralStart_ + nSpeciesTotal
+    iVn_ = iTn_ + 1
+    iIonStart_ = iVn_ + nSpecies + 3
+    iTe_ = iIonStart_ + nIons
+    iVi_ = iTe_ + 2
+
   end subroutine GitmGetVars
 
   !---------------------------------------------------------------------------
@@ -160,11 +173,11 @@ contains
       ! Lons First
       if (GitmInLons(iPoint) < 0.0) GitmInLons(iPoint) = GitmInLons(iPoint) + 360.0
       if (GitmInLats(iPoint) < -90.0) then
-        GitmInLats(iPoint) = -180.0 - GitmInLats(iPoint) 
+        GitmInLats(iPoint) = -180.0 - GitmInLats(iPoint)
         GitmInLons(iPoint) = GitmInLons(iPoint) + 180.0
       endif
       if (GitmInLats(iPoint) > 90.0) then
-        GitmInLats(iPoint) = 180.0 - GitmInLats(iPoint) 
+        GitmInLats(iPoint) = 180.0 - GitmInLats(iPoint)
         GitmInLons(iPoint) = GitmInLons(iPoint) + 180.0
       endif
       if (GitmInLons(iPoint) > 360.0) GitmInLons(iPoint) = GitmInLons(iPoint) - 360.0

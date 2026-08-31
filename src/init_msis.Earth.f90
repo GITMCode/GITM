@@ -77,8 +77,8 @@ subroutine call_msis(lonDeg, latDeg, altKm, f107, f107a, densities10, temp)
     ! mass is not used, but passed anyways
     mass = -1
     call gtd8d( &
-         iyd, sec, alt, glat, glong, stl, f107a_4, f107_4, ap_4, mass, &
-         d, t)
+      iyd, sec, alt, glat, glong, stl, f107a_4, f107_4, ap_4, mass, &
+      d, t)
     temp = t(2)
     ! Convert to /m3
     ! 10th density is NO now!
@@ -154,14 +154,14 @@ subroutine get_msis_temperature(lon, lat, alt, t, h)
   endif
 
   if (RCMRFlag .and. RCMROutType == "F107") then
-     call call_msis(lonDeg, latDeg, altKm, f107_msis, f107a_msis, &
-          msis_dens10, msis_temp1)
-     msis_dens = msis_dens10(1:9)
-     msis_temp = msis_temp1
+    call call_msis(lonDeg, latDeg, altKm, f107_msis, f107a_msis, &
+                   msis_dens10, msis_temp1)
+    msis_dens = msis_dens10(1:9)
+    msis_temp = msis_temp1
   else
-     call call_msis(lonDeg, latDeg, altKm, f107, f107a, msis_dens10, msis_temp1)
-     msis_dens = msis_dens10(1:9)
-     msis_temp = msis_temp1
+    call call_msis(lonDeg, latDeg, altKm, f107, f107a, msis_dens10, msis_temp1)
+    msis_dens = msis_dens10(1:9)
+    msis_temp = msis_temp1
   endif
 
   t = msis_temp(2)
@@ -185,7 +185,7 @@ end subroutine get_msis_temperature
 subroutine initialize_msis_routines
 
   use ModInputs, only: UseMsis, &
-       UseMSISDiurnal, UseMSISSemidiurnal, UseMSISTerdiurnal, useMsis21, sw_msis
+                       UseMSISDiurnal, UseMSISSemidiurnal, UseMSISTerdiurnal, useMsis21, sw_msis
   use EUA_ModMsis00, ONLY: meters, tselec
   use msis_init, only: msisinit
 
@@ -229,11 +229,11 @@ subroutine initialize_msis_routines
   sw_msis(2) = 0
 
   if (useMsis21) then
-     sw_msis(2) = 1
-     sw_msis4x25 = sw_msis
-     call msisinit(parmpath='UA/DataIn/LowerBCs/', switch_legacy=sw_msis4x25)
+    sw_msis(2) = 1
+    sw_msis4x25 = sw_msis
+    call msisinit(parmpath='UA/DataIn/LowerBCs/', switch_legacy=sw_msis4x25)
   else
-     call tselec(sw_msis)
+    call tselec(sw_msis)
   endif
 
 end subroutine initialize_msis_routines
@@ -366,7 +366,7 @@ subroutine init_msis
           !CALL GTD7(iJulianDay, utime, geo_alt, geo_lat, geo_lon, geo_lst, &
           !          F107A, F107, AP, 48, msis_dens, msis_temp)
           call call_msis(geo_lon, geo_lat, geo_alt, f107, f107a, &
-               msis_dens10, msis_temp1)
+                         msis_dens10, msis_temp1)
           msis_dens = msis_dens10(1:9)
           msis_temp = msis_temp1
 
@@ -398,18 +398,18 @@ subroutine init_msis
           MeanMajorMass(iLon, iLat, iAlt) = 0
 
           do iSpecies = 1, nSpecies
-             MeanMajorMass(iLon, iLat, iAlt) = &
-                  MeanMajorMass(iLon, iLat, iAlt) + &
-                  Mass(iSpecies) * &
-                  NDensityS(iLon, iLat, iAlt, iSpecies, iBlock)/ &
-                  sum(NDensityS(iLon, iLat, iAlt, 1:nSpecies, iBlock))
+            MeanMajorMass(iLon, iLat, iAlt) = &
+              MeanMajorMass(iLon, iLat, iAlt) + &
+              Mass(iSpecies)* &
+              NDensityS(iLon, iLat, iAlt, iSpecies, iBlock)/ &
+              sum(NDensityS(iLon, iLat, iAlt, 1:nSpecies, iBlock))
           enddo
 
           TempUnit(iLon, iLat, iAlt) = &
-               MeanMajorMass(iLon, iLat, iAlt)/Boltzmanns_Constant
+            MeanMajorMass(iLon, iLat, iAlt)/Boltzmanns_Constant
 
           Temperature(iLon, iLat, iAlt, iBlock) = &
-               msis_temp(2)/TempUnit(iLon, iLat, iAlt)
+            msis_temp(2)/TempUnit(iLon, iLat, iAlt)
 
           Rho(iLon, iLat, iAlt, iBlock) = msis_dens(6)
 
@@ -430,8 +430,8 @@ subroutine init_msis
           hwm_ap(2) = 4.0
 
           if (UseMSISDiurnal .and. &
-               UseMSISSemidiurnal .and. &
-               UseMSISTerdiurnal) then
+              UseMSISSemidiurnal .and. &
+              UseMSISTerdiurnal) then
 
             call hwm14(iyd, hwm_utime, hwm_alt, hwm_lat, hwm_lon, hwm_lst, &
                        hwm_f107a, hwm_f107, hwm_ap, path, qw)
@@ -480,8 +480,8 @@ subroutine msis_bcs(iJulianDay, UTime, Alt, LatIn, LonIn, Lst, &
   use ModTime, only: iTimeArray
   use ModPlanet
   use ModInputs, only: &
-       UseHmeTides, UseFileTides, &
-       UseOBCExperiment, sw_msis, UseMSIS21, co2ppm
+    UseHmeTides, UseFileTides, &
+    UseOBCExperiment, sw_msis, UseMSIS21, co2ppm
   use EUA_ModMsis00, ONLY: gtd7, tselec
 
   implicit none
@@ -532,8 +532,8 @@ subroutine msis_bcs(iJulianDay, UTime, Alt, LatIn, LonIn, Lst, &
   LogNS(iN_4S_) = alog(max(msis_dens10(8), 1.0))
   LogNS(iHe_) = alog(max(msis_dens10(1), 1.0))
   LogNS(iNO_) = alog(max(msis_dens10(10), 1.0))
-  logNS(iCO2_) = alog(CO2ppm*1e-6/(1.0 - CO2ppm*1e-6) * &
-     (msis_dens(1) + msis_dens(2) + msis_dens(3)))
+  logNS(iCO2_) = alog(CO2ppm*1e-6/(1.0 - CO2ppm*1e-6)* &
+                      (msis_dens(1) + msis_dens(2) + msis_dens(3)))
 
   Temp = msis_temp(2)
   LogRho = alog(msis_dens(6))
@@ -598,6 +598,16 @@ subroutine msis_bcs(iJulianDay, UTime, Alt, LatIn, LonIn, Lst, &
 
   endif
 
+  if (UseOBCExperiment .and. UseMSIS21) then
+     oMSIS = exp(LogNS(iO_3P_))
+     # base should be around 1:
+     base = 1.2
+     # Add more O to the summer hemisphere:
+     season = sin((iJulianDay - 90) * 2 * PI / 365)
+     vari = 0.2 * sin(Lat * Pi / 180) * season
+     LogNS(iO_3P_) = alog( oMSIS * (base + vari))
+  endif
+  
 end subroutine msis_bcs
 
 subroutine calc_co2(iBlock)
