@@ -89,6 +89,7 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
 
   IsPhotoChemical(1:nSpecies) = .false.
   IsPhotoChemical(iN_4S_) = .true.
+  !IsPhotoChemical(iNO_) = .true.
 
   NS(-1:nAlts + 2, 1:nSpecies) = exp(LogNS(-1:nAlts + 2, 1:nSpecies))
 
