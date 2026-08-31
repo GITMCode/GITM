@@ -505,6 +505,8 @@ subroutine msis_bcs(iJulianDay, UTime, Alt, LatIn, LonIn, Lst, &
   real*4 :: hwm_utime, hwm_alt, hwm_lat, hwm_lon, hwm_lst
   real*4 :: hwm_f107a, hwm_f107, hwm_ap(2), qw(2)
 
+  real :: base, season, vari
+  
   character(250) :: path = './DataIn/LowerBCs/'
 
   lat = LatIn
