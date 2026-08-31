@@ -87,8 +87,6 @@ subroutine init_altitude
 
   IsDone = .false.
 
-  dHFactor = 0.25
-
   do iAlt = 1, nAlts
 
     geo_lat = 0.0
@@ -110,7 +108,7 @@ subroutine init_altitude
 
   do iAlt = 2, nAlts + 1
     Altitude_GB(:, :, iAlt, 1:nBlocks) = Altitude_GB(:, :, iAlt - 1, 1:nBlocks) &
-                                         + dHFatcor*ScaleHeights(iAlt - 1)
+                                         + dHFactor*ScaleHeights(iAlt - 1)
     if (iDebugLevel > 3) write(*, *) "Altitude, dHFactor, ScaleHeight : ", &
       Altitude_GB(1, 1, iAlt, 1), dHFactor, ScaleHeights(iAlt - 1)
   enddo
