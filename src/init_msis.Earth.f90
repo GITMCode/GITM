@@ -602,9 +602,9 @@ subroutine msis_bcs(iJulianDay, UTime, Alt, LatIn, LonIn, Lst, &
 
   if (UseOBCExperiment .and. UseMSIS21) then
      oMSIS = exp(LogNS(iO_3P_))
-     # base should be around 1:
+     ! base should be around 1:
      base = 1.2
-     # Add more O to the summer hemisphere:
+     ! Add more O to the summer hemisphere:
      season = sin((iJulianDay - 90) * 2 * PI / 365)
      vari = 0.2 * sin(Lat * Pi / 180) * season
      LogNS(iO_3P_) = alog( oMSIS * (base + vari))
