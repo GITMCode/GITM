@@ -25,7 +25,7 @@ subroutine call_msis(lonDeg, latDeg, altKm, f107, f107a, densities10, temp)
   use ModTime
   use EUA_ModMsis00, only: meters, gtd7
   use ModMsis21, only: gtd8d
-  use ModInputs, only: useMsis21
+  use ModInputs, only: useMsis21, MsisOblateFactor
   use ModConstants, only: Boltzmanns_Constant, AMU
   use ModIndicesInterfaces, only: get_HPI
 
@@ -35,6 +35,7 @@ subroutine call_msis(lonDeg, latDeg, altKm, f107, f107a, densities10, temp)
   real, intent(out) :: densities10(10)
   real, intent(out) :: temp
 
+  real :: AltOblate
   ! MSIS-2.1 hard-codes the size of reals, and needs the following:
   integer :: iyd
   real(4) :: sec
@@ -59,6 +60,11 @@ subroutine call_msis(lonDeg, latDeg, altKm, f107, f107a, densities10, temp)
   LST = mod(utime/3600.0 + LonDeg/15.0, 24.0)
   AP = 10
 
+  AltOblate = AltKm* &
+       (1.0 - &
+       MsisOblateFactor/2.0 + &
+       MsisOblateFactor*cos(LatDeg*3.1415/180.0))
+  
   ! We don't often have Ap, but have hemispheric power. So, use that:
   call get_HPI(CurrentTime, HP, iError)
   if (iError > 0) hp = 40.0
@@ -67,7 +73,7 @@ subroutine call_msis(lonDeg, latDeg, altKm, f107, f107a, densities10, temp)
   if (useMsis21) then
     iyd = iJulianDay
     sec = utime
-    alt = altKm
+    alt = altOblate
     glat = latDeg
     glong = lonDeg
     stl = LST
@@ -84,7 +90,7 @@ subroutine call_msis(lonDeg, latDeg, altKm, f107, f107a, densities10, temp)
     ! 10th density is NO now!
     densities10 = d*1e6
   else
-    CALL GTD7(iJulianDay, utime, AltKm, LatDeg, LonDeg, LST, &
+    CALL GTD7(iJulianDay, utime, AltOblate, LatDeg, LonDeg, LST, &
               f107a, f107, AP, 48, msis_dens9, msis_temp)
     temp = msis_temp(2)
     densities10(1:9) = msis_dens9
@@ -93,7 +99,7 @@ subroutine call_msis(lonDeg, latDeg, altKm, f107, f107a, densities10, temp)
     ! This is obviously an approximation:
     h = Boltzmanns_Constant*msis_temp(2)/ &
         (9.5*28.0*AMU)/1000.0
-    densities10(10) = no*exp(-(altKm - 100.0)/h)
+    densities10(10) = no*exp(-(altOblate - 100.0)/h)
   endif
 
 end subroutine call_msis
