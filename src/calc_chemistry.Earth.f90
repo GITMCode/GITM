@@ -10,6 +10,7 @@ subroutine calc_chemistry(iBlock)
   use ModEUV
   use ModSources
   use ModInputs, only: &
+    UseNOPhotoIonTable, &
     iDebugLevel, UseIonChemistry, UseNeutralChemistry, f107, DoCheckForNans, &
     minIonDensity, MinIonDensityAdvect
   use ModConstants
@@ -2257,13 +2258,17 @@ subroutine calc_chemistry(iBlock)
           ! NO + hv -> NO+ + e
           ! -----------
 
-          rr = 5.88e-7*(1 + 0.2*(f107 - 65)/100) &
-               *exp(-2.115e-18*(Chapman(iLon, iLat, iAlt, iO2_, iBlock)*1.e-4)**0.8855)
+          ! Analytic Ly-alpha proxy (TIE-GCM beta9 form).  Superseded by the
+          ! EUV table when UseNOPhotoIonTable
+          if (.not. UseNOPhotoIonTable) then
+            rr = 5.88e-7*(1 + 0.2*(f107 - 65)/100) &
+                 *exp(-2.115e-18*(Chapman(iLon, iLat, iAlt, iO2_, iBlock)*1.e-4)**0.8855)
 
-          Reaction = rr*Neutrals(iNO_)
+            Reaction = rr*Neutrals(iNO_)
 
-          IonSources(iNOP_) = IonSources(iNOP_) + Reaction
-          NeutralLosses(iNO_) = NeutralLosses(iNO_) + Reaction
+            IonSources(iNOP_) = IonSources(iNOP_) + Reaction
+            NeutralLosses(iNO_) = NeutralLosses(iNO_) + Reaction
+          endif
 
           !---- Ions
 

@@ -430,6 +430,10 @@ subroutine write_code_information(dir)
     write(iCodeInfoFileUnit_, *) UseTurbulentCond
     write(iCodeInfoFileUnit_, *) ""
 
+    write(iCodeInfoFileUnit_, *) "#NOPHOTOIONTABLE"
+    write(iCodeInfoFileUnit_, *) UseNOPhotoIonTable
+    write(iCodeInfoFileUnit_, *) ""
+
     write(iCodeInfoFileUnit_, *) "#FORCING"
     write(iCodeInfoFileUnit_, *) UsePressureGradient
     write(iCodeInfoFileUnit_, *) UseIonDrag
