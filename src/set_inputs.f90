@@ -45,7 +45,7 @@ subroutine set_inputs
   character(len=iCharLen_)                 :: sIonChemistry, sNeutralChemistry
   character(len=iCharlen_), dimension(100) :: cTempLines
 
-  real :: Vx, Bx, Bz, By, Kp, HemisphericPower, tsim_temp
+  real :: Vx, Bx, Bz, By, Kp, HemisphericPower, tsim_temp, swN, au_val, al_val
   real :: EDC_est_tmp
   real*8 :: DTime
   logical :: HasSetAuroraMods = .false.
@@ -616,6 +616,7 @@ subroutine set_inputs
         call read_in_real(by, iError)
         call read_in_real(bz, iError)
         call read_in_real(vx, iError)
+        call read_in_real(swN, iError)
         if (iError /= 0) then
           write(*, *) 'Incorrect format for #SOLARWIND:'
           write(*, *) 'This sets the driving conditions for the high-latitude'
@@ -627,11 +628,13 @@ subroutine set_inputs
           write(*, *) 'by  (real)'
           write(*, *) 'bz  (real)'
           write(*, *) 'vx  (real)'
+          write(*, *) 'swn  (real)'
           IsDone = .true.
         else
           call IO_set_imf_by_single(by)
           call IO_set_imf_bz_single(bz)
           call IO_set_sw_v_single(abs(vx))
+          call IO_set_sw_n_single(swN)
         endif
 
       case ("#MHD_INDICES")
@@ -1934,6 +1937,21 @@ subroutine set_inputs
           else
             UseVariableInputs = .true.
           endif
+        endif
+
+      case ("#SMESINGLE")
+        call read_in_real(au_val, iError)
+        call read_in_real(al_val, iError)
+        if (iError /= 0) then
+          write(*, *) 'Incorrect format for #SMESINGLE:'
+          write(*, *) 'This sets singular AU/SMU & AL/SML values for an entire run'
+          write(*, *) '#SMESINGLE'
+          write(*, *) 'au  (real)'
+          write(*, *) 'al  (real)'
+          IsDone = .true.
+        else
+          call IO_set_al_single(al_val)
+          call IO_set_au_single(au_val)
         endif
 
       case ("#ACE_DATA")
