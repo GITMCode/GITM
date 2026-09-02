@@ -634,7 +634,7 @@ subroutine set_ie_indices(IEModel_, TimeIn)
   ! use ModElectrodynamics, only: ieModel_
   use ModErrors
   use ModTime, only: EndTime !could pull current time too, but better to be explicit
-  use ModInputs, only: TimeDelayHighLat, DoSeparateHPI
+  use ModInputs, only: TimeDelayHighLat, DoSeparateHPI, UseVariableInputs
 
   implicit none
 
@@ -646,31 +646,49 @@ subroutine set_ie_indices(IEModel_, TimeIn)
 
   if (IEModel_%doReadMHD) then
 
-    call read_MHDIMF_Indices_new( &
-      iError, &
-      TimeIn + TimeDelayHighLat, &
-      EndTime + TimeDelayHighLat)
+    ! Values change thru time, this is the default
+    if (UseVariableInputs) then 
 
-    if (iError /= 0) call set_error("Issue reading IMF file in get_potential")
+      call read_MHDIMF_Indices_new( &
+        iError, &
+        TimeIn + TimeDelayHighLat, &
+        EndTime + TimeDelayHighLat)
 
-    call get_IMF_Bz(TimeIn + TimeDelayHighLat, val, iError)
-    if (val < -40.0) val = -40.0
-    if (val > 40.0) val = 40.0
-    call IEModel_%imfBz(val)
+      if (iError /= 0) call set_error("Issue reading IMF file in get_potential")
 
-    call get_IMF_By(TimeIn, val, iError)
-    if (val < -40.0) val = -40.0
-    if (val > 40.0) val = 40.0
-    call IEModel_%imfBy(val)
+      call get_IMF_Bz(TimeIn + TimeDelayHighLat, val, iError)
+      if (val < -40.0) val = -40.0
+      if (val > 40.0) val = 40.0
+      call IEModel_%imfBz(val)
 
-    call get_SW_V(TimeIn, val, iError)
-    if (val < -1500.0) val = -1500.0
-    if (val > 1500.0) val = 1500.0
-    call IEModel_%swV(val)
+      call get_IMF_By(TimeIn, val, iError)
+      if (val < -40.0) val = -40.0
+      if (val > 40.0) val = 40.0
+      call IEModel_%imfBy(val)
 
-    call get_SW_N(TimeIn, val, iError)
-    if (val > 80) val = 50
-    call IEModel_%swN(val)
+      call get_SW_V(TimeIn, val, iError)
+      if (val < -1500.0) val = -1500.0
+      if (val > 1500.0) val = 1500.0
+      call IEModel_%swV(val)
+
+      call get_SW_N(TimeIn, val, iError)
+      if (val > 80) val = 50
+      call IEModel_%swN(val)
+    
+    else ! Indices are single-valued. These are user-provided in input file
+      call get_IMF_Bz(val, iError)
+      call IEModel_%imfBz(val)
+
+      call get_IMF_By(val, iError)
+      call IEModel_%imfBy(val)
+
+      call get_SW_V(val, iError)
+      call IEModel_%swV(val)
+
+      call get_SW_N(val, iError)
+      call IEModel_%swN(val)
+
+    endif
 
     if (iError /= 0 .or. .not. isOk) then
       call set_error("IMF values could not be set!")

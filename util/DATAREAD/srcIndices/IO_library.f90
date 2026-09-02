@@ -78,6 +78,36 @@ end subroutine IO_set_SW_n_single
 
 ! ---------------------------------------------------
 
+subroutine IO_set_au_single(AuIn)
+
+  use ModIndices
+  implicit none
+  real, intent(in) :: AuIn
+
+  call init_mod_indices
+
+  nIndices_V(AU_) = 1
+  Indices_TV(1, AU_) = AuIn
+
+end subroutine IO_set_au_single
+
+! ---------------------------------------------------
+
+subroutine IO_set_al_single(ALIn)
+
+  use ModIndices
+  implicit none
+  real, intent(in) :: ALIn
+
+  call init_mod_indices
+
+  nIndices_V(AL_) = 1
+  Indices_TV(1, AL_) = ALIn
+
+end subroutine IO_set_al_single
+
+! ---------------------------------------------------
+
 subroutine IO_set_hpi_single(HpiIn)
 
   use ModIndices
