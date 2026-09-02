@@ -304,10 +304,6 @@ subroutine get_potential(iBlock)
 
   if ((CPCPn == 0) .and. (CPCPs == 0)) then
     if (doStopIfNoPotential) then
-      if (iProc == 0) then
-        write(*, *) "  --> CPCP is zero and the code is stopping."
-        write(*, *) "      if this is wrong, then set the potential and aurora to 'zero'"
-      endif
       call set_error("CPCP is zero and model is not zero! Must Stop!")
       call report_errors
       call stop_gitm("Stopping in get_potential")

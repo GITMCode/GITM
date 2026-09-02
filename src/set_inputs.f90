@@ -628,6 +628,7 @@ subroutine set_inputs
           write(*, *) 'by  (real)'
           write(*, *) 'bz  (real)'
           write(*, *) 'vx  (real)'
+          write(*, *) 'swn  (real)'
           IsDone = .true.
         else
           call IO_set_imf_by_single(by)
@@ -1942,11 +1943,8 @@ subroutine set_inputs
         call read_in_real(au_val, iError)
         call read_in_real(al_val, iError)
         if (iError /= 0) then
-          write(*, *) 'Incorrect format for #SOLARWIND:'
-          write(*, *) 'This sets the driving conditions for the high-latitude'
-          write(*, *) 'electric field models.  This is static for the whole'
-          write(*, *) 'run, though.  It is better to use the MHD\_INDICES'
-          write(*, *) 'command to have dynamic driving conditions.'
+          write(*, *) 'Incorrect format for #SMESINGLE:'
+          write(*, *) 'This sets singular AU/SMU & AL/SML values for an entire run'
           write(*, *) '#SMESINGLE'
           write(*, *) 'au  (real)'
           write(*, *) 'al  (real)'
