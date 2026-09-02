@@ -660,10 +660,6 @@ module ModEUV
     8.00e-18, 4.40e-18, 1.90e-18, 0.60e-18, 0.24e-18, 1.16e-18, &
     0.48e-18, 0.09e-18, .015e-18, .003e-18, .0003e-18/
 
-!
-! For some reason, this one is 10 times larger than the rest...
-!
-
 !sigmas(4,*):
   data PhotoIon_N/ &
     22*0.00, &
@@ -775,11 +771,13 @@ module ModEUV
     1.02e-18, 0.14e-18, .024e-18, .004e-18, .0004e-18/
 
 ! sigaco2:
+! Entry 24 (465.22 A) was 292.52e-18, a misplaced decimal point (9.91x high);
+! now 29.53e-18, matching the 59-bin twin. Live on Mars/Venus, not Earth.
   data PhotoAbsorption_CO2/ &
     18.24e-18, 14.2e-18, 15.1e-18, 50.31e-18, 42.87e-18, 52.08e-18, 44.67e-18, &
     13.98e-18, 39.83e-18, 26.49e-18, 61.94e-18, 93.84e-18, 32.83e-18, 23.52e-18, &
     33.70e-18, 34.45e-18, 34.3e-18, 35.30e-18, 34.91e-18, 34.2e-18, 33.20e-18, 31.49e-18, &
-    30.25e-18, 292.52e-18, 28.27e-18, 24.87e-18, 25.27e-18, 23.57e-18, 21.59e-18, 21.49e-18, &
+    30.25e-18, 29.53e-18, 28.27e-18, 24.87e-18, 25.27e-18, 23.57e-18, 21.59e-18, 21.49e-18, &
     17.52e-18, 19.02e-18, 16.50e-18, 14.36e-18, 9.09e-18, 4.61e-18, 1.55e-18/
 !
 
@@ -948,11 +946,17 @@ module ModEUV
     7.20e-19/
 
 ! sigin
+! 550-900 A raised toward TOPbase (via PHIDRATES, Huebner & Mukherjee 2015):
+! the previous values ran 13-27% low there. Factor 1.20 above 600 A, ramping
+! linearly to 1.00 at 450 A, fitted to the band bins only (TOPbase has dense
+! autoionization resonances, so a line-centre sample is not trustworthy).
+! Bin 7 (850-900 A) untouched: it straddles the 853 A threshold. Flux-weighted
+! agreement with TOPbase 0.89 -> 0.99.
   data Photoionization_N/ &
     0.00e+00, 0.00e+00, 0.00e+00, 0.00e+00, 0.00e+00, 0.00e+00, &
-    0.21e-18, 10.29e-18, 11.71e-18, 10.96e-18, 11.24e-18, 11.32e-18, &
-    12.10e-18, 13.26e-18, 12.42e-18, 11.95e-18, 11.21e-18, 11.80e-18, &
-    11.76e-18, 11.78e-18, 11.77e-18, 11.50e-18, 11.02e-18, 10.58e-18, &
+    0.21e-18, 12.35e-18, 14.05e-18, 13.15e-18, 13.49e-18, 13.58e-18, &
+    14.52e-18, 15.91e-18, 14.90e-18, 14.34e-18, 13.45e-18, 14.16e-18, &
+    13.72e-18, 13.89e-18, 13.41e-18, 12.65e-18, 11.39e-18, 10.79e-18, &
     9.56e-18, 8.15e-18, 8.30e-18, 7.30e-18, 6.41e-18, 6.40e-18, &
     5.24e-18, 5.73e-18, 4.87e-18, 3.95e-18, 2.49e-18, 0.99e-18, &
     0.33e-18/
