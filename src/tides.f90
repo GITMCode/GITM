@@ -686,7 +686,7 @@ subroutine update_tides
 
   iLonHalf = pi/dLonGswm
 
-  rfac = float(iTimeArray(5))/60.0 + float(iTimeArray(6))/3600.0
+  rfac = dble(iTimeArray(5))/60.0d0 + dble(iTimeArray(6))/3600.0d0
 
   iFac1 = iTimeArray(4) + 1            ! this will go from 1-24
   iFac2 = mod(iTimeArray(4) + 1, 24) + 1  ! this will go from 2-25 -> 2-24 back to 1

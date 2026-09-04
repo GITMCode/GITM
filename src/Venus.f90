@@ -854,7 +854,7 @@ subroutine nlte_tcool(iBlock)
          call suaviza ( aux2gcmd, n_gcm, 1, auxgcmd )
 
          do i=1,n_gcm
-            q15umco2_gcm(iLon,iLat,i) = sngl( aux2gcmd(i) )
+            q15umco2_gcm(iLon,iLat,i) = dble(aux2gcmd(i))
          enddo
 
      enddo  !-------- END OF MAIN LONGITUDE LOOP

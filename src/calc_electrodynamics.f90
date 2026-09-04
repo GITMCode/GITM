@@ -195,10 +195,10 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
       call stop_gitm("Error allocating array DivJuFieldLineMC")
     endif
 
-    date = iStartTime(1) + float(iJulianDay)/float(jday(iStartTime(1), 12, 31))
+    date = dble(iStartTime(1)) + dble(iJulianDay)/dble(jday(iStartTime(1), 12, 31))
 
-    iStart = float(iProc)/nProcs*(nMagLons + 1) + 1
-    iEnd = float(iProc + 1)/nProcs*(nMagLons + 1)
+    iStart = dble(iProc)/dble(nProcs)*(nMagLons + 1) + 1
+    iEnd = dble(iProc + 1)/dble(nProcs)*(nMagLons + 1)
 
     GeoLatMC = -1.0e32
     GeoLonMC = -1.0e32
@@ -211,9 +211,9 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
         write(*, *) "==> Calculating Apex->Geo", i, iStart, iEnd
       do j = 1, nMagLats
 
-        MagLatMC(i, j) = float(j - 1)*MagLatRes - DynamoHighLatBoundary
+        MagLatMC(i, j) = dble(j - 1)*MagLatRes - DynamoHighLatBoundary
 
-        MagLonMC(i, j) = 360.0*float(i - 1)/float(nMagLons)
+        MagLonMC(i, j) = 360.0d0*dble(i - 1)/dble(nMagLons)
 
         if (UseApex) then
 

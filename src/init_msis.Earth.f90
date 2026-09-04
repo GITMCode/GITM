@@ -276,8 +276,8 @@ subroutine init_msis
   real :: ffactor, h, no
   real, dimension(7)  :: ap = 10.0
 
-  real*4 :: hwm_utime, hwm_alt, hwm_lat, hwm_lon, hwm_lst
-  real*4 :: hwm_f107a, hwm_f107, hwm_ap(2), qw(2)
+  real(8) :: hwm_utime, hwm_alt, hwm_lat, hwm_lon, hwm_lst
+  real(8) :: hwm_f107a, hwm_f107, hwm_ap(2), qw(2)
 
   character(250) :: path = './DataIn/LowerBCs/'
 
@@ -534,8 +534,8 @@ subroutine msis_bcs(iJulianDay, UTime, Alt, LatIn, LonIn, Lst, &
   real :: AP_I(7), ffactor, no
   integer :: iyd, iJulianDayOffset
 
-  real*4 :: hwm_utime, hwm_alt, hwm_lat, hwm_lon, hwm_lst
-  real*4 :: hwm_f107a, hwm_f107, hwm_ap(2), qw(2)
+  real(8) :: hwm_utime, hwm_alt, hwm_lat, hwm_lon, hwm_lst
+  real(8) :: hwm_f107a, hwm_f107, hwm_ap(2), qw(2)
 
   character(250) :: path = './DataIn/LowerBCs/'
 

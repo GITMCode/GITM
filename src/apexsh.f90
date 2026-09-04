@@ -148,7 +148,7 @@ module apxshmodule
   real(8), parameter       :: dtor = pi/180D0, pid2 = pi/2D0, twopi = 2D0*pi
   real(8), parameter       :: Req = 6378.1370D0, eps = 1.D0/298.257223563D0
   real(8), parameter       :: Re = Req*(1 - eps/3D0), ecc2 = eps*(2 - eps)
-  real(4), parameter       :: missing = -9999E0
+  real(8), parameter       :: missing = -9999D0
 
 !   Req = Equatorial radius of Earth in km (WGS84 value)
 !   eps = flatness of ellipsoidal Earth (WGS84 value)
@@ -156,8 +156,8 @@ module apxshmodule
 !   ecc2 = squared eccentricity of ellipsoidal Earth
 
   character(128)           :: datafile
-  real(4)                  :: epoch
-  real(4)                  :: altlastq, altlastg
+  real(8)                  :: epoch
+  real(8)                  :: altlastq, altlastg
   logical                  :: loadflag = .true.
 
 end module apxshmodule
@@ -171,7 +171,7 @@ subroutine loadapxsh(datafilenew, epochnew)
   implicit none
 
   character(128)              :: datafilenew, datafilelast = ''
-  real                        :: epochnew, epochlast = -999.0
+  real(8)                     :: epochnew, epochlast = -999.0d0
   real(8)                     :: we0, we1
   integer(4)                  :: iepoch0, iepoch1, iterm, icoord
 
@@ -211,8 +211,8 @@ subroutine loadapxsh(datafilenew, epochnew)
       gcoeff0(iterm, icoord) = we0*coeff0(iterm, iepoch0, icoord + 3) + we1*coeff0(iterm, iepoch1, icoord + 3)
     enddo
     enddo
-    altlastq = -999.0
-    altlastg = -999.0
+    altlastq = -999.0d0
+    altlastg = -999.0d0
   endif
 
   !UPDATE LOAD VARIABLES
@@ -302,10 +302,10 @@ subroutine apxg2q(glat, glon, alt, vecflagin, qlatout, qlonout, f1, f2, f)
 
   implicit none
 
-  real(4), intent(in)         :: glat, glon, alt
+  real(8), intent(in)         :: glat, glon, alt
   integer(4), intent(in)      :: vecflagin
-  real(4), intent(out)        :: qlatout, qlonout
-  real(4), intent(out)        :: f1(1:2), f2(1:2), f
+  real(8), intent(out)        :: qlatout, qlonout
+  real(8), intent(out)        :: f1(1:2), f2(1:2), f
 
   integer(4)               :: i, l, iterm, itermsh
   real(8)                  :: theta, phi
@@ -371,8 +371,8 @@ subroutine apxg2q(glat, glon, alt, vecflagin, qlatout, qlonout, f1, f2, f)
   qlat = datan2(zq, dsqrt(xq*xq + yq*yq))
   cosqlat = dcos(qlat)
   sinqlat = dsin(qlat)
-  qlonout = sngl(qlon/dtor)
-  qlatout = sngl(qlat/dtor)
+  qlonout = dble(qlon/dtor)
+  qlatout = dble(qlat/dtor)
 
   !BASE VECTOR CALCULATIONS
   if (vecflag .ne. 0) then
@@ -399,10 +399,10 @@ subroutine apxg2q(glat, glon, alt, vecflagin, qlatout, qlonout, f1, f2, f)
     qlongrad(2) = (-sinqlon*xqgrad(2) + cosqlon*yqgrad(2))/J
 
     !RETURN QUASI-DIPOLE BASE VECTORS
-    f1(1) = sngl(qlatgrad(2))
-    f1(2) = sngl(-qlatgrad(1))
-    f2(1) = sngl(-qlongrad(2))
-    f2(2) = sngl(qlongrad(1))
+    f1(1) = dble(qlatgrad(2))
+    f1(2) = dble(-qlatgrad(1))
+    f2(1) = dble(-qlongrad(2))
+    f2(2) = dble(qlongrad(1))
     f = f1(1)*f2(2) - f1(2)*f2(1)
 
   endif
@@ -420,12 +420,12 @@ subroutine apxg2all(glat, glon, alt, hr, vecflagin, &
 
   implicit none
 
-  real(4), intent(in)         :: glat, glon, alt, hr
+  real(8), intent(in)         :: glat, glon, alt, hr
   integer(4), intent(in)      :: vecflagin
-  real(4), intent(out)        :: qlatout, qlonout, mlat, mlon
-  real(4), intent(out)        :: f1(1:2), f2(1:2), f
-  real(4), intent(out)        :: d1(1:3), d2(1:3), d3(1:3), d
-  real(4), intent(out)        :: e1(1:3), e2(1:3), e3(1:3)
+  real(8), intent(out)        :: qlatout, qlonout, mlat, mlon
+  real(8), intent(out)        :: f1(1:2), f2(1:2), f
+  real(8), intent(out)        :: d1(1:3), d2(1:3), d3(1:3), d
+  real(8), intent(out)        :: e1(1:3), e2(1:3), e3(1:3)
 
   integer(4)               :: i
   real(8)                  :: cosmlat, Rrat, denom
@@ -455,7 +455,7 @@ subroutine apxg2all(glat, glon, alt, hr, vecflagin, &
   Rrat = (Re + dble(hr))/Reph
   cosmlat = cosqlat*dsqrt(Rrat)
   if (cosmlat .le. 1D0) then
-    mlat = sngl(dacos(cosmlat)/dtor)
+    mlat = dble(dacos(cosmlat)/dtor)
     if (qlat .lt. 0D0) mlat = -mlat
   endif
 
@@ -474,10 +474,10 @@ subroutine apxg2all(glat, glon, alt, hr, vecflagin, &
     if (denom .le. 0) return
     denom = dsqrt(denom)
     do i = 1, 3
-      d1(i) = sngl(Rrat*dsqrt(Rrat)*qlongrad(i))
-      d2(i) = sngl(-2D0*Rrat*sinqlat*qlatgrad(i)/denom)
+      d1(i) = dble(Rrat*dsqrt(Rrat)*qlongrad(i))
+      d2(i) = dble(-2D0*Rrat*sinqlat*qlatgrad(i)/denom)
     enddo
-    d2(3) = d2(3) - sngl(Rrat*cosqlat/denom)
+    d2(3) = d2(3) - dble(Rrat*cosqlat/denom)
     e3(1) = d1(2)*d2(3) - d1(3)*d2(2)
     e3(2) = d1(3)*d2(1) - d1(1)*d2(3)
     e3(3) = d1(1)*d2(2) - d1(2)*d2(1)
@@ -507,12 +507,12 @@ subroutine apxq2g(qlat0, qlon0, alt, prec, glatout, glonout, error)
 
   implicit none
 
-  real(4), intent(in)         :: qlat0, qlon0, alt, prec
-  real(4), intent(out)        :: glatout, glonout, error
+  real(8), intent(in)         :: qlat0, qlon0, alt, prec
+  real(8), intent(out)        :: glatout, glonout, error
 
   integer(4)               :: l, iterm, itermsh, vecflagin, niter
-  real(4)                  :: qlatout, qlonout, errorlast
-  real(4)                  :: mlon, f1(1:2), f2(1:2), f
+  real(8)                  :: qlatout, qlonout, errorlast
+  real(8)                  :: mlon, f1(1:2), f2(1:2), f
   real(8)                  :: theta, phi
   real(8)                  :: sinqlon0, cosqlon0, sinqlat0, cosqlat0, cotqlat0, zfact
   real(8)                  :: glat, glon
@@ -558,8 +558,8 @@ subroutine apxq2g(qlat0, qlon0, alt, prec, glatout, glonout, error)
   zg = dot_product(sh, zgcoeff)
   glon = datan2(yg, xg)
   glat = datan2(zg, dsqrt(xg*xg + yg*yg))
-  glatout = sngl(glat/dtor)
-  glonout = sngl(glon/dtor)
+  glatout = dble(glat/dtor)
+  glonout = dble(glon/dtor)
   error = missing
 
   !COMPUTE REFINED GEODETIC COORDINATES
@@ -576,13 +576,13 @@ subroutine apxq2g(qlat0, qlon0, alt, prec, glatout, glonout, error)
     sinqlat0 = dcos(theta)
     coserror = sinqlat0*sinqlat + cosqlat0*cosqlat*cos(phi - qlon)
     if (coserror .gt. 1) coserror = 1D0
-    error = sngl(acos(coserror)/dtor)
+    error = dble(acos(coserror)/dtor)
     niter = 0
-    errorlast = 9999.0
+    errorlast = 9999.0d0
     !OUTSIDE OF QD POLES
-    if ((abs(qlat0) .lt. 88.0) .and. (error .gt. prec)) then
+    if ((abs(qlat0) .lt. 88.0d0) .and. (error .gt. prec)) then
       vecflagin = 0
-      do while ((error .gt. prec) .and. (niter .lt. 10) .and. (error .lt. 1.3*errorlast))
+      do while ((error .gt. prec) .and. (niter .lt. 10) .and. (error .lt. 1.3d0*errorlast))
         delqlon = phi - qlon
         if (abs(delqlon) .gt. pi) delqlon = -sign(twopi - abs(delqlon), delqlon)
         delqlon = cosqlat0*delqlon
@@ -590,13 +590,13 @@ subroutine apxq2g(qlat0, qlon0, alt, prec, glatout, glonout, error)
         xg = xg + xggrad(1)*delqlon + xggrad(2)*delqlat
         yg = yg + yggrad(1)*delqlon + yggrad(2)*delqlat
         zg = zg + zggrad(1)*delqlon + zggrad(2)*delqlat
-        glonout = sngl(datan2(yg, xg)/dtor)
-        glatout = sngl(datan2(zg, dsqrt(xg*xg + yg*yg))/dtor)
+        glonout = dble(datan2(yg, xg)/dtor)
+        glatout = dble(datan2(zg, dsqrt(xg*xg + yg*yg))/dtor)
         call apxg2q(glatout, glonout, alt, vecflagin, qlatout, qlonout, f1, f2, f)
         coserror = sinqlat0*sinqlat + cosqlat0*cosqlat*cos(phi - qlon)
         if (coserror .gt. 1) coserror = 1D0
         errorlast = error
-        error = sngl(acos(coserror)/dtor)
+        error = dble(acos(coserror)/dtor)
         niter = niter + 1
       enddo
       !NEAR QD POLES
@@ -606,20 +606,20 @@ subroutine apxq2g(qlat0, qlon0, alt, prec, glatout, glonout, error)
       cotqlat0 = cosqlat0/sinqlat0
       cosglat = dcos(glat)
       vecflagin = 1
-      do while ((error .gt. prec) .and. (niter .lt. 10) .and. (error .lt. 1.3*errorlast))
+      do while ((error .gt. prec) .and. (niter .lt. 10) .and. (error .lt. 1.3d0*errorlast))
         zfact = zq*cotqlat0
         delxq = zfact*cosqlon0 - xq
         delyq = zfact*sinqlon0 - yq
         denom = xqgrad(1)*yqgrad(2) - xqgrad(2)*yqgrad(1)
         glon = glon + (delxq*yqgrad(2) - delyq*xqgrad(2))/denom/cosglat
         glat = glat + (delyq*xqgrad(1) - delxq*yqgrad(1))/denom
-        glonout = sngl(glon/dtor)
-        glatout = sngl(glat/dtor)
+        glonout = dble(glon/dtor)
+        glatout = dble(glat/dtor)
         call apxg2q(glatout, glonout, alt, vecflagin, qlatout, qlonout, f1, f2, f)
         coserror = sinqlat0*sinqlat + cosqlat0*cosqlat*cos(phi - qlon)
         if (coserror .gt. 1) coserror = 1D0
         errorlast = error
-        error = sngl(acos(coserror)/dtor)
+        error = dble(acos(coserror)/dtor)
         niter = niter + 1
       enddo
     endif
@@ -780,4 +780,3 @@ subroutine alfbasis(nmax, mmax, theta, P, V, W)
 end subroutine alfbasis
 
 !***************************************************************************************************
-

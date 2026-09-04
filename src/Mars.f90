@@ -1875,7 +1875,7 @@ subroutine calc_gw(iBlock)
 
       !C Calculate the Reference Pressure Grid (prdst)
 
-      refpr = (5.0*psf/ptrop)**(1.0/(float(npdst) - 1.0))
+      refpr = (5.0d0*psf/ptrop)**(1.0d0/(dble(npdst) - 1.0d0))
       prdst(1) = ptrop
 
       do n = 2, npdst
