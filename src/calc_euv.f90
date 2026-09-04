@@ -794,6 +794,8 @@ subroutine init_euv
   PhotoAbs_CO2 = PhotoAbs_CO2/10000.0
   PhotoAbs_CO = PhotoAbs_CO/10000.0
   PhotoAbs_He = PhotoAbs_He/10000.0
+  PhotoAbs_H2 = PhotoAbs_H2/10000.0
+  PhotoAbs_NO = PhotoAbs_NO/10000.0
 
   PhotoIon_O2 = PhotoIon_O2/10000.0
   PhotoIon_CO2 = PhotoIon_CO2/10000.0
@@ -803,6 +805,8 @@ subroutine init_euv
   PhotoIon_N = PhotoIon_N/10000.0
   PhotoIon_OPlus2D = PhotoIon_OPlus2D/10000.0
   PhotoIon_OPlus2P = PhotoIon_OPlus2P/10000.0
+  PhotoIon_H2 = PhotoIon_H2/10000.0
+  PhotoIon_NO = PhotoIon_NO/10000.0
 
   if (UseRidleyEUV) call read_euv_waves(iError)
 

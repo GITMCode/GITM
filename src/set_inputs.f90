@@ -1041,6 +1041,16 @@ subroutine set_inputs
           IsDone = .true.
         endif
 
+      case ("#NOPHOTOIONTABLE")
+        call read_in_logical(UseNOPhotoIonTable, iError)
+        if (iError /= 0) then
+          write(*, *) 'Incorrect format for #NOPHOTOIONTABLE:'
+          write(*, *) ''
+          write(*, *) '#NOPHOTOIONTABLE'
+          write(*, *) "UseNOPhotoIonTable  (logical)"
+          IsDone = .true.
+        endif
+
       case ("#THERMALDIFFUSION")
         call read_in_real(KappaTemp0, iError)
         if (iError /= 0) then
