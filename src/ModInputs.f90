@@ -367,6 +367,7 @@ module ModInputs
 
   logical                   :: UseEUVData = .false.
   character(len=iCharLen_) :: cEUVFile
+  real :: EUV_Ratio_Empirical = 1.0
 
   !\
   ! Eclipse Information

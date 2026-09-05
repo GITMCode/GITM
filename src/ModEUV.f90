@@ -96,45 +96,47 @@ module ModEUV
     F74113, AFAC, &
     EUV_Flux
 
-  real, dimension(1:Num_WaveLengths_High) :: RLMEUV, Flux_of_EUV, &
-                                             BranchingRatio_N2, BranchingRatio_O2, &
-                                             PhotoAbs_O2, PhotoAbs_O, PhotoAbs_N2, &
-                                             PhotoIon_O2, PhotoIon_OPLus4S, PhotoIon_N2, PhotoIon_N, &
-                                             PhotoElec_O2_O2Plus, PhotoElec_O2_OPlus, PhotoElec_O2_O3P, &
-                                             PhotoElec_N2_N2Plus, PhotoElec_N2_NPlus, PhotoElec_N2_N4S, &
-                                             PhotoElec_CH4_CH4Plus, PhotoElec_CH4_CH3Plus, &
-                                             PhotoElec_O_O4SPlus, PhotoElec_O_O2DPlus, PhotoElec_O_O2PPlus, &
-                                             PhotoIon_OPlus2D, PhotoIon_OPLus2P, &
-                                             WAVEL, WAVES, RFLUX, XFLUX, SCALE1, SCALE2, &
-                                             TCHR0, TCHR1, TCHR2, TCOR0, TCOR1, TCOR2, WAR1, WAR2, &
-                                             Solar_Flux, PhotonEnergy, &
-                                             PhotoAbs_CO2, PhotoAbs_CO2_295, PhotoAbs_CO2_195, &
-                                             PhotoAbs_CO, PhotoIon_CO2, PhotoIon_CO, &
-                                             PhotoAbs_CH4, PhotoAbs_H2, PhotoAbs_HCN, &
-                                             PhotoIon_CH4, PhotoIon_H2, PhotoIon_HCN, &
-                                             PhotoAbs_He, &
-                                             BranchingRatio_CO2_to_CO2Plus, BranchingRatio_CO2_to_OPlus, &
-                                             BranchingRatio_CO2_to_COPlus, BranchingRatio_N2_to_N2Plus, &
-!!
-!! NOTA BENE NOTA BENE:  JMB
-!! Please Note that these QuantunYields
-!! Are Relative to the TOTAL ABSORPTION COEFFICIENT
-!! They are NOT Relative to the Dissociation or Ioniziaton Coeficients!!!
-!!
-                                             QuantumYield_N2_N4S, &
-                                             QuantumYield_N2_N2Plus, &
-                                             QuantumYield_N2_NPlus, &
-                                             QuantumYield_CH4_CH3, &
-                                             QuantumYield_CH4_1CH2, &
-                                             QuantumYield_CH4_3CH2, &
-                                             QuantumYield_CH4_CH, &
-                                             QuantumYield_CH4_CH3Plus
+  real, dimension(1:Num_WaveLengths_High) :: &
+       RLMEUV, Flux_of_EUV, &
+       BranchingRatio_N2, BranchingRatio_O2, &
+       PhotoAbs_O2, PhotoAbs_O, PhotoAbs_N2, &
+       PhotoIon_O2, PhotoIon_OPLus4S, PhotoIon_N2, PhotoIon_N, &
+       PhotoElec_O2_O2Plus, PhotoElec_O2_OPlus, PhotoElec_O2_O3P, &
+       PhotoElec_N2_N2Plus, PhotoElec_N2_NPlus, PhotoElec_N2_N4S, &
+       PhotoElec_CH4_CH4Plus, PhotoElec_CH4_CH3Plus, &
+       PhotoElec_O_O4SPlus, PhotoElec_O_O2DPlus, PhotoElec_O_O2PPlus, &
+       PhotoIon_OPlus2D, PhotoIon_OPLus2P, &
+       WAVEL, WAVES, RFLUX, XFLUX, SCALE1, SCALE2, &
+       TCHR0, TCHR1, TCHR2, TCOR0, TCOR1, TCOR2, WAR1, WAR2, &
+       Solar_Flux, PhotonEnergy, &
+       PhotoAbs_CO2, PhotoAbs_CO2_295, PhotoAbs_CO2_195, &
+       PhotoAbs_CO, PhotoIon_CO2, PhotoIon_CO, &
+       PhotoAbs_CH4, PhotoAbs_H2, PhotoAbs_HCN, &
+       PhotoIon_CH4, PhotoIon_H2, PhotoIon_HCN, &
+       PhotoAbs_He, &
+       BranchingRatio_CO2_to_CO2Plus, BranchingRatio_CO2_to_OPlus, &
+       BranchingRatio_CO2_to_COPlus, BranchingRatio_N2_to_N2Plus, &
+       !!
+       !! NOTA BENE NOTA BENE:  JMB
+       !! Please Note that these QuantunYields
+       !! Are Relative to the TOTAL ABSORPTION COEFFICIENT
+       !! They are NOT Relative to the Dissociation or Ioniziaton Coeficients!!!
+       !!
+       QuantumYield_N2_N4S, &
+       QuantumYield_N2_N2Plus, &
+       QuantumYield_N2_NPlus, &
+       QuantumYield_CH4_CH3, &
+       QuantumYield_CH4_1CH2, &
+       QuantumYield_CH4_3CH2, &
+       QuantumYield_CH4_CH, &
+       QuantumYield_CH4_CH3Plus
 
   real, allocatable :: CO2_Abs_Fac(:, :, :, :, :)
 
   real, dimension(1:Num_WaveLengths_High) :: PhotoAbs_NO, PhotoIon_NO
 
   real :: EUVEFF
+  real :: TotalIntegratedEuvEnergy
 
   real, dimension(1:4) :: Quench
 

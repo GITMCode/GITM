@@ -103,6 +103,7 @@ subroutine logfile(dir)
   use ModIndicesInterfaces
   use ModIoUnit, ONLY: io_unit_new
   use ModUtilities, ONLY: flush_unit
+  use ModEuv, only: TotalIntegratedEuvEnergy
 
   implicit none
 
@@ -168,7 +169,8 @@ subroutine logfile(dir)
       "        HP       HPn       HPs  HPn_diff  HPs_diff"// &
       "     HPn_w     HPs_w     HPn_m     HPs_m"// &
       "     CPCPn     CPCPs"// &
-      " SubsolarLon SubsolarLat SubsolarVTEC"
+      " SubsolarLon SubsolarLat SubsolarVTEC" // &
+      " IntegratedEUV"
 
   endif
 
@@ -277,7 +279,7 @@ subroutine logfile(dir)
       Hpi, HPn/1.0e9, HPs/1.0e9, &
       HPn_d/1.0e9, HPs_d/1.0e9, HPn_w/1.0e9, HPs_w/1.0e9, HPn_m/1.0e9, HPs_m/1.0e9, &
       CPCPn, CPCPs, &
-      SSLon, SSLat, SSVTEC
+      SSLon, SSLat, SSVTEC, TotalIntegratedEuvEnergy
 
     call flush_unit(iLogFileUnit_)
   endif
@@ -647,6 +649,7 @@ subroutine write_code_information(dir)
     write(iCodeInfoFileUnit_, *) "#EUV_DATA"
     write(iCodeInfoFileUnit_, *) UseEUVData
     write(iCodeInfoFileUnit_, *) trim(cEUVFile)
+    write(iCodeInfoFileUnit_, *) EUV_Ratio_Empirical
     write(iCodeInfoFileUnit_, *) ""
 
     write(iCodeInfoFileUnit_, *) "#RESTART"
