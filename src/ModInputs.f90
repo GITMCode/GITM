@@ -284,8 +284,6 @@ module ModInputs
   logical :: UseSolarHeating = .true.
   logical :: UseJouleHeating = .true.
   logical :: UseNOCooling = .true.
-  ! NO through the EUV tables (PhotoAbs_NO/PhotoIon_NO) instead of the proxy in calc_chemistry
-  logical :: UseNOPhotoIonTable = .true.
   logical :: UseOCooling = .true.
   logical :: UseConduction = .true.
   logical :: UseTurbulentCond = .true.
