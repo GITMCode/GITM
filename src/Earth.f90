@@ -13,7 +13,6 @@ subroutine fill_photo
 
   use ModPlanet
   use ModEUV
-  use ModInputs, only: UseNOPhotoIonTable
 
   implicit none
 
@@ -60,12 +59,9 @@ subroutine fill_photo
   PhotoIonFrom(iO_2PP_) = iO_3P_
   PhotoIonFrom(iHeP_) = iHe_
 
-  ! NO through the same path as other species
-  if (UseNOPhotoIonTable) then
-    photoabs(:, iNO_) = PhotoAbs_NO
-    photoion(:, iNOP_) = PhotoIon_NO
-    PhotoIonFrom(iNOP_) = iNO_
-  endif
+  photoabs(:, iNO_) = PhotoAbs_NO
+  photoion(:, iNOP_) = PhotoIon_NO
+  PhotoIonFrom(iNOP_) = iNO_
 
   ! Photoelectrons:
   ! N2:
