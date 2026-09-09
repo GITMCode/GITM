@@ -545,6 +545,12 @@ subroutine write_code_information(dir)
     write(iCodeInfoFileUnit_, *) MinIonDensityAdvect
     write(iCodeInfoFileUnit_, *) ""
 
+    write(iCodeInfoFileUnit_, *) "#USEIMPROVEDIONADVECTION"
+    write(iCodeInfoFileUnit_, *) UseImprovedIonAdvection
+    write(iCodeInfoFileUnit_, *) UseNighttimeIonBCs
+    write(iCodeInfoFileUnit_, *) MinTEC
+    write(iCodeInfoFileUnit_, *) ""
+
     write(iCodeInfoFileUnit_, *) "#AUSMSOLVER"
     write(iCodeInfoFileUnit_, *) UseAUSMSolver
     write(iCodeInfoFileUnit_, *) ""
