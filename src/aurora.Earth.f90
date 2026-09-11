@@ -372,6 +372,9 @@ contains
 
     real :: hpi_NH, hpi_SH, Hpi
     real :: LocalVar, HPn, HPs, avepower, ratio, ratio_NH, ratio_SH
+    logical :: UseHpAeforFTA
+
+    UseHpAeforFTA = .true.
 
     HPn = 0
     HPs = 0
@@ -387,22 +390,24 @@ contains
     call MPI_REDUCE(LocalVar, HPs, 1, MPI_REAL, MPI_SUM, &
                     0, iCommGITM, iError)
 
-    ! Average north and south together
-    avepower = (HPn + HPs)/2.0
+    if (iProc == 0) then
+        ! Average north and south together
+        avepower = (HPn + HPs)/2.0
 
-    if (avepower == 0) then
-      call set_error("AvePower is zero!")
-      avepower = 1.0
-    endif
+        if (avepower == 0) then
+          call set_error("AvePower is zero!")
+          avepower = 1.0
+        endif
 
-    ! If we are only have one hemisphere or the other, assign to avepower
-    if (HPs < 0.1*HPn) then
-      avepower = HPn
-      HPs = HPn
-    endif
-    if (HPn < 0.1*HPs) then
-      avepower = HPs
-      HPn = HPs
+        ! If we are only have one hemisphere or the other, assign to avepower
+        if (HPs < 0.1*HPn) then
+          avepower = HPn
+          HPs = HPn
+        endif
+        if (HPn < 0.1*HPs) then
+          avepower = HPs
+          HPn = HPs
+        endif
     endif
 
     call MPI_Bcast(avepower, 1, MPI_Real, 0, iCommGITM, ierror)
@@ -410,8 +415,20 @@ contains
     call MPI_Bcast(HPn, 1, MPI_Real, 0, iCommGITM, ierror)
 
     if (DoSeparateHPI) then
-      call get_hpi_n(CurrentTime, hpi_NH, iError)
-      call get_hpi_s(CurrentTime, hpi_SH, iError)
+
+      if (UseHpAeforFTA) then
+          if (IEModel_%isFtaLimit) then
+              call project_hp_ae(Hpi_NH,HPn)
+              call project_hp_ae(Hpi_SH,HPs)
+          else
+              Hpi_NH = HPn
+              Hpi_SH = HPs
+          endif
+      else
+
+          call get_hpi_n(CurrentTime, hpi_NH, iError)
+          call get_hpi_s(CurrentTime, hpi_SH, iError)
+      endif
 
       if (Hps == 0) call set_error("HPs is zero!")
       if (Hpn == 0) call set_error("HPn is zero!")
@@ -421,7 +438,16 @@ contains
 
     else
 
-      call get_hpi(CurrentTime, Hpi, iError)
+      if (UseHpAeforFTA) then
+          if (IEModel_%isFtaLimit) then
+              call project_hp_ae(HPi,avepower)
+          else
+              HPi = avepower
+          endif
+      else
+          call get_hpi(CurrentTime, Hpi, iError)
+      endif
+
       ratio_NH = Hpi/HPn
       ratio_SH = Hpi/HPs
 
@@ -465,6 +491,20 @@ contains
       enddo
     enddo
   end subroutine NormalizeDiffuseAuroraToHP
+
+  subroutine project_hp_ae(hpi,HP)
+    ! for FTA model, scale hp with AE index
+
+    real, intent(in) :: HP
+    real, intent(out) :: hpi
+    real :: ae
+    integer :: iError
+
+    call get_ae(CurrentTime,ae,iError)
+    hpi = 0.085 * (ae - IEModel_%FtaAe) + HP  ! rate from NOAA HP 
+
+  end subroutine project_hp_ae
+
 
   subroutine calculate_HP(HPn, HPs)
     ! Calculate hemispheric power in n/s (NPn, HPs)
