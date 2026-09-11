@@ -1278,9 +1278,9 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
 
   solver_a_mc = 4*deltalmc**2*sigmappmc/cos(MagLatMC*pi/180)
   solver_b_mc = 4*deltapmc**2*cos(MagLatMC*pi/180)*sigmallmc
-  solver_c_mc = deltalmc*deltapmc*(SigmaPLmc + SigmaLPmc)
+  solver_c_mc = sign(1.0, MagLatMC) * deltalmc*deltapmc*(SigmaPLmc + SigmaLPmc)
 
-  solver_d_mc = 2.0*deltalmc*deltapmc**2* &
+  solver_d_mc = 2.0*sign(1.0, MagLatMC) * deltalmc*deltapmc**2* &
                 (dSigmaPLdpMC - sign(1.0, MagLatMC)*sin(MagLatMC*pi/180)*sigmallmc &
                  + cos(MagLatMC*pi/180)*dSigmaLLdlMC*sign(1.0, MagLatMC))
 
@@ -1518,18 +1518,18 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
   DynamoPotentialMC(:, 1) = 0.0
   DynamoPotentialMC(:, nMagLats) = 0.0
 
-  ! --------------------------------------------------------------------------
-  ! This is mapping the northern hemisphere onto the southern hemisphere.
-  ! Should we really be doing this????? -dw
-  OldPotMC = DynamoPotentialMC
+  !! --------------------------------------------------------------------------
+  !! This is mapping the northern hemisphere onto the southern hemisphere.
+  !! Should we really be doing this????? -dw
+  !OldPotMC = DynamoPotentialMC
 
-  do iLat = 2, nMagLats/2
-    do iLon = 1, nMagLons
-      iI = nMagLats - iLat + 1
-      DynamoPotentialMC(iLon, iLat) = OldPotMC(iLon, iI)
-    enddo
-  enddo
-  ! --------------------------------------------------------------------------
+  !do iLat = 2, nMagLats/2
+  !  do iLon = 1, nMagLons
+  !    iI = nMagLats - iLat + 1
+  !    DynamoPotentialMC(iLon, iLat) = OldPotMC(iLon, iI)
+  !  enddo
+  !enddo
+  !! --------------------------------------------------------------------------
 
   DynamoPotentialMC(nMagLons + 1, :) = DynamoPotentialMC(1, :)
 
