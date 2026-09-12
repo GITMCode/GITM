@@ -248,6 +248,9 @@ subroutine calc_planet_sources(iBlock)
     ! In w/m3/3
     OCooling = OCooling/10.0
 
+    ! The non-LTE factor the reference above calls for
+    OCooling = OCooling*0.5
+
     OCooling2d = 0.0
     do iAlt = 1, nAlts
       RadiativeCooling2d(1:nLons, 1:nLats) = &
