@@ -434,7 +434,7 @@ tide.
 
 UseOBCExperiment - use MSIS \[O\] BC shifted by 6 months Only applicable
 for MSIS00! MsisOblateFactor - alt = alt \* (1.0-f/2 + f\*cos(lat)) -
-seems like -0.1 works well
+Earth defaults are T / -0.1
 
     #MSISOBC
     UseOBCExperiment        (logical)

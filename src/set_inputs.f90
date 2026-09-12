@@ -348,7 +348,7 @@ subroutine set_inputs
           write(*, *) 'UseOBCExperiment - use MSIS [O] BC shifted by 6 months'
           write(*, *) '                   Only applicable for MSIS00!'
           write(*, *) 'MsisOblateFactor - alt = alt * (1.0-f/2 + f*cos(lat))'
-          write(*, *) '                 - seems like -0.1 works well'
+          write(*, *) '                 - Earth default -0.1'
           write(*, *) '#MSISOBC'
           write(*, *) 'UseOBCExperiment        (logical)'
           write(*, *) 'MsisOblateFactor           (real)'

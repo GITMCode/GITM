@@ -491,6 +491,8 @@ contains
 
     if (IsEarth) then
       PhotoElectronHeatingEfficiency = 0.06
+      UseOBCExperiment = .true.
+      MsisOblateFactor = -0.1
       ! The EUV multiplier and the conduction exponent are linked & were fit
       ! together against HASDM density spanning F10.7a 99-223.  Changing either
       ! alone moves the thermosphere by ~0.15 ln(model/obs).
