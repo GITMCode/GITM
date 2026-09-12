@@ -91,6 +91,8 @@ module ModInputs
   logical::AllowAurWODiffuse = .false.
   real :: MaxAveEAurora = 80.0
 
+  real :: HeAuroraFactor = 0.14
+
   logical :: UseCusp = .false.
   real :: CuspAveE = 0.1
   real :: CuspEFlux = 2.0
@@ -162,7 +164,15 @@ module ModInputs
   real :: dHFactor = 0.3
 
   real :: AltMin = 100.0*1000.0
-  real :: AltMax = 500.0*1000.0
+  real :: AltMax = -1
+
+  ! Coarsest spacing and highest top GITM is tested at
+  real, parameter :: dHFactorLimit = 0.3
+  real, parameter :: AltMaxLimit = 1100.0*1000.0
+
+  ! Whether the user set these, or they are still at their defaults
+  logical :: IsDHFactorSet = .false.
+  logical :: IsAltMaxSet = .false.
 
   real :: ConcentrationLatitude = 45.0
   real :: StretchingPercentage = 0.0
@@ -267,6 +277,7 @@ module ModInputs
   logical :: IncludeCowling = .false.
   real    :: DynamoLonAverage = 10.0
   real    :: DynamoFracPotentialCutoff = 0.0
+  logical :: UseGmres = .false.
   logical :: doDynamoHemisphericMirror = .true.
   logical :: doUseMagnetoPotentialBCs = .true.
   logical :: doDynamoLatBlend = .true.
@@ -307,6 +318,12 @@ module ModInputs
 
   real :: PhotoElectronHeatingEfficiency = 0.0
   real :: NeutralHeatingEfficiency = 0.05
+
+  ! EUV scaling, base + slope*(F107a - ref) against the driven 81-day mean.
+  ! These are the non-planet defaults; Earth's tuned values are set below.
+  real :: EuvScaleBase = 1.0
+  real :: EuvScaleSlope = 0.0
+  real :: EuvScaleF107aRef = 150.0
 
   real :: KappaTemp0 = 5.6e-4
   real :: ThermalConduction_AO2 = 3.6e-4
@@ -474,6 +491,14 @@ contains
 
     if (IsEarth) then
       PhotoElectronHeatingEfficiency = 0.06
+      UseOBCExperiment = .true.
+      MsisOblateFactor = -0.1
+      ! The EUV multiplier and the conduction exponent are linked & were fit
+      ! together against HASDM density spanning F10.7a 99-223.  Changing either
+      ! alone moves the thermosphere by ~0.15 ln(model/obs).
+      EuvScaleBase = 1.075
+      EuvScaleSlope = 0.0019
+      ThermalConduction_s = 0.72
     endif
 
     tSimulation = 0.0

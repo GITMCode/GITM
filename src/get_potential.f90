@@ -643,7 +643,7 @@ subroutine set_ie_indices(IEModel_, TimeIn)
   if (IEModel_%doReadMHD) then
 
     ! Values change thru time, this is the default
-    if (UseVariableInputs) then 
+    if (UseVariableInputs) then
 
       call read_MHDIMF_Indices_new( &
         iError, &
@@ -670,7 +670,7 @@ subroutine set_ie_indices(IEModel_, TimeIn)
       call get_SW_N(TimeIn, val, iError)
       if (val > 80) val = 50
       call IEModel_%swN(val)
-    
+
     else ! Indices are single-valued. These are user-provided in input file
       call get_IMF_Bz(val, iError)
       call IEModel_%imfBz(val)

@@ -76,7 +76,6 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
   integer :: iStart, iEnd, iAve
 
   logical :: UseNewTrace = .false.
-  logical :: useGmres = .false.
 
   external :: matvec_gitm
 
@@ -1591,8 +1590,6 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
   else
     DoTestMe = .false.
   endif
-
-  useGmres = .false.
 
   if (useGmres) then
     call gmres(matvec_gitm, b, x, .true., nX, &

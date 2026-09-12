@@ -169,7 +169,7 @@ subroutine logfile(dir)
       "        HP       HPn       HPs  HPn_diff  HPs_diff"// &
       "     HPn_w     HPs_w     HPn_m     HPs_m"// &
       "     CPCPn     CPCPs"// &
-      " SubsolarLon SubsolarLat SubsolarVTEC" // &
+      " SubsolarLon SubsolarLat SubsolarVTEC"// &
       " IntegratedEUV"
 
   endif
@@ -409,6 +409,12 @@ subroutine write_code_information(dir)
     write(iCodeInfoFileUnit_, *) NeutralHeatingEfficiency
     write(iCodeInfoFileUnit_, *) ""
 
+    write(iCodeInfoFileUnit_, *) "#EUVSCALE"
+    write(iCodeInfoFileUnit_, *) EuvScaleBase
+    write(iCodeInfoFileUnit_, *) EuvScaleSlope
+    write(iCodeInfoFileUnit_, *) EuvScaleF107aRef
+    write(iCodeInfoFileUnit_, *) ""
+
     write(iCodeInfoFileUnit_, *) "#CFL"
     write(iCodeInfoFileUnit_, *) cfl
     write(iCodeInfoFileUnit_, *) ""
@@ -457,6 +463,10 @@ subroutine write_code_information(dir)
     write(iCodeInfoFileUnit_, *) AveEFactor
     write(iCodeInfoFileUnit_, *) IsKappaAurora
     write(iCodeInfoFileUnit_, *) AuroraKappa
+    write(iCodeInfoFileUnit_, *) ""
+
+    write(iCodeInfoFileUnit_, *) "#HEAURORA"
+    write(iCodeInfoFileUnit_, *) HeAuroraFactor
     write(iCodeInfoFileUnit_, *) ""
 
     write(iCodeInfoFileUnit_, *) "#AURORATYPES"
@@ -545,12 +555,22 @@ subroutine write_code_information(dir)
     write(iCodeInfoFileUnit_, *) MinIonDensityAdvect
     write(iCodeInfoFileUnit_, *) ""
 
+    write(iCodeInfoFileUnit_, *) "#USEIMPROVEDIONADVECTION"
+    write(iCodeInfoFileUnit_, *) UseImprovedIonAdvection
+    write(iCodeInfoFileUnit_, *) UseNighttimeIonBCs
+    write(iCodeInfoFileUnit_, *) MinTEC
+    write(iCodeInfoFileUnit_, *) ""
+
     write(iCodeInfoFileUnit_, *) "#AUSMSOLVER"
     write(iCodeInfoFileUnit_, *) UseAUSMSolver
     write(iCodeInfoFileUnit_, *) ""
 
     write(iCodeInfoFileUnit_, *) "#VERTICALSOURCES"
     write(iCodeInfoFileUnit_, *) MaximumVerticalVelocity
+    write(iCodeInfoFileUnit_, *) ""
+
+    write(iCodeInfoFileUnit_, *) "#DYNAMOSOLVER"
+    write(iCodeInfoFileUnit_, *) UseGmres
     write(iCodeInfoFileUnit_, *) ""
 
     write(iCodeInfoFileUnit_, *) "#DYNAMO"

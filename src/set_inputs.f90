@@ -348,7 +348,7 @@ subroutine set_inputs
           write(*, *) 'UseOBCExperiment - use MSIS [O] BC shifted by 6 months'
           write(*, *) '                   Only applicable for MSIS00!'
           write(*, *) 'MsisOblateFactor - alt = alt * (1.0-f/2 + f*cos(lat))'
-          write(*, *) '                 - seems like -0.1 works well'
+          write(*, *) '                 - Earth default -0.1'
           write(*, *) '#MSISOBC'
           write(*, *) 'UseOBCExperiment        (logical)'
           write(*, *) 'MsisOblateFactor           (real)'
@@ -822,6 +822,18 @@ subroutine set_inputs
           IsDone = .true.
         endif
 
+      case ("#HEAURORA")
+        call read_in_real(HeAuroraFactor, iError)
+        if (iError /= 0) then
+          write(*, *) 'Incorrect format for #HEAURORA'
+          write(*, *) 'This toggles He auroral ionization.'
+          write(*, *) '0.14 is the default, set to 0.0 to disable'
+          write(*, *) ''
+          write(*, *) '#HEAURORA'
+          write(*, *) 'HeAuroraFactor (real)'
+          IsDone = .true.
+        endif
+
       case ("#USECUSP")
         call read_in_logical(UseCusp, iError)
         call read_in_real(CuspAveE, iError)
@@ -994,6 +1006,20 @@ subroutine set_inputs
           write(*, *) ''
           write(*, *) '#NEUTRALHEATING'
           write(*, *) "NeutralHeatingEfficiency   (real)"
+          IsDone = .true.
+        endif
+
+      case ("#EUVSCALE")
+        call read_in_real(EuvScaleBase, iError)
+        call read_in_real(EuvScaleSlope, iError)
+        call read_in_real(EuvScaleF107aRef, iError)
+        if (iError /= 0) then
+          write(*, *) 'Incorrect format for #EUVSCALE:'
+          write(*, *) ''
+          write(*, *) '#EUVSCALE'
+          write(*, *) "EuvScaleBase       (real) multiplier on the whole EUV spectrum at F107a = ref"
+          write(*, *) "EuvScaleSlope      (real) change in that multiplier per unit F107a"
+          write(*, *) "EuvScaleF107aRef   (real) reference F107a"
           IsDone = .true.
         endif
 
@@ -1173,6 +1199,16 @@ subroutine set_inputs
           write(*, *) "TestViscosityFactor      (real)"
         endif
 
+      case ("#DYNAMOSOLVER")
+        call read_in_logical(UseGmres, iError)
+        if (iError /= 0) then
+          write(*, *) 'Incorrect format for #DYNAMOSOLVER:'
+          write(*, *) ''
+          write(*, *) '#DYNAMOSOLVER'
+          write(*, *) "UseGmres      (logical) T = gmres, F = bicgstab"
+          IsDone = .true.
+        endif
+
       case ("#DYNAMO")
         call read_in_logical(UseDynamo, iError)
         if (UseDynamo) then
@@ -1307,10 +1343,12 @@ subroutine set_inputs
         call read_in_logical(UseStretchedAltitude, iError)
         if (iError /= 0) then
           write(*, *) 'Incorrect format for #ALTITUDE'
-          write(*, *) 'For Earth, the AltMin is the only variable used here.'
-          write(*, *) 'The altitudes are set to 0.3 times the scale height'
-          write(*, *) 'reported by MSIS, at the equator for the specified'
-          write(*, *) 'F107 and F107a values.'
+          write(*, *) 'On a stretched grid, levels are spaced dHFactor times the'
+          write(*, *) 'scale height MSIS reports at the equator, and AltMax is a'
+          write(*, *) 'ceiling: dHFactor is reduced until the top level falls'
+          write(*, *) 'under it.  Give a negative AltMax for no ceiling.'
+          write(*, *) 'On a uniform grid (UseStretchedAltitude F) AltMax is the'
+          write(*, *) 'top of the grid and must be given.'
           write(*, *) '#ALTITUDE'
           write(*, *) 'AltMin                (real, km)'
           write(*, *) 'AltMax                (real, km)'
@@ -1318,6 +1356,13 @@ subroutine set_inputs
         else
           AltMin = AltMin*1000.0
           AltMax = AltMax*1000.0
+          ! Only a positive AltMax is a ceiling init_altitude has to honour
+          IsAltMaxSet = AltMax > 0.0
+          if (.not. UseStretchedAltitude .and. AltMax <= 0.0) then
+            write(*, *) 'A uniform grid needs a positive AltMax to span.'
+            write(*, *) 'AltMin, AltMax (km) : ', AltMin/1000.0, AltMax/1000.0
+            call stop_gitm('AltMax must be positive when UseStretchedAltitude is F')
+          endif
         endif
 
       case ("#DHFACTOR")
@@ -1325,10 +1370,14 @@ subroutine set_inputs
         if (iError /= 0) then
           write(*, *) 'Incorrect format for #DHFACTOR'
           write(*, *) 'This sets the vertical spacing in units of scale height'
-          write(*, *) 'at localtime=Noon on the equator'
-          write(*, *) 'Likely does not need to be changed from 0.3'
+          write(*, *) 'at localtime=Noon on the equator.  0.3 is the coarsest'
+          write(*, *) 'spacing GITM is tested at.  Left unset, dHFactor is'
+          write(*, *) 'reduced as far as needed to keep the top of the grid'
+          write(*, *) 'under AltMax.  Setting it alongside AltMax uses both.'
           write(*, *) '#DHFactor'
           write(*, *) 'dHFactor              (real, scale-height)'
+        else
+          IsDHFactorSet = .true.
         endif
 
       case ("#GRID")
@@ -1767,8 +1816,8 @@ subroutine set_inputs
         else
           if (UseEUVData) call Set_Euv(iError, CurrentTime, EndTime)
           if (iError /= 0) then
-             call stop_gitm("Stopping after set_euv in set_inputs. " // &
-                  "Error in EUV data. Check times!")
+            call stop_gitm("Stopping after set_euv in set_inputs. "// &
+                           "Error in EUV data. Check times!")
           endif
         endif
         ! ------------------------------------------------------------
@@ -1779,23 +1828,23 @@ subroutine set_inputs
         ! so the user can blend them.
         call read_in_real(EUV_Ratio_Empirical, iError)
         if (iError /= 0) then
-           if (UseEUVData) then
-              EUV_Ratio_Empirical = 0.0
-           else
-              EUV_Ratio_Empirical = 1.0
-           endif
-           if (iProc == 0) then
-              write(*, *) ' -> Can now add a blending ratio in #EUV_DATA'
-              write(*, *) '    This sets how much use the empirical model'
-              write(*, *) '    versus the FISM data. By default, we are'
-              write(*, *) '    assuming you want no blend at all.'
-              write(*, *) '   You have set UseEUVData to ', UseEUVData
-              write(*, *) '    -> So setting EUV_Ratio_Empirical to ', &
-                   EUV_Ratio_Empirical
-           endif
-           iError = 0
+          if (UseEUVData) then
+            EUV_Ratio_Empirical = 0.0
+          else
+            EUV_Ratio_Empirical = 1.0
+          endif
+          if (iProc == 0) then
+            write(*, *) ' -> Can now add a blending ratio in #EUV_DATA'
+            write(*, *) '    This sets how much use the empirical model'
+            write(*, *) '    versus the FISM data. By default, we are'
+            write(*, *) '    assuming you want no blend at all.'
+            write(*, *) '   You have set UseEUVData to ', UseEUVData
+            write(*, *) '    -> So setting EUV_Ratio_Empirical to ', &
+              EUV_Ratio_Empirical
+          endif
+          iError = 0
         endif
-        
+
       case ("#ECLIPSE")
         IncludeEclipse = .true.
         call read_in_time(EclipseStartTime, iError)

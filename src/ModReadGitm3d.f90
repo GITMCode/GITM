@@ -14,7 +14,7 @@ module ModReadGitm3d
   integer, parameter :: nGitmVarCharLength = 40
 
   ! These indices need to be set correctly
-  integer :: iRho_ 
+  integer :: iRho_
   integer :: iNeutralStart_
   integer :: iTn_
   integer :: iVn_

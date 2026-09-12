@@ -102,6 +102,15 @@ subroutine initialize_gitm(TimeIn)
     if (UseStretchedAltitude) then
       call init_altitude
     else
+
+      ! A uniform grid spans AltMin to AltMax literally, with no default
+      ! top to fall back on
+      if (AltMax <= AltMin) then
+        write(*, *) 'A uniform grid needs an AltMax above AltMin in #ALTITUDE.'
+        write(*, *) 'AltMin, AltMax (km) : ', AltMin/1000.0, AltMax/1000.0
+        call stop_gitm('Incorrect altitude range for a uniform grid')
+      endif
+
       if (UseTopography) then
         if (AltMin > 1.0) then
           write(*, *) 'When using topography, the minimum altitude'
@@ -497,9 +506,9 @@ subroutine initialize_gitm(TimeIn)
     call GitmShutDown
 
     if (DoCheckForNans) then
-       call check_for_nans_ions("Set ICs 3DGITM")
-       call check_for_nans_neutrals("Set ICs 3DGITM")
-       call check_for_nans_temps("Set ICs 3DGITM")
+      call check_for_nans_ions("Set ICs 3DGITM")
+      call check_for_nans_neutrals("Set ICs 3DGITM")
+      call check_for_nans_temps("Set ICs 3DGITM")
     endif
 
   endif
