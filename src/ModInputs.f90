@@ -319,6 +319,12 @@ module ModInputs
   real :: PhotoElectronHeatingEfficiency = 0.0
   real :: NeutralHeatingEfficiency = 0.05
 
+  ! EUV scaling, base + slope*(F107a - ref) against the driven 81-day mean.
+  ! These are the non-planet defaults; Earth's tuned values are set below.
+  real :: EuvScaleBase = 1.0
+  real :: EuvScaleSlope = 0.0
+  real :: EuvScaleF107aRef = 150.0
+
   real :: KappaTemp0 = 5.6e-4
   real :: ThermalConduction_AO2 = 3.6e-4
   real :: ThermalConduction_AO = 5.6e-4
@@ -485,6 +491,12 @@ contains
 
     if (IsEarth) then
       PhotoElectronHeatingEfficiency = 0.06
+      ! The EUV multiplier and the conduction exponent are linked & were fit
+      ! together against HASDM density spanning F10.7a 99-223.  Changing either
+      ! alone moves the thermosphere by ~0.15 ln(model/obs).
+      EuvScaleBase = 1.075
+      EuvScaleSlope = 0.0019
+      ThermalConduction_s = 0.72
     endif
 
     tSimulation = 0.0

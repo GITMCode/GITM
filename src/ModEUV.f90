@@ -1565,10 +1565,14 @@ contains
     allocate(EuvIonRate(nLons, nLats, nAlts, nBlocks))
     allocate(EuvTotal(nLons, nLats, nAlts, nBlocks))
     allocate(EuvIonRateS(nLons, nLats, nAlts, nIons, nBlocks))
+    EuvIonRateS = 0.0
     allocate(EuvDissRateS(nLons, nLats, nAlts, nSpeciesTotal, nBlocks))
+    EuvDissRateS = 0.0
     allocate(Chapman(nLons, nLats, nAlts, nSpecies, nBlocks))
+    Chapman = ChapmanShadow
     allocate(CO2_Abs_Fac(nLons, nLats, nAlts, Num_Wavelengths_High, nBlocks))
     allocate(nEuvIonRateS(nLons, nLats, nAlts, nIons, nBlocks))
+    nEuvIonRateS = 0.0
     allocate(nighteuvflux(Num_NightWaveLens, nLons, nLats, nBlocks))
     allocate(CH4PERateS(nLons, nLats, nAlts, 11, nBlocks))
     allocate(N2PERateS(nLons, nLats, nAlts, 3, nBlocks))

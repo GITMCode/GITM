@@ -476,6 +476,7 @@ subroutine calc_scaled_euv
 
   integer :: N, NN, iMin(1) = 0, iError
   real    :: f107_Ratio, r1, r2, hlybr, fexvir, hlya, heiew
+  real    :: EuvScale
   real    :: xuvfac, hlymod, heimod, xuvf
   real(Real8_) :: rtime
   integer, dimension(7) :: Time_Array
@@ -751,6 +752,11 @@ subroutine calc_scaled_euv
     (EUV_Ratio_Empirical*Empirical_Flux + &
      (1.0 - EUV_Ratio_Empirical)*FISM_Flux)/ &
     (SunPlanetDistance**2)
+
+  ! #EUVSCALE: flat F10.7a-dependent scaling of the whole spectrum.  Applied
+  ! after Flux_of_EUV is assigned, so repeated calls cannot compound it.
+  EuvScale = max(0.0, EuvScaleBase + EuvScaleSlope*(f107a - EuvScaleF107aRef))
+  Flux_of_EUV = Flux_of_EUV*EuvScale
 
   TotalIntegratedEuvEnergy = 0.0
   do N = 1, Num_WaveLengths_High

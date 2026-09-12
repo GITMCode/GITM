@@ -1009,6 +1009,20 @@ subroutine set_inputs
           IsDone = .true.
         endif
 
+      case ("#EUVSCALE")
+        call read_in_real(EuvScaleBase, iError)
+        call read_in_real(EuvScaleSlope, iError)
+        call read_in_real(EuvScaleF107aRef, iError)
+        if (iError /= 0) then
+          write(*, *) 'Incorrect format for #EUVSCALE:'
+          write(*, *) ''
+          write(*, *) '#EUVSCALE'
+          write(*, *) "EuvScaleBase       (real) multiplier on the whole EUV spectrum at F107a = ref"
+          write(*, *) "EuvScaleSlope      (real) change in that multiplier per unit F107a"
+          write(*, *) "EuvScaleF107aRef   (real) reference F107a"
+          IsDone = .true.
+        endif
+
       case ("#DON4SHACK")
         call read_in_logical(DoN4SHack, iError)
         if (iError /= 0) then

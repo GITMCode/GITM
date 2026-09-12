@@ -607,6 +607,18 @@ EUV heating comes from Chemistry, so this typically is set to about 0.05 (5%).
     #NEUTRALHEATING
     NeutralHeatingEfficiency   (real)
 
+### EUVSCALE
+
+Flat scaling of the whole EUV spectrum, optionally varying with the driven
+81-day mean F10.7. The multiplier is `EuvScaleBase + EuvScaleSlope*(F107a -
+EuvScaleF107aRef)`, floored at zero. The non-Earth defaults (1.0, 0.0, 150.0)
+leave the flux untouched. Earth overrides these.
+
+    #EUVSCALE
+    EuvScaleBase           (real)
+    EuvScaleSlope          (real)
+    EuvScaleF107aRef       (real)
+
 ### DON4SHACK
 
 In MSIS, there seems to be an altitude, below which N(4S) is not physical.  So, this 
