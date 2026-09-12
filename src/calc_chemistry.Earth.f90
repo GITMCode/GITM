@@ -1415,6 +1415,14 @@ subroutine calc_chemistry(iBlock)
           NeutralLosses(iHe_) = NeutralLosses(iHe_) + Reaction
           IonSources(iHeP_) = IonSources(iHeP_) + Reaction
 
+          ! ----------------------------------------------------------
+          ! He + e* --> He+ + 2e-   (auroral, see aurora.Earth.f90)
+          ! ----------------------------------------------------------
+          Reaction = AuroralIonRateS(iLon, iLat, iAlt, iHe_, iBlock)
+
+          NeutralLosses(iHe_) = NeutralLosses(iHe_) + Reaction
+          IonSources(iHeP_) = IonSources(iHeP_) + Reaction
+
           ! ----------------------------
           ! NO Photoionization
           ! ----------------------------
