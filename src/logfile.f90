@@ -24,8 +24,8 @@
 !----------------------------------------------------------------------------
 
 subroutine get_log_info(SSLon, SSLat, GlobalMinTemp, GlobalMaxTemp, &
-                        GlobalMinVertVel, GlobalMaxVertVel, AverageTemp, AverageVertVel, &
-                        TotalVolume, SSVTEC)
+                        GlobalMinVertVel, GlobalMaxVertVel, AverageTemp, &
+                        AverageVertVel, TotalVolume, SSVTEC)
 
   use ModGITM
 
@@ -103,6 +103,7 @@ subroutine logfile(dir)
   use ModIndicesInterfaces
   use ModIoUnit, ONLY: io_unit_new
   use ModUtilities, ONLY: flush_unit
+  use ModEuv, only: TotalIntegratedEuvEnergy
 
   implicit none
 
@@ -168,7 +169,8 @@ subroutine logfile(dir)
       "        HP       HPn       HPs  HPn_diff  HPs_diff"// &
       "     HPn_w     HPs_w     HPn_m     HPs_m"// &
       "     CPCPn     CPCPs"// &
-      " SubsolarLon SubsolarLat SubsolarVTEC"
+      " SubsolarLon SubsolarLat SubsolarVTEC"// &
+      " IntegratedEUV"
 
   endif
 
@@ -277,7 +279,7 @@ subroutine logfile(dir)
       Hpi, HPn/1.0e9, HPs/1.0e9, &
       HPn_d/1.0e9, HPs_d/1.0e9, HPn_w/1.0e9, HPs_w/1.0e9, HPn_m/1.0e9, HPs_m/1.0e9, &
       CPCPn, CPCPs, &
-      SSLon, SSLat, SSVTEC
+      SSLon, SSLat, SSVTEC, TotalIntegratedEuvEnergy
 
     call flush_unit(iLogFileUnit_)
   endif
@@ -302,7 +304,7 @@ subroutine write_code_information(dir)
   character(len=*), intent(in) :: dir
 
   integer, dimension(7) :: iTime
-  integer :: i
+  integer :: i, iFile
 
   if (iProc == 0) then
 
@@ -372,6 +374,16 @@ subroutine write_code_information(dir)
     write(iCodeInfoFileUnit_, *) LonEnd
     write(iCodeInfoFileUnit_, *) ""
 
+    write(iCodeInfoFileUnit_, *) "#ALTITUDE"
+    write(iCodeInfoFileUnit_, *) AltMin
+    write(iCodeInfoFileUnit_, *) AltMax
+    write(iCodeInfoFileUnit_, *) UseStretchedAltitude
+    write(iCodeInfoFileUnit_, *) ""
+
+    write(iCodeInfoFileUnit_, *) "#DHFACTOR"
+    write(iCodeInfoFileUnit_, *) dHFactor
+    write(iCodeInfoFileUnit_, *) ""
+
     write(iCodeInfoFileUnit_, *) "#DIFFUSION"
     write(iCodeInfoFileUnit_, *) UseDiffusion
     write(iCodeInfoFileUnit_, *) EddyDiffusionCoef
@@ -385,12 +397,22 @@ subroutine write_code_information(dir)
     write(iCodeInfoFileUnit_, *) ThermalConduction_s
     write(iCodeInfoFileUnit_, *) ""
 
+    write(iCodeInfoFileUnit_, *) "#USETESTVISCOSITY"
+    write(iCodeInfoFileUnit_, *) TestViscosityFactor
+    write(iCodeInfoFileUnit_, *) ""
+
     write(iCodeInfoFileUnit_, *) "#PHOTOELECTRON"
     write(iCodeInfoFileUnit_, *) PhotoElectronHeatingEfficiency
     write(iCodeInfoFileUnit_, *) ""
 
     write(iCodeInfoFileUnit_, *) "#NEUTRALHEATING"
     write(iCodeInfoFileUnit_, *) NeutralHeatingEfficiency
+    write(iCodeInfoFileUnit_, *) ""
+
+    write(iCodeInfoFileUnit_, *) "#EUVSCALE"
+    write(iCodeInfoFileUnit_, *) EuvScaleBase
+    write(iCodeInfoFileUnit_, *) EuvScaleSlope
+    write(iCodeInfoFileUnit_, *) EuvScaleF107aRef
     write(iCodeInfoFileUnit_, *) ""
 
     write(iCodeInfoFileUnit_, *) "#CFL"
@@ -406,13 +428,6 @@ subroutine write_code_information(dir)
     write(iCodeInfoFileUnit_, *) f107
     write(iCodeInfoFileUnit_, *) f107a
     write(iCodeInfoFileUnit_, *) ""
-
-!     write(iCodeInfoFileUnit_,*) "#SOLARWIND"
-!     write(iCodeInfoFileUnit_,*) bx
-!     write(iCodeInfoFileUnit_,*) by
-!     write(iCodeInfoFileUnit_,*) bz
-!     write(iCodeInfoFileUnit_,*) vx
-!     write(iCodeInfoFileUnit_,*) ""
 
     write(iCodeInfoFileUnit_, *) "#THERMO"
     write(iCodeInfoFileUnit_, *) UseSolarHeating
@@ -436,9 +451,29 @@ subroutine write_code_information(dir)
     write(iCodeInfoFileUnit_, *) UseApex
     write(iCodeInfoFileUnit_, *) ""
 
-    write(iCodeInfoFileUnit_, *) "#IEModels"
+    write(iCodeInfoFileUnit_, *) "#ELECTRODYNAMICS"
     write(iCodeInfoFileUnit_, *) trim(cAuroralModel)
+    write(iCodeInfoFileUnit_, *) dTAurora
     write(iCodeInfoFileUnit_, *) trim(cPotentialModel)
+    write(iCodeInfoFileUnit_, *) dTPotential
+    write(iCodeInfoFileUnit_, *) ""
+
+    write(iCodeInfoFileUnit_, *) "#AURORAMODS"
+    write(iCodeInfoFileUnit_, *) NormalizeAuroraToHP
+    write(iCodeInfoFileUnit_, *) AveEFactor
+    write(iCodeInfoFileUnit_, *) IsKappaAurora
+    write(iCodeInfoFileUnit_, *) AuroraKappa
+    write(iCodeInfoFileUnit_, *) ""
+
+    write(iCodeInfoFileUnit_, *) "#HEAURORA"
+    write(iCodeInfoFileUnit_, *) HeAuroraFactor
+    write(iCodeInfoFileUnit_, *) ""
+
+    write(iCodeInfoFileUnit_, *) "#AURORATYPES"
+    write(iCodeInfoFileUnit_, *) UseDiffuseAurora
+    write(iCodeInfoFileUnit_, *) UseMonoAurora
+    write(iCodeInfoFileUnit_, *) UseWaveAurora
+    write(iCodeInfoFileUnit_, *) UseIonAurora
     write(iCodeInfoFileUnit_, *) ""
 
     write(iCodeInfoFileUnit_, *) "#AMIEFILES"
@@ -446,15 +481,42 @@ subroutine write_code_information(dir)
     write(iCodeInfoFileUnit_, *) trim(cAMIEFileSouth)
     write(iCodeInfoFileUnit_, *) ""
 
+    if (nAMIENorth > 0) then
+      write(iCodeInfoFileUnit_, *) "#AMIENORTH"
+      write(iCodeInfoFileUnit_, *) nAmieNorth
+      do iFile = 1, nAMIENorth
+        write(iCodeInfoFileUnit_, *) trim(cAMIEListNorth(iFile))
+      enddo
+      write(iCodeInfoFileUnit_, *) ""
+    endif
+    if (nAMIESouth > 0) then
+      write(iCodeInfoFileUnit_, *) "#AMIESOUTH"
+      write(iCodeInfoFileUnit_, *) nAmieSouth
+      do iFile = 1, nAMIESouth
+        write(iCodeInfoFileUnit_, *) trim(cAMIEListSouth(iFile))
+      enddo
+      write(iCodeInfoFileUnit_, *) ""
+    endif
+
     write(iCodeInfoFileUnit_, *) "#STATISTICALMODELSONLY"
     write(iCodeInfoFileUnit_, *) UseStatisticalModelsOnly
     write(iCodeInfoFileUnit_, *) ""
 
-    write(iCodeInfoFileUnit_, *) "#TIDES"
-    write(iCodeInfoFileUnit_, *) UseMSISOnly
-    write(iCodeInfoFileUnit_, *) UseMSISTides
-    write(iCodeInfoFileUnit_, *) UseGSWMTides
-    write(iCodeInfoFileUnit_, *) UseWACCMTides
+    write(iCodeInfoFileUnit_, *) "#TIDALMODEL"
+    write(iCodeInfoFileUnit_, *) trim(cTidalModel)
+    write(iCodeInfoFileUnit_, *) ""
+
+    write(iCodeInfoFileUnit_, *) "#MSISOBC"
+    write(iCodeInfoFileUnit_, *) UseOBCExperiment
+    write(iCodeInfoFileUnit_, *) MsisOblateFactor
+    write(iCodeInfoFileUnit_, *) ""
+
+    write(iCodeInfoFileUnit_, *) "#DON4SHACK"
+    write(iCodeInfoFileUnit_, *) DoN4SHack
+    write(iCodeInfoFileUnit_, *) ""
+
+    write(iCodeInfoFileUnit_, *) '#MSIS21'
+    write(iCodeInfoFileUnit_, *) UseMsis21
     write(iCodeInfoFileUnit_, *) ""
 
     write(iCodeInfoFileUnit_, *) "#DUSTDATA"
@@ -486,20 +548,6 @@ subroutine write_code_information(dir)
     write(iCodeInfoFileUnit_, *) UseGravityWave
     write(iCodeInfoFileUnit_, *) ""
 
-    write(iCodeInfoFileUnit_, *) "#AURORAMODS"
-    write(iCodeInfoFileUnit_, *) NormalizeAuroraToHP
-    write(iCodeInfoFileUnit_, *) AveEFactor
-    write(iCodeInfoFileUnit_, *) IsKappaAurora
-    write(iCodeInfoFileUnit_, *) AuroraKappa
-    write(iCodeInfoFileUnit_, *) ""
-
-    write(iCodeInfoFileUnit_, *) "#AURORATYPES"
-    write(iCodeInfoFileUnit_, *) UseDiffuseAurora
-    write(iCodeInfoFileUnit_, *) UseMonoAurora
-    write(iCodeInfoFileUnit_, *) UseWaveAurora
-    write(iCodeInfoFileUnit_, *) UseIonAurora
-    write(iCodeInfoFileUnit_, *) ""
-
     write(iCodeInfoFileUnit_, *) "#IONLIMITS"
     write(iCodeInfoFileUnit_, *) MaxVParallel
     write(iCodeInfoFileUnit_, *) MaxEField
@@ -507,8 +555,22 @@ subroutine write_code_information(dir)
     write(iCodeInfoFileUnit_, *) MinIonDensityAdvect
     write(iCodeInfoFileUnit_, *) ""
 
+    write(iCodeInfoFileUnit_, *) "#USEIMPROVEDIONADVECTION"
+    write(iCodeInfoFileUnit_, *) UseImprovedIonAdvection
+    write(iCodeInfoFileUnit_, *) UseNighttimeIonBCs
+    write(iCodeInfoFileUnit_, *) MinTEC
+    write(iCodeInfoFileUnit_, *) ""
+
+    write(iCodeInfoFileUnit_, *) "#AUSMSOLVER"
+    write(iCodeInfoFileUnit_, *) UseAUSMSolver
+    write(iCodeInfoFileUnit_, *) ""
+
     write(iCodeInfoFileUnit_, *) "#VERTICALSOURCES"
     write(iCodeInfoFileUnit_, *) MaximumVerticalVelocity
+    write(iCodeInfoFileUnit_, *) ""
+
+    write(iCodeInfoFileUnit_, *) "#DYNAMOSOLVER"
+    write(iCodeInfoFileUnit_, *) UseGmres
     write(iCodeInfoFileUnit_, *) ""
 
     write(iCodeInfoFileUnit_, *) "#DYNAMO"
@@ -516,6 +578,13 @@ subroutine write_code_information(dir)
     write(iCodeInfoFileUnit_, *) DynamoHighLatBoundary
     write(iCodeInfoFileUnit_, *) nItersMax
     write(iCodeInfoFileUnit_, *) MaxResidual
+    write(iCodeInfoFileUnit_, *) IncludeCowling
+    write(iCodeInfoFileUnit_, *) DynamoLonAverage
+    write(iCodeInfoFileUnit_, *) DynamoFracPotentialCutoff
+    write(iCodeInfoFileUnit_, *) doDynamoHemisphericMirror
+    write(iCodeInfoFileUnit_, *) doUseMagnetoPotentialBCs
+    write(iCodeInfoFileUnit_, *) doDynamoLatBlend
+    write(iCodeInfoFileUnit_, *) doDynamoSubtractEquatorialAvg
     write(iCodeInfoFileUnit_, *) ""
 
     write(iCodeInfoFileUnit_, *) "#IONFORCING"
@@ -544,10 +613,6 @@ subroutine write_code_information(dir)
     write(iCodeInfoFileUnit_, *) zDipoleCenter
     write(iCodeInfoFileUnit_, *) ""
 
-    write(iCodeInfoFileUnit_, *) "#APEX"
-    write(iCodeInfoFileUnit_, *) UseApex
-    write(iCodeInfoFileUnit_, *) ""
-
     write(iCodeInfoFileUnit_, *) "#NEWSTRETCH"
     write(iCodeInfoFileUnit_, *) NewStretchedGrid
     write(iCodeInfoFileUnit_, *) ConcentrationLatitude
@@ -566,15 +631,27 @@ subroutine write_code_information(dir)
     write(iCodeInfoFileUnit_, *) AltMinUniform
     write(iCodeInfoFileUnit_, *) ""
 
+    write(iCodeInfoFileUnit_, *) "IncludeEclipse", IncludeEclipse
+    write(iCodeInfoFileUnit_, *) ""
+    write(iCodeInfoFileUnit_, *) "#ECLIPSE"
+    call time_real_to_int(EclipseStartTime, iTime)
+    write(iCodeInfoFileUnit_, *) iTime
+    call time_real_to_int(EclipseEndTime, iTime)
+    write(iCodeInfoFileUnit_, *) iTime
+    write(iCodeInfoFileUnit_, *) EclipseStartY
+    write(iCodeInfoFileUnit_, *) EclipseStartZ
+    write(iCodeInfoFileUnit_, *) EclipseEndY
+    write(iCodeInfoFileUnit_, *) EclipseEndZ
+    write(iCodeInfoFileUnit_, *) EclipsePeak
+    write(iCodeInfoFileUnit_, *) EclipseMaxDistance
+    write(iCodeInfoFileUnit_, *) EclipseExpAmp
+    write(iCodeInfoFileUnit_, *) EclipseExpWidth
+    write(iCodeInfoFileUnit_, *) ""
+
     !write(iCodeInfoFileUnit_,*) "#RCMR"
     !write(iCodeInfoFileUnit_,*) RCMRInType
     !write(iCodeInfoFileUnit_,*) RCMROutType
     !write(iCodeInfoFileUnit_,*) ""
-
-    write(iCodeInfoFileUnit_, *) "#ELECTRODYNAMICS"
-    write(iCodeInfoFileUnit_, *) dTPotential
-    write(iCodeInfoFileUnit_, *) dTAurora
-    write(iCodeInfoFileUnit_, *) ""
 
     write(iCodeInfoFileUnit_, *) "#INPUTTIMEDELAY"
     write(iCodeInfoFileUnit_, *) TimeDelayHighLat
@@ -588,14 +665,19 @@ subroutine write_code_information(dir)
     write(iCodeInfoFileUnit_, *) "#EUV_DATA"
     write(iCodeInfoFileUnit_, *) UseEUVData
     write(iCodeInfoFileUnit_, *) trim(cEUVFile)
+    write(iCodeInfoFileUnit_, *) EUV_Ratio_Empirical
     write(iCodeInfoFileUnit_, *) ""
 
     write(iCodeInfoFileUnit_, *) "#RESTART"
     write(iCodeInfoFileUnit_, *) DoRestart
     write(iCodeInfoFileUnit_, *) ""
 
+    write(iCodeInfoFileUnit_, *) "#CO2FOMICHEV"
+    write(iCodeInfoFileUnit_, *) UseCO2FomichevCooling
+    write(iCodeInfoFileUnit_, *) CO2ppm
+    write(iCodeInfoFileUnit_, *) ""
+
     write(iCodeInfoFileUnit_, *) "UseCO2Cooling", UseCO2Cooling
-    write(iCodeInfoFileUnit_, *) "CO2ppm", CO2ppm
     write(iCodeInfoFileUnit_, *) "iInputIonChemType", iInputIonChemType
     write(iCodeInfoFileUnit_, *) "iInputNeutralChemType", iInputNeutralChemType
     write(iCodeInfoFileUnit_, *) "RPTAU", RPTAU

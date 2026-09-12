@@ -24,11 +24,7 @@ subroutine get_temperature(lon, lat, alt, t, h)
     tAve = (TempMax + TempMin)/2
     tDiff = (TempMax - TempMin)/2
 
-    if (Alt/1000.0 <= TempHeight) then
-      t = tAve + tDiff*tanh((alt/1000.0 - TempHeight)/TempWidth)
-    else
-      t = tAve + tDiff*tanh((alt/1000.0 - TempHeight)/TempWidth)
-    endif
+    t = tAve + tDiff*tanh((alt/1000.0 - TempHeight)/TempWidth)
 
     r = RBody + alt
     g = Gravitational_Constant*(RBody/r)**2
@@ -50,25 +46,10 @@ end subroutine get_temperature
 
 !=============================================================================
 
-subroutine init_altitude
+subroutine fill_scale_heights(TrialdHFactor, ScaleHeights, AltTop)
 
-  !-----------------------------------------------------------------
-  !  This is the new init_altitude version.
-  !  It has been determined that the optimum resolution in the
-  !  vertical direction is about 0.3 scale heights.  So, we force
-  !  the user to resolve the grid at this resolution, independent
-  !  of where they actually put the high altitude boundary.
-  !
-  ! Here we are creating the altitude grid.  We are
-  ! assuming that we have a lower boundary and an
-  ! upper boundary and we basically want to scale the
-  ! grid by the scale height between the two levels.
-  !
-  ! This is pretty tricky, since when you change the
-  ! scaling factor, you change the scale heights that
-  ! you are going to use.  So, you have to keep adjusting
-  ! the scaling factor until you have the altitudes and
-  ! the scale height that you want.
+  ! Build the scale heights a given dHFactor yields, and report the altitude
+  ! of the top physical level (iAlt = nAlts).
 
   use ModGITM
   use ModInputs
@@ -76,18 +57,15 @@ subroutine init_altitude
 
   implicit none
 
-  integer :: iAlt, i, iLoop, iAltInner
+  real, intent(in)  :: TrialdHFactor
+  real, intent(out) :: ScaleHeights(nAlts)
+  real, intent(out) :: AltTop
 
-  logical :: IsDone
-
-  real :: ScaleHeights(nAlts)
-  real :: OlddHFactor, dHFactor
-  real :: geo_lat, geo_lst, geo_lon, geo_alt, h, t
+  integer :: iAlt
+  real    :: geo_lat, geo_lst, geo_lon, geo_alt, h, t
   !----------------------------------------------------------------------------
 
-  IsDone = .false.
-
-  dHFactor = 0.3
+  ScaleHeights = 0.0
 
   do iAlt = 1, nAlts
 
@@ -95,7 +73,7 @@ subroutine init_altitude
     geo_lst = 12.0
     geo_lon = mod(geo_lst*15.0 - utime/3600.0*15.0 + 360.0, 360.0)
     geo_alt = AltMin
-    if (iAlt > 1) geo_alt = AltMin + sum(ScaleHeights(1:iAlt - 1))*dHFactor
+    if (iAlt > 1) geo_alt = AltMin + sum(ScaleHeights(1:iAlt - 1))*TrialdHFactor
 
     geo_lon = geo_lon*pi/180.0
 
@@ -104,36 +82,21 @@ subroutine init_altitude
 
   enddo
 
-  Altitude_GB(:, :, 1, 1:nBlocks) = AltMin
-  Altitude_GB(:, :, 0, 1:nBlocks) = AltMin - dHFactor*ScaleHeights(1)
-  Altitude_GB(:, :, -1, 1:nBlocks) = AltMin - 2*dHFactor*ScaleHeights(1)
+  AltTop = geo_alt
 
-  do iAlt = 2, nAlts + 1
-    Altitude_GB(:, :, iAlt, 1:nBlocks) = Altitude_GB(:, :, iAlt - 1, 1:nBlocks) &
-                                         + dHFactor*ScaleHeights(iAlt - 1)
-    if (iDebugLevel > 3) write(*, *) "Altitude, dHFactor, ScaleHeight : ", &
-      Altitude_GB(1, 1, iAlt, 1), dHFactor, ScaleHeights(iAlt - 1)
-  enddo
-
-  Altitude_GB(:, :, nAlts + 2, 1:nBlocks) = Altitude_GB(:, :, nAlts + 1, 1:nBlocks) &
-                                            + dHFactor*ScaleHeights(nAlts)
-
-end subroutine init_altitude
+end subroutine fill_scale_heights
 
 !=============================================================================
 
-subroutine init_altitude_old
+subroutine init_altitude
 
-  ! Here we are creating the altitude grid.  We are
-  ! assuming that we have a lower boundary and an
-  ! upper boundary and we basically want to scale the
-  ! grid by the scale height between the two levels.
-  !
-  ! This is pretty tricky, since when you change the
-  ! scaling factor, you change the scale heights that
-  ! you are going to use.  So, you have to keep adjusting
-  ! the scaling factor until you have the altitudes and
-  ! the scale height that you want.
+  !---------------------------------------------------------------------------
+  !  Build the stretched altitude grid.  Levels start at AltMin and are spaced
+  !  dHFactor scale heights apart, so nAlts, AltMin and MSIS set where the top
+  !  lands; AltMax is a ceiling, and dHFactor is reduced until the top fits
+  !  under it.  Setting both AltMax and #DHFACTOR skips that and uses them as
+  !  given, which is how to exceed AltMaxLimit or dHFactorLimit.
+  !---------------------------------------------------------------------------
 
   use ModGITM
   use ModInputs
@@ -141,69 +104,136 @@ subroutine init_altitude_old
 
   implicit none
 
-  integer :: iAlt, i, iLoop, iAltInner
+  integer, parameter :: nIterMax = 60
+  real, parameter :: AltTolerance = 100.0    ! m
+  real, parameter :: dHFactorFloor = 0.01
 
-  logical :: IsDone
+  integer :: iAlt, iLoop, nAltsFits
 
   real :: ScaleHeights(nAlts)
-  real :: OlddHFactor, dHFactor
-  real :: geo_lat, geo_lst, geo_lon, geo_alt, h, t
-
+  real :: dHFactorCoarsest, dHFactorUsed, dHFactorLow, dHFactorHigh
+  real :: AltCeiling, AltTop
+  logical :: IsTrustedGrid, DoSolve
   !----------------------------------------------------------------------------
-  IsDone = .false.
 
-  dHFactor = 1.0
-  OlddHFactor = 0.0
+  if (IsAltMaxSet .and. AltMax <= AltMin) then
+    write(*, *) 'AltMax must be above AltMin in #ALTITUDE.'
+    write(*, *) 'AltMin, AltMax (km) : ', AltMin/1000.0, AltMax/1000.0
+    call stop_gitm('Incorrect altitude range in init_altitude')
+  endif
 
-  iLoop = 1
+  ! With both AltMax & dHFactor, trust the user
+  IsTrustedGrid = IsAltMaxSet .and. IsDHFactorSet
 
-  do while (.not. IsDone)
+  ! The spacing to aim for, and the altitude it may not pass
+  dHFactorCoarsest = dHFactorLimit
+  if (IsDHFactorSet) dHFactorCoarsest = dHFactor
 
-    do iAlt = 1, nAlts
+  AltCeiling = AltMaxLimit
+  if (IsAltMaxSet) AltCeiling = min(AltMax, AltMaxLimit)
 
-      geo_lat = 0.0
-      geo_lst = 12.0
-      geo_lon = mod(geo_lst*15.0 - utime/3600.0*15.0 + 360.0, 360.0)
-      geo_alt = AltMin
-      if (iAlt > 1) geo_alt = AltMin + sum(ScaleHeights(1:iAlt - 1))*dHFactor
+  if (dHFactorCoarsest > dHFactorLimit .and. iProc == 0) then
+    write(*, '(a,f7.4,a,f4.2,a)') &
+      'WARNING!!  init_altitude :  dHFactor=', dHFactorCoarsest, &
+      ' is coarser than the recommended ', &
+      dHFactorLimit, '. Results may be unreliable'
+  endif
 
-      geo_lon = geo_lon*pi/360.0
-      call get_temperature(geo_lon, geo_lat, geo_alt, t, h)
+  if (IsAltMaxSet .and. AltMax > AltMaxLimit .and. iProc == 0) then
+    write(*, '(a,f0.1,a)') &
+      'WARNING!!  init_altitude : AltMax=', AltMax/1000.0, &
+      " km, is beyond GITM's validated range. Results may be unreliable."
+  endif
 
-      ScaleHeights(iAlt) = h
+  ! The requested spacing stands unless it overshoots a ceiling we enforce
+  call fill_scale_heights(dHFactorCoarsest, ScaleHeights, AltTop)
 
+  DoSolve = (AltTop > AltCeiling) .and. (.not. IsTrustedGrid)
+
+  if (DoSolve) then
+
+    ! How many levels would have fit at the requested spacing.  This is the
+    ! nAlts to recompile with to keep the resolution instead of the range.
+    nAltsFits = nAlts
+    do iAlt = 2, nAlts
+      if (AltMin + sum(ScaleHeights(1:iAlt - 1))*dHFactorCoarsest > AltCeiling) then
+        nAltsFits = iAlt - 1
+        exit
+      endif
     enddo
 
-    if (abs(geo_alt - AltMax) < 1.0) then
-      IsDone = .true.
-    else
-      if (OlddHFactor == 0.0) then
-        OlddHFactor = dHFactor
-        dHFactor = dHFactor*(AltMax - AltMin)/(geo_alt - AltMin)
-      else
-        dHFactor = &
-          dHFactor*(AltMax - AltMin)/(geo_alt - AltMin)/2.0 + &
-          OlddHFactor/2.0
-        OlddHFactor = dHFactor
-      endif
+    ! Bisect between a spacing that certainly fits and the coarsest allowed.
+    dHFactorLow = dHFactorFloor
+    dHFactorHigh = dHFactorCoarsest
+
+    call fill_scale_heights(dHFactorLow, ScaleHeights, AltTop)
+    if (AltTop > AltCeiling) then
+      write(*, '(a,i0,a,f0.1,a,f0.1,a)') &
+        ' init_altitude : ', nAlts, ' levels cannot fit between AltMin ', &
+        AltMin/1000.0, ' km and ', AltCeiling/1000.0, ' km at any spacing.'
+      write(*, '(a)') &
+        '   Raise AltMax, lower AltMin, or recompile with fewer levels.'
+      call stop_gitm('Cannot fit the vertical grid under the ceiling')
     endif
 
-    iLoop = iLoop + 1
+    do iLoop = 1, nIterMax
+      dHFactorUsed = 0.5*(dHFactorLow + dHFactorHigh)
+      call fill_scale_heights(dHFactorUsed, ScaleHeights, AltTop)
+      if (AltTop > AltCeiling) then
+        dHFactorHigh = dHFactorUsed
+      else
+        dHFactorLow = dHFactorUsed
+        if (AltCeiling - AltTop < AltTolerance) exit
+      endif
+    enddo
 
-  enddo
+    ! End on a spacing known to fit, whichever side the loop stopped on
+    dHFactorUsed = dHFactorLow
+    call fill_scale_heights(dHFactorUsed, ScaleHeights, AltTop)
 
+  else
+
+    dHFactorUsed = dHFactorCoarsest
+
+  endif
+
+  if (iProc == 0) then
+    write(*, '(a)') ' init_altitude :'
+    write(*, '(a,i6)') '   nAlts (compile-time) : ', nAlts
+    write(*, '(a,f9.2)') '   AltMin          (km) : ', AltMin/1000.0
+    write(*, '(a,f9.2)') '   AltMax          (km) : ', AltTop/1000.0
+    write(*, '(a,f7.4)') '   dHFactor             : ', dHFactorUsed
+
+    ! Only reachable on a trusted grid; every other path caps at AltMaxLimit
+    if (AltTop > AltMaxLimit) &
+      write(*, '(a,f0.1,a)') '   WARNING!!  this top is beyond the ', &
+      AltMaxLimit/1000.0, ' km GITM is validated to. Results may be unreliable.'
+
+    if (DoSolve) then
+      write(*, '(a,f7.4,a,f0.1,a)') '   reduced from ', dHFactorCoarsest, &
+        ' to fit under ', AltCeiling/1000.0, ' km'
+      write(*, '(a,f7.4,a,i0)') '   to keep ', dHFactorCoarsest, &
+        ', recompile with nAlts = ', nAltsFits
+    endif
+  endif
+
+  ! Record the grid that was built, not the one that was asked for
+  dHFactor = dHFactorUsed
+  AltMax = AltTop
+
+  ! Fill min & lower 2 ghost cells' altitudes
   Altitude_GB(:, :, 1, 1:nBlocks) = AltMin
-  Altitude_GB(:, :, 0, 1:nBlocks) = AltMin - dHFactor*ScaleHeights(1)
-  Altitude_GB(:, :, -1, 1:nBlocks) = AltMin - 2*dHFactor*ScaleHeights(1)
+  Altitude_GB(:, :, 0, 1:nBlocks) = AltMin - dHFactorUsed*ScaleHeights(1)
+  Altitude_GB(:, :, -1, 1:nBlocks) = AltMin - 2*dHFactorUsed*ScaleHeights(1)
 
   do iAlt = 2, nAlts + 1
     Altitude_GB(:, :, iAlt, 1:nBlocks) = Altitude_GB(:, :, iAlt - 1, 1:nBlocks) &
-                                         + dHFactor*ScaleHeights(iAlt - 1)
+                                         + dHFactorUsed*ScaleHeights(iAlt - 1)
     if (iDebugLevel > 3) write(*, *) "Altitude, dHFactor, ScaleHeight : ", &
-      Altitude_GB(1, 1, iAlt, 1), dHFactor, ScaleHeights(iAlt - 1)
+      Altitude_GB(1, 1, iAlt, 1), dHFactorUsed, ScaleHeights(iAlt - 1)
   enddo
 
   Altitude_GB(:, :, nAlts + 2, 1:nBlocks) = Altitude_GB(:, :, nAlts + 1, 1:nBlocks) &
-                                            + dHFactor*ScaleHeights(nAlts)
+                                            + dHFactorUsed*ScaleHeights(nAlts)
 
-end subroutine init_altitude_old
+end subroutine init_altitude

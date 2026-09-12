@@ -57,14 +57,45 @@ This sets the ending time of the simulation.
 
 ### ALTITUDE
 
-For Earth, the AltMin is the only variable used here. The altitudes are
-set to 0.3 times the scale height reported by MSIS, at the equator for
-the specified F107 and F107a values.`
+With a stretched grid (`UseStretchedAltitude = T`), altitudes are spaced
+`dHFactor` times the scale height reported by MSIS at the equator, starting
+from AltMin. AltMax is a maximum allowed altitude, not a target: if the grid
+built at `dHFactor` fits below it that spacing is used, and if it overshoots
+`dHFactor` is reduced until the top level fits. `dHFactor` is never raised,
+so a grid that cannot reach AltMax stops short of it. Give a negative AltMax
+to ask for no ceiling, leaving `AltMaxLimit` (`ModInputs.f90`, 1100 km on
+Earth) as the only one.
+
+With `UseStretchedAltitude = F` the grid is uniform between AltMin and
+AltMax, `dHFactor` is unused, and AltMax must be given.
 
     #ALTITUDE
     AltMin                (real, km)
     AltMax                (real, km)
     UseStretchedAltitude  (logical)
+
+
+### DHFACTOR
+
+This sets the vertical spacing, in units of scale height. The altitudes
+are spaced this many scale heights apart, using MSIS (on Earth) near the
+subsolar point.
+
+Left unset, `dHFactor` starts at 0.3, the coarsest spacing GITM is tested
+at, and is reduced as far as needed to keep the top of the grid under AltMax
+(see `#ALTITUDE`). Setting it here caps that search at your value instead;
+setting it alongside AltMax skips the search and uses both as given, which
+is how to run coarser than 0.3 or above `AltMaxLimit`.
+
+The spacing and top that were actually used are echoed to
+`run_information.txt`, so those record the grid that ran rather than the
+request. A run reporting a `dHFactor` below 0.3 was limited by AltMax, and
+the startup message names the `nAlts` to recompile with to get the spacing
+back.
+
+    #DHFACTOR
+    dHFactor              (real, scale-heights)
+
 
 ### GRID
 
@@ -291,6 +322,14 @@ AMIE. The first three options (diffuse, mono, wave) are for electrons only.
     UseWaveAurora      (logical)
     UseIonAurora       (logical)
 
+### HEAURORA
+
+This sets the He auroral ionization cross-section ratio. Default is 0.14 (on), set 
+to 0.0 to disable.
+
+    #HEAURORA
+    HeAuroraFactor       (real)
+
 ### USECUSP
 
 This is for specifying a cusp.
@@ -395,7 +434,7 @@ tide.
 
 UseOBCExperiment - use MSIS \[O\] BC shifted by 6 months Only applicable
 for MSIS00! MsisOblateFactor - alt = alt \* (1.0-f/2 + f\*cos(lat)) -
-seems like -0.1 works well
+Earth defaults are T / -0.1
 
     #MSISOBC
     UseOBCExperiment        (logical)
@@ -568,6 +607,18 @@ EUV heating comes from Chemistry, so this typically is set to about 0.05 (5%).
     #NEUTRALHEATING
     NeutralHeatingEfficiency   (real)
 
+### EUVSCALE
+
+Flat scaling of the whole EUV spectrum, optionally varying with the driven
+81-day mean F10.7. The multiplier is `EuvScaleBase + EuvScaleSlope*(F107a -
+EuvScaleF107aRef)`, floored at zero. The non-Earth defaults (1.0, 0.0, 150.0)
+leave the flux untouched. Earth overrides these.
+
+    #EUVSCALE
+    EuvScaleBase           (real)
+    EuvScaleSlope          (real)
+    EuvScaleF107aRef       (real)
+
 ### DON4SHACK
 
 In MSIS, there seems to be an altitude, below which N(4S) is not physical.  So, this 
@@ -651,6 +702,14 @@ If you set them lower, the temperature will go up.
     #THERMALDIFFUSION
     KappaTemp0    (thermal conductivity, real)
 
+### DYNAMOSOLVER
+
+Selects the linear solver used for the dynamo. False (the default) uses
+bicgstab, which is faster; true selects gmres.
+
+    #DYNAMOSOLVER
+    UseGmres      (logical)
+
 ### DYNAMO
 
 The dynamo controls the ion vertical velocities at the equator, and is therefore
@@ -665,6 +724,34 @@ defaults are fine.
     MaxResidual            (V,real)
     IncludeCowling         (logical)
     DynamoLonAverage       (real)
+
+A number of additional, experimental options are also available. These do not need 
+to be included. After the above options:
+
+    DynamoFracPotentialCutoff        (real, default 0.0)
+    doDynamoHemisphericMirror        (logical, default T)
+    doUseMagnetoPotentialBCs         (logical, default T)
+    doDynamoLatBlend                 (logical, default T)
+    doDynamoSubtractEquatorialAvg    (logical, default T)
+
+In order:
+
+- **DynamoFracPotentialCutoff** allows the DynamoHighLatBoundary to move with the
+  high-latitude potential pattern. The default value of `0.0` keeps the boundary fixed at
+  `DynamoHighLatBoundary`. For values between (0-1], the dynamo boundary is placed where
+  the high-latitude potential falls below this percent of its maximum. In other words, if
+  `DynamoFracPotentialCutoff=0.05`, the dynamo is only solved in the region equatorward of
+  where the high-latitude potential is 5% of its maximum.
+- **doDynamoHemisphericMirror** toggles the hemispheric mirroring of the dynamo potential
+  after the solve.
+- **doUseMagnetoPotentialBCs** changes the boundary conditions used in the dynamo solve,
+  when True the high-latitude/magnetospheric potential is used as the boundary conditions.
+- **doDynamoLatBlend** toggles whether the high-latitude and dynamo potentials are
+  "blended" in a 20 degree latitude window. When False, the two are added together without
+  any transition region.
+- **doDynamoSubtractEquatorialAvg** by default, the equatorial average of the dynamo
+  potential is subteracted. Change this to False to not do that.
+
 
 ### DIFFUSION
 
