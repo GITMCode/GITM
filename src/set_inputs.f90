@@ -822,7 +822,7 @@ subroutine set_inputs
           IsDone = .true.
         endif
 
-      case("#HEAURORA")
+      case ("#HEAURORA")
         call read_in_real(HeAuroraFactor, iError)
         if (iError /= 0) then
           write(*, *) 'Incorrect format for #HEAURORA'
@@ -830,7 +830,7 @@ subroutine set_inputs
           write(*, *) '0.14 is the default, set to 0.0 to disable'
           write(*, *) ''
           write(*, *) '#HEAURORA'
-          write(*, *) 'HeAuroraFactor (logical)'
+          write(*, *) 'HeAuroraFactor (real)'
           IsDone = .true.
         endif
 
@@ -1183,6 +1183,16 @@ subroutine set_inputs
           write(*, *) ''
           write(*, *) '#USETESTVISCOSITY'
           write(*, *) "TestViscosityFactor      (real)"
+        endif
+
+      case ("#DYNAMOSOLVER")
+        call read_in_logical(UseGmres, iError)
+        if (iError /= 0) then
+          write(*, *) 'Incorrect format for #DYNAMOSOLVER:'
+          write(*, *) ''
+          write(*, *) '#DYNAMOSOLVER'
+          write(*, *) "UseGmres      (logical) T = gmres, F = bicgstab"
+          IsDone = .true.
         endif
 
       case ("#DYNAMO")

@@ -327,7 +327,7 @@ AMIE. The first three options (diffuse, mono, wave) are for electrons only.
 This sets the He auroral ionization cross-section ratio. Default is 0.14 (on), set 
 to 0.0 to disable.
 
-    #AURORAMODS
+    #HEAURORA
     HeAuroraFactor       (real)
 
 ### USECUSP
@@ -689,6 +689,14 @@ If you set them lower, the temperature will go up.
 
     #THERMALDIFFUSION
     KappaTemp0    (thermal conductivity, real)
+
+### DYNAMOSOLVER
+
+Selects the linear solver used for the dynamo. False (the default) uses
+bicgstab, which is faster; true selects gmres.
+
+    #DYNAMOSOLVER
+    UseGmres      (logical)
 
 ### DYNAMO
 

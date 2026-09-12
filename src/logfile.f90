@@ -563,6 +563,10 @@ subroutine write_code_information(dir)
     write(iCodeInfoFileUnit_, *) MaximumVerticalVelocity
     write(iCodeInfoFileUnit_, *) ""
 
+    write(iCodeInfoFileUnit_, *) "#DYNAMOSOLVER"
+    write(iCodeInfoFileUnit_, *) UseGmres
+    write(iCodeInfoFileUnit_, *) ""
+
     write(iCodeInfoFileUnit_, *) "#DYNAMO"
     write(iCodeInfoFileUnit_, *) UseDynamo
     write(iCodeInfoFileUnit_, *) DynamoHighLatBoundary
