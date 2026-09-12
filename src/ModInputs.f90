@@ -162,7 +162,15 @@ module ModInputs
   real :: dHFactor = 0.3
 
   real :: AltMin = 100.0*1000.0
-  real :: AltMax = 500.0*1000.0
+  real :: AltMax = -1
+
+  ! Coarsest spacing and highest top GITM is tested at
+  real, parameter :: dHFactorLimit = 0.3
+  real, parameter :: AltMaxLimit = 1100.0*1000.0
+
+  ! Whether the user set these, or they are still at their defaults
+  logical :: IsDHFactorSet = .false.
+  logical :: IsAltMaxSet = .false.
 
   real :: ConcentrationLatitude = 45.0
   real :: StretchingPercentage = 0.0

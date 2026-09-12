@@ -57,9 +57,17 @@ This sets the ending time of the simulation.
 
 ### ALTITUDE
 
-For Earth, the AltMin is the only variable used here. The altitudes are
-set to 0.3 times the scale height reported by MSIS, at the equator for
-the specified F107 and F107a values.
+With a stretched grid (`UseStretchedAltitude = T`), altitudes are spaced
+`dHFactor` times the scale height reported by MSIS at the equator, starting
+from AltMin. AltMax is a maximum allowed altitude, not a target: if the grid
+built at `dHFactor` fits below it that spacing is used, and if it overshoots
+`dHFactor` is reduced until the top level fits. `dHFactor` is never raised,
+so a grid that cannot reach AltMax stops short of it. Give a negative AltMax
+to ask for no ceiling, leaving `AltMaxLimit` (`ModInputs.f90`, 1100 km on
+Earth) as the only one.
+
+With `UseStretchedAltitude = F` the grid is uniform between AltMin and
+AltMax, `dHFactor` is unused, and AltMax must be given.
 
     #ALTITUDE
     AltMin                (real, km)
@@ -71,7 +79,19 @@ the specified F107 and F107a values.
 
 This sets the vertical spacing, in units of scale height. The altitudes
 are spaced this many scale heights apart, using MSIS (on Earth) near the
-subsolar point. 
+subsolar point.
+
+Left unset, `dHFactor` starts at 0.3, the coarsest spacing GITM is tested
+at, and is reduced as far as needed to keep the top of the grid under AltMax
+(see `#ALTITUDE`). Setting it here caps that search at your value instead;
+setting it alongside AltMax skips the search and uses both as given, which
+is how to run coarser than 0.3 or above `AltMaxLimit`.
+
+The spacing and top that were actually used are echoed to
+`run_information.txt`, so those record the grid that ran rather than the
+request. A run reporting a `dHFactor` below 0.3 was limited by AltMax, and
+the startup message names the `nAlts` to recompile with to get the spacing
+back.
 
     #DHFACTOR
     dHFactor              (real, scale-heights)
