@@ -506,9 +506,9 @@ subroutine initialize_gitm(TimeIn)
     call GitmShutDown
 
     if (DoCheckForNans) then
-       call check_for_nans_ions("Set ICs 3DGITM")
-       call check_for_nans_neutrals("Set ICs 3DGITM")
-       call check_for_nans_temps("Set ICs 3DGITM")
+      call check_for_nans_ions("Set ICs 3DGITM")
+      call check_for_nans_neutrals("Set ICs 3DGITM")
+      call check_for_nans_temps("Set ICs 3DGITM")
     endif
 
   endif

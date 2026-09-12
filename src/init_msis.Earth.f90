@@ -61,10 +61,10 @@ subroutine call_msis(lonDeg, latDeg, altKm, f107, f107a, densities10, temp)
   AP = 10
 
   AltOblate = AltKm* &
-       (1.0 - &
-       MsisOblateFactor/2.0 + &
-       MsisOblateFactor*cos(LatDeg*3.1415/180.0))
-  
+              (1.0 - &
+               MsisOblateFactor/2.0 + &
+               MsisOblateFactor*cos(LatDeg*3.1415/180.0))
+
   ! We don't often have Ap, but have hemispheric power. So, use that:
   call get_HPI(CurrentTime, HP, iError)
   if (iError > 0) hp = 40.0
@@ -512,7 +512,7 @@ subroutine msis_bcs(iJulianDay, UTime, Alt, LatIn, LonIn, Lst, &
   real*4 :: hwm_f107a, hwm_f107, hwm_ap(2), qw(2)
 
   real :: base, season, vari
-  
+
   character(250) :: path = './DataIn/LowerBCs/'
 
   lat = LatIn
@@ -607,15 +607,15 @@ subroutine msis_bcs(iJulianDay, UTime, Alt, LatIn, LonIn, Lst, &
   endif
 
   if (UseOBCExperiment .and. UseMSIS21) then
-     oMSIS = exp(LogNS(iO_3P_))
-     ! base should be around 1:
-     base = 1.2
-     ! Add more O to the summer hemisphere:
-     season = sin((iJulianDay - 90) * 2 * PI / 365)
-     vari = 0.2 * sin(Lat * Pi / 180) * season
-     LogNS(iO_3P_) = alog( oMSIS * (base + vari))
+    oMSIS = exp(LogNS(iO_3P_))
+    ! base should be around 1:
+    base = 1.2
+    ! Add more O to the summer hemisphere:
+    season = sin((iJulianDay - 90)*2*PI/365)
+    vari = 0.2*sin(Lat*Pi/180)*season
+    LogNS(iO_3P_) = alog(oMSIS*(base + vari))
   endif
-  
+
 end subroutine msis_bcs
 
 subroutine calc_co2(iBlock)

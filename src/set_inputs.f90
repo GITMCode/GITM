@@ -1780,8 +1780,8 @@ subroutine set_inputs
         else
           if (UseEUVData) call Set_Euv(iError, CurrentTime, EndTime)
           if (iError /= 0) then
-             call stop_gitm("Stopping after set_euv in set_inputs. " // &
-                  "Error in EUV data. Check times!")
+            call stop_gitm("Stopping after set_euv in set_inputs. "// &
+                           "Error in EUV data. Check times!")
           endif
         endif
         ! ------------------------------------------------------------
@@ -1792,23 +1792,23 @@ subroutine set_inputs
         ! so the user can blend them.
         call read_in_real(EUV_Ratio_Empirical, iError)
         if (iError /= 0) then
-           if (UseEUVData) then
-              EUV_Ratio_Empirical = 0.0
-           else
-              EUV_Ratio_Empirical = 1.0
-           endif
-           if (iProc == 0) then
-              write(*, *) ' -> Can now add a blending ratio in #EUV_DATA'
-              write(*, *) '    This sets how much use the empirical model'
-              write(*, *) '    versus the FISM data. By default, we are'
-              write(*, *) '    assuming you want no blend at all.'
-              write(*, *) '   You have set UseEUVData to ', UseEUVData
-              write(*, *) '    -> So setting EUV_Ratio_Empirical to ', &
-                   EUV_Ratio_Empirical
-           endif
-           iError = 0
+          if (UseEUVData) then
+            EUV_Ratio_Empirical = 0.0
+          else
+            EUV_Ratio_Empirical = 1.0
+          endif
+          if (iProc == 0) then
+            write(*, *) ' -> Can now add a blending ratio in #EUV_DATA'
+            write(*, *) '    This sets how much use the empirical model'
+            write(*, *) '    versus the FISM data. By default, we are'
+            write(*, *) '    assuming you want no blend at all.'
+            write(*, *) '   You have set UseEUVData to ', UseEUVData
+            write(*, *) '    -> So setting EUV_Ratio_Empirical to ', &
+              EUV_Ratio_Empirical
+          endif
+          iError = 0
         endif
-        
+
       case ("#ECLIPSE")
         IncludeEclipse = .true.
         call read_in_time(EclipseStartTime, iError)

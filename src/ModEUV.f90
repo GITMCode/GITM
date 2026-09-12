@@ -97,39 +97,39 @@ module ModEUV
     EUV_Flux
 
   real, dimension(1:Num_WaveLengths_High) :: &
-       RLMEUV, Flux_of_EUV, &
-       BranchingRatio_N2, BranchingRatio_O2, &
-       PhotoAbs_O2, PhotoAbs_O, PhotoAbs_N2, &
-       PhotoIon_O2, PhotoIon_OPLus4S, PhotoIon_N2, PhotoIon_N, &
-       PhotoElec_O2_O2Plus, PhotoElec_O2_OPlus, PhotoElec_O2_O3P, &
-       PhotoElec_N2_N2Plus, PhotoElec_N2_NPlus, PhotoElec_N2_N4S, &
-       PhotoElec_CH4_CH4Plus, PhotoElec_CH4_CH3Plus, &
-       PhotoElec_O_O4SPlus, PhotoElec_O_O2DPlus, PhotoElec_O_O2PPlus, &
-       PhotoIon_OPlus2D, PhotoIon_OPLus2P, &
-       WAVEL, WAVES, RFLUX, XFLUX, SCALE1, SCALE2, &
-       TCHR0, TCHR1, TCHR2, TCOR0, TCOR1, TCOR2, WAR1, WAR2, &
-       Solar_Flux, PhotonEnergy, &
-       PhotoAbs_CO2, PhotoAbs_CO2_295, PhotoAbs_CO2_195, &
-       PhotoAbs_CO, PhotoIon_CO2, PhotoIon_CO, &
-       PhotoAbs_CH4, PhotoAbs_H2, PhotoAbs_HCN, &
-       PhotoIon_CH4, PhotoIon_H2, PhotoIon_HCN, &
-       PhotoAbs_He, &
-       BranchingRatio_CO2_to_CO2Plus, BranchingRatio_CO2_to_OPlus, &
-       BranchingRatio_CO2_to_COPlus, BranchingRatio_N2_to_N2Plus, &
+    RLMEUV, Flux_of_EUV, &
+    BranchingRatio_N2, BranchingRatio_O2, &
+    PhotoAbs_O2, PhotoAbs_O, PhotoAbs_N2, &
+    PhotoIon_O2, PhotoIon_OPLus4S, PhotoIon_N2, PhotoIon_N, &
+    PhotoElec_O2_O2Plus, PhotoElec_O2_OPlus, PhotoElec_O2_O3P, &
+    PhotoElec_N2_N2Plus, PhotoElec_N2_NPlus, PhotoElec_N2_N4S, &
+    PhotoElec_CH4_CH4Plus, PhotoElec_CH4_CH3Plus, &
+    PhotoElec_O_O4SPlus, PhotoElec_O_O2DPlus, PhotoElec_O_O2PPlus, &
+    PhotoIon_OPlus2D, PhotoIon_OPLus2P, &
+    WAVEL, WAVES, RFLUX, XFLUX, SCALE1, SCALE2, &
+    TCHR0, TCHR1, TCHR2, TCOR0, TCOR1, TCOR2, WAR1, WAR2, &
+    Solar_Flux, PhotonEnergy, &
+    PhotoAbs_CO2, PhotoAbs_CO2_295, PhotoAbs_CO2_195, &
+    PhotoAbs_CO, PhotoIon_CO2, PhotoIon_CO, &
+    PhotoAbs_CH4, PhotoAbs_H2, PhotoAbs_HCN, &
+    PhotoIon_CH4, PhotoIon_H2, PhotoIon_HCN, &
+    PhotoAbs_He, &
+    BranchingRatio_CO2_to_CO2Plus, BranchingRatio_CO2_to_OPlus, &
+    BranchingRatio_CO2_to_COPlus, BranchingRatio_N2_to_N2Plus, &
        !!
        !! NOTA BENE NOTA BENE:  JMB
        !! Please Note that these QuantunYields
        !! Are Relative to the TOTAL ABSORPTION COEFFICIENT
        !! They are NOT Relative to the Dissociation or Ioniziaton Coeficients!!!
        !!
-       QuantumYield_N2_N4S, &
-       QuantumYield_N2_N2Plus, &
-       QuantumYield_N2_NPlus, &
-       QuantumYield_CH4_CH3, &
-       QuantumYield_CH4_1CH2, &
-       QuantumYield_CH4_3CH2, &
-       QuantumYield_CH4_CH, &
-       QuantumYield_CH4_CH3Plus
+    QuantumYield_N2_N4S, &
+    QuantumYield_N2_N2Plus, &
+    QuantumYield_N2_NPlus, &
+    QuantumYield_CH4_CH3, &
+    QuantumYield_CH4_1CH2, &
+    QuantumYield_CH4_3CH2, &
+    QuantumYield_CH4_CH, &
+    QuantumYield_CH4_CH3Plus
 
   real, allocatable :: CO2_Abs_Fac(:, :, :, :, :)
 
@@ -592,7 +592,7 @@ module ModEUV
 ! doi:10.1016/j.pss.2014.11.022): Lee et al. (1973) 180-580 A, Watanabe et al.
 ! (1967) 580-1350 A, Marmo (1953)
 ! PhotoAbs_NO is the total column, PhotoIon_NO the NO+ partial, & the O+ and N+
-! dissociative-ionization branches are not carried. 
+! dissociative-ionization branches are not carried.
 
   data PhotoAbs_NO/ &
     0.190e-18, 0.318e-18, 0.217e-18, 0.290e-18, 0.424e-18, 1.397e-18, &

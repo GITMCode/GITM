@@ -169,7 +169,7 @@ subroutine logfile(dir)
       "        HP       HPn       HPs  HPn_diff  HPs_diff"// &
       "     HPn_w     HPs_w     HPn_m     HPs_m"// &
       "     CPCPn     CPCPs"// &
-      " SubsolarLon SubsolarLat SubsolarVTEC" // &
+      " SubsolarLon SubsolarLat SubsolarVTEC"// &
       " IntegratedEUV"
 
   endif

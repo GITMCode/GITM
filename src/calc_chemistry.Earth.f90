@@ -934,27 +934,27 @@ subroutine calc_chemistry(iBlock)
           ! -----------
           ! O2+ + N2 -> NO+ + NO + 0.9333 eV
           ! -----------
-          
+
           rr = 5.0e-22
 
           Reaction = &
-               rr * &
-               Ions(iO2P_) * &
-               Neutrals(iN2_)
+            rr* &
+            Ions(iO2P_)* &
+            Neutrals(iN2_)
 
           NeutralSources(iNO_) = NeutralSources(iNO_) + Reaction
 
-          IonSources(iNOP_)    = IonSources(iNOP_)    + Reaction
-          NeutralLosses(iN2_)  = NeutralLosses(iN2_)  + Reaction
-          IonLosses(iO2P_)     = IonLosses(iO2P_)     + Reaction
+          IonSources(iNOP_) = IonSources(iNOP_) + Reaction
+          NeutralLosses(iN2_) = NeutralLosses(iN2_) + Reaction
+          IonLosses(iO2P_) = IonLosses(iO2P_) + Reaction
 
           ChemicalHeatingSub = &
-               ChemicalHeatingSub + &
-               Reaction * 0.9333
+            ChemicalHeatingSub + &
+            Reaction*0.9333
 
-          ChemicalHeatingS(io2p_n2) =  &
-               ChemicalHeatingS(io2p_n2) + &
-               Reaction * 0.9333
+          ChemicalHeatingS(io2p_n2) = &
+            ChemicalHeatingS(io2p_n2) + &
+            Reaction*0.9333
 
           ! ----------------------------------------------------------
           ! O(4S)+
@@ -1074,21 +1074,21 @@ subroutine calc_chemistry(iBlock)
           rr = 8.0e-16
 
           Reaction = &
-               rr * &
-               Ions(iO_2DP_) * &
-               Neutrals(iN2_)
+            rr* &
+            Ions(iO_2DP_)* &
+            Neutrals(iN2_)
 
           ! We create and loose the same amount of N2
           IonSources(iO_4SP_) = IonSources(iO_4SP_) + Reaction
-          IonLosses(iO_2DP_)  = IonLosses(iO_2DP_)  + Reaction
+          IonLosses(iO_2DP_) = IonLosses(iO_2DP_) + Reaction
 
           ChemicalHeatingSubI = &
-               ChemicalHeatingSubI + &
-               Reaction * 3.31
+            ChemicalHeatingSubI + &
+            Reaction*3.31
 
-          ChemicalHeatingS(iop2d_n2) =  &
-               ChemicalHeatingS(iop2d_n2) + &
-               Reaction * 3.31
+          ChemicalHeatingS(iop2d_n2) = &
+            ChemicalHeatingS(iop2d_n2) + &
+            Reaction*3.31
 
           ! -----------
           ! O+(2P) + O -> O+(4S) + O + 5.0 eV
@@ -1444,22 +1444,22 @@ subroutine calc_chemistry(iBlock)
           rr = 1.0e-16
 
           Reaction = &
-               rr * &
-               Ions(iO_2PP_) * &
-               Neutrals(iN2_)
+            rr* &
+            Ions(iO_2PP_)* &
+            Neutrals(iN2_)
 
           NeutralSources(iNO_) = NeutralSources(iNO_) + Reaction
-          IonSources(iNP_)     = IonSources(iNP_)     + Reaction
-          NeutralLosses(iN2_)  = NeutralLosses(iN2_)  + Reaction
-          IonLosses(iO_2PP_)   = IonLosses(iO_2PP_)   + Reaction
+          IonSources(iNP_) = IonSources(iNP_) + Reaction
+          NeutralLosses(iN2_) = NeutralLosses(iN2_) + Reaction
+          IonLosses(iO_2PP_) = IonLosses(iO_2PP_) + Reaction
 
           ChemicalHeatingSub = &
-               ChemicalHeatingSub + &
-               Reaction * 0.70
+            ChemicalHeatingSub + &
+            Reaction*0.70
 
-          ChemicalHeatingS(iop2p_n2) =  &
-               ChemicalHeatingS(iop2p_n2) + &
-               Reaction * 0.70
+          ChemicalHeatingS(iop2p_n2) = &
+            ChemicalHeatingS(iop2p_n2) + &
+            Reaction*0.70
 
           ! ----------------------------------------------------------
           ! N+
@@ -1469,21 +1469,21 @@ subroutine calc_chemistry(iBlock)
           ! -----------
           ! O2+ + N(2D) -> N+ + O2 + 0.0 eV
           ! -----------
-          
+
           rr = 8.65e-17
-          
+
           Reaction = &
-               rr * &
-               Ions(iO2P_) * &
-               Neutrals(iN_2D_)
-          
-          NeutralSources(iO2_)  = NeutralSources(iO2_)  + Reaction
-          IonSources(iNP_)      = IonSources(iNP_)      + Reaction
+            rr* &
+            Ions(iO2P_)* &
+            Neutrals(iN_2D_)
+
+          NeutralSources(iO2_) = NeutralSources(iO2_) + Reaction
+          IonSources(iNP_) = IonSources(iNP_) + Reaction
           NeutralLosses(iN_2D_) = NeutralLosses(iN_2D_) + Reaction
-          IonLosses(iO2P_)      = IonLosses(iO2P_)      + Reaction
+          IonLosses(iO2P_) = IonLosses(iO2P_) + Reaction
           ChemicalHeatingSub = &
-               ChemicalHeatingSub + &
-               Reaction * 0.0
+            ChemicalHeatingSub + &
+            Reaction*0.0
 
           ! -----------
           ! Shunk and Nagy R29
@@ -2046,36 +2046,36 @@ subroutine calc_chemistry(iBlock)
           rr = 9.5e-15
 
           Reaction = &
-               rr * &
-               Neutrals(iN_2P_) * &
-               Ions(ie_)
+            rr* &
+            Neutrals(iN_2P_)* &
+            Ions(ie_)
 
           ! We create and loose the same amount of e
           NeutralSources(iN_2D_) = NeutralSources(iN_2D_) + Reaction
-          NeutralLosses(iN_2P_)  = NeutralLosses(iN_2P_)  + Reaction
+          NeutralLosses(iN_2P_) = NeutralLosses(iN_2P_) + Reaction
 
           ChemicalHeatingSub = &
-               ChemicalHeatingSub + &
-               Reaction * 1.19
-          
+            ChemicalHeatingSub + &
+            Reaction*1.19
+
           ! -----------
           ! N(2P) + e -> N(4S) + e + 3.57 eV
           ! -----------
 
-          rr = 2.04e-16 * (te3m085**(-1))
+          rr = 2.04e-16*(te3m085**(-1))
 
           Reaction = &
-               rr * &
-               Neutrals(iN_2P_) * &
-               Ions(ie_)
+            rr* &
+            Neutrals(iN_2P_)* &
+            Ions(ie_)
 
           ! We create and loose the same amount of e
           NeutralSources(iN_4S_) = NeutralSources(iN_4S_) + Reaction
-          NeutralLosses(iN_2P_)  = NeutralLosses(iN_2P_)  + Reaction
+          NeutralLosses(iN_2P_) = NeutralLosses(iN_2P_) + Reaction
 
           ChemicalHeatingSub = &
-               ChemicalHeatingSub + &
-               Reaction * 3.57
+            ChemicalHeatingSub + &
+            Reaction*3.57
 
           ! -----------
           ! N(2P) + NO -> N(4S) + NO + 3.44 eV
@@ -2084,16 +2084,16 @@ subroutine calc_chemistry(iBlock)
           rr = 1.8e-16
 
           Reaction = &
-               rr * &
-               Neutrals(iN_2P_) * &
-               Neutrals(iNO_)
+            rr* &
+            Neutrals(iN_2P_)* &
+            Neutrals(iNO_)
 
-          NeutralSources(iN_4S_)  = NeutralSources(iN_4S_)  + Reaction
+          NeutralSources(iN_4S_) = NeutralSources(iN_4S_) + Reaction
           NeutralLosses(iN_2P_) = NeutralLosses(iN_2P_) + Reaction
 
           ChemicalHeatingSub = &
-               ChemicalHeatingSub + &
-               Reaction * 3.44
+            ChemicalHeatingSub + &
+            Reaction*3.44
 
           ! -----------
           ! N(2P) + O(3P) -> N(2D) + O(3P) + 1.19 eV
@@ -2102,37 +2102,37 @@ subroutine calc_chemistry(iBlock)
           rr = 1.7e-17
 
           Reaction = &
-               rr * &
-               Neutrals(iN_2P_) * &
-               Neutrals(iO_3P_)
+            rr* &
+            Neutrals(iN_2P_)* &
+            Neutrals(iO_3P_)
 
-          NeutralSources(iN_2D_)  = NeutralSources(iN_2D_)  + Reaction
+          NeutralSources(iN_2D_) = NeutralSources(iN_2D_) + Reaction
           NeutralLosses(iN_2P_) = NeutralLosses(iN_2P_) + Reaction
 
           ChemicalHeatingSub = &
-               ChemicalHeatingSub + &
-               Reaction * 1.19
+            ChemicalHeatingSub + &
+            Reaction*1.19
 
           ! -----------
           ! N(2P) + O2 -> NO + O(3P) + 4.95 eV
           ! -----------
 
-          rr = 3.09e-18 * exp(-60/Tn)
+          rr = 3.09e-18*exp(-60/Tn)
 
           Reaction = &
-               rr * &
-               Neutrals(iN_2P_) * &
-               Neutrals(iO2_)
+            rr* &
+            Neutrals(iN_2P_)* &
+            Neutrals(iO2_)
 
-          NeutralSources(iNO_)  = NeutralSources(iNO_)  + Reaction
-          NeutralSources(iO_3P_)  = NeutralSources(iO_3P_)  + Reaction
+          NeutralSources(iNO_) = NeutralSources(iNO_) + Reaction
+          NeutralSources(iO_3P_) = NeutralSources(iO_3P_) + Reaction
           NeutralLosses(iN_2P_) = NeutralLosses(iN_2P_) + Reaction
           NeutralLosses(iO2_) = NeutralLosses(iO2_) + Reaction
 
           ChemicalHeatingSub = &
-               ChemicalHeatingSub + &
-               Reaction * 4.95
-          
+            ChemicalHeatingSub + &
+            Reaction*4.95
+
           ! ----------------------------------------------------------
           ! O(1D)
           ! ----------------------------------------------------------

@@ -247,7 +247,6 @@ subroutine calc_planet_sources(iBlock)
                (1.0 + 0.6*tmp2 + 0.2*tmp3)
     ! In w/m3/3
     OCooling = OCooling/10.0
-
     ! The non-LTE factor the reference above calls for
     OCooling = OCooling*0.5
 
