@@ -160,13 +160,13 @@ subroutine aurora(iBlock)
   ! From Rees's book (N2 0.92, O2 1.00, O 0.56), plus He. The Fang bulk rate
   ! is built from the total mass column, which includes He, so He belongs in
   ! the denominator too; left out, its share lands on O as a volume rate
-  ! independent of [O]. The 0.14 is the ratio of He's peak electron-impact
-  ! ionization cross-section to O2's near 100 eV, ~0.37/2.7.
+  ! independent of [O]. The He value defaults to 0.14 but is adjustable
+  ! and/or toggle-able via #HEAURORA0
 
   temp = 0.92*NDensityS(1:nLons, 1:nLats, 1:nAlts, iN2_, iBlock) + &
          1.00*NDensityS(1:nLons, 1:nLats, 1:nAlts, iO2_, iBlock) + &
          0.56*NDensityS(1:nLons, 1:nLats, 1:nAlts, iO_3P_, iBlock) + &
-         0.14*NDensityS(1:nLons, 1:nLats, 1:nAlts, iHe_, iBlock)
+         HeAuroraFactor*NDensityS(1:nLons, 1:nLats, 1:nAlts, iHe_, iBlock)
 
   AuroralIonRateS(:, :, :, iO_3P_, iBlock) = &
     0.56*AuroralBulkIonRate* &
@@ -178,7 +178,7 @@ subroutine aurora(iBlock)
     0.92*AuroralBulkIonRate* &
     NDensityS(1:nLons, 1:nLats, 1:nAlts, iN2_, iBlock)/temp
   AuroralIonRateS(:, :, :, iHe_, iBlock) = &
-    0.14*AuroralBulkIonRate* &
+    HeAuroraFactor*AuroralBulkIonRate* &
     NDensityS(1:nLons, 1:nLats, 1:nAlts, iHe_, iBlock)/temp
 
   IsFirstTime(iBlock) = .false.

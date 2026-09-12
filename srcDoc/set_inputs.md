@@ -322,6 +322,14 @@ AMIE. The first three options (diffuse, mono, wave) are for electrons only.
     UseWaveAurora      (logical)
     UseIonAurora       (logical)
 
+### HEAURORA
+
+This sets the He auroral ionization cross-section ratio. Default is 0.14 (on), set 
+to 0.0 to disable.
+
+    #AURORAMODS
+    HeAuroraFactor       (real)
+
 ### USECUSP
 
 This is for specifying a cusp.

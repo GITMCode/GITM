@@ -822,6 +822,18 @@ subroutine set_inputs
           IsDone = .true.
         endif
 
+      case("#HEAURORA")
+        call read_in_real(HeAuroraFactor, iError)
+        if (iError /= 0) then
+          write(*, *) 'Incorrect format for #HEAURORA'
+          write(*, *) 'This toggles He auroral ionization.'
+          write(*, *) '0.14 is the default, set to 0.0 to disable'
+          write(*, *) ''
+          write(*, *) '#HEAURORA'
+          write(*, *) 'HeAuroraFactor (logical)'
+          IsDone = .true.
+        endif
+
       case ("#USECUSP")
         call read_in_logical(UseCusp, iError)
         call read_in_real(CuspAveE, iError)

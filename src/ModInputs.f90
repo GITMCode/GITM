@@ -91,6 +91,8 @@ module ModInputs
   logical::AllowAurWODiffuse = .false.
   real :: MaxAveEAurora = 80.0
 
+  real :: HeAuroraFactor = 0.14
+
   logical :: UseCusp = .false.
   real :: CuspAveE = 0.1
   real :: CuspEFlux = 2.0

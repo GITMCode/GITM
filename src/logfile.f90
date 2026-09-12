@@ -459,6 +459,10 @@ subroutine write_code_information(dir)
     write(iCodeInfoFileUnit_, *) AuroraKappa
     write(iCodeInfoFileUnit_, *) ""
 
+    write(iCodeInfoFileUnit_, *) "#HEAURORA"
+    write(iCodeInfoFileUnit_, *) HeAuroraFactor
+    write(iCodeInfoFileUnit_, *) ""
+
     write(iCodeInfoFileUnit_, *) "#AURORATYPES"
     write(iCodeInfoFileUnit_, *) UseDiffuseAurora
     write(iCodeInfoFileUnit_, *) UseMonoAurora
