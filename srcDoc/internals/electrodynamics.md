@@ -170,10 +170,11 @@ To do this, one must manually control the magnetic field configuration through
 the use of `#APEX` and `#DIPOLE` in `UAM.in`.
 
 By setting `#APEX` to F, GITM will use a tilted, offset dipole for the magnetic
-field. The tilt and offset are normally set automatically, however with the use
-of the `#DIPOLE` option, it is possible to force zero offset and tilt,
-effectively aligning the geographic and magnetic poles. The output files will
-then be in magnetic coordinates, on a magnetic grid, rather than geographic.
+field. The tilt and offset default to the IGRF 2020 epoch, however with the use
+of the [`#DIPOLE`](../set_inputs.md#dipole) option, it is possible to force zero 
+offset and tilt, effectively aligning the geographic and magnetic poles.
+The output files will then be in magnetic
+coordinates, on a magnetic grid, rather than geographic.
 
 A complete example file for this can be found in
 `srcTests/auto_test/UAM.in.05.ElectrodynamicsMagCoords.test`, where the

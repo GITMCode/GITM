@@ -875,15 +875,22 @@ Sets whether to use a realistic magnetic field (T) or a dipole (F). This is for 
 
 ### DIPOLE
 
-Can set the dipole field to be centered, non-tilted dipole, or can set each of the 
-different parameters explicitely with this:
+Overrides the tilted, offset dipole when `#APEX` is F.
 
     #DIPOLE
-    MagneticPoleRotation   (real)
-    MagneticPoleTilt       (real)
-    xDipoleCenter          (real)
-    yDipoleCenter          (real)
-    zDipoleCenter          (real)
+    MagneticPoleRotation   (real)  east longitude of the dipole north pole, degrees
+    MagneticPoleTilt       (real)  colatitude of the dipole north pole, degrees
+    xDipoleCenter          (real)  dipole center offset, km
+    yDipoleCenter          (real)  (same, km)
+    zDipoleCenter          (real)  (same, km)
+
+The Earth defaults are the IGRF values: rotation 287.30, tilt 9.41, center
+(-398.3, 371.8, 227.5) km. 
+
+Setting all five values to zero gives a centered, untilted dipole whose axis is the
+geographic rotation axis, which aligns the magnetic and geographic grids. That is
+what the `2DGEL` magnetic-grid recipe under
+[`#STATISTICALMODELSONLY`](#statisticalmodelsonly) relies on.
 
 ## Misc
 
