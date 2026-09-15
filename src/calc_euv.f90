@@ -746,17 +746,17 @@ subroutine calc_scaled_euv
 
   endif
 
+  ! #EUVSCALE: flat F10.7a-dependent scaling of the spectrum. It was fit
+  ! against FISM, so it multiplies only the FISM term
+  EuvScale = max(0.0, EuvScaleBase + EuvScaleSlope*(f107a - EuvScaleF107aRef))
+
   ! Blend Data and Empirical (set in set_inputs) and
-  ! Take into account the sun distance to the planet:
+  ! take into account the sun distance to the planet.  Applied after
+  ! Flux_of_EUV is assigned, so repeated calls cannot compound it:
   Flux_of_EUV = &
     (EUV_Ratio_Empirical*Empirical_Flux + &
-     (1.0 - EUV_Ratio_Empirical)*FISM_Flux)/ &
+     (1.0 - EUV_Ratio_Empirical)*FISM_Flux*EuvScale)/ &
     (SunPlanetDistance**2)
-
-  ! #EUVSCALE: flat F10.7a-dependent scaling of the whole spectrum.  Applied
-  ! after Flux_of_EUV is assigned, so repeated calls cannot compound it.
-  EuvScale = max(0.0, EuvScaleBase + EuvScaleSlope*(f107a - EuvScaleF107aRef))
-  Flux_of_EUV = Flux_of_EUV*EuvScale
 
   TotalIntegratedEuvEnergy = 0.0
   do N = 1, Num_WaveLengths_High

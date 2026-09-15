@@ -296,6 +296,43 @@ This is for a FISM or some other solar spectrum file.
     #EUV_DATA
     UseEUVData            (logical)
     cEUVFile              (string)
+    EUV_Ratio_Empirical   (real, optional)
+
+`EUV_Ratio_Empirical` mixes the empirical spectrum into the FISM data:
+0 is all FISM, 1 is all empirical. FISM is less energetic than EUVAC and
+Tobiska, so blending is a way to sit between them.
+
+**Blending is off by default.** Omit the fourth line and the ratio follows
+`UseEUVData` alone — 0 when it is T, 1 when it is F — so the spectrum is
+whichever source you picked, unmixed. A value below 1 requires
+`UseEUVData` to be T, since with no FISM flux to blend in it would scale
+the whole spectrum towards zero; GITM stops rather than run that.
+
+Note that [`#EUVSCALE`](#euvscale) multiplies only the FISM term, so a
+blend scales in proportion to how much FISM is in it.
+
+To leave blending off, omit the fourth line entirely. GITM reads it only
+when the line after the filename parses as a number, so a stray value
+sitting there — say an argument whose own `#COMMAND` header was commented
+out — is silently taken as the ratio.
+
+### EUVMODEL
+
+Chooses the empirical solar spectrum. EUVAC and Tobiska cover different
+wavelength ranges; when both are true they are averaged together over the
+overlap. `UseAboveHigh` and `UseBelowLow` extend the spectrum to longer and
+shorter wavelengths respectively, filling the bins the two models do not
+reach.
+
+    #EUVMODEL
+    UseEUVAC       (logical)
+    UseTobiska     (logical)
+    UseAboveHigh   (logical)
+    UseBelowLow    (logical)
+
+All four default to true. Setting all four to false selects the Ridley EUV
+model instead, which is the only way to reach it — there is no separate
+command for it.
 
 ### AURORAMODS
 
@@ -609,15 +646,22 @@ EUV heating comes from Chemistry, so this typically is set to about 0.05 (5%).
 
 ### EUVSCALE
 
-Flat scaling of the whole EUV spectrum, optionally varying with the driven
-81-day mean F10.7. The multiplier is `EuvScaleBase + EuvScaleSlope*(F107a -
-EuvScaleF107aRef)`, floored at zero. The non-Earth defaults (1.0, 0.0, 150.0)
-leave the flux untouched. Earth overrides these.
+Flat scaling of the EUV spectrum, optionally varying with the driven 81-day
+mean F10.7. The multiplier is `EuvScaleBase + EuvScaleSlope*(F107a -
+EuvScaleF107aRef)`, floored at zero.
 
     #EUVSCALE
     EuvScaleBase           (real)
     EuvScaleSlope          (real)
     EuvScaleF107aRef       (real)
+
+**This scales the FISM flux only.** It was fit against FISM, so it does not
+touch the empirical models (EUVAC, Tobiska, Ridley). A run without
+[`#EUV_DATA`](#euv_data) is unaffected no matter what you set here, and a run
+that blends the two is scaled in proportion to its FISM fraction.
+
+The non-Earth defaults (1.0, 0.0, 150.0) leave the flux untouched. Earth
+overrides the first two to 1.075 and 0.0019.
 
 ### DON4SHACK
 

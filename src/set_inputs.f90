@@ -1810,9 +1810,11 @@ subroutine set_inputs
         if (iError /= 0) then
           write(*, *) 'Incorrect format for #EUV_DATA'
           write(*, *) 'This is for a FISM or some other solar spectrum file.'
+          write(*, *) 'The blending ratio is optional and is off by default.'
           write(*, *) '#EUV_DATA'
           write(*, *) 'UseEUVData            (logical)'
           write(*, *) 'cEUVFile              (string)'
+          write(*, *) 'EUV_Ratio_Empirical   (real, optional, 0-1)'
         else
           if (UseEUVData) call Set_Euv(iError, CurrentTime, EndTime)
           if (iError /= 0) then
@@ -1820,29 +1822,25 @@ subroutine set_inputs
                            "Error in EUV data. Check times!")
           endif
         endif
-        ! ------------------------------------------------------------
-        ! New input:
-        ! This sets how much to blend the empirical EUV model with the
-        ! FISM data.  It seems like the FISM data is not nearly as
-        ! energetic as the empirical models (like EUVAC and Tobiska),
-        ! so the user can blend them.
+
+        ! Optional blending of the empirical EUV models with the FISM data.
+        ! FISM is less energetic than EUVAC/Tobiska, so a run can mix them.
+        ! Blending is OFF by default
         call read_in_real(EUV_Ratio_Empirical, iError)
         if (iError /= 0) then
+          ! Not given: unmixed
           if (UseEUVData) then
             EUV_Ratio_Empirical = 0.0
           else
             EUV_Ratio_Empirical = 1.0
           endif
-          if (iProc == 0) then
-            write(*, *) ' -> Can now add a blending ratio in #EUV_DATA'
-            write(*, *) '    This sets how much use the empirical model'
-            write(*, *) '    versus the FISM data. By default, we are'
-            write(*, *) '    assuming you want no blend at all.'
-            write(*, *) '   You have set UseEUVData to ', UseEUVData
-            write(*, *) '    -> So setting EUV_Ratio_Empirical to ', &
-              EUV_Ratio_Empirical
-          endif
           iError = 0
+        else if (EUV_Ratio_Empirical < 0.0 .or. &
+                 EUV_Ratio_Empirical > 1.0 .or. &
+                 (.not. UseEUVData .and. EUV_Ratio_Empirical < 1.0)) then
+          write(*, *) '#EUV_DATA: EUV_Ratio_Empirical must be 0-1, and'
+          write(*, *) 'a value below 1 requires UseEUVData = T.'
+          call stop_gitm("Must Stop!!")
         endif
 
       case ("#ECLIPSE")
