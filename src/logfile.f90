@@ -138,13 +138,13 @@ subroutine logfile(dir)
       usestatisticalmodelsonly, " Apex: ", useApex
     if (useEUVdata) then
       write(iLogFileUnit_, '(a,L2,a)') "# EUV Data: ", useEUVdata, "File: ", &
-        cEUVFile
+        trim(cEUVFile)
     else
       write(iLogFileUnit_, '(a,L2)') "# EUV Data: ", useEUVdata
     endif
     write(iLogFileUnit_, '(4(a))') "# E-Field Model: ", trim(cPotentialModel), &
       " Auroral Model: ", trim(cAuroralModel)
-    write(iLogFileUnit_, '(a,a15)') "# AMIE: ", cAmieFileNorth, cAmieFileSouth
+    write(iLogFileUnit_, '(a,a15)') "# AMIE: ", trim(cAmieFileNorth), trim(cAmieFileSouth)
     write(iLogFileUnit_, '(3(a,L2))') "# Solar Heating: ", useSolarHeating, &
       " Joule Heating: ", useJouleHeating
     write(iLogFileUnit_, '(2(a,L2))') "# NO Cooling: ", useNOCooling, &
@@ -169,8 +169,7 @@ subroutine logfile(dir)
       "        HP       HPn       HPs  HPn_diff  HPs_diff"// &
       "     HPn_w     HPs_w     HPn_m     HPs_m"// &
       "     CPCPn     CPCPs"// &
-      " SubsolarLon SubsolarLat SubsolarVTEC"// &
-      " IntegratedEUV"
+      " SubSolLon SubSolLat SubsolVTEC   IntEUV"
 
   endif
 
@@ -271,7 +270,9 @@ subroutine logfile(dir)
     !   9f10.3    — HP, HPn, HPs, HPn_diff, HPs_diff, HPn_w, HPs_w, HPn_m, HPs_m (GW)
     !   2f10.3    — CPCPn, CPCPs (kV)
     !   3f10.3    — SubsolarLon (deg), SubsolarLat (deg), SubsolarVTEC (TECU)
-    write(iLogFileUnit_, "(i8,i5,5i3,i4,f8.3,26f10.3)") &
+    !   1f10.3    — TotalIntegratedEuvEnergy
+
+    write(iLogFileUnit_, "(i8,i5,5i3,i4,f8.3,27f10.3)") &
       iStep, iTimeArray(1:6), floor(iTimeArray(7)/10.0)*10, &
       dt, &
       minTemp, maxTemp, AverageTemp, minVertVel, maxVertVel, AverageVertVel, &
