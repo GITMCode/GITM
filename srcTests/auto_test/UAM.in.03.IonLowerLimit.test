@@ -1,6 +1,6 @@
 
 #DEBUG
-1		debug level (0 = no info, 10 = max info)
+0		debug level (0 = no info, 10 = max info)
 0		cpu to watch
 60.0		dt between normal code output to stdout
 F		usebarriers - forces the code to stop and wait more often
@@ -20,6 +20,10 @@ F		usebarriers - forces the code to stop and wait more often
 00		hour
 15		minute
 00		second
+
+#NANCHECK
+T
+
 
 #GRID
 2		number of blocks in longitude
@@ -71,7 +75,7 @@ F
 #IONLIMITS
 100   # max Vparallel
 0.1   # max E-field
-1e8   # min ion density - absurdly high, but good to test.
-1e10  # min advected ion density
+1e6   # min ion density - absurdly high, but good to test.
+1e6  # min advected ion density
 
 #END
