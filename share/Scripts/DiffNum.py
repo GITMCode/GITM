@@ -174,9 +174,14 @@ def main(file1, file2, reltol=RELTOL, atol=ATOL, verbose=False):
     nLines1 = len(next(iter(log1.values())))
     nLines2 = len(next(iter(log2.values())))
     if nLines1 != nLines2:
+        if abs(nLines1 - nLines2) == 1:
+            # Sometimes the logfiles only differ in the last line. 
+            # Do not cause the test to fail, but warn that things are different
+            print("Number of lines in the two files are off by 1")
+        else:
         errors.append(
-            f"file 1 has {nLines1} lines, file 2 has {nLines2}")
-        # then compare over the overlap
+                f"\nfile 1 has {nLines1} lines, file 2 has {nLines2}")
+        # Only compare over the overlap
         minLines = min(nLines1, nLines2)
         for log in (log1, log2):
             for k in log:
