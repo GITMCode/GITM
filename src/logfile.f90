@@ -273,7 +273,7 @@ subroutine logfile(dir)
     !   1f10.3    — TotalIntegratedEuvEnergy
 
     write(iLogFileUnit_, "(i8,i5,5i3,i4,f8.3,27f10.3)") &
-      iStep, iTimeArray(1:6), floor(iTimeArray(7)/10.0)*10, &
+      iStep, iTimeArray(1:6), iTimeArray(7), &
       dt, &
       minTemp, maxTemp, AverageTemp, minVertVel, maxVertVel, AverageVertVel, &
       f107, f107A, By, Bz, Vx, &
