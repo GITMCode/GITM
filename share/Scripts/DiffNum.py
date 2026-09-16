@@ -8,6 +8,7 @@ from itertools import zip_longest
 ## DEFAULTS
 RELTOL = 1e-6
 ATOL = 1e-3
+TIMETOL = 0.25  # seconds
 START_STRING = "#START"
 
 
@@ -179,13 +180,26 @@ def main(file1, file2, reltol=RELTOL, atol=ATOL, verbose=False):
             # Do not cause the test to fail, but warn that things are different
             print("Number of lines in the two files are off by 1")
         else:
-        errors.append(
+            errors.append(
                 f"\nfile 1 has {nLines1} lines, file 2 has {nLines2}")
         # Only compare over the overlap
         minLines = min(nLines1, nLines2)
         for log in (log1, log2):
             for k in log:
                 log[k] = log[k][:minLines]
+
+    # Then make sure the runs are in lockstep. Comparing columns row by row
+    # only means something if both rows are the same moment of the simulation.
+    t1, t2 = log1.get("time"), log2.get("time")
+    if t1 is not None and t2 is not None:
+        n = min(len(t1), len(t2))
+        drift = np.array([(t2[i] - t1[i]).total_seconds() for i in range(n)])
+        bad = np.abs(drift) > TIMETOL
+        if bad.any():
+            i = int(np.argmax(bad))
+            errors.append(
+                f"\nTimes differ: {np.count_nonzero(bad)} / {n} rows "
+                f"\n   first at row {i}:   file 1 {t1[i]}   file 2 {t2[i]}")
 
     # Then check the numerics, skipping any cols necessary
     skip_cols = ["time"]
@@ -203,15 +217,17 @@ def main(file1, file2, reltol=RELTOL, atol=ATOL, verbose=False):
                 name, log1[name], log2[name],
                 times=log1.get("time"), reltol=reltol, atol=atol)
             failed.append(s)
+    if failed:
+        errors.append('\n')
     errors.extend(failed)
     if not errors:
         sys.exit(0)
 
     # Name the files once, here, so the lines above stay short
     print("\n" + "=" * 70 + f"\n   file 1:  {file1}\n   file 2:  {file2}\n" + "-" * 70)
-    print("Test did not pass!")
+    print("Test did not pass!\n")
     for s in errors:
-        print("\n" + s)
+        print(s)
     sys.exit(1)
 
 
