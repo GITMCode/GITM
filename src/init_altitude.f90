@@ -198,11 +198,10 @@ subroutine init_altitude
   endif
 
   if (iProc == 0) then
-    write(*, '(a)') ' init_altitude :'
-    write(*, '(a,i6)') '   nAlts (compile-time) : ', nAlts
-    write(*, '(a,f9.2)') '   AltMin          (km) : ', AltMin/1000.0
-    write(*, '(a,f9.2)') '   AltMax          (km) : ', AltTop/1000.0
-    write(*, '(a,f7.4)') '   dHFactor             : ', dHFactorUsed
+    write(*, '(a,i6)') '    nAlts (compile-time) : ', nAlts
+    write(*, '(a,f9.2)') '    AltMin          (km) : ', AltMin/1000.0
+    write(*, '(a,f9.2)') '    AltMax          (km) : ', AltTop/1000.0
+    write(*, '(a,f7.4)') '    dHFactor             : ', dHFactorUsed
 
     ! Only reachable on a trusted grid; every other path caps at AltMaxLimit
     if (AltTop > AltMaxLimit) &
