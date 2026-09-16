@@ -57,8 +57,6 @@ Output file stuff
 300.0		dt for output (1 every 5 min)
 
 
-
-
 ------------ Electrodynamics Drivers ------------
 
 New auroral model from Wu and Ridley, which is driven by AU/AL/AE
@@ -100,31 +98,31 @@ UA/DataIn/FISM/fismflux_daily_2002.dat		Filename
 ------------ Some options ------------
 
 
-Low-latitude dynamo (only run with higher res). Turn on for higher res sims:
 #DYNAMO
-F		UseDynamo
+T		UseDynamo
 45.0		DynamoHighLatBoundary
 500		nItersMax
 1.0		MaxResidual
 F		IncludeCowling
 40.0		LongitudinalAveraging
-F               UseNewTrace
 
-The default is to have apex off, since other planets don't have
-apex, so need to turn apex on!
+APEX coordinates are only valid for Earth!
 
 #APEX
 T
 
------------------------------------------------------------------
-Some new features:
-
 #MSISOBC
-T		Shift the [O] density at the lower boundary by 6 months 
-0.0		change the obateness of the Earth by this percent (0 = none)
+T       Shift the [O] density at the lower boundary by 6 months 
+-0.1    change the obateness of the Earth by this percent (0 = none)
 
---------------------------------------------------------------------------
+
+#MSIS21
+F       Set T to use MSIS21 instead of MSIS00, will change results
+
+
+-----------------------------------------------------------------
 Solver stuff:
+NOTE: AUSM recommended but only valid on Earth
 
 #AUSMSOLVER
 T       	Use AUSM+-up Solvers

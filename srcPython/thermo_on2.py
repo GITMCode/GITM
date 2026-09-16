@@ -155,8 +155,8 @@ Lats2d = data[1][:,:,0]*rtod;
 
 vars = remap_variable_names(headers["vars"])
 
-iO_ = vars.index('[O] (/m3)')
-iN2_ = vars.index('[N2] (/m3)')
+iO_ = vars.index('[O(3P)]')
+iN2_ = vars.index('[N2]')
 ie_ = vars.index('[e-] (/m3)')
 
 on2all = []
@@ -243,8 +243,11 @@ for iFile, file in enumerate(headers["filename"]):
               'O/N2 Ratio' + plotTime, doLabelY = True,
               minmax = on2MM)
     if (not args.on2):
+        tec = tecall[iFile]
         make_plot(ax[1], Lons2d, Lats2d, tec, 'TEC (1e16/m2)', doLabelY = False)
+        nmf2 = nmf2all[iFile]
         make_plot(ax[2], Lons2d, Lats2d, nmf2/1e12, 'NMF2 (1e12/m3)')
+        hmf2 = hmf2all[iFile]
         make_plot(ax[3], Lons2d, Lats2d, hmf2, 'HMF2 (km)', doLabelY = False)
 
     outfile = lead + sTime + '.png'

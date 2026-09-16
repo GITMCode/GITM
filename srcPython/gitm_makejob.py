@@ -33,8 +33,8 @@ def parse_args():
                         default = '24')
     
     parser.add_argument('-machine', \
-                        help = 'machine to run on (ivy)', \
-                        default = 'ivy')
+                        help = 'machine to run on (athena)', \
+                        default = 'tur_ath')
     
     parser.add_argument('-gid', \
                         help = 'group id for charging run', \
@@ -42,7 +42,7 @@ def parse_args():
     
     parser.add_argument('-procspernode', \
                         help = 'processors per node', \
-                        default = '20')
+                        default = '256')
     
     parser.add_argument('-exe', \
                         help = 'executable to run (GITM.exe)', \
@@ -54,7 +54,7 @@ def parse_args():
     
     parser.add_argument('-cpus', \
                         help = 'number of cpus to use (the total for the job)', \
-                        default = '100')
+                        default = '256')
     
     parser.add_argument('-output', \
                         help = 'Output filename', \
@@ -132,7 +132,11 @@ def modify_job(inLines, \
     nodes = int(float(cpus) / nProcsPerNode)
     if (nodes * nProcsPerNode < int(cpus)):
         nodes += 1
-    
+        
+    if (restart):
+        if (log == 'log.txt'):
+            log = 'log.restart'
+            
     for line in inLines:
         m = re.match(r'#PBS -N (.*)', line)
         if m:

@@ -6,17 +6,22 @@ module ModReadGitm3d
   use ModGITM, only: iCommGITM
   use ModInputs, only: iCharLen_, iDebugLevel
   use ModKind, ONLY: Real8_
+  use ModPlanet, ONLY: nSpecies, nSpeciesTotal, nIons
 
   integer, parameter :: i3dall_ = 1
   integer, parameter :: i3dlst_ = 2
   integer, parameter :: nGitmCharLength = iCharLen_
   integer, parameter :: nGitmVarCharLength = 40
 
-  integer :: iRho_ = 4
-  integer :: iNeutralStart_ = 5
-  integer :: iTn_ = 16, iVn_ = 17
-  integer :: iIonStart_ = 26
-  integer :: iTe_ = 36, iVi_ = 38
+  ! These indices need to be set correctly
+  integer :: iRho_
+  integer :: iNeutralStart_
+  integer :: iTn_
+  integer :: iVn_
+  integer :: iVe_
+  integer :: iIonStart_
+  integer :: iTe_
+  integer :: iVi_
   ! This is the array that is loaded with data in set_horizontal_bcs
   real, allocatable :: GitmFileData(:, :)
 
@@ -90,6 +95,14 @@ contains
 
     OutVars(1:nVarsGitm) = GitmVariables(1:nVarsGitm)
 
+    iRho_ = 4
+    iNeutralStart_ = 5
+    iTn_ = iNeutralStart_ + nSpeciesTotal
+    iVn_ = iTn_ + 1
+    iIonStart_ = iVn_ + nSpecies + 3
+    iTe_ = iIonStart_ + nIons
+    iVi_ = iTe_ + 2
+
   end subroutine GitmGetVars
 
   !---------------------------------------------------------------------------
@@ -158,73 +171,84 @@ contains
     do iPoint = 1, nPointsToGetGitm
 
       ! Lons First
-      if (InLons(iPoint) < GitmLons(1)) then
+      if (GitmInLons(iPoint) < 0.0) GitmInLons(iPoint) = GitmInLons(iPoint) + 360.0
+      if (GitmInLats(iPoint) < -90.0) then
+        GitmInLats(iPoint) = -180.0 - GitmInLats(iPoint)
+        GitmInLons(iPoint) = GitmInLons(iPoint) + 180.0
+      endif
+      if (GitmInLats(iPoint) > 90.0) then
+        GitmInLats(iPoint) = 180.0 - GitmInLats(iPoint)
+        GitmInLons(iPoint) = GitmInLons(iPoint) + 180.0
+      endif
+      if (GitmInLons(iPoint) > 360.0) GitmInLons(iPoint) = GitmInLons(iPoint) - 360.0
+
+      if (GitmInLons(iPoint) < GitmLons(1)) then
         GitmLonsIndex(iPoint) = -1
         IsAllGood = .false.
         if (iDebugLevel > -1) &
-          write(*, *) 'GitmLonsIndex < 0!', InLons(iPoint), GitmLons(1)
+          write(*, *) 'GitmLonsIndex < 0!', GitmInLons(iPoint), GitmLons(1)
       else
-        if (InLons(iPoint) > GitmLons(nLonsGitm)) then
+        if (GitmInLons(iPoint) > GitmLons(nLonsGitm)) then
           GitmLonsIndex(iPoint) = -1
           IsAllGood = .false.
           if (iDebugLevel > -1) &
-            write(*, *) 'GitmLonsIndex > max!', InLons(iPoint), GitmLons(nLonsGitm)
+            write(*, *) 'GitmLonsIndex > max!', GitmInLons(iPoint), GitmLons(nLonsGitm)
         else
-          if (InLons(iPoint) == GitmLons(nLonsGitm)) then
+          if (GitmInLons(iPoint) == GitmLons(nLonsGitm)) then
             i = nLonsGitm
           else
             i = 2
-            do while (GitmLons(i) <= InLons(iPoint))
+            do while (GitmLons(i) <= GitmInLons(iPoint))
               i = i + 1
             enddo
           endif
           GitmLonsIndex(iPoint) = i
           GitmLonsFactor(iPoint) = &
-            (GitmLons(i) - InLons(iPoint))/ &
+            (GitmLons(i) - GitmInLons(iPoint))/ &
             (GitmLons(i) - GitmLons(i - 1))
         endif
       endif
 
       ! Lats
-      if (InLats(iPoint) < GitmLats(1)) then
+      if (GitmInLats(iPoint) < GitmLats(1)) then
         i = -1
         IsAllGood = .false.
         if (iDebugLevel > -1) &
-          write(*, *) 'GitmLatsIndex < 0!', InLats(iPoint), GitmLats(1)
+          write(*, *) 'GitmLatsIndex < 0!', GitmInLats(iPoint), GitmLats(1)
       else
-        if (InLats(iPoint) > GitmLats(nLatsGitm)) then
+        if (GitmInLats(iPoint) > GitmLats(nLatsGitm)) then
           i = -1
           IsAllGood = .false.
           if (iDebugLevel > -1) &
-            write(*, *) 'GitmLatsIndex > max!', InLats(iPoint), GitmLats(nLonsGitm)
+            write(*, *) 'GitmLatsIndex > max!', GitmInLats(iPoint), GitmLats(nLonsGitm)
         else
-          if (InLats(iPoint) == GitmLats(nLatsGitm)) then
+          if (GitmInLats(iPoint) == GitmLats(nLatsGitm)) then
             i = nLatsGitm
           else
             i = 2
-            do while (GitmLats(i) <= InLats(iPoint))
+            do while (GitmLats(i) <= GitmInLats(iPoint))
               i = i + 1
             enddo
           endif
           GitmLatsIndex(iPoint) = i
           GitmLatsFactor(iPoint) = &
-            (GitmLats(i) - InLats(iPoint))/ &
+            (GitmLats(i) - GitmInLats(iPoint))/ &
             (GitmLats(i) - GitmLats(i - 1))
         endif
       endif
 
       ! Alts
-      if (InAlts(iPoint) < GitmAlts(1)) then
+      if (GitmInAlts(iPoint) < GitmAlts(1)) then
         i = -1
       else
-        if (InAlts(iPoint) > GitmAlts(nAltsGitm)) then
+        if (GitmInAlts(iPoint) > GitmAlts(nAltsGitm)) then
           i = -1
         else
-          if (InAlts(iPoint) >= GitmAlts(nAltsGitm)) then
+          if (GitmInAlts(iPoint) >= GitmAlts(nAltsGitm)) then
             i = nAltsGitm
           else
             i = 2
-            do while (GitmAlts(i) <= InAlts(iPoint))
+            do while (GitmAlts(i) <= GitmInAlts(iPoint))
               i = i + 1
             enddo
           endif
@@ -234,20 +258,20 @@ contains
       if (i > -1) then
         GitmAltsIndex(iPoint) = i
         GitmAltsFactor(iPoint) = &
-          (GitmAlts(i) - InAlts(iPoint))/ &
+          (GitmAlts(i) - GitmInAlts(iPoint))/ &
           (GitmAlts(i) - GitmAlts(i - 1))
       else
         ! Extrapolate the values:
-        if (InAlts(iPoint) < GitmAlts(1)) then
+        if (GitmInAlts(iPoint) < GitmAlts(1)) then
           GitmAltsIndex(iPoint) = 2
           GitmAltsFactor(iPoint) = &
-            (GitmAlts(2) - InAlts(iPoint))/ &
+            (GitmAlts(2) - GitmInAlts(iPoint))/ &
             (GitmAlts(2) - GitmAlts(1))
         endif
-        if (InAlts(iPoint) > GitmAlts(nAltsGitm)) then
+        if (GitmInAlts(iPoint) > GitmAlts(nAltsGitm)) then
           GitmAltsIndex(iPoint) = nAltsGitm
           GitmAltsFactor(iPoint) = &
-            (GitmAlts(nAltsGitm) - InAlts(iPoint))/ &
+            (GitmAlts(nAltsGitm) - GitmInAlts(iPoint))/ &
             (GitmAlts(nAltsGitm) - GitmAlts(nAltsGitm - 1))
         endif
       endif

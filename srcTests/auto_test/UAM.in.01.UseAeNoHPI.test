@@ -5,19 +5,6 @@
 60.0		dt between normal code output to stdout
 T		usebarriers - forces the code to stop and wait more often
 
---------------------------------------------------------------------------
-Gitm can stop and start again:
-  - Writes files to UA/restartOUT
-  - Reads files from UA/restartIN
-  - Can mv out and link to that directory
-
-#RESTART
-F		Restart Code
-
---------------------------------------------------------------------------
-start and end times:
-  - don't change start time on restart (code will set correct time!)
-
 #TIMESTART
 2002		year
 12		month
@@ -34,7 +21,6 @@ start and end times:
 05		minute
 00		second
 
-
 #GRID
 2		number of blocks in longitude
 2		number of blocks in latitude
@@ -42,7 +28,6 @@ start and end times:
 90.0		maximum latitude to model
 0.0		longitude start to model (set to 0.0 for whole Earth)
 0.0             longitude end to model (set to 0.0 for whole Earth)
-
 
 #SAVEPLOTS
 7200.0		dt for writing restart files
@@ -59,7 +44,6 @@ weimer05
 #MHD_INDICES
 UA/DataIn/Examples/imf20021221.dat
 
-Can download AU/AL/AE indices from SuperMAG and use them here:
 #SME_INDICES
 UA/DataIn/Examples/ae20021221.dat
 none              onset time delay file

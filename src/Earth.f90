@@ -59,6 +59,10 @@ subroutine fill_photo
   PhotoIonFrom(iO_2PP_) = iO_3P_
   PhotoIonFrom(iHeP_) = iHe_
 
+  photoabs(:, iNO_) = PhotoAbs_NO
+  photoion(:, iNOP_) = PhotoIon_NO
+  PhotoIonFrom(iNOP_) = iNO_
+
   ! Photoelectrons:
   ! N2:
   ! PE Ratio:  N2 + e- -> N2+
@@ -130,6 +134,7 @@ subroutine calc_planet_sources(iBlock)
   use ModEUV
   use ModGITM
   use ModTime
+  use ModCO2Fomichev, only: calc_co2fomichev_cooling
 
   implicit none
 
@@ -140,7 +145,6 @@ subroutine calc_planet_sources(iBlock)
   real :: tmp2(nLons, nLats, nAlts)
   real :: tmp3(nLons, nLats, nAlts)
   real :: Omega(nLons, nLats, nAlts)
-  real :: CO2Cooling(nLons, nLats, nAlts)
 
   LowAtmosRadRate = 0.0
 
@@ -151,7 +155,7 @@ subroutine calc_planet_sources(iBlock)
   if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
   if (iDebugLevel > 4) write(*, *) "=====> NO cooling", iproc, UseNOCooling
 
-  call calc_co2(iBlock)
+  !call calc_co2(iBlock)
 
   RadiativeCooling2d = 0.0
 
@@ -160,16 +164,10 @@ subroutine calc_planet_sources(iBlock)
     ! The 0.165 is derived from the TIEGCM (2.65e-13 / 1.602e-12)
     ! multiplied by 1e6 for /cm2 to /m2
     CO2Cooling = 0.0
-!     CO2Cooling = 0.165e6 * NDensityS(1:nLons,1:nLats,1:nAlts,iCO2_,iBlock)*&
-!          exp(-960.0/( &
-!            Temperature(1:nLons,1:nLats,1:nAlts,iBlock)* &
-!            TempUnit(1:nLons,1:nLats,1:nAlts))) * &
-!          MeanMajorMass(1:nLons,1:nLats,1:nAlts) * ( &
-!           (NDensityS(1:nLons,1:nLats,1:nAlts,iO2_,iBlock)/Mass(iO2_) + &
-!            NDensityS(1:nLons,1:nLats,1:nAlts,iN2_,iBlock)/Mass(iN2_)) * &
-!           2.5e-15 / 1e6 + &
-!           (NDensityS(1:nLons,1:nLats,1:nAlts,iO_3P_,iBlock)/Mass(iO_3P_)) * &
-!           1.0e-12 / 1e6) * 1.602e-19
+
+    if (UseCO2FomichevCooling) then
+      call calc_co2fomichev_cooling
+    endif
 
     CO2Cooling2d = 0.0
     do iAlt = 1, nAlts
@@ -249,6 +247,8 @@ subroutine calc_planet_sources(iBlock)
                (1.0 + 0.6*tmp2 + 0.2*tmp3)
     ! In w/m3/3
     OCooling = OCooling/10.0
+    ! The non-LTE factor the reference above calls for
+    OCooling = OCooling*0.5
 
     OCooling2d = 0.0
     do iAlt = 1, nAlts
@@ -415,6 +415,13 @@ subroutine set_planet_defaults
   use ModInputs
 
   implicit none
+
+  cTidalModel = "MSIS_ALL"
+  UseMSIS = .true.
+  UseMSISDiurnal = .true.
+  UseMSISSemidiurnal = .true.
+  UseMSISTerdiurnal = .true.
+  UseMSIS21 = .true.
 
   iNeutralDensityOutputList(iN_4S_) = .false.
   iNeutralDensityOutputList(iHe_) = .false.
