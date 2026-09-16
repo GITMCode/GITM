@@ -28,7 +28,7 @@ subroutine init_b0
   AltMinIono = (2*RadialDistance_GB(1, 1, -1, 1) - &
                 RadialDistance_GB(1, 1, 1, 1) - RBody)/1000.0
 
-  date = iStartTime(1) + float(iJulianDay)/float(jday(iStartTime(1), 12, 31))
+  date = dble(iStartTime(1)) + dble(iJulianDay)/dble(jday(iStartTime(1), 12, 31))
   call loadapxsh(apexfile, date)
 
   do iBlock = 1, nBlocks
@@ -182,7 +182,7 @@ subroutine get_magfield_all(GeoLat, GeoLon, GeoAlt, alat, alon, xmag, ymag, zmag
   real :: alatp, alatm, alonp, alonm, sinIm, londiff
   integer, external :: jday
   !--------------------------------------------------------------------------
-  date = iStartTime(1) + float(iJulianDay)/float(jday(iStartTime(1), 12, 31))
+  date = dble(iStartTime(1)) + dble(iJulianDay)/dble(jday(iStartTime(1), 12, 31))
 
   twodegrees = 2.0*pi/180.0
 
@@ -599,4 +599,3 @@ subroutine test_mag_point(rBelow, LShell, RBody)
   endif
 
 end subroutine test_mag_point
-
