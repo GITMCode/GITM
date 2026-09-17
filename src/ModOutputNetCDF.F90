@@ -433,10 +433,15 @@ contains
     ! consumers don't read them as real data.
     logical :: doFillNaN
     real(8) :: fillNaN
+    integer :: nGhostOnDisk
 
     doFillNaN = containers(iTypeIdx)%gridKind == GRID_MAG_2D .or. &
                 containers(iTypeIdx)%gridKind == GRID_HIME
     fillNaN = transfer(int(z'7FF8000000000000', 8), 1.0_8)
+
+    nGhostOnDisk = 0
+    if (containers(iTypeIdx)%gridKind == GRID_MAG_2D) &
+      nGhostOnDisk = containers(iTypeIdx)%nGhostCells
 
     ! CF global attributes
     attlen = 6_MPI_OFFSET_KIND
@@ -454,6 +459,10 @@ contains
     coord_units = "CF-1.8"
     attlen = int(len_trim(coord_units), MPI_OFFSET_KIND)
     ierr = nfmpi_put_att_text(ncid, NF_GLOBAL, "Conventions", attlen, trim(coord_units))
+
+    ! Store nGhostCells in the output netcdf file, readers dont have to guess
+    ierr = nfmpi_put_att_int(ncid, NF_GLOBAL, "nGhostCells", NF_INT, &
+                             1_MPI_OFFSET_KIND, [nGhostOnDisk])
 
     ! Spatial dims
     ierr = nfmpi_def_dim(ncid, "lon", nLons_g, dimid_lon)
