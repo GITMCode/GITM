@@ -177,6 +177,13 @@ def create_netcdf(filename, data, isVerbose=False):
             data[xsrc] = _to_degrees(data[xsrc], 8.0)
             data[ysrc] = _to_degrees(data[ysrc], 3.5)
 
+        # 2DMEL carries geographic lon/lat as DATA variables on a magnetic
+        # grid, so they do not fire the axes-only branch above
+        # Detect radians & so convert here
+        for _geo_name, _rad_max in (('GeoLon', 8.0), ('GeoLat', 3.5)):
+            if _geo_name in data:
+                data[_geo_name] = _to_degrees(data[_geo_name], _rad_max)
+
         # We'll try to add the coordinates, if they can be added cleanly...
         if np.all(data[xsrc][0, 0, :] == data[xsrc]):
             xvar = ncfile.createVariable(xname, np.float64, (xname,))
