@@ -111,6 +111,7 @@ contains
     integer(kind=MPI_OFFSET_KIND) :: tstart(1), tcnt(1)
     character(len=80) :: varname
     character(len=20) :: cDate
+    character(len=16) :: cLonName, cLatName, cLonUnits, cLatUnits
     ! Double, not the container's real*4: float32 seconds-since-1965 can only
     ! resolve ~128 s at modern dates, which visibly corrupts the time axis.
     real(kind=8) :: time_val(1)
@@ -260,6 +261,11 @@ contains
         ndimid = merge(3, 2, nDims == 3)
         allocate(varids(nVars), coordids(ndimid))
         do iV = 1, nVars
+          if (containers(iTypeIdx)%gridKind == GRID_MAG_2D .and. &
+              containers(iTypeIdx)%vars(iV)%is_axis) then
+            varids(iV) = -1   ! not a data variable on magnetic grids
+            cycle
+          endif
           varname = trim(containers(iTypeIdx)%vars(iV)%name)
           call sanitize_nc_name(varname)
           ierr = nfmpi_inq_varid(ncid, trim(varname), varids(iV))
@@ -268,8 +274,10 @@ contains
             nfmpi_strerror(ierr)
         enddo
         ierr = nfmpi_inq_varid(ncid, "time", nc_varid_time)
-        ierr = nfmpi_inq_varid(ncid, "lon", coordids(1))
-        ierr = nfmpi_inq_varid(ncid, "lat", coordids(2))
+        call nc_coord_names(containers(iTypeIdx)%gridKind, &
+                            cLonName, cLatName, cLonUnits, cLatUnits)
+        ierr = nfmpi_inq_varid(ncid, trim(cLonName), coordids(1))
+        ierr = nfmpi_inq_varid(ncid, trim(cLatName), coordids(2))
         if (nDims == 3) ierr = nfmpi_inq_varid(ncid, "z", coordids(3))
       endif
       nc_time_record = nc_type_records(iTypeIdx)
@@ -423,6 +431,7 @@ contains
     integer(kind=MPI_OFFSET_KIND) :: attlen
     character(len=80) :: varname
     character(len=80) :: coord_units
+    character(len=16) :: cLonName, cLatName, cLonUnits, cLatUnits
     character(len=30) :: coord_str
     character(len=40) :: coordTag
     logical :: isCoordField
@@ -464,9 +473,11 @@ contains
     ierr = nfmpi_put_att_int(ncid, NF_GLOBAL, "nGhostCells", NF_INT, &
                              1_MPI_OFFSET_KIND, [nGhostOnDisk])
 
-    ! Spatial dims
-    ierr = nfmpi_def_dim(ncid, "lon", nLons_g, dimid_lon)
-    ierr = nfmpi_def_dim(ncid, "lat", nLats_g, dimid_lat)
+    ! Spatial dims.  Magnetic grids are named mlon/mlat; see nc_coord_names.
+    call nc_coord_names(containers(iTypeIdx)%gridKind, &
+                        cLonName, cLatName, cLonUnits, cLatUnits)
+    ierr = nfmpi_def_dim(ncid, trim(cLonName), nLons_g, dimid_lon)
+    ierr = nfmpi_def_dim(ncid, trim(cLatName), nLats_g, dimid_lat)
     if (nDims == 3) ierr = nfmpi_def_dim(ncid, "z", nAlts_g, dimid_alt)
 
     ! Time dim: unlimited for multi-time, fixed-size-1 for single-time
@@ -503,6 +514,17 @@ contains
     ! Data variables
     do iV = 1, nVars
       varname = trim(containers(iTypeIdx)%vars(iV)%name)
+      ! On a magnetic grid the 1-D coordinate variable carries the
+      ! producer's declared name (mlon/mlat), so also emitting the axis as a
+      ! 2-D broadcast field would define that name twice. Geographic grids
+      ! declared names (Longitude/Latitude) differ from their dim names
+      ! (lon/lat), they do not collide, and the fields are the CF auxiliary
+      ! coordinates that coordTag points at.
+      if (containers(iTypeIdx)%gridKind == GRID_MAG_2D .and. &
+          containers(iTypeIdx)%vars(iV)%is_axis) then
+        varids(iV) = -1
+        cycle
+      endif
       isCoordField = varname == 'Longitude' .or. varname == 'Latitude' .or. &
                      varname == 'Altitude'
       call sanitize_nc_name(varname)
@@ -555,9 +577,9 @@ contains
     ! standard_name longitude/latitude) are reserved for geographic
     ! coordinates and would make CF-aware tools georeference the magnetic
     ! frame, so they are skipped there (units stay as-is).
-    ierr = nfmpi_def_var(ncid, "lon", NF_FLOAT, 1, [dimid_lon], coordids(1))
-    attlen = 12_MPI_OFFSET_KIND
-    ierr = nfmpi_put_att_text(ncid, coordids(1), "units", attlen, "degrees_east")
+    ierr = nfmpi_def_var(ncid, trim(cLonName), NF_FLOAT, 1, [dimid_lon], coordids(1))
+    attlen = int(len_trim(cLonUnits), MPI_OFFSET_KIND)
+    ierr = nfmpi_put_att_text(ncid, coordids(1), "units", attlen, trim(cLonUnits))
     if (containers(iTypeIdx)%gridKind /= GRID_MAG_2D) then
       attlen = 1_MPI_OFFSET_KIND
       ierr = nfmpi_put_att_text(ncid, coordids(1), "axis", attlen, "X")
@@ -565,9 +587,9 @@ contains
       ierr = nfmpi_put_att_text(ncid, coordids(1), "standard_name", attlen, "longitude")
     endif
 
-    ierr = nfmpi_def_var(ncid, "lat", NF_FLOAT, 1, [dimid_lat], coordids(2))
-    attlen = 13_MPI_OFFSET_KIND
-    ierr = nfmpi_put_att_text(ncid, coordids(2), "units", attlen, "degrees_north")
+    ierr = nfmpi_def_var(ncid, trim(cLatName), NF_FLOAT, 1, [dimid_lat], coordids(2))
+    attlen = int(len_trim(cLatUnits), MPI_OFFSET_KIND)
+    ierr = nfmpi_put_att_text(ncid, coordids(2), "units", attlen, trim(cLatUnits))
     if (containers(iTypeIdx)%gridKind /= GRID_MAG_2D) then
       attlen = 1_MPI_OFFSET_KIND
       ierr = nfmpi_put_att_text(ncid, coordids(2), "axis", attlen, "Y")
@@ -703,6 +725,38 @@ contains
       nc_is_geo_lonlat = .false.
     end select
   end function nc_is_geo_lonlat
+
+  ! ---------------------------------------------------------------------------
+  ! nc_coord_names: horizontal dim/coord names and units for a container.
+  !
+  ! Magnetic grids get mlon/mlat in plain 'degrees'.  Geographic grids keep
+  ! lon/lat in degrees_east/degrees_north.  Before this, the writer hardcoded
+  ! lon/lat for every type and threw the producer's declared axis names away,
+  ! so 2DMEL -- a magnetic type -- shipped its dynamo grid under geographic
+  ! names, while the SAME axis was also written as a 2-D field under its
+  ! declared name.  Every magnetic axis was in the file twice: correctly named
+  ! but redundant, and authoritative but misnamed.
+  !
+  ! Scope is deliberately magnetic-only.  Geographic types declare
+  ! 'Longitude'/'Latitude', so a blanket "use the declared name" would rename
+  ! their dims too and change every geographic file; this leaves them alone.
+  ! ---------------------------------------------------------------------------
+  subroutine nc_coord_names(gridKind, cLon, cLat, cLonUnits, cLatUnits)
+    use ModOutputContainer, only: GRID_MAG_2D
+    integer, intent(in) :: gridKind
+    character(len=*), intent(out) :: cLon, cLat, cLonUnits, cLatUnits
+    if (gridKind == GRID_MAG_2D) then
+      cLon = 'mlon'
+      cLat = 'mlat'
+      cLonUnits = 'degrees'
+      cLatUnits = 'degrees'
+    else
+      cLon = 'lon'
+      cLat = 'lat'
+      cLonUnits = 'degrees_east'
+      cLatUnits = 'degrees_north'
+    endif
+  end subroutine nc_coord_names
 #endif
 
   ! ---------------------------------------------------------------------------
@@ -824,6 +878,9 @@ contains
 
     iAxis = 0
     do i = 1, c%nVars
+      ! Magnetic axes are not data variables (define_file_structure gives them
+      ! varids(i) = -1); their values ship through the 1-D coordinate path below.
+      if (varids(i) < 0) cycle
       if (c%vars(i)%is_axis) then
         iAxis = iAxis + 1
         if (is3d) then

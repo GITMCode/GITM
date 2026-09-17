@@ -492,10 +492,10 @@ contains
     c%gridKind = GRID_MAG_2D
 
     ! Axis variables (1D coordinate arrays).
-    call c%define_var('mlon', units='degrees_east', &
+    call c%define_var('mlon', units='degrees', &
                       shape3=[nMagLons + 1, 1, 1], is_axis=.true., &
                       longName='Magnetic longitude')
-    call c%define_var('mlat', units='degrees_north', &
+    call c%define_var('mlat', units='degrees', &
                       shape3=[nMagLats, 1, 1], is_axis=.true., &
                       longName='Magnetic latitude')
 
