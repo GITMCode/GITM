@@ -5,6 +5,22 @@ found yourself with a bunch of output files. All of the GITM output is
 in MKS units. Output files are written to the directory specified by
 `#OUTPUTDIR` in `UAM.in` (default: `UA/data`).
 
+!!! important "Horizontal coordinates: radians in `.bin`, degrees in netcdf"
+    The one exception to "MKS units" is geographic longitude and latitude,
+    and it differs **by backend**:
+
+    | Backend | `Longitude` / `Latitude` |
+    |---|---|
+    | `legacy`, `mpiio` (`.bin`) | **radians**, exactly as the model holds them |
+    | `netcdf` | **degrees** (`degrees_east` / `degrees_north`) |
+
+    The variable tables below are generated from netcdf files, so the units
+    they show for `Longitude`/`Latitude` are the netcdf ones. Reading a
+    `.bin` file, convert with `numpy.degrees` yourself — this is what
+    `pGITM.py` does when it converts legacy/mpiio output. Magnetic
+    coordinates (`mlon`/`mlat`, and 2DMEL's `GeoLat`/`GeoLon` fields) are in
+    degrees on every backend.
+
 The format of those files depends on which [output backend](outputs/output_backends.md)
 was used during the run. You will typically find yourself with a `log*.dat`
 file and one file per output type per timestep in whichever formats you
@@ -71,9 +87,17 @@ raw name is kept in each variable's `gitm_name` attribute). Notes:
 - **USR types** (`3DUSR`/`2DUSR`/`1DUSR`/`0DUSR`) list whatever the run's
   user code registered. The tables below show one example configuration.
 - **Not listed** (absent from the generating run): `3DHME` (regional,
-  3DALL-like variable set), the 1-D probe types (`1DALL`, `1DGLO`, `1DTHM`,
-  `1DCHM`, `1DNEW`, `1DUSR`), and the 0-D satellite types (`0DALL`, `0DUSR`).
+  3DALL-like variable set), the 1-D probe types (`1DALL`, `1DTHM`, `1DCHM`,
+  `1DNEW`, `1DUSR`), and the 0-D satellite types (`0DALL`, `0DUSR`).
   Regenerate from a run that includes them for their tables.
+- **`3DGLO` and `1DGLO` cannot be generated at all.** They have never been
+  wired to a source of emission data on any GITM branch — their science
+  columns would be zeros indistinguishable from real measurements — so GITM
+  now stops if either is requested in `#SAVEPLOT`. They remain valid type
+  codes so they can be filled in later; they simply produce nothing today.
+- **`2DMEL` is on a magnetic grid**, so its horizontal coordinates are named
+  `mlon`/`mlat` (in degrees), not `lon`/`lat`. Its `GeoLat`/`GeoLon`
+  variables are the geographic position of each magnetic grid point.
 
 ### 2DANC
 

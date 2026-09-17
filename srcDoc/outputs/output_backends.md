@@ -100,7 +100,9 @@ storm1          netCDFFileName (optional run name)
 - `single`: one file per output type for the entire run, e.g. `3DALL.nc`.
 
 `daily` and `single` files use an unlimited time dimension; data variables are
-shaped `(time, [z,] lat, lon)` (time first) and read natively by xarray:
+shaped `(time, [z,] lat, lon)` (time first) and read natively by xarray
+(on a magnetic grid the horizontal dimensions are named `mlat`/`mlon`
+instead, and carry plain `degrees`):
 
 ```python
 import xarray as xr

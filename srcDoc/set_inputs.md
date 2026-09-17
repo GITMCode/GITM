@@ -133,6 +133,13 @@ the frequency of output
     Outputtype    (string; 5-character type code, e.g. 3DALL, matched exactly)
     DtPlot        (real, seconds)
 
+!!! warning "`3DGLO` and `1DGLO` stop the run"
+    Both are still valid type codes, so they can be wired up later, but
+    neither has ever been connected to a source of emission data on any GITM
+    branch: their science columns would be zeros that look exactly like real
+    measurements. GITM therefore halts if either appears in `#SAVEPLOT`.
+    Remove the type to continue.
+
 ### PLOTTIMECHANGE
 
 This allows you to change the output cadence of the files for a limited
