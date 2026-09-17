@@ -674,6 +674,35 @@ contains
     endif
 
   end subroutine sanitize_nc_name
+
+  ! ---------------------------------------------------------------------------
+  ! nc_is_geo_lonlat: does this variable carry a GEOGRAPHIC longitude/latitude?
+  !
+  ! The fills put geographic lon/lat in RADIANS -- that is develop's .bin
+  ! contract and what legacy/mpiio ship.  netcdf is the only backend that
+  ! publishes degrees, so the rad->deg conversion lives here, in one place.
+  !
+  ! Keyed on the NAME, not on is_axis.  Note the D1 argument that drove the
+  ! backend-side choice -- fill_1dnew puts 'Latitude' via put_field, so an
+  ! axis-keyed test misses it -- does NOT apply here: netcdf_open_file refuses
+  ! every 1D/0D probe type outright (see the stop_gitm near the top of this
+  ! file), so 1DNEW never reaches this backend.  Name-keying is used anyway
+  ! because it stays correct if that guard is ever lifted, and because the
+  ! legacy/mpiio path -- which DOES write 1DNEW -- would need it.
+  !
+  ! Magnetic coordinates are absent on purpose -- 2DMEL's MagLonMC/MagLatMC
+  ! axes and the 'Magnetic Latitude'/'Magnetic Longitude' fields are already
+  ! in degrees and must not be scaled.
+  ! ---------------------------------------------------------------------------
+  logical function nc_is_geo_lonlat(name)
+    character(len=*), intent(in) :: name
+    select case (trim(name))
+    case ('Longitude', 'Latitude', 'GeoLon', 'GeoLat')
+      nc_is_geo_lonlat = .true.
+    case default
+      nc_is_geo_lonlat = .false.
+    end select
+  end function nc_is_geo_lonlat
 #endif
 
   ! ---------------------------------------------------------------------------
@@ -706,6 +735,7 @@ contains
   subroutine netcdf_write_container(c, iBlock, iTimeArray)
     use ModOutputContainer, only: OutputContainer, output_kind, &
                                   GRID_GEO_3D, GRID_GEO_2D, GRID_MAG_2D, GRID_HIME
+    use ModConst, only: cRadToDeg
 #ifdef HavePNetCDF
     use ModInputs, only: UseNetcdfMultiTime
 #endif
@@ -836,6 +866,16 @@ contains
         endif
       endif
 
+      ! Geographic lon/lat arrive in radians; netcdf is where they become
+      ! degrees.  See nc_is_geo_lonlat -- name-keyed, not axis-keyed.
+      if (nc_is_geo_lonlat(c%vars(i)%name)) then
+        if (is3d) then
+          buf3d = buf3d*real(cRadToDeg, kind=4)
+        else
+          buf2d = buf2d*real(cRadToDeg, kind=4)
+        endif
+      endif
+
       if (is3d) then
         if (nc_needsIndepWrite) then
           if (UseNetcdfMultiTime) then
@@ -884,6 +924,7 @@ contains
       cstart(1) = start(1)
       allocate(coord1d(nX))
       coord1d = real(c%vars(1)%data(ax_lo:ax_lo + nX - 1, 1, 1), kind=4)
+      if (nc_is_geo_lonlat(c%vars(1)%name)) coord1d = coord1d*real(cRadToDeg, kind=4)
       if (nc_needsIndepWrite) then
         ierr = nfmpi_put_vara_real(ncid, coordids(1), cstart, ccnt, coord1d)
       else
@@ -896,6 +937,7 @@ contains
       cstart(1) = start(2)
       allocate(coord1d(nY))
       coord1d = real(c%vars(2)%data(ay_lo:ay_lo + nY - 1, 1, 1), kind=4)
+      if (nc_is_geo_lonlat(c%vars(2)%name)) coord1d = coord1d*real(cRadToDeg, kind=4)
       if (nc_needsIndepWrite) then
         ierr = nfmpi_put_vara_real(ncid, coordids(2), cstart, ccnt, coord1d)
       else

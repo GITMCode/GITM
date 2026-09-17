@@ -474,8 +474,11 @@ contains
   !
   ! Grid: magnetic (nMagLons+1) x nMagLats, no altitude.
   ! Axis variables are 1D; all others are 2D (degenerate 3rd dim = 1).
-  ! Units: degrees for lon/lat (deg, not rad), hours for MLT.
-  ! GeoLat/GeoLon are stored in radians in the model; conversion at put time.
+  ! Units: MagLon/MagLat are already degrees in the model; MLT is hours.
+  ! GeoLat/GeoLon are PUT RAW, in radians -- the declared 'degrees_east' /
+  ! 'degrees_north' below describe what the NETCDF backend publishes, since it
+  ! is the only backend that converts (see nc_is_geo_lonlat in
+  ! ModOutputNetCDF.F90).  legacy/mpiio .bin carry radians, matching develop.
   ! ---------------------------------------------------------------------------
   subroutine define_schema_2dmel(c)
     use ModElectrodynamics, only: nMagLats, nMagLons
@@ -577,12 +580,13 @@ contains
   ! fill_2dmel: put 2DMEL data into the container for iBlock.
   !
   ! Only iBlock == 1 writes (GRID_MAG_2D); all others return after prepare().
-  ! GeoLat/GeoLon are in radians in the model; multiplied by cRadToDeg here.
-  ! MagLonMC/MagLatMC are already in degrees.
+  ! GeoLat/GeoLon are written RAW, in radians, matching develop's .bin contract
+  ! (develop's output_common.f90 has no cRadToDeg anywhere).  The netcdf backend
+  ! converts on write; legacy/mpiio ship radians.  MagLonMC/MagLatMC are already
+  ! in degrees, so this type mixes the two on purpose -- as develop does.
   ! ---------------------------------------------------------------------------
   subroutine fill_2dmel(c, iBlock)
     use ModElectrodynamics
-    use ModConst, only: cRadToDeg
     type(OutputContainer), intent(inout) :: c
     integer, intent(in) :: iBlock
 
@@ -598,8 +602,8 @@ contains
 
     ! 2D data variables.
     call c%put('MLT', real(MagLocTimeMC, output_kind))
-    call c%put('GeoLat', real(GeoLatMC*cRadToDeg, output_kind))
-    call c%put('GeoLon', real(GeoLonMC*cRadToDeg, output_kind))
+    call c%put('GeoLat', real(GeoLatMC, output_kind))
+    call c%put('GeoLon', real(GeoLonMC, output_kind))
     call c%put('PedCond', real(SigmaPedersenMC, output_kind))
     call c%put('HalCond', real(SigmaHallMC, output_kind))
     call c%put('DivJuAlt', real(DivJuFieldLineMC, output_kind))
@@ -636,7 +640,6 @@ contains
   subroutine fill_2dtec(c, iBlock)
     use ModGITM
     use ModEUV, only: Sza
-    use ModConst, only: cRadToDeg
     type(OutputContainer), intent(inout) :: c
     integer, intent(in) :: iBlock
 
@@ -650,8 +653,8 @@ contains
     call calc_vtec(iBlock)
 
     ! NOTE: put order is the file's variable order for legacy/mpiio, so keep it.
-    call c%put_axis('Longitude', Longitude(1:nLons, iBlock)*cRadToDeg)
-    call c%put_axis('Latitude', Latitude(1:nLats, iBlock)*cRadToDeg)
+    call c%put_axis('Longitude', Longitude(1:nLons, iBlock))
+    call c%put_axis('Latitude', Latitude(1:nLats, iBlock))
     call c%put_field('Altitude', Altitude_GB(1:nLons, 1:nLats, 1, iBlock))  ! ghosted, one level
     call c%put_field('SZA', Sza(:, :, iBlock))
     call c%put_field('TEC', VTEC(1:nLons, 1:nLats, iBlock))
@@ -671,7 +674,6 @@ contains
   subroutine fill_2dgel(c, iBlock)
     use ModGITM
     use ModElectrodynamics
-    use ModConst, only: cRadToDeg
     type(OutputContainer), intent(inout) :: c
     integer, intent(in) :: iBlock
 
@@ -682,8 +684,8 @@ contains
     call c%prepare(iBlock)
     if (.not. c%this_rank_writes) return
 
-    call c%put_axis('Longitude', Longitude(1:nLons, iBlock)*cRadToDeg)
-    call c%put_axis('Latitude', Latitude(1:nLats, iBlock)*cRadToDeg)
+    call c%put_axis('Longitude', Longitude(1:nLons, iBlock))
+    call c%put_axis('Latitude', Latitude(1:nLats, iBlock))
     call c%put_field('Altitude', Altitude_GB(1:nLons, 1:nLats, 1, iBlock))  ! ghosted, one level
     call c%put_field('Potential', Potential(1:nLons, 1:nLats, 1, iBlock))       ! ghosted, one level
     call c%put_field('PedCond', PedersenConductance(1:nLons, 1:nLats, iBlock))
@@ -709,7 +711,6 @@ contains
   ! ---------------------------------------------------------------------------
   subroutine fill_3dneu(c, iBlock)
     use ModGITM
-    use ModConst, only: cRadToDeg
     use ModPlanet, only: nSpeciesTotal, nSpecies, cSpecies
     type(OutputContainer), intent(inout) :: c
     integer, intent(in) :: iBlock
@@ -722,8 +723,8 @@ contains
     call c%prepare(iBlock)
     if (.not. c%this_rank_writes) return
 
-    call c%put_axis('Longitude', Longitude(:, iBlock)*cRadToDeg)
-    call c%put_axis('Latitude', Latitude(:, iBlock)*cRadToDeg)
+    call c%put_axis('Longitude', Longitude(:, iBlock))
+    call c%put_axis('Latitude', Latitude(:, iBlock))
     call c%put_field('Altitude', Altitude_GB(:, :, :, iBlock))
     call c%put_field('Rho', Rho(:, :, :, iBlock))
     do i = 1, nSpeciesTotal
@@ -753,7 +754,6 @@ contains
   ! ---------------------------------------------------------------------------
   subroutine fill_3dall(c, iBlock)
     use ModGITM
-    use ModConst, only: cRadToDeg
     use ModPlanet, only: nSpeciesTotal, nSpecies, nIons, cSpecies, cIons
     type(OutputContainer), intent(inout) :: c
     integer, intent(in) :: iBlock
@@ -769,8 +769,8 @@ contains
     call c%prepare(iBlock)
     if (.not. c%this_rank_writes) return
 
-    call c%put_axis('Longitude', Longitude(:, iBlock)*cRadToDeg)
-    call c%put_axis('Latitude', Latitude(:, iBlock)*cRadToDeg)
+    call c%put_axis('Longitude', Longitude(:, iBlock))
+    call c%put_axis('Latitude', Latitude(:, iBlock))
     call c%put_field('Altitude', Altitude_GB(:, :, :, iBlock))
     call c%put_field('Rho', Rho(:, :, :, iBlock))
     do i = 1, nSpeciesTotal
@@ -803,7 +803,6 @@ contains
   ! ---------------------------------------------------------------------------
   subroutine fill_3dion(c, iBlock)
     use ModGITM
-    use ModConst, only: cRadToDeg
     use ModPlanet, only: nIons, cIons
     use ModElectrodynamics
     type(OutputContainer), intent(inout) :: c
@@ -817,8 +816,8 @@ contains
     call c%prepare(iBlock)
     if (.not. c%this_rank_writes) return
 
-    call c%put_axis('Longitude', Longitude(:, iBlock)*cRadToDeg)
-    call c%put_axis('Latitude', Latitude(:, iBlock)*cRadToDeg)
+    call c%put_axis('Longitude', Longitude(:, iBlock))
+    call c%put_axis('Latitude', Latitude(:, iBlock))
     call c%put_field('Altitude', Altitude_GB(:, :, :, iBlock))
     do i = 1, nIons
       call c%put_field('['//trim(cIons(i))//']', IDensityS(:, :, :, i, iBlock), &
@@ -862,7 +861,6 @@ contains
   ! ---------------------------------------------------------------------------
   subroutine fill_3dthm(c, iBlock)
     use ModGITM
-    use ModConst, only: cRadToDeg
     use ModSources
     use ModElectrodynamics, only: Sigma_Pedersen
     use ModEUV, only: EuvTotal
@@ -876,8 +874,8 @@ contains
     call c%prepare(iBlock)
     if (.not. c%this_rank_writes) return
 
-    call c%put_axis('Longitude', Longitude(1:nLons, iBlock)*cRadToDeg)
-    call c%put_axis('Latitude', Latitude(1:nLats, iBlock)*cRadToDeg)
+    call c%put_axis('Longitude', Longitude(1:nLons, iBlock))
+    call c%put_axis('Latitude', Latitude(1:nLats, iBlock))
     call c%put_field('Altitude', Altitude_GB(1:nLons, 1:nLats, 1:nAlts, iBlock))
     call c%put_field('EUV Heating Rate', &                                  ! no ghosts * ghosted
                      EuvHeating(:, :, :, iBlock)*TempUnit(1:nLons, 1:nLats, 1:nAlts))
@@ -915,7 +913,6 @@ contains
   ! ---------------------------------------------------------------------------
   subroutine fill_3dchm(c, iBlock)
     use ModGITM
-    use ModConst, only: cRadToDeg
     use ModSources
     use ModConstants, only: Element_Charge
     type(OutputContainer), intent(inout) :: c
@@ -957,8 +954,8 @@ contains
     call c%prepare(iBlock)
     if (.not. c%this_rank_writes) return
 
-    call c%put_axis('Longitude', Longitude(1:nLons, iBlock)*cRadToDeg)
-    call c%put_axis('Latitude', Latitude(1:nLats, iBlock)*cRadToDeg)
+    call c%put_axis('Longitude', Longitude(1:nLons, iBlock))
+    call c%put_axis('Latitude', Latitude(1:nLats, iBlock))
     call c%put_field('Altitude', Altitude_GB(1:nLons, 1:nLats, 1:nAlts, iBlock))
     do i = 1, nReactions
       ! calc_chemistry accumulates ChemicalHeatingSpecies as <term>*DtSub over
@@ -987,7 +984,6 @@ contains
   ! ---------------------------------------------------------------------------
   subroutine fill_3dlst(c, iBlock)
     use ModGITM
-    use ModConst, only: cRadToDeg
     use ModPlanet, only: nSpeciesTotal, nIons, cSpecies, cIons
     use ModInputs, only: iRhoOutputList, iNeutralDensityOutputList, &
                          iNeutralWindOutputList, iIonDensityOutputList, &
@@ -1003,8 +999,8 @@ contains
     call c%prepare(iBlock)
     if (.not. c%this_rank_writes) return
 
-    call c%put_axis('Longitude', Longitude(:, iBlock)*cRadToDeg)
-    call c%put_axis('Latitude', Latitude(:, iBlock)*cRadToDeg)
+    call c%put_axis('Longitude', Longitude(:, iBlock))
+    call c%put_axis('Latitude', Latitude(:, iBlock))
     call c%put_field('Altitude', Altitude_GB(:, :, :, iBlock))
 
     if (iRhoOutputList) call c%put_field('Rho', Rho(:, :, :, iBlock))
@@ -1043,7 +1039,6 @@ contains
   ! ---------------------------------------------------------------------------
   subroutine fill_3dglo(c, iBlock)
     use ModGITM
-    use ModConst, only: cRadToDeg
     type(OutputContainer), intent(inout) :: c
     integer, intent(in) :: iBlock
     real, allocatable :: zero_buf(:, :, :)  ! model kind, to match the put_field dummy
@@ -1055,8 +1050,8 @@ contains
     call c%prepare(iBlock)
     if (.not. c%this_rank_writes) return
 
-    call c%put_axis('Longitude', Longitude(:, iBlock)*cRadToDeg)
-    call c%put_axis('Latitude', Latitude(:, iBlock)*cRadToDeg)
+    call c%put_axis('Longitude', Longitude(:, iBlock))
+    call c%put_axis('Latitude', Latitude(:, iBlock))
     call c%put_field('Altitude', Altitude_GB(:, :, :, iBlock))
 
     allocate(zero_buf(nLons + 2*c%nGhostCells, nLats + 2*c%nGhostCells, nAlts + 2*c%nGhostCells))
@@ -1073,7 +1068,6 @@ contains
   ! ---------------------------------------------------------------------------
   subroutine fill_3dmag(c, iBlock)
     use ModGITM
-    use ModConst, only: cRadToDeg
     type(OutputContainer), intent(inout) :: c
     integer, intent(in) :: iBlock
 
@@ -1084,8 +1078,8 @@ contains
     call c%prepare(iBlock)
     if (.not. c%this_rank_writes) return
 
-    call c%put_axis('Longitude', Longitude(:, iBlock)*cRadToDeg)
-    call c%put_axis('Latitude', Latitude(:, iBlock)*cRadToDeg)
+    call c%put_axis('Longitude', Longitude(:, iBlock))
+    call c%put_axis('Latitude', Latitude(:, iBlock))
     call c%put_field('Altitude', Altitude_GB(:, :, :, iBlock))
     call c%put_field('Magnetic Latitude', MLatitude(:, :, :, iBlock))
     call c%put_field('Magnetic Longitude', MLongitude(:, :, :, iBlock))
@@ -1184,7 +1178,6 @@ contains
   ! ---------------------------------------------------------------------------
   subroutine fill_3dhme(c, iBlock)
     use ModGITM
-    use ModConst, only: cRadToDeg
     use ModConstants, only: pi
     use ModInputs, only: HIMEPlotLonStart, HIMEPlotLonEnd, HIMEPlotLatStart, HIMEPlotLatEnd
     use ModPlanet, only: nSpeciesTotal, nSpecies, nIons, cSpecies, cIons
@@ -1212,8 +1205,8 @@ contains
     if (.not. c%this_rank_writes) return
     nGC = c%nGhostCells
 
-    call c%put('Longitude', real(Longitude(1 - nGC:nLons + nGC, iBlock)*cRadToDeg, output_kind))
-    call c%put('Latitude', real(Latitude(1 - nGC:nLats + nGC, iBlock)*cRadToDeg, output_kind))
+    call c%put('Longitude', real(Longitude(1 - nGC:nLons + nGC, iBlock), output_kind))
+    call c%put('Latitude', real(Latitude(1 - nGC:nLats + nGC, iBlock), output_kind))
     call c%put('Altitude', &
                real(Altitude_GB(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1 - nGC:nAlts + nGC, iBlock), &
                     output_kind))
@@ -1319,7 +1312,6 @@ contains
   ! ---------------------------------------------------------------------------
   subroutine fill_3dmoh(c, iBlock)
     use ModGITM
-    use ModConst, only: cRadToDeg
     use ModSources
     type(OutputContainer), intent(inout) :: c
     integer, intent(in) :: iBlock
@@ -1331,8 +1323,8 @@ contains
     call c%prepare(iBlock)
     if (.not. c%this_rank_writes) return
 
-    call c%put_axis('Longitude', Longitude(1:nLons, iBlock)*cRadToDeg)
-    call c%put_axis('Latitude', Latitude(1:nLats, iBlock)*cRadToDeg)
+    call c%put_axis('Longitude', Longitude(1:nLons, iBlock))
+    call c%put_axis('Latitude', Latitude(1:nLats, iBlock))
     call c%put_field('Altitude', Altitude_GB(1:nLons, 1:nLats, 1:nAlts, iBlock))
     call c%put_field('Rho', Rho(1:nLons, 1:nLats, 1:nAlts, iBlock))
     call c%put_field('Vn (east)', Velocity(1:nLons, 1:nLats, 1:nAlts, iEast_, iBlock))
@@ -1360,7 +1352,6 @@ contains
   ! ---------------------------------------------------------------------------
   subroutine fill_3dmov(c, iBlock)
     use ModGITM
-    use ModConst, only: cRadToDeg
     use ModSources
     type(OutputContainer), intent(inout) :: c
     integer, intent(in) :: iBlock
@@ -1373,8 +1364,8 @@ contains
     call c%prepare(iBlock)
     if (.not. c%this_rank_writes) return
 
-    call c%put_axis('Longitude', Longitude(1:nLons, iBlock)*cRadToDeg)
-    call c%put_axis('Latitude', Latitude(1:nLats, iBlock)*cRadToDeg)
+    call c%put_axis('Longitude', Longitude(1:nLons, iBlock))
+    call c%put_axis('Latitude', Latitude(1:nLats, iBlock))
     call c%put_field('Altitude', Altitude_GB(1:nLons, 1:nLats, 1:nAlts, iBlock))
     do iSpecies = 1, nSpecies
       call c%put_field('Vn (up,'//trim(cSpecies(iSpecies))//')', &
@@ -1412,7 +1403,6 @@ contains
   ! ---------------------------------------------------------------------------
   subroutine fill_2danc(c, iBlock)
     use ModGITM
-    use ModConst, only: cRadToDeg
     use ModElectrodynamics
     use ModEUV, only: Sza
     use ModSources
@@ -1432,8 +1422,8 @@ contains
 
     ! NOTE: put order is the file's variable order for legacy/mpiio, so keep it.
     ! Ghosted arrays are sliced 1:nLons/1:nLats; ghost-less ones pass whole.
-    call c%put_axis('Longitude', Longitude(1:nLons, iBlock)*cRadToDeg)
-    call c%put_axis('Latitude', Latitude(1:nLats, iBlock)*cRadToDeg)
+    call c%put_axis('Longitude', Longitude(1:nLons, iBlock))
+    call c%put_axis('Latitude', Latitude(1:nLats, iBlock))
     ! Candidate for removal (along with dropping Altitude from other 2D types) once
     ! PyITM's altitude handling no longer depends on it.
     call c%put_field('Altitude', Altitude_GB(1:nLons, 1:nLats, nAlts, iBlock))  ! ghosted, one level
@@ -1484,7 +1474,6 @@ contains
   ! ---------------------------------------------------------------------------
   subroutine fill_2dhme(c, iBlock)
     use ModGITM
-    use ModConst, only: cRadToDeg
     use ModConstants, only: pi
     use ModInputs, only: HIMEPlotLonStart, HIMEPlotLonEnd, HIMEPlotLatStart, HIMEPlotLatEnd
     use ModElectrodynamics
@@ -1514,8 +1503,8 @@ contains
 
     call calc_vtec(iBlock)
 
-    call c%put('Longitude', real(Longitude(1 - nGC:nLons + nGC, iBlock)*cRadToDeg, output_kind))
-    call c%put('Latitude', real(Latitude(1 - nGC:nLats + nGC, iBlock)*cRadToDeg, output_kind))
+    call c%put('Longitude', real(Longitude(1 - nGC:nLons + nGC, iBlock), output_kind))
+    call c%put('Latitude', real(Latitude(1 - nGC:nLats + nGC, iBlock), output_kind))
     call c%put('Altitude', real(Altitude_GB(1 - nGC:nLons + nGC, 1 - nGC:nLats + nGC, 1, iBlock), &
                                 output_kind))
 
@@ -1531,7 +1520,6 @@ contains
   ! ---------------------------------------------------------------------------
   subroutine fill_1dall(c, iBlock)
     use ModGITM
-    use ModConst, only: cRadToDeg
     use ModPlanet, only: nSpeciesTotal, nSpecies, nIons, cSpecies, cIons
     type(OutputContainer), intent(inout) :: c
     integer, intent(in) :: iBlock
@@ -1551,8 +1539,8 @@ contains
     call c%prepare(iBlock)
     if (.not. c%this_rank_writes) return
 
-    tmp_lon = (rLon*Longitude(iiLon, iBlock) + (1.0 - rLon)*Longitude(iiLon + 1, iBlock))*cRadToDeg
-    tmp_lat = (rLat*Latitude(iiLat, iBlock) + (1.0 - rLat)*Latitude(iiLat + 1, iBlock))*cRadToDeg
+    tmp_lon = (rLon*Longitude(iiLon, iBlock) + (1.0 - rLon)*Longitude(iiLon + 1, iBlock))
+    tmp_lat = (rLat*Latitude(iiLat, iBlock) + (1.0 - rLat)*Latitude(iiLat + 1, iBlock))
     call c%put_axis('Longitude', tmp_lon)
     call c%put_axis('Latitude', tmp_lat)
 
@@ -1636,7 +1624,6 @@ contains
   ! ---------------------------------------------------------------------------
   subroutine fill_0dall(c, iBlock)
     use ModGITM
-    use ModConst, only: cRadToDeg
     use ModEUV, only: HeatingEfficiency_CB
     use ModSources, only: JouleHeating, RadCooling, EuvHeating, Conduction
     use ModPlanet, only: nSpeciesTotal, nSpecies, nIons, cSpecies, cIons
@@ -1660,9 +1647,9 @@ contains
     jAlt = max(min(iiAlt, nAlts), 1)
 
     call c%put_axis('Longitude', &
-               [(rLon*Longitude(iiLon, iBlock) + (1.0 - rLon)*Longitude(iiLon + 1, iBlock))*cRadToDeg])
+               [(rLon*Longitude(iiLon, iBlock) + (1.0 - rLon)*Longitude(iiLon + 1, iBlock))])
     call c%put_axis('Latitude', &
-               [(rLat*Latitude(iiLat, iBlock) + (1.0 - rLat)*Latitude(iiLat + 1, iBlock))*cRadToDeg])
+               [(rLat*Latitude(iiLat, iBlock) + (1.0 - rLat)*Latitude(iiLat + 1, iBlock))])
     call c%put_field('Altitude', [rAlt*Altitude_GB(iiLon, iiLat, iiAlt, iBlock) + &
                                 (1.0 - rAlt)*Altitude_GB(iiLon + 1, iiLat + 1, iiAlt + 1, iBlock)])
 
@@ -1748,7 +1735,6 @@ contains
   ! ---------------------------------------------------------------------------
   subroutine fill_1dglo(c, iBlock)
     use ModGITM
-    use ModConst, only: cRadToDeg
     type(OutputContainer), intent(inout) :: c
     integer, intent(in) :: iBlock
     real(output_kind) :: tmp_lon(nAlts), tmp_lat(nAlts), tmp_alt(nAlts), zero_arr(nAlts)
@@ -1757,8 +1743,8 @@ contains
     call c%prepare(iBlock)
     if (.not. c%this_rank_writes) return
 
-    tmp_lon = real(Longitude(1, iBlock)*cRadToDeg, output_kind)
-    tmp_lat = real(Latitude(1, iBlock)*cRadToDeg, output_kind)
+    tmp_lon = real(Longitude(1, iBlock), output_kind)
+    tmp_lat = real(Latitude(1, iBlock), output_kind)
     call c%put('Longitude', tmp_lon)
     call c%put('Latitude', tmp_lat)
 
@@ -1809,7 +1795,6 @@ contains
   ! ---------------------------------------------------------------------------
   subroutine fill_1dthm(c, iBlock)
     use ModGITM
-    use ModConst, only: cRadToDeg
     use ModSources
     use ModEUV, only: EuvTotal
     use ModPlanet, only: nSpeciesTotal, cSpecies
@@ -1821,8 +1806,8 @@ contains
     call c%prepare(iBlock)
     if (.not. c%this_rank_writes) return
 
-    tmp_lon = real(Longitude(1, 1)*cRadToDeg, output_kind)
-    tmp_lat = real(Latitude(1, 1)*cRadToDeg, output_kind)
+    tmp_lon = real(Longitude(1, 1), output_kind)
+    tmp_lat = real(Latitude(1, 1), output_kind)
     call c%put('Longitude', tmp_lon)
     call c%put('Latitude', tmp_lat)
 
@@ -1865,7 +1850,10 @@ contains
 
     do iAlt = 1, nAlts
       iiAlt = max(min(iAlt, nAlts), 1)
-      tmp_data(iAlt) = real(-RadCooling(1, 1, iiAlt, 1)*TempUnit(1, 1, iiAlt), output_kind)
+      ! NOCooling, not RadCooling: RadCooling is the combined radiative term,
+      ! so writing it under this label made the column total radiative cooling
+      ! wearing NO's name.  3DTHM already used NOCooling here.
+      tmp_data(iAlt) = real(-NOCooling(1, 1, iiAlt)*TempUnit(1, 1, iiAlt), output_kind)
     enddo
     call c%put('NO Cooling (K/s)', tmp_data)
 
@@ -1947,7 +1935,6 @@ contains
   ! ---------------------------------------------------------------------------
   subroutine fill_1dchm(c, iBlock)
     use ModGITM
-    use ModConst, only: cRadToDeg
     use ModSources
     use ModConstants, only: Element_Charge
     type(OutputContainer), intent(inout) :: c
@@ -1958,8 +1945,8 @@ contains
     call c%prepare(iBlock)
     if (.not. c%this_rank_writes) return
 
-    tmp_lon = real(Longitude(1, 1)*cRadToDeg, output_kind)
-    tmp_lat = real(Latitude(1, 1)*cRadToDeg, output_kind)
+    tmp_lon = real(Longitude(1, 1), output_kind)
+    tmp_lat = real(Latitude(1, 1), output_kind)
     call c%put('Longitude', tmp_lon)
     call c%put('Latitude', tmp_lat)
 
@@ -2016,7 +2003,6 @@ contains
   ! ---------------------------------------------------------------------------
   subroutine fill_1dnew(c, iBlock)
     use ModGITM
-    use ModConst, only: cRadToDeg
     use ModEUV, only: Sza
     use ModPlanet, only: nSpeciesTotal, nSpecies, nIons, cSpecies, cIons
     type(OutputContainer), intent(inout) :: c
@@ -2037,8 +2023,8 @@ contains
     call c%prepare(iBlock)
     if (.not. c%this_rank_writes) return
 
-    tmp_lon = (rLon*Longitude(iiLon, iBlock) + (1.0 - rLon)*Longitude(iiLon + 1, iBlock))*cRadToDeg
-    tmp_lat = (rLat*Latitude(iiLat, iBlock) + (1.0 - rLat)*Latitude(iiLat + 1, iBlock))*cRadToDeg
+    tmp_lon = (rLon*Longitude(iiLon, iBlock) + (1.0 - rLon)*Longitude(iiLon + 1, iBlock))
+    tmp_lat = (rLat*Latitude(iiLat, iBlock) + (1.0 - rLat)*Latitude(iiLat + 1, iBlock))
     tmp_lt = LocalTime(iiLon)
     tmp_sza = rLon*rLat*Sza(iiLon, iiLat, iBlock) + &
                    (1.0 - rLon)*rLat*Sza(iiLon + 1, iiLat, iBlock) + &
@@ -2160,7 +2146,6 @@ contains
   ! ---------------------------------------------------------------------------
   subroutine fill_3dusr(c, iBlock)
     use ModGITM
-    use ModConst, only: cRadToDeg
     use ModUserGITM, only: UserData3D
     type(OutputContainer), intent(inout) :: c
     integer, intent(in) :: iBlock
@@ -2169,8 +2154,8 @@ contains
     call c%prepare(iBlock)
     if (.not. c%this_rank_writes) return
 
-    call c%put('Longitude', real(Longitude(1:nLons, iBlock)*cRadToDeg, output_kind))
-    call c%put('Latitude', real(Latitude(1:nLats, iBlock)*cRadToDeg, output_kind))
+    call c%put('Longitude', real(Longitude(1:nLons, iBlock), output_kind))
+    call c%put('Latitude', real(Latitude(1:nLats, iBlock), output_kind))
     call c%put('Altitude', real(Altitude_GB(1:nLons, 1:nLats, 1:nAlts, iBlock), output_kind))
     do i = 1, nUsrVars3D
       call c%put(trim(UsrVars3D(i)%name), real(UserData3D(1:nLons, 1:nLats, 1:nAlts, i, iBlock), output_kind))
@@ -2203,7 +2188,6 @@ contains
   ! ---------------------------------------------------------------------------
   subroutine fill_2dusr(c, iBlock)
     use ModGITM
-    use ModConst, only: cRadToDeg
     use ModUserGITM, only: UserData2D
     type(OutputContainer), intent(inout) :: c
     integer, intent(in) :: iBlock
@@ -2212,8 +2196,8 @@ contains
     call c%prepare(iBlock)
     if (.not. c%this_rank_writes) return
 
-    call c%put('Longitude', real(Longitude(1:nLons, iBlock)*cRadToDeg, output_kind))
-    call c%put('Latitude', real(Latitude(1:nLats, iBlock)*cRadToDeg, output_kind))
+    call c%put('Longitude', real(Longitude(1:nLons, iBlock), output_kind))
+    call c%put('Latitude', real(Latitude(1:nLats, iBlock), output_kind))
     call c%put('Altitude', real(Altitude_GB(1:nLons, 1:nLats, 1, iBlock), output_kind))
     do i = 1, nUsrVars2D
       call c%put(trim(UsrVars2D(i)%name), real(UserData2D(1:nLons, 1:nLats, 1, i, iBlock), output_kind))
@@ -2246,7 +2230,6 @@ contains
   ! ---------------------------------------------------------------------------
   subroutine fill_1dusr(c, iBlock)
     use ModGITM
-    use ModConst, only: cRadToDeg
     use ModUserGITM, only: UserData1D
     type(OutputContainer), intent(inout) :: c
     integer, intent(in) :: iBlock
@@ -2262,9 +2245,9 @@ contains
     call c%prepare(iBlock)
     if (.not. c%this_rank_writes) return
 
-    tmp = real((rLon*Longitude(iiLon, iBlock) + (1.0 - rLon)*Longitude(iiLon + 1, iBlock))*cRadToDeg, output_kind)
+    tmp = real((rLon*Longitude(iiLon, iBlock) + (1.0 - rLon)*Longitude(iiLon + 1, iBlock)), output_kind)
     call c%put('Longitude', tmp)
-    tmp = real((rLat*Latitude(iiLat, iBlock) + (1.0 - rLat)*Latitude(iiLat + 1, iBlock))*cRadToDeg, output_kind)
+    tmp = real((rLat*Latitude(iiLat, iBlock) + (1.0 - rLat)*Latitude(iiLat + 1, iBlock)), output_kind)
     call c%put('Latitude', tmp)
     do iAlt = 1, nAlts
       tmp(iAlt) = real(Altitude_GB(iiLon, iiLat, iAlt, iBlock), output_kind)
@@ -2303,7 +2286,6 @@ contains
   ! ---------------------------------------------------------------------------
   subroutine fill_0dusr(c, iBlock)
     use ModGITM
-    use ModConst, only: cRadToDeg
     use ModUserGITM, only: UserData1D
     type(OutputContainer), intent(inout) :: c
     integer, intent(in) :: iBlock
@@ -2319,10 +2301,10 @@ contains
     if (.not. c%this_rank_writes) return
 
     call c%put('Longitude', &
-               real((rLon*Longitude(iiLon, iBlock) + (1.0 - rLon)*Longitude(iiLon + 1, iBlock))*cRadToDeg, &
+               real((rLon*Longitude(iiLon, iBlock) + (1.0 - rLon)*Longitude(iiLon + 1, iBlock)), &
                     output_kind))
     call c%put('Latitude', &
-               real((rLat*Latitude(iiLat, iBlock) + (1.0 - rLat)*Latitude(iiLat + 1, iBlock))*cRadToDeg, &
+               real((rLat*Latitude(iiLat, iBlock) + (1.0 - rLat)*Latitude(iiLat + 1, iBlock)), &
                     output_kind))
     call c%put('Altitude', real(rAlt*Altitude_GB(iiLon, iiLat, iiAlt, iBlock) + &
                                 (1.0 - rAlt)*Altitude_GB(iiLon + 1, iiLat + 1, iiAlt + 1, iBlock), output_kind))
