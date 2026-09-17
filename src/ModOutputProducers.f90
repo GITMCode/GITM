@@ -1043,6 +1043,21 @@ contains
     integer, intent(in) :: iBlock
     real, allocatable :: zero_buf(:, :, :)  ! model kind, to match the put_field dummy
 
+    ! 3DGLO has never been wired to a source of emission data on any GITM
+    ! lineage: develop's output_3dglo returns immediately with its entire write
+    ! commented out, and the puts below are placeholder zeros.  A column of
+    ! zeros labelled '6300 A Emission' cannot be told apart from real data by
+    ! anything downstream, so a run that actually asks for this type stops here
+    ! rather than being handed a file that looks like science.
+    !
+    ! Guarded on schema_locked because init_output_containers PRIMES this fill
+    ! once at startup -- that priming pass is where the schema below comes from,
+    ! and it runs whether or not the type was requested.  finish_priming sets
+    ! schema_locked afterwards, so only a real fill can reach the halt.
+    if (c%schema_locked) &
+      call stop_gitm('3DGLO writes placeholder zeros, not emission data. '// &
+                     'Remove 3DGLO from #SAVEPLOT.')
+
     c%cType = '3DGLO'
     c%gridKind = GRID_GEO_3D
     c%nGhostCells = 2
@@ -1739,6 +1754,13 @@ contains
     integer, intent(in) :: iBlock
     real(output_kind) :: tmp_lon(nAlts), tmp_lat(nAlts), tmp_alt(nAlts), zero_arr(nAlts)
     integer :: iAlt
+
+    ! Same story as 3DGLO -- never wired, the puts below are placeholder zeros.
+    ! No schema_locked guard is needed here: 1DGLO declares its schema through
+    ! define_schema_1dglo, so its nVars is already non-zero at init and
+    ! init_output_containers never primes this fill.
+    call stop_gitm('1DGLO writes placeholder zeros, not emission data. '// &
+                   'Remove 1DGLO from #SAVEPLOT.')
 
     call c%prepare(iBlock)
     if (.not. c%this_rank_writes) return

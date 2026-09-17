@@ -52,7 +52,7 @@ Output file stuff
 
 #SAVEPLOTS
 7200.0		dt for writing restart files
-17		how many output files do you want
+16		how many output files do you want
 3DALL
 300.0
 3DLST
@@ -64,8 +64,6 @@ Output file stuff
 3DCHM
 300.0
 3DUSR
-300.0
-3DGLO
 300.0
 3DMAG
 300.0
