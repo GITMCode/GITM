@@ -253,12 +253,14 @@ subroutine calc_chemistry(iBlock)
 
       ChemicalHeating2d(iLon, iLat) = 0.0
 
+      ! Zero the whole (nAlts, nSpeciesTotal) column ONCE per lon/lat column.
+      NeutralSourcesTotal = 0.0
+      NeutralLossesTotal = 0.0
+
       do iAlt = 1, nAlts
 
         y1 = max(1.0, k1*exp(m1*altitude_GB(iLon, iLat, iAlt, iBlock)/1000.0))
         y2 = max(1.0, k2*exp(m2*altitude_GB(iLon, iLat, iAlt, iBlock)/1000.0))
-        NeutralSourcesTotal = 0.0
-        NeutralLossesTotal = 0.0
         tr = tr3d(iLon, iLat, iAlt)
         tr3 = tr33d(iLon, iLat, iAlt)
         te3 = te33d(iLon, iLat, iAlt)

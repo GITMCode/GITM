@@ -1891,10 +1891,21 @@ contains
     enddo
     call c%put('Total Abs EUV', tmp_data)
 
+    ! NeutralSourcesTotal/NeutralLossesTotal hold NeutralSources*DtSub from
+    ! calc_chemistry.Earth.f90, i.e. a per-step INTEGRAL -- a density, not the
+    ! /m3/s these columns are named for -- so /dt is what makes the name true.
+    !
+    ! The sub-step loop there (`do while (DtTotal < Dt)`) runs exactly ONCE:
+    ! DtSub is only ever assigned `Dt - DtTotal`, and DtTotal is only ever
+    ! advanced by DtSub, so the first pass sets DtSub = Dt and ends the loop.
+    ! There is no chemistry sub-cycling, so this is not a time-weighted mean
+    ! over sub-steps -- /dt recovers NeutralSources EXACTLY, the instantaneous
+    ! rate. (If sub-cycling is ever restored, sum(DtSub) is still Dt and /dt
+    ! becomes the correct mean, so this does not need revisiting.)
     do i = 1, nSpeciesTotal
       do iAlt = 1, nAlts
         iiAlt = max(min(iAlt, nAlts), 1)
-        tmp_data(iAlt) = real(NeutralSourcesTotal(iiAlt, i), output_kind)
+        tmp_data(iAlt) = real(NeutralSourcesTotal(iiAlt, i)/dt, output_kind)
       enddo
       call c%put('Production Rate '//trim(cSpecies(i)), tmp_data)
     enddo
@@ -1902,7 +1913,7 @@ contains
     do i = 1, nSpeciesTotal
       do iAlt = 1, nAlts
         iiAlt = max(min(iAlt, nAlts), 1)
-        tmp_data(iAlt) = real(NeutralLossesTotal(iiAlt, i), output_kind)
+        tmp_data(iAlt) = real(NeutralLossesTotal(iiAlt, i)/dt, output_kind)
       enddo
       call c%put('Loss Rate '//trim(cSpecies(i)), tmp_data)
     enddo
