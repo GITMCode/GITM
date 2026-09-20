@@ -25,10 +25,6 @@ subroutine set_grid(this, MltsIn, LatsIn)
   call this%mlts(MltsIn)
   call this%lats(LatsIn)
 
-  ! Need to make sure that this is being done after IE has been coupled?
-  if (this%isCoupleInitialized) &
-    call this%ie_ua_interp_indices(this%needMlts, this%needLats)
-
 end subroutine set_grid
 !============================================================================
 subroutine set_mlts(this, MltsIn)

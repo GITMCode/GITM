@@ -45,10 +45,6 @@ module ModIEGITM
     integer :: nFilesNorth = 0
     integer :: nFilesSouth = 0
 
-    integer, allocatable, dimension(:, :, :) :: IeUaInterpolationIndices
-    real, allocatable, dimension(:, :, :) :: IeUaInterpolationRatios
-!    integer, allocatable, dimension(:, :, :) :: IeUaInterpolationIndices
-!    real, allocatable, dimension(:, :, :) :: IeUaInterpolationRatios
 
     ! ----------------------------------------------------------------
     ! These are the states that the models has, if we either read in
@@ -172,8 +168,6 @@ module ModIEGITM
 
     ! ! interpolate between IE and UA grids
     ! ! SWMF only, Only call from wrapper and srcCoupleIE
-    procedure :: find_ua_point => find_ua_point
-    procedure :: ie_ua_interp_indices => set_ie_ua_interpolation_indices
     procedure :: get_ie_to_ua => get_ie_values_for_ua
     procedure :: get_ie_spec_to_ua => get_ie_spec_for_ua
     procedure :: remap_conservative => remap_high_to_low_conservative
