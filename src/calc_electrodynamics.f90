@@ -67,7 +67,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
   real :: aLat, aLon, gLat, gLon, Date, sLat, sLon, gLatMC, gLonMC
 
   real :: residual, oldresidual, a, tmp, AvgDyn, LatBoundOffset
-  real :: PeakPot, PotAtLat, LatBoundSouth, LatBoundNorth
+  real :: PeakPot, PotAtLat, LatBoundSouth, LatBoundNorth, LatBoundDelPerDT=0.5
 
   logical :: IsDone, IsFirstTime = .true., DoTestMe, Debug = .False.
 
@@ -1463,8 +1463,10 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
         endif
       enddo
 
-      ! Use the more conservative (equatorward) boundary to keep symmetric
-      LatBoundOffset = min(LatBoundSouth, LatBoundNorth)
+      ! Both hemisphere constraints are lower bounds on LatBoundOffset,
+      ! so take max to ensure the solver boundary is outside the active
+      ! IE region in both hemispheres simultaneously.
+      LatBoundOffset = max(LatBoundSouth, LatBoundNorth)
 
       ! Floor: ensure solver domain has enough latitudes (at least 4)
       ! LatBoundOffset must be < DynamoHighLatBoundary - 2*MagLatRes
@@ -1472,73 +1474,19 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
       LatBoundOffset = min(LatBoundOffset, &
                            DynamoHighLatBoundary - 3.0*MagLatRes)
 
-      ! Smoothing: limit change to ±2 deg per timestep
+      ! Smoothing: limit change to +/- LatBoundDelPerDT deg per timestep
       if (PrevLatBoundOffset >= 0.0) then
-        if (LatBoundOffset > PrevLatBoundOffset + 2.0) then
-          LatBoundOffset = PrevLatBoundOffset + 2.0
-        elseif (LatBoundOffset < PrevLatBoundOffset - 2.0) then
-          LatBoundOffset = PrevLatBoundOffset - 2.0
+        if (LatBoundOffset > PrevLatBoundOffset + LatBoundDelPerDT) then
+          LatBoundOffset = PrevLatBoundOffset + LatBoundDelPerDT
+        elseif (LatBoundOffset < PrevLatBoundOffset - LatBoundDelPerDT) then
+          LatBoundOffset = PrevLatBoundOffset - LatBoundDelPerDT
         endif
       endif
       PrevLatBoundOffset = LatBoundOffset
 
     else
       ! No potential available yet — use default
-
-      PeakPot = maxval(abs(FullPotentialMC(1:nMagLons, :)))
-
-      if (PeakPot > 0.0) then
-
-        ! Scan southern hemisphere (j=1 is most southern) equatorward
-        LatBoundSouth = DynamoHighLatBoundary
-        do j = 1, iEquator
-          PotAtLat = maxval(abs(FullPotentialMC(1:nMagLons, j)))
-          if (PotAtLat < 0.05*PeakPot) then
-            ! Convert grid index to latitude offset from grid edge
-            LatBoundSouth = (j - 1)*MagLatRes
-          else
-            exit
-          endif
-        enddo
-
-        ! Scan northern hemisphere (j=nMagLats is most northern) equatorward
-        LatBoundNorth = DynamoHighLatBoundary
-        do j = nMagLats, iEquator, -1
-          PotAtLat = maxval(abs(FullPotentialMC(1:nMagLons, j)))
-          if (PotAtLat < 0.05*PeakPot) then
-            ! Convert grid index to latitude offset from grid edge
-            LatBoundNorth = (nMagLats - j)*MagLatRes
-          else
-            exit
-          endif
-        enddo
-
-        ! Use the more conservative (equatorward) boundary to keep symmetric
-        LatBoundOffset = min(LatBoundSouth, LatBoundNorth)
-
-        ! Floor: ensure solver domain has enough latitudes (at least 4)
-        ! LatBoundOffset must be < DynamoHighLatBoundary - 2*MagLatRes
-        LatBoundOffset = max(LatBoundOffset, 20.0)
-        LatBoundOffset = min(LatBoundOffset, &
-                             DynamoHighLatBoundary - 3.0*MagLatRes)
-
-        ! Smoothing: limit change to ±2 deg per timestep
-        if (PrevLatBoundOffset >= 0.0) then
-          if (LatBoundOffset > PrevLatBoundOffset + 2.0) then
-            LatBoundOffset = PrevLatBoundOffset + 2.0
-          elseif (LatBoundOffset < PrevLatBoundOffset - 2.0) then
-            LatBoundOffset = PrevLatBoundOffset - 2.0
-          endif
-        endif
-        PrevLatBoundOffset = LatBoundOffset
-
-      else
-        ! No potential available yet — use default
-        LatBoundOffset = 45.0
-      endif
-
-      if (iDebugLevel > 0) &
-        write(*, *) "=> Dynamic LatBoundOffset: ", LatBoundOffset
+      LatBoundOffset = 45.0
 
     endif
 
