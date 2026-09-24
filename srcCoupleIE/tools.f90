@@ -1,4 +1,16 @@
+! Error/warning bookkeeping for the SWMF-coupled build.
+!
+! Standalone GITM gets nErrors/nWarnings from the Electrodynamics library
+
+module ModCoupleErrorCount
+  implicit none
+  integer :: nErrors = 0
+  integer :: nWarnings = 0
+end module ModCoupleErrorCount
+
 subroutine lower_case(String)
+
+  implicit none
 
   !INPUT/OUTPUT ARGUMENTS:
   character(len=*), intent(inout) :: String
@@ -19,17 +31,23 @@ end subroutine lower_case
 
 subroutine set_error(cError)
   use ModErrors
+  use ModCoupleErrorCount
+  implicit none
   character(len=*), intent(in) :: cError
-  nErrors = nErrors + 1
-  cErrorCodes(nErrors) = cError
+  if (nErrors < nErrorsMax) then
+    nErrors = nErrors + 1
+    cErrorCodes(nErrors) = cError
+  endif
   isOk = .false.
 end subroutine set_error
 
 subroutine report_errors()
   use ModErrors
+  use ModCoupleErrorCount
+  implicit none
   integer :: iError
   if (nErrors == 0) write(*, *) "No errors to report!"
-  do iError = 1, nErrors
+  do iError = 1, min(nErrors, nErrorsMax)
     write(*, *) "--> Error : ", trim(cErrorCodes(iError))
   enddo
 end subroutine report_errors
@@ -37,17 +55,23 @@ end subroutine report_errors
 ! -- This is for things that should not stop GITM, but notify user now & later. -- !
 subroutine raise_warning(cWarning)
   use ModErrors
+  use ModCoupleErrorCount
+  implicit none
   character(len=*), intent(in) :: cWarning
-  nWarnings = nWarnings + 1
-  cWarningCodes(nWarnings) = cWarning
-  write(*, *) " -> Warning: ", trim(cWarningCodes(nWarnings))
+  if (nWarnings < nWarningsMax) then
+    nWarnings = nWarnings + 1
+    cWarningCodes(nWarnings) = cWarning
+  endif
+  write(*, *) " -> Warning: ", trim(cWarning)
 end subroutine raise_warning
 
 subroutine report_warnings()
   use ModErrors
+  use ModCoupleErrorCount
+  implicit none
   integer :: iWarning
-  if (nWarnings == 0) write(*, *) "No errors to report!"
-  do iWarning = 1, nWarnings
-    write(*, *) "--> Error : ", trim(cWarningCodes(iWarning))
+  if (nWarnings == 0) write(*, *) "No warnings to report!"
+  do iWarning = 1, min(nWarnings, nWarningsMax)
+    write(*, *) "--> Warning : ", trim(cWarningCodes(iWarning))
   enddo
 end subroutine report_warnings
