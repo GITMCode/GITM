@@ -256,7 +256,7 @@ contains
   subroutine UA_init_session(iSession, SWMFTime)
     use ModTimeConvert, ONLY: TimeType
     use CON_physics, ONLY: get_time
-    use ModTime, ONLY: StartTime, EndTime, iTimeArray, CurrentTime
+    use ModTime, ONLY: StartTime, EndTime, iTimeArray, CurrentTime, tSimulation
 
     real, intent(in)    :: SWMFTime
     integer, intent(in) :: iSession
@@ -285,8 +285,13 @@ contains
 
       ! Get times as real numbers:
       EndTime = TimeSwmfEnd%Time  ! End time as a real.
+      ! GITM's clock: update_time does CurrentTime = StartTime + tSimulation,
+      ! so tSimulation must track the framework time too.
+      tSimulation = SWMFTime
       CurrentTime = StartTime + SWMFTime
-      call time_real_to_int(StartTime, iTimeArray) ! get time as integers
+      ! iTimeArray is the CURRENT date/time.
+      ! on a restart, StartTime is earlier and initialize_gitm does not refresh it.
+      call time_real_to_int(CurrentTime, iTimeArray) ! get time as integers
 
       if (DoTest) then
         write(*, *) NameSub//' Timing for UA (floating point):'
@@ -335,6 +340,7 @@ contains
     integer :: time_array(7)
     logical :: exist, IsDone
 
+    tSimulation = SWMFTime
     CurrentTime = StartTime + SWMFTime
     EndTime = StartTime + SWMFTimeLimit
 
