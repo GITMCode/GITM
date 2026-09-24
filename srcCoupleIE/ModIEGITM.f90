@@ -176,7 +176,6 @@ module ModIEGITM
     procedure :: ie_ua_interp_indices => set_ie_ua_interpolation_indices
     procedure :: get_ie_to_ua => get_ie_values_for_ua
     procedure :: get_ie_spec_to_ua => get_ie_spec_for_ua
-    procedure :: remap_conservative => remap_high_to_low_conservative
 
     ! ! Get model results:
     procedure :: get_potential => run_potential_model
