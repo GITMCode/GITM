@@ -60,7 +60,13 @@ subroutine find_ua_point(this, LocIn, LocOut)
   ! only works for regular grid, should eventually check in case IE uses
   ! something else
 
-  MLTs: do iPt = 1, this%havenMlts
+  ! Both indices must be set by the searches below; an unmatched point
+  ! would otherwise index the grid with whatever the (SAVEd) locals held.
+  MltIndex = -1
+  LatIndex = -1
+
+  ! iPt+1 is read inside the loop, so stop one short of the last column.
+  MLTs: do iPt = 1, this%havenMlts - 1
     MLTUp = this%haveMLTs(iPt + 1, 2)
     MLTDown = this%haveMLTs(iPt, 2)
     if (MLTUp == 0.0 .and. MLTDown >= 23.0) MLTUp = 24.0
@@ -74,6 +80,10 @@ subroutine find_ua_point(this, LocIn, LocOut)
     if ((this%haveLats(2, iPt + 1) < LatIn) .and. (this%haveLats(2, iPt) >= LatIn)) &
       LatIndex = iPt
   enddo
+
+  ! Off the grid in either axis: leave LocOut at -1 so the caller skips the
+  ! point, rather than indexing with an undefined MltIndex / LatIndex.
+  if (MltIndex < 0 .or. LatIndex < 0) return
 
   ! check my work to be sure!
   !MLTUp = this%haveMLTs(MltIndex+1, LatIndex)
