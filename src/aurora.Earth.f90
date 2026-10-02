@@ -508,11 +508,13 @@ contains
 
     real, intent(in) :: HP
     real, intent(out) :: hpi
-    real :: ae
-    integer :: iError
 
-    call get_ae(CurrentTime,ae,iError)
-    hpi = 0.085 * (ae - IEModel_%FtaAe) + HP  ! rate from NOAA HP 
+    ! Increase in HP (GW) per AE beyond what the FTA limiter allows.
+    ! Rate from NOAA HP
+    real, parameter :: HpPerAe = 0.085
+
+    ! needAe is the observed AU - AL and FtaAe is AU - AL after the limiter
+    hpi = HpPerAe*(IEModel_%needAe - IEModel_%FtaAe) + HP
 
   end subroutine project_hp_ae
 
