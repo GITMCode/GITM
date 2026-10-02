@@ -105,7 +105,6 @@ subroutine read_MHDIMF_Indices_new(iOutputError, StartTime, EndTime)
             iSW = iSW + 1
           endif
 
-
         else
 
           call time_int_to_real(iTime, IndexTimes_TV(iIMF, imf_bx_))
@@ -209,7 +208,6 @@ subroutine read_MHDIMF_Indices_new(iOutputError, StartTime, EndTime)
       Indices_TV(iSW, sw_v_) = Indices_TV(iSW - 1, sw_v_)
       Indices_TV(iSW, sw_n_) = Indices_TV(iSW - 1, sw_n_)
       Indices_TV(iSW, sw_t_) = Indices_TV(iSW - 1, sw_t_)
-
 
     endif
   endif
