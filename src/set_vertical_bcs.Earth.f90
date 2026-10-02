@@ -89,7 +89,6 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
 
   IsPhotoChemical(1:nSpecies) = .false.
   IsPhotoChemical(iN_4S_) = .true.
-  IsPhotoChemical(iNO_) = .true.
 
   NS(-1:nAlts + 2, 1:nSpecies) = exp(LogNS(-1:nAlts + 2, 1:nSpecies))
 
@@ -118,10 +117,11 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
     Ap = min(200., max(-40.72 + 1.3*HP, 10.))
 
     do iAlt = -1, 0
-      Alt = Altitude_G(iAlt)/1000.0* &
-            (1.0 - &
-             MsisOblateFactor/2.0 + &
-             MsisOblateFactor*cos(Lat*3.1415/180.0))
+      !Alt = Altitude_G(iAlt)/1000.0* &
+      !     (1.0 - &
+      !     MsisOblateFactor/2.0 + &
+      !     MsisOblateFactor*cos(Lat*3.1415/180.0))
+      Alt = Altitude_G(iAlt)/1000.0
       Lst = mod(UTime/3600.0 + Lon/15.0, 24.0)
 
       call msis_bcs(iJulianDay, UTime, Alt, Lat, Lon, Lst, &
@@ -159,17 +159,7 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
     VertVel(-1:0, :) = 0.0
   endif
 
-  if (UseGSWMTides) then
-    Vel_GD(-1:0, iEast_) = TidesEast(iLon1D, iLat1D, 1:2, iBlock1D)
-    Vel_GD(-1:0, iNorth_) = TidesNorth(iLon1D, iLat1D, 1:2, iBlock1D)
-    Temp(-1:0) = TidesTemp(iLon1D, iLat1D, 1:2, iBlock1D) + Temp(-1:0)
-  endif
-  if (UseWACCMTides) then
-    Vel_GD(-1:0, iEast_) = TidesEast(iLon1D, iLat1D, 1:2, iBlock1D)
-    Vel_GD(-1:0, iNorth_) = TidesNorth(iLon1D, iLat1D, 1:2, iBlock1D)
-    Temp(-1:0) = TidesTemp(iLon1D, iLat1D, 1:2, iBlock1D)
-  endif
-  if (UseHmeTides) then
+  if (UseHmeTides .or. UseFileTides) then
     Vel_GD(-1:0, iEast_) = TidesEast(iLon1D, iLat1D, 1:2, iBlock1D)
     Vel_GD(-1:0, iNorth_) = TidesNorth(iLon1D, iLat1D, 1:2, iBlock1D)
     Temp(-1:0) = TidesTemp(iLon1D, iLat1D, 1:2, iBlock1D) + Temp(-1:0)

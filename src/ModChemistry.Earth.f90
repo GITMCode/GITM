@@ -8,7 +8,7 @@ Module ModChemistry
   use ModPlanet
   use ModRates
   use ModEUV
-  use ModInputs, only: iDebugLevel, UseIonChemistry, UseNeutralChemistry, f107, f107a
+  use ModInputs, only: iDebugLevel, UseIonChemistry, UseNeutralChemistry
   use ModConstants
   use ModSources, only: ChemicalHeatingS, IonPrecipIonRates, AuroralIonRates
 
@@ -1511,25 +1511,6 @@ contains
         Reaction*1.96
 
     endif
-
-    ! ----------------------------------------------------------
-    ! NO
-    ! ----------------------------------------------------------
-    ! -----------
-    ! NO -> NO+ + e
-    ! -----------
-
-!              rr = 6.0e-7
-
-    rr = 5.88e-7*(1 + 0.2*(f107 - 65)/100)*exp(-2.115e-18* &
-                                               (Neutrals(iO2_)*1.e-6)**0.8855)
-
-    Reaction = &
-      rr* &
-      Neutrals(iNO_)
-
-    IonSources(iNOP_) = IonSources(iNOP_) + Reaction
-    NeutralLosses(iNO_) = NeutralLosses(iNO_) + Reaction
 
   end subroutine calc_chemical_sources
 

@@ -114,7 +114,7 @@ checkoutputs(){
 
   if [ $do_compare = true ]; then
     echo
-    ../../../share/Scripts/DiffNum.pl -r=5e-5 -a=1e-1 -t ../ref_solns/log.$test_uam UA/data/log*.dat
+    ../../../share/Scripts/DiffNum.py -r=5e-5 -a=1e-2 -t ../ref_solns/log.$test_uam UA/data/log*.dat
 
     if [ $? = 0 ]; then
       # test was a success. no differences found.

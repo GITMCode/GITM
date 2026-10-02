@@ -643,6 +643,7 @@ subroutine calc_electron_ion_sources(iBlock) !,eHeatingp,iHeatingp,eHeatingm,iHe
     AuroralIonRateS(1:nLons, 1:nLats, 1:nAlts, iO_3P_, iBlock) &
     + AuroralIonRateS(1:nLons, 1:nLats, 1:nAlts, iO2_, iBlock) &
     + AuroralIonRateS(1:nLons, 1:nLats, 1:nAlts, iN2_, iBlock) &
+    + AuroralIonRateS(1:nLons, 1:nLats, 1:nAlts, iHe_, iBlock) &
     )
 
 ! Ion Precipitation heating

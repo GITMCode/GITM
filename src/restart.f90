@@ -68,6 +68,16 @@ subroutine write_restart(dir)
     enddo
 
     write(iRestartUnit_, *) ""
+    write(iRestartUnit_, '(a)') "#ALTITUDE"
+    write(iRestartUnit_, *) AltMin/1000.0
+    write(iRestartUnit_, *) AltMax/1000.0
+    write(iRestartUnit_, *) UseStretchedAltitude
+
+    write(iRestartUnit_, *) ""
+    write(iRestartUnit_, '(a)') "#DHFACTOR"
+    write(iRestartUnit_, *) dHFactor
+
+    write(iRestartUnit_, *) ""
     write(iRestartUnit_, '(a)') "#SPHERE"
     write(iRestartUnit_, *) Is1D
     write(iRestartUnit_, *) IsFullSphere

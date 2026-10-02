@@ -11,7 +11,8 @@ module ModSources
   !/
 
   real, dimension(nLons, nLats, nAlts) :: &
-    NOCooling, OCooling, ElectronHeating, &
+    CO2Cooling, NOCooling, OCooling, &
+    ElectronHeating, &
     JouleHeating, IonPrecipHeating, &
     EddyCond, EddyCondAdia
 

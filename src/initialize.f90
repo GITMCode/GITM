@@ -14,6 +14,7 @@ subroutine initialize_gitm(TimeIn)
   use ModIndicesInterfaces
   use ModReadGitm3d
   use ModKind, ONLY: Real8_
+  use ModCO2Fomichev, only: initialize_fomichev_cooling
 
   implicit none
 
@@ -101,6 +102,15 @@ subroutine initialize_gitm(TimeIn)
     if (UseStretchedAltitude) then
       call init_altitude
     else
+
+      ! A uniform grid spans AltMin to AltMax literally, with no default
+      ! top to fall back on
+      if (AltMax <= AltMin) then
+        write(*, *) 'A uniform grid needs an AltMax above AltMin in #ALTITUDE.'
+        write(*, *) 'AltMin, AltMax (km) : ', AltMin/1000.0, AltMax/1000.0
+        call stop_gitm('Incorrect altitude range for a uniform grid')
+      endif
+
       if (UseTopography) then
         if (AltMin > 1.0) then
           write(*, *) 'When using topography, the minimum altitude'
@@ -495,21 +505,23 @@ subroutine initialize_gitm(TimeIn)
     deallocate(vars, GitmFileData, lonsICs, latsICs, altsICs)
     call GitmShutDown
 
-  endif
+    if (DoCheckForNans) then
+      call check_for_nans_ions("Set ICs 3DGITM")
+      call check_for_nans_neutrals("Set ICs 3DGITM")
+      call check_for_nans_temps("Set ICs 3DGITM")
+    endif
 
-  if (UseWACCMTides) then
-    call read_waccm_tides
-    call update_waccm_tides
-  endif
-
-  if (UseGSWMTides) then
-    call read_tides
-    call update_tides
   endif
 
   if (UseHmeTides) then
     call init_hme
     call update_hme_tides
+    call modify_initial_after_tides
+  endif
+
+  if (UseFileTides) then
+    call init_file_tides
+    call update_file_tides
     call modify_initial_after_tides
   endif
 
@@ -548,6 +560,10 @@ subroutine initialize_gitm(TimeIn)
     call calc_eddy_diffusion_coefficient(iBlock)
     call calc_rates(iBlock)
   enddo
+
+  if (UseCO2FomichevCooling) then
+    call initialize_fomichev_cooling()
+  endif
 
   call end_timing("initialize")
 

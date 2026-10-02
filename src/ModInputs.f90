@@ -42,7 +42,7 @@ module ModInputs
   character(len=iCharLen_) :: cInputText(nInputMaxLines) = ''
 
   character(len=iCharLen_) :: cInputFile = "UAM.in"
-
+  character(len=iCharLen_) :: cFomichevFile = "UA/DataIn/Earth/Fomichev_Tables.txt"
   character(len=iCharLen_) :: cAMIEFileSouth = "none"
   character(len=iCharLen_) :: cAMIEFileNorth = "none"
 
@@ -57,7 +57,7 @@ module ModInputs
 
   logical :: UseCCMCFileName = .false.
 
-  logical :: UseSecondsInFilename = .true.    !xianjing
+  logical :: UseSecondsInFilename = .false.
 
   !!! Xing Meng Nov 2018 to use ISR E field in a local region + Weimer elsewhere
   ! This is currently not working with the new Electrodynamics setup.
@@ -90,6 +90,8 @@ module ModInputs
   logical :: DoSeparateHPI = .false.
   logical::AllowAurWODiffuse = .false.
   real :: MaxAveEAurora = 80.0
+
+  real :: HeAuroraFactor = 0.14
 
   logical :: UseCusp = .false.
   real :: CuspAveE = 0.1
@@ -149,6 +151,7 @@ module ModInputs
   real :: DtRestart = 60.0*60.0
   real :: DtReport = 1.0*60.0
   real :: DtAurora = 60.0*1.0
+  real :: DtEUV = 60.0*1.0
   real :: DtPotential = 60.0*1.0
   real :: DtGlow = 60.0
   real :: TimeDelayHighLat = 0.0
@@ -158,8 +161,18 @@ module ModInputs
   real :: f107a = 150.0
   integer :: iModelSolar = 0
 
+  real :: dHFactor = 0.3
+
   real :: AltMin = 100.0*1000.0
-  real :: AltMax = 500.0*1000.0
+  real :: AltMax = -1
+
+  ! Coarsest spacing and highest top GITM is tested at
+  real, parameter :: dHFactorLimit = 0.3
+  real, parameter :: AltMaxLimit = 1100.0*1000.0
+
+  ! Whether the user set these, or they are still at their defaults
+  logical :: IsDHFactorSet = .false.
+  logical :: IsAltMaxSet = .false.
 
   real :: ConcentrationLatitude = 45.0
   real :: StretchingPercentage = 0.0
@@ -197,14 +210,19 @@ module ModInputs
   logical :: UseMsis21 = .false.
   real, dimension(25) :: sw_msis = 1.0
   logical :: UseIRI = .true.
-  logical :: UseMSISTides = .true.
-  logical :: UseMSISOnly = .false.
-  logical :: UseGSWMTides = .false.
-  logical :: UseHmeTides = .false.
-  logical :: UseWACCMTides = .false.
+  character(len=iCharLen_) :: cTidalModel = "zero"
+
+  !logical :: UseMSISTides = .true.
+  !logical :: UseMSISOnly = .false.
   logical :: UseMSISDiurnal = .true.
   logical :: UseMSISSemidiurnal = .true.
   logical :: UseMSISTerdiurnal = .true.
+
+  logical :: UseHmeTides = .false.
+  logical :: UseFileTides = .false.
+  ! We are not going to support these things anymore:
+  !logical :: UseWACCMTides = .false.
+  !logical :: UseGSWMTides = .false.
   logical :: UseStatisticalModelsOnly = .false.
   real    :: DtStatisticalModels = 3600.0
   logical :: UseOBCExperiment = .false.
@@ -233,7 +251,7 @@ module ModInputs
   logical :: UseGravity = .true.
   logical :: UseIonDrag = .true.
   logical :: UseViscosity = .true.
-  real    :: TestViscosityFactor = 1.0
+  real    :: TestViscosityFactor = 0.5
   logical :: UseCoriolis = .true.
   logical :: UseGravityWave = .false.
 
@@ -241,7 +259,8 @@ module ModInputs
   logical :: UseVerAdvection = .true.
   logical :: UseNeutralFriction = .true.
 
-  logical :: UseAUSMSolver = .false.
+  ! AUSM+-up solver is ON by default
+  logical :: UseAUSMSolver = .true.
 
   logical :: UseIonPressureGradient = .true.
   logical :: UseIonGravity = .true.
@@ -258,6 +277,7 @@ module ModInputs
   logical :: IncludeCowling = .false.
   real    :: DynamoLonAverage = 10.0
   real    :: DynamoFracPotentialCutoff = 0.0
+  logical :: UseGmres = .false.
   logical :: doDynamoHemisphericMirror = .true.
   logical :: doUseMagnetoPotentialBCs = .true.
   logical :: doDynamoLatBlend = .true.
@@ -284,9 +304,10 @@ module ModInputs
   logical :: UseVerAdvectionT = .true.
 
   logical :: UseCO2Cooling = .true.
-  real    :: CO2ppm = 225.0
+  logical :: UseCO2FomichevCooling = .false.
+  real    :: CO2ppm = 400.0
 
-  logical :: DoN4SHack = .false.
+  logical :: DoN4SHack = .true.
 
   ! Allow the user to change the planet's characteristics:
   real :: RotationPeriodInput = Rotation_Period
@@ -298,10 +319,16 @@ module ModInputs
   real :: PhotoElectronHeatingEfficiency = 0.0
   real :: NeutralHeatingEfficiency = 0.05
 
+  ! EUV scaling, base + slope*(F107a - ref) against the driven 81-day mean.
+  ! These are the non-planet defaults; Earth's tuned values are set below.
+  real :: EuvScaleBase = 1.0
+  real :: EuvScaleSlope = 0.0
+  real :: EuvScaleF107aRef = 150.0
+
   real :: KappaTemp0 = 5.6e-4
-  real :: ThermalConduction_AO2 = 5.6e-4
-  real :: ThermalConduction_AO = 7.6e-4
-  real :: ThermalConduction_s = 0.72
+  real :: ThermalConduction_AO2 = 3.6e-4
+  real :: ThermalConduction_AO = 5.6e-4
+  real :: ThermalConduction_s = 0.69
   !! Pawlowski says AO2 = 3.6e-4 - 5.6e-4
   !!                AO  = 5.6e-4 - 7.6e-4
   !!                s   = 0.69 - 0.75
@@ -323,8 +350,8 @@ module ModInputs
   real :: MaxVParallel = 100.0
   real :: MaxEField = 0.1
   ! Lower limit on ion density
-  real :: MinIonDensity = 100.0
-  real :: MinIonDensityAdvect = 1e5
+  real :: MinIonDensity = 10.0
+  real :: MinIonDensityAdvect = 10.0
   !Lower limits on neutral density
   real :: MinNeutralDensity = 200.0
   real :: MinNeutralDensityAdvect = 1e5
@@ -355,6 +382,7 @@ module ModInputs
 
   logical                   :: UseEUVData = .false.
   character(len=iCharLen_) :: cEUVFile
+  real :: EUV_Ratio_Empirical = 1.0
 
   !\
   ! Eclipse Information
@@ -463,6 +491,14 @@ contains
 
     if (IsEarth) then
       PhotoElectronHeatingEfficiency = 0.06
+      UseOBCExperiment = .true.
+      MsisOblateFactor = -0.1
+      ! The EUV multiplier and the conduction exponent are linked & were fit
+      ! together against HASDM density spanning F10.7a 99-223.  Changing either
+      ! alone moves the thermosphere by ~0.15 ln(model/obs).
+      EuvScaleBase = 1.075
+      EuvScaleSlope = 0.0019
+      ThermalConduction_s = 0.72
     endif
 
     tSimulation = 0.0

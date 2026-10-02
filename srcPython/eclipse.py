@@ -9,7 +9,18 @@ import argparse
 import datetime as dt
 
 # ----------------------------------------------------------------------
-# 
+# for this to work, you need to go to this web page:
+# https://eclipsewise.com/solar/SEpath/2001-2100/SE2024Apr08Tpath.html
+# then find the eclipse path you want.
+# Download that and save is as something like eclipse_yyyymmdd.html
+# then modify the line:
+# file = 'eclipse_20200620.html'
+# to your file name.
+# Then try running the code.  It seems like they modify the format a tiny
+# bit, which can throw off the reader.
+# *** The code has not been robustly tested for a wide variety of files.
+#     If you need help, just e-mail me (ridley@umich.edu).  Send me the
+#     eclipse file, and I will modify the python code to make it work.
 # ----------------------------------------------------------------------
 
 months = {'Jan' : 1,
@@ -49,17 +60,28 @@ def read_file(file):
             year = int(m.group(1))
             month = months[m.group(2)]
             day = int(m.group(3))
+            print(' -> Found ymd : ', year, month, day)
+        m = re.match(r'.*Annular Solar Eclipse of .* (\d\d\d\d) (...) (\d\d).*', line)
+        if m:
+            year = int(m.group(1))
+            month = months[m.group(2)]
+            day = int(m.group(3))
+            print(' -> Found ymd : ', year, month, day)
         
         m = re.match(r'.*>Limits<',line)
         if m:
+            print(' -> Found limits : ', line)
             if (inBetween):
                 iLine = iEnd
             else:
                 inBetween = True
+            print(' --> inBetween : ', inBetween)
         else:
 
             if (inBetween):
+                print(' -> ok, splitting line up now!')
                 parts = line.split('</td><td>')
+                print(parts)
                 # figure out time:
                 hour = int(parts[0][-5:-3])
                 minute = int(parts[0][-2:])
@@ -177,8 +199,10 @@ def get_label_time_range(times):
 
 # Code tested with this website:
 # https://eclipsewise.com/solar/SEpath/2001-2100/SE2024Apr08Tpath.html
+# also tested with:
+# https://eclipsewise.com/solar/SEpath/2001-2100/SE2020Jun21Apath.html
 
-file = 'eclipse_20240408.html'
+file = 'eclipse_20200620.html'
 data = read_file(file)
 decs = calc_declinations(data['times'])
 lts = calc_localtimes(data['lons'], data['times'])

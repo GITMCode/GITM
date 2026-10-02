@@ -73,6 +73,10 @@ something other than 1. It will be removed in a future release.
 !!! note
     If you change any of these parameters, you have to recompile the code.
 
+!!! warning
+    Running with `nBlocksMax` /= 1 is not supported.
+    This will produce inaccurate results.
+
 
 ## Horizontal Resolution
 
@@ -165,10 +169,18 @@ Then, when you run GITM, it will simulate only the region of interest.
 
 ## Altitudes
 
-As defined in `src/ModEarth.f90`, the altitude spacing in GITM is 0.3  
-scale heights. In the UAM.in file, the starting altitude is typically set to 100 km.  Given that in ModSize.f90, the number of altitudes is 50 (by default), GITM simulates 15 scale heights, typically reaching up to ~500-700 km.
+As defined in `src/ModInputs.f90`, the altitude spacing in GITM is 0.3  
+scale heights. In the UAM.in file, the starting altitude is typically set
+to 100 km.  Given that in ModSize.f90, the number of altitudes is 50 (by default),
+GITM simulates 15 scale heights, typically reaching up to ~500-700 km.
 Increasing the number of altitudes in ModSize.f90 will increase the altitude range, but
-if this value is increased too much the model may become unstable and/or inaccurate.  It is also possible to reduce the starting altitude below 100 km, but decreasing it below the mesopause is not a great idea, since the physics of the mesopause (i.e., CO2 cooling) is not included in the current version of GITM.  Therefore, moving the lower boundary below about 95 km is not recommended.
+if this value is increased too much the model may become unstable and/or inaccurate.
+It is also possible to reduce the starting altitude below 100 km, but decreasing it
+below the mesopause is not a great idea, since the physics of the mesopause
+(i.e., CO2 cooling) is not included in the current version of GITM.
+Therefore, moving the lower boundary below about 95 km is not recommended.
+
+To change the altitude spacing, use the `#DHFACTOR` option in UAM.in
 
 ## Running in 1D
 

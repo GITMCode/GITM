@@ -1,0 +1,81 @@
+
+#DEBUG
+0		debug level (0 = no info, 10 = max info)
+0		cpu to watch
+60.0		dt between normal code output to stdout
+F		usebarriers - forces the code to stop and wait more often
+
+#TIMESTART
+2024		year
+12		month
+21		day
+00		hour
+00		minute
+00		second
+
+#TIMEEND
+2024		year
+12		month
+21		day
+00		hour
+05		minute
+00		second
+
+#GRID
+2		number of blocks in longitude
+2		number of blocks in latitude
+-90.0		minimum latitude to model
+90.0		maximum latitude to model
+0.0		longitude start to model (set to 0.0 for whole Earth)
+0.0             longitude end to model (set to 0.0 for whole Earth)
+
+#SAVEPLOTS
+7200.0		dt for writing restart files
+1		how many output files do you want
+3DALL		second output style
+300.0		dt for output (1 every 5 min)
+
+#F107
+100
+100
+
+#SOLARWIND
+1           bx
+1           by
+1           bz
+1           vx
+1           n
+
+#SMESINGLE
+100         AU/SMU
+100         AL/SML
+
+#ELECTRODYNAMICS
+FTA
+60.0
+weimer05
+60.0
+
+#APEX
+T
+
+#DYNAMO
+T		UseDynamo
+45.0		DynamoHighLatBoundary
+500		nItersMax
+1.0		MaxResidual
+F		IncludeCowling
+40.0		LongitudinalAveraging
+F               UseNewTrace
+
+#MSIS21
+F
+
+#MSISOBC
+T		Shift the [O] density at the lower boundary by 6 months
+0		change the obateness of the Earth by this percent (0 = none)
+
+#AUSMSOLVER
+T       	Use AUSM+-up Solvers
+
+#END

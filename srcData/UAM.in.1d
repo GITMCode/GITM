@@ -73,7 +73,9 @@ F
 900.0
 
 #ELECTRODYNAMICS
+zero
 60.0
+zero
 60.0
 
 #ALTITUDE
@@ -81,21 +83,8 @@ F
 600.0
 T
 
-#INITIAL
-T		MSIS
-T		IRI
-200.0
-1000.0
-5.0e17
-7.0e18
-3.0e19
-
 #APEX
 F
-
-#AMIEFILES
-none
-none
 
 #F107
 150.0
@@ -112,37 +101,5 @@ none
 0.0
 -2.0
 400.0
-
-#USEIMPROVEDIONADVECTION
-T
-T
-2.0
-
-#AUSMSOLVER
-T
-
-#THERMO
-T		 UseSolarHeating
-T		 UseJouleHeating
-T		 UseAuroralHeating
-T		 UseNOCooling
-T		 UseOCooling
-T		 UseConduction
-T		 UseTurbulentConduction
-F		 UseUpdatedTurbulentConduction
-1.0		 EddyScalingFactor
-
-#FORCING
-T		UsePressureGradient
-T		UseIonDrag
-T		UseNeutralDrag
-T		UseViscosity
-T		UseCoriolis
-T		UseGravity
-
-#CHEMISTRY
-T		UseIonChemistry
-T		UseIonAdvection
-T		UseNeutralChemistry
 
 #END

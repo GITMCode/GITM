@@ -1286,12 +1286,12 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
 
   solver_a_mc = 4*deltalmc**2*sigmappmc/cos(MagLatMC*pi/180)
   solver_b_mc = 4*deltapmc**2*cos(MagLatMC*pi/180)*sigmallmc
-  solver_c_mc = deltalmc*deltapmc*(SigmaPLmc + SigmaLPmc)
+  solver_c_mc = sign(1.0, MagLatMC)*deltalmc*deltapmc*(SigmaPLmc + SigmaLPmc)
 
-  solver_d_mc = 2.0*deltalmc*deltapmc**2 &
-                *(sign(1.0, MagLatMC)*dSigmaPLdpMC &
-                  - sin(MagLatMC*pi/180)*sigmallmc &
-                  + cos(MagLatMC*pi/180)*dSigmaLLdlMC)
+  solver_d_mc = 2.0*sign(1.0, MagLatMC)*deltalmc*deltapmc**2 &
+                *(dSigmaPLdpMC &
+                  - sign(1.0, MagLatMC)*sin(MagLatMC*pi/180)*sigmallmc &
+                  + sign(1.0, MagLatMC)*cos(MagLatMC*pi/180)*dSigmaLLdlMC)
 
   solver_e_mc = 2.0*deltalmc**2*deltapmc*( &
                 dSigmaPPdpMC/cos(MagLatMC*pi/180) + dSigmaLPdlMC*sign(1.0, MagLatMC))
@@ -1591,8 +1591,14 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
     DoTestMe = .false.
   endif
 
-  call gmres(matvec_gitm, b, x, .true., nX, &
-             MaxIteration, Residual, 'abs', nIteration, iError, DoTestMe)
+  if (useGmres) then
+    call gmres(matvec_gitm, b, x, .true., nX, &
+               MaxIteration, Residual, 'abs', nIteration, iError, DoTestMe)
+  else
+    nIteration = MaxIteration
+    call bicgstab(matvec_gitm, b, x, .true., nX, &
+                  Residual, 'abs', nIteration, iError, DoTestMe)
+  endif
 
   call end_timing("dynamo_solver")
 
