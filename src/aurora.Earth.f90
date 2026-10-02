@@ -382,7 +382,10 @@ contains
     real :: LocalVar, HPn, HPs, avepower, ratio, ratio_NH, ratio_SH
     logical :: UseHpAeforFTA
 
-    UseHpAeforFTA = .true.
+    ! FTA is driven by AU/AL, so its HP is not normalized to the HPI index.
+    ! Instead, when the FTA limiter has clamped AU/AL, the HP is extrapolated
+    ! using AE in project_hp_ae
+    UseHpAeforFTA = (IEModel_%iAurora_ == iFTA_)
 
     HPn = 0
     HPs = 0
