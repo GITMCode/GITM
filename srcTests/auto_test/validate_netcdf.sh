@@ -35,7 +35,11 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DEFAULT_UAM_12="${SCRIPT_DIR}/UAM.in.12.BACKEND_TEST.mpiio.test"
 DEFAULT_UAM_13="${SCRIPT_DIR}/UAM.in.13.BACKEND_TEST.netcdf.test"
-DEFAULT_UAM_14="${SCRIPT_DIR}/UAM.in.14.BACKEND_TEST.netcdf.appendSingle.test"
+# Test 14 was split: 14.0 writes the appended single file, 14.1 restarts into
+# it. Only 14.0 is a default here -- 14.1 depends on 14.0 having just run, so
+# it is opted into explicitly rather than run standalone.
+DEFAULT_UAM_14="${SCRIPT_DIR}/UAM.in.14.0.BACKEND_TEST.netcdf.appendSingle.test"
+RESTART_UAM_14="${SCRIPT_DIR}/UAM.in.14.1.BACKEND_TEST.netcdf.appendSingle.RESTART.test"
 
 NP=4
 OVERSUBSCRIBE=""
