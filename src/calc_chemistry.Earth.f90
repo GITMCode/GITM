@@ -1294,7 +1294,7 @@ subroutine calc_chemistry(iBlock)
           IonLosses(iO_2PP_) = IonLosses(iO_2PP_) + Reaction
 
           ChemicalHeatingSubI = &
-            ChemicalHeatingSub + &
+            ChemicalHeatingSubI + &
             Reaction*1.69
 
           ChemicalHeatingS(iop2p_e) = &
