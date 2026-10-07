@@ -689,7 +689,6 @@ subroutine write_code_information(dir)
     write(iCodeInfoFileUnit_, *) CO2ppm
     write(iCodeInfoFileUnit_, *) ""
 
-    write(iCodeInfoFileUnit_, *) "UseCO2Cooling", UseCO2Cooling
     write(iCodeInfoFileUnit_, *) "iInputIonChemType", iInputIonChemType
     write(iCodeInfoFileUnit_, *) "iInputNeutralChemType", iInputNeutralChemType
     write(iCodeInfoFileUnit_, *) "RPTAU", RPTAU
