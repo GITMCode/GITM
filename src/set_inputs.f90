@@ -1248,19 +1248,19 @@ subroutine set_inputs
           ! These settings are optional, code will not complain if they aren't
           ! included. Stop at the next # line so it is not skipped
           if (next_is_section()) iError = 1
-        call read_in_real(DynamoFracPotentialCutoff, iError)
+          call read_in_real(DynamoFracPotentialCutoff, iError)
           if (next_is_section()) iError = 1
-        call read_in_logical(doDynamoHemisphericMirror, iError)
+          call read_in_logical(doDynamoHemisphericMirror, iError)
           if (next_is_section()) iError = 1
-        call read_in_logical(doUseMagnetoPotentialBCs, iError)
+          call read_in_logical(doUseMagnetoPotentialBCs, iError)
           if (next_is_section()) iError = 1
-        call read_in_logical(doDynamoLatBlend, iError)
+          call read_in_logical(doDynamoLatBlend, iError)
           if (next_is_section()) iError = 1
-        call read_in_logical(doDynamoSubtractEquatorialAvg, iError)
-        if (iError /= 0) then
-          iError = 0
-          if (iProc == 0) write(*, *) &
-            " >> NOT all experimental Dynamo options were set. Be careful!!!"
+          call read_in_logical(doDynamoSubtractEquatorialAvg, iError)
+          if (iError /= 0) then
+            iError = 0
+            if (iProc == 0) write(*, *) &
+              " >> NOT all experimental Dynamo options were set. Be careful!!!"
           endif
         endif
 
@@ -2197,7 +2197,7 @@ subroutine set_inputs
 contains
 
   logical function next_is_section()
-  ! For parsing optional arguments, determine if a new input block was started
+    ! For parsing optional arguments, determine if a new input block was started
     next_is_section = .true.
     if (iline + 1 > nInputLines) return
     next_is_section = (cInputText(iline + 1) (1:1) == "#")
