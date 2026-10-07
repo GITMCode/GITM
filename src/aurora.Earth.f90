@@ -127,10 +127,13 @@ subroutine aurora(iBlock)
           .and. ElectronEnergyFluxMono(j, i) > 0.1 &
           .and. ElectronAverageEnergyMono(j, i) < MaxAveEAurora &
           ) then
-        if (HasSomeAurora .or. AllowAurWODiffuse) &
+        if (HasSomeAurora .or. AllowAurWODiffuse) then
           call do_mono_aurora(ElectronEnergyFluxMono(j, i), &
                               ElectronAverageEnergyMono(j, i), &
                               mono_ED_flux)
+          ! Allow mono flux to reach calc_fang_rates
+          HasSomeAurora = .true.
+        endif
 
       endif
 
@@ -140,10 +143,13 @@ subroutine aurora(iBlock)
           .and. ElectronAverageEnergyWave(j, i) > 0.1 &
           .and. ElectronAverageEnergyWave(j, i) < MaxAveEAurora &
           ) then
-        if (HasSomeAurora .or. AllowAurWODiffuse) &
+        if (HasSomeAurora .or. AllowAurWODiffuse) then
           call do_wave_aurora(ElectronEnergyFluxWave(j, i), &
                               ElectronAverageEnergyWave(j, i), &
                               wave_ED_flux)
+          ! Allow wave flux to reach calc_fang_rates
+          HasSomeAurora = .true.
+        endif
       endif
 
       do n = 1, ED_N_Energies
