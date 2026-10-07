@@ -374,12 +374,16 @@ contains
       endif
     enddo
 
-    ! Then normalize
+    ! Then normalize. If aveE is outside the energy grid no bin was filled, and
+    ! normalizing would give 0/0 = NaN, so deposit nothing instead.
     sum_gaus = sum(wave_EDEnergyFlux)
-    ! write(*,*) sum_gaus,
-    do n = 1, ED_N_Energies
-      wave_EDEnergyFlux(n) = wave_EDEnergyFlux(n)*eflux/sum_gaus
-    enddo
+    if (sum_gaus > 0.0) then
+      do n = 1, ED_N_Energies
+        wave_EDEnergyFlux(n) = wave_EDEnergyFlux(n)*eflux/sum_gaus
+      enddo
+    else if (iDebugLevel > 2) then
+      write(*, *) "do_wave_aurora: aveE outside energy grid, skipped: ", avee
+    endif
   end subroutine do_wave_aurora
 
   subroutine NormalizeDiffuseAuroraToHP
