@@ -14,6 +14,7 @@ subroutine calc_chemistry(iBlock)
     minIonDensity, MinIonDensityAdvect
   use ModConstants
   use ieee_arithmetic
+  use ModB107, only: b107_convert
 
   implicit none
 
@@ -34,6 +35,7 @@ subroutine calc_chemistry(iBlock)
   real, dimension(7)    :: AP
 
   real :: ChemicalHeatingSub, percent, o2ptotal
+  real :: f107NO, f107aNO
   real :: ChemicalHeatingSubI, ChemicalHeatingSubE
   real :: Emission(nEmissions), EmissionTotal(nEmissions)
   real, dimension(nLons, nLats, nAlts) :: &
@@ -102,6 +104,9 @@ subroutine calc_chemistry(iBlock)
 
   call report("Chemistry", 2)
   call start_timing("calc_chemistry")
+
+  ! NO photodissociation scales with F10.7, convert to B10.7 if #B107
+  call b107_convert(f107, f107, f107NO, f107aNO)
 
   DtAve = 0.0
 
@@ -1898,7 +1903,7 @@ subroutine calc_chemistry(iBlock)
           if (Chapman(iLon, iLat, iAlt, iO2_, iBlock) >= 0.5*ChapmanShadow) then
             rr = 0.0
           else
-            rr = 4.5e-6*(1 + 0.11*(f107 - 65)/165) &
+            rr = 4.5e-6*(1 + 0.11*(f107NO - 65)/165) &
                  *exp(-1.e-8*(Chapman(iLon, iLat, iAlt, iO2_, iBlock)*1.e-4)**0.38)
           endif
 

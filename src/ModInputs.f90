@@ -380,6 +380,10 @@ module ModInputs
   logical                   :: UseRidleyEUV = .false.
 
   logical                   :: UseEUVData = .false.
+  ! #B107: use the F10.7 -> B10.7 table (ModB107) for the empirical EUV,
+  ! MSIS and NO photodissociation. Not allowed with FISM.
+  logical                   :: UseB107 = .false.
+  character(len=iCharLen_)  :: cB107File = "UA/DataIn/B107.dat"
   character(len=iCharLen_) :: cEUVFile
   real :: EUV_Ratio_Empirical = 1.0
 

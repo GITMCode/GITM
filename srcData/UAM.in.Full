@@ -87,6 +87,12 @@ or
 F						Use FISM solar flux data
 UA/DataIn/FISM/fismflux_daily_2002.dat		Filename
 
+Use B10.7 in place of F10.7 for the empirical EUV, MSIS and NO
+photodissociation. Cannot be used with FISM
+#B107
+F						UseB107
+UA/DataIn/B107.dat				F10.7 -> B10.7 table (optional)
+
 ------------ Auroral Drivers ------------
 
 Used by Fuller-Rowell and Evans model:

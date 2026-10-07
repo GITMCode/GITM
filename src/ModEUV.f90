@@ -21,7 +21,7 @@ module ModEUV
 
   real, allocatable :: Chapman(:, :, :, :, :)
   ! Defines when we are in the "shadow"
-  real:: ChapmanShadow = 1.0e26
+  real, parameter :: ChapmanShadow = 1.0e26
 
   real, dimension(nLons, nLats, nBlocksMax) :: &
     Sza, cosSza, sinSza, AveCosSza

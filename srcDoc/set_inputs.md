@@ -316,6 +316,20 @@ when the line after the filename parses as a number, so a stray value
 sitting there — say an argument whose own `#COMMAND` header was commented
 out — is silently taken as the ratio.
 
+### B107
+
+Use B10.7 in place of F10.7, via an F10.7 -> B10.7 lookup table, for the
+empirical EUV models (EUVAC, Tobiska, Ridley), MSIS (the initial state and
+the lower boundary) and the NO photodissociation rate. IRI, RCMR and the
+`F107`/`F107A` log columns keep raw F10.7; the log header says which index
+was used. B10.7 and FISM are mutually exclusive: GITM stops if `#B107 T` is
+combined with `#EUV_DATA T`.
+
+    #B107
+    UseB107      (logical [F])
+    cB107File    (string, optional [UA/DataIn/B107.dat])
+
+
 ### EUVMODEL
 
 Chooses the empirical solar spectrum. EUVAC and Tobiska cover different

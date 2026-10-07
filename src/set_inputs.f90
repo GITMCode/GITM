@@ -1809,6 +1809,25 @@ subroutine set_inputs
           write(*, *) 'cEUVFile              (string)'
         endif
 
+      case ("#B107")
+        call read_in_logical(UseB107, iError)
+        if (iError /= 0) then
+          write(*, *) 'Incorrect format for #B107'
+          write(*, *) 'Use an F10.7 -> B10.7 lookup table for the empirical'
+          write(*, *) 'EUV models, MSIS and NO photodissociation.'
+          write(*, *) 'Cannot be used with #EUV_DATA T (FISM).'
+          write(*, *) '#B107'
+          write(*, *) 'UseB107    (logical [F])'
+          write(*, *) 'cB107File  (string, optional [UA/DataIn/B107.dat])'
+          IsDone = .true.
+        else
+          ! The file name is optional
+          if (.not. next_is_section()) then
+            if (len_trim(cInputText(iline + 1)) > 0) &
+              call read_in_string(cB107File, iError)
+          endif
+        endif
+
       case ("#EUV_DATA")
         call read_in_logical(UseEUVData, iError)
         call read_in_string(cEUVFile, iError)
@@ -2134,6 +2153,9 @@ subroutine set_inputs
   if (iError /= 0) then
     call stop_gitm("Must Stop!!")
   endif
+
+  if (UseB107 .and. UseEUVData) &
+    call stop_gitm("#B107=T cannot be used with #EUV_DATA=T (FISM)")
 
   call set_tidal_flags
 

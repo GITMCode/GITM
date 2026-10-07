@@ -15,6 +15,7 @@ subroutine initialize_gitm(TimeIn)
   use ModReadGitm3d
   use ModKind, ONLY: Real8_
   use ModCO2Fomichev, only: initialize_fomichev_cooling
+  use ModB107, only: read_b107
 
   implicit none
 
@@ -57,6 +58,8 @@ subroutine initialize_gitm(TimeIn)
 
   call start_timing("initialize")
   call report("initialize", 1)
+
+  if (UseB107) call read_b107(cB107File)
 
   ! ------------------------------------------------------------------------
   ! initialize stuff
