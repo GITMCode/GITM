@@ -189,7 +189,7 @@ subroutine output(dir, iBlock, iOutputType)
   call calc_physics(iBlock)
   call calc_rates(iBlock)
   call calc_collisions(iBlock)
-  call chapman_integrals(iBlock)
+
   call set_horizontal_bcs(iBlock)
   if (.not. Is1D) call calc_efield(iBlock)
 
