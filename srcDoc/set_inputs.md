@@ -764,7 +764,7 @@ If you set them lower, the temperature will go up.
     #THERMALCONDUCTION
     ThermalConduction_AO2 (Conduction A(O2): 3.6e-4, real)
     ThermalConduction_AO  (Conduction A(O): 5.6e-4, real)
-    ThermalConduction_s   (Conduction s: 0.75, real)
+    ThermalConduction_s   (Conduction s: 0.72 on Earth, 0.69 otherwise, real)
 
 ### THERMALDIFFUSION
 

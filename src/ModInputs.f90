@@ -282,7 +282,9 @@ module ModInputs
   logical :: doDynamoHemisphericMirror = .true.
   logical :: doUseMagnetoPotentialBCs = .true.
   logical :: doDynamoLatBlend = .true.
-  logical :: doDynamoSubtractEquatorialAvg = .true.
+  ! Was .true. to hide the net equatorial source of the old K_lambda fill;
+  ! with the fill tapered to 0 at the equator it is not needed.
+  logical :: doDynamoSubtractEquatorialAvg = .false.
 
   logical :: UseImprovedIonAdvection = .true.
   logical :: UseNighttimeIonBCs = .true.
@@ -498,7 +500,7 @@ contains
       UseOBCExperiment = .true.
       MsisOblateFactor = -0.1
       ! The EUV multiplier and the conduction exponent are linked & were fit
-      ! together against HASDM density spanning F10.7a 99-223.  Changing either
+      ! together against HASDM density spanning F10.7a 105-221.  Changing either
       ! alone moves the thermosphere by ~0.15 ln(model/obs).
       EuvScaleBase = 1.075
       EuvScaleSlope = 0.0019

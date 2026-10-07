@@ -44,9 +44,9 @@ subroutine initialize_gitm(TimeIn)
 
   !----------------------------------------------------------------------------
 
-!! Sorry but this is a double-negative
-!! This checks to see if the planet is not, not Titan.
-!! That is to say, it checks to see if this is actually Titan.
+  !! Sorry but this is a double-negative
+  !! This checks to see if the planet is not, not Titan.
+  !! That is to say, it checks to see if this is actually Titan.
 
   if (.not. (index(cPlanet, "Titan") == 0)) then
     call init_radcooling
@@ -597,7 +597,7 @@ subroutine initialize_gitm(TimeIn)
 
   if (UseCO2FomichevCooling) then
     if (IsEarth) then
-    call initialize_fomichev_cooling()
+      call initialize_fomichev_cooling()
     else if (iProc == 0) then
       write(*, *) ' WARNING: Fomichev CO2 cooling is only implemented for Earth.'
     endif
@@ -606,4 +606,3 @@ subroutine initialize_gitm(TimeIn)
   call end_timing("initialize")
 
 end subroutine initialize_gitm
-

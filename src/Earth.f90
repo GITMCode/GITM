@@ -163,7 +163,7 @@ subroutine calc_planet_sources(iBlock)
   if (UseCO2FomichevCooling) then
 
     CO2Cooling = 0.0
-      call calc_co2fomichev_cooling
+    call calc_co2fomichev_cooling
 
     CO2Cooling2d = 0.0
     do iAlt = 1, nAlts
