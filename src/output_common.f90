@@ -1891,7 +1891,13 @@ subroutine output_2dmel(iBlock)
 
   integer, intent(in) :: iBlock
   integer :: iAlt, iLat, iLon
+  real :: MelAlt
   !--------------------------------------------------------------------------
+
+  ! The magnetic grid has no altitude of its own, and its (lon, lat) indices
+  ! are not GITM's, so Altitude_GB(iLon, iLat, ...) was out of bounds here.
+  ! The grid is placed at the IE reference altitude (#IEREFERENCEALT).
+  MelAlt = AltIERef
 
   iAlt = 1
   do iLat = 1, nMagLats
@@ -1899,7 +1905,7 @@ subroutine output_2dmel(iBlock)
       write(iOutputUnit_) &
         MagLonMC(iLon, iLat)*Pi/180.0, &
         MagLatMC(iLon, iLat)*Pi/180.0, &
-        Altitude_GB(iLon, iLat, iAlt, iBlock), &
+        MelAlt, &
         MagLocTimeMC(iLon, iLat), &
         GeoLatMC(iLon, iLat), &
         GeoLonMC(iLon, iLat), &

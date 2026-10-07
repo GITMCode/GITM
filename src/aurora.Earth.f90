@@ -212,8 +212,8 @@ contains
 
     ! 100 * 100 is for (eV/cm2/s -> J/m2/s)
     power = (eflux)*Element_Charge*100.0*100.0* &
-            dLatDist_FB(j, i, nAlts, iBlock)* &
-            dLonDist_FB(j, i, nAlts, iBlock)
+            dLatDist_FB(j, i, iAltIERef, iBlock)* &
+            dLonDist_FB(j, i, iAltIERef, iBlock)
 
     if ((latitude(i, iBlock) < 0.0)) then
       HemisphericPowerSouth_diffuse = HemisphericPowerSouth_diffuse + power
@@ -311,8 +311,8 @@ contains
     eflux = eflux_ergs*6.242e11  ! ergs/cm2/s -> eV/cm2/s
 
     power = eflux*Element_Charge*100.0*100.0* &    ! (eV/cm2/s -> J/m2/s)
-            dLatDist_FB(j, i, nAlts, iBlock)* &
-            dLonDist_FB(j, i, nAlts, iBlock)
+            dLatDist_FB(j, i, iAltIERef, iBlock)* &
+            dLonDist_FB(j, i, iAltIERef, iBlock)
 
     if (latitude(i, iBlock) < 0.0) then
       HemisphericPowerSouth_mono = HemisphericPowerSouth_mono + power
@@ -346,8 +346,8 @@ contains
     eflux = eflux_ergs*6.242e11  ! ergs/cm2/s -> eV/cm2/s
 
     power = eflux*Element_Charge*100.0*100.0* &    ! (eV/cm2/s -> J/m2/s)
-            dLatDist_FB(j, i, nAlts, iBlock)* &
-            dLonDist_FB(j, i, nAlts, iBlock)
+            dLatDist_FB(j, i, iAltIERef, iBlock)* &
+            dLonDist_FB(j, i, iAltIERef, iBlock)
 
     if (latitude(i, iBlock) < 0.0) then
       HemisphericPowerSouth_wave = HemisphericPowerSouth_wave + power
@@ -500,8 +500,8 @@ contains
 
           !(eV/cm2/s -> J/m2/s)
           power = eflux*Element_Charge*100.0*100.0* &
-                  dLatDist_FB(j, i, nAlts, iBlock)* &
-                  dLonDist_FB(j, i, nAlts, iBlock)
+                  dLatDist_FB(j, i, iAltIERef, iBlock)* &
+                  dLonDist_FB(j, i, iAltIERef, iBlock)
 
           if (latitude(i, iBlock) < 0.0) then
             HPs = HPs + power

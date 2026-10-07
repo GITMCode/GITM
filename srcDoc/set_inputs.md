@@ -251,6 +251,17 @@ See [the electrodynamics page](internals/electrodynamics.md) for more details
     PotentialModel   [weimer05], hepmay, amie, zero, etc.
     DtPotential      (real, seconds [60.0])'
 
+### IEREFERENCEALT
+
+The altitude (km) where the high-latitude drivers meet the grid. The aurora is
+mapped from the magnetic grid at this altitude, the hemispheric power is
+integrated over cells at this altitude, and the dynamo's magnetic grid is placed
+here. GITM has no tilted field lines, so this choice matters in storms. The
+nearest model level is used, and it is printed at startup.
+
+    #IEREFERENCEALT
+    IEReferenceAlt   (real, km [120.0])
+
 
 ### HPI
 

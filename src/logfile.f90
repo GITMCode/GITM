@@ -470,6 +470,10 @@ subroutine write_code_information(dir)
     write(iCodeInfoFileUnit_, *) trim(cB107File)
     write(iCodeInfoFileUnit_, *) ""
 
+    write(iCodeInfoFileUnit_, *) "#IEREFERENCEALT"
+    write(iCodeInfoFileUnit_, *) IEReferenceAlt
+    write(iCodeInfoFileUnit_, *) ""
+
     write(iCodeInfoFileUnit_, *) "#AURORAMODS"
     write(iCodeInfoFileUnit_, *) NormalizeAuroraToHP
     write(iCodeInfoFileUnit_, *) AveEFactor

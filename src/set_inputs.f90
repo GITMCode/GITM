@@ -682,6 +682,19 @@ subroutine set_inputs
           IsDone = .true.
         endif
 
+      case ("#IEREFERENCEALT")
+        call read_in_real(IEReferenceAlt, iError)
+        if (iError /= 0) then
+          write(*, *) 'Incorrect format for #IEREFERENCEALT'
+          write(*, *) 'Altitude (km) where the aurora is mapped from the'
+          write(*, *) 'magnetic grid, the hemispheric power is integrated,'
+          write(*, *) 'and the dynamo grid is placed. The nearest altitude'
+          write(*, *) 'is used'
+          write(*, *) '#IEREFERENCEALT'
+          write(*, *) 'IEReferenceAlt   (real, km [120.0])'
+          IsDone = .true.
+        endif
+
       case ("#ELECTRODYNAMICS")
         call read_in_string(cAuroralModel, iError)
         call read_in_real(dTAurora, iError)

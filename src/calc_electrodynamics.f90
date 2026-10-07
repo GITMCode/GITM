@@ -230,8 +230,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
             sLat = -100.0
           endif
 
-          ReferenceAlt = Altitude_GB(1, 1, 0, 1)/1000.0
-          AltMinIono = ReferenceAlt
+          ReferenceAlt = AltIERef/1000.0
 
           call apex_to_geo(date, aLat, aLon, ReferenceAlt, &
                            gLat, gLon, sLat, sLon)
@@ -244,8 +243,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
           aLat = MagLatMC(i, j)
           aLon = MagLonMC(i, j)
 
-          ReferenceAlt = Altitude_GB(1, 1, 0, 1)/1000.0
-          AltMinIono = ReferenceAlt
+          ReferenceAlt = AltIERef/1000.0
 
           call dipole_to_geo(aLat, aLon, ReferenceAlt, gLat, gLon)
           GeoLatMC(i, j) = gLat*pi/180.0

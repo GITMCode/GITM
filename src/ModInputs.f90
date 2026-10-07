@@ -183,6 +183,7 @@ module ModInputs
   logical :: UseTopography = .false.
   real :: AltMinUniform = 0.0
   real :: AltMinIono = 80.0 ! in km
+  real :: IEReferenceAlt = 120.0 ! in km, mapped to nearest grid cell (AltIERef)
 
   real :: TempMax = 1000.0
   real :: TempMin = 200.0

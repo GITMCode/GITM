@@ -321,7 +321,9 @@ subroutine get_potential(iBlock)
 
     call report("Getting Aurora", 1)
 
-    iAlt = 2
+    ! The aurora is mapped from the magnetic grid at the IE reference
+    ! altitude, the same altitude used for the dynamo potential
+    iAlt = iAltIERef
 
     call iemodel_%grid( &
       MLT(-1:nLons + 2, -1:nLats + 2, iAlt), &

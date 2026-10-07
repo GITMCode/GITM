@@ -528,6 +528,14 @@ subroutine initialize_gitm(TimeIn)
     call modify_initial_after_tides
   endif
 
+  ! Use the same altitude for all IE (ionospheric electrodynamics)
+  ! Map requested value to nearest GITM altitude
+  iAltIERef = minloc(abs(Altitude_GB(1, 1, 1:nAlts, 1) - IEReferenceAlt*1000.0), 1)
+  AltIERef = Altitude_GB(1, 1, iAltIERef, 1)
+  if ((iProc == 0) .and. (iDebugLevel >= 2)) write(*, *) &
+    '=> IE reference altitude (km), requested / used / index : ', &
+    IEReferenceAlt, AltIERef/1000.0, iAltIERef
+
   call init_b0
 
   ! calc_ion_v starts from the previous step's IVelocityPar, which is not in
