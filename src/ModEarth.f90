@@ -137,6 +137,20 @@ module ModPlanet
   real :: VertTau(nAlts)
 
   logical :: IsEarth = .true.
+
+  ! Earth-only inputs (read in set_inputs). The other planet modules carry
+  ! stubs of these so the shared code still compiles.
+  logical :: UseApex = .false.
+  logical :: UseIRI = .true.
+  logical :: UseMSIS = .true.
+  logical :: UseMsis21 = .false.
+  logical :: UseMSISDiurnal = .true.
+  logical :: UseMSISSemidiurnal = .true.
+  logical :: UseMSISTerdiurnal = .true.
+  real, dimension(25) :: sw_msis = 1.0
+  logical :: UseOBCExperiment = .true.
+  real :: MsisOblateFactor = -0.1
+  character(len=100) :: cFomichevFile = "UA/DataIn/Earth/Fomichev_Tables.txt"
   logical :: IsMars = .false.
   logical :: IsTitan = .false.
   logical :: IsVenus = .false.

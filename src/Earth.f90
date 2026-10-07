@@ -414,11 +414,13 @@ subroutine set_planet_defaults
   implicit none
 
   cTidalModel = "MSIS_ALL"
-  UseMSIS = .true.
-  UseMSISDiurnal = .true.
-  UseMSISSemidiurnal = .true.
-  UseMSISTerdiurnal = .true.
-  UseMSIS21 = .true.
+
+  PhotoElectronHeatingEfficiency = 0.06
+  ! The EUV multiplier and the conduction exponent are linked & were fit
+  ! together against HASDM density
+  EuvScaleBase = 1.075
+  EuvScaleSlope = 0.0019
+  ThermalConduction_s = 0.72
 
   iNeutralDensityOutputList(iN_4S_) = .false.
   iNeutralDensityOutputList(iHe_) = .false.

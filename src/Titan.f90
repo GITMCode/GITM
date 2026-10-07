@@ -471,6 +471,12 @@ end subroutine calc_eddy_diffusion_coefficient
 subroutine set_planet_defaults
 
   use ModInputs
+
+  cTidalModel = "zero"
+  PhotoElectronHeatingEfficiency = 0.0
+  EuvScaleBase = 1.0
+  EuvScaleSlope = 0.0
+  ThermalConduction_s = 0.69
 end subroutine !set_planet_defaults
 
 subroutine calc_radcooling(iBlock)

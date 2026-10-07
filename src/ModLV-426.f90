@@ -79,6 +79,21 @@ module ModPlanet
   real :: VertTau(nAlts)
 
   logical :: IsEarth = .false.
+
+  ! Stubs for Earth-only inputs (see ModEarth.f90), declared so the shared
+  ! code compiles. Values are the old ModInputs defaults: init_altitude and
+  ! initialize still branch on UseMSIS for every planet.
+  logical :: UseApex = .false.
+  logical :: UseIRI = .true.
+  logical :: UseMSIS = .true.
+  logical :: UseMsis21 = .false.
+  logical :: UseMSISDiurnal = .true.
+  logical :: UseMSISSemidiurnal = .true.
+  logical :: UseMSISTerdiurnal = .true.
+  real, dimension(25) :: sw_msis = 1.0
+  logical :: UseOBCExperiment = .false.
+  real :: MsisOblateFactor = 0.0
+  character(len=100) :: cFomichevFile = "none"
   logical :: IsMars = .false.
   logical :: IsTitan = .false.
   logical :: NonMagnetic = .false.
