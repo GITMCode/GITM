@@ -370,8 +370,6 @@ subroutine set_inputs
           write(*, *) 'Incorrect format for #USESECONDSINFILENAME:'
           write(*, *) 'This says whether you want seconds in output file'
           write(*, *) 'name. F means no seconds in output file name.'
-        else
-          if (UseSecondsInFilename) UseSecondsInFilename = .false.
         endif
 
       case ("#DUSTDATA")
