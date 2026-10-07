@@ -76,6 +76,14 @@ subroutine initialize_gitm(TimeIn)
 
   call init_grid
 
+  ! More than one block per processor (nBlocksMax > 1 in ModSize.f90) is not supported
+  if (nBlocks > 1) then
+    if (iProc == 0) write(*, *) "==> WARNING: ", nBlocks, &
+      " blocks per processor. This is NOT supported; use it only for tests."
+    if (IsEarth .or. UseDynamo .or. UseGitmBCs) &
+      call stop_gitm("Earth, #DYNAMO and #GITMBCS cannot run with more than one block per processor")
+  endif
+
   if (DoRestart) then
     call read_inputs(trim(restartInDir)//"/header.rst")
     call set_inputs
