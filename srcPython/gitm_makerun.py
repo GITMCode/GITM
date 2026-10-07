@@ -49,10 +49,7 @@ def parse_args(plotTypes):
     parser.add_argument('-dynamo', \
                         help='turn on DYNAMO', \
                         action="store_true")
-    
-    parser.add_argument('-fang', \
-                        help='turn on Fang [2010] auroral energy deposition', \
-                        action="store_true")
+
 
     parser.add_argument('-fta', \
                         help='turn on FTA auroral model', \
@@ -750,56 +747,39 @@ if (args.dynamo):
 
 
 # ----------------------------------------
-# Fang
+# Aurora. Model is chosen with the first line of #ELECTRODYNAMICS,
+# and the auroral types with #AURORATYPES
 
-if (args.fang):
-    # turn on fang auroral energy deposition
-    uam['#FANGENERGY'] = {
-        0 : ['T', ' Use Fang 2010 energy deposition'] }
-    
-    print('--> Turning on Fang auroral energy deposition')
-    
-# ----------------------------------------
-# FTA model of the aurora
+def set_aurora_model(uam, model):
+    # Keep the dt's and potential model that the baseline file has
+    old = uam.get('#ELECTRODYNAMICS', {})
+    def old_value(i, default):
+        return old[i][0] if i in old else default
+    uam['#ELECTRODYNAMICS'] = {
+        0 : [model, ' Auroral model'],
+        1 : [old_value(1, '60.0'), ' dt for aurora'],
+        2 : [old_value(2, 'weimer05'), ' Potential model'],
+        3 : [old_value(3, '60.0'), ' dt for potential'] }
+    return uam
+
+if (args.fta and args.newell):
+    print('--> ERROR : -fta and -newell are both set; using FTA')
 
 if (args.fta):
-    # turn on fta auroral precip model
-    uam['#FTAMODEL'] = {
-        0 : ['T', ' Use FTA model of the aurora'] }
-    uam['#IEMODELS'] = {
-        0 : ['FTA', ' Use FTA model of the aurora'],
-        1 : ['Weimer', ' Use Weimer potential model'] }
+    uam = set_aurora_model(uam, 'FTA')
     print('--> Turning on FTA Model')
-
-    # Turn off other aurora
-    uam['#NEWELLAURORA'] = {
-        0 : ['F', ' Use Newell Ovation model of the aurora'] }
-    print(' --> Turning off Newell Auroral Model')
 
     if (not args.sme):
         print(' --> WARNING : sme not set, so may not work right! Careful!')
 
-# ----------------------------------------
-# Newell model of the aurora
-
-if (args.newell):
-    # turn on fang auroral energy deposition
-    uam['#NEWELLAURORA'] = {
-        0 : ['T', ' Use Newell Ovation model of the aurora'],
-        1 : ['T', ' Use Diffuse Aurora'],
-        2 : ['T', ' Use Monoenergetic Aurora'],
-        3 : ['F', ' Use Wave driven Aurora'],
-        4 : ['T', ' Remove spikes'],
-        5 : ['T', ' Average patterns'] }   
+elif (args.newell):
+    uam = set_aurora_model(uam, 'ovation')
+    uam['#AURORATYPES'] = {
+        0 : ['T', ' UseDiffuseAurora'],
+        1 : ['T', ' UseMonoAurora'],
+        2 : ['F', ' UseWaveAurora'],
+        3 : ['F', ' UseIonAurora'] }
     print('--> Turning on Newell Ovation Model')
-
-    uam['#IEMODELS'] = {
-        0 : ['OVATION', ' Use OVATION model of the aurora'],
-        1 : ['Weimer', ' Use Weimer potential model'] }
-    
-    uam['#FTAMODEL'] = {
-        0 : ['F', ' Use FTA model of the aurora'] }
-    print(' --> Turning off FTA Model')
 
     if (not args.imf):
         print(' --> WARNING : imf not set, so may not work right! Careful!')
