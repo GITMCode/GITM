@@ -554,8 +554,6 @@ subroutine initialize_gitm(TimeIn)
 
   do iBlock = 1, nBlocks
     call calc_physics(iBlock)
-    call calc_rates(iBlock)
-    call calc_collisions(iBlock)
   enddo
 
   if (UseDynamo .and. .not. Is1D) then

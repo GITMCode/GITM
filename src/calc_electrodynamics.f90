@@ -324,18 +324,21 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
   ! Lat is in degrees = -90 - 90
   !/
 
+  ! Reset the magnetic-grid arrays
   DivJuFieldLineMC = -1.0e32
-  SigmaHallMC = 0.0
-  SigmaPedersenMC = 0.0
-  LengthMC = -1.0e32
+  SigmaHallMC = -1.0e32  !0.0
+  SigmaPedersenMC = -1.0e32  !0.0
+  LengthMC = -1.0e32  !0.0
+  SigmaPPMC = 0.0   !-1.0e32
+  SigmaLLMC = 0.0   !-1.0e32
+  SigmaHHMC = -1.0e32
+  SigmaCCMC = -1.0e32
+  SigmaLPMC = -1.0e32
+  SigmaPLMC = -1.0e32
   KDlmMC = -1.0e32
   KDpmMC = -1.0e32
   KlmMC = -1.0e32
   KpmMC = -1.0e32
-  SigmaLLMC = 0.0
-  SigmaPPMC = 0.0
-  SigmaLPMC = -1.0e32
-  SigmaPLMC = -1.0e32
 
   UAi_nLats = nMagLats
   UAi_nMlts = nMagLons + 1
@@ -344,6 +347,10 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
 
   do iBlock = 1, nBlocks
     if (Debug) write(*, *) 'DBG: starting block ', iBlock, ' of ', nBlocks
+
+    ! Update collisions & gyrofreqs, this runs before calc_GITM_sources
+    call calc_rates(iBlock)
+    call calc_collisions(iBlock)
 
     e_density = IDensityS(:, :, :, ie_, iBlock)
 
@@ -767,21 +774,6 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
     if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
 
     call calc_mltlocal
-
-    DivJuFieldLineMC = -1.0e32
-    SigmaHallMC = -1.0e32  !0.0
-    SigmaPedersenMC = -1.0e32  !0.0
-    LengthMC = -1.0e32  !0.0
-    SigmaPPMC = 0.0   !-1.0e32
-    SigmaLLMC = 0.0   !-1.0e32
-    SigmaHHMC = -1.0e32
-    SigmaCCMC = -1.0e32
-    SigmaLPMC = -1.0e32
-    SigmaPLMC = -1.0e32
-    KDlmMC = -1.0e32
-    KDpmMC = -1.0e32
-    KlmMC = -1.0e32
-    KpmMC = -1.0e32
 
     do i = 1, nMagLons
       do j = 1, nMagLats
@@ -2044,6 +2036,9 @@ subroutine UA_calc_electrodynamics_1d
   q2 = Element_Charge*Element_Charge
 
   do iBlock = 1, nBlocks
+
+    call calc_rates(iBlock)
+    call calc_collisions(iBlock)
 
     e_density = IDensityS(:, :, :, ie_, iBlock)
 
