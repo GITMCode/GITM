@@ -607,7 +607,7 @@ contains
       NeutralSources(iO_3P_) = NeutralSources(iO_3P_) + 0.5*Reaction
       NeutralSources(iO_1D_) = NeutralSources(iO_1D_) + 0.5*Reaction
 
-      NeutralLosses(iO_3P_) = NeutralSources(iO_3P_) + Reaction
+      NeutralLosses(iO_3P_) = NeutralLosses(iO_3P_) + Reaction
 
       ChemicalHeatingSub = &
         ChemicalHeatingSub + &

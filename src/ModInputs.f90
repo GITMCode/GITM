@@ -303,7 +303,6 @@ module ModInputs
   logical :: UseDiffusion = .false.
   logical :: UseVerAdvectionT = .true.
 
-  logical :: UseCO2Cooling = .true.
   logical :: UseCO2FomichevCooling = .false.
   real    :: CO2ppm = 400.0
 

@@ -968,8 +968,8 @@ subroutine set_inputs
           write(*, *) '#IONLIMITS'
           write(*, *) "MaxVParallel     (real, default=100 m/s)"
           write(*, *) "MaxEField        (real, default=0.1 V/m)"
-          write(*, *) "MinIonDensity    (real, default=100 m^-3)"
-          write(*, *) "MinIonDensityAdvect    (real, default=1e5 m^-3)"
+          write(*, *) "MinIonDensity    (real, default=10 m^-3)"
+          write(*, *) "MinIonDensityAdvect    (real, default=10 m^-3)"
           IsDone = .true.
         endif
 
@@ -1230,17 +1230,25 @@ subroutine set_inputs
           write(*, *) "doDynamoHemisphericMirror   (optional, logical)"
           write(*, *) "doUseMagnetoPotentialBCs    (optional, logical)"
           write(*, *) "doDynamoLatBlend            (optional, logical)"
-        endif
-        ! These settings are optional, code will not complain if they aren't included
+          write(*, *) "doDynamoSubtractEquatorialAvg (optional, logical)"
+        else if (UseDynamo) then
+          ! These settings are optional, code will not complain if they aren't
+          ! included. Stop at the next # line so it is not skipped
+          if (next_is_section()) iError = 1
         call read_in_real(DynamoFracPotentialCutoff, iError)
+          if (next_is_section()) iError = 1
         call read_in_logical(doDynamoHemisphericMirror, iError)
+          if (next_is_section()) iError = 1
         call read_in_logical(doUseMagnetoPotentialBCs, iError)
+          if (next_is_section()) iError = 1
         call read_in_logical(doDynamoLatBlend, iError)
+          if (next_is_section()) iError = 1
         call read_in_logical(doDynamoSubtractEquatorialAvg, iError)
         if (iError /= 0) then
           iError = 0
           if (iProc == 0) write(*, *) &
             " >> NOT all experimental Dynamo options were set. Be careful!!!"
+          endif
         endif
 
       case ("#IONFORCING")
@@ -2152,6 +2160,13 @@ subroutine set_inputs
   RestartTime = CurrentTime
 
 contains
+
+  logical function next_is_section()
+  ! For parsing optional arguments, determine if a new input block was started
+    next_is_section = .true.
+    if (iline + 1 > nInputLines) return
+    next_is_section = (cInputText(iline + 1) (1:1) == "#")
+  end function next_is_section
 
   subroutine read_in_int(variable, iError)
     integer, intent(out) :: variable

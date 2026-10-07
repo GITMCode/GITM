@@ -586,7 +586,7 @@ subroutine get_dynamo_potential(lons, lats, pot)
 
         enddo
 
-        ! Check for near pole
+        ! Check for near pole (only reachable if DynamoHighLatBoundary > 88)
         if (.not. IsFound) then
 
           if (LatIn > 88.0) then
@@ -596,11 +596,8 @@ subroutine get_dynamo_potential(lons, lats, pot)
 
           if (LatIn < -88.0) then
             IsFound = .true.
-            pot(iLon, iLat) = sum(DynamoPotentialMC(:, 0))/(nMagLons + 1)
+            pot(iLon, iLat) = sum(DynamoPotentialMC(:, 1))/(nMagLons + 1)
           endif
-
-          write(*, *) "Inside the low latitude, but can't find the point!"
-          write(*, *) LatIn, LonIn
 
         endif
 
@@ -608,7 +605,7 @@ subroutine get_dynamo_potential(lons, lats, pot)
 
       if (.not. IsFound) then
         if (abs(LatIn) < MagLatMC(nMagLons, nMagLats)) &
-          write(*, *) "=====> Could not find point : ", &
+          write(*, *) "=====> get_dynamo_potential: Could not find point : ", &
           LatIn, LonIn, DynamoHighLatBoundary, &
           MagLatMC(nMagLons, nMagLats)
         pot(iLon, iLat) = 0.0

@@ -543,7 +543,7 @@ subroutine initialize_gitm(TimeIn)
     enddo
   endif
 
-  if (UseApex .and. IsEarth) then
+  if (IsEarth) then
     call report("subsolr", 2)
     call SUBSOLR(iTimeArray(1), iJulianDay, iTimeArray(4), &
                  iTimeArray(5), iTimeArray(6), SubsolarLatitude, &
@@ -577,7 +577,11 @@ subroutine initialize_gitm(TimeIn)
   enddo
 
   if (UseCO2FomichevCooling) then
+    if (IsEarth) then
     call initialize_fomichev_cooling()
+    else if (iProc == 0) then
+      write(*, *) ' WARNING: Fomichev CO2 cooling is only implemented for Earth.'
+    endif
   endif
 
   call end_timing("initialize")

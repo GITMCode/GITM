@@ -611,8 +611,8 @@ far outside of expectations.
     #IONLIMITS
     MaxVParallel          (real, default=100 m/s)
     MaxEField             (real, default=0.1 V/m)
-    MinIonDensity         (real, default=100 m^-3)
-    MinIonDensityAdvect   (real, default=1e5 m^-3)
+    MinIonDensity         (real, default=10 m^-3)
+    MinIonDensityAdvect   (real, default=10 m^-3)
 
 ### NEUTRALLIMITS
 

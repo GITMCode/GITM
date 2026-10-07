@@ -161,7 +161,7 @@ subroutine aurora(iBlock)
   ! is built from the total mass column, which includes He, so He belongs in
   ! the denominator too; left out, its share lands on O as a volume rate
   ! independent of [O]. The He value defaults to 0.14 but is adjustable
-  ! and/or toggle-able via #HEAURORA0
+  ! and/or toggle-able via #HEAURORA
 
   temp = 0.92*NDensityS(1:nLons, 1:nLats, 1:nAlts, iN2_, iBlock) + &
          1.00*NDensityS(1:nLons, 1:nLats, 1:nAlts, iO2_, iBlock) + &
