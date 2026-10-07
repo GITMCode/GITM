@@ -21,7 +21,7 @@ subroutine initialize_gitm(TimeIn)
   type(UAM_ITER) :: r_iter
 
   real(Real8_), intent(in) :: TimeIn
-  integer :: iLat, iAlt, iBlock, iSpecies, iLon, iError, nAltsMean, iilon, iilat
+  integer :: iLat, iAlt, iBlock, iSpecies, iLon, iError, nAltsMean, iilon, iilat, iDir
 
   real :: TempAve
   real :: TempDiff
@@ -526,6 +526,23 @@ subroutine initialize_gitm(TimeIn)
   endif
 
   call init_b0
+
+  ! calc_ion_v starts from the previous step's IVelocityPar, which is not in
+  ! restart files. Rebuild it (only where B has values)
+  if (DoRestart .and. maxval(B0(:, :, :, iMag_, 1:nBlocks)) > 0.0) then
+    do iBlock = 1, nBlocks
+      do iDir = 1, 3
+        where (B0(:, :, :, iMag_, iBlock) > 0.0)
+          IVelocityPar(:, :, :, iDir, iBlock) = &
+            sum(IVelocity(:, :, :, 1:3, iBlock)*B0(:, :, :, 1:3, iBlock), dim=4)* &
+            B0(:, :, :, iDir, iBlock)/B0(:, :, :, iMag_, iBlock)**2
+        elsewhere
+          IVelocityPar(:, :, :, iDir, iBlock) = 0.0
+        end where
+      enddo
+    enddo
+  endif
+
   if (UseApex .and. IsEarth) then
     call report("subsolr", 2)
     call SUBSOLR(iTimeArray(1), iJulianDay, iTimeArray(4), &
