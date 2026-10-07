@@ -331,6 +331,7 @@ contains
     if (nSpecies > 3) Vibration(iN_4S_) = 5.0
     if (nSpecies > 4) Vibration(iNO_) = 7.0
     if (nSpecies > 5) Vibration(iHe_) = 5.0
+    if (nSpecies > 6) Vibration(iCO2_) = 8.66667
 
     MassI(iO_4SP_) = Mass(iO_3P_)
     MassI(iO_2DP_) = Mass(iO_3P_)
