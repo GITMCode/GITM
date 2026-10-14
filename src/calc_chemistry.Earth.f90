@@ -407,7 +407,7 @@ subroutine calc_chemistry(iBlock)
             ChemicalHeatingSubI + Reaction*0.491
           ChemicalHeatingS(iop2d_n2) = &
             ChemicalHeatingS(iop2d_n2) + &
-            Reaction*1.33
+            Reaction*1.35
 
           ! O+(2P) + N2 -> N2+ + O + 3.05 eV
 
@@ -430,7 +430,7 @@ subroutine calc_chemistry(iBlock)
 
           ChemicalHeatingS(iop2p_n2) = &
             ChemicalHeatingS(iop2p_n2) + &
-            Reaction*3.02
+            Reaction*3.05
 
           ! N2+ + O2 -> O2+ + N2 + 3.53 eV (+ aether)
 
@@ -512,7 +512,8 @@ subroutine calc_chemistry(iBlock)
 
           ChemicalHeatingS(in2p_e) = &
             ChemicalHeatingS(in2p_e) + &
-            Reaction*3.44
+            Reaction*1.04*0.56 + &
+            Reaction*5.77*0.44
 
           ! N2+ + N(4S) -> N2 + N+ + 2.48 eV (+aether)
 
@@ -743,7 +744,7 @@ subroutine calc_chemistry(iBlock)
 
           ChemicalHeatingS(inp_o2) = &
             ChemicalHeatingS(inp_o2) + &
-            Reaction*2.486
+            Reaction*2.5
 
           ! -----------
           ! N+ + O2 -> O2+ + N(2D) + 0.1 eV (+aether)
@@ -856,7 +857,7 @@ subroutine calc_chemistry(iBlock)
 
           ChemicalHeatingS(io2p_n) = &
             ChemicalHeatingS(io2p_n) + &
-            Reaction*4.25
+            Reaction*4.21
 
           ! -----------
           ! O2+ + N(2D) -> NO+ + O + 6.519 eV (+aether)
@@ -1066,7 +1067,7 @@ subroutine calc_chemistry(iBlock)
 
           ChemicalHeatingS(iop2d_e) = &
             ChemicalHeatingS(iop2d_e) + &
-            Reaction*0.0
+            Reaction*3.31
 
           !! Temp change to stop crash
           ! -----------
@@ -1717,7 +1718,7 @@ subroutine calc_chemistry(iBlock)
 
           ChemicalHeatingS(inp_o2) = &
             ChemicalHeatingS(inp_o2) + &
-            Reaction*6.67
+            Reaction*4.71
 
           ! -----------
           ! N+ + O -> O+ + N + 0.93 eV
