@@ -39,7 +39,7 @@ subroutine calc_chemistry(iBlock)
   real :: ChemicalHeatingSubI, ChemicalHeatingSubE
   real :: Emission(nEmissions), EmissionTotal(nEmissions)
   real, dimension(nLons, nLats, nAlts) :: &
-    tr3d, tr33d, te12d, tr3m0443d, tr3m083d, tr3m043d, &
+    tr3d, tr33d, te12d, &
     tn3d, ti3d, ti33d, ti103d, ti93d, ti153d, ti3m0443d, ti3m0243d, &
     ti3m0233d, ti3m1163d, ti10m0673d, ti3m0453d, ti10m2123d, ti3m0873d, &
     ti3m0523d, ti9m0923d, ti3m0553d, ti15m0233d, &
@@ -52,7 +52,7 @@ subroutine calc_chemistry(iBlock)
 
   real :: k1_n2_point, k2_o2_point, k3_no_point
 
-  real :: te3m05, te3m07, te12m056, tr3m044, tr3m04, tr3m08, te07
+  real :: te3m05, te3m07, te12m056, te07
   real :: ti3m044, ti3m024, ti3m023, ti3m116, ti10m067, ti3m045
   real :: ti10m212, ti3m087, ti3m052, ti9m092, ti3m055, ti15m023
   real :: te3m039, te3m085, rr_opn2, te22m05, te3m091, te3m081
@@ -272,8 +272,6 @@ subroutine calc_chemistry(iBlock)
         te3m081 = te3m0813d(iLon, iLat, iAlt)
         te3m039 = te3m0393d(iLon, iLat, iAlt)
         te12m056 = te12m0563d(iLon, iLat, iAlt)
-        tr3m044 = tr3m0443d(iLon, iLat, iAlt)
-        tr3m04 = tr3m043d(iLon, iLat, iAlt)
         ti3m044 = ti3m0443d(iLon, iLat, iAlt)
         ti3m024 = ti3m0243d(iLon, iLat, iAlt)
         ti3m023 = ti3m0233d(iLon, iLat, iAlt)
@@ -288,7 +286,6 @@ subroutine calc_chemistry(iBlock)
         ti15m023 = ti15m0233d(iLon, iLat, iAlt)
         te22m05 = eTemperature(iLon, iLat, iAlt, iBlock)**(.5)* &
                   exp(te227d(iLon, iLat, iAlt))
-        tr3m08 = tr3m083d(iLon, iLat, iAlt)
         ti = iTemperature(iLon, iLat, iAlt, iBlock)
         tn = Temperature(iLon, iLat, iAlt, iBlock)* &
              TempUnit(iLon, iLat, iAlt)
