@@ -17,7 +17,7 @@ The Electrodynamics models are chosen in the `#ELECTRODYNAMICS` section of
 ```
 #ELECTRODYNAMICS
 zero        AuroralModel
-60.0        DtAurora
+120.0       DtAurora
 zero        PotentialModel
 60.0        DtPotential
 ```
@@ -47,7 +47,23 @@ respectively.
 
 The aurora and electric field model names are parsed in 
 [`Electrodynamics/src/interpret_names.f90`](https://github.com/GITMCode/Electrodynamics/blob/main/src/interpret_names.f90).
-See this file for the most up-to-date list of available modules and the acceptable names.
+Names are not case sensitive. The accepted strings are:
+
+| Type      | Model             | Accepted names                          |
+| :---      | :---              | :---                                    |
+| Aurora    | none              | `zero`                                  |
+| Aurora    | FTA               | `fta`                                   |
+| Aurora    | FRE               | `fre`, `ihp`, `hpi`                     |
+| Aurora    | PEM               | `pem`                                   |
+| Aurora    | Ovation Prime     | `ovation`, `ovationprime`               |
+| Aurora    | AMIE file         | `amie`, `amiefile`, `swmffile`          |
+| Potential | none              | `zero`                                  |
+| Potential | Weimer05          | `weimer`, `weimer05`                    |
+| Potential | Millstone Hill    | `millstone`                             |
+| Potential | Heppner-Maynard   | `hepmay`, `heppnermaynard`              |
+| Potential | AMIE file         | `amie`, `amiefile`, `swmffile`          |
+
+An unrecognized name raises an error. See the file for the most up-to-date list.
 
 ## Aurora
 
@@ -79,9 +95,12 @@ F         UseIonAurora (logical)
 
 Some notes on the different auroral types:
 
-- `NormalizeAuroraToHP` is only recommended to be used in conjunction with FRE,
+- `NormalizeAuroraToHP` scales the aurora to the hemispheric power, and is only
+  recommended in conjunction with FRE or FTA. GITM raises a warning if it is used with
+  any other auroral model (and a second one if used with Ovation).
 - `#AURORATYPES` are not supported by all auroral models. Presently, only
-OVATION & MAGNIT (AMIE) can provide other than electron diffuse aurora.
+  OVATION & AMIE files can provide other than electron diffuse aurora (mono,
+  wave and ion). Other models return a negligible placeholder for these types.
 - `AllowAurWODiffuse` was added for stability with OVATION-Prime; it restricts
 mono/wave/ion aurora to only exist in locations which also contain electron
 diffuse aurora. This can be set in [`#AURORAMODS`](../set_inputs.md#auroramods)
@@ -91,7 +110,7 @@ gaussian centered at the average energy.
 
 ### Aurora Mods
 
-The diffuse aurora can be represnted by
+The diffuse aurora can be represented by
 either a Maxwellian or Kappa distribution using the `#AURORAMODS` section of
 `UAM.in`:
 
@@ -100,10 +119,22 @@ either a Maxwellian or Kappa distribution using the `#AURORAMODS` section of
 F               NormalizeAuroraToHP     (logical)
 1.0             AveEFactor    (real)
 F               IsKappaAurora     (logical)
-1.0             AuroraKappa    (real)
+3.0             AuroraKappa    (real)
 F               AllowAurWODiffuse (logical)
-50.0            MaxAveEAurora    (real)
+80.0            MaxAveEAurora    (real)
 ```
+
+The values shown are the defaults.
+
+### Reference Altitude
+
+The aurora is not mapped at an arbitrary height. The altitude set by
+[`#IEREFERENCEALT`](../set_inputs.md#iereferencealt) (default 120 km) is
+matched to the nearest model level, which is printed at startup (with a high
+enough debug level). The auroral patterns are taken from that level, and the
+hemispheric power is integrated over the cells at that level. The dynamo does
+not use this altitude: its magnetic grid is placed at the lowest model level
+(`Altitude_GB(1,1,1,1)` in `calc_electrodynamics.f90`).
 
 
 
@@ -115,6 +146,15 @@ The following electric field models can be used:
 - Millstone-Hill
 - Heppner Maynard
 - AMIE
+
+## Dynamo
+
+The low- and mid-latitude electric field is solved by GITM's own dynamo, which
+is driven by the neutral winds, with the high-latitude potential above as its
+boundary condition. It is controlled by
+[`#DYNAMO`](../set_inputs.md#dynamo) (`UseDynamo` defaults to F, with
+`DynamoHighLatBoundary` 65.0) and [`#DYNAMOSOLVER`](../set_inputs.md#dynamosolver).
+See `set_inputs.md` for the full list of options and defaults.
 
 ## Required Input Files
 
@@ -129,17 +169,27 @@ The check for valid data is located within
 Some required input file-types are listed below:
 
 
-| Model   |   IMF   |  AE   |  HP   | Kp    |
-| :---    | :---:   | :---: | :---: | :---: | 
-| Weimer  | Yes     | No    | No    | No    |
-| FRE     | Yes     | No    | Yes   | No    |
-| HepMay  | Yes     | No    | No    | Yes   |
-| FTA     | No      | Yes   | No    | No    |
-| PEM     | No      | No    | Yes   | No    |
-| Ovation | Yes     | No    | No    | Yes   |
+| Model    | Needs                                  |
+| :---     | :---                                   |
+| Weimer05 | IMF By & Bz, solar-wind V and N        |
+| HepMay   | IMF By & Bz, Kp                        |
+| FTA      | AU and AL                              |
+| FRE      | Hemispheric power (north and south)    |
+| PEM      | Hemispheric power (north and south)    |
+| Ovation  | IMF By & Bz, solar-wind V (not Kp)     |
+
+Each input is supplied by the following `UAM.in` commands:
+
+| Input          | Commands                                                                                  |
+| :---           | :---                                                                                      |
+| IMF & solar wind | [`#MHD_INDICES`](../set_inputs.md#mhd_indices) (time-varying) or [`#SOLARWIND`](../set_inputs.md#solarwind) (static) |
+| AU & AL        | [`#SME_INDICES`](../set_inputs.md#sme_indices) or [`#SMESINGLE`](../set_inputs.md#smesingle)                          |
+| Hemispheric power | [`#NOAAHPI_INDICES`](../set_inputs.md#noaahpi_indices), [`#HPI`](../set_inputs.md#hpi), or `#SME_INDICES` with `doUseAeForHp` = T |
+| Kp             | [`#KP`](../set_inputs.md#kp), a single value only (no time-varying Kp file is read)      |
 
 HP can be derived from AE, and is not necessarily required to be in a standalone
-file. See [here](../common_inputs.md#sme-indices) for more details.
+file. This only happens when the third value of `#SME_INDICES`
+(`doUseAeForHp`) is T, in which case HP = 0.102 AE + 8.953 GW. See [here](../common_inputs.md#sme-indices) for more details.
 
 ## File-based Electrodynamics
 
@@ -169,8 +219,9 @@ which is often desired when plotting outputs from the electrodynamics modules.
 To do this, one must manually control the magnetic field configuration through
 the use of `#APEX` and `#DIPOLE` in `UAM.in`.
 
-By setting `#APEX` to F, GITM will use a tilted, offset dipole for the magnetic
-field. The tilt and offset default to the IGRF 2020 epoch, however with the use
+`#APEX` defaults to F (`UseApex = .false.`), so GITM uses a tilted, offset dipole
+for the magnetic field unless `#APEX T` is given, which enables the realistic
+Apex field. The tilt and offset default to the IGRF 2020 epoch, however with the use
 of the [`#DIPOLE`](../set_inputs.md#dipole) option, it is possible to force zero 
 offset and tilt, effectively aligning the geographic and magnetic poles.
 The output files will then be in magnetic
@@ -182,7 +233,7 @@ following sections are what differs this test from the previous:
 
 ```
 #APEX 
-F     Apex is turned off (so a dipole is used)
+F     Apex is turned off (so a dipole is used; this is the default)
 
 #DIPOLE
 0.0         Magnetic Pole rotation
@@ -193,3 +244,8 @@ F     Apex is turned off (so a dipole is used)
 
 ```
 
+## Library Notes
+
+The Electrodynamics library has had Weimer05 fixes: the Southern Hemisphere
+tilt and IMF By handling were corrected, and the potential near the pole no
+longer returns zero. Update `ext/Electrodynamics` if older results look odd.

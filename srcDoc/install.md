@@ -5,7 +5,7 @@ If a fortran compiler & MPI are already installed on your system, you can skip d
 
 If you are unsure whether or not things are installed & set up correctly, a good
 way to check is to print the version number with `gfortran --version` (change to
-`ifort` if using the Intel compiler).  The MPI implementation can be checked
+`ifx` if using the Intel compiler).  The MPI implementation can be checked
 with `mpirun --version`. If there is an error, something is not configured
 correctly.
 
@@ -29,7 +29,7 @@ At a minimum, you need:
   
   The version of gfortran on your system should be automatically detected. If it is not,
   you may specify the version manually. Use `-compiler=gfortran` for older versions 
-  (9 and below) and `-compiler=-gfortran10` for version 10+ when running `./Config.pl`.
+  (9 and below) and `-compiler=gfortran10` for version 10+ when running `./Config.pl`.
   
   There is a very good chance that you have 10+.
 
@@ -37,6 +37,11 @@ There is no difference in the outputs between different compilers, however some
 compilers may produce slightly faster executables than others. For example,
 using ifort on [Pleiades](https://www.nas.nasa.gov/hecc/resources/pleiades.html)
 is faster than using gfortran (gcc) or aocc.
+
+!!! note "ifort has been discontinued"
+    Intel has discontinued `ifort`. For Intel compilers, use `ifx` (see
+    [below](#using-the-intel-compiler-ifx)). The `ifort` makefiles are still in
+    `share/build/` for systems that have not moved on.
 
 As GITM can run on as many (or few) CPU cores as you wish, it is possible to run GITM on
 a laptop or a workstation. This is recommended for development, as the turnaround for
@@ -120,8 +125,9 @@ least take note of what was used so they can be loaded in the job script.
 
 GITM is hosted on GitHub. The `main` branch is stable and updated as important features
 are added (in the `develop` branch). The `main` branch is default and no additional
-steps are needed to use this version. Just clone the GITM repository, and all dependent
-libraries will be downloaded during configuration. The following command is assuming
+steps are needed to use this version. Just clone the GITM repository; the Electrodynamics
+library is cloned automatically during configuration (see
+[Electrodynamics](#electrodynamics-dependency) below). The following command is assuming
 that you will be using GITM and not developing GITM.  
 
 ```
@@ -152,17 +158,68 @@ work properly. To configure GITM for Earth using the `gfortran` compiler, run:
 ```
 
 If you are not using gfortran, you can see which other compilers are available by
-looking in `share/build/`. These files are named according to the operating system
-and compiler that are used. For example, if a MacOS user runs `Config.pl` with
-`-compiler=ifort`, the file called `Makefile.Darwin.ifort` will be used.
+running `./Config.pl -compiler`, or by looking in `share/build/`. These files are named
+according to the operating system and compiler that are used. For example, if a MacOS
+user runs `Config.pl` with `-compiler=ifort`, the file called `Makefile.Darwin.ifort`
+will be used. On Linux the default is gfortran, and these are the available files
+(`share/build/Makefile.Linux.*`):
+
+`crayftn`, `f95`, `gfortran`, `gfortran10`, `ifort`, `ifortftn`, `ifortmpif90`, `ifx`,
+`ifxmpif90`, `lf95`, `mpif90`, `mpiifort`, `mpxlf90`, `nagfor`, `pgf90`, `xlf90`
 
 The full list of available configuration options can be found by running
-`./Config.pl -h`. A useful flag while developing is `-debug` which will print a
-traceback if an error is encountered, as well as performing some additional
-validity checks when running.
+`./Config.pl -h`. Some commonly useful ones:
 
-This should have downloaded all necessary external libraries and created some
-extra files necessary to compile. To compile, simply run:
+- `-compiler=FC` : use the Fortran compiler `FC` (a `Makefile.<OS>.FC` file must
+  exist). Only works together with `-install`.
+- `-debug` : select debug compiler options. This will print a traceback if an error
+  is encountered, as well as performing some additional validity checks when running.
+   Useful while developing.
+- `-O0` ... `-O5` : set the optimization level to at most this value.
+- `-single` / `-double` : set the precision (the default is double).
+- `-nompi` : compile without MPI, for serial runs. This is not well supported.
+- `-show` : print the current settings (so does running `./Config.pl` with no
+  arguments), and `-dryrun` shows what would be done without changing anything.
+
+### Using the Intel compiler (ifx)
+
+Intel's current Fortran compiler is `ifx`. Check that it is available with
+`ifx --version`. To configure with `ifx` and Intel MPI (the `mpiifx` wrapper,
+which requires Intel MPI 2021.11 or newer):
+
+```bash
+./Config.pl -install -earth -compiler=ifx
+```
+
+If your MPI wrapper is `mpif90` instead (it must wrap `ifx`, e.g. an OpenMPI built with
+`ifx`, or `OMPI_FC=ifx` set in your environment), use:
+
+```bash
+./Config.pl -install -earth -compiler=ifxmpif90
+```
+
+### Electrodynamics dependency
+
+GITM's electrodynamics comes from a separate repository,
+[GITMCode/Electrodynamics](https://github.com/GITMCode/Electrodynamics). When you run
+`./Config.pl -install`, it is cloned into `ext/Electrodynamics` (first with ssh, then
+with https if that fails), and a `Makefile.local` is written in
+`ext/Electrodynamics/build/`. This means:
+
+- Configuring needs network access. Compute nodes often do not have it, so run
+  `Config.pl` on a login node, or clone the repository into `ext/Electrodynamics`
+  ahead of time.
+- If `ext/Electrodynamics` already exists, `Config.pl` runs `git pull` in it, so you
+  get the latest version. No version is pinned. If the pull fails, configuration
+  continues with a warning and uses what is there.
+- To check which version you have, run `git -C ext/Electrodynamics log -1`. To stay on
+  a specific version, `git -C ext/Electrodynamics checkout <hash-or-tag>` after the first
+  configuration. A detached HEAD cannot be pulled, so later runs of `Config.pl` will
+  leave it alone.
+- The Electrodynamics branch, commit and number of changed files are recorded in the
+  GITM version information (see the developer docs).
+
+To compile, simply run:
 
 ```bash
 make

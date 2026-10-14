@@ -35,8 +35,8 @@ mpirun -np 4 ./GITM.exe
     specifying it manually.
   
     The compiler version only matters for gfortran, and the specific version is not
-    important - only whether is it $`\pm 10`$. So use `compiler=gfortran` for 
-    gfortran versions 9 and below, and `compiler=gfortran10` for versions 10 and up.
+    important - only whether it is 10 or newer. So use `-compiler=gfortran` for 
+    gfortran versions 9 and below, and `-compiler=gfortran10` for versions 10 and up.
 
 Then to produce a plot:
 ```bash
