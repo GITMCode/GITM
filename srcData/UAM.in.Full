@@ -184,9 +184,7 @@ Some new features:
 
 #MSISOBC
 T		Shift the [O] density at the lower boundary by 6 months 
-0.0		change the obateness of the Earth by this percent (0 = none)
-
-A good value for the oblateness is -0.1 for Earth
+-0.1		change the obateness of the Earth by this percent (0 = none)
 
 --------------------------------------------------------------------------
 These set the thermal balance of the code:
@@ -195,7 +193,12 @@ These set the thermal balance of the code:
 0.05       Efficiency of photoelectron heating
 
 #PHOTOELECTRON
-0.00       Efficiency of photoelectron heating
+0.06       Efficiency of photoelectron heating (compiled Earth default)
+
+#EUVSCALE
+1.075      EuvScaleBase: EUV multiplier at F107a = ref (compiled Earth default)
+0.0019     EuvScaleSlope: change in that multiplier per unit F107a
+150.0      EuvScaleF107aRef: reference F107a
 
 #DIFFUSION
 T

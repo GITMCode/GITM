@@ -378,9 +378,10 @@ subroutine set_inputs
         call read_in_string(cConrathFile, iError)
         if (iError /= 0) then
           write(*, *) 'Incorrect format for #DUSTDATA'
-          write(*, *) '#DUST'
-          write(*, *) 'cDustFile'
-          write(*, *) 'cConrathFile'
+          write(*, *) '#DUSTDATA'
+          write(*, *) 'UseDustDistribution  (logical)'
+          write(*, *) 'cDustFile            (string)'
+          write(*, *) 'cConrathFile         (string)'
         endif
 
       case ("#OVERWRITEIONOSPHERE")
@@ -708,9 +709,9 @@ subroutine set_inputs
           write(*, *) 'the potential and the aurora.'
           write(*, *) '#ELECTRODYNAMICS'
           write(*, *) 'AuroralModel     [fta], fre, pem, ovation, hpi/ihp, amie, zero, etc.'
-          write(*, *) 'DtAurora    (real, seconds [60.0])'
+          write(*, *) 'DtAurora         (real, seconds [60.0])'
           write(*, *) 'PotentialModel   [weimer05], hepmay, amie, zero, etc.'
-          write(*, *) 'DtPotential (real, seconds [60.0])'
+          write(*, *) 'DtPotential      (real, seconds [60.0])'
           IsDone = .true.
         endif
 
@@ -992,7 +993,7 @@ subroutine set_inputs
         if (iError /= 0) then
           write(*, *) 'Incorrect format for #NEUTRALLIMITS:'
           write(*, *) ''
-          write(*, *) '#IONLIMITS'
+          write(*, *) '#NEUTRALLIMITS'
           write(*, *) "MinNeutralDensity    (real, default=100 m^-3)"
           write(*, *) "MinNeutralDensityAdvect    (real, default=1e5 m^-3)"
           IsDone = .true.
@@ -1176,7 +1177,7 @@ subroutine set_inputs
           write(*, *) '#MODIFYPLANET'
           write(*, *) "RotationPeriodInput        (real)"
           write(*, *) "DaysPerYearInput           (real)"
-          write(*, *) "DaysPerYearInput           (real)"
+          write(*, *) "PlanetTiltInput            (real)"
         endif
 
       case ("#USEIMPLICITIONMOMENTUM")
@@ -1393,7 +1394,7 @@ subroutine set_inputs
           write(*, *) 'spacing GITM is tested at.  Left unset, dHFactor is'
           write(*, *) 'reduced as far as needed to keep the top of the grid'
           write(*, *) 'under AltMax.  Setting it alongside AltMax uses both.'
-          write(*, *) '#DHFactor'
+          write(*, *) '#DHFACTOR'
           write(*, *) 'dHFactor              (real, scale-height)'
         else
           IsDHFactorSet = .true.
@@ -1817,9 +1818,11 @@ subroutine set_inputs
           write(*, *) 'If both are true, average them together'
           write(*, *) 'If UseAboveHigh, then extend the spectrum to the longer wavelengths'
           write(*, *) 'If UseBelowLow, then extend the spectrum to the shorter wavelengths'
-          write(*, *) '#EUV_DATA'
-          write(*, *) 'UseEUVData            (logical)'
-          write(*, *) 'cEUVFile              (string)'
+          write(*, *) '#EUVMODEL'
+          write(*, *) 'UseEUVAC              (logical)'
+          write(*, *) 'UseTobiska            (logical)'
+          write(*, *) 'UseAboveHigh          (logical)'
+          write(*, *) 'UseBelowLow           (logical)'
         endif
 
       case ("#B107")
