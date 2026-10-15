@@ -402,19 +402,18 @@ Currently the following output files are available:
     40 V!Di!N (up)
     41 PhotoElectron Heating
     42 Joule Heating
-    43 Auroral Heating
-    44 Specific Heat
-    45 Magnetic Latitude
-    46 Magnetic Longitude
-    47 B.F. East
-    48 B.F. North
-    49 B.F. Vertical
-    50 B.F. Magnitude
-    51 Potential
-    52 PotentialY
-    53 E.F. East
-    54 E.F. North
-    55 E.F. Vertical
+    43 Specific Heat
+    44 Magnetic Latitude
+    45 Magnetic Longitude
+    46 B.F. East
+    47 B.F. North
+    48 B.F. Vertical
+    49 B.F. Magnitude
+    50 Potential
+    51 PotentialY
+    52 E.F. East
+    53 E.F. North
+    54 E.F. Vertical
 
 ## 3DION
 
@@ -524,21 +523,25 @@ Currently the following output files are available:
     1 Longitude
     2 Latitude
     3 Altitude
-    4 EUV Heating
-    5 Conduction
-    6 Molecular Conduction
-    7 Eddy Conduction
-    8 Eddy Adiabatic Conduction
-    9 Chemical Heating
-    10 Auroral Heating
-    11 Joule Heating
-    12 NO Cooling
-    13 O Cooling
+    4 EUV Heating (K/s)
+    5 Conduction (K/s)
+    6 Molecular Conduction (K/s)
+    7 Eddy Conduction (K/s)
+    8 Eddy Adiabatic Conduction (K/s)
+    9 Chemical Heating (K/s)
+    10 Joule Heating (K/s)
+    11 CO2 Cooling (K/s)
+    12 NO Cooling (K/s)
+    13 O Cooling (K/s)
     14 Total Abs EUV
     15 Cp
     16 Rho
     17 E-Field Mag
     18 Sigma Ped
+    19 Ionization Rate O_3P
+    20 Ionization Rate O2
+    21 Ionization Rate N2
+    22 Ionization Rate He
 
 ## 3DUSR
 
