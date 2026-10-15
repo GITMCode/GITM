@@ -86,7 +86,7 @@ subroutine init_get_potential
     endif
   endif
 
-  if (IEModel_%iAurora_ /= iFRE_ .and. NormalizeAuroraToHP) &
+  if (IEModel_%iAurora_ /= iFRE_ .and. IEModel_%iAurora_ /= iFTA_ .and. NormalizeAuroraToHP) &
     call raise_warning("You probably should not be normalizing aurora with non-FRE models")
 
   if (cPlanet == "Earth") then
