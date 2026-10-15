@@ -310,7 +310,7 @@ subroutine output(dir, iBlock, iOutputType)
 
   case ('3DTHM')
 
-    nvars_to_write = 21
+    nvars_to_write = 22
     call output_3dthm(iBlock)
 
   case ('1DCHM')
@@ -735,6 +735,7 @@ contains
         write(iOutputUnit_, "(I7,A1,a)") 19, " ", "Ionization Rate O_3P"
         write(iOutputUnit_, "(I7,A1,a)") 20, " ", "Ionization Rate O2"
         write(iOutputUnit_, "(I7,A1,a)") 21, " ", "Ionization Rate N2"
+        write(iOutputUnit_, "(I7,A1,a)") 22, " ", "Ionization Rate He"
       endif
 
     endif
@@ -1484,7 +1485,8 @@ subroutine output_3dthm(iBlock)
           Sigma_Pedersen(iLon, iLat, iAlt), &
           AuroralIonRateS(iiLon, iiLat, iiAlt, iO_3P_, iBlock), &
           AuroralIonRateS(iiLon, iiLat, iiAlt, iO2_, iBlock), &
-          AuroralIonRateS(iiLon, iiLat, iiAlt, iN2_, iBlock)
+          AuroralIonRateS(iiLon, iiLat, iiAlt, iN2_, iBlock), &
+          AuroralIonRateS(iiLon, iiLat, iiAlt, iHe_, iBlock)
 
       enddo
     enddo
