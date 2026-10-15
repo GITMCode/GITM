@@ -384,8 +384,8 @@ module ModInputs
   ! Eclipse Information
   !/
   logical :: IncludeEclipse = .false.
-  real(Real8_) :: EclipseStartTime
-  real(Real8_) :: EclipseEndTime
+  real(Real8_) :: EclipseStartTime = 0.0
+  real(Real8_) :: EclipseEndTime = 0.0
   real :: EclipseStartY, EclipseEndY
   real :: EclipseStartZ, EclipseEndZ
   real :: EclipsePeak, EclipseMaxDistance
