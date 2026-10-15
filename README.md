@@ -5,7 +5,7 @@ This is the home of the Global Ionosphere/Thermosphere Model (GITM).
 [![DOI](https://zenodo.org/badge/468565917.svg)](https://doi.org/10.5281/zenodo.7509933)
 
 GITM has been developed in fortran-90. It has been tested with gfortran
-on Linux and MacOS as well as ifort on NASA's Pleiades computer.
+on Linux and MacOS as well as ifort/ifx on HPC systems.
 
 For the complete documentation, see [GITM's Read the Docs Page](https://gitm.readthedocs.io).
 
@@ -14,7 +14,7 @@ GITM's stable version is the main branch, which is downloaded by default.  If yo
 ## Quick Start
 
 > GITM needs MPI to work properly. This can be installed with your system's package manager, or loaded as a `module` on an HPC system.
-> See [the installation guide](https://gitm.readthedocs.io/en/latest/quick_start/#requirements) for more information.
+> See [the installation guide](https://gitm.readthedocs.io/en/latest/install/#requirements) for more information.
 
 1\. Clone the repository and cd into the repo folder
 
@@ -70,6 +70,9 @@ And you can use the below line below to configure the code:
 ```shell
 ./Config.pl -install -earth -compiler=ifort
 ```
+
+If you are using the newer `ifx` compiler (with the `mpiifx` wrapper), use
+`-compiler=ifx` instead. See the installation guide for more options.
 
 4\. Make the binary:
 
@@ -158,7 +161,7 @@ python setup.py develop --user
 ```shell
 cd <directory where you started from>
 cd GITM/run/UA/data
-../../../srcPython/run_plot_model_results.py -var=34 -alt=300 3DALL_t021221_000500.bin
+../../../srcPython/aetherpy/run_plot_model_results.py -var=34 -alt=300 3DALL_t021221_000500.bin
 ```
 
 (look at the beautiful plot)
@@ -218,5 +221,5 @@ processors, so you can adjust `src/ModSize.f90` to have 18 cells in lat and
 lon, then ask for 2 (lat) x 4 (lon) blocks to get 5 deg x 5 deg resolution.
 
 See the 
-[grid page](https://gitm.readthedocs.io/en/latest/grid/#horizontal-resolution)
+[grid page](https://gitm.readthedocs.io/en/latest/internals/grid/#horizontal-resolution)
 in the documentation for more details and some examples.

@@ -189,7 +189,7 @@ subroutine output(dir, iBlock, iOutputType)
   call calc_physics(iBlock)
   call calc_rates(iBlock)
   call calc_collisions(iBlock)
-  call chapman_integrals(iBlock)
+
   call set_horizontal_bcs(iBlock)
   if (.not. Is1D) call calc_efield(iBlock)
 
@@ -310,7 +310,7 @@ subroutine output(dir, iBlock, iOutputType)
 
   case ('3DTHM')
 
-    nvars_to_write = 21
+    nvars_to_write = 22
     call output_3dthm(iBlock)
 
   case ('1DCHM')
@@ -735,6 +735,7 @@ contains
         write(iOutputUnit_, "(I7,A1,a)") 19, " ", "Ionization Rate O_3P"
         write(iOutputUnit_, "(I7,A1,a)") 20, " ", "Ionization Rate O2"
         write(iOutputUnit_, "(I7,A1,a)") 21, " ", "Ionization Rate N2"
+        write(iOutputUnit_, "(I7,A1,a)") 22, " ", "Ionization Rate He"
       endif
 
     endif
@@ -936,19 +937,18 @@ contains
       iOff = iOff + 5
       write(iOutputUnit_, "(I7,A1,a)") iOff + 1, " ", "PhotoElectron Heating"
       write(iOutputUnit_, "(I7,A1,a)") iOff + 2, " ", "Joule Heating"
-      write(iOutputUnit_, "(I7,A1,a)") iOff + 3, " ", "Auroral Heating"
-      write(iOutputUnit_, "(I7,A1,a)") iOff + 4, " ", "Specific Heat"
-      write(iOutputUnit_, "(I7,A1,a)") iOff + 5, " ", "Magnetic Latitude"
-      write(iOutputUnit_, "(I7,A1,a)") iOff + 6, " ", "Magnetic Longitude"
-      write(iOutputUnit_, "(I7,A1,a)") iOff + 7, " ", "B.F. East"
-      write(iOutputUnit_, "(I7,A1,a)") iOff + 8, " ", "B.F. North"
-      write(iOutputUnit_, "(I7,A1,a)") iOff + 9, " ", "B.F. Vertical"
-      write(iOutputUnit_, "(I7,A1,a)") iOff + 10, " ", "B.F. Magnitude"
-      write(iOutputUnit_, "(I7,A1,a)") iOff + 11, " ", "Potential"
-      write(iOutputUnit_, "(I7,A1,a)") iOff + 12, " ", "PotentialY"
-      write(iOutputUnit_, "(I7,A1,a)") iOff + 13, " ", "E.F. East"
-      write(iOutputUnit_, "(I7,A1,a)") iOff + 14, " ", "E.F. North"
-      write(iOutputUnit_, "(I7,A1,a)") iOff + 15, " ", "E.F. Vertical"
+      write(iOutputUnit_, "(I7,A1,a)") iOff + 3, " ", "Specific Heat"
+      write(iOutputUnit_, "(I7,A1,a)") iOff + 4, " ", "Magnetic Latitude"
+      write(iOutputUnit_, "(I7,A1,a)") iOff + 5, " ", "Magnetic Longitude"
+      write(iOutputUnit_, "(I7,A1,a)") iOff + 6, " ", "B.F. East"
+      write(iOutputUnit_, "(I7,A1,a)") iOff + 7, " ", "B.F. North"
+      write(iOutputUnit_, "(I7,A1,a)") iOff + 8, " ", "B.F. Vertical"
+      write(iOutputUnit_, "(I7,A1,a)") iOff + 9, " ", "B.F. Magnitude"
+      write(iOutputUnit_, "(I7,A1,a)") iOff + 10, " ", "Potential"
+      write(iOutputUnit_, "(I7,A1,a)") iOff + 11, " ", "PotentialY"
+      write(iOutputUnit_, "(I7,A1,a)") iOff + 12, " ", "E.F. East"
+      write(iOutputUnit_, "(I7,A1,a)") iOff + 13, " ", "E.F. North"
+      write(iOutputUnit_, "(I7,A1,a)") iOff + 14, " ", "E.F. Vertical"
 
     endif
 
@@ -1485,7 +1485,8 @@ subroutine output_3dthm(iBlock)
           Sigma_Pedersen(iLon, iLat, iAlt), &
           AuroralIonRateS(iiLon, iiLat, iiAlt, iO_3P_, iBlock), &
           AuroralIonRateS(iiLon, iiLat, iiAlt, iO2_, iBlock), &
-          AuroralIonRateS(iiLon, iiLat, iiAlt, iN2_, iBlock)
+          AuroralIonRateS(iiLon, iiLat, iiAlt, iN2_, iBlock), &
+          AuroralIonRateS(iiLon, iiLat, iiAlt, iHe_, iBlock)
 
       enddo
     enddo
@@ -1891,7 +1892,13 @@ subroutine output_2dmel(iBlock)
 
   integer, intent(in) :: iBlock
   integer :: iAlt, iLat, iLon
+  real :: MelAlt
   !--------------------------------------------------------------------------
+
+  ! The magnetic grid has no altitude of its own, and its (lon, lat) indices
+  ! are not GITM's, so Altitude_GB(iLon, iLat, ...) was out of bounds here.
+  ! The grid is placed at the IE reference altitude (#IEREFERENCEALT).
+  MelAlt = AltIERef
 
   iAlt = 1
   do iLat = 1, nMagLats
@@ -1899,7 +1906,7 @@ subroutine output_2dmel(iBlock)
       write(iOutputUnit_) &
         MagLonMC(iLon, iLat)*Pi/180.0, &
         MagLatMC(iLon, iLat)*Pi/180.0, &
-        Altitude_GB(iLon, iLat, iAlt, iBlock), &
+        MelAlt, &
         MagLocTimeMC(iLon, iLat), &
         GeoLatMC(iLon, iLat), &
         GeoLonMC(iLon, iLat), &

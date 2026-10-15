@@ -67,23 +67,8 @@ subroutine write_restart(dir)
       write(iRestartUnit_, *) iStartTime(i)
     enddo
 
-    write(iRestartUnit_, *) ""
-    write(iRestartUnit_, '(a)') "#ALTITUDE"
-    write(iRestartUnit_, *) AltMin/1000.0
-    write(iRestartUnit_, *) AltMax/1000.0
-    write(iRestartUnit_, *) UseStretchedAltitude
-
-    write(iRestartUnit_, *) ""
-    write(iRestartUnit_, '(a)') "#DHFACTOR"
-    write(iRestartUnit_, *) dHFactor
-
-    write(iRestartUnit_, *) ""
-    write(iRestartUnit_, '(a)') "#SPHERE"
-    write(iRestartUnit_, *) Is1D
-    write(iRestartUnit_, *) IsFullSphere
-    write(iRestartUnit_, *) LatStart
-    write(iRestartUnit_, *) LatEnd
-    write(iRestartUnit_, *) LonStart
+    ! The header holds restart state only. The configuration  is recorded in
+    ! run_information.txt. read_restart() checks the grid against each block file.
 
     write(iRestartUnit_, *) ""
     write(iRestartUnit_, '(a)') "#END"
@@ -373,7 +358,8 @@ subroutine read_restart(dir)
 
   character(len=*), intent(in) :: dir
   character(len=5) :: cBlock
-  integer :: iBlock, i, iSpecies, iAlt
+  integer :: iBlock, i, iSpecies, iAlt, iError
+  real :: LonFile(-1:nLons + 2), LatFile(-1:nLats + 2)
   !---------------------------------------------------------------------------
   call report("read_restart", 1)
 
@@ -385,18 +371,40 @@ subroutine read_restart(dir)
     if (iDebugLevel > 2) write(*, *) "===> Reading block ", cBlock
 
     open(unit=iRestartUnit_, file=trim(dir)//"/"//cBlock//".rst", &
-         status="old", form="unformatted")
+         status="old", form="unformatted", iostat=iError)
+    if (iError /= 0) call stop_gitm("Cannot open restart file "// &
+                                    trim(dir)//"/"//cBlock//".rst (more blocks than the run that wrote it?)")
 
+    ! Each block file carries its own coordinates. They must match the grid
+    ! this run built (init_grid), or the restart is being read onto a
+    ! different grid or block layout (#GRID, nBlocksLon/Lat).
     if (iDebugLevel > 4) write(*, *) "=====> Reading Longitude"
-    read(iRestartUnit_) Longitude(:, iBlock)
+    read(iRestartUnit_, iostat=iError) LonFile
+    call check_read("Longitude")
     if (iDebugLevel > 4) write(*, *) "=====> Reading Latitude"
-    read(iRestartUnit_) Latitude(:, iBlock)
+    read(iRestartUnit_, iostat=iError) LatFile
+    call check_read("Latitude")
+    if (maxval(abs(LonFile(1:nLons) - Longitude(1:nLons, iBlock))) > 1.0e-6 .or. &
+        maxval(abs(LatFile(1:nLats) - Latitude(1:nLats, iBlock))) > 1.0e-6) then
+      write(*, *) 'Restart file ', cBlock, '.rst is not on the grid this run built:'
+      write(*, *) '  file lon (deg) : ', LonFile(1)*180.0/pi, LonFile(nLons)*180.0/pi
+      write(*, *) '  grid lon (deg) : ', Longitude(1, iBlock)*180.0/pi, &
+        Longitude(nLons, iBlock)*180.0/pi
+      write(*, *) '  file lat (deg) : ', LatFile(1)*180.0/pi, LatFile(nLats)*180.0/pi
+      write(*, *) '  grid lat (deg) : ', Latitude(1, iBlock)*180.0/pi, &
+        Latitude(nLats, iBlock)*180.0/pi
+      call stop_gitm("Restart grid does not match #GRID (or the block layout)")
+    endif
+    Longitude(:, iBlock) = LonFile
+    Latitude(:, iBlock) = LatFile
     if (iDebugLevel > 4) write(*, *) "=====> Reading Altitude"
 
     if (UseTopography) then
-      read(iRestartUnit_) Altitude_GB(:, :, :, iBlock)
+      read(iRestartUnit_, iostat=iError) Altitude_GB(:, :, :, iBlock)
+      call check_read("Altitude_GB")
     else
-      read(iRestartUnit_) Altitude_GB(1, 1, :, iBlock)
+      read(iRestartUnit_, iostat=iError) Altitude_GB(1, 1, :, iBlock)
+      call check_read("Altitude_GB")
       do iAlt = -1, nAlts + 2
         Altitude_GB(:, :, iAlt, iBlock) = Altitude_GB(1, 1, iAlt, iBlock)
       enddo
@@ -406,7 +414,8 @@ subroutine read_restart(dir)
     do iSpecies = 1, nSpeciesTotal
       if (iDebugLevel > 3) &
         write(*, *) "====> Reading Species", iSpecies, Mass(iSpecies)
-      read(iRestartUnit_) NDensityS(:, :, :, iSpecies, iBlock)
+      read(iRestartUnit_, iostat=iError) NDensityS(:, :, :, iSpecies, iBlock)
+      call check_read("NDensityS")
     enddo
 
     Rho(:, :, :, iBlock) = 0.0
@@ -421,11 +430,13 @@ subroutine read_restart(dir)
     do iSpecies = 1, nIons
       if (iDebugLevel > 4) &
         write(*, *) "=====> Reading Ion Species", iSpecies, Mass(iSpecies)
-      read(iRestartUnit_) IDensityS(:, :, :, iSpecies, iBlock)
+      read(iRestartUnit_, iostat=iError) IDensityS(:, :, :, iSpecies, iBlock)
+      call check_read("IDensityS")
     enddo
 
     if (iDebugLevel > 4) write(*, *) "=====> Reading Temperature"
-    read(iRestartUnit_) Temperature(:, :, :, iBlock)
+    read(iRestartUnit_, iostat=iError) Temperature(:, :, :, iBlock)
+    call check_read("Temperature")
 
 !alexey start
     MeanMajorMass(:, :, :) = 0
@@ -440,19 +451,25 @@ subroutine read_restart(dir)
 !alexey end
 
     if (iDebugLevel > 4) write(*, *) "=====> Reading ITemperature"
-    read(iRestartUnit_) ITemperature(:, :, :, iBlock)
+    read(iRestartUnit_, iostat=iError) ITemperature(:, :, :, iBlock)
+    call check_read("ITemperature")
     if (iDebugLevel > 4) write(*, *) "=====> Reading eTemperature"
-    read(iRestartUnit_) eTemperature(:, :, :, iBlock)
+    read(iRestartUnit_, iostat=iError) eTemperature(:, :, :, iBlock)
+    call check_read("eTemperature")
 
     if (iDebugLevel > 4) write(*, *) "=====> Reading Velocity"
-    read(iRestartUnit_) Velocity(:, :, :, :, iBlock)
+    read(iRestartUnit_, iostat=iError) Velocity(:, :, :, :, iBlock)
+    call check_read("Velocity")
     if (iDebugLevel > 4) write(*, *) "=====> Reading IVelocity"
-    read(iRestartUnit_) IVelocity(:, :, :, :, iBlock)
+    read(iRestartUnit_, iostat=iError) IVelocity(:, :, :, :, iBlock)
+    call check_read("IVelocity")
     if (iDebugLevel > 4) write(*, *) "=====> Reading VerticalVelocity"
-    read(iRestartUnit_) VerticalVelocity(:, :, :, :, iBlock)
+    read(iRestartUnit_, iostat=iError) VerticalVelocity(:, :, :, :, iBlock)
+    call check_read("VerticalVelocity")
 
 !alexey start
-    read(iRestartUnit_) f107
+    read(iRestartUnit_, iostat=iError) f107
+    call check_read("f107")
     if (iDebugLevel > 4) write(*, *) "=====> Just read f107 = ", f107
 
     !this is a DART ensemble member - put f107estimate into f107 and f107a
@@ -464,20 +481,38 @@ subroutine read_restart(dir)
     endif
 
     !read Rho, but hope DART will affect GITM via other vars instead
-    read(iRestartUnit_) Rho(:, :, :, iBlock)
+    read(iRestartUnit_, iostat=iError) Rho(:, :, :, iBlock)
+    call check_read("Rho")
     !alexey end
 
     if (isMars) then
       if (iDebugLevel > 4) write(*, *) "=====> Reading SurfaceTemp"
-      read(iRestartUnit_) SurfaceTemp(:, :, iBlock)
-      read(iRestartUnit_) SubSurfaceTemp(:, :, iBlock)
-      read(iRestartUnit_) dSurfaceTemp(:, :, iBlock)
-      read(iRestartUnit_) dSubSurfaceTemp(:, :, iBlock)
+      read(iRestartUnit_, iostat=iError) SurfaceTemp(:, :, iBlock)
+      call check_read("SurfaceTemp")
+      read(iRestartUnit_, iostat=iError) SubSurfaceTemp(:, :, iBlock)
+      call check_read("SubSurfaceTemp")
+      read(iRestartUnit_, iostat=iError) dSurfaceTemp(:, :, iBlock)
+      call check_read("dSurfaceTemp")
+      read(iRestartUnit_, iostat=iError) dSubSurfaceTemp(:, :, iBlock)
+      call check_read("dSubSurfaceTemp")
     endif
     close(iRestartUnit_)
 
   enddo
 
   if (.not. Is1D) call exchange_messages_sphere
+
+contains
+
+  subroutine check_read(cWhat)
+    ! A failed read here almost always means the restart files were written
+    ! by a build with different sizes (ModSize: nLons, nLats, nAlts) or
+    ! species.
+    character(len=*), intent(in) :: cWhat
+    if (iError /= 0) then
+      write(*, *) 'Error reading ', cWhat, ' from restart file ', cBlock, '.rst'
+      call stop_gitm("Restart files do not match this build (sizes/species?)")
+    endif
+  end subroutine check_read
 
 end subroutine read_restart

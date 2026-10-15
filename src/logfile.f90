@@ -149,6 +149,12 @@ subroutine logfile(dir)
       " Joule Heating: ", useJouleHeating
     write(iLogFileUnit_, '(2(a,L2))') "# NO Cooling: ", useNOCooling, &
       " O Cooling: ", useOCooling
+    if (UseB107) then
+      write(iLogFileUnit_, '(a)') "# Solar index:   B10.7"// &
+        " (The F107/F107A columns are raw F10.7)"
+    else
+      write(iLogFileUnit_, '(a)') "# Solar index:   F10.7"
+    endif
     write(iLogFileUnit_, '(3(a,L2))') "# Conduction: ", useConduction, &
       " Turbulent Conduction: ", useTurbulentCond
     write(iLogFileUnit_, '(3(a,L2))') "# Pressure Grad: ", &
@@ -459,6 +465,15 @@ subroutine write_code_information(dir)
     write(iCodeInfoFileUnit_, *) dTPotential
     write(iCodeInfoFileUnit_, *) ""
 
+    write(iCodeInfoFileUnit_, *) "#B107"
+    write(iCodeInfoFileUnit_, *) UseB107
+    write(iCodeInfoFileUnit_, *) trim(cB107File)
+    write(iCodeInfoFileUnit_, *) ""
+
+    write(iCodeInfoFileUnit_, *) "#IEREFERENCEALT"
+    write(iCodeInfoFileUnit_, *) IEReferenceAlt
+    write(iCodeInfoFileUnit_, *) ""
+
     write(iCodeInfoFileUnit_, *) "#AURORAMODS"
     write(iCodeInfoFileUnit_, *) NormalizeAuroraToHP
     write(iCodeInfoFileUnit_, *) AveEFactor
@@ -678,7 +693,6 @@ subroutine write_code_information(dir)
     write(iCodeInfoFileUnit_, *) CO2ppm
     write(iCodeInfoFileUnit_, *) ""
 
-    write(iCodeInfoFileUnit_, *) "UseCO2Cooling", UseCO2Cooling
     write(iCodeInfoFileUnit_, *) "iInputIonChemType", iInputIonChemType
     write(iCodeInfoFileUnit_, *) "iInputNeutralChemType", iInputNeutralChemType
     write(iCodeInfoFileUnit_, *) "RPTAU", RPTAU

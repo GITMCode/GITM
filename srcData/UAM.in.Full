@@ -87,6 +87,12 @@ or
 F						Use FISM solar flux data
 UA/DataIn/FISM/fismflux_daily_2002.dat		Filename
 
+Use B10.7 in place of F10.7 for the empirical EUV, MSIS and NO
+photodissociation. Cannot be used with FISM
+#B107
+F						UseB107
+UA/DataIn/B107.dat				F10.7 -> B10.7 table (optional)
+
 ------------ Auroral Drivers ------------
 
 Used by Fuller-Rowell and Evans model:
@@ -178,9 +184,7 @@ Some new features:
 
 #MSISOBC
 T		Shift the [O] density at the lower boundary by 6 months 
-0.0		change the obateness of the Earth by this percent (0 = none)
-
-A good value for the oblateness is -0.1 for Earth
+-0.1		change the obateness of the Earth by this percent (0 = none)
 
 --------------------------------------------------------------------------
 These set the thermal balance of the code:
@@ -189,7 +193,12 @@ These set the thermal balance of the code:
 0.05       Efficiency of photoelectron heating
 
 #PHOTOELECTRON
-0.00       Efficiency of photoelectron heating
+0.06       Efficiency of photoelectron heating (compiled Earth default)
+
+#EUVSCALE
+1.075      EuvScaleBase: EUV multiplier at F107a = ref (compiled Earth default)
+0.0019     EuvScaleSlope: change in that multiplier per unit F107a
+150.0      EuvScaleF107aRef: reference F107a
 
 #DIFFUSION
 T

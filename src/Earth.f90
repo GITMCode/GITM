@@ -159,15 +159,11 @@ subroutine calc_planet_sources(iBlock)
 
   RadiativeCooling2d = 0.0
 
-  if (UseCO2Cooling) then
+  ! Fomichev is Earth's only CO2 cooling scheme (#CO2FOMICHEV, off by default)
+  if (UseCO2FomichevCooling) then
 
-    ! The 0.165 is derived from the TIEGCM (2.65e-13 / 1.602e-12)
-    ! multiplied by 1e6 for /cm2 to /m2
     CO2Cooling = 0.0
-
-    if (UseCO2FomichevCooling) then
-      call calc_co2fomichev_cooling
-    endif
+    call calc_co2fomichev_cooling
 
     CO2Cooling2d = 0.0
     do iAlt = 1, nAlts
@@ -185,6 +181,7 @@ subroutine calc_planet_sources(iBlock)
 
   else
     CO2Cooling = 0.0
+    CO2Cooling2d = 0.0
   endif
 
   if (UseNOCooling) then
@@ -417,11 +414,13 @@ subroutine set_planet_defaults
   implicit none
 
   cTidalModel = "MSIS_ALL"
-  UseMSIS = .true.
-  UseMSISDiurnal = .true.
-  UseMSISSemidiurnal = .true.
-  UseMSISTerdiurnal = .true.
-  UseMSIS21 = .true.
+
+  PhotoElectronHeatingEfficiency = 0.06
+  ! The EUV multiplier and the conduction exponent are linked & were fit
+  ! together against HASDM density
+  EuvScaleBase = 1.075
+  EuvScaleSlope = 0.0019
+  ThermalConduction_s = 0.72
 
   iNeutralDensityOutputList(iN_4S_) = .false.
   iNeutralDensityOutputList(iHe_) = .false.

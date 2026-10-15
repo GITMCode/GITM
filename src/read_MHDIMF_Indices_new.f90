@@ -146,9 +146,14 @@ subroutine read_MHDIMF_Indices_new(iOutputError, StartTime, EndTime)
           if (IndexTimes_TV(iIMF, imf_bx_) >= StartTime - BufferTime .and. &
               IndexTimes_TV(iIMF, imf_bx_) <= EndTime + BufferTime .and. &
               iIMF < MaxIndicesEntries) then
-            if (abs(Indices_TV(iIMF, imf_bz_)) < 200.0) iIMF = iIMF + 1
-            if ((abs(Indices_TV(iSW, sw_n_)) < 900.0) .and. &
-                (abs(Indices_TV(iSW, sw_v_)) < 3000.0)) iSW = iSW + 1
+            if ((abs(Indices_TV(iIMF, imf_bx_)) < 900.0) .and. &
+                (abs(Indices_TV(iIMF, imf_by_)) < 900.0) .and. &
+                (abs(Indices_TV(iIMF, imf_bz_)) < 900.0) .and. &
+                (abs(Indices_TV(iSW, sw_n_)) < 900.0) .and. &
+                (abs(Indices_TV(iSW, sw_v_)) < 9000.0)) then
+              iIMF = iIMF + 1
+              iSW = iSW + 1
+            endif
           else
 
             ! This means that the GITM time is all BEFORE the first

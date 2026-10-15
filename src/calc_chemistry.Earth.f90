@@ -14,6 +14,7 @@ subroutine calc_chemistry(iBlock)
     minIonDensity, MinIonDensityAdvect
   use ModConstants
   use ieee_arithmetic
+  use ModB107, only: b107_convert
 
   implicit none
 
@@ -34,10 +35,11 @@ subroutine calc_chemistry(iBlock)
   real, dimension(7)    :: AP
 
   real :: ChemicalHeatingSub, percent, o2ptotal
+  real :: f107NO, f107aNO
   real :: ChemicalHeatingSubI, ChemicalHeatingSubE
   real :: Emission(nEmissions), EmissionTotal(nEmissions)
   real, dimension(nLons, nLats, nAlts) :: &
-    tr3d, tr33d, te12d, tr3m0443d, tr3m083d, tr3m043d, &
+    tr3d, tr33d, te12d, &
     tn3d, ti3d, ti33d, ti103d, ti93d, ti153d, ti3m0443d, ti3m0243d, &
     ti3m0233d, ti3m1163d, ti10m0673d, ti3m0453d, ti10m2123d, ti3m0873d, &
     ti3m0523d, ti9m0923d, ti3m0553d, ti15m0233d, &
@@ -50,7 +52,7 @@ subroutine calc_chemistry(iBlock)
 
   real :: k1_n2_point, k2_o2_point, k3_no_point
 
-  real :: te3m05, te3m07, te12m056, tr3m044, tr3m04, tr3m08, te07
+  real :: te3m05, te3m07, te12m056, te07
   real :: ti3m044, ti3m024, ti3m023, ti3m116, ti10m067, ti3m045
   real :: ti10m212, ti3m087, ti3m052, ti9m092, ti3m055, ti15m023
   real :: te3m039, te3m085, rr_opn2, te22m05, te3m091, te3m081
@@ -102,6 +104,9 @@ subroutine calc_chemistry(iBlock)
 
   call report("Chemistry", 2)
   call start_timing("calc_chemistry")
+
+  ! NO photodissociation scales with F10.7, convert to B10.7 if #B107
+  call b107_convert(f107, f107, f107NO, f107aNO)
 
   DtAve = 0.0
 
@@ -267,8 +272,6 @@ subroutine calc_chemistry(iBlock)
         te3m081 = te3m0813d(iLon, iLat, iAlt)
         te3m039 = te3m0393d(iLon, iLat, iAlt)
         te12m056 = te12m0563d(iLon, iLat, iAlt)
-        tr3m044 = tr3m0443d(iLon, iLat, iAlt)
-        tr3m04 = tr3m043d(iLon, iLat, iAlt)
         ti3m044 = ti3m0443d(iLon, iLat, iAlt)
         ti3m024 = ti3m0243d(iLon, iLat, iAlt)
         ti3m023 = ti3m0233d(iLon, iLat, iAlt)
@@ -283,7 +286,6 @@ subroutine calc_chemistry(iBlock)
         ti15m023 = ti15m0233d(iLon, iLat, iAlt)
         te22m05 = eTemperature(iLon, iLat, iAlt, iBlock)**(.5)* &
                   exp(te227d(iLon, iLat, iAlt))
-        tr3m08 = tr3m083d(iLon, iLat, iAlt)
         ti = iTemperature(iLon, iLat, iAlt, iBlock)
         tn = Temperature(iLon, iLat, iAlt, iBlock)* &
              TempUnit(iLon, iLat, iAlt)
@@ -405,7 +407,7 @@ subroutine calc_chemistry(iBlock)
             ChemicalHeatingSubI + Reaction*0.491
           ChemicalHeatingS(iop2d_n2) = &
             ChemicalHeatingS(iop2d_n2) + &
-            Reaction*1.33
+            Reaction*1.35
 
           ! O+(2P) + N2 -> N2+ + O + 3.05 eV
 
@@ -428,7 +430,7 @@ subroutine calc_chemistry(iBlock)
 
           ChemicalHeatingS(iop2p_n2) = &
             ChemicalHeatingS(iop2p_n2) + &
-            Reaction*3.02
+            Reaction*3.05
 
           ! N2+ + O2 -> O2+ + N2 + 3.53 eV (+ aether)
 
@@ -510,7 +512,8 @@ subroutine calc_chemistry(iBlock)
 
           ChemicalHeatingS(in2p_e) = &
             ChemicalHeatingS(in2p_e) + &
-            Reaction*3.44
+            Reaction*1.04*0.56 + &
+            Reaction*5.77*0.44
 
           ! N2+ + N(4S) -> N2 + N+ + 2.48 eV (+aether)
 
@@ -741,7 +744,7 @@ subroutine calc_chemistry(iBlock)
 
           ChemicalHeatingS(inp_o2) = &
             ChemicalHeatingS(inp_o2) + &
-            Reaction*2.486
+            Reaction*2.5
 
           ! -----------
           ! N+ + O2 -> O2+ + N(2D) + 0.1 eV (+aether)
@@ -854,7 +857,7 @@ subroutine calc_chemistry(iBlock)
 
           ChemicalHeatingS(io2p_n) = &
             ChemicalHeatingS(io2p_n) + &
-            Reaction*4.25
+            Reaction*4.21
 
           ! -----------
           ! O2+ + N(2D) -> NO+ + O + 6.519 eV (+aether)
@@ -1064,7 +1067,7 @@ subroutine calc_chemistry(iBlock)
 
           ChemicalHeatingS(iop2d_e) = &
             ChemicalHeatingS(iop2d_e) + &
-            Reaction*0.0
+            Reaction*3.31
 
           !! Temp change to stop crash
           ! -----------
@@ -1294,7 +1297,7 @@ subroutine calc_chemistry(iBlock)
           IonLosses(iO_2PP_) = IonLosses(iO_2PP_) + Reaction
 
           ChemicalHeatingSubI = &
-            ChemicalHeatingSub + &
+            ChemicalHeatingSubI + &
             Reaction*1.69
 
           ChemicalHeatingS(iop2p_e) = &
@@ -1715,7 +1718,7 @@ subroutine calc_chemistry(iBlock)
 
           ChemicalHeatingS(inp_o2) = &
             ChemicalHeatingS(inp_o2) + &
-            Reaction*6.67
+            Reaction*4.71
 
           ! -----------
           ! N+ + O -> O+ + N + 0.93 eV
@@ -1898,7 +1901,7 @@ subroutine calc_chemistry(iBlock)
           if (Chapman(iLon, iLat, iAlt, iO2_, iBlock) >= 0.5*ChapmanShadow) then
             rr = 0.0
           else
-            rr = 4.5e-6*(1 + 0.11*(f107 - 65)/165) &
+            rr = 4.5e-6*(1 + 0.11*(f107NO - 65)/165) &
                  *exp(-1.e-8*(Chapman(iLon, iLat, iAlt, iO2_, iBlock)*1.e-4)**0.38)
           endif
 

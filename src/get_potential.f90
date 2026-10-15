@@ -86,7 +86,7 @@ subroutine init_get_potential
     endif
   endif
 
-  if (IEModel_%iAurora_ /= iFRE_ .and. NormalizeAuroraToHP) &
+  if (IEModel_%iAurora_ /= iFRE_ .and. IEModel_%iAurora_ /= iFTA_ .and. NormalizeAuroraToHP) &
     call raise_warning("You probably should not be normalizing aurora with non-FRE models")
 
   if (cPlanet == "Earth") then
@@ -321,7 +321,9 @@ subroutine get_potential(iBlock)
 
     call report("Getting Aurora", 1)
 
-    iAlt = 2
+    ! The aurora is mapped from the magnetic grid at the IE reference
+    ! altitude, the same altitude used for the dynamo potential
+    iAlt = iAltIERef
 
     call iemodel_%grid( &
       MLT(-1:nLons + 2, -1:nLats + 2, iAlt), &
@@ -586,7 +588,7 @@ subroutine get_dynamo_potential(lons, lats, pot)
 
         enddo
 
-        ! Check for near pole
+        ! Check for near pole (only reachable if DynamoHighLatBoundary > 88)
         if (.not. IsFound) then
 
           if (LatIn > 88.0) then
@@ -596,11 +598,8 @@ subroutine get_dynamo_potential(lons, lats, pot)
 
           if (LatIn < -88.0) then
             IsFound = .true.
-            pot(iLon, iLat) = sum(DynamoPotentialMC(:, 0))/(nMagLons + 1)
+            pot(iLon, iLat) = sum(DynamoPotentialMC(:, 1))/(nMagLons + 1)
           endif
-
-          write(*, *) "Inside the low latitude, but can't find the point!"
-          write(*, *) LatIn, LonIn
 
         endif
 
@@ -608,7 +607,7 @@ subroutine get_dynamo_potential(lons, lats, pot)
 
       if (.not. IsFound) then
         if (abs(LatIn) < MagLatMC(nMagLons, nMagLats)) &
-          write(*, *) "=====> Could not find point : ", &
+          write(*, *) "=====> get_dynamo_potential: Could not find point : ", &
           LatIn, LonIn, DynamoHighLatBoundary, &
           MagLatMC(nMagLons, nMagLats)
         pot(iLon, iLat) = 0.0

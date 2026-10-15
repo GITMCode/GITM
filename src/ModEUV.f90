@@ -21,7 +21,7 @@ module ModEUV
 
   real, allocatable :: Chapman(:, :, :, :, :)
   ! Defines when we are in the "shadow"
-  real:: ChapmanShadow = 1.0e26
+  real, parameter :: ChapmanShadow = 1.0e26
 
   real, dimension(nLons, nLats, nBlocksMax) :: &
     Sza, cosSza, sinSza, AveCosSza
@@ -173,7 +173,7 @@ module ModEUV
                                         Night_PhotoAbs_O, &
                                         Night_PhotoAbs_N2, Night_PhotoAbs_NO, Night_PhotoAbs_O2, &
                                         Night_PhotoAbs_N
-! real, dimension(Num_NightWaveLens,nLons,nLats,nBlocks) :: NightEUVflux
+  ! real, dimension(Num_NightWaveLens,nLons,nLats,nBlocks) :: NightEUVflux
   !! Wavelengths / 1026A, 584A, 304A, 1216A / cross section (cm2)
 
   ! data Night_PhotoIon_O  / 1*0.0,    1.0e-17, 1.3e-17,  1*0.0/

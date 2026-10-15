@@ -115,11 +115,13 @@ subroutine get_msis_temperature(lon, lat, alt, t, h)
 
   use EUA_ModMsis00, only: meters, gtd7
   use ModMsis21, only: gtd8d
+  use ModB107, only: b107_convert
 
   implicit none
 
   real, intent(in) :: lon, lat, alt
   real, intent(out) :: t, h
+  real :: f107m, f107am
 
   real, dimension(1:2) :: msis_temp
   real, dimension(1:9) :: msis_dens
@@ -165,7 +167,9 @@ subroutine get_msis_temperature(lon, lat, alt, t, h)
     msis_dens = msis_dens10(1:9)
     msis_temp = msis_temp1
   else
-    call call_msis(lonDeg, latDeg, altKm, f107, f107a, msis_dens10, msis_temp1)
+    ! B10.7 with #B107 (RCMR's f107 untouched)
+    call b107_convert(f107, f107a, f107m, f107am)
+    call call_msis(lonDeg, latDeg, altKm, f107m, f107am, msis_dens10, msis_temp1)
     msis_dens = msis_dens10(1:9)
     msis_temp = msis_temp1
   endif
@@ -259,6 +263,7 @@ subroutine init_msis
 
   use EUA_ModMsis00, ONLY: meters, gtd7, tselec
   use msis_init, only: msisinit
+  use ModB107, only: b107_convert
 
   implicit none
 
@@ -272,6 +277,7 @@ subroutine init_msis
   integer :: iBlock, iAlt, iLat, iLon, iSpecies, iyd, iError
   real :: geo_lat, geo_lon, geo_alt, geo_lst, m, k, ut
   real :: ffactor, h, no
+  real :: f107m, f107am
   real, dimension(7)  :: ap = 10.0
 
   real*4 :: hwm_utime, hwm_alt, hwm_lat, hwm_lon, hwm_lst
@@ -371,7 +377,8 @@ subroutine init_msis
 
           !CALL GTD7(iJulianDay, utime, geo_alt, geo_lat, geo_lon, geo_lst, &
           !          F107A, F107, AP, 48, msis_dens, msis_temp)
-          call call_msis(geo_lon, geo_lat, geo_alt, f107, f107a, &
+          call b107_convert(f107, f107a, f107m, f107am)
+          call call_msis(geo_lon, geo_lat, geo_alt, f107m, f107am, &
                          msis_dens10, msis_temp1)
           msis_dens = msis_dens10(1:9)
           msis_temp = msis_temp1
@@ -489,6 +496,7 @@ subroutine msis_bcs(iJulianDay, UTime, Alt, LatIn, LonIn, Lst, &
     UseHmeTides, UseFileTides, &
     UseOBCExperiment, sw_msis, UseMSIS21, co2ppm
   use EUA_ModMsis00, ONLY: gtd7, tselec
+  use ModB107, only: b107_convert
 
   implicit none
 
@@ -512,8 +520,11 @@ subroutine msis_bcs(iJulianDay, UTime, Alt, LatIn, LonIn, Lst, &
   real*4 :: hwm_f107a, hwm_f107, hwm_ap(2), qw(2)
 
   real :: base, season, vari
+  real :: f107m, f107am
 
   character(250) :: path = './DataIn/LowerBCs/'
+
+  call b107_convert(f107, f107a, f107m, f107am)
 
   lat = LatIn
   lon = mod(LonIn + 360.0, 360.0)
@@ -530,7 +541,7 @@ subroutine msis_bcs(iJulianDay, UTime, Alt, LatIn, LonIn, Lst, &
   !----------------------------------------------------------------------------
   AP_I = AP
 
-  call call_msis(lon, lat, alt, f107, f107a, msis_dens10, msis_temp1)
+  call call_msis(lon, lat, alt, f107m, f107am, msis_dens10, msis_temp1)
   msis_dens = msis_dens10(1:9)
   msis_temp = msis_temp1
 
@@ -587,7 +598,7 @@ subroutine msis_bcs(iJulianDay, UTime, Alt, LatIn, LonIn, Lst, &
     call tselec(sw_tmp)
 
     CALL GTD7(iJulianDay, uTime, Alt, Lat, Lon, LST, &
-              F107A, F107, AP_I, 48, msis_dens, msis_temp)
+              f107am, f107m, AP_I, 48, msis_dens, msis_temp)
 
     oCurrentSeason = msis_dens(2)
 
@@ -595,7 +606,7 @@ subroutine msis_bcs(iJulianDay, UTime, Alt, LatIn, LonIn, Lst, &
     iJulianDayOffset = mod(iJulianDay + 182, 365)
 
     CALL GTD7(iJulianDayOffset, uTime, Alt, Lat, Lon, LST, &
-              F107A, F107, AP_I, 48, msis_dens, msis_temp)
+              f107am, f107m, AP_I, 48, msis_dens, msis_temp)
 
     oOffsetSeason = msis_dens(2)
 

@@ -370,8 +370,6 @@ subroutine set_inputs
           write(*, *) 'Incorrect format for #USESECONDSINFILENAME:'
           write(*, *) 'This says whether you want seconds in output file'
           write(*, *) 'name. F means no seconds in output file name.'
-        else
-          if (UseSecondsInFilename) UseSecondsInFilename = .false.
         endif
 
       case ("#DUSTDATA")
@@ -380,9 +378,10 @@ subroutine set_inputs
         call read_in_string(cConrathFile, iError)
         if (iError /= 0) then
           write(*, *) 'Incorrect format for #DUSTDATA'
-          write(*, *) '#DUST'
-          write(*, *) 'cDustFile'
-          write(*, *) 'cConrathFile'
+          write(*, *) '#DUSTDATA'
+          write(*, *) 'UseDustDistribution  (logical)'
+          write(*, *) 'cDustFile            (string)'
+          write(*, *) 'cConrathFile         (string)'
         endif
 
       case ("#OVERWRITEIONOSPHERE")
@@ -684,6 +683,19 @@ subroutine set_inputs
           IsDone = .true.
         endif
 
+      case ("#IEREFERENCEALT")
+        call read_in_real(IEReferenceAlt, iError)
+        if (iError /= 0) then
+          write(*, *) 'Incorrect format for #IEREFERENCEALT'
+          write(*, *) 'Altitude (km) where the aurora is mapped from the'
+          write(*, *) 'magnetic grid, the hemispheric power is integrated,'
+          write(*, *) 'and the dynamo grid is placed. The nearest altitude'
+          write(*, *) 'is used'
+          write(*, *) '#IEREFERENCEALT'
+          write(*, *) 'IEReferenceAlt   (real, km [120.0])'
+          IsDone = .true.
+        endif
+
       case ("#ELECTRODYNAMICS")
         call read_in_string(cAuroralModel, iError)
         call read_in_real(dTAurora, iError)
@@ -697,9 +709,9 @@ subroutine set_inputs
           write(*, *) 'the potential and the aurora.'
           write(*, *) '#ELECTRODYNAMICS'
           write(*, *) 'AuroralModel     [fta], fre, pem, ovation, hpi/ihp, amie, zero, etc.'
-          write(*, *) 'DtAurora    (real, seconds [60.0])'
+          write(*, *) 'DtAurora         (real, seconds [60.0])'
           write(*, *) 'PotentialModel   [weimer05], hepmay, amie, zero, etc.'
-          write(*, *) 'DtPotential (real, seconds [60.0])'
+          write(*, *) 'DtPotential      (real, seconds [60.0])'
           IsDone = .true.
         endif
 
@@ -970,8 +982,8 @@ subroutine set_inputs
           write(*, *) '#IONLIMITS'
           write(*, *) "MaxVParallel     (real, default=100 m/s)"
           write(*, *) "MaxEField        (real, default=0.1 V/m)"
-          write(*, *) "MinIonDensity    (real, default=100 m^-3)"
-          write(*, *) "MinIonDensityAdvect    (real, default=1e5 m^-3)"
+          write(*, *) "MinIonDensity    (real, default=10 m^-3)"
+          write(*, *) "MinIonDensityAdvect    (real, default=10 m^-3)"
           IsDone = .true.
         endif
 
@@ -981,7 +993,7 @@ subroutine set_inputs
         if (iError /= 0) then
           write(*, *) 'Incorrect format for #NEUTRALLIMITS:'
           write(*, *) ''
-          write(*, *) '#IONLIMITS'
+          write(*, *) '#NEUTRALLIMITS'
           write(*, *) "MinNeutralDensity    (real, default=100 m^-3)"
           write(*, *) "MinNeutralDensityAdvect    (real, default=1e5 m^-3)"
           IsDone = .true.
@@ -1165,7 +1177,7 @@ subroutine set_inputs
           write(*, *) '#MODIFYPLANET'
           write(*, *) "RotationPeriodInput        (real)"
           write(*, *) "DaysPerYearInput           (real)"
-          write(*, *) "DaysPerYearInput           (real)"
+          write(*, *) "PlanetTiltInput            (real)"
         endif
 
       case ("#USEIMPLICITIONMOMENTUM")
@@ -1232,17 +1244,25 @@ subroutine set_inputs
           write(*, *) "doDynamoHemisphericMirror   (optional, logical)"
           write(*, *) "doUseMagnetoPotentialBCs    (optional, logical)"
           write(*, *) "doDynamoLatBlend            (optional, logical)"
-        endif
-        ! These settings are optional, code will not complain if they aren't included
-        call read_in_real(DynamoFracPotentialCutoff, iError)
-        call read_in_logical(doDynamoHemisphericMirror, iError)
-        call read_in_logical(doUseMagnetoPotentialBCs, iError)
-        call read_in_logical(doDynamoLatBlend, iError)
-        call read_in_logical(doDynamoSubtractEquatorialAvg, iError)
-        if (iError /= 0) then
-          iError = 0
-          if (iProc == 0) write(*, *) &
-            " >> NOT all experimental Dynamo options were set. Be careful!!!"
+          write(*, *) "doDynamoSubtractEquatorialAvg (optional, logical)"
+        else if (UseDynamo) then
+          ! These settings are optional, code will not complain if they aren't
+          ! included. Stop at the next # line so it is not skipped
+          if (next_is_section()) iError = 1
+          call read_in_real(DynamoFracPotentialCutoff, iError)
+          if (next_is_section()) iError = 1
+          call read_in_logical(doDynamoHemisphericMirror, iError)
+          if (next_is_section()) iError = 1
+          call read_in_logical(doUseMagnetoPotentialBCs, iError)
+          if (next_is_section()) iError = 1
+          call read_in_logical(doDynamoLatBlend, iError)
+          if (next_is_section()) iError = 1
+          call read_in_logical(doDynamoSubtractEquatorialAvg, iError)
+          if (iError /= 0) then
+            iError = 0
+            if (iProc == 0) write(*, *) &
+              " >> NOT all experimental Dynamo options were set. Be careful!!!"
+          endif
         endif
 
       case ("#IONFORCING")
@@ -1374,7 +1394,7 @@ subroutine set_inputs
           write(*, *) 'spacing GITM is tested at.  Left unset, dHFactor is'
           write(*, *) 'reduced as far as needed to keep the top of the grid'
           write(*, *) 'under AltMax.  Setting it alongside AltMax uses both.'
-          write(*, *) '#DHFactor'
+          write(*, *) '#DHFACTOR'
           write(*, *) 'dHFactor              (real, scale-height)'
         else
           IsDHFactorSet = .true.
@@ -1798,9 +1818,30 @@ subroutine set_inputs
           write(*, *) 'If both are true, average them together'
           write(*, *) 'If UseAboveHigh, then extend the spectrum to the longer wavelengths'
           write(*, *) 'If UseBelowLow, then extend the spectrum to the shorter wavelengths'
-          write(*, *) '#EUV_DATA'
-          write(*, *) 'UseEUVData            (logical)'
-          write(*, *) 'cEUVFile              (string)'
+          write(*, *) '#EUVMODEL'
+          write(*, *) 'UseEUVAC              (logical)'
+          write(*, *) 'UseTobiska            (logical)'
+          write(*, *) 'UseAboveHigh          (logical)'
+          write(*, *) 'UseBelowLow           (logical)'
+        endif
+
+      case ("#B107")
+        call read_in_logical(UseB107, iError)
+        if (iError /= 0) then
+          write(*, *) 'Incorrect format for #B107'
+          write(*, *) 'Use an F10.7 -> B10.7 lookup table for the empirical'
+          write(*, *) 'EUV models, MSIS and NO photodissociation.'
+          write(*, *) 'Cannot be used with #EUV_DATA T (FISM).'
+          write(*, *) '#B107'
+          write(*, *) 'UseB107    (logical [F])'
+          write(*, *) 'cB107File  (string, optional [UA/DataIn/B107.dat])'
+          IsDone = .true.
+        else
+          ! The file name is optional
+          if (.not. next_is_section()) then
+            if (len_trim(cInputText(iline + 1)) > 0) &
+              call read_in_string(cB107File, iError)
+          endif
         endif
 
       case ("#EUV_DATA")
@@ -2129,6 +2170,9 @@ subroutine set_inputs
     call stop_gitm("Must Stop!!")
   endif
 
+  if (UseB107 .and. UseEUVData) &
+    call stop_gitm("#B107=T cannot be used with #EUV_DATA=T (FISM)")
+
   call set_tidal_flags
 
   ! We need to check to see if the current time and end time are
@@ -2154,6 +2198,13 @@ subroutine set_inputs
   RestartTime = CurrentTime
 
 contains
+
+  logical function next_is_section()
+    ! For parsing optional arguments, determine if a new input block was started
+    next_is_section = .true.
+    if (iline + 1 > nInputLines) return
+    next_is_section = (cInputText(iline + 1) (1:1) == "#")
+  end function next_is_section
 
   subroutine read_in_int(variable, iError)
     integer, intent(out) :: variable

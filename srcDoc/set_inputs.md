@@ -238,6 +238,25 @@ altitude grid, and drive the lower boundary conditions.
     f107  (real)
     f107a (real - 81 day average of f107)
 
+### NGDC_INDICES
+
+Reads time-varying drivers from a file in the NGDC/SPIDR text format. This
+is the usual way to give GITM a time-varying F10.7: `UA/DataIn/f107.txt`.
+
+    #NGDC_INDICES
+    filename  (string)
+
+The reader takes whichever of these blocks the file contains:
+
+- F10.7: `#Element: observed`, `adjusted` or `flux`
+- Kp, Ap and Dst: `#Element: kp`, `ap`, `dst`
+- IMF Bx, By and Bz (only from an `#Table: IMFMin` table), and solar wind
+  speed (`flow`, `swVelX`, `swVelY`, `swVelZ`). If the header mentions GSE,
+  the IMF is rotated to GSM.
+- Hemispheric power: `#Element: power`
+
+F10.7a is not read from the file: GITM computes it as needed.
+
 ### ELECTRODYNAMICS
 
 Sets the sources for, and the time for updating, the high-latitude (and low-latitude)
@@ -249,7 +268,17 @@ See [the electrodynamics page](internals/electrodynamics.md) for more details
     AuroralModel     [fta], fre, pem, ovation, hpi/ihp, amie, zero, etc.
     DtAurora         (real, seconds [60.0])
     PotentialModel   [weimer05], hepmay, amie, zero, etc.
-    DtPotential      (real, seconds [60.0])'
+    DtPotential      (real, seconds [60.0])
+
+### IEREFERENCEALT
+
+The altitude (km) where the high-latitude drivers meet the grid. The aurora is
+mapped from the magnetic grid at this altitude, and the hemispheric power is
+integrated over cells at this altitude. The nearest model level is used, 
+and it is printed at startup.
+
+    #IEREFERENCEALT
+    IEReferenceAlt   (real, km [120.0])
 
 
 ### HPI
@@ -259,6 +288,24 @@ This sets the hemispheric power of the aurora. Typical it ranges from
 
     #HPI
     HemisphericPower  (real)
+
+### NOAAHPI_INDICES
+
+Reads a time-varying hemispheric power (GW) from a NOAA POES hemispheric
+power file. Both NOAA layouts are accepted.
+The hemispheric power drives the `fre`/`ihp`/`hpi` and `pem` auroral models,
+and `NormalizeAuroraToHP` in `#AURORAMODS` scales the aurora to it.
+
+    #NOAAHPI_INDICES
+    filename       (string)
+    doSeparateHPI  (logical [F], optional)
+
+The file holds a value for each hemisphere, tagged `(N)` or `(S)`. With
+`doSeparateHPI = F` the two are merged into one time series used for both
+hemispheres. With `T` each hemisphere gets its own power, and GITM stops if
+the file does not have enough points in each hemisphere.
+
+The hemispheric power can only be set once: GITM stops if `#SME_INDICES` also sets it.
 
 ### KP
 
@@ -280,6 +327,46 @@ the MHD_INDICES command to have dynamic driving conditions.
     by  (real)
     bz  (real)
     vx  (real)
+    swn (real)
+
+### SME_INDICES
+
+Reads the auroral electrojet indices (AE, AL and AU) from an OMNI/SuperMAG
+file. The `fta` auroral model needs AU and AL. Optionally, the
+hemispheric power can be derived from AE as well.
+
+    #SME_INDICES
+    SMEFile        (string)
+    OnsetFile      (string, 'none' usually)
+    doUseAeForHp   (logical [F])
+    doSeparateHPI  (logical [F])
+
+- `SMEFile`: rows of `year month day hour minute second AE AL AU`. If the
+  first line starts with `File` (a SuperMAG download header), everything up
+  to the `<year>` column-name line is skipped. Rows with any value of 90000
+  or more in magnitude (fill values) are skipped.
+- `OnsetFile`: a substorm onset list, `year month day hour minute mlat mlt`
+  per row, or `none`. Nothing in GITM currently uses the onset list, so
+  `none` is the normal choice.
+- `doUseAeForHp`: if `T`, the hemispheric power is set from AE as
+  HP = 0.102 AE + 8.953 GW
+  ([Wu et al., 2021](https://doi.org/10.1029/2020SW002629)). The hemispheric
+  power can only be set once: GITM stops if `#NOAAHPI_INDICES` also sets it.
+- `doSeparateHPI`: only used when `doUseAeForHp = T`. If `T`, the
+  hemispheric power is split between the hemispheres with a 10% seasonal
+  factor: HP_N = (1 + 0.1 cos(DoY)) HP and
+  HP_S = (1 − 0.1 cos(DoY)) HP.
+
+### SMESINGLE
+
+Sets one AU and one AL value (nT) for the whole run, instead of reading
+them from a file with `#SME_INDICES`. This is enough to drive the `fta`
+auroral model with steady conditions. Only AU and AL are set: AE and the
+hemispheric power are not derived from them.
+
+    #SMESINGLE
+    au  (real, nT)
+    al  (real, nT, normally negative)
 
 ### MHD_INDICES
 
@@ -316,6 +403,20 @@ when the line after the filename parses as a number, so a stray value
 sitting there — say an argument whose own `#COMMAND` header was commented
 out — is silently taken as the ratio.
 
+### B107
+
+Use B10.7 in place of F10.7, via an F10.7 -> B10.7 lookup table, for the
+empirical EUV models (EUVAC, Tobiska, Ridley), MSIS (the initial state and
+the lower boundary) and the NO photodissociation rate. IRI, RCMR and the
+`F107`/`F107A` log columns keep raw F10.7; the log header says which index
+was used. B10.7 and FISM are mutually exclusive: GITM stops if `#B107 T` is
+combined with `#EUV_DATA T`.
+
+    #B107
+    UseB107      (logical [F])
+    cB107File    (string, optional [UA/DataIn/B107.dat])
+
+
 ### EUVMODEL
 
 Chooses the empirical solar spectrum. EUVAC and Tobiska cover different
@@ -340,13 +441,20 @@ This is for modifying the aurora a bit. The NormalizeAuroraToHP variable
 calculates the modeled hemispheric power and then normalizes it the
 hemispheric power read in. AveEFactor - changes the aveE of the aurora
 by factor IsKappaAurora - use a kappa instead of Maxwellian
-AuroraKappa - kappa to use in the distribution
+AuroraKappa - kappa to use in the distribution.
+AllowAurWODiffuse - if T, the mono and wave aurora are applied even where
+there is no diffuse electron or ion aurora (by default they are only added
+where one of those is present).
+MaxAveEAurora - aurora with an average energy at or above this (keV) is
+ignored.
 
     #AURORAMODS
     NormalizeAuroraToHP    (logical)
-    AveEFactor             (real)
+    AveEFactor             (real [1.0])
     IsKappaAurora          (logical)
     AuroraKappa            (real)
+    AllowAurWODiffuse      (logical [F])
+    MaxAveEAurora          (real, keV [80.0])
 
 ### AURORATYPES
 
@@ -456,16 +564,27 @@ For other planets, the vertical BCs can be set here.
     TempHeight     (real, Height of the middle of temp gradient)
     TempWidth      (real, Width of the temperature gradient)
 
-### MSISTIDES
+### TIDALMODEL
 
-This says how to use msis tides. The first argument is for using diurnal tide, the
-second is for using semi-diurnal tide and the third is to use terdiurnal
-tide.
+Selects the tides imposed at the lower boundary. The setting is
+case-insensitive.
 
-    #MSISTIDES
-    UseMSISDiurnal        (logical)
-    UseMSISSemidiurnal    (logical)
-    UseMSISTerdiurnal     (logical)
+    #TIDALMODEL
+    cTidalModel   (string [MSIS_ALL on Earth])
+
+- `MSIS_NONE`: MSIS with no tides
+- `MSIS_ALL` or `MSIS_DST`: MSIS diurnal, semidiurnal and terdiurnal tides
+  (the Earth default)
+- `MSIS_DS`: MSIS diurnal and semidiurnal tides
+- `MSIS_D`, `MSIS_S`, `MSIS_T`: a single MSIS component (diurnal,
+  semidiurnal or terdiurnal)
+- `HME`: TIDI Hough Mode Extension tides, from `UA/DataIn/Hme/`
+- `FILE`: tides from GITM 3D output files in the `#GITMBCS` directory
+- `zero`: the default on every planet except Earth. It leaves the MSIS tide
+  settings as they are, so on Earth all three MSIS tides stay on. Use
+  `MSIS_NONE` to turn them off.
+
+`HME` and `FILE` turn the MSIS tides off. Any other value stops GITM.
 
 ### MSISOBC
 
@@ -484,19 +603,6 @@ This toggles between using MSIS00 (false) and MSIS-2.1 (true)
     #MSIS21
     UseMsis21       (logical)
 
-
-### TIDES
-
-This says how to use tides. The first one is using MSIS with no tides.
-The second is using MSIS with full up tides. The third is using GSWM
-tides, while the forth is for experimentation with using WACCM tides.
-
-    #TIDES
-    UseMSISOnly        (logical)
-    UseMSISTides       (logical)
-    UseGSWMTides       (logical)
-    UseWACCMTides      (logical)
-    UseHmeTides        (logical)
 
 ### GSWMCOMP
 
@@ -611,8 +717,8 @@ far outside of expectations.
     #IONLIMITS
     MaxVParallel          (real, default=100 m/s)
     MaxEField             (real, default=0.1 V/m)
-    MinIonDensity         (real, default=100 m^-3)
-    MinIonDensityAdvect   (real, default=1e5 m^-3)
+    MinIonDensity         (real, default=10 m^-3)
+    MinIonDensityAdvect   (real, default=10 m^-3)
 
 ### NEUTRALLIMITS
 
@@ -739,7 +845,7 @@ If you set them lower, the temperature will go up.
     #THERMALCONDUCTION
     ThermalConduction_AO2 (Conduction A(O2): 3.6e-4, real)
     ThermalConduction_AO  (Conduction A(O): 5.6e-4, real)
-    ThermalConduction_s   (Conduction s: 0.75, real)
+    ThermalConduction_s   (Conduction s: 0.72 on Earth, 0.69 otherwise, real)
 
 ### THERMALDIFFUSION
 
@@ -818,12 +924,27 @@ in a while, so it would be good to check them in the code.
     #THERMO
     UseSolarHeating   (logical)
     UseJouleHeating   (logical)
-    UseAuroralHeating (logical)
     UseNOCooling      (logical)
     UseOCooling       (logical)
     UseConduction     (logical)
     UseTurbulentCond  (logical)
     UseIRHeating      (logical)
+
+### CO2FOMICHEV
+
+Turns on CO2 15 µm radiative cooling, using the Fomichev, Blanchet & Turner (1998, JGR 103(D10))
+parameterization and the tables in `UA/DataIn/Earth/Fomichev_Tables.txt`.
+This is the only CO2 cooling scheme for Earth, and it is off by default. It
+is only implemented for Earth: on other planets GITM prints a warning and
+does nothing.
+
+    #CO2FOMICHEV
+    UseCO2FomichevCooling  (logical [F])
+    CO2ppm                 (real, ppm [400.0])
+
+`CO2ppm` is used even when the cooling is off: it sets the CO2 mixing ratio
+at the lower boundary, and so the initial CO2 profile. The cooling tables
+cover 150 to 720 ppm; values outside that range use the nearest table.
 
 ### FORCING
 
@@ -852,12 +973,12 @@ in a while, so it would be good to check them in the code.
 ### MODIFYPLANET
 
 You can play with planetary characteristics with this.  You can modify the rotation
-rate and the length of a year.
+rate, the length of a year and the tilt of the planet.
 
     #MODIFYPLANET
-    RotationPeriodInput        (real)
+    RotationPeriodInput        (real, seconds)
     DaysPerYearInput           (real)
-    DaysPerYearInput           (real)
+    PlanetTiltInput            (real, degrees)
 
 ### FIXTILT
 
@@ -934,9 +1055,10 @@ caution.
 
 This is for Mars.
 
-    #DUST
-    cDustFile
-    cConrathFile
+    #DUSTDATA
+    UseDustDistribution  (logical)
+    cDustFile            (string)
+    cConrathFile         (string)
 
 ### DUST
 

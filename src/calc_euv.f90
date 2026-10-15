@@ -412,7 +412,7 @@ end subroutine euv_ionization_heat
 ! Subroutine for calculating the EUV flux in a vacuum.
 !-------------------------------------------------------------------
 
-subroutine run_euvac(euvac_flux)
+subroutine run_euvac(euvac_flux, f107e, f107ae)
 
   use ModEUV
   use ModInputs
@@ -422,6 +422,8 @@ subroutine run_euvac(euvac_flux)
   integer :: i, ii
   real    :: flxfac
   real, dimension(1:Num_WaveLengths_Low), intent(out) :: euvac_flux
+  ! Daily and 81-day solar index to use (F10.7, or B10.7 with #B107)
+  real, intent(in) :: f107e, f107ae
 
   !:::::::::::::::::::::::::::::::: EUVAC :::::::::::::::::::::::
   !------ This EUV flux model uses the F74113 solar reference spectrum and
@@ -447,7 +449,7 @@ subroutine run_euvac(euvac_flux)
 
     ! This has to be backwards, due to the way that the wavelengths are defined:
     ii = Num_waveLengths_Low - i + 1
-    FLXFAC = (1.0 + AFAC(II)*(0.5*(F107 + F107A) - 80.0))
+    FLXFAC = (1.0 + AFAC(II)*(0.5*(f107e + f107ae) - 80.0))
     IF (FLXFAC .LT. 0.8) FLXFAC = 0.8
     EUVAC_Flux(i) = F74113(II)*FLXFAC*1.0E9*10000.
 
@@ -466,6 +468,8 @@ subroutine calc_scaled_euv
   use ModTime
   use ModIndicesInterfaces
   use ModGITM, only: dt
+  use ModB107, only: b107_convert
+
   implicit none
 
   integer, parameter :: Hinteregger_Contrast_Ratio = 0
@@ -476,6 +480,8 @@ subroutine calc_scaled_euv
 
   integer :: N, NN, iMin(1) = 0, iError
   real    :: f107_Ratio, r1, r2, hlybr, fexvir, hlya, heiew
+  ! Solar index for the empirical models: F10.7, or B10.7 with #B107
+  real    :: f107e, f107ae
   real    :: EuvScale
   real    :: xuvfac, hlymod, heimod, xuvf
   real(Real8_) :: rtime
@@ -520,6 +526,9 @@ subroutine calc_scaled_euv
     write(*, *) "Code : ", iError
     call stop_gitm("Stopping in euv_ionization_heat")
   endif
+
+  ! The empirical models (EUVAC, Tobiska, Ridley) use f107e/f107ae: B10.7
+  call b107_convert(f107, f107a, f107e, f107ae)
 
   ! Defaults, and explainations:
   !   UseEUVData = FISM. False by default
@@ -616,9 +625,9 @@ subroutine calc_scaled_euv
 
     do N = 1, Num_WaveLengths_High
       Solar_Flux(N) = &
-        RidleySlopes(1, N)*(f107**RidleyPowers(1, N)) + &
-        RidleySlopes(2, N)*(f107a**RidleyPowers(2, N)) + &
-        RidleySlopes(3, N)*(f107a - f107) + &
+        RidleySlopes(1, N)*(f107e**RidleyPowers(1, N)) + &
+        RidleySlopes(2, N)*(f107ae**RidleyPowers(2, N)) + &
+        RidleySlopes(3, N)*(f107ae - f107e) + &
         RidleyIntercepts(N)
       wvavg(N) = (WAVEL(N) + WAVES(N))/2.
       Empirical_Flux(N) = &
@@ -632,7 +641,7 @@ subroutine calc_scaled_euv
     Tobiska_Flux = 0.0
 
     ! This runs EUVAC and puts the data into EUVAC_Flux
-    if (UseEUVAC) call run_euvac(EUVAC_Flux)
+    if (UseEUVAC) call run_euvac(EUVAC_Flux, f107e, f107ae)
 
     if (iDebugLevel > 1) &
       write(*, *) " --> euvac : ", euvac_flux, " <<< eol"
@@ -640,12 +649,12 @@ subroutine calc_scaled_euv
     ! This stuff is for Tobiska:
     hlybr = 0.
     fexvir = 0.
-    hlya = 3.E+11 + 0.4E+10*(f107 - 70.)
+    hlya = 3.E+11 + 0.4E+10*(f107e - 70.)
     heiew = 0.
 
     ! I think that this is the Hinteregger stuff, which goes from
     ! 2A - 1750A, so it is used to fill in the Above and Below spectrum
-    f107_ratio = (f107 - 68.0)/(243.0 - 68.0)
+    f107_ratio = (f107e - 68.0)/(243.0 - 68.0)
     do N = 1, Num_WaveLengths_High
       Tobiska_Flux(N) = RFLUX(N) + (XFLUX(N) - RFLUX(N))*f107_Ratio
       wvavg(N) = (WAVEL(N) + WAVES(N))/2.
@@ -675,7 +684,7 @@ subroutine calc_scaled_euv
       if (heiew > 0.001) then
         hlymod = heiew*3.77847e9 + 8.40317e10
       else
-        hlymod = 8.70e8*F107 + 1.90e11
+        hlymod = 8.70e8*f107e + 1.90e11
       endif
     endif
 
@@ -693,8 +702,8 @@ subroutine calc_scaled_euv
         TCHR1(N)*hlymod + &
         TCHR2(N)*heimod + &
         TCOR0(N) + &
-        TCOR1(N)*f107 + &
-        TCOR2(N)*f107A
+        TCOR1(N)*f107e + &
+        TCOR2(N)*f107ae
     enddo
 
     !

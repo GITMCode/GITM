@@ -157,6 +157,12 @@ run_a_test(){
   else
       printf "\n\n>>> $test_uam   UNSUCCESSFUL! <<< \n\n EXITING\n\n"
       mv UA/data/log*.dat log_$test_uam.fail
+      # paths relative to srcTests/auto_test/, where this script is run from
+      if [[ $do_compare = true && -f ../ref_solns/log.$test_uam ]]; then
+        printf "  To compare (from srcTests/auto_test/):\n"
+        printf "    ../../share/Scripts/DiffNum.py -r=5e-5 -a=1e-2 ref_solns/log.%s run/log_%s.fail\n\n" \
+          "$test_uam" "$test_uam"
+      fi
       exit 1
   fi
 
