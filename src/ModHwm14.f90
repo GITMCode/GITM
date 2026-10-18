@@ -68,10 +68,10 @@ subroutine hwm14(iyd, sec, alt, glat, glon, stl, f107a, f107, ap, path, w)
   use hwm
   implicit none
   integer(4), intent(in)     :: iyd
-  real(4), intent(in)        :: sec, alt, glat, glon, stl, f107a, f107
-  real(4), intent(in)        :: ap(2)
-  real(4), intent(out)       :: w(2)
-  real(4)                   :: dw(2)
+  real(8), intent(in)        :: sec, alt, glat, glon, stl, f107a, f107
+  real(8), intent(in)        :: ap(2)
+  real(8), intent(out)       :: w(2)
+  real(8)                    :: dw(2)
   character(*), intent(in) :: path
 
   pathdefault = path
@@ -263,14 +263,14 @@ module dwm
   integer(4)                 :: nvshterm          ! # of VSH basis functions
 
   integer(4), allocatable     :: termarr(:, :)      ! 3 x nterm index of coupled terms
-  real(4), allocatable        :: coeff(:)          ! Model coefficients
-  real(4), allocatable        :: vshterms(:, :)     ! VSH basis values
-  real(4), allocatable        :: termval(:, :)      ! Term values to which coefficients are applied
+  real(8), allocatable        :: coeff(:)          ! Model coefficients
+  real(8), allocatable        :: vshterms(:, :)     ! VSH basis values
+  real(8), allocatable        :: termval(:, :)      ! Term values to which coefficients are applied
   real(8), allocatable        :: dpbar(:, :)        ! Associated lengendre fns
   real(8), allocatable        :: dvbar(:, :)
   real(8), allocatable        :: dwbar(:, :)
   real(8), allocatable        :: mltterms(:, :)     ! MLT Fourier terms
-  real(4)                    :: twidth            ! Transition width of high-lat mask
+  real(8)                    :: twidth            ! Transition width of high-lat mask
 
   real(8), parameter         :: pi = 3.1415926535897932
   real(8), parameter         :: dtor = pi/180.d0
@@ -512,9 +512,9 @@ subroutine hwmqt(IYD, SEC, ALT, GLAT, GLON, STL, F107A, F107, AP, W)
   implicit none
 
   integer, intent(in)      :: IYD
-  real(4), intent(in)      :: SEC, ALT, GLAT, GLON, STL, F107A, F107
-  real(4), intent(in)      :: AP(2)
-  real(4), intent(out)     :: W(2)
+  real(8), intent(in)      :: SEC, ALT, GLAT, GLON, STL, F107A, F107
+  real(8), intent(in)      :: AP(2)
+  real(8), intent(out)     :: W(2)
 
   ! Local variables
 
@@ -760,8 +760,8 @@ subroutine hwmqt(IYD, SEC, ALT, GLAT, GLON, STL, F107A, F107, AP, W)
 
   enddo
 
-  w(1) = sngl(v)
-  w(2) = sngl(u)
+  w(1) = dble(v)
+  w(2) = dble(u)
 
   return
 
@@ -923,6 +923,8 @@ subroutine initdwm(nmaxout, mmaxout)
   implicit none
 
   integer(4), intent(out)     :: nmaxout, mmaxout
+  real(4), allocatable        :: coeff4(:)
+  real(4)                     :: twidth4
 
   call findandopen(dwmdefault, 23)
   if (allocated(termarr)) deallocate(termarr, coeff)
@@ -930,8 +932,12 @@ subroutine initdwm(nmaxout, mmaxout)
   allocate(termarr(0:2, 0:nterm - 1))
   read(23) termarr
   allocate(coeff(0:nterm - 1))
-  read(23) coeff
-  read(23) twidth
+  allocate(coeff4(0:nterm - 1))
+  read(23) coeff4
+  coeff = dble(coeff4)
+  read(23) twidth4
+  twidth = dble(twidth4)
+  deallocate(coeff4)
   close(23)
 
   if (allocated(termval)) deallocate(termval, dpbar, dvbar, dwbar, mltterms, vshterms)
@@ -960,18 +966,18 @@ subroutine dwm07(IYD, SEC, ALT, GLAT, GLON, AP, DW)
   implicit none
 
   INTEGER, intent(in)      :: IYD
-  REAL(4), intent(in)      :: SEC, ALT, GLAT, GLON
-  REAL(4), intent(in)      :: AP(2)
-  REAL(4), intent(out)     :: DW(2)
+  REAL(8), intent(in)      :: SEC, ALT, GLAT, GLON
+  REAL(8), intent(in)      :: AP(2)
+  REAL(8), intent(out)     :: DW(2)
 
-  real(4), save           :: day, ut, mlat, mlon, mlt, kp
-  real(4)                 :: mmpwind, mzpwind
-  real(4), save           :: f1e, f1n, f2e, f2n
-  real(4), save           :: glatlast = 1.0e16, glonlast = 1.0e16
-  real(4), save           :: daylast = 1.0e16, utlast = 1.0e16, aplast = 1.0e16
-  real(4), parameter      :: talt = 125.0 !, twidth=5.0
+  real(8), save           :: day, ut, mlat, mlon, mlt, kp
+  real(8)                 :: mmpwind, mzpwind
+  real(8), save           :: f1e, f1n, f2e, f2n
+  real(8), save           :: glatlast = 1.0d16, glonlast = 1.0d16
+  real(8), save           :: daylast = 1.0d16, utlast = 1.0d16, aplast = 1.0d16
+  real(8), parameter      :: talt = 125.0d0 !, twidth=5.0
 
-  real(4), external       :: ap2kp, mltcalc
+  real(8), external       :: ap2kp, mltcalc
 
   !CONVERT AP TO KP
   if (ap(2) .ne. aplast) then
@@ -984,8 +990,8 @@ subroutine dwm07(IYD, SEC, ALT, GLAT, GLON, AP, DW)
   endif
 
   !COMPUTE QD MAGNETIC LOCAL TIME (LOW-PRECISION)
-  day = real(mod(iyd, 1000))
-  ut = sec/3600.0
+  day = dble(mod(iyd, 1000))
+  ut = sec/3600.0d0
   if ((day .ne. daylast) .or. (ut .ne. utlast) .or. &
       (glat .ne. glatlast) .or. (glon .ne. glonlast)) then
     mlt = mltcalc(mlat, mlon, day, ut)
@@ -999,7 +1005,7 @@ subroutine dwm07(IYD, SEC, ALT, GLAT, GLON, AP, DW)
   dw(2) = f2e*mmpwind + f1e*mzpwind
 
   !APPLY HEIGHT PROFILE
-  dw = dw/(1 + exp(-(alt - talt)/twidth))
+  dw = dw/(1.0d0 + exp(-(alt - talt)/twidth))
 
   glatlast = glat
   glonlast = glon
@@ -1018,22 +1024,22 @@ subroutine dwm07b(mlt, mlat, kp, mmpwind, mzpwind)
   use alf, only: alfbasis
   implicit none
 
-  real(4), intent(in)        :: mlt       !Magnetic local time (hours)
-  real(4), intent(in)        :: mlat      !Magnetic latitude (degrees)
-  real(4), intent(in)        :: kp        !3-hour Kp
+  real(8), intent(in)        :: mlt       !Magnetic local time (hours)
+  real(8), intent(in)        :: mlat      !Magnetic latitude (degrees)
+  real(8), intent(in)        :: kp        !3-hour Kp
 
-  real(4), intent(out)       :: mmpwind   !Mer. disturbance wind (+north, QD coordinates)
-  real(4), intent(out)       :: mzpwind   !Zon. disturbance wind (+east, QD coordinates)
+  real(8), intent(out)       :: mmpwind   !Mer. disturbance wind (+north, QD coordinates)
+  real(8), intent(out)       :: mzpwind   !Zon. disturbance wind (+east, QD coordinates)
 
   ! Local variables
   integer(4)                :: iterm, ivshterm, n, m
-  real(4)                   :: termvaltemp(0:1)
-  real(4), save              :: kpterms(0:2)
-  real(4)                   :: latwgtterm
-  real(4), save              :: mltlast = 1.e16, mlatlast = 1.e16, kplast = 1.e16
+  real(8)                   :: termvaltemp(0:1)
+  real(8), save             :: kpterms(0:2)
+  real(8)                   :: latwgtterm
+  real(8), save             :: mltlast = 1.d16, mlatlast = 1.d16, kplast = 1.d16
   real(8)                   :: theta, phi, mphi
 
-  real(4), external          :: latwgt2
+  real(8), external         :: latwgt2
 
   !LOAD MODEL PARAMETERS IF NECESSARY
   if (dwminit) call initdwm(nmaxdwm, mmaxdwm)
@@ -1058,17 +1064,17 @@ subroutine dwm07b(mlt, mlat, kp, mmpwind, mzpwind)
   if ((mlat .ne. mlatlast) .or. (mlt .ne. mltlast)) then
     ivshterm = 0
     do n = 1, nmax
-      vshterms(0, ivshterm) = -sngl(dvbar(n, 0)*mltterms(0, 0))
-      vshterms(0, ivshterm + 1) = sngl(dwbar(n, 0)*mltterms(0, 0))
+      vshterms(0, ivshterm) = -dble(dvbar(n, 0)*mltterms(0, 0))
+      vshterms(0, ivshterm + 1) = dble(dwbar(n, 0)*mltterms(0, 0))
       vshterms(1, ivshterm) = -vshterms(0, ivshterm + 1)
       vshterms(1, ivshterm + 1) = vshterms(0, ivshterm)
       ivshterm = ivshterm + 2
       do m = 1, mmax
         if (m .gt. n) cycle
-        vshterms(0, ivshterm) = -sngl(dvbar(n, m)*mltterms(m, 0))
-        vshterms(0, ivshterm + 1) = sngl(dvbar(n, m)*mltterms(m, 1))
-        vshterms(0, ivshterm + 2) = sngl(dwbar(n, m)*mltterms(m, 1))
-        vshterms(0, ivshterm + 3) = sngl(dwbar(n, m)*mltterms(m, 0))
+        vshterms(0, ivshterm) = -dble(dvbar(n, m)*mltterms(m, 0))
+        vshterms(0, ivshterm + 1) = dble(dvbar(n, m)*mltterms(m, 1))
+        vshterms(0, ivshterm + 2) = dble(dwbar(n, m)*mltterms(m, 1))
+        vshterms(0, ivshterm + 3) = dble(dwbar(n, m)*mltterms(m, 0))
         vshterms(1, ivshterm) = -vshterms(0, ivshterm + 2)
         vshterms(1, ivshterm + 1) = -vshterms(0, ivshterm + 3)
         vshterms(1, ivshterm + 2) = vshterms(0, ivshterm)
@@ -1088,7 +1094,7 @@ subroutine dwm07b(mlt, mlat, kp, mmpwind, mzpwind)
 
   !GENERATE COUPLED TERMS
   do iterm = 0, nterm - 1
-    termvaltemp = (/1.0, 1.0/)
+    termvaltemp = (/1.0d0, 1.0d0/)
     if (termarr(0, iterm) .ne. 999) termvaltemp = termvaltemp*vshterms(0:1, termarr(0, iterm))
     if (termarr(1, iterm) .ne. 999) termvaltemp = termvaltemp*kpterms(termarr(1, iterm))
     if (termarr(2, iterm) .ne. 999) termvaltemp = termvaltemp*latwgtterm
@@ -1113,18 +1119,18 @@ end subroutine dwm07b
 
 function ap2kp(ap0)
 
-  real(4), parameter :: apgrid(0:27) = (/0., 2., 3., 4., 5., 6., 7., 9., 12., 15., 18., &
-                                         22., 27., 32., 39., 48., 56., 67., 80., 94., &
-                                         111., 132., 154., 179., 207., 236., 300., 400./)
-  real(4), parameter :: kpgrid(0:27) = (/0., 1., 2., 3., 4., 5., 6., 7., 8., 9., 10., 11., &
-                                         12., 13., 14., 15., 16., 17., 18., 19., 20., 21., &
-                                         22., 23., 24., 25., 26., 27./)/3.0
-  real(4)            :: ap0, ap, ap2kp
+  real(8), parameter :: apgrid(0:27) = (/0.d0, 2.d0, 3.d0, 4.d0, 5.d0, 6.d0, 7.d0, 9.d0, 12.d0, 15.d0, 18.d0, &
+                                         22.d0, 27.d0, 32.d0, 39.d0, 48.d0, 56.d0, 67.d0, 80.d0, 94.d0, &
+                                         111.d0, 132.d0, 154.d0, 179.d0, 207.d0, 236.d0, 300.d0, 400.d0/)
+  real(8), parameter :: kpgrid(0:27) = (/0.d0, 1.d0, 2.d0, 3.d0, 4.d0, 5.d0, 6.d0, 7.d0, 8.d0, 9.d0, 10.d0, 11.d0, &
+                                         12.d0, 13.d0, 14.d0, 15.d0, 16.d0, 17.d0, 18.d0, 19.d0, 20.d0, 21.d0, &
+                                         22.d0, 23.d0, 24.d0, 25.d0, 26.d0, 27.d0/)/3.0d0
+  real(8)            :: ap0, ap, ap2kp
   integer(4)         :: i
 
   ap = ap0
-  if (ap .lt. 0) ap = 0
-  if (ap .gt. 400) ap = 400
+  if (ap .lt. 0.0d0) ap = 0.0d0
+  if (ap .gt. 400.0d0) ap = 400.0d0
 
   i = 1
   do while (ap .gt. apgrid(i))
@@ -1133,7 +1139,7 @@ function ap2kp(ap0)
   if (ap .eq. apgrid(i)) then
     ap2kp = kpgrid(i)
   else
-    ap2kp = kpgrid(i - 1) + (ap - apgrid(i - 1))/(3.0*(apgrid(i) - apgrid(i - 1)))
+    ap2kp = kpgrid(i - 1) + (ap - apgrid(i - 1))/(3.0d0*(apgrid(i) - apgrid(i - 1)))
   endif
 
   return
@@ -1162,7 +1168,7 @@ module gd2qdc
   real(8), allocatable     :: shgradtheta(:)     !Array to hold spherical harmonic gradients
   real(8), allocatable     :: shgradphi(:)       !Array to hold spherical harmonic gradients
   real(8), allocatable     :: normadj(:)         !Adjustment to VSH normalization factor
-  real(4)                  :: epoch, alt
+  real(8)                  :: epoch, alt
 
   real(8), parameter       :: pi = 3.1415926535897932d0
   real(8), parameter       :: dtor = pi/180.0d0
@@ -1180,11 +1186,14 @@ contains
     character(250) :: datafile
     integer(4)     :: iterm, n
     integer(4)     :: j
+    real(4)        :: epoch4, alt4
 
     datafile = trim(pathdefault)//'gd2qd.dat'
 
     call findandopen(datafile, 23)
-    read(23) nmax, mmax, nterm, epoch, alt
+    read(23) nmax, mmax, nterm, epoch4, alt4
+    epoch = dble(epoch4)
+    alt = dble(alt4)
     if (allocated(coeff)) then
       deallocate(coeff, xcoeff, ycoeff, zcoeff, sh, shgradtheta, shgradphi, normadj)
     endif
@@ -1229,9 +1238,9 @@ subroutine gd2qd(glatin, glon, qlat, qlon, f1e, f1n, f2e, f2n)
 
   implicit none
 
-  real(4), intent(in)         :: glatin, glon
-  real(4), intent(out)        :: qlat, qlon
-  real(4), intent(out)        :: f1e, f1n, f2e, f2n
+  real(8), intent(in)         :: glatin, glon
+  real(8), intent(out)        :: qlat, qlon
+  real(8), intent(out)        :: f1e, f1n, f2e, f2n
 
   integer(4)               :: n, m, i
   real(8)                  :: glat, theta, phi
@@ -1244,13 +1253,13 @@ subroutine gd2qd(glatin, glon, qlat, qlon, f1e, f1n, f2e, f2n)
 
   if (gd2qdinit) call initgd2qd()
 
-  glat = dble(glatin)
+  glat = glatin
   if (glat .ne. glatalf) then
     theta = (90.d0 - glat)*dtor
     call alfbasis(nmax, mmax, theta, gpbar, gvbar, gwbar)
     glatalf = glat
   endif
-  phi = dble(glon)*dtor
+  phi = glon*dtor
 
   i = 0
   do n = 0, nmax
@@ -1283,8 +1292,8 @@ subroutine gd2qd(glatin, glon, qlat, qlon, f1e, f1n, f2e, f2n)
   sinqlon = dsin(qlonrad)
   cosqlat = x*cosqlon + y*sinqlon
 
-  qlat = sngl(datan2(z, cosqlat)/dtor)
-  qlon = sngl(qlonrad/dtor)
+  qlat = dble(datan2(z, cosqlat)/dtor)
+  qlon = dble(qlonrad/dtor)
 
   xgradtheta = dot_product(shgradtheta, xcoeff)
   ygradtheta = dot_product(shgradtheta, ycoeff)
@@ -1294,10 +1303,10 @@ subroutine gd2qd(glatin, glon, qlat, qlon, f1e, f1n, f2e, f2n)
   ygradphi = dot_product(shgradphi, ycoeff)
   zgradphi = dot_product(shgradphi, zcoeff)
 
-  f1e = sngl(-zgradtheta*cosqlat + (xgradtheta*cosqlon + ygradtheta*sinqlon)*z)
-  f1n = sngl(-zgradphi*cosqlat + (xgradphi*cosqlon + ygradphi*sinqlon)*z)
-  f2e = sngl(ygradtheta*cosqlon - xgradtheta*sinqlon)
-  f2n = sngl(ygradphi*cosqlon - xgradphi*sinqlon)
+  f1e = dble(-zgradtheta*cosqlat + (xgradtheta*cosqlon + ygradtheta*sinqlon)*z)
+  f1n = dble(-zgradphi*cosqlat + (xgradphi*cosqlon + ygradphi*sinqlon)*z)
+  f2e = dble(ygradtheta*cosqlon - xgradtheta*sinqlon)
+  f2n = dble(ygradphi*cosqlon - xgradphi*sinqlon)
 
   return
 
@@ -1315,8 +1324,8 @@ function mltcalc(qlat, qlon, day, ut)
 
   implicit none
 
-  real(4), intent(in)      :: qlat, qlon, day, ut
-  real(4)                  :: mltcalc
+  real(8), intent(in)      :: qlat, qlon, day, ut
+  real(8)                  :: mltcalc
 
   integer(4)               :: n, m, i
   real(8)                  :: asunglat, asunglon, asunqlon
@@ -1329,7 +1338,7 @@ function mltcalc(qlat, qlon, day, ut)
   if (gd2qdinit) call initgd2qd()
 
   !COMPUTE GEOGRAPHIC COORDINATES OF ANTI-SUNWARD DIRECTION (LOW PRECISION)
-  asunglat = -asin(sin((dble(day) + dble(ut)/24.0d0 - 80.0d0)*dtor)*sineps)/dtor
+  asunglat = -asin(sin((day + ut/24.0d0 - 80.0d0)*dtor)*sineps)/dtor
   asunglon = -ut*15.d0
 
   !COMPUTE MAGNETIC COORDINATES OF ANTI-SUNWARD DIRECTION
@@ -1353,10 +1362,10 @@ function mltcalc(qlat, qlon, day, ut)
   enddo
   x = dot_product(sh, xcoeff)
   y = dot_product(sh, ycoeff)
-  asunqlon = sngl(datan2(y, x)/dtor)
+  asunqlon = dble(datan2(y, x)/dtor)
 
   !COMPUTE MLT
-  mltcalc = (qlon - asunqlon)/15.0
+  mltcalc = (qlon - asunqlon)/15.0d0
 
   return
 
@@ -1370,20 +1379,20 @@ subroutine kpspl3(kp, kpterms)
 
   implicit none
 
-  real(4), intent(in)       :: kp
-  real(4), intent(out)      :: kpterms(0:2)
+  real(8), intent(in)       :: kp
+  real(8), intent(out)      :: kpterms(0:2)
 
   integer(4)                :: i, j
-  real(4)                   :: x, kpspl(0:6)
-  real(4), parameter        :: node(0:7) = (/-10., -8., 0., 2., 5., 8., 18., 20./)
+  real(8)                   :: x, kpspl(0:6)
+  real(8), parameter        :: node(0:7) = (/-10.d0, -8.d0, 0.d0, 2.d0, 5.d0, 8.d0, 18.d0, 20.d0/)
 
-  x = max(kp, 0.0)
-  x = min(x, 8.0)
+  x = max(kp, 0.0d0)
+  x = min(x, 8.0d0)
 
-  kpterms(0:2) = 0.0
+  kpterms(0:2) = 0.0d0
   do i = 0, 6
-    kpspl(i) = 0.0
-    if ((x .ge. node(i)) .and. (x .lt. node(i + 1))) kpspl(i) = 1.0
+    kpspl(i) = 0.0d0
+    if ((x .ge. node(i)) .and. (x .lt. node(i + 1))) kpspl(i) = 1.0d0
   enddo
   do j = 2, 3
     do i = 0, 8 - j - 1
@@ -1407,24 +1416,24 @@ function latwgt2(mlat, mlt, kp0, twidth)
 
   implicit none
 
-  real(4)                   :: latwgt2
-  real(4)                   :: mlat, mlt, kp0, kp, twidth
-  real(4)                   :: mltrad, sinmlt, cosmlt, tlat
+  real(8)                   :: latwgt2
+  real(8)                   :: mlat, mlt, kp0, kp, twidth
+  real(8)                   :: mltrad, sinmlt, cosmlt, tlat
 
-  real(4), parameter :: coeff(0:5) = (/65.7633, -4.60256, -3.53915, &
-                                       -1.99971, -0.752193, 0.972388/)
+  real(8), parameter :: coeff(0:5) = (/65.7633d0, -4.60256d0, -3.53915d0, &
+                                       -1.99971d0, -0.752193d0, 0.972388d0/)
 
-  real(4), parameter :: pi = 3.141592653590
-  real(4), parameter :: dtor = pi/180.d0
+  real(8), parameter :: pi = 3.141592653590d0
+  real(8), parameter :: dtor = pi/180.d0
 
-  mltrad = mlt*15.0*dtor
+  mltrad = mlt*15.0d0*dtor
   sinmlt = sin(mltrad)
   cosmlt = cos(mltrad)
-  kp = max(kp0, 0.0)
-  kp = min(kp, 8.0)
+  kp = max(kp0, 0.0d0)
+  kp = min(kp, 8.0d0)
   tlat = coeff(0) + coeff(1)*cosmlt + coeff(2)*sinmlt + &
          kp*(coeff(3) + coeff(4)*cosmlt + coeff(5)*sinmlt)
-  latwgt2 = 1.0/(1 + exp(-(abs(mlat) - tlat)/twidth))
+  latwgt2 = 1.0d0/(1.0d0 + exp(-(abs(mlat) - tlat)/twidth))
 
   return
 
