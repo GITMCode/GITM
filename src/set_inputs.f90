@@ -2002,6 +2002,7 @@ subroutine set_inputs
           iError = 0
         endif
 
+        doSeparateHPI = .false.
         call read_in_logical(doSeparateHPI, iError)
         if ((iError /= 0) .and. (iDebugProc == iProc) .and. doUseAeForHp) then
           write(*, *) "----------------------------------------------"
