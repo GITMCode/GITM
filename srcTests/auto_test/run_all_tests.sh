@@ -8,23 +8,29 @@ get_help(){
   printf "
 ------------------------------------------------------------------------------------
 
-> This script will automatically compile GITM and
-  run the test cases located within srcTests/auto_test/
-  - All UAM files matching the pattern UAM.*.test
-    are automatically tested on GitHub
+> This script compiles GITM and runs every test case in srcTests/auto_test/
+  matching UAM.*.test (alphabetically).
+  - The same tests run automatically on GitHub.
+  - run/ is deleted and recreated on every invocation; copy anything you want
+    to keep out of it first.
 
 > When adding a new feature, it is recommended to create a test.
-  - To do this, first create a UAM.in file which uses the new feature.
-  - Then, run this script with:
-    > ./run_all_tests.sh -d -c --save_solution -o [your uam file]
-  - Add a few words to the file name to explain the test. See below for more.
-  - Please try to keep the numbers increasing sequentially, if possible.
+  - First create a UAM.in file which uses the new feature.
+  - Then save a reference solution for it with:
+    > ./run_all_tests.sh --save_solution -o [your uam file]
+  - Name the file UAM.in.##.[a_few_words].test (no spaces). Numbers need not be
+    sequential, but sequential numbers make outputs easier to compare.
 
-Additional notes about the test may be added. Name must conform to:
-            UAM.in.##.*.test
-and no spaces can be added. Numbers do not need to be increasing, but will be useful
-when comparing outputs. It is recommended to follow the pattern:
-            UAM.in.##.[anything_you_want].test
+> Output backend tests have BACKEND_TEST in the name, plus the backend
+  (UAM.in.##.BACKEND_TEST.[legacy|mpiio|netcdf].*.test). On top of the log diff,
+  these also run:
+  - validate_outputs.py on the run's outputs (physical sanity checks).
+  - compare_backends.py across backends, after all tests have run.
+  - For appendSingle tests, a check that each netcdf file accumulated time
+    records. A RESTART leg (e.g. 14.1) reopens the files its first leg
+    (14.0) wrote, so run the pair together, not the RESTART leg alone.
+
+  netcdf failures are reported as optional, but still fail the run.
 
 ------------------------------------------------------------------------------------
 Usage:
@@ -33,49 +39,45 @@ Usage:
 > First, from root of repository, install GITM with './Config.pl [...]'
 > Next, 'cd srcTests/auto_test/'
 
-- To just check that the code compiles and all tests run, use:
+- To check that the code compiles and all tests pass:
     > ./run_all_tests.sh
 
-- If a test fails and you have made edits, you don't need to re-run every test.
-  (substitute for another test):
+- To re-run a single test after a failure:
     > ./run_all_tests.sh --only UAM.in.00.default.test
 
-- For a sanity check, you can force the code to be re-compiled with the (-c/--clean) 
-  flag:
+- To run only the output backend tests:
+    > ./run_all_tests.sh --backends_only
+
+- To force a clean re-compile:
     > ./run_all_tests.sh -c
 
 ------------------------------------------------------------------------------------
 Arguments:
 ----------
 
-        [none]                    run automatically with defaults.
-        -h, --help                see this information
-        -c, --clean               Run a 'make clean' before make-ing?
-        -u, --uninstall           Force a 'make distclean' before running?
-                                    This effectively uninstalls GITM before running. 
+        [none]                    Compile, then run all tests with defaults.
+        -h, --help                Show this information.
+        -c, --clean               Run 'make clean' before compiling.
+        -u, --uninstall           Run 'make distclean', then reinstall with
+                                    './Config.pl -install -earth -compiler=gfortran -debug'.
                                     Useful when dependencies change, or when a lot of
-                                    changes have been made (by you or git). 
-                                    * Will only work with gfortran10 & in debug mode. *
-        -o, --only                Only run this UAM test file.
-                                    Useful if a higher number test has failed.
-                                    By default, all tests are run alphabetically.
-        --backends_only           Only run the backend tests? This option bypasses
-                                    all of the other tests, and does not work if 
-                                    nocompare is also set.
-        --nocompare               Default configuration diff's the log file.
-                                    Use this if you want to only do a run & not
-                                    check the output.
-        --save_solution           Rewrite (or create) reference solution?
+                                    changes have been made (by you or git).
+        -o, --only FILE           Only run this UAM test file.
+        --backends_only           Only run the BACKEND_TEST tests.
+        --nocompare               Run the tests without diffing logs against the
+                                    reference solutions or comparing backends.
+                                    validate_outputs.py and the append check still run.
+        --save_solution           Rewrite (or create) the reference solution(s).
                                     - Similar to the SWMF's '-BLESS'.
-                                    - Will take a moment to rewrite a solution in case
-                                      this is set erroreously.
-                                    - If a test was overwritten by mistake, use
+                                    - Pauses briefly first, so you can Ctrl+C if
+                                      this was set by mistake.
+                                    - Skips all output checks for that run.
+                                    - If a solution was overwritten by mistake, use
                                       'git restore' to put it back.
-        --oversubscribe           Run 'mpirun' with the '--oversubscribe' flag?
-                                    This is necessary on GitHub's CI/CD servers, but
-                                    is not be necessary for *most* users. As some MPI
-                                    libraries implement this differently, this is
-                                    off by default.
+        --oversubscribe           Pass '--oversubscribe' to mpirun.
+                                    Needed on GitHub's CI servers, but not for *most*
+                                    users. MPI libraries implement this differently,
+                                    so it is off by default.
 
 "
 }
@@ -169,7 +171,60 @@ checkoutputs(){
     fi
   fi
 
+  # 4. Single-file netcdf append: every file must have accumulated records
+  if [[ "$test_uam" == *"appendSingle"* ]]; then
+    if ! check_append_records; then
+      rm -f GITM.DONE
+      return 1
+    fi
+  fi
+
   return 0
+}
+
+nc_time_records(){
+  # Print the length of the time dimension of netcdf file $1
+  python3 -c "import netCDF4, sys; print(len(netCDF4.Dataset(sys.argv[1]).dimensions['time']))" "$1"
+}
+
+check_append_records(){
+  # The first leg (14.0) writes twice in one run, so each file needs >= 2
+  # records. The RESTART leg (14.1) reopens the files 14.0 left in
+  # $append_carry, so each must end up with more records than it started with.
+  # Returns 0 on success, 1 on failure
+  echo ">> Checking netcdf append time records..."
+  local ok=true
+  local nc_files=(UA/data/*.nc)
+  if [ ! -f "${nc_files[0]}" ]; then
+    echo "  [FAIL] no .nc files in UA/data/"
+    return 1
+  fi
+  for f in "${nc_files[@]}"; do
+    local name=$(basename "$f")
+    local n=$(nc_time_records "$f")
+    if [[ "$test_uam" == *"RESTART"* ]]; then
+      if [ ! -f "$append_carry/$name" ]; then
+        echo "  [FAIL] $name: no file carried over from the first leg"
+        ok=false
+        continue
+      fi
+      local n0=$(nc_time_records "$append_carry/$name")
+      if [ "$n" -gt "$n0" ]; then
+        echo "  [PASS] $name: $n0 -> $n time records"
+      else
+        echo "  [FAIL] $name: $n0 -> $n time records (restart did not append)"
+        ok=false
+      fi
+    else
+      if [ "$n" -ge 2 ]; then
+        echo "  [PASS] $name: $n time records"
+      else
+        echo "  [FAIL] $name: $n time record(s), expected >= 2"
+        ok=false
+      fi
+    fi
+  done
+  $ok
 }
 
 run_a_test(){
@@ -184,6 +239,19 @@ run_a_test(){
   
   # Pre-test Isolation: Sweep clean any intermediate output files from previous runs
   rm -f GITM.DONE UA/data/*.nc UA/data/*.bin UA/data/*.header UA/data/*.dat UA/data/*.b[0-9][0-9][0-9][0-9]
+
+  # An append RESTART leg must reopen the files its first leg wrote. A first
+  # leg clears any stale carry-over, so a failed 14.0 can't feed an old file
+  # to 14.1.
+  if [[ "$test_uam" == *"appendSingle"* ]]; then
+    if [[ "$test_uam" != *"RESTART"* ]]; then
+      rm -rf "$append_carry"
+    elif [ -d "$append_carry" ]; then
+      cp "$append_carry"/*.nc UA/data/
+    else
+      echo " WARNING: no first-leg output in $append_carry; the append check will fail"
+    fi
+  fi
 
   # Run GITM, capture status without triggering set -e
   local mpi_status=0
@@ -202,12 +270,23 @@ run_a_test(){
       mv $test_uam $test_uam.success
       mv UA/data/log*.dat UA/data/log_$test_uam.success
       rm -f GITM.DONE
-      
+
+      # Keep a first append leg's files for its RESTART leg; drop them after
+      if [[ "$test_uam" == *"appendSingle"* ]]; then
+        if [[ "$test_uam" == *"RESTART"* ]]; then
+          rm -rf "$append_carry"
+        else
+          rm -rf "$append_carry"
+          mkdir -p "$append_carry"
+          cp UA/data/*.nc "$append_carry"/
+        fi
+      fi
+
       # SUCCESS Cleanup
       if [ $do_save = false ]; then
         # For backend tests, stage outputs for cross-backend comparison.
         # Only the first run per backend is kept (e.g. netcdf test 13 is
-        # staged, the append variant test 14 is not).
+        # staged, the append variants 14.x are not).
         local backend=$(get_backend_from_filename "$test_uam")
         local stage_dir="UA/data/backend_compare/${backend}"
         if [[ "$test_uam" == *"BACKEND_TEST"* ]] && [[ "$backend" != "unknown" ]] && [ ! -d "$stage_dir" ]; then
@@ -393,11 +472,14 @@ backends_only=false
 do_save=false
 do_compare=true
 
+# Where test 14.0's netcdf files wait for the 14.1 RESTART leg (run dir-relative)
+append_carry="UA/data/append_carry"
+
 while [[ $# -gt 0 ]]; do
   case "$1" in
     -h|--help)
       get_help
-      exit 1
+      exit 0
       ;;
 
     -c|--clean)
