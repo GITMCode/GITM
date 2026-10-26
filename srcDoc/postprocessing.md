@@ -1,7 +1,8 @@
 # Postprocessing
 
 GITM stores outputs at a cadence specified in the input `UAM.in` file (in #SAVEPLOTS). When
-running at each `DtOutput`, each processor writes its own (block) file for each output type
+running at each `DtOutput` with the default `legacy` [output backend](outputs/output_backends.md),
+each processor writes its own (block) file for each output type
 (`3DALL`, `2DANC`, etc.), plus the first processor writes a header file. This creates
 an extremely large number of files on long runs across many cores. To make the
 number of files more manageable and easier to read, they are post-processed into
@@ -43,6 +44,7 @@ The help message for `post_process.py`:
 ./post_process.py -h
     usage: post_process.py [-h] [-remotefile REMOTEFILE] [-user USER] [-server SERVER] [-dir DIR] [-sleep SLEEP]
                         [-totaltime TOTALTIME] [-v] [-norm] [-tgz] [-nc] [--combine] [--runname RUNNAME]
+                        [-np [PARALLEL]]
 
     Post process and (optionally) move model results.
     - This functions similar to pGITM.py, but can copy files to
@@ -67,13 +69,17 @@ The help message for `post_process.py`:
     --runname RUNNAME     When combining, this is prepended to the output type in the
                           resulting files: '[runname]_3DALL.nc'. 
                           Default is no descriptor.
+    -np [PARALLEL], --parallel [PARALLEL]
+                          Number of processors to use, default=1 (always sequential).
+                          [-np] with no number will use 4 processors.
+                          Otherwise, use [-np X] for X processors.
 ```
 
 !!! note "Post-processing Speed" 
 
     The post_process.py code is relatively slow - it was written to be more robust and to be clean and not fast.  If extremely fast post processing is desired, the older fortran post processor (driven by a shell script) can be used. This is not the recommended way of doing things, but it can be much faster. The old post processor executable can be created by running `make POST` from GITM's root folder (`GITM/`). If this is done before `make rundir`, it will automatically be copied. Otherwise it must be linked to `run/` manually.
 
-    The python post-processor will use `PostGITM.exe` if it is found in `run/`. This is not the default behavior as some systems limit which programs can be run from login nodes (but don't seem to limit python yet!).
+    `post_process.py` uses `PostGITM.exe` automatically if it is found in `run/`; otherwise it does the processing in Python, which is the default because some systems limit which programs can be run from login nodes (but don't seem to limit python yet!). `PostGITM.exe` only reads the `legacy` per-block format, and cannot be used together with `-nc`.
 
 One of the benefits of post_process.py is that it can post process the files and then scp them over to another system. In order to do this, you need to have keyless entry setup, so that files can be transferred without entering a password. The machine name, user name, and directory to move the run into have to be passed into the post_process.py script, which is done with a 'remotefile'.  If the python code finds this file, it will read it and start moving files. Specifically, the post processor:
 - checks to see if the directory on the remote system exists. If not, it tries to create it.
@@ -173,15 +179,17 @@ For information on plotting, please see [the plotting description page](plotters
 
 If the run is creating files faster than they are postprocessed, do not panic.
 
-GITM would create a `csh` script before the introduction of this Python script
-which is still available. `pGITM` and `PostGITM.exe` use a Fortran backend
-instead of post_process.py which is slow. The Fortran code should be much faster than
-Python.
+GITM used a `csh` script, `pGITM`, before the introduction of the Python
+post-processor; it is still available. `pGITM` calls the Fortran `PostGITM.exe`
+on each `.header` file, and the Fortran code should be much faster than Python.
+(Not to be confused with `pGITM.py`, the Python module that `post_process.py` uses
+for its own processing; it can also be run on its own.) Like `PostGITM.exe`, `pGITM`
+only handles `legacy` output.
 
 To access these, run `make POST` from GITM's root folder. If this is run before
 `make rundir`, they will be placed in `run/` without manual intervention. If
 `run` has already been created and moved or renamed, they must be copied
-manually. `post_process.py` will prefer to use the Fortran post-processor and
-only use Scipy if it is not found.
+manually. `post_process.py` will use `PostGITM.exe` if it is found, and falls back
+to its Python processing otherwise.
 
 `pGITM` will only run one time and requires `csh` which doesn't seem to be available on systems by default anymore. The world has moved on.

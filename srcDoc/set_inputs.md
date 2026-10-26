@@ -188,9 +188,9 @@ be named 1DALL_GITM_yyyy-mm-ddThh-mm-ss.bin
 See [this page](common_inputs.md#satellite-section) for more details.
 
     #SATELLITES
-    nSats           (integer - max = ', nMaxSats, ')
+    nSats           (integer - max = 115)
     SatFile1        (string)
-    SatOutputtype1  (string, 0DUSR or 1DUSR or other)
+    SatOutputtype1  (string, 0DUSR or 1DUSR; anything else gives 1DALL)
     DtPlot1         (real, seconds)
     etc...
 
@@ -235,16 +235,15 @@ Options for the `netcdf` backend. The block itself is optional; when present,
   (e.g. `3DALL_2002-12-21.nc`).
 
 `single` and `daily` enable multi-time mode: data variables gain an unlimited
-time dimension as their last axis, making files directly usable with xarray
-and other time-series tools.
+time dimension (the first axis in numpy/xarray order), making files directly
+usable with xarray and other time-series tools.
 
 `netCDFFileName`, when given, is a run name inserted into every netcdf
 filename (e.g. `3DALL_storm1.nc`), letting several runs share one directory.
-Restarted `single`/`daily` runs with a name write one file per leg (a
-`restart_yymmdd_hhmmss` stamp is appended); `single`/`daily` runs that are
-restarts or named refuse to overwrite an existing target file and stop.
-An unnamed run cannot continue a `single`/`daily` file across a restart;
-set a run name for that. See
+An unnamed `single`/`daily` run continues the previous leg's file when it is
+restarted. Restarted runs with a name write one file per leg (a
+`restart_yymmdd_hhmmss` stamp is appended), and named `single`/`daily` runs
+refuse to overwrite an existing target file and stop. See
 [Output Backends](outputs/output_backends.md) for details.
 
 Has no effect when `#OUTPUTBACKEND` is `legacy` or `mpiio`.

@@ -173,7 +173,7 @@ Two things to check anyway:
   Grep the put sites before editing a shared row.
 - Renames propagate to files and user scripts: the `.header` variable
   list, the netcdf variable name after sanitization (the original name is
-  kept in the `gitm_name` attribute — see [Outputs](outputs.md)), and any
+  kept in the `gitm_name` attribute — see [Outputs](../outputs.md)), and any
   analysis code keyed on the old string.
 
 ---
@@ -183,7 +183,12 @@ Two things to check anyway:
 Use this only when you want a genuinely new file type, not just more columns in a USR
 file. You write **one fill routine** in `src/ModOutputProducers.f90` and register it;
 the schema is derived from the fill itself. **No need to modify the output backends:**
-every backend reads the container directly.
+every backend reads the container directly for the data. (File headers and
+file opens do check the type code in a few places: `2DMEL`, `1DNEW`, and the
+`1D`/`0D` prefixes in the header writers in `ModOutputBackend.f90` and
+`ModOutputMPIIO.f90`, and `2DMEL`/`HME` in the file open in `output_common.f90`.
+A new magnetic-grid or regional type would get a wrong `BLOCKS` header or file
+open until those checks are extended.)
 
 The example below adds a 3-D geographic type called `3DMYT`.
 
@@ -196,7 +201,6 @@ output order. Fixed names get their units/long_name from
 ```fortran
 subroutine fill_3dmyt(c, iBlock)
   use ModGITM
-  use ModConst, only: cRadToDeg
   type(OutputContainer), intent(inout) :: c
   integer, intent(in) :: iBlock
 
@@ -207,8 +211,9 @@ subroutine fill_3dmyt(c, iBlock)
   call c%prepare(iBlock)
   if (.not. c%this_rank_writes) return
 
-  call c%put_axis('Longitude', Longitude(:, iBlock)*cRadToDeg)
-  call c%put_axis('Latitude', Latitude(:, iBlock)*cRadToDeg)
+  ! Longitude/Latitude go in as radians; the netcdf backend converts them to degrees
+  call c%put_axis('Longitude', Longitude(:, iBlock))
+  call c%put_axis('Latitude', Latitude(:, iBlock))
   call c%put_field('Altitude', Altitude_GB(:, :, :, iBlock))
   call c%put_field('My Variable', MyVar(:, :, :, iBlock), &
                    units='units', longName='Description of my variable')
@@ -244,10 +249,12 @@ missing.
 Add `3DMYT` to a `#SAVEPLOT` block in `UAM.in` and `make`. `pGITM.py` and all
 three backends pick up the new type automatically. Nothing else changes in
 the code — but do add the new code to the `#SAVEPLOT` type list in
-[set_inputs](../set_inputs.md), and regenerate the variable tables in
-[Outputs](outputs.md) once the type produces data. (Note: the netcdf backend
+[set_inputs](../set_inputs.md) (and to the `#SAVEPLOT` help text in
+`src/set_inputs.f90`), and regenerate the variable tables in
+[Outputs](../outputs.md) once the type produces data. (Note: the netcdf backend
 does not support probe-style `1D*`/`0D*` types and stops with an error if
-one is requested; use legacy or mpiio for those.)
+one is requested; use legacy or mpiio for those. Satellite (`#SATELLITES`)
+files are written in the legacy format whatever the backend.)
 
 ### Types with explicit schemas
 
@@ -285,7 +292,8 @@ once at init and locking it (`finish_priming`). The remaining types declare
 schemas explicitly via `define_schema_<type>`. Either way, `output_common.f90`
 calls `containers(i)%fill(...)` each output step and hands the container to
 the active backend's `write_container`; backends read the container directly,
-so none of them need per-type code.
+so none of them need per-type code for the data (see the note on headers
+under [Create a new output type](#create-a-new-output-type)).
 
 Priming is why every variable must be put exactly once per fill, unconditionally.
 The first execution of the fill runs at init to derive the schema; after that,

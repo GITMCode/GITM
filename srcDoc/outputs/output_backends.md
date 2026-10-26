@@ -11,6 +11,9 @@ Two current restrictions to know up front:
 - The `netcdf` backend does not support the probe-style `1D*`/`0D*` types
   (including 3D types renamed to `1D*` by a 1-D `nLons=nLats=1` run) and
   stops with an error naming the type; use `legacy` or `mpiio` for those.
+  There is no generated variable table for these types; the `.header` file of a
+  `legacy` or `mpiio` run lists their variables. Satellite (`#SATELLITES`)
+  files are written in the legacy format whatever the backend.
 - The `.nc` files this backend writes are a different dialect from the ones
   `pGITM.py` produces when converting legacy/mpiio output — see the warning
   in [Outputs](../outputs.md). Don't mix the two in one analysis.
@@ -51,9 +54,11 @@ analysed. `post_process.py` handles this step automatically. See
 ## mpiio
 
 The MPI-IO backend writes all blocks into a single shared file using MPI collective
-I/O (`MPI_File_open` / `MPI_File_write_at`). Each rank writes its block(s)
+I/O (`MPI_File_open` / `MPI_File_write_at_all`). Each rank writes its block(s)
 at a fixed byte offset, so all ranks write simultaneously without
-serialization. The result is:
+serialization. (The types where only some ranks write, `GRID_MAG_2D` and
+`GRID_HIME`, use independent `MPI_File_write_at` instead; see
+[below](#conditional-participation-types).) The result is:
 
 - One ASCII `.header` file (same format as legacy, with an added `FORMAT/mpiio` line)
 - One `.bin` file containing all blocks in a single raw-binary file (no Fortran
@@ -100,7 +105,8 @@ storm1          netCDFFileName (optional run name)
 - `single`: one file per output type for the entire run, e.g. `3DALL.nc`.
 
 `daily` and `single` files use an unlimited time dimension; data variables are
-shaped `(time, [z,] lat, lon)` (time first) and read natively by xarray
+shaped `(time, [z,] lat, lon)` (time first in C/numpy/xarray order; the same
+layout puts time as the last axis in Fortran order) and read natively by xarray
 (on a magnetic grid the horizontal dimensions are named `mlat`/`mlon`
 instead, and carry plain `degrees`):
 
@@ -114,24 +120,33 @@ type code (`3DALL_storm1.nc`, `3DALL_storm1_t021221_000000.nc`), in every
 append mode. This lets several scenario runs share one directory without
 colliding.
 
-A restarted `single`/`daily` run with a run name appends a
-`restart_yymmdd_hhmmss` stamp (the restart's simulation time) to the name.
-Each leg of the run writes its own file and prior legs are never reopened,
-so a crash can only affect the current leg. Consecutive legs share the
-restart epoch (it is re-emitted), so analysis tools should drop duplicate
-times, keeping the later leg.
+Restarts in `single`/`daily` mode depend on whether the run is named:
+
+- **Unnamed**: the restarted run continues the previous leg's file, so a
+  run split across restarts still ends up with one time series per file
+  (one per day for `daily`). The first output of the new leg overwrites the
+  last record if it is for the same time (a restart can re-emit the epoch
+  it starts from), and is appended after it otherwise. GITM stops instead
+  if the file has records *after* that time (an earlier run went past the
+  restart point; netcdf cannot remove those records), or if the file's grid
+  or variables do not match the run. Move the file aside to start a new
+  one.
+- **Named**: a `restart_yymmdd_hhmmss` stamp (the restart's simulation
+  time) is appended to the name. Each leg writes its own file and prior
+  legs are never reopened, so a crash can only affect the current leg.
+  Consecutive legs can share the restart epoch, so analysis tools should
+  drop duplicate times, keeping the later leg.
 
 !!! warning "Overwrite guard"
-    In `single`/`daily` mode, a run that is a restart or carries a run name
-    refuses to overwrite an existing target file and stops with instructions
-    (move/delete the file, change `netCDFFileName`, or use a fresh run
-    directory). An unnamed, non-restart run keeps the historical behavior of
-    overwriting. An unnamed restart always trips the guard, so set
-    `netCDFFileName` to continue a run across restarts. `none` mode and the
-    `legacy`/`mpiio` backends are unguarded: colliding epochs are recomputed
-    and overwritten in place. (The recompute is not guaranteed bit-identical:
-    restarted runs are known to diverge slightly, likely via the dynamo /
-    high-latitude electric fields.)
+    In `single`/`daily` mode, a run with a run name refuses to overwrite an
+    existing target file and stops with instructions (move/delete the file,
+    change `netCDFFileName`, or use a fresh run directory). This catches
+    re-running the same leg and branching a scenario in place. An unnamed,
+    non-restart run keeps the historical behavior of overwriting. `none`
+    mode and the `legacy`/`mpiio` backends are unguarded: colliding epochs
+    are recomputed and overwritten in place. (The recompute is not
+    guaranteed bit-identical: restarted runs are known to diverge slightly,
+    likely via the dynamo / high-latitude electric fields.)
 
 `#NETCDFOPTIONS` only affects the `netcdf` backend; it is ignored for
 `legacy` and `mpiio`.

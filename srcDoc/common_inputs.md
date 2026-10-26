@@ -412,15 +412,19 @@ resolution.
 Because GITM by default outputs one file for every output time, if you use a satellite
 file, it produces a LOT of files.
 
-The types of outputs are specified in the `#SATELLITES` section of the UAM.in file. The
+The satellites are specified in the `#SATELLITES` section of the UAM.in file. The
 number of satellites must be speficied along with the path to the locations, output type
-& cadence for each file. For example, if we want to output 3DALL files for one satellite
-every 2 minutes, we would use:
+& cadence for each file. Only `1DUSR` and `0DUSR` are honoured as output types (they
+write the variables registered by user code). Any other value is replaced by `1DALL`,
+a profile of the standard variables at each location (`0DALL` if RCMR is running), so
+a 3-D type such as `3DALL` cannot be requested here. Satellite files are written to
+`UA/data` in the legacy format whatever the `#OUTPUTBACKEND`. For example, if we want
+a `1DALL` profile for one satellite every 2 minutes, we would use:
 
     #SATELLITES
     1                       nSats
     satfile1.txt            sat file name
-    3DALL                   output type
+    1DALL                   output type (anything but 1DUSR/0DUSR gives 1DALL)
     120.0                   output cadence, in seconds
 
 Or for two satellites, every 1 minute:
@@ -428,8 +432,8 @@ Or for two satellites, every 1 minute:
     #SATELLITES
     2                       nSats
     satfile1.txt            sat file name
-    3DALL                   output type
-    60.0                   output cadence, in seconds
+    1DALL                   output type
+    60.0                    output cadence, in seconds
     satfile2.txt            sat file name
-    3DALL                   output type
-    60.0                   output cadence, in seconds
+    1DALL                   output type
+    60.0                    output cadence, in seconds

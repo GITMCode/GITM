@@ -21,8 +21,10 @@
 !
 ! Limitations in Phase 2:
 !   - DoAppendFiles is not supported; each call creates/overwrites the file.
-!   - HME output types fall back to legacy (variable block count not suitable
-!     for fixed-offset addressing).
+!
+! Regional (HME/HIME) and magnetic-grid types are written by only some ranks,
+! with independent MPI_File_write_at; cells nobody writes stay zero-filled in
+! the shared file.
 
 module ModOutputMPIIO
 

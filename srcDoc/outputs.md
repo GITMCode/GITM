@@ -2,8 +2,10 @@
 
 Now that you have managed to successfully complete a GITM run you've
 found yourself with a bunch of output files. All of the GITM output is
-in MKS units. Output files are written to the directory specified by
-`#OUTPUTDIR` in `UAM.in` (default: `UA/data`).
+in MKS units. Output files are written to the directory given as the first
+argument of `#DIRECTORIES` in `UAM.in` (default: `UA/data`). Satellite files
+(`#SATELLITES`) always go to `UA/data`, whatever `#DIRECTORIES` says, and
+are written in the legacy format whatever the backend.
 
 !!! important "Horizontal coordinates: radians in `.bin`, degrees in netcdf"
     The one exception to "MKS units" is geographic longitude and latitude,
@@ -16,18 +18,22 @@ in MKS units. Output files are written to the directory specified by
 
     The variable tables below are generated from netcdf files, so the units
     they show for `Longitude`/`Latitude` are the netcdf ones. Reading a
-    `.bin` file, convert with `numpy.degrees` yourself — this is what
-    `pGITM.py` does when it converts legacy/mpiio output. Magnetic
-    coordinates (`mlon`/`mlat`, and 2DMEL's `GeoLat`/`GeoLon` fields) are in
-    degrees on every backend.
+    `.bin` file, convert with `numpy.degrees` yourself. This is what
+    `pGITM.py` does when it writes netcdf from legacy/mpiio output, but a
+    `.bin` file merged by `pGITM.py` stays in radians. 2DMEL's `GeoLat` and
+    `GeoLon` follow the same rule (radians in `.bin`, degrees in netcdf).
+    Only the magnetic coordinates `mlon`/`mlat` are in degrees on every
+    backend.
 
 The format of those files depends on which [output backend](outputs/output_backends.md)
-was used during the run. You will typically find yourself with a `log*.dat`
-file and one file per output type per timestep in whichever formats you
-specified in `#SAVEPLOT` (see [`#SAVEPLOT`](set_inputs.md#saveplot)).
-`mpiio` and `netcdf` outputs are usable as written; only the `legacy`
-backend's per-block files need [postprocessing](postprocessing.md) to be
-merged.
+was used during the run (`#OUTPUTBACKEND`; an unrecognised value falls
+back to `legacy` with a warning). You will typically find yourself with a `log*.dat`
+file and the output files for each type listed in `#SAVEPLOT` (see
+[`#SAVEPLOT`](set_inputs.md#saveplot)). `netcdf` outputs are usable as
+written. `legacy` writes per-block files that need
+[postprocessing](postprocessing.md) to be merged, and `mpiio` writes one
+raw `.bin` per output, which `pGITM.py` rewrites in the standard layout
+(keeping the original as `.raw` unless it is removing files).
 
 !!! warning "Two netcdf dialects — pick one"
     `post_process.py`/`pGITM.py` can also convert legacy/mpiio output to
@@ -45,7 +51,7 @@ restart was performed, which physical processes were used, and a list of some
 variables which represent the state of the modeled system and its drivers. This
 file can be very useful when sharing runs with other users, when revisiting an
 old run, or merely ensuring that GITM performed as expected. Some example log
-files can be found in the `srcTest/auto_test/ref_solns/` directory.
+files can be found in the `srcTests/auto_test/ref_solns/` directory.
 
 ## Output system
 
@@ -60,7 +66,10 @@ magnetic-grid, HME, USR, and rank-0 probe types); the
 `ModOutputContainer.f90` header describes both patterns. Either way the backends consume the container
 directly, so headers, NetCDF metadata, and on-disk layout all come from one
 schema and cannot drift from the data. None of the three backends
-(`legacy`, `mpiio`, `netcdf`) has per-type code paths. Adding or modifying a
+(`legacy`, `mpiio`, `netcdf`) has per-type code paths for the data itself.
+(File headers and file opens do key on a few type codes, such as `2DMEL`,
+`1DNEW`, and the `1D`/`0D` probe prefixes; see
+[Adding new outputs](outputs/modifying_outputs.md).) Adding or modifying a
 type touches `src/ModOutputProducers.f90` plus, for fixed variable names, a
 metadata row in `src/ModOutputVarRegistry.f90`. See
 [Adding new outputs](outputs/modifying_outputs.md) for recipes and
@@ -73,8 +82,9 @@ The tables below are generated from GITM output by
 are read straight from the netcdf files, not typed by hand. To regenerate
 after changing an output type, run a sweep with the types you care about on
 the `netcdf` backend, then splice the script's stdout into this page,
-replacing everything between this section heading and the generation marker
-at the bottom of the file:
+replacing the generated `### <TYPE>` sections (everything from the first one
+down to the generation marker at the bottom of the file) and leaving the
+hand-written text above them alone:
 
 ```bash
 python srcPython/generate_output_docs.py <run>/UA/data
@@ -88,8 +98,15 @@ raw name is kept in each variable's `gitm_name` attribute). Notes:
   user code registered. The tables below show one example configuration.
 - **Not listed** (absent from the generating run): `3DHME` (regional,
   3DALL-like variable set), the 1-D probe types (`1DALL`, `1DTHM`, `1DCHM`,
-  `1DNEW`, `1DUSR`), and the 0-D satellite types (`0DALL`, `0DUSR`).
-  Regenerate from a run that includes them for their tables.
+  `1DNEW`, `1DUSR`), and the 0-D satellite types (`0DALL`, `0DUSR`). The
+  probe types halt on the `netcdf` backend and the generator reads only
+  netcdf files, so they cannot have a generated table. For their variable
+  list, read the `.header` file from a `legacy` or `mpiio` run.
+- **Rates are zero at the first output.** Per-step diagnostics that GITM
+  divides by the time step (3DTHM `Conduction`, `Molecular Conduction` and
+  the chemical heating rate, 3DCHM, 3DMOH `Visc_*`, 2DANC `Chem_int`, and
+  the probe types 0DALL, 1DTHM and 1DCHM) are rates. They are written as 0
+  at the t = 0 output, where the time step is 0.
 - **`3DGLO` and `1DGLO` cannot be generated at all.** They have never been
   wired to a source of emission data on any GITM branch — their science
   columns would be zeros indistinguishable from real measurements — so GITM
@@ -97,7 +114,8 @@ raw name is kept in each variable's `gitm_name` attribute). Notes:
   codes so they can be filled in later; they simply produce nothing today.
 - **`2DMEL` is on a magnetic grid**, so its horizontal coordinates are named
   `mlon`/`mlat` (in degrees), not `lon`/`lat`. Its `GeoLat`/`GeoLon`
-  variables are the geographic position of each magnetic grid point.
+  variables are the geographic position of each magnetic grid point (radians
+  in `.bin`, degrees in netcdf).
 
 ### 2DANC
 

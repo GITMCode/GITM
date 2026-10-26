@@ -1,6 +1,11 @@
 
 # Plotters
 
+The plotters on this page read the `.bin` files produced by
+[postprocessing](postprocessing.md) (the legacy file layout). They do not read the
+`.nc` files written by the `netcdf` [output backend](outputs/output_backends.md);
+for those, use xarray or [PyITM](https://github.com/GITMCode/PyITM).
+
 ## gitm_plot_simple.py
 
 This code will make simple rectangular plots in:
@@ -32,9 +37,9 @@ You can set the variable to plot as a number. To see the variable mapping betwee
         -mini MINI  manually set the minimum value for the plots
         -maxi MAXI  manually set the maxiumum value for the plots
 
-## gitm_plot.py
+## thermo_plot.py
 
-This code is a bit more sophisticated, adding a bunch of additional functionality:
+This script lives in `srcPython/aetherpy/` and needs aetherpy (see below). It is a bit more sophisticated, adding a bunch of additional functionality:
 
 - It can make cuts in alt, lat, and lon, as above.
 - The alt cut plots add circles for the northern and southern polar regions.  These can be removed with the flag '-nopole'. Additionally, if you only want a polar plot, you can use the flag '-north' or '-south'.

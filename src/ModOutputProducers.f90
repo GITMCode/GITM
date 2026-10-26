@@ -3,22 +3,29 @@
 !
 ! ModOutputProducers.f90
 !
-! Container-based output producers.  Each output type has two procedures:
-!   define_schema_<type>(c)   register variable names/units/shapes once
-!   fill_<type>(c, iBlock)    put data into the container each timestep
+! Container-based output producers.  Every output type has a
+!   fill_<type>(c, iBlock)   put data into the container each timestep
+! Most types are ONE-SHOT: the fill also defines the schema (the first put of a
+! name defines the variable), and init_output_containers primes it once at init.
+! Ten types instead declare their schema explicitly in
+!   define_schema_<type>(c)  register variable names/units/shapes once
+! (3DHME, 2DHME, 2DMEL, 1DGLO, 1DTHM, 1DCHM and the four USR types); their fills
+! then only put data.  See the header of ModOutputContainer.f90 for both patterns.
 !
 ! Module-level containers(:) array lives for the whole run; allocated once in
 ! init_output_containers, reused across timesteps.
 !
-! Ghost cells (per-type, opt-in):
-!   Containers default to interior-only outputs (`c%nGhostCells = 0`).  Any
-!   define_schema_<type> may opt in by setting `c%nGhostCells = 2` and padding
-!   every variable's spatial dims by 2*nGhostCells; the matching fill_<type>
-!   then `put`s ghost-inclusive slices (e.g. -1-nGC:nLons+nGC+2).  Legacy and mpiio
-!   backends write the padded container as-is; the netcdf backend strips ghost
-!   cells automatically for geographic gridKinds (mag-grid types are never
-!   stripped).  Magnetic, 1D, and 0D types have no ghost concept, so leave the
-!   default 0.
+! Ghost cells (per-type):
+!   c%nGhostCells is metadata for the netcdf backend (it strips that many ghost
+!   cells from geographic types); it does not change what a fill stores, because
+!   the fill owns its slice.  Set it to 2 when the fill puts ghost-inclusive
+!   slices (e.g. -1:nLons+2) and 0 when it puts interior slices.  Legacy and
+!   mpiio write the stored slice as-is.  Magnetic, 1D, and 0D types have no ghost
+!   concept, so use 0.
+!
+! Units: geographic Longitude/Latitude are stored in radians (.bin as-is; the
+! netcdf backend converts to degrees).  Per-step diagnostics that are rates are
+! divided by Dt with per_dt() and are therefore 0 at the t = 0 output.
 
 module ModOutputProducers
 
@@ -329,10 +336,10 @@ contains
   !
   ! Two kinds of type coexist here and the backends cannot tell them apart:
   !
-  !   * Unconverted types (mag grids, HME/HIME regionals, USR) declare their
-  !     schema explicitly via define_schema_<type>.
+  !   * Explicit-schema types (2DMEL, 3DHME/2DHME, the 1DGLO/1DTHM/1DCHM probes
+  !     and the four USR types) declare their schema via define_schema_<type>.
   !
-  !   * Converted one-shot types have no define side at all; their schema is
+  !   * One-shot types (everything else) have no define side at all; their schema is
   !     materialized by PRIMING: call fill_<type>(c, 1) once so the first put of
   !     each name defines it, then lock the schema.  This is what lets the
   !     schema be DERIVED from the fill code while still being complete before
@@ -341,8 +348,8 @@ contains
   !     def_var rank-dependent, the same bug class as the 2DMEL write deadlock.)
   !
   ! Priming is safe because it runs at the first output, after the model is
-  ! initialized: every array a converted fill touches has been allocated by
-  ! then.  That allocation-timing precondition must hold for EVERY converted
+  ! initialized: every array a one-shot fill touches has been allocated by
+  ! then.  That allocation-timing precondition must hold for EVERY one-shot
   ! fill in EVERY run (priming runs them all, whether or not the type was
   ! requested) and is what keeps the lazily-allocated mag-grid types out.
   ! Priming's VALUES are thrown away (every real fill overwrites them), so only
@@ -1034,8 +1041,8 @@ contains
   !
   ! The three emission/photoelectron fields are placeholders (not yet computed);
   ! zero_buf is a default-real scratch buffer at the full 2-ghost extent. Their
-  ! units are empty strings carried through as registry rows, so today's output
-  ! is unchanged.
+  ! units are empty strings carried through as registry rows.  A real fill halts
+  ! (see below), so this type writes nothing today; only the priming pass runs it.
   ! ---------------------------------------------------------------------------
   subroutine fill_3dglo(c, iBlock)
     use ModGITM
