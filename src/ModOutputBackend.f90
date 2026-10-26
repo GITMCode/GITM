@@ -142,9 +142,9 @@ contains
   end subroutine legacy_close_file
 
   ! ------------------------------------------------------------------
-  ! Write a complete header file from the registry info.
-  ! Reproduces the format of the legacy output_header, write_head_blocks,
-  ! write_head_time, and write_head_version subroutines.
+  ! Write a complete header file from the registry info, in the format of
+  ! the pre-container output_header (TIME, VERSION, BLOCKS, variable list).
+  ! Satellite .header files always come from here, whatever the backend.
   ! ------------------------------------------------------------------
   subroutine legacy_write_header(iUnit, c, cType, &
                                  nAlts, nLats, nLons, nGCs, &

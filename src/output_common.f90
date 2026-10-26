@@ -57,7 +57,7 @@ subroutine output(dir, iBlock, iOutputType)
   use ModRCMR, only: RCMRFlag
   use ModConstants, only: pi
   use ModElectrodynamics, only: nMagLats, nMagLons
-  use ModOutputBackend, only: ActiveBackend
+  use ModOutputBackend, only: ActiveBackend, legacy_write_container, legacy_write_header
   use ModOutputContainer, only: OutputContainer, GRID_HIME
   use ModOutputProducers
   use ModGITMVersion, only: GitmVersion
@@ -233,7 +233,10 @@ subroutine output(dir, iBlock, iOutputType)
   !! ---------------------------------------------
 
   if (iOutputType <= -1) then
-    ! Satellite output: always use sequential per-file I/O regardless of backend
+    ! Satellite output is always written in the legacy per-file .sat/.header format, whatever the
+    ! active backend: the .sat unit is opened here, filled by legacy_write_container and given a
+    ! legacy_write_header .header below. The collective backends (mpiio, netcdf) have no shared
+    ! file open when satellites are written, so they cannot be used for this.
     inquire(file=trim(dir)//"/"//trim(CurrentSatelliteName)//"_"//cTime(1:cL)//".sat", &
             EXIST=IsThere)
     if (.not. DoAppendFiles .or. tSimulation < 0.1 .or. .not. IsThere) then
@@ -291,8 +294,12 @@ subroutine output(dir, iBlock, iOutputType)
     iProbeLon = iiLon; iProbeLat = iiLat; iProbeAlt = iiAlt
     rProbeLon = rLon; rProbeLat = rLat; rProbeAlt = rAlt
     call containers(iContIdx)%fill(containers(iContIdx), iBlock)
-    if (associated(ActiveBackend%write_container)) &
+    if (iOutputType <= -1) then
+      ! Satellites bypass ActiveBackend (see the satellite open above).
+      call legacy_write_container(containers(iContIdx), iBLK, iTimeArray)
+    elseif (associated(ActiveBackend%write_container)) then
       call ActiveBackend%write_container(containers(iContIdx), iBLK, iTimeArray)
+    endif
     call containers(iContIdx)%reset()
 
     ! Check that one-shot fills have "put" each variable exactly once.
@@ -302,10 +309,11 @@ subroutine output(dir, iBlock, iOutputType)
   if (iOutputType <= -1 .or. ActiveBackend%uses_external_file) &
     close(unit=iOutputUnit_)
 
-  !! Now write the header file (skipped for backends where metadata lives in the data file)
+  !! Now write the header file. Satellites always get a legacy .header; for other
+  !! types it is skipped by backends whose metadata lives in the data file.
 
-  if (ActiveBackend%writes_header .and. &
-      ((iProc == 0 .and. iBlock == nBlocks) .or. iOutputType <= -1)) then
+  if (iOutputType <= -1 .or. &
+      (ActiveBackend%writes_header .and. iProc == 0 .and. iBlock == nBlocks)) then
 
     if (iOutputType <= -1) then
       inquire(file=trim(dir)//"/"//trim(CurrentSatelliteName)//"_"//cTime(1:cL)//".header", EXIST=IsThere)
@@ -346,67 +354,18 @@ subroutine output(dir, iBlock, iOutputType)
       endif
     endif
 
-    call ActiveBackend%write_header(iOutputUnit_, containers(iContIdx), cType, &
-                                    nAlts, nLats, nLons, nGCs, nBlocksLat, nBlocksLon, iTimeArray, GitmVersion)
+    if (iOutputType <= -1) then
+      call legacy_write_header(iOutputUnit_, containers(iContIdx), cType, &
+                               nAlts, nLats, nLons, nGCs, nBlocksLat, nBlocksLon, iTimeArray, GitmVersion)
+    else
+      call ActiveBackend%write_header(iOutputUnit_, containers(iContIdx), cType, &
+                                      nAlts, nLats, nLons, nGCs, nBlocksLat, nBlocksLon, iTimeArray, GitmVersion)
+    endif
 
     close(unit=iOutputUnit_)
 
   endif
 
   IsFirstTime = .false.
-
-contains
-
-  !----------------------------------------------------------------
-
-  subroutine write_head_blocks
-
-    ! for 1D and 0D do not write blocks
-    if (cType(1:2) == "1D" .or. cType(1:2) == "0D") return
-
-    write(iOutputUnit_, *) "BLOCKS"
-    write(iOutputUnit_, "(I7,A)") 1, " nBlocksAlt"
-    if (cType /= "2DMEL") then
-      write(iOutputUnit_, "(I7,A)") nBlocksLat, " nBlocksLat"
-      write(iOutputUnit_, "(I7,A)") nBlocksLon, " nBlocksLon"
-    else
-      write(iOutputUnit_, "(I7,A)") 1, " nBlocksLat"
-      write(iOutputUnit_, "(I7,A)") 1, " nBlocksLon"
-    endif
-    write(iOutputUnit_, *) ""
-
-  end subroutine write_head_blocks
-
-  !----------------------------------------------------------------
-  !
-  !----------------------------------------------------------------
-
-  subroutine write_head_time
-
-    write(iOutputUnit_, *) "TIME"
-    write(iOutputUnit_, "(I7,A)") iTimeArray(1), " Year"
-    write(iOutputUnit_, "(I7,A)") iTimeArray(2), " Month"
-    write(iOutputUnit_, "(I7,A)") iTimeArray(3), " Day"
-    write(iOutputUnit_, "(I7,A)") iTimeArray(4), " Hour"
-    write(iOutputUnit_, "(I7,A)") iTimeArray(5), " Minute"
-    write(iOutputUnit_, "(I7,A)") iTimeArray(6), " Second"
-    write(iOutputUnit_, "(I7,A)") iTimeArray(7), " Millisecond"
-    write(iOutputUnit_, *) ""
-
-  end subroutine write_head_time
-
-  !----------------------------------------------------------------
-  !
-  !----------------------------------------------------------------
-
-  subroutine write_head_version
-
-    use ModGITMVersion
-
-    write(iOutputUnit_, *) "VERSION"
-    write(iOutputUnit_, *) trim(GitmVersion)
-    write(iOutputUnit_, *) ""
-
-  end subroutine write_head_version
 
 end subroutine output
