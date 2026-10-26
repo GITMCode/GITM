@@ -31,6 +31,17 @@ except ImportError:
     sys.path.append(os.path.join(os.path.dirname(__file__), '../../srcPython'))
     import pGITM
 
+# .bin files (legacy/mpiio) write these geographic lon/lat variables in
+# radians; the netcdf backend converts them to degrees on write
+# (nc_is_geo_lonlat in src/ModOutputNetCDF.F90).  Every other lat/lon-named
+# variable (Magnetic Latitude, 2DMEL mlon/mlat, ...) is degrees in all
+# backends.  Same list as BIN_RADIAN_COORDS in validate_outputs.py.
+BIN_RADIAN_COORDS = ('Longitude', 'Latitude', 'GeoLon', 'GeoLat')
+
+# 2DMEL: the netcdf backend writes these as 1-D coordinate variables, while
+# the .bin files carry them as 2-D (nLat x nLon) broadcast fields.
+NC_MAG_COORDS = ('mlon', 'mlat')
+
 # Import netCDF4 for reading NetCDF outputs (optional)
 try:
     import netCDF4 as nc4
@@ -59,6 +70,8 @@ def load_binary_outputs(directory):
     Returns {timestep_key: data_dict, ...} where data_dict has a 'vars' list
     and varname -> np.array mappings.  Ghost cells are stripped so arrays are
     (nAlts, nLats, nLons) — matching the netcdf layout — ready for ravel comparison.
+    Geographic lon/lat (BIN_RADIAN_COORDS) are converted radians -> degrees
+    so they compare directly against netcdf, which stores degrees.
     """
     result = {}
     for header in sorted(glob.glob(os.path.join(directory, '*.header'))):
@@ -78,10 +91,42 @@ def load_binary_outputs(directory):
             for v in data.get('vars', []):
                 if v in data and isinstance(data[v], np.ndarray) and data[v].ndim == 3:
                     data[v] = data[v][sl]
+            for v in BIN_RADIAN_COORDS:
+                if v in data['vars'] and v in data:
+                    data[v] = np.degrees(np.asarray(data[v], dtype=np.float64))
             result[ts] = data
         except Exception as e:
             print(f"  [WARN] Could not load {header}: {e}")
     return result
+
+
+def _broadcast_mag_coords(ds, data, ts):
+    """Broadcast netcdf 1-D mlon/mlat coordinates onto the 2-D .bin layout.
+
+    The axis order is taken from a 2-D data variable of the same file that
+    carries both dimensions (2DMEL: (mlat, mlon)), so the C-order ravel
+    matches the .bin broadcast fields.  If no such variable exists the
+    layout is ambiguous: drop the coordinates with an explicit INFO line.
+    """
+    if not all(c in ds.variables and ds.variables[c].dimensions == (c,)
+               for c in NC_MAG_COORDS):
+        return
+    ref = next((v.dimensions for v in ds.variables.values()
+                if all(c in v.dimensions for c in NC_MAG_COORDS)
+                and len(v.dimensions) == 2), None)
+    if ref is None:
+        print(f"  [INFO] {ts}: skipping netcdf 1-D {list(NC_MAG_COORDS)}: "
+              f"no 2-D variable with both dimensions to fix the axis order")
+        for c in NC_MAG_COORDS:
+            data['vars'].remove(c)
+            del data[c]
+        return
+    shape = tuple(len(ds.dimensions[d]) for d in ref)
+    for c in NC_MAG_COORDS:
+        ax = ref.index(c)
+        bshape = [1, 1]
+        bshape[ax] = shape[ax]
+        data[c] = np.broadcast_to(data[c].reshape(bshape), shape).copy()
 
 
 def load_netcdf_outputs(directory):
@@ -117,6 +162,7 @@ def load_netcdf_outputs(directory):
                     if hasattr(v, 'gitm_name') else vname
                 data['vars'].append(key)
                 data[key] = arr
+            _broadcast_mag_coords(ds, data, ts)
             ds.close()
             result[ts] = data
         except Exception as e:
