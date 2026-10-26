@@ -28,6 +28,10 @@ except ImportError:
 
 verbose = False
 
+# .bin files write these in radians (as develop does); netcdf converts them to
+# degrees.  Every other lat/lon-named variable is degrees in both backends.
+BIN_RADIAN_COORDS = ('Longitude', 'Latitude', 'GeoLon', 'GeoLat')
+
 
 def log_fail(label, detail):
     print(f"  [FAIL] {label}: {detail}")
@@ -52,8 +56,12 @@ def is_regional_file(path):
     return 'HME' in base or 'HIME' in base
 
 
-def validate_variable(name, vals, is_regional=False):
-    """Apply name-driven physical rules.  Returns True if all checks pass."""
+def validate_variable(name, vals, is_regional=False, in_radians=False):
+    """Apply name-driven physical rules.  Returns True if all checks pass.
+
+    in_radians: the variable is a lat/lon expected in radians; the unit check
+    is flipped and the degree bounds below are applied after conversion.
+    """
     passed = True
     name_lower = name.lower()
 
@@ -62,14 +70,22 @@ def validate_variable(name, vals, is_regional=False):
     if len(flat) == 0:
         return True
 
-    # --- Coordinate unit check: lat/lon must be in degrees, not radians ---
+    # --- Coordinate unit check: degrees, or radians where expected ---
     if 'lat' in name_lower or 'lon' in name_lower:
         max_abs = float(np.abs(flat).max())
-        passed = log_check(
-            f"'{name}' in degrees (not radians)",
-            max_abs > 7.,
-            f"max_abs={max_abs:.3f}"
-        ) and passed
+        if in_radians:
+            passed = log_check(
+                f"'{name}' in radians (not degrees)",
+                max_abs <= 7.,
+                f"max_abs={max_abs:.3f}"
+            ) and passed
+            flat = np.rad2deg(flat)
+        else:
+            passed = log_check(
+                f"'{name}' in degrees (not radians)",
+                max_abs > 7.,
+                f"max_abs={max_abs:.3f}"
+            ) and passed
 
     # --- Latitude bounds [-130, 130] (accommodates ghost cells) ---
     if 'lat' in name_lower:
@@ -199,7 +215,8 @@ def check_header_file(header_path):
             log_fail(varname, "not found in processed data")
             passed = False
             continue
-        if not validate_variable(varname, data[varname], is_regional=regional):
+        if not validate_variable(varname, data[varname], is_regional=regional,
+                                 in_radians=varname in BIN_RADIAN_COORDS):
             passed = False
 
     return passed
