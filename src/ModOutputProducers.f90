@@ -880,12 +880,12 @@ contains
     call c%put_field('EUV Heating Rate', &                                  ! no ghosts * ghosted
                      EuvHeating(:, :, :, iBlock)*TempUnit(1:nLons, 1:nLats, 1:nAlts))
     call c%put_field('Conduction', &                                  ! alt ghosts only * ghosted
-                     Conduction(:, :, 1:nAlts)*TempUnit(1:nLons, 1:nLats, 1:nAlts)/dt)
+                     per_dt(Conduction(:, :, 1:nAlts)*TempUnit(1:nLons, 1:nLats, 1:nAlts)))
     ! MoleConduction from the last (full-Dt) calc_conduction_1d call is a
     ! Kelvin temperature change over the step, so /dt alone gives K/s.
-    call c%put_field('Molecular Conduction', MoleConduction(:, :, 1:nAlts)/dt)  ! alt ghosts only
+    call c%put_field('Molecular Conduction', per_dt(MoleConduction(:, :, 1:nAlts)))  ! alt ghosts only
     call c%put_field('Chemical Heating Rate', &                            ! no ghosts * ghosted
-                     ChemicalHeatingRate*TempUnit(1:nLons, 1:nLats, 1:nAlts)/dt)
+                     per_dt(ChemicalHeatingRate*TempUnit(1:nLons, 1:nLats, 1:nAlts)))
     call c%put_field('Joule Heating Rate', &                               ! no ghosts * ghosted
                      JouleHeating*TempUnit(1:nLons, 1:nLats, 1:nAlts))
     call c%put_field('NO Cooling Rate', &                                  ! no ghosts * ghosted
@@ -961,13 +961,13 @@ contains
       ! calc_chemistry accumulates ChemicalHeatingSpecies as <term>*DtSub over
       ! one physics step, so /Dt recovers the mean heating rate over the step
       ! (Dt at write time is still the step the accumulation integrated over).
-      call c%put_field(trim(chem_names(i)), ChemicalHeatingSpecies(:, :, :, i)/Element_Charge/Dt, &
+      call c%put_field(trim(chem_names(i)), per_dt(ChemicalHeatingSpecies(:, :, :, i)/Element_Charge), &
                        units='eV/m3/s', longName=trim(chem_longnames(i)))
     enddo
     call c%put_field('Chemical Heating', &                                  ! no ghosts * per-dim * ghosted * ghosted
-                     ChemicalHeatingRate*cp(:, :, 1:nAlts, iBlock)* &
+                     per_dt(ChemicalHeatingRate*cp(:, :, 1:nAlts, iBlock)* &
                      Rho(1:nLons, 1:nLats, 1:nAlts, iBlock)* &
-                     TempUnit(1:nLons, 1:nLats, 1:nAlts)/Element_Charge/Dt)
+                     TempUnit(1:nLons, 1:nLats, 1:nAlts)/Element_Charge))
   end subroutine fill_3dchm
 
   ! ---------------------------------------------------------------------------
@@ -1344,8 +1344,8 @@ contains
     call c%put_field('Rho', Rho(1:nLons, 1:nLats, 1:nAlts, iBlock))
     call c%put_field('Vn (east)', Velocity(1:nLons, 1:nLats, 1:nAlts, iEast_, iBlock))
     call c%put_field('Vn (north)', Velocity(1:nLons, 1:nLats, 1:nAlts, iNorth_, iBlock))
-    call c%put_field('Visc_Ve_rshear', Viscosity(:, :, 1:nAlts, iEast_)/dt)     ! alt ghosts only
-    call c%put_field('Visc_Vn_rshear', Viscosity(:, :, 1:nAlts, iNorth_)/dt)    ! alt ghosts only
+    call c%put_field('Visc_Ve_rshear', per_dt(Viscosity(:, :, 1:nAlts, iEast_)))     ! alt ghosts only
+    call c%put_field('Visc_Vn_rshear', per_dt(Viscosity(:, :, 1:nAlts, iNorth_)))    ! alt ghosts only
     call c%put_field('IonDrag_east', IonDrag(:, :, :, iEast_))
     call c%put_field('IonDrag_north', IonDrag(:, :, :, iNorth_))
     call c%put_field('Horiz_Adv_Ve', HorizAdvection(:, :, :, 1))
@@ -1457,7 +1457,7 @@ contains
     call c%put_field('PE_int', PhotoElectronHeating2d)
     ! ChemicalHeating2d is J/m2 deposited over the step; /Dt gives the W/m2
     ! the registry promises.
-    call c%put_field('Chem_int', ChemicalHeating2d/Dt)
+    call c%put_field('Chem_int', per_dt(ChemicalHeating2d))
     call c%put_field('RadCool_int', RadiativeCooling2d)
     call c%put_field('CO2Cool_int', CO2Cooling2d)
     call c%put_field('NOCool_int', NOCooling2d)
@@ -1720,10 +1720,10 @@ contains
 
     call c%put_field('RadCooling', [RadCooling(1, 1, jAlt, iBlock)*TempUnit(1, 1, jAlt)], units='K/s')
     call c%put_field('EuvHeating', [EuvHeating(1, 1, jAlt, iBlock)*TempUnit(1, 1, jAlt)], units='K/s')
-    call c%put_field('Conduction', [Conduction(1, 1, jAlt)*TempUnit(1, 1, jAlt)/dt])
+    call c%put_field('Conduction', [per_dt(Conduction(1, 1, jAlt)*TempUnit(1, 1, jAlt))])
     call c%put_field('Heat Balance Total', [(EuvHeating(1, 1, jAlt, iBlock)*TempUnit(1, 1, jAlt) - &
                                            RadCooling(1, 1, jAlt, iBlock)*TempUnit(1, 1, jAlt) + &
-                                           Conduction(1, 1, jAlt)*TempUnit(1, 1, jAlt)/dt)], units='K/s')
+                                           per_dt(Conduction(1, 1, jAlt)*TempUnit(1, 1, jAlt)))], units='K/s')
     call c%put_field('Heating Efficiency', [HeatingEfficiency_CB(1, 1, jAlt, iBlock)], units='')
   end subroutine fill_0dall
 
@@ -1846,7 +1846,7 @@ contains
 
     do iAlt = 1, nAlts
       iiAlt = max(min(iAlt, nAlts), 1)
-      tmp_data(iAlt) = real(Conduction(1, 1, iiAlt)*TempUnit(1, 1, iiAlt)/dt, output_kind)
+      tmp_data(iAlt) = real(per_dt(Conduction(1, 1, iiAlt)*TempUnit(1, 1, iiAlt)), output_kind)
     enddo
     call c%put('Conduction (K/s)', tmp_data)
 
@@ -1854,13 +1854,13 @@ contains
       iiAlt = max(min(iAlt, nAlts), 1)
       ! MoleConduction from the last (full-Dt) calc_conduction_1d call is a
       ! Kelvin temperature change over the step, so /dt alone gives K/s.
-      tmp_data(iAlt) = real(MoleConduction(1, 1, iiAlt)/dt, output_kind)
+      tmp_data(iAlt) = real(per_dt(MoleConduction(1, 1, iiAlt)), output_kind)
     enddo
     call c%put('Molecular Conduction (K/s)', tmp_data)
 
     do iAlt = 1, nAlts
       iiAlt = max(min(iAlt, nAlts), 1)
-      tmp_data(iAlt) = real(ChemicalHeatingRate(1, 1, iiAlt)*TempUnit(1, 1, iiAlt)/dt, output_kind)
+      tmp_data(iAlt) = real(per_dt(ChemicalHeatingRate(1, 1, iiAlt)*TempUnit(1, 1, iiAlt)), output_kind)
     enddo
     call c%put('Chemical Heating (K/s)', tmp_data)
 
@@ -1905,7 +1905,7 @@ contains
     do i = 1, nSpeciesTotal
       do iAlt = 1, nAlts
         iiAlt = max(min(iAlt, nAlts), 1)
-        tmp_data(iAlt) = real(NeutralSourcesTotal(iiAlt, i)/dt, output_kind)
+        tmp_data(iAlt) = real(per_dt(NeutralSourcesTotal(iiAlt, i)), output_kind)
       enddo
       call c%put('Production Rate '//trim(cSpecies(i)), tmp_data)
     enddo
@@ -1913,7 +1913,7 @@ contains
     do i = 1, nSpeciesTotal
       do iAlt = 1, nAlts
         iiAlt = max(min(iAlt, nAlts), 1)
-        tmp_data(iAlt) = real(NeutralLossesTotal(iiAlt, i)/dt, output_kind)
+        tmp_data(iAlt) = real(per_dt(NeutralLossesTotal(iiAlt, i)), output_kind)
       enddo
       call c%put('Loss Rate '//trim(cSpecies(i)), tmp_data)
     enddo
@@ -1991,7 +1991,7 @@ contains
     do i = 1, nReactions
       do iAlt = 1, nAlts
         iiAlt = max(min(iAlt, nAlts), 1)
-        tmp_data(iAlt) = real(ChemicalHeatingSpecies(1, 1, iiAlt, i)/Element_Charge/Dt, output_kind)
+        tmp_data(iAlt) = real(per_dt(ChemicalHeatingSpecies(1, 1, iiAlt, i)/Element_Charge), output_kind)
       enddo
       if (i == 1) call c%put('N2+ + e', tmp_data)
       if (i == 2) call c%put('O2+ + e', tmp_data)
@@ -2023,10 +2023,10 @@ contains
 
     do iAlt = 1, nAlts
       iiAlt = max(min(iAlt, nAlts), 1)
-      tmp_data(iAlt) = real(ChemicalHeatingRate(1, 1, iiAlt)* &
+      tmp_data(iAlt) = real(per_dt(ChemicalHeatingRate(1, 1, iiAlt)* &
                             cp(1, 1, iiAlt, 1)* &
                             Rho(1, 1, iiAlt, 1)* &
-                            TempUnit(1, 1, iiAlt)/Element_Charge/Dt, output_kind)
+                            TempUnit(1, 1, iiAlt)/Element_Charge), output_kind)
     enddo
     call c%put('Chemical Heating', tmp_data)
   end subroutine fill_1dchm
@@ -2345,6 +2345,23 @@ contains
       call c%put(trim(UsrVars0D(i)%name), real(UserData1D(iiLon, iiLat, iiAlt, i), output_kind))
     enddo
   end subroutine fill_0dusr
+
+  ! ---------------------------------------------------------------------------
+  ! per_dt: x/Dt, or 0 when Dt is 0.  The forced output before the first step
+  ! runs with Dt = 0 and nothing accumulated yet, so the per-step rates are
+  ! written as zeros there instead of 0/0 (which traps in -debug builds).
+  ! For Dt > 0 this is exactly x/Dt, element by element.
+  ! ---------------------------------------------------------------------------
+  elemental real function per_dt(x)
+    use ModGITM, only: Dt
+    real, intent(in) :: x
+
+    if (Dt > 0.0) then
+      per_dt = x/Dt
+    else
+      per_dt = 0.0
+    endif
+  end function per_dt
 
   ! ---------------------------------------------------------------------------
   ! inter2d: Bilinear interpolation on a 2D grid slice.
