@@ -40,6 +40,8 @@ def remap_variable_names(varsIn):
         'V!Dn!N(up,NO)': 'Vv_NO (m/s)',
         'V!Dn!N(up,He)': 'Vv_He (m/s)',
         '[O_4SP_!U+!N]': '[O+] (/m3)',
+        '[O_4SP_+]': '[O+] (/m3)',  # name used before the O(4S)+ rename
+        '[O(4S)+]': '[O+] (/m3)',
         '[NO!U+!N]': '[NO+] (/m3)',
         '[O!D2!U+!N]': '[O2+] (/m3)',
         '[N!D2!U+!N]': '[N2+] (/m3)',

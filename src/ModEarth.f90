@@ -300,7 +300,7 @@ contains
     cSpecies(iCO2_) = "CO2"
 !    cSpecies(iAr_)   = "Ar"
 
-    cIons(iO_4SP_) = "O_4SP_+"
+    cIons(iO_4SP_) = "O(4S)+"
     cIons(iO2P_) = "O2+"
     cIons(iN2P_) = "N2+"
     cIons(iNP_) = "N+"
