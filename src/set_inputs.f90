@@ -1534,7 +1534,8 @@ subroutine set_inputs
           write(*, *) "netCDFFileName is inserted into every netcdf filename"
           write(*, *) "(e.g. 3DALL_storm1.nc); restarted single/daily runs"
           write(*, *) "with a name get a restart_yymmdd_hhmmss stamp so each"
-          write(*, *) "leg writes its own file."
+          write(*, *) "leg writes its own file. Without a name, a restarted"
+          write(*, *) "single/daily run continues the previous leg's file."
           write(*, *) ""
         endif
 

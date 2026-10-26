@@ -20,16 +20,18 @@
 !   lon_start   = iBlockLon_0 * nLons_i + 1   ! 1-based start in global array
 !   lat_start   = iBlockLat_0 * nLats_i + 1
 !
-! For 3D types (nGhostCells=2): nX=nLons+4, nY=nLats+4, nZ=nAlts+4
-!   Interior stripped: buffer(:, 3:nX-2, 3:nY-2, 3:nZ-2)
-! For 2D types (nGhostCells=0): nX=nLons, nY=nLats, nZ=1
-!   No stripping: full buffer used
+! Ghost cells follow the container's nGhostCells, not the type's rank:
+!   nGhostCells=2: nX=nLons+4, nY=nLats+4, nZ=nAlts+4, interior stripped
+!   nGhostCells=0: the buffer is the interior already, used as is
+! (several 3D types, e.g. 3DTHM/3DCHM/3DMOH, are interior-only).
 !
 ! All registered variables (including the full Longitude/Latitude/Altitude
 ! fields) are written as data variables via varids(:).  Separate 1-D
-! coordinate variables (time, and lon/lat/z in degrees/km) are also defined
-! in define_file_structure; data variables additionally reference the full
-! coordinate fields through their CF coordinates= attribute.
+! coordinate variables (time, lon/lat in degrees, z in km; mlon/mlat on
+! magnetic grids) are also defined in define_file_structure; data variables
+! additionally reference the full coordinate fields through their CF
+! coordinates= attribute.  Geographic lon/lat are converted from the model's
+! radians to degrees on write (nc_is_geo_lonlat).
 !
 ! Build requirements (auto-detected by src/Makefile via pnetcdf-config):
 !   Compile: -I$(PNETCDF_INC)  and  -DHavePNetCDF
@@ -68,13 +70,16 @@ module ModOutputNetCDF
   !                  time (leg start, NOT wall clock), only for named
   !                  single/daily restart legs, and kept for the whole leg so
   !                  daily rollover files carry it too
-  ! nc_guard_active: single/daily runs that are restarts or carry a run name
-  !                  refuse (stop_gitm) to overwrite an existing target file;
-  !                  unnamed fresh runs keep the status-quo clobber
+  ! nc_guard_active: named single/daily runs refuse (stop_gitm) to overwrite
+  !                  an existing target file; unnamed fresh runs keep the
+  !                  status-quo clobber
+  ! nc_restart_append: unnamed single/daily restart legs continue the previous
+  !                  leg's file when it exists (nc_adopt_file)
   logical :: nc_names_built = .false.
   character(len=200) :: nc_name_part = ''
   character(len=40) :: nc_restart_part = ''
   logical :: nc_guard_active = .false.
+  logical :: nc_restart_append = .false.
 
 #endif
 
@@ -112,6 +117,8 @@ contains
     character(len=80) :: varname
     character(len=20) :: cDate
     character(len=16) :: cLonName, cLatName, cLonUnits, cLatUnits
+    logical :: IsNewFile, IsAdopted
+    integer :: nMissing
     ! Double, not the container's real*4: float32 seconds-since-1965 can only
     ! resolve ~128 s at modern dates, which visibly corrupts the time axis.
     real(kind=8) :: time_val(1)
@@ -210,14 +217,21 @@ contains
                    trim(nc_restart_part)//"_"//trim(cDate)//".nc"
       endif
 
-      if (trim(filename) /= trim(nc_type_filenames(iTypeIdx))) then
+      IsNewFile = trim(filename) /= trim(nc_type_filenames(iTypeIdx))
+      ! An unnamed restart leg continues the previous leg's file if there is one
+      IsAdopted = .false.
+      if (IsNewFile .and. nc_restart_append) &
+        call nc_adopt_file(trim(filename), iTypeIdx, nDims, nLons_g, nLats_g, &
+                           nAlts_g, IsAdopted)
+
+      if (IsNewFile .and. .not. IsAdopted) then
         ! ---- New file: create and define everything ----
         nc_type_records(iTypeIdx) = 1
         nc_type_filenames(iTypeIdx) = trim(filename)
         if (nc_guard_active) then
-          ! Restart legs and named runs must never overwrite prior data: an
-          ! existing target means a same-leg re-run or a scenario branch in
-          ! place. NF_NOCLOBBER makes the existence check atomic.
+          ! Named runs must never overwrite prior data: an existing target
+          ! means a same-leg re-run or a scenario branch in place.
+          ! NF_NOCLOBBER makes the existence check atomic.
           ierr = nfmpi_create(iCommGITM, trim(filename), &
                               IOR(NF_NOCLOBBER, NF_64BIT_DATA), MPI_INFO_NULL, ncid)
           if (ierr == NF_EEXIST) then
@@ -227,8 +241,6 @@ contains
               write(*, *) "Refusing to overwrite it. To proceed:"
               write(*, *) " - re-running the same leg: move/delete the file, or"
               write(*, *) "   change netCDFFileName in #NETCDFOPTIONS"
-              write(*, *) " - restarting an unnamed run: set netCDFFileName in"
-              write(*, *) "   #NETCDFOPTIONS (each leg then gets its own file)"
               write(*, *) " - branching a scenario: use a fresh run directory"
               write(*, *) ""
             endif
@@ -248,15 +260,18 @@ contains
         call define_file_structure(nDims, nVars, iTypeIdx, nLons_g, nLats_g, nAlts_g, &
                                    iTimeArray, isMultiTime=.true.)
       else
-        ! ---- Same file: reopen and append next record ----
-        nc_type_records(iTypeIdx) = nc_type_records(iTypeIdx) + 1
-        ierr = nfmpi_open(iCommGITM, trim(filename), NF_WRITE, MPI_INFO_NULL, ncid)
-        if (ierr /= NF_NOERR) then
-          ! Collective reopen over iCommGITM: consistent ierr, MPI_Abort backstop.
-          write(*, *) "ModOutputNetCDF: nfmpi_open failed for ", trim(filename), &
-            ": ", nfmpi_strerror(ierr)
-          call stop_gitm("ModOutputNetCDF: cannot reopen output file; see message above")
+        if (.not. IsAdopted) then
+          ! ---- Same file: reopen and append next record ----
+          nc_type_records(iTypeIdx) = nc_type_records(iTypeIdx) + 1
+          ierr = nfmpi_open(iCommGITM, trim(filename), NF_WRITE, MPI_INFO_NULL, ncid)
+          if (ierr /= NF_NOERR) then
+            ! Collective reopen over iCommGITM: consistent ierr, MPI_Abort backstop.
+            write(*, *) "ModOutputNetCDF: nfmpi_open failed for ", trim(filename), &
+              ": ", nfmpi_strerror(ierr)
+            call stop_gitm("ModOutputNetCDF: cannot reopen output file; see message above")
+          endif
         endif
+        nMissing = 0
         if (allocated(varids)) deallocate(varids, coordids)
         ndimid = merge(3, 2, nDims == 3)
         allocate(varids(nVars), coordids(ndimid))
@@ -269,10 +284,17 @@ contains
           varname = trim(containers(iTypeIdx)%vars(iV)%name)
           call sanitize_nc_name(varname)
           ierr = nfmpi_inq_varid(ncid, trim(varname), varids(iV))
-          if (ierr /= NF_NOERR) &
+          if (ierr /= NF_NOERR) then
+            nMissing = nMissing + 1
             write(*, *) "netcdf_open: inq_varid '", trim(varname), "' failed: ", &
-            nfmpi_strerror(ierr)
+              nfmpi_strerror(ierr)
+          endif
         enddo
+        ! A previous leg's file must hold every variable this leg writes
+        if (IsAdopted .and. nMissing > 0) &
+          call stop_gitm("ModOutputNetCDF: "//trim(filename)// &
+                         " lacks variables this run writes (output settings"// &
+                         " changed since the previous leg); move it aside")
         ierr = nfmpi_inq_varid(ncid, "time", nc_varid_time)
         call nc_coord_names(containers(iTypeIdx)%gridKind, &
                             cLonName, cLatName, cLonUnits, cLatUnits)
@@ -362,9 +384,9 @@ contains
     if (len_trim(NetCdfFileName) > 0) &
       nc_name_part = '_'//trim(NetCdfFileName)
 
-    ! Restart stamp: only named single/daily legs get one. Unnamed restarted
-    ! legs target the prior leg's file and are stopped by the guard instead
-    ! (multi-leg append runs must opt in with a run name).
+    ! Restart stamp: only named single/daily legs get one, so each named leg
+    ! writes its own file. Unnamed restarted legs target the prior leg's file
+    ! and continue it (nc_adopt_file).
     if (UseNetcdfMultiTime .and. DoRestart .and. &
         len_trim(NetCdfFileName) > 0) then
       call time_real_to_int(RestartTime, iLegTime)
@@ -374,9 +396,107 @@ contains
         iLegTime(4), iLegTime(5), iLegTime(6)
     endif
 
-    nc_guard_active = UseNetcdfMultiTime .and. &
-                      (DoRestart .or. len_trim(NetCdfFileName) > 0)
+    nc_guard_active = UseNetcdfMultiTime .and. len_trim(NetCdfFileName) > 0
+    nc_restart_append = UseNetcdfMultiTime .and. DoRestart .and. &
+                        len_trim(NetCdfFileName) == 0
   end subroutine build_leg_names
+
+  ! ==================================================================
+  ! Unnamed restart legs: continue the previous leg's file, if it exists.
+  !
+  ! Opens filename and picks the record this write goes to: the last record
+  ! if it holds this same time (a restart can re-emit the epoch the previous
+  ! leg ended on), otherwise the one after it. A file with records after
+  ! this time means the previous run went past the restart point; netcdf
+  ! cannot drop those records, so stop rather than leave them behind the new
+  ! data. The grid must also match. On success the file is open (ncid), its
+  ! name and record are cached, and IsAdopted is true; if the file does not
+  ! exist, IsAdopted is false and the caller creates it.
+  ! ==================================================================
+  subroutine nc_adopt_file(filename, iTypeIdx, nDims, nLons_g, nLats_g, nAlts_g, &
+                           IsAdopted)
+    use ModGITM, only: iCommGITM, iProc
+    use ModTime, only: CurrentTime
+    use ModOutputProducers, only: containers
+
+    character(len=*), intent(in) :: filename
+    integer, intent(in) :: iTypeIdx, nDims
+    integer(kind=MPI_OFFSET_KIND), intent(in) :: nLons_g, nLats_g, nAlts_g
+    logical, intent(out) :: IsAdopted
+
+    ! Times are seconds since 1965 in double; restored restart times can
+    ! differ from the written ones only by rounding.
+    real(kind=8), parameter :: TimeTol = 1.0d-3
+    character(len=16) :: cLonName, cLatName, cLonUnits, cLatUnits
+    character(len=32) :: cNames(3)
+    integer(kind=MPI_OFFSET_KIND) :: nWant(3), nHave, nRec, tstart(1), tcnt(1)
+    real(kind=8), allocatable :: times(:)
+    logical :: IsThere
+    integer :: ierr, dimid, varid, iD, iRecord
+
+    IsAdopted = .false.
+
+    ! One rank decides, so every rank takes the same (collective) branch
+    if (iProc == 0) inquire(file=filename, exist=IsThere)
+    call MPI_Bcast(IsThere, 1, MPI_LOGICAL, 0, iCommGITM, ierr)
+    if (.not. IsThere) return
+
+    ierr = nfmpi_open(iCommGITM, filename, NF_WRITE, MPI_INFO_NULL, ncid)
+    if (ierr /= NF_NOERR) then
+      write(*, *) "ModOutputNetCDF: nfmpi_open failed for ", filename, &
+        ": ", nfmpi_strerror(ierr)
+      call stop_gitm("ModOutputNetCDF: cannot reopen the previous leg's file; see message above")
+    endif
+
+    ! The grid has to be the one this run writes
+    call nc_coord_names(containers(iTypeIdx)%gridKind, &
+                        cLonName, cLatName, cLonUnits, cLatUnits)
+    cNames = [character(len=32) :: cLonName, cLatName, 'z']
+    nWant = [nLons_g, nLats_g, nAlts_g]
+    do iD = 1, merge(3, 2, nDims == 3)
+      ierr = nfmpi_inq_dimid(ncid, trim(cNames(iD)), dimid)
+      if (ierr == NF_NOERR) ierr = nfmpi_inq_dimlen(ncid, dimid, nHave)
+      if (ierr /= NF_NOERR .or. nHave /= nWant(iD)) &
+        call stop_gitm("ModOutputNetCDF: "//filename//" has a different grid"// &
+                       " than this run; move it aside")
+    enddo
+
+    ierr = nfmpi_inq_dimid(ncid, "time", dimid)
+    if (ierr == NF_NOERR) ierr = nfmpi_inq_dimlen(ncid, dimid, nRec)
+    if (ierr == NF_NOERR) ierr = nfmpi_inq_varid(ncid, "time", varid)
+    if (ierr /= NF_NOERR) &
+      call stop_gitm("ModOutputNetCDF: "//filename//" has no time axis; move it aside")
+
+    iRecord = 1
+    if (nRec > 0) then
+      allocate(times(nRec))
+      tstart(1) = 1_MPI_OFFSET_KIND
+      tcnt(1) = nRec
+      ierr = nfmpi_get_vara_double_all(ncid, varid, tstart, tcnt, times)
+      if (ierr /= NF_NOERR) &
+        call stop_gitm("ModOutputNetCDF: cannot read the time axis of "//filename)
+      if (abs(times(nRec) - CurrentTime) <= TimeTol) then
+        iRecord = int(nRec)
+      elseif (times(nRec) < CurrentTime) then
+        iRecord = int(nRec) + 1
+      else
+        if (iProc == 0) then
+          write(*, *) ""
+          write(*, *) "ModOutputNetCDF: ", filename, " has records after this"
+          write(*, *) "leg's first output time (the previous run went past the"
+          write(*, *) "restart point). To proceed: move the file aside, or set"
+          write(*, *) "netCDFFileName in #NETCDFOPTIONS (each leg then gets its own file)"
+          write(*, *) ""
+        endif
+        call stop_gitm("netcdf output file extends past the restart; see message above")
+      endif
+      deallocate(times)
+    endif
+
+    nc_type_filenames(iTypeIdx) = filename
+    nc_type_records(iTypeIdx) = iRecord
+    IsAdopted = .true.
+  end subroutine nc_adopt_file
 #endif
 
   ! ==================================================================
@@ -712,9 +832,9 @@ contains
   ! because it stays correct if that guard is ever lifted, and because the
   ! legacy/mpiio path -- which DOES write 1DNEW -- would need it.
   !
-  ! Magnetic coordinates are absent on purpose -- 2DMEL's MagLonMC/MagLatMC
-  ! axes and the 'Magnetic Latitude'/'Magnetic Longitude' fields are already
-  ! in degrees and must not be scaled.
+  ! Magnetic coordinates are absent on purpose -- 2DMEL's mlon/mlat axes and
+  ! the 'Magnetic Latitude'/'Magnetic Longitude' fields are already in
+  ! degrees and must not be scaled.
   ! ---------------------------------------------------------------------------
   logical function nc_is_geo_lonlat(name)
     character(len=*), intent(in) :: name
