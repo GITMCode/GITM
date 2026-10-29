@@ -680,7 +680,9 @@ contains
     enddo
 
     ! Time coordinate variable
-    ! 1965 is left out in case we need to change the base-year
+    ! The base year is an argument, not part of the format string, so it can
+    ! become iYearBase once ModTimeConvert is compiled standalone (see the
+    ! commented-out import in netcdf_open_file).
     write(coord_units, '("seconds since ",i4.4,"-01-01 00:00:00")') 1965
     ierr = nfmpi_def_var(ncid, "time", NF_DOUBLE, 1, [dimid_time], nc_varid_time)
     attlen = int(len_trim(coord_units), MPI_OFFSET_KIND)
