@@ -143,7 +143,7 @@ checkoutputs(){
     return 0
   fi
 
-  # 2. Diff standard global log files (existing logic)
+  # 2. Diff the global log files against the reference
   if [ $do_compare = true ]; then
     echo
     # Capture diff status without triggering set -e
@@ -160,7 +160,7 @@ checkoutputs(){
     fi
   fi
 
-  # 3. Physical value/sanity checks — only for BACKEND_TEST runs
+  # 3. Physical value/sanity checks (BACKEND_TEST runs only)
   if [[ "$test_uam" == *"BACKEND_TEST"* ]] && [ -x ../validate_outputs.py ]; then
     echo ">> Running output validation checks..."
     local python_status=0
@@ -237,7 +237,7 @@ run_a_test(){
   # Copy UAM
   ln -sf $test_uam UAM.in
   
-  # Pre-test Isolation: Sweep clean any intermediate output files from previous runs
+  # Remove output files left over from previous runs
   rm -f GITM.DONE UA/data/*.nc UA/data/*.bin UA/data/*.header UA/data/*.dat UA/data/*.b[0-9][0-9][0-9][0-9]
 
   # An append RESTART leg must reopen the files its first leg wrote. A first
@@ -282,7 +282,7 @@ run_a_test(){
         fi
       fi
 
-      # SUCCESS Cleanup
+      # Passed: clean up
       if [ $do_save = false ]; then
         # For backend tests, stage outputs for cross-backend comparison.
         # Only the first run per backend is kept (e.g. netcdf test 13 is
@@ -299,7 +299,7 @@ run_a_test(){
   else
       printf "\n\n>>> $test_uam   UNSUCCESSFUL! <<< \n\n"
       
-      # FAILURE Preservation: Move failed outputs to a dedicated folder to keep them safe for debugging
+      # Failed: keep the outputs for debugging
       mkdir -p UA/data/failed_outputs_$test_uam
       mv UA/data/*.nc UA/data/*.bin UA/data/*.header UA/data/*.dat UA/data/*.b[0-9][0-9][0-9][0-9] UA/data/failed_outputs_$test_uam/ 2>/dev/null || true
       rm -f GITM.DONE
@@ -327,17 +327,17 @@ print_summary(){
   echo "TEST SUMMARY"
   echo "============================================================"
   echo "Total tests: $total_count"
-  echo "✓ Passed: $passed_count"
+  echo "Passed: $passed_count"
 
   if [ $failed_required_count -gt 0 ]; then
-    echo "> Failed (REQUIRED): $failed_required_count"
+    echo "Failed (required): $failed_required_count"
     for test in "${failed_required[@]}"; do
       echo "   - $test"
     done
   fi
 
   if [ $failed_optional_count -gt 0 ]; then
-    echo "> Failed (optional): $failed_optional_count"
+    echo "Failed (optional): $failed_optional_count"
     for test in "${failed_optional[@]}"; do
       echo "   - $test (netcdf - optional feature)"
     done
@@ -448,7 +448,7 @@ do_tests(){
         if [ $status = 2 ]; then
           # Optional backend failure - still fails workflow, but report as warning
           echo ""
-          echo "⚠ Test failed: $test_uam (netcdf - optional feature)"
+          echo "WARNING: Test failed: $test_uam (netcdf - optional feature)"
         fi
         exit 1
       fi

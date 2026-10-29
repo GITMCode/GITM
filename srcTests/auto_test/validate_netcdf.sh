@@ -36,7 +36,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DEFAULT_UAM_12="${SCRIPT_DIR}/UAM.in.12.BACKEND_TEST.mpiio.test"
 DEFAULT_UAM_13="${SCRIPT_DIR}/UAM.in.13.BACKEND_TEST.netcdf.test"
 # Test 14 was split: 14.0 writes the appended single file, 14.1 restarts into
-# it. Only 14.0 is a default here -- 14.1 depends on 14.0 having just run, so
+# it. Only 14.0 is a default here. 14.1 depends on 14.0 having just run, so
 # it is opted into explicitly rather than run standalone.
 DEFAULT_UAM_14="${SCRIPT_DIR}/UAM.in.14.0.BACKEND_TEST.netcdf.appendSingle.test"
 RESTART_UAM_14="${SCRIPT_DIR}/UAM.in.14.1.BACKEND_TEST.netcdf.appendSingle.RESTART.test"
@@ -109,7 +109,7 @@ outdir_name_for() {
   local f
   f="$(basename "$1" .test)"
   f="${f#UAM.in.}"      # strip leading UAM.in.
-  f="${f//[. ]/_}"      # dots/spaces → underscores
+  f="${f//[. ]/_}"      # dots/spaces -> underscores
   next_outdir "$f"
 }
 
@@ -210,7 +210,7 @@ check_mpiio_outputs() {
     if [[ "$count" -gt 0 ]]; then
       any_container=true
       echo ""
-      echo "  [${ctype}] ${count} .bin file(s) found — running value checks"
+      echo "  [${ctype}] ${count} .bin file(s) found, running value checks"
       if "$PYTHON" "$CHECK_SCRIPT" "$outdir" --type "$ctype"; then
         : # pass
       else
@@ -224,7 +224,7 @@ check_mpiio_outputs() {
 
   if ! $any_container; then
     echo ""
-    echo "  FAIL: no container .bin files found — container output may not be working"
+    echo "  FAIL: no container .bin files found. Container output may not be working"
     pass=false
   fi
 
@@ -297,12 +297,12 @@ check_outputs() {
       append_flag="--append"
     fi
     if "$PYTHON" "$CHECK_SCRIPT" "$nc_file" $append_flag; then
-      : # pass — check_2dmel_nc.py already printed per-check results
+      : # pass (check_2dmel_nc.py already printed per-check results)
     else
       pass=false
     fi
 
-    # --- Append mode time-dimension check (belt-and-suspenders) ---
+    # --- Append mode time-dimension check ---
     if [[ "$is_append" == "true" ]] && command -v ncdump &>/dev/null; then
       echo ""
       echo "  [ncdump time dimension cross-check]"

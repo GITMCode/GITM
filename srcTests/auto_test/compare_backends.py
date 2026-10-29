@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 """
-compare_backends.py — Cross-backend output comparison for GITM.
+Cross-backend output comparison for GITM.
 
-Verifies that all backends produce numerically identical scientific data
-given the same physics configuration.  This is the strongest test that a
-backend is correctly serializing and reconstructing output data.
+Checks that all backends produce the same scientific data (to within
+tolerance) given the same physics configuration.
 
 Usage:
     python3 compare_backends.py dir1/ dir2/ [dir3/ ...]
@@ -69,7 +68,7 @@ def load_binary_outputs(directory):
 
     Returns {timestep_key: data_dict, ...} where data_dict has a 'vars' list
     and varname -> np.array mappings.  Ghost cells are stripped so arrays are
-    (nAlts, nLats, nLons) — matching the netcdf layout — ready for ravel comparison.
+    (nAlts, nLats, nLons), the netcdf layout, so they can be raveled and compared.
     Geographic lon/lat (BIN_RADIAN_COORDS) are converted radians -> degrees
     so they compare directly against netcdf, which stores degrees.
     """
@@ -245,7 +244,7 @@ def compare_timestep(name_a, data_a, name_b, data_b,
             denom = np.where(denom > 0, denom, 1.0)
             max_rel = float((diff / denom).max())
             n_bad = int(np.sum(~np.isclose(a, b, rtol=rtol, atol=atol)))
-            print(f"    [FAIL] '{vname}': {name_a} vs {name_b} — "
+            print(f"    [FAIL] '{vname}': {name_a} vs {name_b}, "
                   f"max_abs={max_abs:.3e} max_rel={max_rel:.3e} "
                   f"mismatched={n_bad}/{a.size}")
             passed = False
@@ -309,9 +308,9 @@ def main():
     # Summary
     print("\n" + "=" * 60)
     if all_passed:
-        print("  Cross-backend comparison PASSED — all backends agree. ✓")
+        print("  Cross-backend comparison PASSED. All backends agree.")
     else:
-        print("  FAILED — backend outputs disagree!")
+        print("  Cross-backend comparison FAILED. Backend outputs disagree!")
     print("=" * 60)
     sys.exit(0 if all_passed else 1)
 

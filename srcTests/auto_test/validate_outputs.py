@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-validate_outputs.py — Physical sanity checks for GITM scientific outputs.
+Physical sanity checks for GITM scientific outputs.
 
 Checks absolute physical constraints: coordinate units, sign, non-zero where
 required.  Cross-backend numerical agreement is handled by compare_backends.py.
@@ -28,7 +28,7 @@ except ImportError:
 
 verbose = False
 
-# .bin files write these in radians (as develop does); netcdf converts them to
+# .bin files write these in radians; netcdf converts them to
 # degrees.  Every other lat/lon-named variable is degrees in both backends.
 BIN_RADIAN_COORDS = ('Longitude', 'Latitude', 'GeoLon', 'GeoLat')
 
@@ -265,7 +265,7 @@ def main():
 
     print("\n" + "=" * 60)
     if overall:
-        print(f"  All {n_files} output file(s) passed validation. ✓")
+        print(f"  All {n_files} output file(s) passed validation.")
     else:
         print(f"  {n_failed}/{n_files} file(s) FAILED validation.")
     print("=" * 60)
