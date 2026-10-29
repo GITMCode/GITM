@@ -462,8 +462,8 @@ subroutine dipole_to_geo(MagLat, MagLon, Alt, gLat, gLon)
   ypp = r*cos(alat)*sin(alon)
   zpp = r*sin(alat)
 
-  call rot_y(xpp, ypp, zpp, xp, yp, zp, MagneticPoleTilt)
-  call rot_z(xp, yp, zp, xt, yt, zt, MagneticPoleRotation)
+  call rot_y(xpp, ypp, zpp, xp, yp, zp, -MagneticPoleTilt)
+  call rot_z(xp, yp, zp, xt, yt, zt, -MagneticPoleRotation)
 
   x = xt + xDipoleCenter
   y = yt + yDipoleCenter
@@ -527,8 +527,8 @@ subroutine mydipole(GeoLat, GeoLon, GeoAlt, LShell, aLat, aLon, BEast, BNorth, B
 
   rs = sqrt(xs**2 + ys**2 + zs**2)
 
-  call rot_z(xt, yt, zt, xp, yp, zp, -MagneticPoleRotation)
-  call rot_y(xp, yp, zp, xpp, ypp, zpp, -MagneticPoleTilt)
+  call rot_z(xt, yt, zt, xp, yp, zp, MagneticPoleRotation)
+  call rot_y(xp, yp, zp, xpp, ypp, zpp, MagneticPoleTilt)
 
   xypp = sqrt(xpp**2 + ypp**2)
   xzpp = sqrt(xpp**2 + zpp**2)
@@ -544,8 +544,8 @@ subroutine mydipole(GeoLat, GeoLon, GeoAlt, LShell, aLat, aLon, BEast, BNorth, B
   by = DipoleStrength*r3*3*zpp*ypp/xyzpp**2
   bz = DipoleStrength*r3/xyzpp**2*(2*zpp**2 - xypp**2)
 
-  call rot_y(bx, by, bz, bxp, byp, bzp, MagneticPoleTilt)
-  call rot_z(bxp, byp, bzp, bxpp, bypp, bzpp, MagneticPoleRotation)
+  call rot_y(bx, by, bz, bxp, byp, bzp, -MagneticPoleTilt)
+  call rot_z(bxp, byp, bzp, bxpp, bypp, bzpp, -MagneticPoleRotation)
 
   bVertical = bxpp*cos(lat)*cos(lon) + bypp*cos(lat)*sin(lon) + bzpp*sin(lat)
   bNorth = -(bxpp*sin(lat)*cos(lon) + bypp*sin(lat)*sin(lon) - bzpp*cos(lat))

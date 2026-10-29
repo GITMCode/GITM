@@ -230,8 +230,9 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
             sLat = -100.0
           endif
 
-          ReferenceAlt = Altitude_GB(1, 1, 0, 1)/1000.0
-          AltMinIono = ReferenceAlt
+          ! Map the MC grid at the lowest physical grid cell's altitude
+          ! (same alt the field is traced from)
+          ReferenceAlt = Altitude_GB(1, 1, 1, 1)/1000.0
 
           call apex_to_geo(date, aLat, aLon, ReferenceAlt, &
                            gLat, gLon, sLat, sLon)
@@ -244,8 +245,7 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
           aLat = MagLatMC(i, j)
           aLon = MagLonMC(i, j)
 
-          ReferenceAlt = Altitude_GB(1, 1, 0, 1)/1000.0
-          AltMinIono = ReferenceAlt
+          ReferenceAlt = Altitude_GB(1, 1, 1, 1)/1000.0
 
           call dipole_to_geo(aLat, aLon, ReferenceAlt, gLat, gLon)
           GeoLatMC(i, j) = gLat*pi/180.0
@@ -324,18 +324,21 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
   ! Lat is in degrees = -90 - 90
   !/
 
+  ! Reset the magnetic-grid arrays
   DivJuFieldLineMC = -1.0e32
-  SigmaHallMC = 0.0
-  SigmaPedersenMC = 0.0
-  LengthMC = -1.0e32
+  SigmaHallMC = -1.0e32  !0.0
+  SigmaPedersenMC = -1.0e32  !0.0
+  LengthMC = -1.0e32  !0.0
+  SigmaPPMC = 0.0   !-1.0e32
+  SigmaLLMC = 0.0   !-1.0e32
+  SigmaHHMC = -1.0e32
+  SigmaCCMC = -1.0e32
+  SigmaLPMC = -1.0e32
+  SigmaPLMC = -1.0e32
   KDlmMC = -1.0e32
   KDpmMC = -1.0e32
   KlmMC = -1.0e32
   KpmMC = -1.0e32
-  SigmaLLMC = 0.0
-  SigmaPPMC = 0.0
-  SigmaLPMC = -1.0e32
-  SigmaPLMC = -1.0e32
 
   UAi_nLats = nMagLats
   UAi_nMlts = nMagLons + 1
@@ -344,6 +347,10 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
 
   do iBlock = 1, nBlocks
     if (Debug) write(*, *) 'DBG: starting block ', iBlock, ' of ', nBlocks
+
+    ! Update collisions & gyrofreqs, this runs before calc_GITM_sources
+    call calc_rates(iBlock)
+    call calc_collisions(iBlock)
 
     e_density = IDensityS(:, :, :, ie_, iBlock)
 
@@ -767,21 +774,6 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
     if (UseBarriers) call MPI_BARRIER(iCommGITM, iError)
 
     call calc_mltlocal
-
-    DivJuFieldLineMC = -1.0e32
-    SigmaHallMC = -1.0e32  !0.0
-    SigmaPedersenMC = -1.0e32  !0.0
-    LengthMC = -1.0e32  !0.0
-    SigmaPPMC = 0.0   !-1.0e32
-    SigmaLLMC = 0.0   !-1.0e32
-    SigmaHHMC = -1.0e32
-    SigmaCCMC = -1.0e32
-    SigmaLPMC = -1.0e32
-    SigmaPLMC = -1.0e32
-    KDlmMC = -1.0e32
-    KDpmMC = -1.0e32
-    KlmMC = -1.0e32
-    KpmMC = -1.0e32
 
     do i = 1, nMagLons
       do j = 1, nMagLats
@@ -1286,12 +1278,12 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
 
   solver_a_mc = 4*deltalmc**2*sigmappmc/cos(MagLatMC*pi/180)
   solver_b_mc = 4*deltapmc**2*cos(MagLatMC*pi/180)*sigmallmc
-  solver_c_mc = deltalmc*deltapmc*(SigmaPLmc + SigmaLPmc)
+  solver_c_mc = sign(1.0, MagLatMC)*deltalmc*deltapmc*(SigmaPLmc + SigmaLPmc)
 
-  solver_d_mc = 2.0*deltalmc*deltapmc**2 &
-                *(sign(1.0, MagLatMC)*dSigmaPLdpMC &
-                  - sin(MagLatMC*pi/180)*sigmallmc &
-                  + cos(MagLatMC*pi/180)*dSigmaLLdlMC)
+  solver_d_mc = 2.0*sign(1.0, MagLatMC)*deltalmc*deltapmc**2 &
+                *(dSigmaPLdpMC &
+                  - sign(1.0, MagLatMC)*sin(MagLatMC*pi/180)*sigmallmc &
+                  + sign(1.0, MagLatMC)*cos(MagLatMC*pi/180)*dSigmaLLdlMC)
 
   solver_e_mc = 2.0*deltalmc**2*deltapmc*( &
                 dSigmaPPdpMC/cos(MagLatMC*pi/180) + dSigmaLPdlMC*sign(1.0, MagLatMC))
@@ -1591,8 +1583,14 @@ subroutine UA_calc_electrodynamics(UAi_nMLTs, UAi_nLats)
     DoTestMe = .false.
   endif
 
-  call gmres(matvec_gitm, b, x, .true., nX, &
-             MaxIteration, Residual, 'abs', nIteration, iError, DoTestMe)
+  if (useGmres) then
+    call gmres(matvec_gitm, b, x, .true., nX, &
+               MaxIteration, Residual, 'abs', nIteration, iError, DoTestMe)
+  else
+    nIteration = MaxIteration
+    call bicgstab(matvec_gitm, b, x, .true., nX, &
+                  Residual, 'abs', nIteration, iError, DoTestMe)
+  endif
 
   call end_timing("dynamo_solver")
 
@@ -2038,6 +2036,9 @@ subroutine UA_calc_electrodynamics_1d
   q2 = Element_Charge*Element_Charge
 
   do iBlock = 1, nBlocks
+
+    call calc_rates(iBlock)
+    call calc_collisions(iBlock)
 
     e_density = IDensityS(:, :, :, ie_, iBlock)
 

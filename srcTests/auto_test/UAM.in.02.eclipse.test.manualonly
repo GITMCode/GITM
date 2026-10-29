@@ -17,11 +17,6 @@ F		usebarriers - forces the code to stop and wait more often
     0.0700000
       400.000
 
-#RESTART
-F
-
-This is a course grid (5 deg x 5 deg), so should be adjusted:
-
 #GRID
 8		lons
 4		lats
@@ -46,9 +41,6 @@ This is a course grid (5 deg x 5 deg), so should be adjusted:
 00		minute
 00		second
 
-#AUSMSOLVER
-T
-
 #LOGFILE
 1.0		dt for output to a log file
 
@@ -61,7 +53,6 @@ T
 #APEX
 T		Use apex magnetic coordinate system
 
-Low-latitude dynamo (only run with higher res). Turn on for higher res sims:
 #DYNAMO
 T		UseDynamo
 45.0		DynamoHighLatBoundary

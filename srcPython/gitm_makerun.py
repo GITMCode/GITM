@@ -49,10 +49,7 @@ def parse_args(plotTypes):
     parser.add_argument('-dynamo', \
                         help='turn on DYNAMO', \
                         action="store_true")
-    
-    parser.add_argument('-fang', \
-                        help='turn on Fang [2010] auroral energy deposition', \
-                        action="store_true")
+
 
     parser.add_argument('-fta', \
                         help='turn on FTA auroral model', \
@@ -232,6 +229,43 @@ def write_uam(file, uam):
 #
 # ----------------------------------------------------------------------
 
+def write_sme_file(data, message = "none"):
+
+    ymd = data['times'][0].strftime('%Y%m%d')
+    fileout = 'ae' + ymd + '.dat'
+    print('  --> Writing file ' + fileout)
+        
+    l0 = 'File created by python code using write_sme_file\n'
+    l1 = '============================================================\n'
+    l2 = '<year>  <month>  <day>  <hour>  <min>  <sec>  '
+    l2 = l2 + '<SME (nT)>  <SML (nT)>  <SMU (nT)>\n'
+
+    fp = open(fileout, 'wb')
+    fp.write(l0.encode())
+    fp.write("\n".encode())
+    if (message != "none"):
+        m = message + "\n"
+        fp.write(m.encode())
+    fp.write(l1.encode())
+    fp.write(l2.encode())
+
+    for i, t in enumerate(data['times']):
+        ae = data['ae'][i]
+        al = data['al'][i]
+        au = data['au'][i]
+        out = " %8.2f %8.2f %8.2f" % (ae, al, au)
+        ymdhms = t.strftime('%Y  %m  %d  %H  %M  %S')
+        line = ymdhms + out + "\n"
+        fp.write(line.encode())
+
+    fp.close()
+
+    return fileout
+
+# ----------------------------------------------------------------------
+#
+# ----------------------------------------------------------------------
+
 def download_sme_data(start, end):
 
     startStr = start.strftime('%Y-%m-%dT%M:%D')
@@ -240,8 +274,11 @@ def download_sme_data(start, end):
     userid = 'ridley'
     (status,idxdata) = SuperMAGGetIndices(userid, start, length, 'all')
 
-    nPts = len(idxdata['tval'])
-    print('  --> Found %d points' % nPts)
+    if ('tval' in idxdata.keys()):
+        nPts = len(idxdata['tval'])
+        print('  --> Found %d points' % nPts)
+    else:
+        nPts = 0
 
     if (nPts > 0):
         
@@ -276,8 +313,7 @@ def download_sme_data(start, end):
         fp.close()
 
     else:
-        
-        fileout = 'none.txt'
+        fileout = 'none'
         print('  --> ERROR!! No AE data downloaded, no file written!!')
 
     return fileout
@@ -499,6 +535,8 @@ uam['#GRID'] = {
 # ----------------------------------------
 # Grab IMF from OMNIWeb:
 
+omniSmeFile = 'none'
+
 if (args.imf):
     print('--> Processing IMF file : ')
 
@@ -511,6 +549,10 @@ if (args.imf):
         message = "Downloaded from OMNIWeb and processed by omniweb_read.py\n"
         write_swmf_imf_file(data, imfFile, message)
         print(' --> Downloaded IMF file : ', imfFile)
+        # write an AE file also, since SuperMAG is not always available
+        message = "Data downloaded from OMNIWeb and written in SME format\n"
+        print("-> Writing SME type of file")
+        omniSmeFile = write_sme_file(data, message = message)
     else:
         imfFile = args.imf
         
@@ -639,6 +681,13 @@ if (args.sme):
     # find hemispheric power file:
     if (args.sme.find('find') == 0):
         smeFile = download_sme_data(start, end)
+        if (smeFile == 'none'):
+            if (omniSmeFile == 'none'):
+                print('Requested AE indices download, but that did not happen!')
+                print('Was not able to find AE/SME files!')
+                exit()
+            else:
+                smeFile = omniSmeFile
     else:
         smeFile = args.sme
     if (os.path.exists(smeFile)):
@@ -651,7 +700,7 @@ if (args.sme):
     else:
         print('--> ERROR : SME file does not exist : ', smeFile)
         print('  Taking no action! Check output file!!!')
-
+        exit()
         
 # ----------------------------------------
 # Thermal Conduction
@@ -698,56 +747,39 @@ if (args.dynamo):
 
 
 # ----------------------------------------
-# Fang
+# Aurora. Model is chosen with the first line of #ELECTRODYNAMICS,
+# and the auroral types with #AURORATYPES
 
-if (args.fang):
-    # turn on fang auroral energy deposition
-    uam['#FANGENERGY'] = {
-        0 : ['T', ' Use Fang 2010 energy deposition'] }
-    
-    print('--> Turning on Fang auroral energy deposition')
-    
-# ----------------------------------------
-# FTA model of the aurora
+def set_aurora_model(uam, model):
+    # Keep the dt's and potential model that the baseline file has
+    old = uam.get('#ELECTRODYNAMICS', {})
+    def old_value(i, default):
+        return old[i][0] if i in old else default
+    uam['#ELECTRODYNAMICS'] = {
+        0 : [model, ' Auroral model'],
+        1 : [old_value(1, '60.0'), ' dt for aurora'],
+        2 : [old_value(2, 'weimer05'), ' Potential model'],
+        3 : [old_value(3, '60.0'), ' dt for potential'] }
+    return uam
+
+if (args.fta and args.newell):
+    print('--> ERROR : -fta and -newell are both set; using FTA')
 
 if (args.fta):
-    # turn on fta auroral precip model
-    uam['#FTAMODEL'] = {
-        0 : ['T', ' Use FTA model of the aurora'] }
-    uam['#IEMODELS'] = {
-        0 : ['FTA', ' Use FTA model of the aurora'],
-        1 : ['Weimer', ' Use Weimer potential model'] }
+    uam = set_aurora_model(uam, 'FTA')
     print('--> Turning on FTA Model')
-
-    # Turn off other aurora
-    uam['#NEWELLAURORA'] = {
-        0 : ['F', ' Use Newell Ovation model of the aurora'] }
-    print(' --> Turning off Newell Auroral Model')
 
     if (not args.sme):
         print(' --> WARNING : sme not set, so may not work right! Careful!')
 
-# ----------------------------------------
-# Newell model of the aurora
-
-if (args.newell):
-    # turn on fang auroral energy deposition
-    uam['#NEWELLAURORA'] = {
-        0 : ['T', ' Use Newell Ovation model of the aurora'],
-        1 : ['T', ' Use Diffuse Aurora'],
-        2 : ['T', ' Use Monoenergetic Aurora'],
-        3 : ['F', ' Use Wave driven Aurora'],
-        4 : ['T', ' Remove spikes'],
-        5 : ['T', ' Average patterns'] }   
+elif (args.newell):
+    uam = set_aurora_model(uam, 'ovation')
+    uam['#AURORATYPES'] = {
+        0 : ['T', ' UseDiffuseAurora'],
+        1 : ['T', ' UseMonoAurora'],
+        2 : ['F', ' UseWaveAurora'],
+        3 : ['F', ' UseIonAurora'] }
     print('--> Turning on Newell Ovation Model')
-
-    uam['#IEMODELS'] = {
-        0 : ['OVATION', ' Use OVATION model of the aurora'],
-        1 : ['Weimer', ' Use Weimer potential model'] }
-    
-    uam['#FTAMODEL'] = {
-        0 : ['F', ' Use FTA model of the aurora'] }
-    print(' --> Turning off FTA Model')
 
     if (not args.imf):
         print(' --> WARNING : imf not set, so may not work right! Careful!')
@@ -760,8 +792,10 @@ if (fileout.find('none') == 0):
 if ((doRestart) and (len(args.restarttime) >= 8)):
     fileStart = fileout + '.Start'
     fileRestart = fileout + '.Restart'
-    fileout = fileStart
-
+else:
+    fileStart = fileout + '.Start'
+fileout = fileStart
+    
 # Want a restart, but don't write out two files:
 if ((doRestart) and (len(args.restarttime) < 8)):
     print(' --> Turning Restart to True')

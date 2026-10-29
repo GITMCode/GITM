@@ -82,7 +82,7 @@ F		if you want to run with msis and iri only (i.e. not GITM)
 
 #ALTITUDE
 100.0		minimum altitude to use
-600.0		maximum altitude to use (ignored unless the following is F)
+1000.0		maximum allowed altitude
 T		use stretched grid
 
 #INITIAL

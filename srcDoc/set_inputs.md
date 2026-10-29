@@ -57,14 +57,45 @@ This sets the ending time of the simulation.
 
 ### ALTITUDE
 
-For Earth, the AltMin is the only variable used here. The altitudes are
-set to 0.3 times the scale height reported by MSIS, at the equator for
-the specified F107 and F107a values.`
+With a stretched grid (`UseStretchedAltitude = T`), altitudes are spaced
+`dHFactor` times the scale height reported by MSIS at the equator, starting
+from AltMin. AltMax is a maximum allowed altitude, not a target: if the grid
+built at `dHFactor` fits below it that spacing is used, and if it overshoots
+`dHFactor` is reduced until the top level fits. `dHFactor` is never raised,
+so a grid that cannot reach AltMax stops short of it. Give a negative AltMax
+to ask for no ceiling, leaving `AltMaxLimit` (`ModInputs.f90`, 1100 km on
+Earth) as the only one.
+
+With `UseStretchedAltitude = F` the grid is uniform between AltMin and
+AltMax, `dHFactor` is unused, and AltMax must be given.
 
     #ALTITUDE
     AltMin                (real, km)
     AltMax                (real, km)
     UseStretchedAltitude  (logical)
+
+
+### DHFACTOR
+
+This sets the vertical spacing, in units of scale height. The altitudes
+are spaced this many scale heights apart, using MSIS (on Earth) near the
+subsolar point.
+
+Left unset, `dHFactor` starts at 0.3, the coarsest spacing GITM is tested
+at, and is reduced as far as needed to keep the top of the grid under AltMax
+(see `#ALTITUDE`). Setting it here caps that search at your value instead;
+setting it alongside AltMax skips the search and uses both as given, which
+is how to run coarser than 0.3 or above `AltMaxLimit`.
+
+The spacing and top that were actually used are echoed to
+`run_information.txt`, so those record the grid that ran rather than the
+request. A run reporting a `dHFactor` below 0.3 was limited by AltMax, and
+the startup message names the `nAlts` to recompile with to get the spacing
+back.
+
+    #DHFACTOR
+    dHFactor              (real, scale-heights)
+
 
 ### GRID
 
@@ -263,6 +294,25 @@ altitude grid, and drive the lower boundary conditions.
     f107  (real)
     f107a (real - 81 day average of f107)
 
+### NGDC_INDICES
+
+Reads time-varying drivers from a file in the NGDC/SPIDR text format. This
+is the usual way to give GITM a time-varying F10.7: `UA/DataIn/f107.txt`.
+
+    #NGDC_INDICES
+    filename  (string)
+
+The reader takes whichever of these blocks the file contains:
+
+- F10.7: `#Element: observed`, `adjusted` or `flux`
+- Kp, Ap and Dst: `#Element: kp`, `ap`, `dst`
+- IMF Bx, By and Bz (only from an `#Table: IMFMin` table), and solar wind
+  speed (`flow`, `swVelX`, `swVelY`, `swVelZ`). If the header mentions GSE,
+  the IMF is rotated to GSM.
+- Hemispheric power: `#Element: power`
+
+F10.7a is not read from the file: GITM computes it as needed.
+
 ### ELECTRODYNAMICS
 
 Sets the sources for, and the time for updating, the high-latitude (and low-latitude)
@@ -274,7 +324,17 @@ See [the electrodynamics page](internals/electrodynamics.md) for more details
     AuroralModel     [fta], fre, pem, ovation, hpi/ihp, amie, zero, etc.
     DtAurora         (real, seconds [60.0])
     PotentialModel   [weimer05], hepmay, amie, zero, etc.
-    DtPotential      (real, seconds [60.0])'
+    DtPotential      (real, seconds [60.0])
+
+### IEREFERENCEALT
+
+The altitude (km) where the high-latitude drivers meet the grid. The aurora is
+mapped from the magnetic grid at this altitude, and the hemispheric power is
+integrated over cells at this altitude. The nearest model level is used, 
+and it is printed at startup.
+
+    #IEREFERENCEALT
+    IEReferenceAlt   (real, km [120.0])
 
 
 ### HPI
@@ -284,6 +344,24 @@ This sets the hemispheric power of the aurora. Typical it ranges from
 
     #HPI
     HemisphericPower  (real)
+
+### NOAAHPI_INDICES
+
+Reads a time-varying hemispheric power (GW) from a NOAA POES hemispheric
+power file. Both NOAA layouts are accepted.
+The hemispheric power drives the `fre`/`ihp`/`hpi` and `pem` auroral models,
+and `NormalizeAuroraToHP` in `#AURORAMODS` scales the aurora to it.
+
+    #NOAAHPI_INDICES
+    filename       (string)
+    doSeparateHPI  (logical [F], optional)
+
+The file holds a value for each hemisphere, tagged `(N)` or `(S)`. With
+`doSeparateHPI = F` the two are merged into one time series used for both
+hemispheres. With `T` each hemisphere gets its own power, and GITM stops if
+the file does not have enough points in each hemisphere.
+
+The hemispheric power can only be set once: GITM stops if `#SME_INDICES` also sets it.
 
 ### KP
 
@@ -305,6 +383,46 @@ the MHD_INDICES command to have dynamic driving conditions.
     by  (real)
     bz  (real)
     vx  (real)
+    swn (real)
+
+### SME_INDICES
+
+Reads the auroral electrojet indices (AE, AL and AU) from an OMNI/SuperMAG
+file. The `fta` auroral model needs AU and AL. Optionally, the
+hemispheric power can be derived from AE as well.
+
+    #SME_INDICES
+    SMEFile        (string)
+    OnsetFile      (string, 'none' usually)
+    doUseAeForHp   (logical [F])
+    doSeparateHPI  (logical [F])
+
+- `SMEFile`: rows of `year month day hour minute second AE AL AU`. If the
+  first line starts with `File` (a SuperMAG download header), everything up
+  to the `<year>` column-name line is skipped. Rows with any value of 90000
+  or more in magnitude (fill values) are skipped.
+- `OnsetFile`: a substorm onset list, `year month day hour minute mlat mlt`
+  per row, or `none`. Nothing in GITM currently uses the onset list, so
+  `none` is the normal choice.
+- `doUseAeForHp`: if `T`, the hemispheric power is set from AE as
+  HP = 0.102 AE + 8.953 GW
+  ([Wu et al., 2021](https://doi.org/10.1029/2020SW002629)). The hemispheric
+  power can only be set once: GITM stops if `#NOAAHPI_INDICES` also sets it.
+- `doSeparateHPI`: only used when `doUseAeForHp = T`. If `T`, the
+  hemispheric power is split between the hemispheres with a 10% seasonal
+  factor: HP_N = (1 + 0.1 cos(DoY)) HP and
+  HP_S = (1 − 0.1 cos(DoY)) HP.
+
+### SMESINGLE
+
+Sets one AU and one AL value (nT) for the whole run, instead of reading
+them from a file with `#SME_INDICES`. This is enough to drive the `fta`
+auroral model with steady conditions. Only AU and AL are set: AE and the
+hemispheric power are not derived from them.
+
+    #SMESINGLE
+    au  (real, nT)
+    al  (real, nT, normally negative)
 
 ### MHD_INDICES
 
@@ -321,6 +439,57 @@ This is for a FISM or some other solar spectrum file.
     #EUV_DATA
     UseEUVData            (logical)
     cEUVFile              (string)
+    EUV_Ratio_Empirical   (real, optional)
+
+`EUV_Ratio_Empirical` mixes the empirical spectrum into the FISM data:
+0 is all FISM, 1 is all empirical. FISM is less energetic than EUVAC and
+Tobiska, so blending is a way to sit between them.
+
+**Blending is off by default.** Omit the fourth line and the ratio follows
+`UseEUVData` alone — 0 when it is T, 1 when it is F — so the spectrum is
+whichever source you picked, unmixed. A value below 1 requires
+`UseEUVData` to be T, since with no FISM flux to blend in it would scale
+the whole spectrum towards zero; GITM stops rather than run that.
+
+Note that [`#EUVSCALE`](#euvscale) multiplies only the FISM term, so a
+blend scales in proportion to how much FISM is in it.
+
+To leave blending off, omit the fourth line entirely. GITM reads it only
+when the line after the filename parses as a number, so a stray value
+sitting there — say an argument whose own `#COMMAND` header was commented
+out — is silently taken as the ratio.
+
+### B107
+
+Use B10.7 in place of F10.7, via an F10.7 -> B10.7 lookup table, for the
+empirical EUV models (EUVAC, Tobiska, Ridley), MSIS (the initial state and
+the lower boundary) and the NO photodissociation rate. IRI, RCMR and the
+`F107`/`F107A` log columns keep raw F10.7; the log header says which index
+was used. B10.7 and FISM are mutually exclusive: GITM stops if `#B107 T` is
+combined with `#EUV_DATA T`.
+
+    #B107
+    UseB107      (logical [F])
+    cB107File    (string, optional [UA/DataIn/B107.dat])
+
+
+### EUVMODEL
+
+Chooses the empirical solar spectrum. EUVAC and Tobiska cover different
+wavelength ranges; when both are true they are averaged together over the
+overlap. `UseAboveHigh` and `UseBelowLow` extend the spectrum to longer and
+shorter wavelengths respectively, filling the bins the two models do not
+reach.
+
+    #EUVMODEL
+    UseEUVAC       (logical)
+    UseTobiska     (logical)
+    UseAboveHigh   (logical)
+    UseBelowLow    (logical)
+
+All four default to true. Setting all four to false selects the Ridley EUV
+model instead, which is the only way to reach it — there is no separate
+command for it.
 
 ### AURORAMODS
 
@@ -328,13 +497,20 @@ This is for modifying the aurora a bit. The NormalizeAuroraToHP variable
 calculates the modeled hemispheric power and then normalizes it the
 hemispheric power read in. AveEFactor - changes the aveE of the aurora
 by factor IsKappaAurora - use a kappa instead of Maxwellian
-AuroraKappa - kappa to use in the distribution
+AuroraKappa - kappa to use in the distribution.
+AllowAurWODiffuse - if T, the mono and wave aurora are applied even where
+there is no diffuse electron or ion aurora (by default they are only added
+where one of those is present).
+MaxAveEAurora - aurora with an average energy at or above this (keV) is
+ignored.
 
     #AURORAMODS
     NormalizeAuroraToHP    (logical)
-    AveEFactor             (real)
+    AveEFactor             (real [1.0])
     IsKappaAurora          (logical)
     AuroraKappa            (real)
+    AllowAurWODiffuse      (logical [F])
+    MaxAveEAurora          (real, keV [80.0])
 
 ### AURORATYPES
 
@@ -346,6 +522,14 @@ AMIE. The first three options (diffuse, mono, wave) are for electrons only.
     UseMonoAurora      (logical)
     UseWaveAurora      (logical)
     UseIonAurora       (logical)
+
+### HEAURORA
+
+This sets the He auroral ionization cross-section ratio. Default is 0.14 (on), set 
+to 0.0 to disable.
+
+    #HEAURORA
+    HeAuroraFactor       (real)
 
 ### USECUSP
 
@@ -436,22 +620,33 @@ For other planets, the vertical BCs can be set here.
     TempHeight     (real, Height of the middle of temp gradient)
     TempWidth      (real, Width of the temperature gradient)
 
-### MSISTIDES
+### TIDALMODEL
 
-This says how to use msis tides. The first argument is for using diurnal tide, the
-second is for using semi-diurnal tide and the third is to use terdiurnal
-tide.
+Selects the tides imposed at the lower boundary. The setting is
+case-insensitive.
 
-    #MSISTIDES
-    UseMSISDiurnal        (logical)
-    UseMSISSemidiurnal    (logical)
-    UseMSISTerdiurnal     (logical)
+    #TIDALMODEL
+    cTidalModel   (string [MSIS_ALL on Earth])
+
+- `MSIS_NONE`: MSIS with no tides
+- `MSIS_ALL` or `MSIS_DST`: MSIS diurnal, semidiurnal and terdiurnal tides
+  (the Earth default)
+- `MSIS_DS`: MSIS diurnal and semidiurnal tides
+- `MSIS_D`, `MSIS_S`, `MSIS_T`: a single MSIS component (diurnal,
+  semidiurnal or terdiurnal)
+- `HME`: TIDI Hough Mode Extension tides, from `UA/DataIn/Hme/`
+- `FILE`: tides from GITM 3D output files in the `#GITMBCS` directory
+- `zero`: the default on every planet except Earth. It leaves the MSIS tide
+  settings as they are, so on Earth all three MSIS tides stay on. Use
+  `MSIS_NONE` to turn them off.
+
+`HME` and `FILE` turn the MSIS tides off. Any other value stops GITM.
 
 ### MSISOBC
 
 UseOBCExperiment - use MSIS \[O\] BC shifted by 6 months Only applicable
 for MSIS00! MsisOblateFactor - alt = alt \* (1.0-f/2 + f\*cos(lat)) -
-seems like -0.1 works well
+Earth defaults are T / -0.1
 
     #MSISOBC
     UseOBCExperiment        (logical)
@@ -464,19 +659,6 @@ This toggles between using MSIS00 (false) and MSIS-2.1 (true)
     #MSIS21
     UseMsis21       (logical)
 
-
-### TIDES
-
-This says how to use tides. The first one is using MSIS with no tides.
-The second is using MSIS with full up tides. The third is using GSWM
-tides, while the forth is for experimentation with using WACCM tides.
-
-    #TIDES
-    UseMSISOnly        (logical)
-    UseMSISTides       (logical)
-    UseGSWMTides       (logical)
-    UseWACCMTides      (logical)
-    UseHmeTides        (logical)
 
 ### GSWMCOMP
 
@@ -591,8 +773,8 @@ far outside of expectations.
     #IONLIMITS
     MaxVParallel          (real, default=100 m/s)
     MaxEField             (real, default=0.1 V/m)
-    MinIonDensity         (real, default=100 m^-3)
-    MinIonDensityAdvect   (real, default=1e5 m^-3)
+    MinIonDensity         (real, default=10 m^-3)
+    MinIonDensityAdvect   (real, default=10 m^-3)
 
 ### NEUTRALLIMITS
 
@@ -623,6 +805,25 @@ EUV heating comes from Chemistry, so this typically is set to about 0.05 (5%).
 
     #NEUTRALHEATING
     NeutralHeatingEfficiency   (real)
+
+### EUVSCALE
+
+Flat scaling of the EUV spectrum, optionally varying with the driven 81-day
+mean F10.7. The multiplier is `EuvScaleBase + EuvScaleSlope*(F107a -
+EuvScaleF107aRef)`, floored at zero.
+
+    #EUVSCALE
+    EuvScaleBase           (real)
+    EuvScaleSlope          (real)
+    EuvScaleF107aRef       (real)
+
+**This scales the FISM flux only.** It was fit against FISM, so it does not
+touch the empirical models (EUVAC, Tobiska, Ridley). A run without
+[`#EUV_DATA`](#euv_data) is unaffected no matter what you set here, and a run
+that blends the two is scaled in proportion to its FISM fraction.
+
+The non-Earth defaults (1.0, 0.0, 150.0) leave the flux untouched. Earth
+overrides the first two to 1.075 and 0.0019.
 
 ### DON4SHACK
 
@@ -700,12 +901,20 @@ If you set them lower, the temperature will go up.
     #THERMALCONDUCTION
     ThermalConduction_AO2 (Conduction A(O2): 3.6e-4, real)
     ThermalConduction_AO  (Conduction A(O): 5.6e-4, real)
-    ThermalConduction_s   (Conduction s: 0.75, real)
+    ThermalConduction_s   (Conduction s: 0.72 on Earth, 0.69 otherwise, real)
 
 ### THERMALDIFFUSION
 
     #THERMALDIFFUSION
     KappaTemp0    (thermal conductivity, real)
+
+### DYNAMOSOLVER
+
+Selects the linear solver used for the dynamo. False (the default) uses
+bicgstab, which is faster; true selects gmres.
+
+    #DYNAMOSOLVER
+    UseGmres      (logical)
 
 ### DYNAMO
 
@@ -721,6 +930,34 @@ defaults are fine.
     MaxResidual            (V,real)
     IncludeCowling         (logical)
     DynamoLonAverage       (real)
+
+A number of additional, experimental options are also available. These do not need 
+to be included. After the above options:
+
+    DynamoFracPotentialCutoff        (real, default 0.0)
+    doDynamoHemisphericMirror        (logical, default T)
+    doUseMagnetoPotentialBCs         (logical, default T)
+    doDynamoLatBlend                 (logical, default T)
+    doDynamoSubtractEquatorialAvg    (logical, default T)
+
+In order:
+
+- **DynamoFracPotentialCutoff** allows the DynamoHighLatBoundary to move with the
+  high-latitude potential pattern. The default value of `0.0` keeps the boundary fixed at
+  `DynamoHighLatBoundary`. For values between (0-1], the dynamo boundary is placed where
+  the high-latitude potential falls below this percent of its maximum. In other words, if
+  `DynamoFracPotentialCutoff=0.05`, the dynamo is only solved in the region equatorward of
+  where the high-latitude potential is 5% of its maximum.
+- **doDynamoHemisphericMirror** toggles the hemispheric mirroring of the dynamo potential
+  after the solve.
+- **doUseMagnetoPotentialBCs** changes the boundary conditions used in the dynamo solve,
+  when True the high-latitude/magnetospheric potential is used as the boundary conditions.
+- **doDynamoLatBlend** toggles whether the high-latitude and dynamo potentials are
+  "blended" in a 20 degree latitude window. When False, the two are added together without
+  any transition region.
+- **doDynamoSubtractEquatorialAvg** by default, the equatorial average of the dynamo
+  potential is subteracted. Change this to False to not do that.
+
 
 ### DIFFUSION
 
@@ -743,12 +980,27 @@ in a while, so it would be good to check them in the code.
     #THERMO
     UseSolarHeating   (logical)
     UseJouleHeating   (logical)
-    UseAuroralHeating (logical)
     UseNOCooling      (logical)
     UseOCooling       (logical)
     UseConduction     (logical)
     UseTurbulentCond  (logical)
     UseIRHeating      (logical)
+
+### CO2FOMICHEV
+
+Turns on CO2 15 µm radiative cooling, using the Fomichev, Blanchet & Turner (1998, JGR 103(D10))
+parameterization and the tables in `UA/DataIn/Earth/Fomichev_Tables.txt`.
+This is the only CO2 cooling scheme for Earth, and it is off by default. It
+is only implemented for Earth: on other planets GITM prints a warning and
+does nothing.
+
+    #CO2FOMICHEV
+    UseCO2FomichevCooling  (logical [F])
+    CO2ppm                 (real, ppm [400.0])
+
+`CO2ppm` is used even when the cooling is off: it sets the CO2 mixing ratio
+at the lower boundary, and so the initial CO2 profile. The cooling tables
+cover 150 to 720 ppm; values outside that range use the nearest table.
 
 ### FORCING
 
@@ -777,12 +1029,12 @@ in a while, so it would be good to check them in the code.
 ### MODIFYPLANET
 
 You can play with planetary characteristics with this.  You can modify the rotation
-rate and the length of a year.
+rate, the length of a year and the tilt of the planet.
 
     #MODIFYPLANET
-    RotationPeriodInput        (real)
+    RotationPeriodInput        (real, seconds)
     DaysPerYearInput           (real)
-    DaysPerYearInput           (real)
+    PlanetTiltInput            (real, degrees)
 
 ### FIXTILT
 
@@ -800,15 +1052,22 @@ Sets whether to use a realistic magnetic field (T) or a dipole (F). This is for 
 
 ### DIPOLE
 
-Can set the dipole field to be centered, non-tilted dipole, or can set each of the 
-different parameters explicitely with this:
+Overrides the tilted, offset dipole when `#APEX` is F.
 
     #DIPOLE
-    MagneticPoleRotation   (real)
-    MagneticPoleTilt       (real)
-    xDipoleCenter          (real)
-    yDipoleCenter          (real)
-    zDipoleCenter          (real)
+    MagneticPoleRotation   (real)  east longitude of the dipole north pole, degrees
+    MagneticPoleTilt       (real)  colatitude of the dipole north pole, degrees
+    xDipoleCenter          (real)  dipole center offset, km
+    yDipoleCenter          (real)  (same, km)
+    zDipoleCenter          (real)  (same, km)
+
+The Earth defaults are the IGRF values: rotation 287.30, tilt 9.41, center
+(-398.3, 371.8, 227.5) km. 
+
+Setting all five values to zero gives a centered, untilted dipole whose axis is the
+geographic rotation axis, which aligns the magnetic and geographic grids. That is
+what the `2DGEL` magnetic-grid recipe under
+[`#STATISTICALMODELSONLY`](#statisticalmodelsonly) relies on.
 
 ## Misc
 
@@ -852,9 +1111,10 @@ caution.
 
 This is for Mars.
 
-    #DUST
-    cDustFile
-    cConrathFile
+    #DUSTDATA
+    UseDustDistribution  (logical)
+    cDustFile            (string)
+    cConrathFile         (string)
 
 ### DUST
 

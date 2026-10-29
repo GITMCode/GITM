@@ -28,11 +28,10 @@ subroutine advance
   ! These are a bunch of user-defined source terms
 
   if (RCMRFlag) call set_RCMR_estimations
-  if (UseGSWMTides) call update_tides
-  if (UseWACCMTides) call update_waccm_tides
   if (UseBcPerturbation) call get_mean_bcs
   if (UsePerturbation) call user_perturbation
   if (UseHmeTides) call update_hme_tides
+  if (UseFileTides) call update_file_tides
 
   if (.not. UseStatisticalModelsOnly) then
 

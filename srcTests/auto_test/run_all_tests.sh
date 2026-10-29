@@ -148,7 +148,7 @@ checkoutputs(){
     echo
     # Capture diff status without triggering set -e
     local diff_status=0
-    ../../../share/Scripts/DiffNum.pl -r=5e-5 -a=1e-1 -t ../ref_solns/log.$test_uam UA/data/log*.dat || diff_status=$?
+    ../../../share/Scripts/DiffNum.py -r=5e-5 -a=1e-2 -t ../ref_solns/log.$test_uam UA/data/log*.dat || diff_status=$?
 
     if [ $diff_status != 0 ]; then
       echo
@@ -303,6 +303,12 @@ run_a_test(){
       mkdir -p UA/data/failed_outputs_$test_uam
       mv UA/data/*.nc UA/data/*.bin UA/data/*.header UA/data/*.dat UA/data/*.b[0-9][0-9][0-9][0-9] UA/data/failed_outputs_$test_uam/ 2>/dev/null || true
       rm -f GITM.DONE
+      # paths relative to srcTests/auto_test/, where this script is run from
+      if [[ $do_compare = true && -f ../ref_solns/log.$test_uam ]]; then
+        printf "  To compare (from srcTests/auto_test/):\n"
+        printf "    ../../share/Scripts/DiffNum.py -r=5e-5 -a=1e-2 ref_solns/log.%s run/UA/data/failed_outputs_%s/log*.dat\n\n" \
+          "$test_uam" "$test_uam"
+      fi
 
       # Determine if this is optional or required backend
       local backend=$(get_backend_from_filename "$test_uam")

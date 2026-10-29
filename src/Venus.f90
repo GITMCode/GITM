@@ -3734,6 +3734,11 @@ END DO
              use ModInputs
 
              DtLTERadiation = 900.0
+             cTidalModel = "zero"
+             PhotoElectronHeatingEfficiency = 0.0
+             EuvScaleBase = 1.0
+             EuvScaleSlope = 0.0
+             ThermalConduction_s = 0.69
 
              return
 

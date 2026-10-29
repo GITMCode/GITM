@@ -172,6 +172,9 @@ module ModGITM
   real :: LocalTime(-1:nLons + 2)
 
   real :: SubsolarLatitude, SubsolarLongitude
+
+  integer :: iAltIERef = 1 ! index
+  real :: AltIERef = 0.0 ! Altitude, in m
   real :: MagneticPoleColat, MagneticPoleLon
   real :: CPCPn, CPCPs
   real :: HemisphericPowerNorth, HemisphericPowerSouth

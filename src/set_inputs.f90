@@ -19,7 +19,7 @@ subroutine set_inputs
   use ModInputs
   use ModSizeGitm
   use ModGITM, only: iProc, f107_est, f107a_est, f107_msis, f107a_msis, &
-                     PhotoElectronHeatingEfficiency_est, EDC_est !! Ankit23May16: Added EDC_est
+                     PhotoElectronHeatingEfficiency_est, EDC_est
   use ModTime
   use ModPlanet
   use ModSatellites
@@ -46,7 +46,7 @@ subroutine set_inputs
   character(len=iCharLen_)                 :: sIonChemistry, sNeutralChemistry
   character(len=iCharlen_), dimension(100) :: cTempLines
 
-  real :: Vx, Bx, Bz, By, Kp, HemisphericPower, tsim_temp
+  real :: Vx, Bx, Bz, By, Kp, HemisphericPower, tsim_temp, swN, au_val, al_val
   real :: EDC_est_tmp
   real*8 :: DTime
   logical :: HasSetAuroraMods = .false.
@@ -321,51 +321,24 @@ subroutine set_inputs
           enddo
         endif
 
-      case ("#TIDES")
-        call read_in_logical(UseMSISOnly, iError)
-        call read_in_logical(UseMSISTides, iError)
-        call read_in_logical(UseGSWMTides, iError)
-        call read_in_logical(UseWACCMTides, iError)
-        call read_in_logical(UseHmeTides, iError)
+      case ('#TIDALMODEL')
+        call read_in_string(cTidalModel, iError)
         if (iError /= 0) then
-          write(*, *) 'Incorrect format for #TIDES:'
-          write(*, *) 'This says how to use tides.  The first one is using'
-          write(*, *) 'MSIS with no tides.  The second is using MSIS with'
-          write(*, *) 'full up tides. The third is using GSWM tides, while'
-          write(*, *) 'the forth is for experimentation with using WACCM'
-          write(*, *) 'tides.'
-          write(*, *) '#TIDES'
-          write(*, *) 'UseMSISOnly        (logical)'
-          write(*, *) 'UseMSISTides       (logical)'
-          write(*, *) 'UseGSWMTides       (logical)'
-          write(*, *) 'UseWACCMTides      (logical)'
-          write(*, *) 'UseHmeTides        (logical)'
-        else
-          if (UseGSWMTides) UseMSISOnly = .true.
-          if (UseWACCMTides) UseMSISOnly = .true.
-
-          if (UseHmeTides) then
-            UseMSISOnly = .true.
-            UseMSISDiurnal = .false.
-            UseMSISSemidiurnal = .false.
-            UseMSISTerdiurnal = .false.
-          endif
-        endif
-
-      case ("#MSISTIDES")
-        call read_in_logical(UseMSISDiurnal, iError)
-        call read_in_logical(UseMSISSemidiurnal, iError)
-        call read_in_logical(UseMSISTerdiurnal, iError)
-        if (iError /= 0) then
-          write(*, *) 'Incorrect format for #MSISTIDES:'
-          write(*, *) 'This says how to use msis tides.  '
-          write(*, *) 'The first one is using diurnal tide'
-          write(*, *) 'The first one is using semi-diurnal tide'
-          write(*, *) 'The first one is using terdiurnal tide'
-          write(*, *) '#MSISTIDES'
-          write(*, *) 'UseMSISDiurnal        (logical)'
-          write(*, *) 'UseMSISSemidiurnal    (logical)'
-          write(*, *) 'UseMSISTerdiurnal     (logical)'
+          write(*, *) 'Incorrect format for #TIDALMODEL:'
+          write(*, *) '#TIDALMODEL'
+          write(*, *) 'cTidalModel        (string)'
+          write(*, *) ''
+          write(*, *) 'options include:'
+          ! These set flags in set_tidal_flags (in tides.f90)
+          write(*, *) 'MSIS_NONE - use MSIS with NO tides'
+          write(*, *) 'MSIS_ALL - use MSIS diurnal, semi-diurnal, and terdiurnal tides (Earth default)'
+          write(*, *) 'MSIS_D - use MSIS diurnal only'
+          write(*, *) 'MSIS_S - use MSIS semi-diurnal only'
+          write(*, *) 'MSIS_T - use MSIS terdiurnal only'
+          write(*, *) 'MSIS_DS - use MSIS diurnal and semi-diurnal only'
+          write(*, *) 'MSIS_DST - use MSIS diurnal, semi-diurnal, and terdiurnal tides'
+          write(*, *) 'HME - Use TIDI Hough Mode Extension tides'
+          write(*, *) 'FILE - Use GITM-style 3D files to specify tides'
         endif
 
       case ("#MSISOBC")
@@ -376,7 +349,7 @@ subroutine set_inputs
           write(*, *) 'UseOBCExperiment - use MSIS [O] BC shifted by 6 months'
           write(*, *) '                   Only applicable for MSIS00!'
           write(*, *) 'MsisOblateFactor - alt = alt * (1.0-f/2 + f*cos(lat))'
-          write(*, *) '                 - seems like -0.1 works well'
+          write(*, *) '                 - Earth default -0.1'
           write(*, *) '#MSISOBC'
           write(*, *) 'UseOBCExperiment        (logical)'
           write(*, *) 'MsisOblateFactor           (real)'
@@ -386,20 +359,18 @@ subroutine set_inputs
         call read_in_logical(UseMsis21, iError)
         if (iError /= 0) then
           write(*, *) 'Incorrect format for #MSIS21:'
-          write(*, *) 'This toggles between using MSIS00 (false) and MSIS-2.1 (true)'
-          write(*, *) '#MSISOBC'
+          write(*, *) 'This toggles between using MSIS00 (false)'
+          write(*, *) 'and MSIS-2.1 (true)'
+          write(*, *) '#MSIS21'
           write(*, *) 'UseMsis21       (logical)'
         endif
 
-        !xianjing
       case ("#USESECONDSINFILENAME")
         call read_in_logical(UseSecondsInFilename, iError)
         if (iError /= 0) then
           write(*, *) 'Incorrect format for #USESECONDSINFILENAME:'
           write(*, *) 'This says whether you want seconds in output file'
           write(*, *) 'name. F means no seconds in output file name.'
-        else
-          if (UseSecondsInFilename) UseSecondsInFilename = .false.
         endif
 
       case ("#DUSTDATA")
@@ -408,9 +379,10 @@ subroutine set_inputs
         call read_in_string(cConrathFile, iError)
         if (iError /= 0) then
           write(*, *) 'Incorrect format for #DUSTDATA'
-          write(*, *) '#DUST'
-          write(*, *) 'cDustFile'
-          write(*, *) 'cConrathFile'
+          write(*, *) '#DUSTDATA'
+          write(*, *) 'UseDustDistribution  (logical)'
+          write(*, *) 'cDustFile            (string)'
+          write(*, *) 'cConrathFile         (string)'
         endif
 
       case ("#OVERWRITEIONOSPHERE")
@@ -644,6 +616,7 @@ subroutine set_inputs
         call read_in_real(by, iError)
         call read_in_real(bz, iError)
         call read_in_real(vx, iError)
+        call read_in_real(swN, iError)
         if (iError /= 0) then
           write(*, *) 'Incorrect format for #SOLARWIND:'
           write(*, *) 'This sets the driving conditions for the high-latitude'
@@ -655,11 +628,13 @@ subroutine set_inputs
           write(*, *) 'by  (real)'
           write(*, *) 'bz  (real)'
           write(*, *) 'vx  (real)'
+          write(*, *) 'swn  (real)'
           IsDone = .true.
         else
           call IO_set_imf_by_single(by)
           call IO_set_imf_bz_single(bz)
           call IO_set_sw_v_single(abs(vx))
+          call IO_set_sw_n_single(swN)
         endif
 
       case ("#MHD_INDICES")
@@ -698,6 +673,30 @@ subroutine set_inputs
 
         endif
 
+      case ("#DTEUV")
+        call read_in_real(dTEUV, iError)
+
+        if (iError /= 0) then
+          write(*, *) 'Incorrect format for #DTEUV'
+          write(*, *) 'Sets the time for updating the EUV drivers'
+          write(*, *) '#DTEUV'
+          write(*, *) 'dtEUV      (real, seconds, 60 default)'
+          IsDone = .true.
+        endif
+
+      case ("#IEREFERENCEALT")
+        call read_in_real(IEReferenceAlt, iError)
+        if (iError /= 0) then
+          write(*, *) 'Incorrect format for #IEREFERENCEALT'
+          write(*, *) 'Altitude (km) where the aurora is mapped from the'
+          write(*, *) 'magnetic grid, the hemispheric power is integrated,'
+          write(*, *) 'and the dynamo grid is placed. The nearest altitude'
+          write(*, *) 'is used'
+          write(*, *) '#IEREFERENCEALT'
+          write(*, *) 'IEReferenceAlt   (real, km [120.0])'
+          IsDone = .true.
+        endif
+
       case ("#ELECTRODYNAMICS")
         call read_in_string(cAuroralModel, iError)
         call read_in_real(dTAurora, iError)
@@ -711,9 +710,9 @@ subroutine set_inputs
           write(*, *) 'the potential and the aurora.'
           write(*, *) '#ELECTRODYNAMICS'
           write(*, *) 'AuroralModel     [fta], fre, pem, ovation, hpi/ihp, amie, zero, etc.'
-          write(*, *) 'DtAurora    (real, seconds [60.0])'
+          write(*, *) 'DtAurora         (real, seconds [60.0])'
           write(*, *) 'PotentialModel   [weimer05], hepmay, amie, zero, etc.'
-          write(*, *) 'DtPotential (real, seconds [60.0])'
+          write(*, *) 'DtPotential      (real, seconds [60.0])'
           IsDone = .true.
         endif
 
@@ -833,6 +832,18 @@ subroutine set_inputs
           write(*, *) 'UseMonoAurora (logical)'
           write(*, *) 'UseWaveAurora (logical)'
           write(*, *) 'UseIonAurora (logical)'
+          IsDone = .true.
+        endif
+
+      case ("#HEAURORA")
+        call read_in_real(HeAuroraFactor, iError)
+        if (iError /= 0) then
+          write(*, *) 'Incorrect format for #HEAURORA'
+          write(*, *) 'This toggles He auroral ionization.'
+          write(*, *) '0.14 is the default, set to 0.0 to disable'
+          write(*, *) ''
+          write(*, *) '#HEAURORA'
+          write(*, *) 'HeAuroraFactor (real)'
           IsDone = .true.
         endif
 
@@ -972,8 +983,8 @@ subroutine set_inputs
           write(*, *) '#IONLIMITS'
           write(*, *) "MaxVParallel     (real, default=100 m/s)"
           write(*, *) "MaxEField        (real, default=0.1 V/m)"
-          write(*, *) "MinIonDensity    (real, default=100 m^-3)"
-          write(*, *) "MinIonDensityAdvect    (real, default=1e5 m^-3)"
+          write(*, *) "MinIonDensity    (real, default=10 m^-3)"
+          write(*, *) "MinIonDensityAdvect    (real, default=10 m^-3)"
           IsDone = .true.
         endif
 
@@ -983,7 +994,7 @@ subroutine set_inputs
         if (iError /= 0) then
           write(*, *) 'Incorrect format for #NEUTRALLIMITS:'
           write(*, *) ''
-          write(*, *) '#IONLIMITS'
+          write(*, *) '#NEUTRALLIMITS'
           write(*, *) "MinNeutralDensity    (real, default=100 m^-3)"
           write(*, *) "MinNeutralDensityAdvect    (real, default=1e5 m^-3)"
           IsDone = .true.
@@ -1011,6 +1022,20 @@ subroutine set_inputs
           IsDone = .true.
         endif
 
+      case ("#EUVSCALE")
+        call read_in_real(EuvScaleBase, iError)
+        call read_in_real(EuvScaleSlope, iError)
+        call read_in_real(EuvScaleF107aRef, iError)
+        if (iError /= 0) then
+          write(*, *) 'Incorrect format for #EUVSCALE:'
+          write(*, *) ''
+          write(*, *) '#EUVSCALE'
+          write(*, *) "EuvScaleBase       (real) multiplier on the whole EUV spectrum at F107a = ref"
+          write(*, *) "EuvScaleSlope      (real) change in that multiplier per unit F107a"
+          write(*, *) "EuvScaleF107aRef   (real) reference F107a"
+          IsDone = .true.
+        endif
+
       case ("#DON4SHACK")
         call read_in_logical(DoN4SHack, iError)
         if (iError /= 0) then
@@ -1018,6 +1043,18 @@ subroutine set_inputs
           write(*, *) ''
           write(*, *) '#DON4SHACK'
           write(*, *) "DoN4SHack       (logical)"
+          IsDone = .true.
+        endif
+
+      case ("#CO2FOMICHEV")
+        call read_in_logical(UseCO2FomichevCooling, iError)
+        call read_in_real(CO2ppm, iError)
+        if (iError /= 0) then
+          write(*, *) 'Incorrect format for #CO2FOMICHEV:'
+          write(*, *) ''
+          write(*, *) '#CO2FOMICHEV'
+          write(*, *) "UseCO2FomichevCooling   (logical)"
+          write(*, *) "CO2ppm   (real)"
           IsDone = .true.
         endif
 
@@ -1141,7 +1178,7 @@ subroutine set_inputs
           write(*, *) '#MODIFYPLANET'
           write(*, *) "RotationPeriodInput        (real)"
           write(*, *) "DaysPerYearInput           (real)"
-          write(*, *) "DaysPerYearInput           (real)"
+          write(*, *) "PlanetTiltInput            (real)"
         endif
 
       case ("#USEIMPLICITIONMOMENTUM")
@@ -1175,6 +1212,16 @@ subroutine set_inputs
           write(*, *) "TestViscosityFactor      (real)"
         endif
 
+      case ("#DYNAMOSOLVER")
+        call read_in_logical(UseGmres, iError)
+        if (iError /= 0) then
+          write(*, *) 'Incorrect format for #DYNAMOSOLVER:'
+          write(*, *) ''
+          write(*, *) '#DYNAMOSOLVER'
+          write(*, *) "UseGmres      (logical) T = gmres, F = bicgstab"
+          IsDone = .true.
+        endif
+
       case ("#DYNAMO")
         call read_in_logical(UseDynamo, iError)
         if (UseDynamo) then
@@ -1198,16 +1245,25 @@ subroutine set_inputs
           write(*, *) "doDynamoHemisphericMirror   (optional, logical)"
           write(*, *) "doUseMagnetoPotentialBCs    (optional, logical)"
           write(*, *) "doDynamoLatBlend            (optional, logical)"
-        endif
-        call read_in_real(DynamoFracPotentialCutoff, iError)
-        call read_in_logical(doDynamoHemisphericMirror, iError)
-        call read_in_logical(doUseMagnetoPotentialBCs, iError)
-        call read_in_logical(doDynamoLatBlend, iError)
-        call read_in_logical(doDynamoSubtractEquatorialAvg, iError)
-        if (iError /= 0) then
-          iError = 0
-          if (iProc == 0) write(*, *) &
-            " >> NOT all experimental Dynamo options were set. Be careful!!!"
+          write(*, *) "doDynamoSubtractEquatorialAvg (optional, logical)"
+        else if (UseDynamo) then
+          ! These settings are optional, code will not complain if they aren't
+          ! included. Stop at the next # line so it is not skipped
+          if (next_is_section()) iError = 1
+          call read_in_real(DynamoFracPotentialCutoff, iError)
+          if (next_is_section()) iError = 1
+          call read_in_logical(doDynamoHemisphericMirror, iError)
+          if (next_is_section()) iError = 1
+          call read_in_logical(doUseMagnetoPotentialBCs, iError)
+          if (next_is_section()) iError = 1
+          call read_in_logical(doDynamoLatBlend, iError)
+          if (next_is_section()) iError = 1
+          call read_in_logical(doDynamoSubtractEquatorialAvg, iError)
+          if (iError /= 0) then
+            iError = 0
+            if (iProc == 0) write(*, *) &
+              " >> NOT all experimental Dynamo options were set. Be careful!!!"
+          endif
         endif
 
       case ("#IONFORCING")
@@ -1308,10 +1364,12 @@ subroutine set_inputs
         call read_in_logical(UseStretchedAltitude, iError)
         if (iError /= 0) then
           write(*, *) 'Incorrect format for #ALTITUDE'
-          write(*, *) 'For Earth, the AltMin is the only variable used here.'
-          write(*, *) 'The altitudes are set to 0.3 times the scale height'
-          write(*, *) 'reported by MSIS, at the equator for the specified'
-          write(*, *) 'F107 and F107a values.'
+          write(*, *) 'On a stretched grid, levels are spaced dHFactor times the'
+          write(*, *) 'scale height MSIS reports at the equator, and AltMax is a'
+          write(*, *) 'ceiling: dHFactor is reduced until the top level falls'
+          write(*, *) 'under it.  Give a negative AltMax for no ceiling.'
+          write(*, *) 'On a uniform grid (UseStretchedAltitude F) AltMax is the'
+          write(*, *) 'top of the grid and must be given.'
           write(*, *) '#ALTITUDE'
           write(*, *) 'AltMin                (real, km)'
           write(*, *) 'AltMax                (real, km)'
@@ -1319,6 +1377,28 @@ subroutine set_inputs
         else
           AltMin = AltMin*1000.0
           AltMax = AltMax*1000.0
+          ! Only a positive AltMax is a ceiling init_altitude has to honour
+          IsAltMaxSet = AltMax > 0.0
+          if (.not. UseStretchedAltitude .and. AltMax <= 0.0) then
+            write(*, *) 'A uniform grid needs a positive AltMax to span.'
+            write(*, *) 'AltMin, AltMax (km) : ', AltMin/1000.0, AltMax/1000.0
+            call stop_gitm('AltMax must be positive when UseStretchedAltitude is F')
+          endif
+        endif
+
+      case ("#DHFACTOR")
+        call read_in_real(dHFactor, iError)
+        if (iError /= 0) then
+          write(*, *) 'Incorrect format for #DHFACTOR'
+          write(*, *) 'This sets the vertical spacing in units of scale height'
+          write(*, *) 'at localtime=Noon on the equator.  0.3 is the coarsest'
+          write(*, *) 'spacing GITM is tested at.  Left unset, dHFactor is'
+          write(*, *) 'reduced as far as needed to keep the top of the grid'
+          write(*, *) 'under AltMax.  Setting it alongside AltMax uses both.'
+          write(*, *) '#DHFACTOR'
+          write(*, *) 'dHFactor              (real, scale-height)'
+        else
+          IsDHFactorSet = .true.
         endif
 
       case ("#GRID")
@@ -1793,9 +1873,30 @@ subroutine set_inputs
           write(*, *) 'If both are true, average them together'
           write(*, *) 'If UseAboveHigh, then extend the spectrum to the longer wavelengths'
           write(*, *) 'If UseBelowLow, then extend the spectrum to the shorter wavelengths'
-          write(*, *) '#EUV_DATA'
-          write(*, *) 'UseEUVData            (logical)'
-          write(*, *) 'cEUVFile              (string)'
+          write(*, *) '#EUVMODEL'
+          write(*, *) 'UseEUVAC              (logical)'
+          write(*, *) 'UseTobiska            (logical)'
+          write(*, *) 'UseAboveHigh          (logical)'
+          write(*, *) 'UseBelowLow           (logical)'
+        endif
+
+      case ("#B107")
+        call read_in_logical(UseB107, iError)
+        if (iError /= 0) then
+          write(*, *) 'Incorrect format for #B107'
+          write(*, *) 'Use an F10.7 -> B10.7 lookup table for the empirical'
+          write(*, *) 'EUV models, MSIS and NO photodissociation.'
+          write(*, *) 'Cannot be used with #EUV_DATA T (FISM).'
+          write(*, *) '#B107'
+          write(*, *) 'UseB107    (logical [F])'
+          write(*, *) 'cB107File  (string, optional [UA/DataIn/B107.dat])'
+          IsDone = .true.
+        else
+          ! The file name is optional
+          if (.not. next_is_section()) then
+            if (len_trim(cInputText(iline + 1)) > 0) &
+              call read_in_string(cB107File, iError)
+          endif
         endif
 
       case ("#EUV_DATA")
@@ -1805,14 +1906,37 @@ subroutine set_inputs
         if (iError /= 0) then
           write(*, *) 'Incorrect format for #EUV_DATA'
           write(*, *) 'This is for a FISM or some other solar spectrum file.'
+          write(*, *) 'The blending ratio is optional and is off by default.'
           write(*, *) '#EUV_DATA'
           write(*, *) 'UseEUVData            (logical)'
           write(*, *) 'cEUVFile              (string)'
+          write(*, *) 'EUV_Ratio_Empirical   (real, optional, 0-1)'
         else
           if (UseEUVData) call Set_Euv(iError, CurrentTime, EndTime)
           if (iError /= 0) then
-            call stop_gitm("Stopping after set_euv in set_inputs. Error in EUV data. Check times!")
+            call stop_gitm("Stopping after set_euv in set_inputs. "// &
+                           "Error in EUV data. Check times!")
           endif
+        endif
+
+        ! Optional blending of the empirical EUV models with the FISM data.
+        ! FISM is less energetic than EUVAC/Tobiska, so a run can mix them.
+        ! Blending is OFF by default
+        call read_in_real(EUV_Ratio_Empirical, iError)
+        if (iError /= 0) then
+          ! Not given: unmixed
+          if (UseEUVData) then
+            EUV_Ratio_Empirical = 0.0
+          else
+            EUV_Ratio_Empirical = 1.0
+          endif
+          iError = 0
+        else if (EUV_Ratio_Empirical < 0.0 .or. &
+                 EUV_Ratio_Empirical > 1.0 .or. &
+                 (.not. UseEUVData .and. EUV_Ratio_Empirical < 1.0)) then
+          write(*, *) '#EUV_DATA: EUV_Ratio_Empirical must be 0-1, and'
+          write(*, *) 'a value below 1 requires UseEUVData = T.'
+          call stop_gitm("Must Stop!!")
         endif
 
       case ("#ECLIPSE")
@@ -1983,6 +2107,21 @@ subroutine set_inputs
           endif
         endif
 
+      case ("#SMESINGLE")
+        call read_in_real(au_val, iError)
+        call read_in_real(al_val, iError)
+        if (iError /= 0) then
+          write(*, *) 'Incorrect format for #SMESINGLE:'
+          write(*, *) 'This sets singular AU/SMU & AL/SML values for an entire run'
+          write(*, *) '#SMESINGLE'
+          write(*, *) 'au  (real)'
+          write(*, *) 'al  (real)'
+          IsDone = .true.
+        else
+          call IO_set_al_single(al_val)
+          call IO_set_au_single(au_val)
+        endif
+
       case ("#ACE_DATA")
         cTempLines(1) = cLine
         call read_in_string(cTempLine, iError)
@@ -2086,6 +2225,11 @@ subroutine set_inputs
     call stop_gitm("Must Stop!!")
   endif
 
+  if (UseB107 .and. UseEUVData) &
+    call stop_gitm("#B107=T cannot be used with #EUV_DATA=T (FISM)")
+
+  call set_tidal_flags
+
   ! We need to check to see if the current time and end time are
   ! larger than the last F107 time.  If that is the case, the code
   ! should stop
@@ -2108,9 +2252,14 @@ subroutine set_inputs
   endif
   RestartTime = CurrentTime
 
-!  KappaTemp0 = 3.6e-4
-
 contains
+
+  logical function next_is_section()
+    ! For parsing optional arguments, determine if a new input block was started
+    next_is_section = .true.
+    if (iline + 1 > nInputLines) return
+    next_is_section = (cInputText(iline + 1) (1:1) == "#")
+  end function next_is_section
 
   subroutine read_in_int(variable, iError)
     integer, intent(out) :: variable

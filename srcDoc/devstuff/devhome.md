@@ -12,7 +12,7 @@ Some notes on the doc site:
 - The documentation is organized according to a table of contents listed in
   `GITM/mkdocs.yml`. So, to add new pages or organize things differently, look
   there.
-- Within `mkdocs.yml`, paths are specified relative to `site_home` (cuttently
+- Within `mkdocs.yml`, paths are specified relative to `docs_dir` (currently
   set to `srcDoc/`)
 - `index.md` is the "home page". The rest should be self-explanatory enough.
 
@@ -22,7 +22,7 @@ changing this & couldn't!
 
 You can use Python to locally host the doc site which will auto-update when any
 files are changed. One command to configure, one to host. When first starting,
-either create a vitrual/conda environment for the docs, or don't, and from the
+either create a virtual/conda environment for the docs, or don't, and from the
 root of the repo run: `pip install -r srcDoc/requirements.txt`. To actually host
 the docs, run (from `GITM/`):
 
@@ -38,12 +38,16 @@ GITM now builds the code version into the executable automatically. This is sour
 from `src/.version` within `src/ModGITMVersion.f90`.
 
 The version file is created when compiling, and checked every time the code is compiled.
-If the number of files that are different from HEAD changes, the version is updated.
-In practice this means that if the number of lines output from 
-`git status --porcelain` changes, the version is updated.
+If the number of lines output from `git status --porcelain` changes, the version is
+updated. Note that this check counts untracked files too, but the "number of files
+changed" in the version itself only counts files that git tracks (untracked files are
+excluded).
 
 The version has information on the last commit date, the branch, the last commit hash,
-and the number of files changed since the last commit. This should provide enough
+and the number of tracked files changed since the last commit. The same information
+is recorded for the Electrodynamics library in `ext/Electrodynamics` (branch, last
+commit hash & date, and number of changed files), and the names of the changed files
+are stored for both. This should provide enough
 information to track down any kinds of bugs or to ensure that results can be traced
 back to a certain state of the code.
 

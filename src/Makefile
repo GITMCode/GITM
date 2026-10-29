@@ -70,6 +70,8 @@ MODULES = \
 	ModUser.o \
 	ModVertical.o\
 	ModHmeModel.o\
+	ModCO2Fomichev.o\
+	ModB107.o\
 	ModGITMVersion.o
 
 

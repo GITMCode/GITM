@@ -14,13 +14,15 @@ subroutine initialize_gitm(TimeIn)
   use ModIndicesInterfaces
   use ModReadGitm3d
   use ModKind, ONLY: Real8_
+  use ModCO2Fomichev, only: initialize_fomichev_cooling
+  use ModB107, only: read_b107
 
   implicit none
 
   type(UAM_ITER) :: r_iter
 
   real(Real8_), intent(in) :: TimeIn
-  integer :: iLat, iAlt, iBlock, iSpecies, iLon, iError, nAltsMean, iilon, iilat
+  integer :: iLat, iAlt, iBlock, iSpecies, iLon, iError, nAltsMean, iilon, iilat, iDir
 
   real :: TempAve
   real :: TempDiff
@@ -42,9 +44,9 @@ subroutine initialize_gitm(TimeIn)
 
   !----------------------------------------------------------------------------
 
-!! Sorry but this is a double-negative
-!! This checks to see if the planet is not, not Titan.
-!! That is to say, it checks to see if this is actually Titan.
+  !! Sorry but this is a double-negative
+  !! This checks to see if the planet is not, not Titan.
+  !! That is to say, it checks to see if this is actually Titan.
 
   if (.not. (index(cPlanet, "Titan") == 0)) then
     call init_radcooling
@@ -56,6 +58,8 @@ subroutine initialize_gitm(TimeIn)
 
   call start_timing("initialize")
   call report("initialize", 1)
+
+  if (UseB107) call read_b107(cB107File)
 
   ! ------------------------------------------------------------------------
   ! initialize stuff
@@ -71,6 +75,14 @@ subroutine initialize_gitm(TimeIn)
   call get_f107a(CurrentTime, f107a, iError)
 
   call init_grid
+
+  ! More than one block per processor (nBlocksMax > 1 in ModSize.f90) is not supported
+  if (nBlocks > 1) then
+    if (iProc == 0) write(*, *) "==> WARNING: ", nBlocks, &
+      " blocks per processor. This is NOT supported; use it only for tests."
+    if (IsEarth .or. UseDynamo .or. UseGitmBCs) &
+      call stop_gitm("Earth, #DYNAMO and #GITMBCS cannot run with more than one block per processor")
+  endif
 
   if (DoRestart) then
     call read_inputs(trim(restartInDir)//"/header.rst")
@@ -101,6 +113,15 @@ subroutine initialize_gitm(TimeIn)
     if (UseStretchedAltitude) then
       call init_altitude
     else
+
+      ! A uniform grid spans AltMin to AltMax literally, with no default
+      ! top to fall back on
+      if (AltMax <= AltMin) then
+        write(*, *) 'A uniform grid needs an AltMax above AltMin in #ALTITUDE.'
+        write(*, *) 'AltMin, AltMax (km) : ', AltMin/1000.0, AltMax/1000.0
+        call stop_gitm('Incorrect altitude range for a uniform grid')
+      endif
+
       if (UseTopography) then
         if (AltMin > 1.0) then
           write(*, *) 'When using topography, the minimum altitude'
@@ -495,16 +516,12 @@ subroutine initialize_gitm(TimeIn)
     deallocate(vars, GitmFileData, lonsICs, latsICs, altsICs)
     call GitmShutDown
 
-  endif
+    if (DoCheckForNans) then
+      call check_for_nans_ions("Set ICs 3DGITM")
+      call check_for_nans_neutrals("Set ICs 3DGITM")
+      call check_for_nans_temps("Set ICs 3DGITM")
+    endif
 
-  if (UseWACCMTides) then
-    call read_waccm_tides
-    call update_waccm_tides
-  endif
-
-  if (UseGSWMTides) then
-    call read_tides
-    call update_tides
   endif
 
   if (UseHmeTides) then
@@ -513,8 +530,39 @@ subroutine initialize_gitm(TimeIn)
     call modify_initial_after_tides
   endif
 
+  if (UseFileTides) then
+    call init_file_tides
+    call update_file_tides
+    call modify_initial_after_tides
+  endif
+
+  ! Use the same altitude for all IE (ionospheric electrodynamics)
+  ! Map requested value to nearest GITM altitude
+  iAltIERef = minloc(abs(Altitude_GB(1, 1, 1:nAlts, 1) - IEReferenceAlt*1000.0), 1)
+  AltIERef = Altitude_GB(1, 1, iAltIERef, 1)
+  if ((iProc == 0) .and. (iDebugLevel >= 2)) write(*, *) &
+    '=> IE reference altitude (km), requested / used / index : ', &
+    IEReferenceAlt, AltIERef/1000.0, iAltIERef
+
   call init_b0
-  if (UseApex .and. IsEarth) then
+
+  ! calc_ion_v starts from the previous step's IVelocityPar, which is not in
+  ! restart files. Rebuild it (only where B has values)
+  if (DoRestart .and. maxval(B0(:, :, :, iMag_, 1:nBlocks)) > 0.0) then
+    do iBlock = 1, nBlocks
+      do iDir = 1, 3
+        where (B0(:, :, :, iMag_, iBlock) > 0.0)
+          IVelocityPar(:, :, :, iDir, iBlock) = &
+            sum(IVelocity(:, :, :, 1:3, iBlock)*B0(:, :, :, 1:3, iBlock), dim=4)* &
+            B0(:, :, :, iDir, iBlock)/B0(:, :, :, iMag_, iBlock)**2
+        elsewhere
+          IVelocityPar(:, :, :, iDir, iBlock) = 0.0
+        end where
+      enddo
+    enddo
+  endif
+
+  if (IsEarth) then
     call report("subsolr", 2)
     call SUBSOLR(iTimeArray(1), iJulianDay, iTimeArray(4), &
                  iTimeArray(5), iTimeArray(6), SubsolarLatitude, &
@@ -525,8 +573,6 @@ subroutine initialize_gitm(TimeIn)
 
   do iBlock = 1, nBlocks
     call calc_physics(iBlock)
-    call calc_rates(iBlock)
-    call calc_collisions(iBlock)
   enddo
 
   if (UseDynamo .and. .not. Is1D) then
@@ -549,7 +595,14 @@ subroutine initialize_gitm(TimeIn)
     call calc_rates(iBlock)
   enddo
 
+  if (UseCO2FomichevCooling) then
+    if (IsEarth) then
+      call initialize_fomichev_cooling()
+    else if (iProc == 0) then
+      write(*, *) ' WARNING: Fomichev CO2 cooling is only implemented for Earth.'
+    endif
+  endif
+
   call end_timing("initialize")
 
 end subroutine initialize_gitm
-

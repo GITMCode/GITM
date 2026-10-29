@@ -86,7 +86,7 @@ subroutine init_get_potential
     endif
   endif
 
-  if (IEModel_%iAurora_ /= iFRE_ .and. NormalizeAuroraToHP) &
+  if (IEModel_%iAurora_ /= iFRE_ .and. IEModel_%iAurora_ /= iFTA_ .and. NormalizeAuroraToHP) &
     call raise_warning("You probably should not be normalizing aurora with non-FRE models")
 
   if (cPlanet == "Earth") then
@@ -321,7 +321,9 @@ subroutine get_potential(iBlock)
 
     call report("Getting Aurora", 1)
 
-    iAlt = 2
+    ! The aurora is mapped from the magnetic grid at the IE reference
+    ! altitude, the same altitude used for the dynamo potential
+    iAlt = iAltIERef
 
     call iemodel_%grid( &
       MLT(-1:nLons + 2, -1:nLats + 2, iAlt), &
@@ -586,7 +588,7 @@ subroutine get_dynamo_potential(lons, lats, pot)
 
         enddo
 
-        ! Check for near pole
+        ! Check for near pole (only reachable if DynamoHighLatBoundary > 88)
         if (.not. IsFound) then
 
           if (LatIn > 88.0) then
@@ -596,11 +598,8 @@ subroutine get_dynamo_potential(lons, lats, pot)
 
           if (LatIn < -88.0) then
             IsFound = .true.
-            pot(iLon, iLat) = sum(DynamoPotentialMC(:, 0))/(nMagLons + 1)
+            pot(iLon, iLat) = sum(DynamoPotentialMC(:, 1))/(nMagLons + 1)
           endif
-
-          write(*, *) "Inside the low latitude, but can't find the point!"
-          write(*, *) LatIn, LonIn
 
         endif
 
@@ -608,7 +607,7 @@ subroutine get_dynamo_potential(lons, lats, pot)
 
       if (.not. IsFound) then
         if (abs(LatIn) < MagLatMC(nMagLons, nMagLats)) &
-          write(*, *) "=====> Could not find point : ", &
+          write(*, *) "=====> get_dynamo_potential: Could not find point : ", &
           LatIn, LonIn, DynamoHighLatBoundary, &
           MagLatMC(nMagLons, nMagLats)
         pot(iLon, iLat) = 0.0
@@ -630,7 +629,7 @@ subroutine set_ie_indices(IEModel_, TimeIn)
   ! use ModElectrodynamics, only: ieModel_
   use ModErrors
   use ModTime, only: EndTime !could pull current time too, but better to be explicit
-  use ModInputs, only: TimeDelayHighLat, DoSeparateHPI
+  use ModInputs, only: TimeDelayHighLat, DoSeparateHPI, UseVariableInputs
 
   implicit none
 
@@ -642,31 +641,49 @@ subroutine set_ie_indices(IEModel_, TimeIn)
 
   if (IEModel_%doReadMHD) then
 
-    call read_MHDIMF_Indices_new( &
-      iError, &
-      TimeIn + TimeDelayHighLat, &
-      EndTime + TimeDelayHighLat)
+    ! Values change thru time, this is the default
+    if (UseVariableInputs) then
 
-    if (iError /= 0) call set_error("Issue reading IMF file in get_potential")
+      call read_MHDIMF_Indices_new( &
+        iError, &
+        TimeIn + TimeDelayHighLat, &
+        EndTime + TimeDelayHighLat)
 
-    call get_IMF_Bz(TimeIn + TimeDelayHighLat, val, iError)
-    if (val < -40.0) val = -40.0
-    if (val > 40.0) val = 40.0
-    call IEModel_%imfBz(val)
+      if (iError /= 0) call set_error("Issue reading IMF file in get_potential")
 
-    call get_IMF_By(TimeIn, val, iError)
-    if (val < -40.0) val = -40.0
-    if (val > 40.0) val = 40.0
-    call IEModel_%imfBy(val)
+      call get_IMF_Bz(TimeIn + TimeDelayHighLat, val, iError)
+      if (val < -40.0) val = -40.0
+      if (val > 40.0) val = 40.0
+      call IEModel_%imfBz(val)
 
-    call get_SW_V(TimeIn, val, iError)
-    if (val < -1500.0) val = -1500.0
-    if (val > 1500.0) val = 1500.0
-    call IEModel_%swV(val)
+      call get_IMF_By(TimeIn, val, iError)
+      if (val < -40.0) val = -40.0
+      if (val > 40.0) val = 40.0
+      call IEModel_%imfBy(val)
 
-    call get_SW_N(TimeIn, val, iError)
-    if (val > 80) val = 50
-    call IEModel_%swN(val)
+      call get_SW_V(TimeIn, val, iError)
+      if (val < -1500.0) val = -1500.0
+      if (val > 1500.0) val = 1500.0
+      call IEModel_%swV(val)
+
+      call get_SW_N(TimeIn, val, iError)
+      if (val > 80) val = 50
+      call IEModel_%swN(val)
+
+    else ! Indices are single-valued. These are user-provided in input file
+      call get_IMF_Bz(val, iError)
+      call IEModel_%imfBz(val)
+
+      call get_IMF_By(val, iError)
+      call IEModel_%imfBy(val)
+
+      call get_SW_V(val, iError)
+      call IEModel_%swV(val)
+
+      call get_SW_N(val, iError)
+      call IEModel_%swN(val)
+
+    endif
 
     if (iError /= 0 .or. .not. isOk) then
       call set_error("IMF values could not be set!")

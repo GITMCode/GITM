@@ -8,12 +8,20 @@ Module ModTides
   ! T, u, and v are neutral temperature, zonal and meridional winds.
   !
   ! EYigit: 16June09
+  ! HME's were added at some point
+  ! Adding general files - 2026/07/16
   !============================================================================
 
   use ModSizeGITM, only: nLons, nLats, nBlocksMax
 
   implicit none
 
+  ! These are the main variables that we will fill and then
+  ! use is set_vertical_bcs:
+  real, dimension(-1:nLons + 2, -1:nLats + 2, 2, nBlocksMax) :: &
+    TidesNorth, TidesEast, TidesTemp, TidesRhoRat
+
+  ! These are all outdated and we shouldn't use them anymore:
   real, allocatable :: u_gswm(:, :, :, :)
   real, allocatable :: v_gswm(:, :, :, :)
   real, allocatable :: T_gswm(:, :, :, :)
@@ -27,8 +35,7 @@ Module ModTides
   character(len=40), dimension(4) :: GSWM_file_name      ! EYigit: 18May09
 
   real, dimension(-1:nLons + 2, -1:nLats + 2, 2, nBlocksMax) :: &
-    TidesNorth, TidesEast, TidesTemp, TidesOmega, &
-    TidesVertical, TidesN, rAlt_waccm, TidesRhoRat
+    TidesOmega, TidesVertical, rAlt_Waccm
 
   integer, dimension(-1:nLons + 2, -1:nLats + 2, 2, nBlocksMax) :: iAlt_waccm
 
