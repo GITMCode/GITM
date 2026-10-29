@@ -42,10 +42,10 @@ module ModOutputProducers
   ! so both are safe before init, as bad_outputtype calls them at input parse time),
   ! and assert_types_fully_wired verifies every container landed in its slot.
   character(len=5), parameter :: cContainerTypes(26) = [ &
-    '2DMEL', '2DTEC', '2DGEL', '3DNEU', '3DALL', '3DION', '3DTHM', '3DCHM', &
-    '3DLST', '3DGLO', '3DMAG', '3DHME', '3DMOH', '3DMOV', '2DANC', '2DHME', &
-    '1DALL', '0DALL', '1DGLO', '1DTHM', '1DCHM', '1DNEW', &
-    '3DUSR', '2DUSR', '1DUSR', '0DUSR']
+                                 '2DMEL', '2DTEC', '2DGEL', '3DNEU', '3DALL', '3DION', '3DTHM', '3DCHM', &
+                                 '3DLST', '3DGLO', '3DMAG', '3DHME', '3DMOH', '3DMOV', '2DANC', '2DHME', &
+                                 '1DALL', '0DALL', '1DGLO', '1DTHM', '1DCHM', '1DNEW', &
+                                 '3DUSR', '2DUSR', '1DUSR', '0DUSR']
   integer, parameter :: nContainers = size(cContainerTypes)
 
   logical :: containers_initialized = .false.
@@ -972,8 +972,8 @@ contains
     enddo
     call c%put_field('Chemical Heating', &                                  ! no ghosts * per-dim * ghosted * ghosted
                      per_dt(ChemicalHeatingRate*cp(:, :, 1:nAlts, iBlock)* &
-                     Rho(1:nLons, 1:nLats, 1:nAlts, iBlock)* &
-                     TempUnit(1:nLons, 1:nLats, 1:nAlts)/Element_Charge))
+                            Rho(1:nLons, 1:nLats, 1:nAlts, iBlock)* &
+                            TempUnit(1:nLons, 1:nLats, 1:nAlts)/Element_Charge))
   end subroutine fill_3dchm
 
   ! ---------------------------------------------------------------------------
@@ -1668,11 +1668,11 @@ contains
     jAlt = max(min(iiAlt, nAlts), 1)
 
     call c%put_axis('Longitude', &
-               [(rLon*Longitude(iiLon, iBlock) + (1.0 - rLon)*Longitude(iiLon + 1, iBlock))])
+                    [(rLon*Longitude(iiLon, iBlock) + (1.0 - rLon)*Longitude(iiLon + 1, iBlock))])
     call c%put_axis('Latitude', &
-               [(rLat*Latitude(iiLat, iBlock) + (1.0 - rLat)*Latitude(iiLat + 1, iBlock))])
+                    [(rLat*Latitude(iiLat, iBlock) + (1.0 - rLat)*Latitude(iiLat + 1, iBlock))])
     call c%put_field('Altitude', [rAlt*Altitude_GB(iiLon, iiLat, iiAlt, iBlock) + &
-                                (1.0 - rAlt)*Altitude_GB(iiLon + 1, iiLat + 1, iiAlt + 1, iBlock)])
+                                  (1.0 - rAlt)*Altitude_GB(iiLon + 1, iiLat + 1, iiAlt + 1, iBlock)])
 
     Tmp3d = Rho(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1, iBlock)
     call c%put_field('Rho', [inter3d(Tmp3d, iiLon, iiLat, iiAlt, rLon, rLat, rAlt)])
@@ -1697,7 +1697,7 @@ contains
     do i = 1, nSpecies
       Tmp3d = VerticalVelocity(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1, i, iBlock)
       call c%put_field('Vn (up,'//trim(cSpecies(i))//')', &
-                 [inter3d(Tmp3d, iiLon, iiLat, iiAlt, rLon, rLat, rAlt)], units='m/s')
+                       [inter3d(Tmp3d, iiLon, iiLat, iiAlt, rLon, rLat, rAlt)], units='m/s')
     enddo
 
     do i = 1, nIons
@@ -1721,15 +1721,15 @@ contains
       Tmp3d = NDensityS(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1, i, iBlock)/ &
               NDensity(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1, iBlock)
       call c%put_field(trim(cSpecies(i))//' Mixing Ratio', &
-                 [inter3d(Tmp3d, iiLon, iiLat, iiAlt, rLon, rLat, rAlt)], units='')
+                       [inter3d(Tmp3d, iiLon, iiLat, iiAlt, rLon, rLat, rAlt)], units='')
     enddo
 
     call c%put_field('RadCooling', [RadCooling(1, 1, jAlt, iBlock)*TempUnit(1, 1, jAlt)], units='K/s')
     call c%put_field('EuvHeating', [EuvHeating(1, 1, jAlt, iBlock)*TempUnit(1, 1, jAlt)], units='K/s')
     call c%put_field('Conduction', [per_dt(Conduction(1, 1, jAlt)*TempUnit(1, 1, jAlt))])
     call c%put_field('Heat Balance Total', [(EuvHeating(1, 1, jAlt, iBlock)*TempUnit(1, 1, jAlt) - &
-                                           RadCooling(1, 1, jAlt, iBlock)*TempUnit(1, 1, jAlt) + &
-                                           per_dt(Conduction(1, 1, jAlt)*TempUnit(1, 1, jAlt)))], units='K/s')
+                                             RadCooling(1, 1, jAlt, iBlock)*TempUnit(1, 1, jAlt) + &
+                                             per_dt(Conduction(1, 1, jAlt)*TempUnit(1, 1, jAlt)))], units='K/s')
     call c%put_field('Heating Efficiency', [HeatingEfficiency_CB(1, 1, jAlt, iBlock)], units='')
   end subroutine fill_0dall
 
@@ -2029,9 +2029,9 @@ contains
     do iAlt = 1, nAlts
       iiAlt = max(min(iAlt, nAlts), 1)
       tmp_data(iAlt) = real(per_dt(ChemicalHeatingRate(1, 1, iiAlt)* &
-                            cp(1, 1, iiAlt, 1)* &
-                            Rho(1, 1, iiAlt, 1)* &
-                            TempUnit(1, 1, iiAlt)/Element_Charge), output_kind)
+                                   cp(1, 1, iiAlt, 1)* &
+                                   Rho(1, 1, iiAlt, 1)* &
+                                   TempUnit(1, 1, iiAlt)/Element_Charge), output_kind)
     enddo
     call c%put('Chemical Heating', tmp_data)
   end subroutine fill_1dchm
@@ -2065,9 +2065,9 @@ contains
     tmp_lat = (rLat*Latitude(iiLat, iBlock) + (1.0 - rLat)*Latitude(iiLat + 1, iBlock))
     tmp_lt = LocalTime(iiLon)
     tmp_sza = rLon*rLat*Sza(iiLon, iiLat, iBlock) + &
-                   (1.0 - rLon)*rLat*Sza(iiLon + 1, iiLat, iBlock) + &
-                   rLon*(1.0 - rLat)*Sza(iiLon, iiLat + 1, iBlock) + &
-                   (1.0 - rLon)*(1.0 - rLat)*Sza(iiLon + 1, iiLat + 1, iBlock)
+              (1.0 - rLon)*rLat*Sza(iiLon + 1, iiLat, iBlock) + &
+              rLon*(1.0 - rLat)*Sza(iiLon, iiLat + 1, iBlock) + &
+              (1.0 - rLon)*(1.0 - rLat)*Sza(iiLon + 1, iiLat + 1, iBlock)
 
     call c%put_axis('Longitude', tmp_lon)
     call c%put_field('Local Time', tmp_lt, units='hr')
