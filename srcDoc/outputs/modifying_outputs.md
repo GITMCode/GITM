@@ -1,12 +1,12 @@
 # Adding New Outputs
 
-There are two ways to get new data into GITM's output files, both needing a
+There are three ways to get new data into GITM's output files, all needing a
 recompile:
 
 | You want to... | Use | Effort |
 |---|---|---|
 | Add a variable to an existing output type | Edit its `fill_<type>` routine | One `put_field` call plus one registry row (see [Modify an existing output type](#modify-an-existing-output-type)) |
-| Add a variable without changing any existing file's format | A **USR** output (`3DUSR`, `2DUSR`, `1DUSR`, `0DUSR`) | Register the name once, plus a one-line `add_usr_output` call |
+| Add a variable without changing any existing file's format | A **USR** output (`3DUSR`, `2DUSR`, `1DUSR`, `0DUSR`) | Register the name once, plus a one-line `add_usr_output` call (0D assigns `UserData1D` instead; see below) |
 | Create a whole new output file | A **new output type** | One fill routine plus one registration line |
 
 USR outputs are the low-friction path for personal diagnostics: they leave
@@ -219,11 +219,8 @@ end subroutine fill_3dmyt
 ```
 
 The first execution of the fill (a "priming" pass at init) defines each
-variable on first touch and locks the schema. After that, a `put_field` of an
-unknown name, a shape mismatch, or a missing/extra put is a `stop_gitm`, so a
-test run catches the mistake immediately instead of writing a malformed file.
-See [Containers](#containers) under [Under the hood](#under-the-hood) for the
-full priming rule (every variable put exactly once, unconditionally).
+variable and locks the schema, so a bad put stops the first test run instead
+of writing a malformed file. The rules are under [Containers](#containers).
 
 ### 2. Register the type
 
@@ -242,7 +239,7 @@ lookup functions and the dispatch in `output_common.f90` are data-driven,
 and `assert_types_fully_wired` stops the run at init if anything else is
 missing.
 
-### 3. Turn it on and rebuild
+### 3. Enable the new type and rebuild
 
 Add `3DMYT` to a `#SAVEPLOT` block in `UAM.in` and `make`. `pGITM.py` and all
 three backends pick up the new type automatically. Nothing else changes in
@@ -251,9 +248,8 @@ the code, but do add the new code to the `#SAVEPLOT` type list in
 `src/set_inputs.f90`), and regenerate the variable tables in
 [Outputs](../outputs.md) once the type produces data.
 
-The netcdf backend does not support probe-style `1D*`/`0D*` types and stops
-with an error if one is requested; use legacy or mpiio for those. Satellite
-(`#SATELLITES`) files are written in the legacy format whatever the backend.
+If the new type is a `1D*`/`0D*` probe type, the netcdf backend will refuse it;
+see [Output backends](output_backends.md) for what each backend supports.
 
 ### Types with explicit schemas
 
