@@ -26,8 +26,8 @@ are written in the legacy format whatever the backend.
     backend.
 
 The format of those files depends on which [output backend](outputs/output_backends.md)
-was used during the run (`#OUTPUTBACKEND`; an unrecognised value falls
-back to `legacy` with a warning). You will typically find yourself with a `log*.dat`
+was used during the run (`#OUTPUTBACKEND`; an unrecognized value falls
+back to `legacy` with a warning). You will end up with a `log*.dat`
 file and the output files for each type listed in `#SAVEPLOT` (see
 [`#SAVEPLOT`](set_inputs.md#saveplot)). `netcdf` outputs are usable as
 written. `legacy` writes per-block files that need
@@ -35,7 +35,7 @@ written. `legacy` writes per-block files that need
 raw `.bin` per output, which `pGITM.py` rewrites in the standard layout
 (keeping the original as `.raw` unless it is removing files).
 
-!!! warning "Two netcdf dialects — pick one"
+!!! warning "Don't mix the two netcdf dialects"
     `post_process.py`/`pGITM.py` can also convert legacy/mpiio output to
     netcdf, but the files it produces are **not** the same format the
     `netcdf` backend writes: variable names come from a different
@@ -108,10 +108,10 @@ raw name is kept in each variable's `gitm_name` attribute). Notes:
   the probe types 0DALL, 1DTHM and 1DCHM) are rates. They are written as 0
   at the t = 0 output, where the time step is 0.
 - **`3DGLO` and `1DGLO` cannot be generated at all.** They have never been
-  wired to a source of emission data on any GITM branch — their science
-  columns would be zeros indistinguishable from real measurements — so GITM
-  now stops if either is requested in `#SAVEPLOT`. They remain valid type
-  codes so they can be filled in later; they simply produce nothing today.
+  wired to a source of emission data on any GITM branch. Their science
+  columns would be zeros indistinguishable from real measurements, so GITM
+  stops if either is requested in `#SAVEPLOT`. They remain valid type
+  codes so they can be filled in later; they produce nothing today.
 - **`2DMEL` is on a magnetic grid**, so its horizontal coordinates are named
   `mlon`/`mlat` (in degrees), not `lon`/`lat`. Its `GeoLat`/`GeoLon`
   variables are the geographic position of each magnetic grid point (radians

@@ -53,7 +53,7 @@ subroutine output(dir, iBlock, iOutputType)
   use ModTime
   use ModInputs
   use ModSources
-  ! ModUserGITM: USR type var counts now managed via init_usr_output_registry
+  ! ModUserGITM: USR type var counts are set by init_usr_output_registry
   use ModRCMR, only: RCMRFlag
   use ModConstants, only: pi
   use ModElectrodynamics, only: nMagLats, nMagLons
@@ -288,7 +288,7 @@ subroutine output(dir, iBlock, iOutputType)
 
   nGCs = containers(iContIdx)%nGhostCells
   if (containers(iContIdx)%nVars > 0) then
-    ! Publish the probe location for the probe fills (Route A1), then
+    ! Publish the probe location for the probe fills, then
     ! data-driven dispatch: one path for every type. A registered type with
     ! no fill pointer was already caught loudly by assert_types_fully_wired.
     iProbeLon = iiLon; iProbeLat = iiLat; iProbeAlt = iiAlt

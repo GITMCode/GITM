@@ -20,7 +20,7 @@ import sys
 import xarray as xr
 
 # 1-D coordinate variables. Magnetic grids name theirs mlon/mlat (see
-# nc_coord_names in src/ModOutputNetCDF.F90) -- keep this in step with that
+# nc_coord_names in src/ModOutputNetCDF.F90). Keep this in step with that
 # function. Dimension coordinates normally land in ds.coords rather than
 # ds.data_vars, so this is a backstop, not the only thing keeping them out.
 SKIP_VARS = {"time", "lon", "lat", "z", "mlon", "mlat"}

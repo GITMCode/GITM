@@ -17,7 +17,7 @@ include Makefile.RULES
 # Keep in sync with CON/Control/src/Makefile in the SWMF tree (if possible).
 # := so pnetcdf-config runs once at parse time, not on every expansion.
 # Hardcode -lpnetcdf rather than `pnetcdf-config --libs`: some installs
-# drop -lpnetcdf from  --libs.
+# drop -lpnetcdf from --libs.
 PNETCDF_INCDIR := $(shell pnetcdf-config --includedir 2>/dev/null)
 PNETCDF_LIBDIR := $(shell pnetcdf-config --libdir     2>/dev/null)
 PNETCDF_LINK   := $(if $(PNETCDF_LIBDIR),-L$(PNETCDF_LIBDIR) -lpnetcdf -Wl$(comma)-rpath$(comma)$(PNETCDF_LIBDIR),)

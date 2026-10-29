@@ -29,7 +29,7 @@
 ! fields) are written as data variables via varids(:).  Separate 1-D
 ! coordinate variables (time, lon/lat in degrees, z in km; mlon/mlat on
 ! magnetic grids) are also defined in define_file_structure; data variables
-! additionally reference the full coordinate fields through their CF
+! also reference the full coordinate fields through their CF
 ! coordinates= attribute.  Geographic lon/lat are converted from the model's
 ! radians to degrees on write (nc_is_geo_lonlat).
 !
@@ -88,7 +88,7 @@ contains
   ! ==================================================================
   ! Open a PnetCDF file collectively and define all dims/vars.
   ! Called from write_output.f90 before the block loop.
-  ! Supports 2D (lon×lat) and 3D (lon×lat×alt) output types.
+  ! Supports 2D (lon x lat) and 3D (lon x lat x alt) output types.
   !
   ! UseNetcdfMultiTime=F (default): one file per output type per timestep.
   ! UseNetcdfMultiTime=T: one file per output type for all timesteps;
@@ -124,8 +124,8 @@ contains
     real(kind=8) :: time_val(1)
 
     ! The open path runs before the block loop, so containers may not be built
-    ! yet (init_output_containers normally runs during the first fill). Ensure
-    ! the schemas exist before reading metadata; the call is idempotent.
+    ! yet (init_output_containers normally runs during the first fill). Build
+    ! the schemas here before reading metadata; the call is idempotent.
     call init_output_containers()
 
     ! The per-type filename/record caches are fixed-size; overflow would make
@@ -148,7 +148,7 @@ contains
     ! Probe types (1DTHM, 0DALL, ...) have no netcdf file layout yet: forcing
     ! them through the 2D path would write a degenerate lon x lat file whose
     ! x-dimension is really altitude. Until a probe layout is designed, halt
-    ! loudly (the pre-fix behavior was worse: no file, no error).
+    ! loudly.
     if (cType(1:1) == '0' .or. cType(1:1) == '1') &
       call stop_gitm("ModOutputNetCDF: probe type "//trim(cType)// &
                      " is not supported by the netcdf backend yet; use legacy or mpiio")
@@ -169,11 +169,11 @@ contains
     nc_needsIndepWrite = containers(iTypeIdx)%gridKind == GRID_MAG_2D .or. &
                          containers(iTypeIdx)%gridKind == GRID_HIME
 
-    ! Global on-disk dims from the container's own variable shapes (max over
-    ! non-axis vars, ghost padding removed) — the same rule the write path
-    ! uses for start/cnt — instead of hardcoded per-gridKind grid sizes.
-    ! MAG_2D holds one full grid written by a single rank (for 2DMEL this
-    ! reproduces the old nMagLons+1 x nMagLats sizing exactly); geographic
+    ! Global on-disk dims come from the container's own variable shapes (max over
+    ! non-axis vars, ghost padding removed), the same rule the write path uses
+    ! for start/cnt, so no grid size is hardcoded per gridKind.
+    ! MAG_2D holds one full grid written by a single rank (for 2DMEL this is
+    ! nMagLons+1 x nMagLats); geographic
     ! grids tile the per-block interior across the block decomposition.
     nX = 0; nY = 0; nZ = 0
     do iV = 1, nVars
@@ -206,7 +206,7 @@ contains
       ! ----------------------------------------------------------------
       ! Build filename first; create-vs-reopen is driven by whether this filename
       ! has been opened in this session.
-      ! This correctly handles daily rollover (new date -> new file) and fresh
+      ! This handles daily rollover (new date -> new file) and fresh
       ! runs in the same directory (not-yet-used filename -> always create).
       if (NetCdfAppendOption == 'single') then
         filename = trim(dir)//"/"//trim(cType)//trim(nc_name_part)// &
@@ -589,7 +589,7 @@ contains
     attlen = int(len_trim(coord_units), MPI_OFFSET_KIND)
     ierr = nfmpi_put_att_text(ncid, NF_GLOBAL, "Conventions", attlen, trim(coord_units))
 
-    ! Store nGhostCells in the output netcdf file, readers dont have to guess
+    ! Store nGhostCells in the file so readers don't have to guess
     ierr = nfmpi_put_att_int(ncid, NF_GLOBAL, "nGhostCells", NF_INT, &
                              1_MPI_OFFSET_KIND, [nGhostOnDisk])
 
@@ -820,19 +820,17 @@ contains
   ! ---------------------------------------------------------------------------
   ! nc_is_geo_lonlat: does this variable carry a GEOGRAPHIC longitude/latitude?
   !
-  ! The fills put geographic lon/lat in RADIANS -- that is develop's .bin
-  ! contract and what legacy/mpiio ship.  netcdf is the only backend that
-  ! publishes degrees, so the rad->deg conversion lives here, in one place.
+  ! The fills put geographic lon/lat in RADIANS, the .bin contract that
+  ! legacy/mpiio ship.  netcdf is the only backend that publishes degrees, so
+  ! the rad->deg conversion lives here, in one place.
   !
-  ! Keyed on the NAME, not on is_axis.  Note the D1 argument that drove the
-  ! backend-side choice -- fill_1dnew puts 'Latitude' via put_field, so an
-  ! axis-keyed test misses it -- does NOT apply here: netcdf_open_file refuses
-  ! every 1D/0D probe type outright (see the stop_gitm near the top of this
-  ! file), so 1DNEW never reaches this backend.  Name-keying is used anyway
-  ! because it stays correct if that guard is ever lifted, and because the
-  ! legacy/mpiio path -- which DOES write 1DNEW -- would need it.
+  ! Keyed on the NAME, not on is_axis, because fill_1dnew puts 'Latitude' via
+  ! put_field and an axis-keyed test would miss it.  1DNEW never reaches this
+  ! backend (netcdf_open_file refuses every 1D/0D probe type; see the stop_gitm
+  ! near the top of this file), but name-keying stays correct if that guard is
+  ! ever lifted, and the legacy/mpiio path, which DOES write 1DNEW, would need it.
   !
-  ! Magnetic coordinates are absent on purpose -- 2DMEL's mlon/mlat axes and
+  ! Magnetic coordinates are left out on purpose.  2DMEL's mlon/mlat axes and
   ! the 'Magnetic Latitude'/'Magnetic Longitude' fields are already in
   ! degrees and must not be scaled.
   ! ---------------------------------------------------------------------------
@@ -850,16 +848,13 @@ contains
   ! nc_coord_names: horizontal dim/coord names and units for a container.
   !
   ! Magnetic grids get mlon/mlat in plain 'degrees'.  Geographic grids keep
-  ! lon/lat in degrees_east/degrees_north.  Before this, the writer hardcoded
-  ! lon/lat for every type and threw the producer's declared axis names away,
-  ! so 2DMEL -- a magnetic type -- shipped its dynamo grid under geographic
-  ! names, while the SAME axis was also written as a 2-D field under its
-  ! declared name.  Every magnetic axis was in the file twice: correctly named
-  ! but redundant, and authoritative but misnamed.
+  ! lon/lat in degrees_east/degrees_north.  Hardcoding lon/lat for a magnetic
+  ! type would ship 2DMEL's dynamo grid under geographic names and put every
+  ! magnetic axis in the file twice, once under each name.
   !
-  ! Scope is deliberately magnetic-only.  Geographic types declare
+  ! Only magnetic grids use the declared names.  Geographic types declare
   ! 'Longitude'/'Latitude', so a blanket "use the declared name" would rename
-  ! their dims too and change every geographic file; this leaves them alone.
+  ! their dims too and change every geographic file.
   ! ---------------------------------------------------------------------------
   subroutine nc_coord_names(gridKind, cLon, cLat, cLonUnits, cLatUnits)
     use ModOutputContainer, only: GRID_MAG_2D
@@ -959,7 +954,7 @@ contains
 
     ! On-disk rank, not gridKind: GRID_HIME carries both 2DHME (rank 2) and
     ! 3DHME (rank 3), so keying on GEO_3D alone would push 3DHME through the
-    ! 2-D path — 2-element start/cnt against 3-dim variables, alt level 1 only.
+    ! 2-D path, with 2-element start/cnt against 3-dim variables and alt level 1 only.
     is3d = (nc_nDims == 3)
 
     if (nc_needsIndepWrite .and. c%gridKind == GRID_MAG_2D) then
@@ -1043,8 +1038,8 @@ contains
         endif
       endif
 
-      ! Geographic lon/lat arrive in radians; netcdf is where they become
-      ! degrees.  See nc_is_geo_lonlat -- name-keyed, not axis-keyed.
+      ! Geographic lon/lat arrive in radians and become degrees here.  The test
+      ! (nc_is_geo_lonlat) is name-keyed, not axis-keyed.
       if (nc_is_geo_lonlat(c%vars(i)%name)) then
         if (is3d) then
           buf3d = buf3d*real(cRadToDeg, kind=4)

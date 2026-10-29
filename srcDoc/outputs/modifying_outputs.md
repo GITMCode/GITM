@@ -5,7 +5,7 @@ recompile:
 
 | You want to... | Use | Effort |
 |---|---|---|
-| Add a variable to an existing output type | Edit its `fill_<type>` routine | One `put_field` call plus one registry row — see [Modify an existing output type](#modify-an-existing-output-type) |
+| Add a variable to an existing output type | Edit its `fill_<type>` routine | One `put_field` call plus one registry row (see [Modify an existing output type](#modify-an-existing-output-type)) |
 | Add a variable without changing any existing file's format | A **USR** output (`3DUSR`, `2DUSR`, `1DUSR`, `0DUSR`) | Register the name once, plus a one-line `add_usr_output` call |
 | Create a whole new output file | A **new output type** | One fill routine plus one registration line |
 
@@ -24,7 +24,7 @@ type's variable list for every user of the file.
       units, and long names come from its `fill_<type>` routine plus the
       shared table in `src/ModOutputVarRegistry.f90`; headers and netcdf
       metadata are generated from that one schema, so they can no longer
-      disagree with the data — and you never write header strings again.
+      disagree with the data. You never write header strings again.
     - Units are no longer part of the name string (`'Rho (kg/m3)'` is now
       name `'Rho'` plus a units field). `.header` variable lists show bare
       names.
@@ -34,7 +34,7 @@ type's variable list for every user of the file.
       init ("priming"), and every later fill must put exactly the same
       variables. See [Containers](#containers).
     - `1DCMS` was removed, and type codes are matched exactly (5
-      characters), not by substring — an old `UAM.in` requesting `1DCMS`
+      characters), not by substring. An old `UAM.in` requesting `1DCMS`
       or a truncated code stops at input parsing with `bad output type`.
 
 ---
@@ -120,7 +120,7 @@ The best-case scenario: one line of code plus one metadata row.
    call c%put_field('My Variable', MyVar(:, :, :, iBlock))
    ```
 
-   Match the slicing of the puts already in that fill — it follows the
+   Match the slicing of the puts already in that fill, which follows the
    type's `nGhostCells`: `fill_3dall` (`nGhostCells = 2`) puts whole
    ghosted arrays (`Altitude_GB(:, :, :, iBlock)`) while `fill_2dtec`
    (`nGhostCells = 0`) puts explicit interior slices
@@ -139,8 +139,8 @@ The best-case scenario: one line of code plus one metadata row.
 
    A registry row looks like this. The table is one long Fortran array
    constructor, so when you append, the previous last row needs a trailing
-   `, &` and the closing `]` moves to your new row. There is no count to
-   bump — the table is assumed-shape:
+   `, &` and the closing `]` moves to your new row. It is assumed-shape,
+   so there is no count to bump:
 
    ```fortran
    VarMeta('My Variable', 'units', 'One-line description')]
@@ -152,15 +152,13 @@ per fill, unconditionally (see [Containers](#containers) under
 [Under the hood](#under-the-hood) for why).
 
 For the types that declare schemas with `define_schema_<type>` instead of
-priming (the authoritative list is the set of `define_schema_*` calls in
-`init_output_containers` — currently the magnetic-grid, HME, USR, and
-rank-0 probe types; see [below](#types-with-explicit-schemas)), also add a
-matching `define_var` line in schema order.
+priming (see [below](#types-with-explicit-schemas)), also add a matching
+`define_var` line in schema order.
 
 ### Changing an existing name or units
 
 Renaming is safe to attempt: change the registry row and the put site
-together, and if you miss one, the run stops at startup — priming runs every
+together, and if you miss one, the run stops at startup. Priming runs every
 registered fill at init, so a put-site name with no metadata is caught on
 the very next run, not months later on the one run that outputs that type.
 
@@ -169,11 +167,11 @@ Two things to check anyway:
 - **A registry row is shared by every type that puts that name.** That is
   the point (units and long_name cannot drift between types), but it also
   means editing the `'Rho'` row changes 3DALL, 3DNEU, 3DLST, 3DMOH, and
-  3DTHM at once — and a units-only edit produces **no error anywhere**.
+  3DTHM at once, and a units-only edit produces **no error anywhere**.
   Grep the put sites before editing a shared row.
 - Renames propagate to files and user scripts: the `.header` variable
-  list, the netcdf variable name after sanitization (the original name is
-  kept in the `gitm_name` attribute — see [Outputs](../outputs.md)), and any
+  list, the netcdf variable name after sanitization (the original name
+  survives in the `gitm_name` attribute described in [Outputs](../outputs.md)), and any
   analysis code keyed on the old string.
 
 ---
@@ -230,9 +228,9 @@ full priming rule (every variable put exactly once, unconditionally).
 ### 2. Register the type
 
 In `src/ModOutputProducers.f90`, add `'3DMYT'` to the `cContainerTypes`
-array **and bump its declared size** (`cContainerTypes(26)` becomes `(27)`
-— the constructor's length must match the declaration or the build fails
-with a shape mismatch). Then add one line in `init_output_containers`:
+array **and bump its declared size** (`cContainerTypes(26)` becomes `(27)`).
+The constructor's length must match the declaration or the build fails
+with a shape mismatch. Then add one line in `init_output_containers`:
 
 ```fortran
 call set_fill('3DMYT', fill_3dmyt)
@@ -248,13 +246,14 @@ missing.
 
 Add `3DMYT` to a `#SAVEPLOT` block in `UAM.in` and `make`. `pGITM.py` and all
 three backends pick up the new type automatically. Nothing else changes in
-the code — but do add the new code to the `#SAVEPLOT` type list in
+the code, but do add the new code to the `#SAVEPLOT` type list in
 [set_inputs](../set_inputs.md) (and to the `#SAVEPLOT` help text in
 `src/set_inputs.f90`), and regenerate the variable tables in
-[Outputs](../outputs.md) once the type produces data. (Note: the netcdf backend
-does not support probe-style `1D*`/`0D*` types and stops with an error if
-one is requested; use legacy or mpiio for those. Satellite (`#SATELLITES`)
-files are written in the legacy format whatever the backend.)
+[Outputs](../outputs.md) once the type produces data.
+
+The netcdf backend does not support probe-style `1D*`/`0D*` types and stops
+with an error if one is requested; use legacy or mpiio for those. Satellite
+(`#SATELLITES`) files are written in the legacy format whatever the backend.
 
 ### Types with explicit schemas
 
@@ -305,7 +304,7 @@ touch arrays that are always allocated.
 
 The precise form of the no-conditional-puts rule: a put may be gated only on
 state that is identical on every writing rank and fixed before priming runs.
-`fill_3dlst` is the sanctioned example — its `i*OutputList` flags are set
+`fill_3dlst` is the sanctioned example. Its `i*OutputList` flags are set
 once in `src/Earth.f90` before init and never change, so its conditional
 puts resolve identically at priming and at every later fill. A flag that can
 change mid-run, or differ across ranks, aborts in `finish_fill`. A container
@@ -320,7 +319,7 @@ the parameter to raise (`src/ModOutputContainer.f90`).
 |---|---|---|
 | `GRID_GEO_3D` | geographic 3D (3DALL, 3DNEU, etc.) | all ranks |
 | `GRID_GEO_2D` | geographic 2D (2DTEC, 2DGEL, etc.) and the all-rank probe types (1DALL, 0DALL, 1DNEW, 1DUSR, 0DUSR) | all ranks |
-| `GRID_MAG_2D` | magnetic 2D (2DMEL) — and, purely as a "one rank writes" switch, the probe types 1DGLO, 1DTHM, 1DCHM | `iProc == 0` only |
+| `GRID_MAG_2D` | magnetic 2D (2DMEL), plus the probe types 1DGLO, 1DTHM, 1DCHM, which use it purely as a "one rank writes" switch | `iProc == 0` only |
 | `GRID_HIME` | regional (2DHME, 3DHME) | blocks inside the region (set externally) |
 
 For 1-D/0-D types the choice is a participation rule, not a grid statement:
@@ -333,7 +332,7 @@ avoid MPI collective deadlocks; see
 
 ### Ghost cells
 
-Each block carries **ghost cells**, a two-cell border copied from neighbouring blocks
+Each block carries **ghost cells**, a two-cell border copied from neighboring blocks
 (or boundary conditions) so stencil operations don't have to special-case the edges.
 Interior cells are `1:nLons, 1:nLats, 1:nAlts`; with ghosts the range is `-1:nLons+2`,
 and so on.
@@ -378,4 +377,4 @@ files. The messages you are most likely to meet:
 | `fill_X made N put(s) but the type has M variable(s); every variable must be put exactly once, unconditionally.` | A put skipped (conditional or early return) or duplicated relative to the primed schema | Every variable, exactly once, on every writing rank |
 | `put shape mismatch for "X" ... defined as AxBxC, got DxExF` | The put's slice doesn't match the primed shape | Match the slicing of the fill's other puts (check `nGhostCells`) |
 | `output container has no fill registered (forgot its set_fill line?): X` | A type added to `cContainerTypes` without its `set_fill` line | Add the line in `init_output_containers` |
-| `ModOutputNetCDF: probe type X is not supported by the netcdf backend yet; use legacy or mpiio` | A `1D*`/`0D*` type requested under the netcdf backend — including 3D types renamed to `1D*` by a 1-D (`nLons=nLats=1`) run | Use the legacy or mpiio backend for probe types and 1-D runs |
+| `ModOutputNetCDF: probe type X is not supported by the netcdf backend yet; use legacy or mpiio` | A `1D*`/`0D*` type requested under the netcdf backend, including 3D types renamed to `1D*` by a 1-D (`nLons=nLats=1`) run | Use the legacy or mpiio backend for probe types and 1-D runs |

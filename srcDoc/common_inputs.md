@@ -414,7 +414,7 @@ file, it produces a LOT of files.
 
 The satellites are specified in the `#SATELLITES` section of the UAM.in file. The
 number of satellites must be speficied along with the path to the locations, output type
-& cadence for each file. Only `1DUSR` and `0DUSR` are honoured as output types (they
+& cadence for each file. Only `1DUSR` and `0DUSR` are honored as output types (they
 write the variables registered by user code). Any other value is replaced by `1DALL`,
 a profile of the standard variables at each location (`0DALL` if RCMR is running), so
 a 3-D type such as `3DALL` cannot be requested here. Satellite files are written to

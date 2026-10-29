@@ -19,7 +19,7 @@ mkdocs serve
 
 [Can be multi-line,
 or single line.
-As long at there is not an empty line between the brackets]: # 
+As long as there is not an empty line between the brackets]: # 
 
 
 ---

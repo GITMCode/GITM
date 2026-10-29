@@ -57,7 +57,7 @@ jobs:
     name: Run Automatic Tests
     needs: [Format]
     steps:
-      - name: Linux install gfortran, openmpi, pnmetcdf
+      - name: Linux install gfortran, openmpi, pnetcdf
         if: runner.os == 'Linux'
         run: sudo apt update && sudo apt install -y libopenmpi-dev libpnetcdf-dev
       - name: macOS install gfortran & openmpi

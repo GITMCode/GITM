@@ -5,9 +5,8 @@
 !
 ! Central metadata registry for container outputs: one canonical (units,
 ! longName) pair per physical variable, keyed by the variable's short name.
-! Before this, each define_schema_<type> re-typed its own units/longName
-! strings, so the same quantity could be described differently in two types
-! ('Rho' had two longNames).  Naming a variable once here avoids that drift.
+! Naming each variable once here keeps two types from describing the same
+! quantity differently.
 !
 ! put_field/put_axis consult lookup_var_meta on first touch only, so it costs
 ! nothing per timestep.  Computed names built in loops (e.g.
@@ -149,9 +148,9 @@ contains
   ! lookup_var_meta: canonical metadata for name.
   !
   ! Returns .true. and fills units/longName when name is registered. Returns
-  ! .false. otherwise (computed species/ion names) — units/longName are
-  ! intent(out), so on a miss they come back undefined, not preserved;
-  ! callers must check the result before using them.
+  ! .false. otherwise (computed species/ion names).  On a miss units/longName
+  ! come back undefined, not preserved, since they are intent(out), so callers
+  ! must check the result before using them.
   ! ---------------------------------------------------------------------------
   logical function lookup_var_meta(name, units, longName)
     character(len=*), intent(in)  :: name

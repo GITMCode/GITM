@@ -50,7 +50,7 @@ module ModOutputProducers
 
   logical :: containers_initialized = .false.
 
-  ! Probe location for the 1D/0D point-output fills (Route A1). Set by the
+  ! Probe location for the 1D/0D point-output fills. Set by the
   ! output driver (output_common) before dispatch; read by the probe fills.
   ! Module state instead of fill arguments so every fill shares the uniform
   ! (c, iBlock) signature. Defaults are the dummy-index priming values: safe
@@ -87,7 +87,7 @@ module ModOutputProducers
   integer                        :: nUsrVars0D = 0
 
   ! Generic interface for storing user-defined output data.
-  ! Dispatches on array rank: 3D (lon×lat×alt), 2D (lon×lat), 1D (alt profile).
+  ! Dispatches on array rank: 3D (lon x lat x alt), 2D (lon x lat), 1D (alt profile).
   ! See add_usr_output_3d for full documentation.
   interface add_usr_output
     module procedure add_usr_output_3d
@@ -222,7 +222,7 @@ contains
   end function find_usr_var_idx
 
   ! ---------------------------------------------------------------------------
-  ! add_usr_output_3d: store a 3D (lon×lat×alt) user-defined field.
+  ! add_usr_output_3d: store a 3D (lon x lat x alt) user-defined field.
   !
   ! Call from physics code each timestep to provide data for 3DUSR output.
   ! First call with a new name registers the variable; subsequent calls update
@@ -269,7 +269,7 @@ contains
   end subroutine add_usr_output_3d
 
   ! ---------------------------------------------------------------------------
-  ! add_usr_output_2d: store a 2D (lon×lat) user-defined field.
+  ! add_usr_output_2d: store a 2D (lon x lat) user-defined field.
   ! Ghost detection: nLons -> interior; nLons+4 -> ghost-inclusive, stripped.
   ! ---------------------------------------------------------------------------
   subroutine add_usr_output_2d(arr, name, units, iBlock, longName)
@@ -341,7 +341,7 @@ contains
   !
   !   * One-shot types (everything else) have no define side at all; their schema is
   !     materialized by PRIMING: call fill_<type>(c, 1) once so the first put of
-  !     each name defines it, then lock the schema.  This is what lets the
+  !     each name defines it, then lock the schema.  That lets the
   !     schema be DERIVED from the fill code while still being complete before
   !     open_file, where netcdf issues collective nfmpi_def_var for the whole
   !     file.  (Deferring definition to the block loop instead would make
@@ -351,7 +351,7 @@ contains
   ! initialized: every array a one-shot fill touches has been allocated by
   ! then.  That allocation-timing precondition must hold for EVERY one-shot
   ! fill in EVERY run (priming runs them all, whether or not the type was
-  ! requested) and is what keeps the lazily-allocated mag-grid types out.
+  ! requested).  The lazily-allocated mag-grid types are therefore not one-shot.
   ! Priming's VALUES are thrown away (every real fill overwrites them), so only
   ! the names/shapes/metadata it establishes matter.
   ! ---------------------------------------------------------------------------
@@ -413,8 +413,8 @@ contains
     ! once against block 1 purely for its define-on-first-touch side effect
     ! (the data it stores is garbage that the first real fill overwrites),
     ! then finish_priming locks the schema. Unconverted types were populated
-    ! above (nVars > 0), so the loop never runs their fills at init, which
-    ! is what keeps the lazily-allocated mag-grid types out.
+    ! above (nVars > 0), so the loop never primes their fills.  That keeps the
+    ! lazily-allocated mag-grid types out.
     do i = 1, nContainers
       if (containers(i)%nVars == 0 .and. associated(containers(i)%fill)) then
         call containers(i)%fill(containers(i), 1)
@@ -482,10 +482,10 @@ contains
   ! Grid: magnetic (nMagLons+1) x nMagLats, no altitude.
   ! Axis variables are 1D; all others are 2D (degenerate 3rd dim = 1).
   ! Units: MagLon/MagLat are already degrees in the model; MLT is hours.
-  ! GeoLat/GeoLon are PUT RAW, in radians -- the declared 'degrees_east' /
+  ! GeoLat/GeoLon are PUT RAW, in radians.  The declared 'degrees_east' /
   ! 'degrees_north' below describe what the NETCDF backend publishes, since it
   ! is the only backend that converts (see nc_is_geo_lonlat in
-  ! ModOutputNetCDF.F90).  legacy/mpiio .bin carry radians, matching develop.
+  ! ModOutputNetCDF.F90).  legacy/mpiio .bin carry radians.
   ! ---------------------------------------------------------------------------
   subroutine define_schema_2dmel(c)
     use ModElectrodynamics, only: nMagLats, nMagLons
@@ -587,10 +587,9 @@ contains
   ! fill_2dmel: put 2DMEL data into the container for iBlock.
   !
   ! Only iBlock == 1 writes (GRID_MAG_2D); all others return after prepare().
-  ! GeoLat/GeoLon are written RAW, in radians, matching develop's .bin contract
-  ! (develop's output_common.f90 has no cRadToDeg anywhere).  The netcdf backend
-  ! converts on write; legacy/mpiio ship radians.  MagLonMC/MagLatMC are already
-  ! in degrees, so this type mixes the two on purpose -- as develop does.
+  ! GeoLat/GeoLon are written RAW, in radians (see define_schema_2dmel).  The
+  ! netcdf backend converts on write; legacy/mpiio ship radians.  MagLonMC/MagLatMC
+  ! are already in degrees, so this type mixes the two on purpose.
   ! ---------------------------------------------------------------------------
   subroutine fill_2dmel(c, iBlock)
     use ModElectrodynamics
@@ -983,7 +982,7 @@ contains
   !
   ! Puts are gated by the UAM.in i*OutputList flags, which are uniform across
   ! ranks and time-invariant, so priming sees the same conditions as every fill.
-  ! That is what makes the conditional puts safe; a rank- or time-dependent
+  ! That keeps the conditional puts safe; a rank- or time-dependent
   ! condition would desync the schema. All list flags default .true.
   ! HARD INVARIANT: the flags are set once (input parse / init_planet) before
   ! the first output and never written again. Anything that mutates them
@@ -1051,16 +1050,16 @@ contains
     real, allocatable :: zero_buf(:, :, :)  ! model kind, to match the put_field dummy
 
     ! 3DGLO has never been wired to a source of emission data on any GITM
-    ! lineage: develop's output_3dglo returns immediately with its entire write
+    ! lineage: the old output_3dglo returned immediately with its entire write
     ! commented out, and the puts below are placeholder zeros.  A column of
     ! zeros labelled '6300 A Emission' cannot be told apart from real data by
     ! anything downstream, so a run that actually asks for this type stops here
     ! rather than being handed a file that looks like science.
     !
     ! Guarded on schema_locked because init_output_containers PRIMES this fill
-    ! once at startup -- that priming pass is where the schema below comes from,
-    ! and it runs whether or not the type was requested.  finish_priming sets
-    ! schema_locked afterwards, so only a real fill can reach the halt.
+    ! once at startup, whether or not the type was requested, and the schema below
+    ! comes from that pass.  finish_priming sets schema_locked afterwards, so only
+    ! a real fill can reach the halt.
     if (c%schema_locked) &
       call stop_gitm('3DGLO writes placeholder zeros, not emission data. '// &
                      'Remove 3DGLO from #SAVEPLOT.')
@@ -1545,7 +1544,7 @@ contains
     use ModPlanet, only: nSpeciesTotal, nSpecies, nIons, cSpecies, cIons
     type(OutputContainer), intent(inout) :: c
     integer, intent(in) :: iBlock
-    ! Route A1: probe location comes from module state (set by the driver).
+    ! Probe location comes from module state (set by the driver).
     integer :: iiLon, iiLat
     real :: rLon, rLat
     real :: tmp_lon(nAlts), tmp_lat(nAlts), tmp_data(nAlts)
@@ -1651,7 +1650,7 @@ contains
     use ModPlanet, only: nSpeciesTotal, nSpecies, nIons, cSpecies, cIons
     type(OutputContainer), intent(inout) :: c
     integer, intent(in) :: iBlock
-    ! Route A1: probe location comes from module state (set by the driver).
+    ! Probe location comes from module state (set by the driver).
     integer :: iiLon, iiLat, iiAlt
     real :: rLon, rLat, rAlt
     real :: Tmp3d(0:nLons + 1, 0:nLats + 1, 0:nAlts + 1)
@@ -1762,7 +1761,7 @@ contains
     real(output_kind) :: tmp_lon(nAlts), tmp_lat(nAlts), tmp_alt(nAlts), zero_arr(nAlts)
     integer :: iAlt
 
-    ! Same story as 3DGLO -- never wired, the puts below are placeholder zeros.
+    ! Never wired, like 3DGLO.  The puts below are placeholder zeros.
     ! No schema_locked guard is needed here: 1DGLO declares its schema through
     ! define_schema_1dglo, so its nVars is already non-zero at init and
     ! init_output_containers never primes this fill.
@@ -1879,9 +1878,8 @@ contains
 
     do iAlt = 1, nAlts
       iiAlt = max(min(iAlt, nAlts), 1)
-      ! NOCooling, not RadCooling: RadCooling is the combined radiative term,
-      ! so writing it under this label made the column total radiative cooling
-      ! wearing NO's name.  3DTHM already used NOCooling here.
+      ! NOCooling, not RadCooling: RadCooling is the combined radiative term, so
+      ! it would label total radiative cooling as NO's.  3DTHM uses NOCooling too.
       tmp_data(iAlt) = real(-NOCooling(1, 1, iiAlt)*TempUnit(1, 1, iiAlt), output_kind)
     enddo
     call c%put('NO Cooling (K/s)', tmp_data)
@@ -1899,16 +1897,16 @@ contains
     call c%put('Total Abs EUV', tmp_data)
 
     ! NeutralSourcesTotal/NeutralLossesTotal hold NeutralSources*DtSub from
-    ! calc_chemistry.Earth.f90, i.e. a per-step INTEGRAL -- a density, not the
-    ! /m3/s these columns are named for -- so /dt is what makes the name true.
+    ! calc_chemistry.Earth.f90, i.e. a per-step INTEGRAL (a density, not the
+    ! /m3/s these columns are named for).  Dividing by dt gives the named rate.
     !
     ! The sub-step loop there (`do while (DtTotal < Dt)`) runs exactly ONCE:
     ! DtSub is only ever assigned `Dt - DtTotal`, and DtTotal is only ever
     ! advanced by DtSub, so the first pass sets DtSub = Dt and ends the loop.
     ! There is no chemistry sub-cycling, so this is not a time-weighted mean
-    ! over sub-steps -- /dt recovers NeutralSources EXACTLY, the instantaneous
-    ! rate. (If sub-cycling is ever restored, sum(DtSub) is still Dt and /dt
-    ! becomes the correct mean, so this does not need revisiting.)
+    ! over sub-steps.  /dt recovers NeutralSources EXACTLY, the instantaneous
+    ! rate.  (With sub-cycling, sum(DtSub) would still be Dt and /dt would give
+    ! the correct mean.)
     do i = 1, nSpeciesTotal
       do iAlt = 1, nAlts
         iiAlt = max(min(iAlt, nAlts), 1)
@@ -2047,7 +2045,7 @@ contains
     use ModPlanet, only: nSpeciesTotal, nSpecies, nIons, cSpecies, cIons
     type(OutputContainer), intent(inout) :: c
     integer, intent(in) :: iBlock
-    ! Route A1: probe location comes from module state (set by the driver).
+    ! Probe location comes from module state (set by the driver).
     integer :: iiLon, iiLat
     real :: rLon, rLat
     real :: tmp_lon(nAlts), tmp_lat(nAlts), tmp_lt(nAlts), tmp_sza(nAlts), tmp_data(nAlts)
@@ -2273,7 +2271,7 @@ contains
     use ModUserGITM, only: UserData1D
     type(OutputContainer), intent(inout) :: c
     integer, intent(in) :: iBlock
-    ! Route A1: probe location comes from module state (set by the driver).
+    ! Probe location comes from module state (set by the driver).
     integer :: iiLon, iiLat
     real :: rLon, rLat
     real(output_kind) :: tmp(nAlts)
@@ -2329,7 +2327,7 @@ contains
     use ModUserGITM, only: UserData1D
     type(OutputContainer), intent(inout) :: c
     integer, intent(in) :: iBlock
-    ! Route A1: probe location comes from module state (set by the driver).
+    ! Probe location comes from module state (set by the driver).
     integer :: iiLon, iiLat, iiAlt
     real :: rLon, rLat, rAlt
     integer :: i

@@ -15,8 +15,8 @@ Two current restrictions to know up front:
   `legacy` or `mpiio` run lists their variables. Satellite (`#SATELLITES`)
   files are written in the legacy format whatever the backend.
 - The `.nc` files this backend writes are a different dialect from the ones
-  `pGITM.py` produces when converting legacy/mpiio output — see the warning
-  in [Outputs](../outputs.md). Don't mix the two in one analysis.
+  `pGITM.py` produces when converting legacy/mpiio output (see the warning
+  in [Outputs](../outputs.md)). Don't mix the two in one analysis.
 
 To select a backend, add this block to `UAM.in`:
 
@@ -25,7 +25,7 @@ To select a backend, add this block to `UAM.in`:
 mpiio
 ```
 
-Without this block, GITM uses the **legacy** backend to ensure backwards compatibility
+Without this block, GITM uses the **legacy** backend, for backwards compatibility
 with existing runs and tools.
 
 [TOC]
@@ -41,7 +41,7 @@ block file independently, producing:
 - One binary `.b####` file per MPI rank (e.g., `.b0001`, `.b0002`, ...)
 
 These per-block files must be merged into a single `.bin` file before they can be
-analysed. `post_process.py` handles this step automatically. See
+analyzed. `post_process.py` handles this step automatically. See
 [Postprocessing](../postprocessing.md) for details.
 
 !!! warning "Lustre and parallel filesystems"
@@ -68,7 +68,7 @@ serialization. (The types where only some ranks write, `GRID_MAG_2D` and
 no special post-processing step is required to merge files. Running `post_process.py`
 is still recommended if you are using the standard Python analysis tools.
 
-This backend is generally preferred on Lustre-based systems: it produces far fewer
+This backend is preferred on Lustre-based systems: it produces far fewer
 files per timestep and benefits from large sequential writes rather than many small
 independent ones.
 
@@ -170,9 +170,9 @@ deadlock; independent mode lets the participating ranks write alone.
 The `mpiio` backend handles conditional participation by striping output by global
 block offset and leaving non-participating slots zero-filled (no separate per-block
 file to mark NaN). A `0` value in a regional `mpiio` output file is therefore
-expected for cells outside the region. `validate_outputs.py` recognises HME/HIME
+expected for cells outside the region. `validate_outputs.py` recognizes HME/HIME
 files and skips the `altitude > 0` sanity check accordingly. The `legacy` backend
-simply skips file creation on non-participating ranks.
+skips file creation on non-participating ranks.
 
 !!! note "Build requirements"
     PnetCDF must be installed and `pnetcdf-config` on `PATH` when compiling;

@@ -19,7 +19,7 @@
 ! the legacy header format, with a FORMAT/mpiio section prepended so readers
 ! know this is a combined raw-binary file rather than per-block unformatted.
 !
-! Limitations in Phase 2:
+! Limitations:
 !   - DoAppendFiles is not supported; each call creates/overwrites the file.
 !
 ! Regional (HME/HIME) and magnetic-grid types are written by only some ranks,
