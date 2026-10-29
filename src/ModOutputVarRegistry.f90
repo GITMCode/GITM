@@ -111,6 +111,7 @@ module ModOutputVarRegistry
     VarMeta('Molecular Conduction', 'K/s', 'Molecular conduction heating rate'), &
     VarMeta('Chemical Heating Rate', 'K/s', 'Chemical heating rate'), &
     VarMeta('Joule Heating Rate', 'K/s', 'Joule heating rate'), &
+    VarMeta('CO2 Cooling Rate', 'K/s', 'CO2 infrared cooling rate'), &
     VarMeta('NO Cooling Rate', 'K/s', 'NO infrared cooling rate'), &
     VarMeta('O Cooling Rate', 'K/s', 'O infrared cooling rate'), &
     VarMeta('Total Abs EUV', 'W/m2', 'Total absorbed EUV flux'), &
@@ -119,6 +120,7 @@ module ModOutputVarRegistry
     VarMeta('Ionization Rate O_3P', '/s', 'Ionization rate for O(3P)'), &
     VarMeta('Ionization Rate O2', '/s', 'Ionization rate for O2'), &
     VarMeta('Ionization Rate N2', '/s', 'Ionization rate for N2'), &
+    VarMeta('Ionization Rate He', '/s', 'Ionization rate for He'), &
     ! -- chemistry (introduced by 3DCHM) -------------------------------------
     ! Same energy source as 3DTHM's 'Chemical Heating Rate' but volumetric
     ! (eV/m3/s) instead of a temperature tendency (K/s).

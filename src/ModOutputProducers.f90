@@ -863,7 +863,7 @@ contains
   ! the interior; Conduction/MoleConduction carry ghosts only in altitude
   ! (sliced to 1:nAlts); cp is per-dimension (whole lon/lat, sliced altitude);
   ! EuvHeating/EuvTotal/AuroralIonRateS/JouleHeating/ChemicalHeatingRate/
-  ! NOCooling/OCooling are ghost-less and pass whole.
+  ! CO2Cooling/NOCooling/OCooling are ghost-less and pass whole.
   ! ---------------------------------------------------------------------------
   subroutine fill_3dthm(c, iBlock)
     use ModGITM
@@ -894,6 +894,8 @@ contains
                      per_dt(ChemicalHeatingRate*TempUnit(1:nLons, 1:nLats, 1:nAlts)))
     call c%put_field('Joule Heating Rate', &                               ! no ghosts * ghosted
                      JouleHeating*TempUnit(1:nLons, 1:nLats, 1:nAlts))
+    call c%put_field('CO2 Cooling Rate', &                                 ! no ghosts * ghosted
+                     -CO2Cooling*TempUnit(1:nLons, 1:nLats, 1:nAlts))
     call c%put_field('NO Cooling Rate', &                                  ! no ghosts * ghosted
                      -NOCooling*TempUnit(1:nLons, 1:nLats, 1:nAlts))
     call c%put_field('O Cooling Rate', &                                   ! no ghosts * ghosted
@@ -907,6 +909,7 @@ contains
     call c%put_field('Ionization Rate O_3P', AuroralIonRateS(:, :, :, iO_3P_, iBlock))
     call c%put_field('Ionization Rate O2', AuroralIonRateS(:, :, :, iO2_, iBlock))
     call c%put_field('Ionization Rate N2', AuroralIonRateS(:, :, :, iN2_, iBlock))
+    call c%put_field('Ionization Rate He', AuroralIonRateS(:, :, :, iHe_, iBlock))
   end subroutine fill_3dthm
 
   ! ---------------------------------------------------------------------------
@@ -1807,6 +1810,7 @@ contains
     call c%define_var('Molecular Conduction (K/s)', units='K/s', shape3=[nAlts, 1, 1])
     call c%define_var('Chemical Heating (K/s)', units='K/s', shape3=[nAlts, 1, 1])
     call c%define_var('Joule Heating (K/s)', units='K/s', shape3=[nAlts, 1, 1])
+    call c%define_var('CO2 Cooling (K/s)', units='K/s', shape3=[nAlts, 1, 1])
     call c%define_var('NO Cooling (K/s)', units='K/s', shape3=[nAlts, 1, 1])
     call c%define_var('O Cooling (K/s)', units='K/s', shape3=[nAlts, 1, 1])
     call c%define_var('Total Abs EUV', units='W/m2', shape3=[nAlts, 1, 1])
@@ -1875,6 +1879,12 @@ contains
       tmp_data(iAlt) = real(JouleHeating(1, 1, iiAlt)*TempUnit(1, 1, iiAlt), output_kind)
     enddo
     call c%put('Joule Heating (K/s)', tmp_data)
+
+    do iAlt = 1, nAlts
+      iiAlt = max(min(iAlt, nAlts), 1)
+      tmp_data(iAlt) = real(-CO2Cooling(1, 1, iiAlt)*TempUnit(1, 1, iiAlt), output_kind)
+    enddo
+    call c%put('CO2 Cooling (K/s)', tmp_data)
 
     do iAlt = 1, nAlts
       iiAlt = max(min(iAlt, nAlts), 1)
