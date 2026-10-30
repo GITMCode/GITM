@@ -107,11 +107,13 @@ raw name is kept in each variable's `gitm_name` attribute). Notes:
   the chemical heating rate, 3DCHM, 3DMOH `Visc_*`, 2DANC `Chem_int`, and
   the probe types 0DALL, 1DTHM and 1DCHM) are rates. They are written as 0
   at the t = 0 output, where the time step is 0.
-- **`3DGLO` and `1DGLO` cannot be generated at all.** They have never been
-  wired to a source of emission data on any GITM branch. Their science
-  columns would be zeros indistinguishable from real measurements, so GITM
+- **`3DGLO` and `1DGLO` cannot be generated at all.** GLOW computes
+  emissions when `#GLOW` is on (`get_glow.f90` fills `vEmissionRate`), but
+  the two output types were never wired to that array: their fills put
+  placeholder zeros, indistinguishable from real measurements, so GITM
   stops if either is requested in `#SAVEPLOT`. They remain valid type
-  codes so they can be filled in later; they produce nothing today.
+  codes so the fills can be pointed at `vEmissionRate` later; they produce
+  nothing today.
 - **`2DMEL` is on a magnetic grid**, so its horizontal coordinates are named
   `mlon`/`mlat` (in degrees), not `lon`/`lat`. Its `GeoLat`/`GeoLon`
   variables are the geographic position of each magnetic grid point (radians

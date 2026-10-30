@@ -1088,9 +1088,10 @@ contains
     integer, intent(in) :: iBlock
     real, allocatable :: zero_buf(:, :, :)  ! model kind, to match the put_field dummy
 
-    ! 3DGLO has never been wired to a source of emission data on any GITM
-    ! lineage: the old output_3dglo returned immediately with its entire write
-    ! commented out, and the puts below are placeholder zeros.  A column of
+    ! 3DGLO was never wired to its data.  GLOW itself runs when UseGlow is on
+    ! (get_glow.f90 fills vEmissionRate), but the old output_3dglo returned
+    ! immediately with its entire write commented out, and the puts below are
+    ! placeholder zeros rather than reads of vEmissionRate.  A column of
     ! zeros labelled '6300 A Emission' cannot be told apart from real data by
     ! anything downstream, so a run that actually asks for this type stops here
     ! rather than being handed a file that looks like science.
@@ -1800,7 +1801,7 @@ contains
     real(output_kind) :: tmp_lon(nAlts), tmp_lat(nAlts), tmp_alt(nAlts), zero_arr(nAlts)
     integer :: iAlt
 
-    ! Never wired, like 3DGLO.  The puts below are placeholder zeros.
+    ! Never wired to vEmissionRate, like 3DGLO.  The puts below are placeholder zeros.
     ! No schema_locked guard is needed here: 1DGLO declares its schema through
     ! define_schema_1dglo, so its nVars is already non-zero at init and
     ! init_output_containers never primes this fill.

@@ -165,11 +165,12 @@ the frequency of output
     DtPlot        (real, seconds)
 
 !!! warning "`3DGLO` and `1DGLO` stop the run"
-    Both are still valid type codes, so they can be wired up later, but
-    neither has ever been connected to a source of emission data on any GITM
-    branch: their science columns would be zeros that look exactly like real
-    measurements. GITM therefore halts if either appears in `#SAVEPLOT`.
-    Remove the type to continue.
+    Both are still valid type codes. GLOW itself runs when `#GLOW` is on
+    (`get_glow.f90` fills `vEmissionRate`), but neither output type was ever
+    wired to it: their fills put placeholder zeros, which would look exactly
+    like real measurements. GITM therefore halts if either appears in
+    `#SAVEPLOT`. Remove the type to continue, or point the fills at
+    `vEmissionRate`.
 
 ### PLOTTIMECHANGE
 
