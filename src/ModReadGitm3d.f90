@@ -14,7 +14,7 @@ module ModReadGitm3d
   integer, parameter :: nGitmVarCharLength = 40
 
   ! These indices need to be set correctly
-  integer :: iRho_
+  integer :: iRho_ 
   integer :: iNeutralStart_
   integer :: iTn_
   integer :: iVn_
@@ -25,13 +25,16 @@ module ModReadGitm3d
   ! This is the array that is loaded with data in set_horizontal_bcs
   real, allocatable :: GitmFileData(:, :)
 
-  integer, parameter :: nMaxFiles = 300, nMaxVars = 200
+  !integer, parameter :: nMaxFiles = 300, nMaxVars = 200
+!Atheer Alhothali, Sep 30, 2026
+  integer, parameter :: nMaxVars = 200
   integer :: nGitmFiles = 0
   character(len=nGitmCharLength) :: GitmDir
-  character(len=nGitmCharLength) :: GitmFileList(nMaxFiles)
+  !character(len=nGitmCharLength) :: GitmFileList(nMaxFiles)
+  character(len=nGitmCharLength), allocatable :: GitmFileList(:)
   character(len=nGitmVarCharLength) :: GitmVariables(nMaxVars)
-  real(Real8_) :: GitmFileTimes(nMaxFiles)
-
+  !real(Real8_) :: GitmFileTimes(nMaxFiles)
+  real(Real8_), allocatable :: GitmFileTimes(:)
   real, allocatable :: GitmLons(:), GitmLats(:), GitmAlts(:)
   integer :: nLonsGitm, nLatsGitm, nAltsGitm, nVarsGitm
   real :: GitmVersion
@@ -414,6 +417,14 @@ contains
       close(iGitmUnit)
       iGitmFileType = i3dlst_
     endif
+
+    !Atheer Alhothali: Sep 30, 2026
+    if (allocated(GitmFileList)) deallocate(GitmFileList)
+    if (allocated(GitmFileTimes)) deallocate(GitmFileTimes)
+    if (iDebugLevel > -1) &
+         write(*,*) '-> Reading 3D files.  Found ', nGitmFiles,' files.'
+    allocate(GitmFileList(nGitmFiles))
+    allocate(GitmFileTimes(nGitmFiles))
 
     open(iGitmUnit, file='.list_of_gitm_files', status='old')
     do iFile = 1, nGitmFiles
