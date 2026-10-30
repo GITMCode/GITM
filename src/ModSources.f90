@@ -170,6 +170,7 @@ contains
     allocate(ISourcesTotal(nLons, nLats, nAlts, nIons - 1, nBlocks))
     allocate(ILossesTotal(nLons, nLats, nAlts, nIons - 1, nBlocks))
     allocate(AuroralIonRateS(nLons, nLats, nAlts, nSpecies, nBlocks))
+    AuroralIonRateS = 0.0
     allocate(IonPrecipIonRateS(nLons, nLats, nAlts, nSpecies, nBlocks))
     IonPrecipIonRateS = 0.0
     allocate(KappaEddyDiffusion(nLons, nLats, -1:nAlts + 2, nBlocks))
