@@ -343,7 +343,6 @@ subroutine initialize_gitm(TimeIn)
     call init_isochem
   endif
 
-  !if (.not. DoRestart .and. .not. UseGitmBCs) then
   if (.not. DoRestart) then
 
     Potential = 0.0
@@ -352,7 +351,7 @@ subroutine initialize_gitm(TimeIn)
     VerticalVelocity = 0.0
 
     if (UseMsis) then
-      call init_msis
+       call init_msis
     else
 
       TempUnit_const = 1.*Mass(1)/Boltzmanns_Constant
@@ -442,6 +441,12 @@ subroutine initialize_gitm(TimeIn)
 
   endif
 
+  if (isFullSphere .and. UseGitmBCs) then
+     write(*,*) 'You seem to be simulating the whole Earth, but'
+     write(*,*) 'UseGitmBCs is set to true. Please set to false!'
+     call stop_gitm("need to stop")
+  endif
+  
   if (UseGitmBCs) then
 
     iError = 0
