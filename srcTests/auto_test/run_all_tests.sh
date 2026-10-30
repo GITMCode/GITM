@@ -396,8 +396,9 @@ do_tests(){
       local test_glob="UAM.*.test"
       if [ $backends_only = true ]; then test_glob="UAM.*BACKEND_TEST*.test"; fi
       for test_uam in $test_glob; do
-          run_a_test
-          local status=$?
+          # '|| status=$?' keeps a failing test from aborting the loop under set -e
+          local status=0
+          run_a_test || status=$?
 
           if [ $status = 0 ]; then
             passed+=("$test_uam")
@@ -444,8 +445,8 @@ do_tests(){
       fi
     else # if we are only running one UAM file
       test_uam=$onlyone
-      run_a_test
-      local status=$?
+      local status=0
+      run_a_test || status=$?
 
       if [ $status = 0 ]; then
         exit 0
