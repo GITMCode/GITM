@@ -31,7 +31,7 @@ Into this:
 
 `post_process.py` supports burst processing (process existing files & exit), or
 can watch for new outputs for a specified duration and process new outputs as
-they are created. The output `.bin` files can be moved to a remote system,
+they are created. The output `.bin` or `.nc` files can be moved to a remote system,
 tarred, and/or exist alongside the raw outputs.
 
 This means that there are essentailly two ways of running the post-processor:
@@ -116,7 +116,7 @@ Username to use when copying files to a remote location.
 
 #### server
 
-Server/hostname to move `.bin` files to. As the script uses `rsync` to copy
+Server/hostname to move `.bin` or `.nc` files to. As the script uses `rsync` to copy
 these files, it is possible to use a hostname alias from `~/.ssh/config` as the
 server.
 
