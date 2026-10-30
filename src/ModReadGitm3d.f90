@@ -25,15 +25,12 @@ module ModReadGitm3d
   ! This is the array that is loaded with data in set_horizontal_bcs
   real, allocatable :: GitmFileData(:, :)
 
-  !integer, parameter :: nMaxFiles = 300, nMaxVars = 200
-!Atheer Alhothali, Sep 30, 2026
+  !Atheer Alhothali, Sep 30, 2026
   integer, parameter :: nMaxVars = 200
   integer :: nGitmFiles = 0
   character(len=nGitmCharLength) :: GitmDir
-  !character(len=nGitmCharLength) :: GitmFileList(nMaxFiles)
   character(len=nGitmCharLength), allocatable :: GitmFileList(:)
   character(len=nGitmVarCharLength) :: GitmVariables(nMaxVars)
-  !real(Real8_) :: GitmFileTimes(nMaxFiles)
   real(Real8_), allocatable :: GitmFileTimes(:)
   real, allocatable :: GitmLons(:), GitmLats(:), GitmAlts(:)
   integer :: nLonsGitm, nLatsGitm, nAltsGitm, nVarsGitm
@@ -48,7 +45,8 @@ module ModReadGitm3d
   ! This is for linear interpolation in time:
   integer :: iGitmIndex = 0, iGitmIndexOld = 0
   real :: rGitmFactor = 0.0
-  real, allocatable :: GitmDataTwoFiles(:, :, :, :, :), GitmDataAtTime(:, :, :, :)
+  real, allocatable :: GitmDataTwoFiles(:, :, :, :, :)
+  real, allocatable :: GitmDataAtTime(:, :, :, :)
   real, allocatable :: GitmDataDummy(:, :, :, :)
 
   real, allocatable :: GitmInLons(:), GitmInLats(:), GitmInAlts(:)
@@ -342,7 +340,8 @@ contains
     endif
 
     iGitmIndex = 1
-    do while (GitmFileTimes(iGitmIndex) <= InputTime .and. iGitmIndex < nGitmFiles)
+    do while (GitmFileTimes(iGitmIndex) <= InputTime .and. &
+         iGitmIndex < nGitmFiles)
       iGitmIndex = iGitmIndex + 1
     enddo
 
@@ -352,12 +351,14 @@ contains
     if (iGitmIndex /= iGitmIndexOld) then
 
       if (iDebugLevel > -1) &
-        write(*, *) '> GITM BCs -> Reading First File : ', trim(GitmFileList(iGitmIndex - 1))
+           write(*, *) '> GITM BCs -> Reading First File : ', &
+           trim(GitmFileList(iGitmIndex - 1))
       call GitmReadFile(GitmFileList(iGitmIndex - 1), iError)
       GitmDataTwoFiles(1, :, :, :, :) = GitmDataDummy
 
       if (iDebugLevel > 0) &
-        write(*, *) '   -> Reading Second File : ', trim(GitmFileList(iGitmIndex))
+           write(*, *) '   -> Reading Second File : ', &
+           trim(GitmFileList(iGitmIndex))
       call GitmReadFile(GitmFileList(iGitmIndex), iError)
       GitmDataTwoFiles(2, :, :, :, :) = GitmDataDummy
 
@@ -387,7 +388,7 @@ contains
     ! write(*, *) 'ls -1 '//trim(GitmDir)//'3DALL*.bin > .list_of_gitm_files 2> .gitm_err'
     if (iProc == 0) then
       call execute_command_line('ls -1 '//trim(GitmDir)// &
-                                '3DALL*.bin > .list_of_gitm_files 2> .gitm_err')
+                                '3D*.bin > .list_of_gitm_files 2> .gitm_err')
     endif
     call MPI_BARRIER(iCommGITM, iError)
 
