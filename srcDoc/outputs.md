@@ -177,6 +177,7 @@ raw name is kept in each variable's `gitm_name` attribute). Notes:
 
 | Variable | Units | Description |
 |---|---|---|
+| Altitude | m | IE reference altitude (constant over the magnetic grid) |
 | MLT | hr | Magnetic local time |
 | GeoLat | degrees_north | Geographic latitude |
 | GeoLon | degrees_east | Geographic longitude |
