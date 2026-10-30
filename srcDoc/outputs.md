@@ -175,8 +175,6 @@ raw name is kept in each variable's `gitm_name` attribute). Notes:
 
 | Variable | Units | Description |
 |---|---|---|
-| mlon | degrees_east | Magnetic longitude |
-| mlat | degrees_north | Magnetic latitude |
 | MLT | hr | Magnetic local time |
 | GeoLat | degrees_north | Geographic latitude |
 | GeoLon | degrees_east | Geographic longitude |
@@ -243,10 +241,10 @@ raw name is kept in each variable's `gitm_name` attribute). Notes:
 | [N(4S)] | /m3 | Number density of N(4S) |
 | [NO] | /m3 | Number density of NO |
 | [He] | /m3 | Number density of He |
+| [CO2] | /m3 | Number density of CO2 |
 | [N(2D)] | /m3 | Number density of N(2D) |
 | [N(2P)] | /m3 | Number density of N(2P) |
 | [H] | /m3 | Number density of H |
-| [CO2] | /m3 | Number density of CO2 |
 | [O(1D)] | /m3 | Number density of O(1D) |
 | Temperature | K | Neutral temperature |
 | Vn (east) | m/s | Eastward neutral wind |
@@ -258,7 +256,9 @@ raw name is kept in each variable's `gitm_name` attribute). Notes:
 | Vn (up,N(4S)) | m/s | Vertical neutral wind for N(4S) |
 | Vn (up,NO) | m/s | Vertical neutral wind for NO |
 | Vn (up,He) | m/s | Vertical neutral wind for He |
-| [O_4SP_+] | /m3 | Number density of O_4SP_+ |
+| Vn (up,CO2) | m/s | Vertical neutral wind for CO2 |
+| [O(4S)+] | /m3 | Number density of O(4S)+ |
+| [He+] | /m3 | Number density of He+ |
 | [NO+] | /m3 | Number density of NO+ |
 | [O2+] | /m3 | Number density of O2+ |
 | [N2+] | /m3 | Number density of N2+ |
@@ -266,7 +266,6 @@ raw name is kept in each variable's `gitm_name` attribute). Notes:
 | [O(2D)+] | /m3 | Number density of O(2D)+ |
 | [O(2P)+] | /m3 | Number density of O(2P)+ |
 | [H+] | /m3 | Number density of H+ |
-| [He+] | /m3 | Number density of He+ |
 | [e-] | /m3 | Number density of e- |
 | eTemperature | K | Electron temperature |
 | iTemperature | K | Ion temperature |
@@ -309,16 +308,20 @@ raw name is kept in each variable's `gitm_name` attribute). Notes:
 | O+(2P) + N2 | eV/m3/s | O+(2P) + N2 reaction heating rate |
 | Chemical Heating | eV/m3/s | Volumetric chemical heating rate |
 
-### 3DGLO
+### 3DEMI
 
 | Variable | Units | Description |
 |---|---|---|
 | Longitude | degrees_east | Geographic longitude |
 | Latitude | degrees_north | Geographic latitude |
 | Altitude | m | Altitude above surface |
-| 6300 A Emission |  | 6300 Angstrom emission |
-| PhotoElectronUp |  | Photoelectron flux up |
-| PhotoElectronDown |  | Photoelectron flux down |
+| Emission 2470A |  | Emission at 2470A |
+| Emission 7320A |  | Emission at 7320A |
+| Emission 3726A |  | Emission at 3726A |
+| Emission 5200A |  | Emission at 5200A |
+| Emission 10400A |  | Emission at 10400A |
+| Emission 6300A |  | Emission at 6300A |
+| Emission 6364A |  | Emission at 6364A |
 
 ### 3DION
 
@@ -327,7 +330,8 @@ raw name is kept in each variable's `gitm_name` attribute). Notes:
 | Longitude | degrees_east | Geographic longitude |
 | Latitude | degrees_north | Geographic latitude |
 | Altitude | m | Altitude above surface |
-| [O_4SP_+] | /m3 | Number density of O_4SP_+ |
+| [O(4S)+] | /m3 | Number density of O(4S)+ |
+| [He+] | /m3 | Number density of He+ |
 | [NO+] | /m3 | Number density of NO+ |
 | [O2+] | /m3 | Number density of O2+ |
 | [N2+] | /m3 | Number density of N2+ |
@@ -335,7 +339,6 @@ raw name is kept in each variable's `gitm_name` attribute). Notes:
 | [O(2D)+] | /m3 | Number density of O(2D)+ |
 | [O(2P)+] | /m3 | Number density of O(2P)+ |
 | [H+] | /m3 | Number density of H+ |
-| [He+] | /m3 | Number density of He+ |
 | [e-] | /m3 | Number density of e- |
 | eTemperature | K | Electron temperature |
 | iTemperature | K | Ion temperature |
@@ -377,7 +380,7 @@ raw name is kept in each variable's `gitm_name` attribute). Notes:
 | Vn (east) | m/s | Eastward neutral wind |
 | Vn (north) | m/s | Northward neutral wind |
 | Vn (up) | m/s | Vertical neutral wind |
-| [O_4SP_+] | /m3 | Number density of O_4SP_+ |
+| [O(4S)+] | /m3 | Number density of O(4S)+ |
 | [NO+] | /m3 | Number density of NO+ |
 | [O2+] | /m3 | Number density of O2+ |
 | [N2+] | /m3 | Number density of N2+ |
@@ -448,6 +451,9 @@ raw name is kept in each variable's `gitm_name` attribute). Notes:
 | Vn (up,He) | m/s | Vertical wind for He |
 | IonDrag_up_He | m/s2 | Ion drag upward for He |
 | Horiz_Adv_Vn (up,He) | m/s2 | Horiz advection upward for He |
+| Vn (up,CO2) | m/s | Vertical wind for CO2 |
+| IonDrag_up_CO2 | m/s2 | Ion drag upward for CO2 |
+| Horiz_Adv_Vn (up,CO2) | m/s2 | Horiz advection upward for CO2 |
 | Coriolis_up | m/s2 | Coriolis upward accel |
 | Centrif_up | m/s2 | Centrifugal upward accel |
 | EffectiveGravity | m/s2 | Effective gravity accel |
@@ -466,10 +472,10 @@ raw name is kept in each variable's `gitm_name` attribute). Notes:
 | [N(4S)] | /m3 | Number density of N(4S) |
 | [NO] | /m3 | Number density of NO |
 | [He] | /m3 | Number density of He |
+| [CO2] | /m3 | Number density of CO2 |
 | [N(2D)] | /m3 | Number density of N(2D) |
 | [N(2P)] | /m3 | Number density of N(2P) |
 | [H] | /m3 | Number density of H |
-| [CO2] | /m3 | Number density of CO2 |
 | [O(1D)] | /m3 | Number density of O(1D) |
 | Temperature | K | Neutral temperature |
 | Vn (east) | m/s | Eastward neutral wind |
@@ -481,6 +487,7 @@ raw name is kept in each variable's `gitm_name` attribute). Notes:
 | Vn (up,N(4S)) | m/s | Vertical neutral wind for N(4S) |
 | Vn (up,NO) | m/s | Vertical neutral wind for NO |
 | Vn (up,He) | m/s | Vertical neutral wind for He |
+| Vn (up,CO2) | m/s | Vertical neutral wind for CO2 |
 
 ### 3DTHM
 
@@ -494,6 +501,7 @@ raw name is kept in each variable's `gitm_name` attribute). Notes:
 | Molecular Conduction | K/s | Molecular conduction heating rate |
 | Chemical Heating Rate | K/s | Chemical heating rate |
 | Joule Heating Rate | K/s | Joule heating rate |
+| CO2 Cooling Rate | K/s | CO2 infrared cooling rate |
 | NO Cooling Rate | K/s | NO infrared cooling rate |
 | O Cooling Rate | K/s | O infrared cooling rate |
 | Total Abs EUV | W/m2 | Total absorbed EUV flux |
@@ -504,6 +512,7 @@ raw name is kept in each variable's `gitm_name` attribute). Notes:
 | Ionization Rate O_3P | /s | Ionization rate for O(3P) |
 | Ionization Rate O2 | /s | Ionization rate for O2 |
 | Ionization Rate N2 | /s | Ionization rate for N2 |
+| Ionization Rate He | /s | Ionization rate for He |
 
 ### 3DUSR
 
@@ -515,4 +524,4 @@ raw name is kept in each variable's `gitm_name` attribute). Notes:
 | Joule Heating | K/s | Joule Heating |
 | JPara | A/m2 | JPara |
 
-<!-- generated by srcPython/generate_output_docs.py; types: 2DANC, 2DGEL, 2DHME, 2DMEL, 2DTEC, 2DUSR, 3DALL, 3DCHM, 3DGLO, 3DION, 3DLST, 3DMAG, 3DMOH, 3DMOV, 3DNEU, 3DTHM, 3DUSR -->
+<!-- generated by srcPython/generate_output_docs.py; types: 2DANC, 2DGEL, 2DHME, 2DMEL, 2DTEC, 2DUSR, 3DALL, 3DCHM, 3DEMI, 3DION, 3DLST, 3DMAG, 3DMOH, 3DMOV, 3DNEU, 3DTHM, 3DUSR -->
