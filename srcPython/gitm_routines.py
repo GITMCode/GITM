@@ -351,8 +351,11 @@ def read_gitm_one_file(file_to_read, vars_to_read=-1):
     data["nVars"]=unpack(endChar+'l',f.read(recLen))[0]
     (oldLen, recLen)=unpack(endChar+'2l',f.read(8))
 
+    # Accept a bare int (the default -1) as well as a list; -1 means all.
+    if np.isscalar(vars_to_read):
+        vars_to_read = [vars_to_read]
     if (vars_to_read[0] == -1):
-        vars_to_read = np.arange[nVars]
+        vars_to_read = np.arange(data["nVars"])
 
     # Collect variable names.
     for i in range(data["nVars"]):
