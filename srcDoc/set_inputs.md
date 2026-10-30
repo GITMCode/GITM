@@ -154,8 +154,8 @@ files to the UA/restartOUT directory. This sets the output files. The most commo
 type is 3DALL, which outputs all primary state variables. 
 
 Other types include : 3DALL, 3DNEU, 3DION, 3DTHM, 3DCHM, 3DLST, 3DGLO,
-3DMAG, 3DMOH, 3DMOV, 3DHME, 3DUSR, 2DGEL, 2DMEL, 2DTEC, 2DANC, 2DHME,
-2DUSR, 1DALL, 1DGLO, 1DTHM, 1DNEW, 1DCHM, 1DUSR, 0DALL, 0DUSR. DtPlot sets
+3DMAG, 3DMOH, 3DMOV, 3DEMI, 3DHME, 3DUSR, 2DGEL, 2DMEL, 2DTEC, 2DANC, 2DHME,
+2DUSR, 1DALL, 1DGLO, 1DTHM, 1DNEW, 1DCHM, 1DEMI, 1DUSR, 0DALL, 0DUSR. DtPlot sets
 the frequency of output
 
     #SAVEPLOT

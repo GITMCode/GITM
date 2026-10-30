@@ -98,7 +98,7 @@ raw name is kept in each variable's `gitm_name` attribute). Notes:
   user code registered. The tables below show one example configuration.
 - **Not listed** (absent from the generating run): `3DHME` (regional,
   3DALL-like variable set), the 1-D probe types (`1DALL`, `1DTHM`, `1DCHM`,
-  `1DNEW`, `1DUSR`), and the 0-D satellite types (`0DALL`, `0DUSR`). The
+  `1DEMI`, `1DNEW`, `1DUSR`), and the 0-D satellite types (`0DALL`, `0DUSR`). The
   probe types halt on the `netcdf` backend and the generator reads only
   netcdf files, so they cannot have a generated table. For their variable
   list, read the `.header` file from a `legacy` or `mpiio` run.

@@ -225,7 +225,7 @@ of writing a malformed file. The rules are under [Containers](#containers).
 ### 2. Register the type
 
 In `src/ModOutputProducers.f90`, add `'3DMYT'` to the `cContainerTypes`
-array **and bump its declared size** (`cContainerTypes(26)` becomes `(27)`).
+array **and bump its declared size** (`cContainerTypes(28)` becomes `(29)`).
 The constructor's length must match the declaration or the build fails
 with a shape mismatch. Then add one line in `init_output_containers`:
 
@@ -257,7 +257,7 @@ A few types cannot be primed at init: magnetic-grid types read lazily
 allocated arrays, USR schemas depend on runtime registration, and the
 rank-0 probe types share the magnetic-grid participation rule. The
 authoritative list is the set of `define_schema_*` calls in
-`init_output_containers` (currently 3DHME, 2DHME, 1DGLO, 1DTHM, 1DCHM,
+`init_output_containers` (currently 3DHME, 2DHME, 1DGLO, 1DTHM, 1DCHM, 1DEMI,
 2DMEL, and the four USR types). Those keep
 the older two-routine pattern: a `define_schema_<type>` (called in
 `init_output_containers`) declaring every variable with `define_var`, and a
@@ -315,7 +315,7 @@ the parameter to raise (`src/ModOutputContainer.f90`).
 |---|---|---|
 | `GRID_GEO_3D` | geographic 3D (3DALL, 3DNEU, etc.) | all ranks |
 | `GRID_GEO_2D` | geographic 2D (2DTEC, 2DGEL, etc.) and the all-rank probe types (1DALL, 0DALL, 1DNEW, 1DUSR, 0DUSR) | all ranks |
-| `GRID_MAG_2D` | magnetic 2D (2DMEL), plus the probe types 1DGLO, 1DTHM, 1DCHM, which use it purely as a "one rank writes" switch | `iProc == 0` only |
+| `GRID_MAG_2D` | magnetic 2D (2DMEL), plus the probe types 1DGLO, 1DTHM, 1DCHM, 1DEMI, which use it purely as a "one rank writes" switch | `iProc == 0` only |
 | `GRID_HIME` | regional (2DHME, 3DHME) | blocks inside the region (set externally) |
 
 For 1-D/0-D types the choice is a participation rule, not a grid statement:

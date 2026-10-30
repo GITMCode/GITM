@@ -7,9 +7,9 @@
 !   fill_<type>(c, iBlock)   put data into the container each timestep
 ! Most types are ONE-SHOT: the fill also defines the schema (the first put of a
 ! name defines the variable), and init_output_containers primes it once at init.
-! Ten types instead declare their schema explicitly in
+! Eleven types instead declare their schema explicitly in
 !   define_schema_<type>(c)  register variable names/units/shapes once
-! (3DHME, 2DHME, 2DMEL, 1DGLO, 1DTHM, 1DCHM and the four USR types); their fills
+! (3DHME, 2DHME, 2DMEL, 1DGLO, 1DTHM, 1DCHM, 1DEMI and the four USR types); their fills
 ! then only put data.  See the header of ModOutputContainer.f90 for both patterns.
 !
 ! Module-level containers(:) array lives for the whole run; allocated once in
@@ -41,10 +41,10 @@ module ModOutputProducers
   ! is_known_output_type derive from this array (no container state involved,
   ! so both are safe before init, as bad_outputtype calls them at input parse time),
   ! and assert_types_fully_wired verifies every container landed in its slot.
-  character(len=5), parameter :: cContainerTypes(26) = [ &
+  character(len=5), parameter :: cContainerTypes(28) = [ &
                                  '2DMEL', '2DTEC', '2DGEL', '3DNEU', '3DALL', '3DION', '3DTHM', '3DCHM', &
-                                 '3DLST', '3DGLO', '3DMAG', '3DHME', '3DMOH', '3DMOV', '2DANC', '2DHME', &
-                                 '1DALL', '0DALL', '1DGLO', '1DTHM', '1DCHM', '1DNEW', &
+                                 '3DLST', '3DGLO', '3DMAG', '3DHME', '3DMOH', '3DMOV', '3DEMI', '2DANC', '2DHME', &
+                                 '1DALL', '0DALL', '1DGLO', '1DTHM', '1DCHM', '1DNEW', '1DEMI', &
                                  '3DUSR', '2DUSR', '1DUSR', '0DUSR']
   integer, parameter :: nContainers = size(cContainerTypes)
 
@@ -336,7 +336,7 @@ contains
   !
   ! Two kinds of type coexist here and the backends cannot tell them apart:
   !
-  !   * Explicit-schema types (2DMEL, 3DHME/2DHME, the 1DGLO/1DTHM/1DCHM probes
+  !   * Explicit-schema types (2DMEL, 3DHME/2DHME, the 1DGLO/1DTHM/1DCHM/1DEMI probes
   !     and the four USR types) declare their schema via define_schema_<type>.
   !
   !   * One-shot types (everything else) have no define side at all; their schema is
@@ -367,6 +367,7 @@ contains
     call define_schema_1dglo(containers(get_container_idx('1DGLO')))
     call define_schema_1dthm(containers(get_container_idx('1DTHM')))
     call define_schema_1dchm(containers(get_container_idx('1DCHM')))
+    call define_schema_1demi(containers(get_container_idx('1DEMI')))
     call define_schema_3dusr(containers(get_container_idx('3DUSR')))
     call define_schema_2dusr(containers(get_container_idx('2DUSR')))
     call define_schema_1dusr(containers(get_container_idx('1DUSR')))
@@ -386,6 +387,7 @@ contains
     call set_fill('3DCHM', fill_3dchm)
     call set_fill('3DMOH', fill_3dmoh)
     call set_fill('3DMOV', fill_3dmov)
+    call set_fill('3DEMI', fill_3demi)
     call set_fill('3DLST', fill_3dlst)
     call set_fill('3DGLO', fill_3dglo)
     call set_fill('2DMEL', fill_2dmel)
@@ -394,6 +396,7 @@ contains
     call set_fill('1DGLO', fill_1dglo)
     call set_fill('1DTHM', fill_1dthm)
     call set_fill('1DCHM', fill_1dchm)
+    call set_fill('1DEMI', fill_1demi)
     call set_fill('3DUSR', fill_3dusr)
     call set_fill('2DUSR', fill_2dusr)
     ! Probe fills read the iProbe*/rProbe* module state (set by the driver
@@ -854,6 +857,39 @@ contains
     call c%put_field('IonPressGrad (north)', IonPressureGradient(:, :, :, 2, iBlock))
     call c%put_field('IonPressGrad (up)', IonPressureGradient(:, :, :, 3, iBlock))
   end subroutine fill_3dion
+
+  ! ---------------------------------------------------------------------------
+  ! fill_3demi: 3DEMI schema AND data, one-shot (no define_schema_3demi).
+  !
+  ! Interior-writing (nGhostCells = 0), MIXED ghosting: Longitude/Latitude/
+  ! Altitude_GB are 2-ghost and sliced to the interior; Emissions is ghost-less
+  ! (nLons,nLats,nAlts,nEmissions,nBlocks) and passes whole.  One variable per
+  ! emission, named 'Emission <cEmissions(i)>'.  Units are deliberately empty
+  ! (as for the 3DGLO rows).  Loop to nEmissions, not size(cEmissions), which is
+  ! dimensioned nSpeciesTotal.
+  ! ---------------------------------------------------------------------------
+  subroutine fill_3demi(c, iBlock)
+    use ModGITM
+    use ModPlanet, only: nEmissions, cEmissions
+    type(OutputContainer), intent(inout) :: c
+    integer, intent(in) :: iBlock
+    integer :: i
+
+    c%cType = '3DEMI'
+    c%gridKind = GRID_GEO_3D
+    c%nGhostCells = 0
+
+    call c%prepare(iBlock)
+    if (.not. c%this_rank_writes) return
+
+    call c%put_axis('Longitude', Longitude(1:nLons, iBlock))
+    call c%put_axis('Latitude', Latitude(1:nLats, iBlock))
+    call c%put_field('Altitude', Altitude_GB(1:nLons, 1:nLats, 1:nAlts, iBlock))
+    do i = 1, nEmissions
+      call c%put_field('Emission '//trim(cEmissions(i)), Emissions(:, :, :, i, iBlock), &
+                       units='', longName='Emission at '//trim(cEmissions(i)))
+    enddo
+  end subroutine fill_3demi
 
   ! ---------------------------------------------------------------------------
   ! fill_3dthm: 3DTHM schema AND data, one-shot (no define_schema_3dthm).
@@ -1789,6 +1825,58 @@ contains
     call c%put('PhotoElectronUp', zero_arr)
     call c%put('PhotoElectronDown', zero_arr)
   end subroutine fill_1dglo
+
+  ! ---------------------------------------------------------------------------
+  ! define_schema_1demi: register variables for 1DEMI (units empty, as 3DEMI).
+  ! ---------------------------------------------------------------------------
+  subroutine define_schema_1demi(c)
+    use ModGITM, only: nAlts
+    use ModPlanet, only: nEmissions, cEmissions
+    type(OutputContainer), intent(inout) :: c
+    integer :: i
+
+    c%cType = '1DEMI'
+    c%gridKind = GRID_MAG_2D
+
+    call c%define_var('Longitude', units='degrees_east', shape3=[nAlts, 1, 1], is_axis=.true.)
+    call c%define_var('Latitude', units='degrees_north', shape3=[nAlts, 1, 1], is_axis=.true.)
+    call c%define_var('Altitude', units='m', shape3=[nAlts, 1, 1])
+    do i = 1, nEmissions
+      call c%define_var('Emission '//trim(cEmissions(i)), units='', shape3=[nAlts, 1, 1])
+    enddo
+  end subroutine define_schema_1demi
+
+  ! ---------------------------------------------------------------------------
+  ! fill_1demi: put 1DEMI variables at point (1,1).
+  ! ---------------------------------------------------------------------------
+  subroutine fill_1demi(c, iBlock)
+    use ModGITM
+    use ModPlanet, only: nEmissions, cEmissions
+    type(OutputContainer), intent(inout) :: c
+    integer, intent(in) :: iBlock
+    real(output_kind) :: tmp_lon(nAlts), tmp_lat(nAlts), tmp_data(nAlts)
+    integer :: iAlt, i
+
+    call c%prepare(iBlock)
+    if (.not. c%this_rank_writes) return
+
+    tmp_lon = real(Longitude(1, 1), output_kind)
+    tmp_lat = real(Latitude(1, 1), output_kind)
+    call c%put('Longitude', tmp_lon)
+    call c%put('Latitude', tmp_lat)
+
+    do iAlt = 1, nAlts
+      tmp_data(iAlt) = real(Altitude_GB(1, 1, iAlt, 1), output_kind)
+    enddo
+    call c%put('Altitude', tmp_data)
+
+    do i = 1, nEmissions
+      do iAlt = 1, nAlts
+        tmp_data(iAlt) = real(Emissions(1, 1, iAlt, i, 1), output_kind)
+      enddo
+      call c%put('Emission '//trim(cEmissions(i)), tmp_data)
+    enddo
+  end subroutine fill_1demi
 
   ! ---------------------------------------------------------------------------
   ! define_schema_1dthm: register variables for 1DTHM.
