@@ -510,6 +510,13 @@ contains
                       longName='Magnetic latitude')
 
     ! 2D data variables (nMagLons+1 x nMagLats x 1).
+    ! The magnetic grid has no altitude of its own; the dynamo quantities are
+    ! field-line integrals mapped to the IE reference altitude
+    ! (#IEREFERENCEALT, AltIERef), so that one value fills the column, as
+    ! develop's output_2dmel does.
+    call c%define_var('Altitude', units='m', &
+                      shape3=[nMagLons + 1, nMagLats, 1], &
+                      longName='IE reference altitude (constant over the magnetic grid)')
     call c%define_var('MLT', units='hr', &
                       shape3=[nMagLons + 1, nMagLats, 1], &
                       longName='Magnetic local time')
@@ -596,8 +603,10 @@ contains
   ! ---------------------------------------------------------------------------
   subroutine fill_2dmel(c, iBlock)
     use ModElectrodynamics
+    use ModGITM, only: AltIERef
     type(OutputContainer), intent(inout) :: c
     integer, intent(in) :: iBlock
+    real(output_kind) :: alt2d(nMagLons + 1, nMagLats)
 
     call c%prepare(iBlock)
     if (.not. c%this_rank_writes) return
@@ -610,6 +619,8 @@ contains
     call c%put('mlat', real(MagLatMC(1, 1:nMagLats), output_kind))
 
     ! 2D data variables.
+    alt2d = real(AltIERef, output_kind)
+    call c%put('Altitude', alt2d)
     call c%put('MLT', real(MagLocTimeMC, output_kind))
     call c%put('GeoLat', real(GeoLatMC, output_kind))
     call c%put('GeoLon', real(GeoLonMC, output_kind))
