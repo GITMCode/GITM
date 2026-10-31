@@ -3,5 +3,4 @@ mkdocs-material
 mkdocs-mermaid2-plugin
 markdown-captions
 markdown-del-ins
-markdown-katex
 pymdown-extensions

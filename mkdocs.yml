@@ -52,7 +52,8 @@ markdown_extensions:
   - pymdownx.fancylists # lists continuing after breaking for indentation
   - pymdownx.saneheaders #allows for "#text" to not be parsed as a header
   - pymdownx.tasklist
-  - markdown_katex # math
+  - pymdownx.arithmatex: # math, $...$ inline; rendered in the browser by KaTeX
+      generic: true
   - admonition # note, warning, etc. blocks
   - markdown_del_ins # strike-through & insert
   - markdown_captions # figure captions.
@@ -62,6 +63,18 @@ markdown_extensions:
         - name: mermaid
           class: mermaid
           format: !!python/name:mermaid2.fence_mermaid
+        - name: math # ```math blocks
+          class: arithmatex
+          # a named function: mermaid2 reads each fence format's __name__,
+          # so the functools.partial from arithmatex_fenced_format crashes it
+          format: !!python/name:pymdownx.arithmatex.fence_generic_format
+
+extra_javascript:
+  - https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js
+  - js/katex.js
+
+extra_css:
+  - https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css
 
 docs_dir: srcDoc
 
@@ -72,8 +85,8 @@ nav:
     - Common Inputs: common_inputs.md
     - All Inputs: set_inputs.md
   - Outputs:
-    - Postprocessing: postprocessing.md
     - Available Outputs: outputs.md
+    - Postprocessing: postprocessing.md
     - Adding new outputs: outputs/modifying_outputs.md
     - Output backends: outputs/output_backends.md
     - Plotting Outputs: plotters.md

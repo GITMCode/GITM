@@ -43,7 +43,7 @@ longitude:
 The number of CPU cores required is the product of the number of blocks in
 longitude and latitude. Doubling the resolution in both latitude and longitude
 requires four times as many cores since 
-$`(2*nLons) \times (2*nLats) = 4\times (nLons*nLats)`$.
+$(2*nLons) \times (2*nLats) = 4\times (nLons*nLats)$.
 
 ```math
 nCPUs = (nBlocksLon) \times (nBlocksLat)
@@ -82,14 +82,14 @@ have on a single processor. This is deprecated and should be left at 1.
 ## Horizontal Resolution
 
 The number of *total* grid cells in the examples above will then be
-$`(2\times9=)18`$ in both longitude & latitude, and 50 in altitude. Given that
-there are $`360^\circ`$ in longitude and $`180^\circ`$ in latitude, the
-resolution would be $`360^\circ/18 = 20.0^\circ`$ in longitude and
-$`180^\circ/18 =10^\circ`$ in latitude. These settings are useful for debugging
+$(2\times9=)18$ in both longitude & latitude, and 50 in altitude. Given that
+there are $360^\circ$ in longitude and $180^\circ$ in latitude, the
+resolution would be $360^\circ/18 = 20.0^\circ$ in longitude and
+$180^\circ/18 =10^\circ$ in latitude. These settings are useful for debugging
 and developing, but not for production runs.
 
-For production runs, the resolution typically desired is $`4^\circ`$ longitude
-by $`1^\circ`$ latitude. With the default values in `src/ModSize.f90`, this
+For production runs, the resolution typically desired is $4^\circ$ longitude
+by $1^\circ$ latitude. With the default values in `src/ModSize.f90`, this
 requires 200 processing cores and the following values in the `UAM.in` file:
 
     #GRID
@@ -100,13 +100,13 @@ requires 200 processing cores and the following values in the `UAM.in` file:
     0.0		     longitude start to model (set to 0.0 for whole Earth)
     0.0          longitude end to model (set to 0.0 for whole Earth)
 
-The longitudinal resolution ($`\Delta{\phi}`$) is set by:
+The longitudinal resolution ($\Delta{\phi}$) is set by:
 
 ```math
 \Delta{\phi} = \frac{\phi_{end} - \phi_{start}}{nBlocksLon \times nCellsLon}
 ```
 
-While the latitudinal resolution ($`\Delta{\theta}`$) is set by:
+While the latitudinal resolution ($\Delta{\theta}$) is set by:
 
 ```math
 \Delta{\theta} = \frac{\theta_{end} - \theta_{start}}{nBlocksLat \times nCellsLat}
@@ -125,7 +125,7 @@ Some settings are listed below.  Machines like NASA's Pleiades have a certain nu
 unused cores on each node, while balancing runtime (increases with more cells
 per block) and the number of files created (increases with more cores (blocks)). What this practically means is that it is a good idea to have the total number of processors used being a multiple of the processors/node.  
 
-| Resolution <br> $`(^\circ Lon \times ^\circ Lat)`$ |   Total Cores   |  nBlocks <br> (nLons x nLats)  | nCells <br> (nLon x nLat) |
+| Resolution <br> $(^\circ Lon \times ^\circ Lat)$ |   Total Cores   |  nBlocks <br> (nLons x nLats)  | nCells <br> (nLon x nLat) |
 | :---  |      ----       |   :-----:   | :----: |
 | 4 x 1 | 200             | 10 x 20     | 9 x 9  |
 | 4 x 1 | 360             | 10 x 36     | 9 x 5  |
@@ -141,12 +141,12 @@ system GITM is run on. You can always increase nCells in order to run on fewer p
 
 GITM can be run over part of the globe - both in latitude and in longitude. It
 can be run over a single polar region by choosing a latitude range that reaches
-$`+90^\circ`$ (or $`-90^\circ`$): a maximum latitude of $`90^\circ`$ or more (minimum
-of $`-90^\circ`$ or less) is clamped to the pole, and that edge of the grid then
+$+90^\circ$ (or $-90^\circ$): a maximum latitude of $90^\circ$ or more (minimum
+of $-90^\circ$ or less) is clamped to the pole, and that edge of the grid then
 touches the pole, where message passing over the pole is implemented. If both limits
 reach the poles, the whole sphere is modeled. For example, this simulates the entire
-northern polar region at $`4^\circ`$ longitude and $`1^\circ`$ latitude resolution
-(10 x 9 = 90 cells over $`360^\circ`$, and 5 x 9 = 45 cells over $`45^\circ`$, so 50
+northern polar region at $4^\circ$ longitude and $1^\circ$ latitude resolution
+(10 x 9 = 90 cells over $360^\circ$, and 5 x 9 = 45 cells over $45^\circ$, so 50
 cores with the default `ModSize.f90`):
 
     #GRID

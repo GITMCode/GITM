@@ -182,9 +182,10 @@ Admonitions are these fancy boxes. See [here](https://squidfunk.github.io/mkdocs
 
 ## Math
 
-Math can be done inline, differing from LaTex in that we need to use $\` and \`$
-to surround the math. For example, $`\pi \approx \frac{22}{7}`$ is an equation
-*inline*. For equation blocks we need to surround it with backticks, like so:
+Inline math is surrounded by single dollar signs, as in LaTeX:
+`$\pi \approx \frac{22}{7}$` gives $\pi \approx \frac{22}{7}$. There must be no
+space just inside the dollar signs, so a lone `$` in prose (`costs $5`) is left
+alone. For equation blocks use a `math` code fence, like so:
 
 
 ````

@@ -4,6 +4,8 @@
 *.a
 *.mod
 *.exe
+#documentation builds
+site/
 
 # Backup files for editors:
 *~
