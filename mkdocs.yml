@@ -86,10 +86,10 @@ nav:
     - All Inputs: set_inputs.md
   - Outputs:
     - Available Outputs: outputs.md
-    - Postprocessing: postprocessing.md
-    - Adding new outputs: outputs/modifying_outputs.md
     - Output backends: outputs/output_backends.md
+    - Postprocessing: postprocessing.md
     - Plotting Outputs: plotters.md
+    - Adding new outputs: outputs/modifying_outputs.md
   - Internals:
     - Overview: internals/overview.md
     - Grid: internals/grid.md
