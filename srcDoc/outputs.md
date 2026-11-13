@@ -1,11 +1,14 @@
 # Outputs {#outputs.sec}
 
-Now that you have managed to successfully complete a GITM run you've
-found yourself with a bunch of output files. All of the GITM output is
-in MKS units. Output files are written to the directory given as the first
-argument of `#DIRECTORIES` in `UAM.in` (default: `UA/data`). Satellite files
-(`#SATELLITES`) always go to `UA/data`, whatever `#DIRECTORIES` says, and
-are written in the legacy format whatever the backend.
+Now that you have managed to successfully complete a GITM run you've found yourself with a bunch of output files.
+All of the GITM outputs are in MKS units. 
+Output files are written to `UA/data` by default, along with a log file & `run_information.txt`.
+
+The format of these files depends on which [output backend\(`#OUTPUTBACKEND`\)](outputs/output_backends.md) was used during the run.
+The default backend is `legacy`, which writes one block file + one header for each output type at each output time, requiring [post-processing](postprocessing.md) before use.
+Satellite files ([`#SATELLITES`](set_inputs.md#satellites)) are written in the legacy format for all backends.
+
+Skip to [the output type section](#output-types-and-their-variables) if you are just looking for what to output.
 
 !!! important "Horizontal coordinates: radians in `.bin`, degrees in netcdf"
     The one exception to "MKS units" is geographic longitude and latitude,
@@ -13,67 +16,51 @@ are written in the legacy format whatever the backend.
 
     | Backend | `Longitude` / `Latitude` |
     |---|---|
-    | `legacy`, `mpiio` (`.bin`) | **radians**, exactly as the model holds them |
+    | `legacy`, `mpiio` (`.bin`) | **radians** |
     | `netcdf` | **degrees** (`degrees_east` / `degrees_north`) |
 
     The variable tables below are generated from netcdf files, so the units
-    they show for `Longitude`/`Latitude` are the netcdf ones. Reading a
-    `.bin` file, convert with `numpy.degrees` yourself. This is what
-    `pGITM.py` does when it writes netcdf from legacy/mpiio output, but a
-    `.bin` file merged by `pGITM.py` stays in radians. 2DMEL's `GeoLat` and
-    `GeoLon` follow the same rule (radians in `.bin`, degrees in netcdf).
-    Only the magnetic coordinates `mlon`/`mlat` are in degrees on every
-    backend.
+    they show for `Longitude`/`Latitude` are the netcdf ones. 
+    Only the magnetic coordinates `mlon`/`mlat` are in degrees on every backend.
+    When reading a `.bin` file, convert with `numpy.degrees` yourself.
 
-The format of those files depends on which [output backend](outputs/output_backends.md)
-was used during the run (`#OUTPUTBACKEND`; an unrecognized value falls
-back to `legacy` with a warning). You will end up with a `log*.dat`
-file and the output files for each type listed in `#SAVEPLOT` (see
-[`#SAVEPLOT`](set_inputs.md#saveplot)). `netcdf` outputs are usable as
-written. `legacy` writes per-block files that need
-[postprocessing](postprocessing.md) to be merged, and `mpiio` writes one
-raw `.bin` per output, which `pGITM.py` rewrites in the standard layout
-(keeping the original as `.raw` unless it is removing files).
+The log file provides useful information about the run, such as whether a restart was performed, which physical processes were used, and some variables which represent the state of the modeled system and its drivers.
+This file can be very useful when sharing runs with other users, when revisiting an old run, or merely ensuring that GITM performed as expected.
+Some example log files can be found in the `srcTests/auto_test/ref_solns/` directory.
 
-!!! warning "Don't mix the two netcdf dialects"
-    `post_process.py`/`pGITM.py` can also convert legacy/mpiio output to
-    netcdf, but the files it produces are **not** the same format the
-    `netcdf` backend writes: variable names come from a different
-    vocabulary (short names, no `gitm_name` attribute), the dimension
-    order is reversed, edge ghost cells are kept on some types, and there
-    are no CF attributes. Tools written for one dialect will not read the
-    other. If you run the `netcdf` backend, use its files directly and
-    skip the netcdf conversion in postprocessing; convert with pGITM only
-    when starting from legacy/mpiio output.
+The `run_information.txt` file has every setting used by GITM during a run.
+Its format is similar to `UAM.in`, and every variable is written in the same order in which it is parsed by [`set_inputs.f90'](set_inputs.md).
 
-The log file provides useful information about the run, such as whether a
-restart was performed, which physical processes were used, and a list of some
-variables which represent the state of the modeled system and its drivers. This
-file can be very useful when sharing runs with other users, when revisiting an
-old run, or merely ensuring that GITM performed as expected. Some example log
-files can be found in the `srcTests/auto_test/ref_solns/` directory.
 
 ## Output system
 
 GITM's output system is built around **containers** (`src/ModOutputContainer.f90`):
 one per output type, holding the variable schema (names, units, shapes), the
-data, and a pointer to the type's `fill_<type>` routine. For most types the
-schema is derived from the fill itself. It runs once at init and each first
-`put_field` defines its variable ("one-shot"). The rest declare their schema
-explicitly in a `define_schema_<type>` routine instead (the authoritative
-list is the `define_schema_*` calls in `init_output_containers`: the
-magnetic-grid, HME, USR, and rank-0 probe types); the
-`ModOutputContainer.f90` header describes both patterns. Either way the backends consume the container
-directly, so headers, NetCDF metadata, and on-disk layout all come from one
-schema and cannot drift from the data. None of the three backends
-(`legacy`, `mpiio`, `netcdf`) has per-type code paths for the data itself.
-(File headers and file opens do key on a few type codes, such as `2DMEL`,
-`1DNEW`, and the `1D`/`0D` probe prefixes; see
-[Adding new outputs](outputs/modifying_outputs.md).) Adding or modifying a
-type touches `src/ModOutputProducers.f90` plus, for fixed variable names, a
-metadata row in `src/ModOutputVarRegistry.f90`. See
-[Adding new outputs](outputs/modifying_outputs.md) for recipes and
-[Output backends](outputs/output_backends.md) for the backend descriptions.
+data, and a pointer to the type's `fill_<type>` routine. 
+For most types the schema is derived from the fill itself.
+On initialization each, `put_field` defines its variable & schema ("one-shot").
+The exceptions are HME (regional), magnetic-grid (different block layout), USR (not all variables are known on init).
+They declare their schema explicitly in a `define_schema_<type>` routine (the authoritative list is the `define_schema_*` calls in `init_output_containers`).
+The `ModOutputContainer.f90` header describes both patterns, if you need more information.
+
+The backends then consume the container directly, so headers, NetCDF metadata, and on-disk layout all come from one schema and cannot drift from the data.
+This prevents any of the backends (`legacy`, `mpiio`, `netcdf`) writing a specific output type or variable differently than the rest.
+
+### More information/FAQ
+
+Here is where to look for more information or if you have questions:
+
+- What is available? [see below](#output-types-and-their-variables)
+- Modifying Outputs
+  - [Should I create a new output type or add to an existing one?](outputs/modifying_outputs.md)
+  - [Adding a temporary output inside a physics routine (USR outputs)](outputs/modifying_outputs.md#add-a-variable-to-a-usr-output)
+  - [Adding a new variable to existing output types](outputs/modifying_outputs.md#modify-an-existing-output-type)
+  - [I want to create a new output type](outputs/modifying_outputs.md#create-a-new-output-type)
+- Output backends
+  - [What is available & what should I use](outputs/output_backends.md)
+  - [Details on how the `netcdf` backend handles restarts & appending](outputs/output_backends.md#netcdf)
+
+Below is a (searchable) list of all current output types, along with their "long name" and units.
 
 ## Output types and their variables
 
@@ -512,10 +499,10 @@ raw name is kept in each variable's `gitm_name` attribute). Notes:
 | Rho | kg/m3 | Total neutral mass density |
 | E.F. Magnitude | V/m | Electric field magnitude |
 | Sigma Ped | S/m | Pedersen conductivity |
-| Ionization Rate O_3P | /s | Ionization rate for O(3P) |
-| Ionization Rate O2 | /s | Ionization rate for O2 |
-| Ionization Rate N2 | /s | Ionization rate for N2 |
-| Ionization Rate He | /s | Ionization rate for He |
+| Ionization Rate O_3P | /m3/s | Auroral ionization rate of O(3P) |
+| Ionization Rate O2 | /m3/s | Auroral ionization rate of O2 |
+| Ionization Rate N2 | /m3/s | Auroral ionization rate of N2 |
+| Ionization Rate He | /m3/s | Auroral ionization rate of He |
 
 ### 3DUSR
 
