@@ -1,14 +1,28 @@
 # Outputs {#outputs.sec}
 
 Now that you have managed to successfully complete a GITM run you've found yourself with a bunch of output files.
-All of the GITM outputs are in MKS units. 
 Output files are written to `UA/data`, along with a log file, `run_information.txt` & `output_schema.csv`.
 
-The format of these files depends on which [output backend\(`#OUTPUTBACKEND`\)](outputs/output_backends.md) was used during the run.
-The default backend is `legacy`, which writes one block file + one header for each output type at each output time, requiring [post-processing](postprocessing.md) before use.
+Skip to [the output type section](#output-types-and-their-variables) if you are just looking for what to output.
+
+## File formats
+
+The format of these files depends on which [output backend\(`#OUTPUTBACKEND`\)](outputs/output_backends.md) was used during the run:
+
+| Backend | Files for each output type, at each output time | Before you can read them |
+|---|---|---|
+| `legacy` (default) | one `.header` + one `.b####` block file per processor | [post-process](postprocessing.md) them into one `.bin` |
+| `mpiio` | one `.header` + one raw `.bin` | [post-process](postprocessing.md) it into a standard `.bin` |
+| `netcdf` | one `.nc` | nothing, they are complete as written |
+
 Satellite files ([`#SATELLITES`](set_inputs.md#satellites)) are written in the legacy format for all backends.
 
-Skip to [the output type section](#output-types-and-their-variables) if you are just looking for what to output.
+All three backends write the same variables, because each output type is defined once in the code and every backend reads that definition.
+[Adding new outputs](outputs/modifying_outputs.md) describes how that works.
+
+## Units
+
+All of the GITM outputs are in MKS units. 
 
 !!! important "Horizontal coordinates: radians in `.bin`, degrees in netcdf"
     The one exception to "MKS units" is geographic longitude and latitude,
@@ -24,6 +38,8 @@ Skip to [the output type section](#output-types-and-their-variables) if you are 
     Only the magnetic coordinates `mlon`/`mlat` are in degrees on every backend.
     When reading a `.bin` file, convert with `numpy.degrees` yourself.
 
+## The other files in `UA/data`
+
 The log file provides useful information about the run, such as whether a restart was performed, which physical processes were used, and some variables which represent the state of the modeled system and its drivers.
 This file can be very useful when sharing runs with other users, when revisiting an old run, or merely ensuring that GITM performed as expected.
 Some example log files can be found in the `srcTests/auto_test/ref_solns/` directory.
@@ -34,34 +50,20 @@ Its format is similar to `UAM.in`, and every variable is written in the same ord
 The `output_schema.csv` file lists every output type and its variables, with units and a description, in the order they appear in the files.
 `legacy` and `mpiio` files carry only the variable names, so this is where to look up their units.
 
-
-## Output system
-
-GITM's output system is built around **containers** (`src/ModOutputContainer.f90`):
-one per output type, holding the variable schema (names, units, shapes), the
-data, and a pointer to the type's `fill_<type>` routine. 
-For most types the schema is derived from the fill itself.
-On initialization each, `put_field` defines its variable & schema ("one-shot").
-The exceptions are HME (regional), magnetic-grid (different block layout), USR (not all variables are known on init).
-They declare their schema explicitly in a `define_schema_<type>` routine (the authoritative list is the `define_schema_*` calls in `init_output_containers`).
-The `ModOutputContainer.f90` header describes both patterns, if you need more information.
-
-The backends then consume the container directly, so headers, NetCDF metadata, and on-disk layout all come from one schema and cannot drift from the data.
-This prevents any of the backends (`legacy`, `mpiio`, `netcdf`) writing a specific output type or variable differently than the rest.
-
-### More information/FAQ
+## More information/FAQ
 
 Here is where to look for more information or if you have questions:
 
 - What is available? [see below](#output-types-and-their-variables)
+- Output backends
+  - [What is available & what should I use](outputs/output_backends.md)
+  - [Details on how the `netcdf` backend handles restarts & appending](outputs/output_backends.md#netcdf)
+- [Post-processing `legacy` and `mpiio` output](postprocessing.md)
 - Modifying Outputs
   - [Should I create a new output type or add to an existing one?](outputs/modifying_outputs.md)
   - [Adding a temporary output inside a physics routine (USR outputs)](outputs/modifying_outputs.md#add-a-variable-to-a-usr-output)
   - [Adding a new variable to existing output types](outputs/modifying_outputs.md#modify-an-existing-output-type)
   - [I want to create a new output type](outputs/modifying_outputs.md#create-a-new-output-type)
-- Output backends
-  - [What is available & what should I use](outputs/output_backends.md)
-  - [Details on how the `netcdf` backend handles restarts & appending](outputs/output_backends.md#netcdf)
 
 ## Output types and their variables
 

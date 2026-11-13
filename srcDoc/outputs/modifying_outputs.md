@@ -16,6 +16,22 @@ type's variable list for every user of the file.
 
 [TOC]
 
+## How the output system works
+
+GITM's output system is built around **containers** (`src/ModOutputContainer.f90`):
+one per output type, holding the variable schema (names, units, shapes), the
+data, and a pointer to the type's `fill_<type>` routine. 
+For most types the schema is derived from the fill itself.
+On initialization each, `put_field` defines its variable & schema ("one-shot").
+The exceptions are HME (regional), magnetic-grid (different block layout), USR (not all variables are known on init).
+They declare their schema explicitly in a `define_schema_<type>` routine (the authoritative list is the `define_schema_*` calls in `init_output_containers`).
+The `ModOutputContainer.f90` header describes both patterns, if you need more information.
+
+The backends then consume the container directly, so headers, NetCDF metadata, and on-disk layout all come from one schema and cannot drift from the data.
+This prevents any of the backends (`legacy`, `mpiio`, `netcdf`) writing a specific output type or variable differently than the rest.
+
+The recipes below need no more than this. [Under the hood](#under-the-hood) has the details.
+
 !!! note "Coming from the old output system (the per-type `output_*` routines in `output_common.f90`)"
     If you last added a variable before the container refactor, four things
     changed:
