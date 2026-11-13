@@ -7,8 +7,8 @@ This script works robustly and securely on a range of
 unix-like environments with Python available
 (i.e., any modern computer.)
 
-Supports three output formats written by the GITM I/O backends.
-The output backend used during the simulation is written to .header:
+GITM has three output backends; this script post-processes the two that
+write a .header (the backend used is recorded there):
   legacy  - Per-block unformatted sequential files (.bNNNN) with an ASCII
             .header; blocks are merged and converted to a single .bin file
   mpiio   - A single .bin file (no record markers) with blocks at fixed

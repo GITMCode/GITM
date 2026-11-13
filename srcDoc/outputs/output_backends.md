@@ -3,7 +3,9 @@
 GITM can write outputs using three different backends. All three consume the same
 output [containers](../outputs.md#output-system) (defined in
 `src/ModOutputProducers.f90`) and produce the same scientific data; they differ
-only in how files are laid out on disk. All three are supported by `pGITM.py`.
+only in how files are laid out on disk. `legacy` and `mpiio` output has to be
+[post-processed](../postprocessing.md) before it can be read; `netcdf` output
+is complete as written, and the post-processor does not touch it.
 Which one you use depends on your system and workflow.
 
 Two current restrictions to know up front:
@@ -16,7 +18,7 @@ Two current restrictions to know up front:
   files are written in the legacy format whatever the backend.
 - The `.nc` files this backend writes are a different dialect from the ones
   `pGITM.py` produces when converting legacy/mpiio output (see the warning
-  in [Outputs](../outputs.md)). Don't mix the two in one analysis.
+  under [`-nc`](../postprocessing.md#nc)). Don't mix the two in one analysis.
 
 To select a backend, add this block to `UAM.in`:
 
@@ -64,9 +66,12 @@ serialization. (The types where only some ranks write, `GRID_MAG_2D` and
 - One `.bin` file containing all blocks in a single raw-binary file (no Fortran
   record markers)
 
-`pGITM.py` detects the `FORMAT/mpiio` marker in the header and reads accordingly, so
-no special post-processing step is required to merge files. Running `post_process.py`
-is still recommended if you are using the standard Python analysis tools.
+This raw `.bin` is not the layout the analysis tools read, so `mpiio` output
+still needs [post-processing](../postprocessing.md). `pGITM.py` detects the
+`FORMAT/mpiio` marker in the header and rewrites the file as a standard `.bin`,
+identical to post-processed `legacy` output (with `-norm` the original is kept
+as `.raw`). What `mpiio` saves is the per-rank file count, not the
+post-processing step.
 
 This backend is preferred on Lustre-based systems: it produces far fewer
 files per timestep and benefits from large sequential writes rather than many small

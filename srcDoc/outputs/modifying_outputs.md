@@ -241,8 +241,9 @@ missing.
 
 ### 3. Enable the new type and rebuild
 
-Add `3DMYT` to a `#SAVEPLOT` block in `UAM.in` and `make`. `pGITM.py` and all
-three backends pick up the new type automatically. Nothing else changes in
+Add `3DMYT` to a `#SAVEPLOT` block in `UAM.in` and `make`. All three backends
+pick up the new type automatically, and so does `pGITM.py` when it
+post-processes `legacy` or `mpiio` output. Nothing else changes in
 the code, but do add the new code to the `#SAVEPLOT` type list in
 [set_inputs](../set_inputs.md) (and to the `#SAVEPLOT` help text in
 `src/set_inputs.f90`), and regenerate the variable tables in

@@ -2,7 +2,7 @@
 
 Now that you have managed to successfully complete a GITM run you've found yourself with a bunch of output files.
 All of the GITM outputs are in MKS units. 
-Output files are written to `UA/data` by default, along with a log file & `run_information.txt`.
+Output files are written to `UA/data`, along with a log file & `run_information.txt`.
 
 The format of these files depends on which [output backend\(`#OUTPUTBACKEND`\)](outputs/output_backends.md) was used during the run.
 The default backend is `legacy`, which writes one block file + one header for each output type at each output time, requiring [post-processing](postprocessing.md) before use.
