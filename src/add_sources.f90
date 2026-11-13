@@ -75,9 +75,12 @@ subroutine add_sources
     ! This is an example of a user output:
     ! 'Joule Heating' is pre-registered in init_usr_output_registry (user.f90);
     ! add_usr_output stores it into that slot by name (no slot bookkeeping).
+    ! JouleHeating is a rate of change of the normalized temperature, so it
+    ! takes TempUnit to make it K/s (as 3DTHM's 'Joule Heating Rate' does).
     !-------------------------------------------
 
-    call add_usr_output(JouleHeating, 'Joule Heating', 'K/s', iBlock=iBlock)
+    call add_usr_output(JouleHeating*TempUnit(1:nLons, 1:nLats, 1:nAlts), &
+                        'Joule Heating', 'K/s', iBlock=iBlock)
 
     !-------------------------------------------------------------------------
     ! Neutral Velocity Source Terms
