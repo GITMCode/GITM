@@ -39,6 +39,12 @@ With the `mpiio` backend there is one raw `.bin` per output in place of the
 block files. The post-processor rewrites it in the same standard `.bin` layout,
 so the result is identical.
 
+Satellite output ([`#SATELLITES`](set_inputs.md#satellites)) is a `.sat` file
+with its `.header`, whatever the backend, and is post-processed into a `.bin`
+in the same way. Two cases are skipped and left as they are: satellite files
+cannot be written as netCDF (`-nc`), and a `.sat` file that `#APPENDFILES` has
+added more than one time to cannot be converted by `post_process.py`.
+
 ## post_process.py Usage
 
 `post_process.py` supports burst processing (process existing files & exit), or

@@ -307,6 +307,25 @@ def read_record_float(fp, nPoints):
     return values
     
 # ----------------------------------------------------------------------------
+# Can this satellite file be converted? Returns the reason if not, else None.
+# ----------------------------------------------------------------------------
+
+def check_sat_file(satFile, data, write_nc):
+
+    if write_nc:
+        return 'satellite files cannot be written as netCDF'
+
+    # One record per point. With #APPENDFILES GITM keeps adding times to the
+    # same file, and only a single time can be converted.
+    nPoints = data['nLonsTotal'] * data['nLatsTotal'] * data['nAltsTotal']
+    with open(satFile, 'rb') as fp:
+        recLen = unpack(endChar + 'l', fp.read(4))[0]
+    if os.path.getsize(satFile) != nPoints * (recLen + 8):
+        return 'it does not hold exactly one output time (written with #APPENDFILES?)'
+
+    return None
+
+# ----------------------------------------------------------------------------
 # We want to eliminate all interior ghostcells, so we need to figure out
 # whether we are on interior or exterior block, and then get the range of
 # indices to be correct (i.e., include left ghosts or right ghosts or neither)
@@ -564,6 +583,9 @@ def remove_files(header, write_nc=False, isVerbose=False):
                         print('     --> running command : ' + command)
                     os.system(command)
                     iBlock += 1
+        # a satellite file has a .sat in place of the block files
+        command = 'rm -f ' + header.replace('.header', '.sat')
+        os.system(command)
         command = 'rm -f ' + header
         if (isVerbose):
             print('     --> running command : ' + command)
@@ -604,6 +626,18 @@ def process_one_file(header, isVerbose = False, dowrite=True,
         data[v] = np.zeros((data['nAltsTotal'], data['nLatsTotal'], data['nLonsTotal']))
 
     fmt = data.get('format', 'legacy')
+
+    # Satellite output (#SATELLITES) is always legacy, and is a single block
+    # in a .sat file where a grid output has its .b0001 ... block files.
+    satFile = header.replace('.header', '.sat')
+    if os.path.exists(header.replace('.header', '.b0001')) or not os.path.exists(satFile):
+        satFile = None
+    if satFile is not None:
+        problem = check_sat_file(satFile, data, write_nc)
+        if problem:
+            print('    Skipping satellite file ' + satFile + ': ' + problem)
+            return
+
     mpiio_bin = None
     if fmt == 'mpiio':
         mpiio_bin = header.replace('.header', '.raw')
@@ -628,6 +662,8 @@ def process_one_file(header, isVerbose = False, dowrite=True,
                 else:
                     cBlock = '.b%4.4i' % iBlock
                     file = header.replace('.header', cBlock)
+                    if satFile is not None:
+                        file = satFile
                     is_regional = "HME" in header
                     oneFile = read_one_binary_file(file, data['nVars'],
                                                    nX, nY, nZ,
