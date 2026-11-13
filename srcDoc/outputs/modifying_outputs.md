@@ -246,8 +246,7 @@ pick up the new type automatically, and so does `pGITM.py` when it
 post-processes `legacy` or `mpiio` output. Nothing else changes in
 the code, but do add the new code to the `#SAVEPLOT` type list in
 [set_inputs](../set_inputs.md) (and to the `#SAVEPLOT` help text in
-`src/set_inputs.f90`), and regenerate the variable tables in
-[Outputs](../outputs.md) once the type produces data.
+`src/set_inputs.f90`), and [update the documentation](#update-the-documentation).
 
 If the new type is a `1D*`/`0D*` probe type, the netcdf backend will refuse it;
 see [Output backends](output_backends.md) for what each backend supports.
@@ -266,6 +265,31 @@ fill using the plain `put` API against the declared schema. Only use this
 pattern when priming is genuinely impossible; see `define_schema_2dmel` for
 a worked example and the [Under the hood](#under-the-hood) section for
 `define_var`'s arguments.
+
+---
+
+## Update the documentation
+
+The variable tables in [Outputs](../outputs.md) are generated, not typed.
+At its first output every GITM run writes `UA/data/output_schema.csv`: one row
+per variable of every output type, whatever the backend and whether or not
+`#SAVEPLOT` asked for the type. A copy of that file is kept in
+`srcDoc/outputs/output_schema.csv` and the tables are built from the copy.
+
+After adding, renaming, or removing a variable or a type, run any case with
+the new executable and then, from the top of the repository:
+
+```bash
+python srcPython/generate_output_docs.py run/UA/data/output_schema.csv
+```
+
+This replaces the copy and rewrites the tables in `outputs.md`. Commit both
+files. A new type also needs one hand-written row in the type list at the top
+of that section; the script tells you if it is missing.
+
+`srcTests/auto_test/run_all_tests.sh` runs the same script with `--check`
+after the tests and fails if the copy or the tables no longer match what the
+code writes, so the GitHub tests catch a forgotten update.
 
 ---
 

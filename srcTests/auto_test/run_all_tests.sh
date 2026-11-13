@@ -32,6 +32,10 @@ get_help(){
 
   netcdf failures are reported as optional, but still fail the run.
 
+> After the tests, srcPython/generate_output_docs.py --check compares the
+  variable tables in srcDoc/outputs.md with the output_schema.csv GITM wrote.
+  If an output type changed, its failure message gives the command to update them.
+
 ------------------------------------------------------------------------------------
 Usage:
 ------
@@ -431,6 +435,19 @@ do_tests(){
           else
             rm -rf "$compare_dir"
           fi
+        fi
+      fi
+
+      # The variable tables in srcDoc/outputs.md are generated from
+      # srcDoc/outputs/output_schema.csv, which has to match what the code
+      # writes. Every run writes the same schema, so the last one will do.
+      if [ $do_save = false ] && [ $do_compare = true ] && [ -f UA/data/output_schema.csv ]; then
+        echo ""
+        echo ">> Checking the output docs against the output schema..."
+        if python3 ../../../srcPython/generate_output_docs.py --check UA/data/output_schema.csv; then
+          passed+=("OUTPUT_DOCS_UP_TO_DATE")
+        else
+          failed_required+=("OUTPUT_DOCS_UP_TO_DATE")
         fi
       fi
 

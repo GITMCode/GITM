@@ -2,7 +2,7 @@
 
 Now that you have managed to successfully complete a GITM run you've found yourself with a bunch of output files.
 All of the GITM outputs are in MKS units. 
-Output files are written to `UA/data`, along with a log file & `run_information.txt`.
+Output files are written to `UA/data`, along with a log file, `run_information.txt` & `output_schema.csv`.
 
 The format of these files depends on which [output backend\(`#OUTPUTBACKEND`\)](outputs/output_backends.md) was used during the run.
 The default backend is `legacy`, which writes one block file + one header for each output type at each output time, requiring [post-processing](postprocessing.md) before use.
@@ -19,8 +19,8 @@ Skip to [the output type section](#output-types-and-their-variables) if you are 
     | `legacy`, `mpiio` (`.bin`) | **radians** |
     | `netcdf` | **degrees** (`degrees_east` / `degrees_north`) |
 
-    The variable tables below are generated from netcdf files, so the units
-    they show for `Longitude`/`Latitude` are the netcdf ones. 
+    The variable tables below, and `output_schema.csv`, show the netcdf units
+    for `Longitude`/`Latitude`.
     Only the magnetic coordinates `mlon`/`mlat` are in degrees on every backend.
     When reading a `.bin` file, convert with `numpy.degrees` yourself.
 
@@ -30,6 +30,9 @@ Some example log files can be found in the `srcTests/auto_test/ref_solns/` direc
 
 The `run_information.txt` file has every setting used by GITM during a run.
 Its format is similar to `UAM.in`, and every variable is written in the same order in which it is parsed by [`set_inputs.f90'](set_inputs.md).
+
+The `output_schema.csv` file lists every output type and its variables, with units and a description, in the order they appear in the files.
+`legacy` and `mpiio` files carry only the variable names, so this is where to look up their units.
 
 
 ## Output system
@@ -60,162 +63,78 @@ Here is where to look for more information or if you have questions:
   - [What is available & what should I use](outputs/output_backends.md)
   - [Details on how the `netcdf` backend handles restarts & appending](outputs/output_backends.md#netcdf)
 
-Below is a (searchable) list of all current output types, along with their "long name" and units.
-
 ## Output types and their variables
 
-The tables below are generated from GITM output by
-`srcPython/generate_output_docs.py`: variable names, units, and descriptions
-are read straight from the netcdf files, not typed by hand. To regenerate
-after changing an output type, run a sweep with the types you care about on
-the `netcdf` backend, then splice the script's stdout into this page,
-replacing the generated `### <TYPE>` sections (everything from the first one
-down to the generation marker at the bottom of the file) and leaving the
-hand-written text above them alone:
+Request any of these in [`#SAVEPLOT`](set_inputs.md#saveplot).
+`3DALL` is the usual choice.
 
-```bash
-python srcPython/generate_output_docs.py <run>/UA/data
-```
+| Type | Contents |
+|---|---|
+| `3DALL` | Neutral and ion state: densities, temperatures and velocities |
+| `3DNEU` | The neutral half of `3DALL` |
+| `3DION` | The ion half of `3DALL`, plus electric and magnetic fields, potential, currents and the ion-neutral collision frequency |
+| `3DLST` | A shorter `3DALL`: mass density, the major species, winds, ion drifts and neutral temperature |
+| `3DTHM` | Heating and cooling rates, and auroral ionization rates |
+| `3DCHM` | Chemical heating, reaction by reaction |
+| `3DMOH` | Terms of the horizontal momentum equation |
+| `3DMOV` | Terms of the vertical momentum equation, species by species |
+| `3DMAG` | Magnetic coordinates and the magnetic field |
+| `3DEMI` | Emission at seven wavelengths |
+| `3DHME` | `3DALL` plus heating and fields, written only inside the [`#SAVEHIMEPLOT`](set_inputs.md#savehimeplot) region |
+| `3DGLO` | GLOW emissions. **Stops the run**, see the notes below |
+| `3DUSR` | [User-defined variables](outputs/modifying_outputs.md#add-a-variable-to-a-usr-output) |
+| `2DGEL` | Electrodynamics on the geographic grid: potential, conductances and auroral precipitation |
+| `2DMEL` | Electrodynamics on the magnetic grid: conductances and the terms of the dynamo solver |
+| `2DTEC` | Total electron content |
+| `2DANC` | Total electron content and height-integrated heating and cooling |
+| `2DHME` | Total electron content, written only inside the `#SAVEHIMEPLOT` region |
+| `2DUSR` | User-defined variables |
+| `1DALL` | The `3DALL` variables |
+| `1DNEW` | `1DALL` plus local time, solar zenith angle and mixing ratios |
+| `1DTHM` | Heating and cooling rates, and production and loss rates for each species |
+| `1DCHM` | Chemical heating, reaction by reaction |
+| `1DEMI` | Emission at seven wavelengths |
+| `1DGLO` | GLOW emissions. **Stops the run**, see the notes below |
+| `1DUSR` | User-defined variables |
+| `0DALL` | The `3DALL` variables plus mixing ratios and a heat balance |
+| `0DUSR` | User-defined variables |
 
-The `Variable` column is the GITM name as it appears in legacy/mpiio
-`.header` files (netcdf variable names are the same after sanitization; the
-raw name is kept in each variable's `gitm_name` attribute). Notes:
+The `1D` types are altitude profiles and the `0D` types single points. They
+are written along satellite tracks ([`#SATELLITES`](common_inputs.md#sat_aux.sec))
+and by 1-D runs (`nLons = nLats = 1`), where a requested `3D` type is written
+as its `1D` counterpart. The `netcdf` backend does not write them; see
+[Output backends](outputs/output_backends.md).
 
-- **USR types** (`3DUSR`/`2DUSR`/`1DUSR`/`0DUSR`) list whatever the run's
-  user code registered. The tables below show one example configuration.
-- **Not listed** (absent from the generating run): `3DHME` (regional,
-  3DALL-like variable set), the 1-D probe types (`1DALL`, `1DTHM`, `1DCHM`,
-  `1DEMI`, `1DNEW`, `1DUSR`), and the 0-D satellite types (`0DALL`, `0DUSR`). The
-  probe types halt on the `netcdf` backend and the generator reads only
-  netcdf files, so they cannot have a generated table. For their variable
-  list, read the `.header` file from a `legacy` or `mpiio` run.
+Notes:
+
 - **Rates are zero at the first output.** Per-step diagnostics that GITM
   divides by the time step (3DTHM `Conduction`, `Molecular Conduction` and
   the chemical heating rate, 3DCHM, 3DMOH `Visc_*`, 2DANC `Chem_int`, and
   the probe types 0DALL, 1DTHM and 1DCHM) are rates. They are written as 0
   at the t = 0 output, where the time step is 0.
-- **`3DGLO` and `1DGLO` cannot be generated at all.** GLOW computes
-  emissions when `#GLOW` is on (`get_glow.f90` fills `vEmissionRate`), but
-  the two output types were never wired to that array: their fills put
-  placeholder zeros, indistinguishable from real measurements, so GITM
-  stops if either is requested in `#SAVEPLOT`. They remain valid type
-  codes so the fills can be pointed at `vEmissionRate` later; they produce
-  nothing today.
-- **`2DMEL` is on a magnetic grid**, so its horizontal coordinates are named
-  `mlon`/`mlat` (in degrees), not `lon`/`lat`. Its `GeoLat`/`GeoLon`
-  variables are the geographic position of each magnetic grid point (radians
-  in `.bin`, degrees in netcdf).
+- **`3DGLO` and `1DGLO` stop the run.** GLOW computes emissions when `#GLOW`
+  is on (`get_glow.f90` fills `vEmissionRate`), but the two output types were
+  never wired to that array: their fills put placeholder zeros,
+  indistinguishable from real measurements, so GITM stops if either is
+  requested in `#SAVEPLOT`. They remain valid type codes so the fills can be
+  pointed at `vEmissionRate` later; they produce nothing today and have no
+  table below.
+- **`2DMEL` is on a magnetic grid**, so its horizontal coordinates are
+  `mlon`/`mlat` (in degrees), not `Longitude`/`Latitude`. Its
+  `GeoLat`/`GeoLon` variables are the geographic position of each magnetic
+  grid point (radians in `.bin`, degrees in netcdf).
+- **USR types** list whatever the user code registered. The tables below show
+  what GITM registers as shipped.
 
-### 2DANC
+The tables below give each type's variables in the order they appear in the
+file. `Variable` is the name in legacy/mpiio `.header` files; netcdf variable
+names are the same after sanitization, with the original kept in each
+variable's `gitm_name` attribute. The tables are generated from the
+`output_schema.csv` that GITM itself writes, so they are updated
+[with a script](outputs/modifying_outputs.md#update-the-documentation), not by
+hand.
 
-| Variable | Units | Description |
-|---|---|---|
-| Longitude | degrees_east | Geographic longitude |
-| Latitude | degrees_north | Geographic latitude |
-| Altitude | m | Altitude above surface |
-| LT | hr | Local Time |
-| SZA | rad | Solar zenith angle |
-| TEC | TECU | Total electron content |
-| JH_int | W/m2 | Alt-integrated Joule heating |
-| HT_int | W/m2 | Alt-integrated Heat transfer |
-| EUV_int | W/m2 | Alt-integrated EUV heating |
-| PE_int | W/m2 | Alt-integrated PE heating |
-| Chem_int | W/m2 | Alt-integrated Chem heating |
-| RadCool_int | W/m2 | Alt-integrated Rad cooling |
-| CO2Cool_int | W/m2 | Alt-integrated CO2 cooling |
-| NOCool_int | W/m2 | Alt-integrated NO cooling |
-| OCool_int | W/m2 | Alt-integrated O cooling |
-
-### 2DGEL
-
-| Variable | Units | Description |
-|---|---|---|
-| Longitude | degrees_east | Geographic longitude |
-| Latitude | degrees_north | Geographic latitude |
-| Altitude | m | Altitude above surface |
-| Potential | V | Electric potential |
-| PedCond | S | Height-integrated Pedersen conductance |
-| HalCond | S | Height-integrated Hall conductance |
-| AveE | keV | Diffuse electron precipitation average energy |
-| eFlux | ergs/cm2/s | Diffuse electron precipitation energy flux |
-| AveE_W | keV | Wave-driven electron precipitation average energy |
-| eFlux_W | ergs/cm2/s | Wave-driven electron precipitation energy flux |
-| AveE_M | keV | Monoenergetic electron precipitation average energy |
-| eFlux_M | ergs/cm2/s | Monoenergetic electron precipitation energy flux |
-| AveE_I | keV | Ion precipitation average energy |
-| eFlux_I | ergs/cm2/s | Ion precipitation energy flux |
-| DivJuAlt | A/m2 | Height-integrated divergence of horizontal current |
-| PedFLCond | S | Field-line integrated Pedersen conductance |
-| HalFLCond | S | Field-line integrated Hall conductance |
-| DivJuFL | A/m2 | Field-line divergence of current |
-| FL_length | m | Field line length |
-
-### 2DHME
-
-| Variable | Units | Description |
-|---|---|---|
-| Longitude | degrees_east | Geographic longitude |
-| Latitude | degrees_north | Geographic latitude |
-| Altitude | m | Altitude above surface |
-| LT | hr | Local Time |
-| TEC | TECU | Total electron content |
-
-### 2DMEL
-
-| Variable | Units | Description |
-|---|---|---|
-| Altitude | m | IE reference altitude (constant over the magnetic grid) |
-| MLT | hr | Magnetic local time |
-| GeoLat | degrees_north | Geographic latitude |
-| GeoLon | degrees_east | Geographic longitude |
-| PedCond | S | Height-integrated Pedersen conductance |
-| HalCond | S | Height-integrated Hall conductance |
-| DivJuAlt | A/m2 | Height-integrated divergence of horizontal current |
-| FL_length | m | Field line length |
-| Sigma_PP | S | Sigma PP conductance component |
-| Sigma_LL | S | Sigma LL conductance component |
-| Sigma_H | S | Hall conductance component |
-| Sigma_C | S | Cowling conductance component |
-| Sigma_PL | S | Sigma PL conductance component |
-| Sigma_LP | S | Sigma LP conductance component |
-| K_mphi |  | Dynamo K_mphi coefficient |
-| K_mlambda |  | Dynamo K_mlambda coefficient |
-| Solver_A |  | Dynamo solver coefficient A |
-| Solver_B |  | Dynamo solver coefficient B |
-| Solver_C |  | Dynamo solver coefficient C |
-| Solver_D |  | Dynamo solver coefficient D |
-| Solver_E |  | Dynamo solver coefficient E |
-| Solver_S |  | Dynamo solver coefficient S |
-| Phi_dynamo | V | Dynamo electric potential |
-| Ed1new | V/m | Dynamo electric field component 1 |
-| Ed2new | V/m | Dynamo electric field component 2 |
-| Kphi |  | Dynamo Kphi coefficient |
-| Klambda |  | Dynamo Klambda coefficient |
-
-### 2DTEC
-
-| Variable | Units | Description |
-|---|---|---|
-| Longitude | degrees_east | Geographic longitude |
-| Latitude | degrees_north | Geographic latitude |
-| Altitude | m | Altitude above surface |
-| SZA | rad | Solar zenith angle |
-| TEC | TECU | Total electron content |
-
-### 2DUSR
-
-| Variable | Units | Description |
-|---|---|---|
-| Longitude | degrees_east | Geographic longitude |
-| Latitude | degrees_north | Geographic latitude |
-| Altitude | m | Altitude above surface |
-| Potential (kV) | kV | Potential (kV) |
-| Average Energy (keV) | keV | Average Energy (keV) |
-| Total Energy (ergs) | ergs/cm2/s | Total Energy (ergs) |
-| Discrete Average Energy (keV) | keV | Discrete Average Energy (keV) |
-| Discrete Total Energy (ergs) | ergs/cm2/s | Discrete Total Energy (ergs) |
-| Wave Average Energy (keV) | keV | Wave Average Energy (keV) |
-| Wave Total Energy (ergs) | ergs/cm2/s | Wave Total Energy (ergs) |
+<!-- BEGIN GENERATED TABLES: edit with srcPython/generate_output_docs.py, not by hand -->
 
 ### 3DALL
 
@@ -312,6 +231,66 @@ raw name is kept in each variable's `gitm_name` attribute). Notes:
 | Emission 10400A |  | Emission at 10400A |
 | Emission 6300A |  | Emission at 6300A |
 | Emission 6364A |  | Emission at 6364A |
+
+### 3DHME
+
+| Variable | Units | Description |
+|---|---|---|
+| Longitude | degrees_east | Geographic longitude |
+| Latitude | degrees_north | Geographic latitude |
+| Altitude | m | Altitude above surface |
+| Rho | kg/m3 | Total neutral mass density |
+| [O(3P)] | /m3 | Number density of O(3P) |
+| [O2] | /m3 | Number density of O2 |
+| [N2] | /m3 | Number density of N2 |
+| [N(4S)] | /m3 | Number density of N(4S) |
+| [NO] | /m3 | Number density of NO |
+| [He] | /m3 | Number density of He |
+| [CO2] | /m3 | Number density of CO2 |
+| [N(2D)] | /m3 | Number density of N(2D) |
+| [N(2P)] | /m3 | Number density of N(2P) |
+| [H] | /m3 | Number density of H |
+| [O(1D)] | /m3 | Number density of O(1D) |
+| Temperature | K | Neutral temperature |
+| Vn (east) | m/s | Eastward neutral wind |
+| Vn (north) | m/s | Northward neutral wind |
+| Vn (up) | m/s | Vertical neutral wind |
+| Vn (up,O(3P)) | m/s | Vertical neutral wind for O(3P) |
+| Vn (up,O2) | m/s | Vertical neutral wind for O2 |
+| Vn (up,N2) | m/s | Vertical neutral wind for N2 |
+| Vn (up,N(4S)) | m/s | Vertical neutral wind for N(4S) |
+| Vn (up,NO) | m/s | Vertical neutral wind for NO |
+| Vn (up,He) | m/s | Vertical neutral wind for He |
+| Vn (up,CO2) | m/s | Vertical neutral wind for CO2 |
+| [O(4S)+] | /m3 | Number density of O(4S)+ |
+| [He+] | /m3 | Number density of He+ |
+| [NO+] | /m3 | Number density of NO+ |
+| [O2+] | /m3 | Number density of O2+ |
+| [N2+] | /m3 | Number density of N2+ |
+| [N+] | /m3 | Number density of N+ |
+| [O(2D)+] | /m3 | Number density of O(2D)+ |
+| [O(2P)+] | /m3 | Number density of O(2P)+ |
+| [H+] | /m3 | Number density of H+ |
+| [e-] | /m3 | Number density of e- |
+| eTemperature | K | Electron temperature |
+| iTemperature | K | Ion temperature |
+| Vi (east) | m/s | Eastward ion drift |
+| Vi (north) | m/s | Northward ion drift |
+| Vi (up) | m/s | Vertical ion drift |
+| PhotoElectron Heating | K | Photoelectron heating |
+| Joule Heating | K | Joule heating |
+| Specific Heat | J/kg/K | Specific heat Cp |
+| Magnetic Latitude | deg | Magnetic latitude |
+| Magnetic Longitude | deg | Magnetic longitude |
+| B.F. East | T | Eastward magnetic field |
+| B.F. North | T | Northward magnetic field |
+| B.F. Vertical | T | Vertical magnetic field |
+| B.F. Magnitude | T | Magnetic field magnitude |
+| Potential | V | Electric potential |
+| PotentialY | V | Potential Y component |
+| E.F. East | V/m | Eastward electric field |
+| E.F. North | V/m | Northward electric field |
+| E.F. Vertical | V/m | Vertical electric field |
 
 ### 3DION
 
@@ -514,4 +493,385 @@ raw name is kept in each variable's `gitm_name` attribute). Notes:
 | Joule Heating | K/s | Joule Heating |
 | JPara | A/m2 | JPara |
 
-<!-- generated by srcPython/generate_output_docs.py; types: 2DANC, 2DGEL, 2DHME, 2DMEL, 2DTEC, 2DUSR, 3DALL, 3DCHM, 3DEMI, 3DION, 3DLST, 3DMAG, 3DMOH, 3DMOV, 3DNEU, 3DTHM, 3DUSR -->
+### 2DANC
+
+| Variable | Units | Description |
+|---|---|---|
+| Longitude | degrees_east | Geographic longitude |
+| Latitude | degrees_north | Geographic latitude |
+| Altitude | m | Altitude above surface |
+| LT | hr | Local Time |
+| SZA | rad | Solar zenith angle |
+| TEC | TECU | Total electron content |
+| JH_int | W/m2 | Alt-integrated Joule heating |
+| HT_int | W/m2 | Alt-integrated Heat transfer |
+| EUV_int | W/m2 | Alt-integrated EUV heating |
+| PE_int | W/m2 | Alt-integrated PE heating |
+| Chem_int | W/m2 | Alt-integrated Chem heating |
+| RadCool_int | W/m2 | Alt-integrated Rad cooling |
+| CO2Cool_int | W/m2 | Alt-integrated CO2 cooling |
+| NOCool_int | W/m2 | Alt-integrated NO cooling |
+| OCool_int | W/m2 | Alt-integrated O cooling |
+
+### 2DGEL
+
+| Variable | Units | Description |
+|---|---|---|
+| Longitude | degrees_east | Geographic longitude |
+| Latitude | degrees_north | Geographic latitude |
+| Altitude | m | Altitude above surface |
+| Potential | V | Electric potential |
+| PedCond | S | Height-integrated Pedersen conductance |
+| HalCond | S | Height-integrated Hall conductance |
+| AveE | keV | Diffuse electron precipitation average energy |
+| eFlux | ergs/cm2/s | Diffuse electron precipitation energy flux |
+| AveE_W | keV | Wave-driven electron precipitation average energy |
+| eFlux_W | ergs/cm2/s | Wave-driven electron precipitation energy flux |
+| AveE_M | keV | Monoenergetic electron precipitation average energy |
+| eFlux_M | ergs/cm2/s | Monoenergetic electron precipitation energy flux |
+| AveE_I | keV | Ion precipitation average energy |
+| eFlux_I | ergs/cm2/s | Ion precipitation energy flux |
+| DivJuAlt | A/m2 | Height-integrated divergence of horizontal current |
+| PedFLCond | S | Field-line integrated Pedersen conductance |
+| HalFLCond | S | Field-line integrated Hall conductance |
+| DivJuFL | A/m2 | Field-line divergence of current |
+| FL_length | m | Field line length |
+
+### 2DHME
+
+| Variable | Units | Description |
+|---|---|---|
+| Longitude | degrees_east | Geographic longitude |
+| Latitude | degrees_north | Geographic latitude |
+| Altitude | m | Altitude above surface |
+| LT | hr | Local Time |
+| TEC | TECU | Total electron content |
+
+### 2DMEL
+
+| Variable | Units | Description |
+|---|---|---|
+| mlon | degrees | Magnetic longitude |
+| mlat | degrees | Magnetic latitude |
+| Altitude | m | IE reference altitude (constant over the magnetic grid) |
+| MLT | hr | Magnetic local time |
+| GeoLat | degrees_north | Geographic latitude |
+| GeoLon | degrees_east | Geographic longitude |
+| PedCond | S | Height-integrated Pedersen conductance |
+| HalCond | S | Height-integrated Hall conductance |
+| DivJuAlt | A/m2 | Height-integrated divergence of horizontal current |
+| FL_length | m | Field line length |
+| Sigma_PP | S | Sigma PP conductance component |
+| Sigma_LL | S | Sigma LL conductance component |
+| Sigma_H | S | Hall conductance component |
+| Sigma_C | S | Cowling conductance component |
+| Sigma_PL | S | Sigma PL conductance component |
+| Sigma_LP | S | Sigma LP conductance component |
+| K_mphi |  | Dynamo K_mphi coefficient |
+| K_mlambda |  | Dynamo K_mlambda coefficient |
+| Solver_A |  | Dynamo solver coefficient A |
+| Solver_B |  | Dynamo solver coefficient B |
+| Solver_C |  | Dynamo solver coefficient C |
+| Solver_D |  | Dynamo solver coefficient D |
+| Solver_E |  | Dynamo solver coefficient E |
+| Solver_S |  | Dynamo solver coefficient S |
+| Phi_dynamo | V | Dynamo electric potential |
+| Ed1new | V/m | Dynamo electric field component 1 |
+| Ed2new | V/m | Dynamo electric field component 2 |
+| Kphi |  | Dynamo Kphi coefficient |
+| Klambda |  | Dynamo Klambda coefficient |
+
+### 2DTEC
+
+| Variable | Units | Description |
+|---|---|---|
+| Longitude | degrees_east | Geographic longitude |
+| Latitude | degrees_north | Geographic latitude |
+| Altitude | m | Altitude above surface |
+| SZA | rad | Solar zenith angle |
+| TEC | TECU | Total electron content |
+
+### 2DUSR
+
+| Variable | Units | Description |
+|---|---|---|
+| Longitude | degrees_east | Geographic longitude |
+| Latitude | degrees_north | Geographic latitude |
+| Altitude | m | Altitude above surface |
+| Potential (kV) | kV | Potential (kV) |
+| Average Energy (keV) | keV | Average Energy (keV) |
+| Total Energy (ergs) | ergs/cm2/s | Total Energy (ergs) |
+| Discrete Average Energy (keV) | keV | Discrete Average Energy (keV) |
+| Discrete Total Energy (ergs) | ergs/cm2/s | Discrete Total Energy (ergs) |
+| Wave Average Energy (keV) | keV | Wave Average Energy (keV) |
+| Wave Total Energy (ergs) | ergs/cm2/s | Wave Total Energy (ergs) |
+
+### 1DALL
+
+| Variable | Units | Description |
+|---|---|---|
+| Longitude | degrees_east | Geographic longitude |
+| Latitude | degrees_north | Geographic latitude |
+| Altitude | m | Altitude above surface |
+| Rho | kg/m3 | Total neutral mass density |
+| [O(3P)] | /m3 | [O(3P)] |
+| [O2] | /m3 | [O2] |
+| [N2] | /m3 | [N2] |
+| [N(4S)] | /m3 | [N(4S)] |
+| [NO] | /m3 | [NO] |
+| [He] | /m3 | [He] |
+| [CO2] | /m3 | [CO2] |
+| [N(2D)] | /m3 | [N(2D)] |
+| [N(2P)] | /m3 | [N(2P)] |
+| [H] | /m3 | [H] |
+| [O(1D)] | /m3 | [O(1D)] |
+| Temperature | K | Neutral temperature |
+| Vn (east) | m/s | Eastward neutral wind |
+| Vn (north) | m/s | Northward neutral wind |
+| Vn (up) | m/s | Vertical neutral wind |
+| Vn (up,O(3P)) | m/s | Vn (up,O(3P)) |
+| Vn (up,O2) | m/s | Vn (up,O2) |
+| Vn (up,N2) | m/s | Vn (up,N2) |
+| Vn (up,N(4S)) | m/s | Vn (up,N(4S)) |
+| Vn (up,NO) | m/s | Vn (up,NO) |
+| Vn (up,He) | m/s | Vn (up,He) |
+| Vn (up,CO2) | m/s | Vn (up,CO2) |
+| [O(4S)+] | /m3 | [O(4S)+] |
+| [He+] | /m3 | [He+] |
+| [NO+] | /m3 | [NO+] |
+| [O2+] | /m3 | [O2+] |
+| [N2+] | /m3 | [N2+] |
+| [N+] | /m3 | [N+] |
+| [O(2D)+] | /m3 | [O(2D)+] |
+| [O(2P)+] | /m3 | [O(2P)+] |
+| [H+] | /m3 | [H+] |
+| [e-] | /m3 | [e-] |
+| eTemperature | K | Electron temperature |
+| iTemperature | K | Ion temperature |
+| Vi (east) | m/s | Eastward ion drift |
+| Vi (north) | m/s | Northward ion drift |
+| Vi (up) | m/s | Vertical ion drift |
+
+### 1DCHM
+
+| Variable | Units | Description |
+|---|---|---|
+| Longitude | degrees_east | Geographic longitude |
+| Latitude | degrees_north | Geographic latitude |
+| Altitude | m | Altitude above surface |
+| N2+ + e | eV/m3/s | N2+ + e |
+| O2+ + e | eV/m3/s | O2+ + e |
+| N2+ + O | eV/m3/s | N2+ + O |
+| NO+ + e | eV/m3/s | NO+ + e |
+| N+ + O2 | eV/m3/s | N+ + O2 |
+| NO + N | eV/m3/s | NO + N |
+| O+ + O2 | eV/m3/s | O+ + O2 |
+| N + O2 | eV/m3/s | N + O2 |
+| O2+ + N | eV/m3/s | O2+ + N |
+| O2+ + NO | eV/m3/s | O2+ + NO |
+| O2+ + N2 | eV/m3/s | O2+ + N2 |
+| N2+ + O2 | eV/m3/s | N2+ + O2 |
+| N+ + O | eV/m3/s | N+ + O |
+| O+ + N2 | eV/m3/s | O+ + N2 |
+| O(1D) + N2 | eV/m3/s | O(1D) + N2 |
+| O(1D) + O2 | eV/m3/s | O(1D) + O2 |
+| O(1D) + O | eV/m3/s | O(1D) + O |
+| O(1D) + e | eV/m3/s | O(1D) + e |
+| N(2D) + O2 | eV/m3/s | N(2D) + O2 |
+| O+(2D) + e | eV/m3/s | O+(2D) + e |
+| N(2D) + O | eV/m3/s | N(2D) + O |
+| N(2D) + e | eV/m3/s | N(2D) + e |
+| O+(2D) + N2 | eV/m3/s | O+(2D) + N2 |
+| O+(2P) + e | eV/m3/s | O+(2P) + e |
+| O+(2P) + O | eV/m3/s | O+(2P) + O |
+| O+(2P) + N2 | eV/m3/s | O+(2P) + N2 |
+| Chemical Heating | eV/m3/s | Volumetric chemical heating rate |
+
+### 1DEMI
+
+| Variable | Units | Description |
+|---|---|---|
+| Longitude | degrees_east | Geographic longitude |
+| Latitude | degrees_north | Geographic latitude |
+| Altitude | m | Altitude above surface |
+| Emission 2470A |  | Emission 2470A |
+| Emission 7320A |  | Emission 7320A |
+| Emission 3726A |  | Emission 3726A |
+| Emission 5200A |  | Emission 5200A |
+| Emission 10400A |  | Emission 10400A |
+| Emission 6300A |  | Emission 6300A |
+| Emission 6364A |  | Emission 6364A |
+
+### 1DNEW
+
+| Variable | Units | Description |
+|---|---|---|
+| Longitude | degrees_east | Geographic longitude |
+| Local Time | hr | Local Time |
+| Latitude | degrees_north | Geographic latitude |
+| Solar Zenith Angle | rad | Solar Zenith Angle |
+| Altitude | m | Altitude above surface |
+| Rho | kg/m3 | Total neutral mass density |
+| [O(3P)] | /m3 | [O(3P)] |
+| [O2] | /m3 | [O2] |
+| [N2] | /m3 | [N2] |
+| [N(4S)] | /m3 | [N(4S)] |
+| [NO] | /m3 | [NO] |
+| [He] | /m3 | [He] |
+| [CO2] | /m3 | [CO2] |
+| [N(2D)] | /m3 | [N(2D)] |
+| [N(2P)] | /m3 | [N(2P)] |
+| [H] | /m3 | [H] |
+| [O(1D)] | /m3 | [O(1D)] |
+| Temperature | K | Neutral temperature |
+| Vn (east) | m/s | Eastward neutral wind |
+| Vn (north) | m/s | Northward neutral wind |
+| Vn (up) | m/s | Vertical neutral wind |
+| Vn (up,O(3P)) | m/s | Vn (up,O(3P)) |
+| Vn (up,O2) | m/s | Vn (up,O2) |
+| Vn (up,N2) | m/s | Vn (up,N2) |
+| Vn (up,N(4S)) | m/s | Vn (up,N(4S)) |
+| Vn (up,NO) | m/s | Vn (up,NO) |
+| Vn (up,He) | m/s | Vn (up,He) |
+| Vn (up,CO2) | m/s | Vn (up,CO2) |
+| [O(4S)+] | /m3 | [O(4S)+] |
+| [He+] | /m3 | [He+] |
+| [NO+] | /m3 | [NO+] |
+| [O2+] | /m3 | [O2+] |
+| [N2+] | /m3 | [N2+] |
+| [N+] | /m3 | [N+] |
+| [O(2D)+] | /m3 | [O(2D)+] |
+| [O(2P)+] | /m3 | [O(2P)+] |
+| [H+] | /m3 | [H+] |
+| [e-] | /m3 | [e-] |
+| eTemperature | K | Electron temperature |
+| iTemperature | K | Ion temperature |
+| Vi (east) | m/s | Eastward ion drift |
+| Vi (north) | m/s | Northward ion drift |
+| Vi (up) | m/s | Vertical ion drift |
+| O(3P) Mixing Ratio |  | O(3P) Mixing Ratio |
+| O2 Mixing Ratio |  | O2 Mixing Ratio |
+| N2 Mixing Ratio |  | N2 Mixing Ratio |
+| N(4S) Mixing Ratio |  | N(4S) Mixing Ratio |
+| NO Mixing Ratio |  | NO Mixing Ratio |
+| He Mixing Ratio |  | He Mixing Ratio |
+| CO2 Mixing Ratio |  | CO2 Mixing Ratio |
+
+### 1DTHM
+
+| Variable | Units | Description |
+|---|---|---|
+| Longitude | degrees_east | Geographic longitude |
+| Latitude | degrees_north | Geographic latitude |
+| Altitude | m | Altitude above surface |
+| EUV Heating (K/s) | K/s | EUV Heating (K/s) |
+| Conduction (K/s) | K/s | Conduction (K/s) |
+| Molecular Conduction (K/s) | K/s | Molecular Conduction (K/s) |
+| Chemical Heating (K/s) | K/s | Chemical Heating (K/s) |
+| Joule Heating (K/s) | K/s | Joule Heating (K/s) |
+| CO2 Cooling (K/s) | K/s | CO2 Cooling (K/s) |
+| NO Cooling (K/s) | K/s | NO Cooling (K/s) |
+| O Cooling (K/s) | K/s | O Cooling (K/s) |
+| Total Abs EUV | W/m2 | Total absorbed EUV flux |
+| Production Rate O(3P) | /m3/s | Production Rate O(3P) |
+| Production Rate O2 | /m3/s | Production Rate O2 |
+| Production Rate N2 | /m3/s | Production Rate N2 |
+| Production Rate N(4S) | /m3/s | Production Rate N(4S) |
+| Production Rate NO | /m3/s | Production Rate NO |
+| Production Rate He | /m3/s | Production Rate He |
+| Production Rate CO2 | /m3/s | Production Rate CO2 |
+| Production Rate N(2D) | /m3/s | Production Rate N(2D) |
+| Production Rate N(2P) | /m3/s | Production Rate N(2P) |
+| Production Rate H | /m3/s | Production Rate H |
+| Production Rate O(1D) | /m3/s | Production Rate O(1D) |
+| Loss Rate O(3P) | /m3/s | Loss Rate O(3P) |
+| Loss Rate O2 | /m3/s | Loss Rate O2 |
+| Loss Rate N2 | /m3/s | Loss Rate N2 |
+| Loss Rate N(4S) | /m3/s | Loss Rate N(4S) |
+| Loss Rate NO | /m3/s | Loss Rate NO |
+| Loss Rate He | /m3/s | Loss Rate He |
+| Loss Rate CO2 | /m3/s | Loss Rate CO2 |
+| Loss Rate N(2D) | /m3/s | Loss Rate N(2D) |
+| Loss Rate N(2P) | /m3/s | Loss Rate N(2P) |
+| Loss Rate H | /m3/s | Loss Rate H |
+| Loss Rate O(1D) | /m3/s | Loss Rate O(1D) |
+
+### 1DUSR
+
+| Variable | Units | Description |
+|---|---|---|
+| Longitude | degrees_east | Geographic longitude |
+| Latitude | degrees_north | Geographic latitude |
+| Altitude | m | Altitude above surface |
+| Electron Density | /m3 | Electron Density |
+
+### 0DALL
+
+| Variable | Units | Description |
+|---|---|---|
+| Longitude | degrees_east | Geographic longitude |
+| Latitude | degrees_north | Geographic latitude |
+| Altitude | m | Altitude above surface |
+| Rho | kg/m3 | Total neutral mass density |
+| [O(3P)] | /m3 | [O(3P)] |
+| [O2] | /m3 | [O2] |
+| [N2] | /m3 | [N2] |
+| [N(4S)] | /m3 | [N(4S)] |
+| [NO] | /m3 | [NO] |
+| [He] | /m3 | [He] |
+| [CO2] | /m3 | [CO2] |
+| [N(2D)] | /m3 | [N(2D)] |
+| [N(2P)] | /m3 | [N(2P)] |
+| [H] | /m3 | [H] |
+| [O(1D)] | /m3 | [O(1D)] |
+| Temperature | K | Neutral temperature |
+| Vn (east) | m/s | Eastward neutral wind |
+| Vn (north) | m/s | Northward neutral wind |
+| Vn (up) | m/s | Vertical neutral wind |
+| Vn (up,O(3P)) | m/s | Vn (up,O(3P)) |
+| Vn (up,O2) | m/s | Vn (up,O2) |
+| Vn (up,N2) | m/s | Vn (up,N2) |
+| Vn (up,N(4S)) | m/s | Vn (up,N(4S)) |
+| Vn (up,NO) | m/s | Vn (up,NO) |
+| Vn (up,He) | m/s | Vn (up,He) |
+| Vn (up,CO2) | m/s | Vn (up,CO2) |
+| [O(4S)+] | /m3 | [O(4S)+] |
+| [He+] | /m3 | [He+] |
+| [NO+] | /m3 | [NO+] |
+| [O2+] | /m3 | [O2+] |
+| [N2+] | /m3 | [N2+] |
+| [N+] | /m3 | [N+] |
+| [O(2D)+] | /m3 | [O(2D)+] |
+| [O(2P)+] | /m3 | [O(2P)+] |
+| [H+] | /m3 | [H+] |
+| [e-] | /m3 | [e-] |
+| eTemperature | K | Electron temperature |
+| iTemperature | K | Ion temperature |
+| Vi (east) | m/s | Eastward ion drift |
+| Vi (north) | m/s | Northward ion drift |
+| Vi (up) | m/s | Vertical ion drift |
+| O(3P) Mixing Ratio |  | O(3P) Mixing Ratio |
+| O2 Mixing Ratio |  | O2 Mixing Ratio |
+| N2 Mixing Ratio |  | N2 Mixing Ratio |
+| N(4S) Mixing Ratio |  | N(4S) Mixing Ratio |
+| NO Mixing Ratio |  | NO Mixing Ratio |
+| He Mixing Ratio |  | He Mixing Ratio |
+| CO2 Mixing Ratio |  | CO2 Mixing Ratio |
+| RadCooling | K/s | RadCooling |
+| EuvHeating | K/s | EuvHeating |
+| Conduction | K/s | Thermal conduction heating rate |
+| Heat Balance Total | K/s | Heat Balance Total |
+| Heating Efficiency |  | Heating Efficiency |
+
+### 0DUSR
+
+| Variable | Units | Description |
+|---|---|---|
+| Longitude | degrees_east | Geographic longitude |
+| Latitude | degrees_north | Geographic latitude |
+| Altitude | m | Altitude above surface |
+| Electron Density | /m3 | Electron Density |
+| Electron Temperature | K | Electron Temperature |
+| Ion Temperature | K | Ion Temperature |
+
+<!-- END GENERATED TABLES -->
