@@ -1279,9 +1279,12 @@ contains
                       shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC])
     call c%define_var('Vi (up)', units='m/s', &
                       shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC])
-    call c%define_var('PhotoElectron Heating', units='K', longName='Photoelectron heating', &
+    ! These two are heating*dt: a temperature change, not a rate.
+    call c%define_var('PhotoElectron Heating', units='K', &
+                      longName='Temperature change over one time step from photoelectron heating', &
                       shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC])
-    call c%define_var('Joule Heating', units='K', longName='Joule heating', &
+    call c%define_var('Joule Heating', units='K', &
+                      longName='Temperature change over one time step from Joule heating', &
                       shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC])
     call c%define_var('Specific Heat', units='J/kg/K', longName='Specific heat Cp', &
                       shape3=[nLons + 2*nGC, nLats + 2*nGC, nAlts + 2*nGC])

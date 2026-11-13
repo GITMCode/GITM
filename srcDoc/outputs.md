@@ -280,8 +280,8 @@ hand.
 | Vi (east) | m/s | Eastward ion drift |
 | Vi (north) | m/s | Northward ion drift |
 | Vi (up) | m/s | Vertical ion drift |
-| PhotoElectron Heating | K | Photoelectron heating |
-| Joule Heating | K | Joule heating |
+| PhotoElectron Heating | K | Temperature change over one time step from photoelectron heating |
+| Joule Heating | K | Temperature change over one time step from Joule heating |
 | Specific Heat | J/kg/K | Specific heat Cp |
 | Magnetic Latitude | deg | Magnetic latitude |
 | Magnetic Longitude | deg | Magnetic longitude |
