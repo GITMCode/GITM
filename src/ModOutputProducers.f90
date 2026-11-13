@@ -426,6 +426,7 @@ contains
     enddo
 
     call assert_types_fully_wired()
+    call write_output_schema()
   end subroutine init_output_containers
 
   ! ---------------------------------------------------------------------------
@@ -463,6 +464,65 @@ contains
                        ' (forgot its set_fill line?): '//trim(containers(i)%cType))
     enddo
   end subroutine assert_types_fully_wired
+
+  ! ---------------------------------------------------------------------------
+  ! write_output_schema: list every output type's variables in
+  ! <outputDir>/output_schema.csv (rank 0, once per run).
+  !
+  ! One row per variable, in file order: type, variable, units, long_name.
+  ! Every type is listed whether or not #SAVEPLOT asked for it, because
+  ! init_output_containers builds all the schemas.  The variable tables in
+  ! srcDoc/outputs.md are generated from this file by
+  ! srcPython/generate_output_docs.py, and run_all_tests.sh fails when the
+  ! copy in srcDoc/outputs/ no longer matches what the code writes.
+  !
+  ! A failed open only warns: the file describes the outputs, it is not one.
+  ! ---------------------------------------------------------------------------
+  subroutine write_output_schema()
+    use ModGITM, only: iProc
+    use ModInputs, only: outputDir
+    use ModIoUnit, only: io_unit_new
+    integer :: i, j, iUnit, iStatus
+
+    if (iProc /= 0) return
+
+    iUnit = io_unit_new()
+    open(unit=iUnit, file=trim(outputDir)//'/output_schema.csv', &
+         status='replace', action='write', iostat=iStatus)
+    if (iStatus /= 0) then
+      write(*, *) 'WARNING: could not write ', trim(outputDir)//'/output_schema.csv'
+      return
+    endif
+
+    write(iUnit, '(a)') '# GITM output types and their variables, in file order.'
+    write(iUnit, '(a)') '# Units are the ones the netcdf backend writes: legacy and mpiio .bin'
+    write(iUnit, '(a)') '# files hold geographic longitude and latitude in radians.'
+    write(iUnit, '(a)') 'type,variable,units,long_name'
+    do i = 1, nContainers
+      do j = 1, containers(i)%nVars
+        write(iUnit, '(a)') &
+          csv_field(containers(i)%cType)//','// &
+          csv_field(containers(i)%vars(j)%name)//','// &
+          csv_field(containers(i)%vars(j)%units)//','// &
+          csv_field(containers(i)%vars(j)%longName)
+      enddo
+    enddo
+    close(iUnit)
+  end subroutine write_output_schema
+
+  ! Quote one CSV field.  Variable names carry commas ('Vn (up,O2)'), so every
+  ! field is quoted; a double quote inside one becomes a single quote, which
+  ! keeps the row valid without an escaping rule.
+  function csv_field(s) result(q)
+    character(len=*), intent(in) :: s
+    character(len=len_trim(s) + 2) :: q
+    integer :: k
+
+    q = '"'//trim(s)//'"'
+    do k = 2, len(q) - 1
+      if (q(k:k) == '"') q(k:k) = "'"
+    enddo
+  end function csv_field
 
   ! ---------------------------------------------------------------------------
   ! finish_priming: close out a converted type's priming pass.
