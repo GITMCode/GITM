@@ -15,7 +15,9 @@ number of files more manageable and easier to read, they are post-processed into
 `.bin` files, one for each output type at each `DtOutput`.  This is different than other codes that write all of the output for all timesteps into a single file (so that file can be huge), or that writes different files for different states.  GITM's post-processor writes all of the requested variables to one file for each time-step.
 
 When running `make rundir`, a file is placed within the `run/` folder called
-`post_process.py` which is the entrypoint for postprocessing. This turns the raw
+`post_process.py` which is the entrypoint for postprocessing. Run it from
+there: it looks for the outputs in `UA/data`, or in the directories that
+[`#DIRECTORIES`](set_inputs.md#directories) in `UAM.in` names. This turns the raw
 GITM outputs from this:
 
 ```bash

@@ -284,6 +284,29 @@ Has no effect when `#OUTPUTBACKEND` is `legacy` or `mpiio`.
     netCDFAppendMethod    (string: single | daily | none)
     netCDFFileName        (string, optional run name)
 
+
+### DIRECTORIES
+
+This tells GITM where to write output files to, including the log, all outputs and `run_information.txt`.
+Without this block GITM uses the directories that `make rundir` creates.
+
+    #DIRECTORIES
+    outputDir      (string [UA/data])
+    logDir         (string [UA/data])
+    restartOutDir  (string [UA/restartOUT])
+    restartInDir   (string [UA/restartIN])
+
+- `outputDir` gets the output files, the satellite files and `output_schema.csv`.
+- `logDir` gets the log file and `run_information.txt`.
+- `restartOutDir` is where restart files are written, and `restartInDir` is where a restart reads them from.
+
+All four lines are needed. The paths are relative to the run directory (or absolute), and cannot contain spaces.
+GITM does not create the directories: it stops at startup if it cannot write to `outputDir`, `logDir` or `restartOutDir`.
+
+`post_process.py` reads this block from `UAM.in`, so it finds the output and log files wherever they are.
+A run coupled through the SWMF should leave the directories alone: the SWMF interface writes to `UA/data` and `UA/restartOUT` regardless.
+
+
 ## Drivers
 
 ### F107

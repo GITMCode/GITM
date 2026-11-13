@@ -1,7 +1,7 @@
 # Outputs {#outputs.sec}
 
 Now that you have managed to successfully complete a GITM run you've found yourself with a bunch of output files.
-Output files are written to `UA/data`, along with a log file, `run_information.txt` & `output_schema.csv`.
+Output files are written to `UA/data` (unless [`#DIRECTORIES`](set_inputs.md#directories) says otherwise), along with a log file, `run_information.txt` & `output_schema.csv`.
 
 Skip to [the output type section](#output-types-and-their-variables) if you are just looking for what to output.
 
