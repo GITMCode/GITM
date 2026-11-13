@@ -16,7 +16,7 @@ type's variable list for every user of the file.
 
 [TOC]
 
-!!! note "Coming from the old output system (`output_common.f90` on develop)"
+!!! note "Coming from the old output system (the per-type `output_*` routines in `output_common.f90`)"
     If you last added a variable before the container refactor, four things
     changed:
 

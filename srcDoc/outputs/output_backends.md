@@ -116,9 +116,8 @@ ds = xr.open_dataset("3DALL.nc", decode_times=True)
 ```
 
 `netCDFFileName`, when set, is inserted into every netcdf filename after the
-type code (`3DALL_storm1.nc`, `3DALL_storm1_t021221_000000.nc`), in every
-append mode. This lets several scenario runs share one directory without
-colliding.
+type code (`3DALL_storm1.nc`, `3DALL_storm1_t021221_000000.nc`).
+This lets several scenario runs share one directory without colliding.
 
 Restarts in `single`/`daily` mode depend on whether the run is named:
 

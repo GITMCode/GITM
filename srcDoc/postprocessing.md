@@ -1,6 +1,6 @@
 # Postprocessing
 
-GITM stores outputs at a cadence specified in the input `UAM.in` file (in #SAVEPLOTS). When
+GITM stores outputs at a cadence specified in the input `UAM.in` file (in `#SAVEPLOT`). When
 running at each `DtOutput` with the default `legacy` [output backend](outputs/output_backends.md),
 each processor writes its own (block) file for each output type
 (`3DALL`, `2DANC`, etc.), plus the first processor writes a header file. This creates
@@ -34,7 +34,7 @@ can watch for new outputs for a specified duration and process new outputs as
 they are created. The output `.bin` or `.nc` files can be moved to a remote system,
 tarred, and/or exist alongside the raw outputs.
 
-This means that there are essentailly two ways of running the post-processor:
+This means that there are essentially two ways of running the post-processor:
 - Once the run is completed, run it and post process all of the files at once.
 - Run it after starting the simulation, so it runs in parallel to the simulation.  This post processes the output files as the code is running, so that the files should be post processed soon after GITM is done running.
 
@@ -87,7 +87,7 @@ One of the benefits of post_process.py is that it can post process the files and
 - pushes the UA/data/*bin files over to the remote system.
 - checks one-by-one to see if the files exist on the remote system. If the file exists on the remote system, it removes it from the UA/data directory on the compute node.
 - pushes supplemental files (like log files and run files) to the remote system.
-- if the processing time has not expired, it waits a give amount of time (5 minutes by default) and loops. If the processing time has been exceeded, it exists.
+- if the processing time has not expired, it waits a given amount of time (5 minutes by default) and loops. If the processing time has been exceeded, it exits.
 
 ### Arguments
 
@@ -162,7 +162,7 @@ This requires [PyITM](https://github.com/GITMCode/PyITM) be installed.
 
 #### combine
 
-`--combine` will append subsequent times to the first NetCDF file rather than creating a new file for each time. Some caveats: this can only be used with NetCDF, each output *type* is in a different file (3DALL.nc and 2DANC.nc are both created), and the Python routines in PyITM/GITM do not (yet) support this. This was designed for users of xarray who want to make a lot of custon plots quickly, as it works very well with Dask.
+`--combine` will append subsequent times to the first NetCDF file rather than creating a new file for each time. Some caveats: this can only be used with NetCDF, each output *type* is in a different file (3DALL.nc and 2DANC.nc are both created), and the Python routines in PyITM/GITM do not (yet) support this. This was designed for users of xarray who want to make a lot of custom plots quickly, as it works very well with Dask.
 
 #### runname
 
