@@ -441,10 +441,14 @@ do_tests(){
       # The variable tables in srcDoc/outputs.md are generated from
       # srcDoc/outputs/output_schema.csv, which has to match what the code
       # writes. Every run writes the same schema, so the last one will do.
-      if [ $do_save = false ] && [ $do_compare = true ] && [ -f UA/data/output_schema.csv ]; then
+      # A missing file is a failure too: it means GITM stopped writing it.
+      if [ $do_save = false ] && [ $do_compare = true ]; then
         echo ""
         echo ">> Checking the output docs against the output schema..."
-        if python3 ../../../srcPython/generate_output_docs.py --check UA/data/output_schema.csv; then
+        if [ ! -f UA/data/output_schema.csv ]; then
+          echo "   [FAIL] GITM did not write UA/data/output_schema.csv"
+          failed_required+=("OUTPUT_DOCS_UP_TO_DATE")
+        elif python3 ../../../srcPython/generate_output_docs.py --check UA/data/output_schema.csv; then
           passed+=("OUTPUT_DOCS_UP_TO_DATE")
         else
           failed_required+=("OUTPUT_DOCS_UP_TO_DATE")

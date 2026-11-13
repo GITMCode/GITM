@@ -42,7 +42,7 @@ NO_TABLE = {"3DGLO", "1DGLO"}
 
 def read_rows(path):
     """The schema rows of a csv file, skipping its '#' comment lines."""
-    with open(path, newline="") as f:
+    with open(path, newline="", encoding="utf-8") as f:
         lines = [line for line in f if not line.startswith("#")]
     return list(csv.DictReader(lines))
 
@@ -90,7 +90,7 @@ def main():
     rows = read_rows(args.schema or SCHEMA)
     if not rows:
         sys.exit(f"no schema rows in {args.schema or SCHEMA}")
-    with open(DOC) as f:
+    with open(DOC, encoding="utf-8") as f:
         before, generated, after = split_doc(f.read())
     tables = "\n\n" + make_tables(rows) + "\n"
 
@@ -117,10 +117,10 @@ def main():
         return
 
     if args.schema and os.path.realpath(args.schema) != SCHEMA:
-        with open(args.schema) as src, open(SCHEMA, "w") as dst:
+        with open(args.schema, encoding="utf-8") as src, open(SCHEMA, "w", encoding="utf-8") as dst:
             dst.write(src.read())
         print("updated", os.path.relpath(SCHEMA, REPO))
-    with open(DOC, "w") as f:
+    with open(DOC, "w", encoding="utf-8") as f:
         f.write(before + BEGIN + tables + END + after)
     print("updated", os.path.relpath(DOC, REPO))
     if undescribed:

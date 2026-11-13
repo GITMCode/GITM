@@ -477,6 +477,9 @@ contains
   ! copy in srcDoc/outputs/ no longer matches what the code writes.
   !
   ! A failed open only warns: the file describes the outputs, it is not one.
+  ! A run whose only outputs are satellite files may not write it at all,
+  ! because output() then reaches init_output_containers only on the rank
+  ! that holds the satellite.
   ! ---------------------------------------------------------------------------
   subroutine write_output_schema()
     use ModGITM, only: iProc
@@ -1090,7 +1093,8 @@ contains
   ! fill_3dlst: 3DLST schema AND data, one-shot (no define_schema_3dlst).
   ! 2-ghosted like 3DALL: the whole array is the slice.
   !
-  ! Puts are gated by the UAM.in i*OutputList flags, which are uniform across
+  ! Puts are gated by the i*OutputList flags (set per planet in
+  ! set_planet_defaults, not read from UAM.in), which are uniform across
   ! ranks and time-invariant, so priming sees the same conditions as every fill.
   ! That keeps the conditional puts safe; a rank- or time-dependent
   ! condition would desync the schema. All list flags default .true.

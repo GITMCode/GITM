@@ -303,6 +303,11 @@ This replaces the copy and rewrites the tables in `outputs.md`. Commit both
 files. A new type also needs one hand-written row in the type list at the top
 of that section; the script tells you if it is missing.
 
+The copy describes an Earth build with the `user.f90` in the repository.
+Another planet, or user code that registers its own USR variables, writes a
+different file, so only update the copy from a build of the code you are
+committing.
+
 `srcTests/auto_test/run_all_tests.sh` runs the same script with `--check`
 after the tests and fails if the copy or the tables no longer match what the
 code writes, so the GitHub tests catch a forgotten update.
