@@ -235,6 +235,35 @@ def transfer_log_files(user, server, dir):
     return DidWork
     
 # ----------------------------------------------------------------------
+# Where GITM wrote its output files and its log files
+# ----------------------------------------------------------------------
+
+def get_gitm_dirs(uamFile = 'UAM.in'):
+    """Return (outputDir, logDir) for the run in the current directory.
+
+    Both are UA/data unless UAM.in has a #DIRECTORIES block, whose first two
+    lines are the output and log directories. Without that block, and when
+    run from inside UA/ or the data directory itself, fall back to 'data'
+    and then '.'.
+    """
+    if os.path.exists(uamFile):
+        with open(uamFile) as f:
+            lines = f.read().splitlines()
+        for i, line in enumerate(lines):
+            if line.strip() == '#END':
+                break
+            if line.strip() == '#DIRECTORIES':
+                # GITM takes the first word of each line; the rest is a comment
+                dirs = [l.split()[0].rstrip('/') for l in lines[i + 1:i + 3] if l.split()]
+                if len(dirs) == 2:
+                    return dirs[0], dirs[1]
+
+    for dataDir in ['UA/data', 'data']:
+        if os.path.exists(dataDir):
+            return dataDir, dataDir
+    return '.', '.'
+
+# ----------------------------------------------------------------------
 # Determine base filenames from header file
 # ----------------------------------------------------------------------
 
@@ -254,7 +283,7 @@ def determine_base(headerFile, dir):
 def tar_and_zip_gitm():
 
     print('-> Tar and Zipping files!')
-    data_here = 'UA/data'
+    data_here, _ = get_gitm_dirs()
     
     # get header file list:
     headerFiles = sorted(glob(data_here + '/*.header'))
@@ -363,19 +392,20 @@ def transfer(filelist, user, server, dir, DoRemove):
 
 def transfer_model_output_files(user, server, dir):
 
-    data_here = 'UA/data'
+    # the log and run_information.txt can be in a different directory
+    data_here, log_here = get_gitm_dirs()
     remote = user + '@' + server + ':' + dir
 
     print("Transfering files...")
     
     # run info file:
     file = 'run_information.txt'
-    filelist = sorted(glob(data_here + '/' + file))
+    filelist = sorted(glob(log_here + '/' + file))
     DoRemove = True
     DidWork = transfer(filelist, user, server, dir, DoRemove)
 
     file = 'log*.dat'
-    filelist = sorted(glob(data_here + '/' + file))
+    filelist = sorted(glob(log_here + '/' + file))
     DoRemove = False
     DidWork = transfer(filelist, user, server, dir, DoRemove)
 
@@ -467,14 +497,9 @@ def do_loop(doTarZip, user, server, dir, IsRemote,
     if (doTarZip):
         DidWork = tar_and_zip_gitm()
     else:
-        # Default should be UA/data
-        processDir = 'UA/data' 
-        if (not os.path.exists(processDir)):
-            # Maybe we are in the UA directory?
-            processDir = 'data'
-            if (not os.path.exists(processDir)):
-                # Maybe we are already in the data directory???
-                processDir = '.'
+        # UA/data, or wherever #DIRECTORIES in UAM.in put the outputs. If we
+        # are in the UA or data directory instead, this finds that too.
+        processDir, _ = get_gitm_dirs()
         DidWork = post_process_gitm(processDir, DoRm, isVerbose = IsVerbose,
                                     write_nc=write_nc, combine=combine, runname=runname,
                                     nProcs=nProcs)

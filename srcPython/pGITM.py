@@ -717,7 +717,11 @@ def post_process_gitm(dir, doRemove, isVerbose = False,
         print(" -> Did not find any files to process.")
     
     # Separate out files that can be processed by Fortran PostGITM.exe
-    use_post_exe = os.path.exists("../../PostGITM.exe")
+    # PostGITM.exe is linked into the run directory: two levels above UA/data,
+    # or where we were called from if #DIRECTORIES moved the outputs elsewhere.
+    post_exe = next((exe for exe in ("../../PostGITM.exe", os.path.join(cwd, "PostGITM.exe"))
+                     if os.path.exists(exe)), None)
+    use_post_exe = post_exe is not None
     python_headers = []
 
     for head in headers:
@@ -732,7 +736,7 @@ def post_process_gitm(dir, doRemove, isVerbose = False,
                     "Cannot use PostGITM and netCDF at the same time, yet."
                     "\n  >> either remove PostGITM.exe or disable -nc option")
             # Use the legacy Fortran postprocessor (faster).
-            run(f"echo {head} | ../../PostGITM.exe ", check=True, shell=True)
+            run(f"echo {head} | {post_exe} ", check=True, shell=True)
             if (doRemove):
                 remove_files(head, write_nc=write_nc, isVerbose=isVerbose)
         else:
