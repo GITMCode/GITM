@@ -183,6 +183,7 @@ subroutine move_satellites
   use ModRCMR, only: RCMRFlag
   use ModSatellites
   use ModGITM, only: nBlocks, dt, iProc
+  use ModInputs, only: outputDir
   use ModTime, only: CurrentTime, tSimulation
   use ModConstants, only: pi !alex
   implicit none
@@ -261,7 +262,7 @@ subroutine move_satellites
           cName = cTmp(1:4)//"_"//cPos
           CurrentSatellitePosition = SatCurrentPos(iSat, :, iPos)
           CurrentSatelliteName = cName
-          call output("UA/data/", iBlock, -1)
+          call output(outputDir, iBlock, -1)
         enddo
         enddo
       endif
@@ -353,7 +354,7 @@ subroutine move_satellites
             do iBlock = 1, nBlocks
 !                 call output_1d("UA/data/",cName,iBlock, &
 !                      SatCurrentPos(iSat,:,iPos))
-              call output("UA/data/", iBlock, iOut)
+              call output(outputDir, iBlock, iOut)
             enddo
           enddo
 

@@ -405,6 +405,16 @@ subroutine set_inputs
         call read_in_string(logDir, iError)
         call read_in_string(restartOutDir, iError)
         call read_in_string(restartInDir, iError)
+        if (iError /= 0) then
+          write(*, *) 'Incorrect format for #DIRECTORIES'
+          write(*, *) 'This sets where GITM writes its files. All four lines'
+          write(*, *) 'are needed, and the directories have to exist already.'
+          write(*, *) '#DIRECTORIES'
+          write(*, *) 'outputDir      (string [UA/data])'
+          write(*, *) 'logDir         (string [UA/data])'
+          write(*, *) 'restartOutDir  (string [UA/restartOUT])'
+          write(*, *) 'restartInDir   (string [UA/restartIN])'
+        endif
 
       case ("#GITMBCS")
         call read_in_logical(UseGitmBCs, iError)

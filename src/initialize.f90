@@ -44,6 +44,8 @@ subroutine initialize_gitm(TimeIn)
 
   !----------------------------------------------------------------------------
 
+  call check_io_directories
+
   !! Sorry but this is a double-negative
   !! This checks to see if the planet is not, not Titan.
   !! That is to say, it checks to see if this is actually Titan.
@@ -606,3 +608,41 @@ subroutine initialize_gitm(TimeIn)
   call end_timing("initialize")
 
 end subroutine initialize_gitm
+
+! -----------------------------------------------------------------------------
+! check_io_directories: stop at startup if a directory GITM writes to is
+! missing or not writable (the defaults, or the ones given in #DIRECTORIES).
+!
+! Without this a mistyped restart directory is only found at the first
+! restart write, hours into a run.  Rank 0 creates and deletes a scratch file
+! in each directory.  The restart input directory is not tested: it is only
+! read, and only by a restart, where read_restart reports a missing file.
+! Skipped under the SWMF, which checks its own directories.
+! -----------------------------------------------------------------------------
+subroutine check_io_directories
+
+  use ModGITM, only: iProc
+  use ModInputs, only: outputDir, logDir, restartOutDir, IsFramework, iCharLen_
+  use ModIoUnit, only: io_unit_new
+
+  implicit none
+
+  character(len=iCharLen_) :: cDirs(3)
+  integer :: iDir, iUnit, iStatus
+
+  if (iProc /= 0 .or. IsFramework) return
+
+  cDirs = [outputDir, logDir, restartOutDir]
+  do iDir = 1, 3
+    iUnit = io_unit_new()
+    open(unit=iUnit, file=trim(cDirs(iDir))//"/.gitm_write_test", &
+         status="replace", iostat=iStatus)
+    if (iStatus /= 0) then
+      write(*, *) "Cannot write to the directory: ", trim(cDirs(iDir))
+      write(*, *) "It has to exist before the run starts (see #DIRECTORIES)."
+      call stop_gitm("check_io_directories: missing or unwritable directory; see message above")
+    endif
+    close(iUnit, status="delete")
+  enddo
+
+end subroutine check_io_directories

@@ -23,7 +23,7 @@ subroutine finalize_gitm
 
   if (IsOpenLogFile) close(iLogFileUnit_)
 
-  if (.not. IsFrameWork) call write_restart("UA/restartOUT/")
+  if (.not. IsFrameWork) call write_restart(restartOutDir)
 
   if (iProc == 0) then
     open(unit=iOutputUnit_, file="GITM.DONE", status="unknown")
