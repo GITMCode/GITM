@@ -1,7 +1,8 @@
 # Output Backends
 
 GITM can write outputs using three different backends. All three produce the
-same scientific data; they differ only in how files are laid out on disk.
+same scientific data; they differ in how files are laid out on disk, and in
+the few limits listed in the table below.
 Which one you use depends on your system and workflow.
 
 To select a backend, add this block to `UAM.in`:
@@ -17,7 +18,7 @@ with existing runs and tools.
 | | `legacy` | `mpiio` | `netcdf` |
 |---|---|---|---|
 | Files for each output | `.header` + one `.b####` per MPI rank | `.header` + one raw `.bin` | one `.nc` |
-| [Post-processing](../postprocessing.md) | required | required | none; the post-processor does not touch these files |
+| [Post-processing](../postprocessing.md) | required | required | none |
 | `1D*`/`0D*` output types | yes | yes | no, GITM stops |
 | Needs to compile | MPI | MPI | MPI and PnetCDF |
 
@@ -52,7 +53,8 @@ analyzed. `post_process.py` handles this step automatically. See
 The MPI-IO backend writes all blocks into a single shared file using MPI collective
 I/O (`MPI_File_open` / `MPI_File_write_at_all`). Each rank writes its block(s)
 at a fixed byte offset, so all ranks write simultaneously without
-serialization. The result is:
+serialization. (The magnetic-grid and regional types, where only some ranks
+have data, are written with independent calls instead.) The result is:
 
 - One ASCII `.header` file (same format as legacy, with an added `FORMAT/mpiio` line)
 - One `.bin` file containing all blocks in a single raw-binary file (no Fortran

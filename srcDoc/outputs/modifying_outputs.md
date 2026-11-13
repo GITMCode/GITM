@@ -22,7 +22,7 @@ GITM's output system is built around **containers** (`src/ModOutputContainer.f90
 one per output type, holding the variable schema (names, units, shapes), the
 data, and a pointer to the type's `fill_<type>` routine. 
 For most types the schema is derived from the fill itself.
-On initialization each, `put_field` defines its variable & schema ("one-shot").
+On initialization, each `put_field` defines its variable & schema ("one-shot").
 The exceptions are HME (regional), magnetic-grid (different block layout), USR (not all variables are known on init).
 They declare their schema explicitly in a `define_schema_<type>` routine (the authoritative list is the `define_schema_*` calls in `init_output_containers`).
 The `ModOutputContainer.f90` header describes both patterns, if you need more information.
@@ -287,7 +287,7 @@ a worked example and the [Under the hood](#under-the-hood) section for
 ## Update the documentation
 
 The variable tables in [Outputs](../outputs.md) are generated, not typed.
-At its first output every GITM run writes `UA/data/output_schema.csv`: one row
+At its first output GITM writes `UA/data/output_schema.csv`: one row
 per variable of every output type, whatever the backend and whether or not
 `#SAVEPLOT` asked for the type. A copy of that file is kept in
 `srcDoc/outputs/output_schema.csv` and the tables are built from the copy.
@@ -301,7 +301,7 @@ python srcPython/generate_output_docs.py run/UA/data/output_schema.csv
 
 This replaces the copy and rewrites the tables in `outputs.md`. Commit both
 files. A new type also needs one hand-written row in the type list at the top
-of that section; the script tells you if it is missing.
+of that section; the script tells you if the page never names the type.
 
 The copy describes an Earth build with the `user.f90` in the repository.
 Another planet, or user code that registers its own USR variables, writes a

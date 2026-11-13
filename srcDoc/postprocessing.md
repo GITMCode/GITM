@@ -2,8 +2,9 @@
 
 Output from the `legacy` and `mpiio` [output backends](outputs/output_backends.md)
 has to be post-processed before it can be read. Output from the `netcdf`
-backend does not: its `.nc` files are complete as written and the
-post-processor never touches them.
+backend does not: its `.nc` files are complete as written. The post-processor
+does not process them, though it does move them when asked to
+[copy outputs to a remote system](#remotefile).
 
 GITM stores outputs at a cadence specified in the input `UAM.in` file (in `#SAVEPLOT`). When
 running at each `DtOutput` with the default `legacy` [output backend](outputs/output_backends.md),
@@ -90,7 +91,7 @@ The help message for `post_process.py`:
 One of the benefits of post_process.py is that it can post process the files and then scp them over to another system. In order to do this, you need to have keyless entry setup, so that files can be transferred without entering a password. The machine name, user name, and directory to move the run into have to be passed into the post_process.py script, which is done with a 'remotefile'.  If the python code finds this file, it will read it and start moving files. Specifically, the post processor:
 - checks to see if the directory on the remote system exists. If not, it tries to create it.
 - post processes any files that need to be post processed in UA/data.
-- pushes the UA/data/*bin files over to the remote system.
+- pushes the UA/data/*bin files over to the remote system (and any `.nc` or `.tgz` files).
 - checks one-by-one to see if the files exist on the remote system. If the file exists on the remote system, it removes it from the UA/data directory on the compute node.
 - pushes supplemental files (like log files and run files) to the remote system.
 - if the processing time has not expired, it waits a given amount of time (5 minutes by default) and loops. If the processing time has been exceeded, it exits.
@@ -182,15 +183,15 @@ If the run is creating files faster than they are postprocessed, do not panic.
 
 The post_process.py code is relatively slow - it was written to be more robust and to be clean and not fast.  If extremely fast post processing is desired, the older fortran post processor can be used. This is not the recommended way of doing things, but it can be much faster.
 
-The old post processor executable, `PostGITM.exe`, can be created by running `make POST` from GITM's root folder (`GITM/`). If this is done before `make rundir`, it will automatically be copied. Otherwise it must be linked to `run/` manually.
+The old post processor executable, `PostGITM.exe`, can be created by running `make POST` from GITM's root folder (`GITM/`). If this is done before `make rundir`, it is linked into `run/` automatically, along with the `pGITM` script described below. Otherwise both must be linked to `run/` manually.
 
 `post_process.py` uses `PostGITM.exe` automatically if it is found in `run/`; otherwise it does the processing in Python, which is the default because some systems limit which programs can be run from login nodes (but don't seem to limit python yet!). `PostGITM.exe` only reads the `legacy` per-block format, and cannot be used together with `-nc`.
 
 ### pGITM
 
 GITM used a `csh` script, `pGITM`, before the introduction of the Python
-post-processor; it is still available, and `make rundir` links it into `run/`
-together with `PostGITM.exe`. `pGITM` calls `PostGITM.exe` on each `.header` file.
+post-processor; it is still available in `src/`. `pGITM` calls `PostGITM.exe`
+on each `.header` file.
 (Not to be confused with `pGITM.py`, the Python module that `post_process.py` uses
 for its own processing; it can also be run on its own.) Like `PostGITM.exe`, `pGITM`
 only handles `legacy` output.

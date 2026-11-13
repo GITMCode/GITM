@@ -17,7 +17,7 @@ The format of these files depends on which [output backend\(`#OUTPUTBACKEND`\)](
 
 Satellite files ([`#SATELLITES`](set_inputs.md#satellites)) are written in the legacy format for all backends.
 
-All three backends write the same variables, because each output type is defined once in the code and every backend reads that definition.
+For a given output type all three backends write the same variables, because each type is defined once in the code and every backend reads that definition.
 [Adding new outputs](outputs/modifying_outputs.md) describes how that works.
 
 ## Units
@@ -101,10 +101,11 @@ Request any of these in [`#SAVEPLOT`](set_inputs.md#saveplot).
 | `0DALL` | The `3DALL` variables plus mixing ratios and a heat balance |
 | `0DUSR` | User-defined variables |
 
-The `1D` types are altitude profiles and the `0D` types single points. They
-are written along satellite tracks ([`#SATELLITES`](common_inputs.md#sat_aux.sec))
-and by 1-D runs (`nLons = nLats = 1`), where a requested `3D` type is written
-as its `1D` counterpart. The `netcdf` backend does not write them; see
+The `1D` types are altitude profiles and the `0D` types single points.
+A 1-D run (`nLons = nLats = 1`) writes a requested `3D` type as its `1D`
+counterpart. [`#SATELLITES`](common_inputs.md#sat_aux.sec) writes `1DALL` along
+each satellite track (`0DALL` when RCMR is running), or `1DUSR`/`0DUSR` if
+asked. The `netcdf` backend does not write any of them; see
 [Output backends](outputs/output_backends.md).
 
 Notes:
