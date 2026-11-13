@@ -117,10 +117,10 @@ module ModOutputVarRegistry
     VarMeta('Total Abs EUV', 'W/m2', 'Total absorbed EUV flux'), &
     VarMeta('Cp', 'J/kg/K', 'Specific heat at constant pressure'), &
     VarMeta('Sigma Ped', 'S/m', 'Pedersen conductivity'), &
-    VarMeta('Ionization Rate O_3P', '/s', 'Ionization rate for O(3P)'), &
-    VarMeta('Ionization Rate O2', '/s', 'Ionization rate for O2'), &
-    VarMeta('Ionization Rate N2', '/s', 'Ionization rate for N2'), &
-    VarMeta('Ionization Rate He', '/s', 'Ionization rate for He'), &
+    VarMeta('Ionization Rate O_3P', '/m3/s', 'Auroral ionization rate of O(3P)'), &
+    VarMeta('Ionization Rate O2', '/m3/s', 'Auroral ionization rate of O2'), &
+    VarMeta('Ionization Rate N2', '/m3/s', 'Auroral ionization rate of N2'), &
+    VarMeta('Ionization Rate He', '/m3/s', 'Auroral ionization rate of He'), &
     ! -- chemistry (introduced by 3DCHM) -------------------------------------
     ! Same energy source as 3DTHM's 'Chemical Heating Rate' but volumetric
     ! (eV/m3/s) instead of a temperature tendency (K/s).

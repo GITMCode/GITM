@@ -20,7 +20,7 @@
 !
 ! EXPLICIT TWO-PHASE (define_var once per open on all ranks, then prepare +
 !   put on participating ranks): for magnetic grids (2DMEL), HME/HIME regionals,
-!   the rank-0 probes 1DGLO/1DTHM/1DCHM, and USR.  USR is permanent by design:
+!   the rank-0 probes 1DGLO/1DTHM/1DCHM/1DEMI, and USR.  USR is permanent by design:
 !   users put from anywhere, so a put-derived schema would be empty at the
 !   first output; registration IS its schema.
 !
