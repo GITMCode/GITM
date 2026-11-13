@@ -363,9 +363,26 @@ For 1-D/0-D types the choice is a participation rule, not a grid statement:
 pick `GRID_MAG_2D` for a probe-like type that should write once from one
 rank, `GRID_GEO_2D` only if every rank should contribute its own values.
 
-For `GRID_MAG_2D` and `GRID_HIME`, the netcdf backend switches to independent I/O to
-avoid MPI collective deadlocks; see
-[Output backends](output_backends.md#conditional-participation-types).
+For output types where not all blocks write, the NetCDF backend automatically switches from
+collective to **independent I/O mode** (`nfmpi_begin_indep_data` / `nfmpi_end_indep_data`):
+
+- **`GRID_MAG_2D`** (e.g., 2DMEL): output is on the magnetic grid; only `iProc == 0`
+  has the data and writes. `prepare()` sets `this_rank_writes` accordingly.
+- **`GRID_HIME`** (e.g., 2DHME/3DHME): regional output; only blocks whose cells fall
+  inside the user-defined HIME region write. Participation is set externally before
+  `prepare()` is called.
+
+The switch exists because a collective call that only some ranks reach is a
+deadlock; independent mode lets the participating ranks write alone.
+
+The `mpiio` backend handles conditional participation by striping output by global
+block offset and leaving non-participating slots zero-filled (no separate per-block
+file to mark NaN). For these two grid kinds it writes with independent
+`MPI_File_write_at` rather than the collective `MPI_File_write_at_all`. A `0`
+value in a regional `mpiio` output file is therefore expected for cells outside
+the region. `validate_outputs.py` recognizes HME/HIME files and skips the
+`altitude > 0` sanity check accordingly. The `legacy` backend skips file
+creation on non-participating ranks.
 
 ### Ghost cells
 

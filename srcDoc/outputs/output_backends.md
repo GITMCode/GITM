@@ -1,24 +1,8 @@
 # Output Backends
 
-GITM can write outputs using three different backends. All three consume the same
-output [containers](../outputs.md#output-system) (defined in
-`src/ModOutputProducers.f90`) and produce the same scientific data; they differ
-only in how files are laid out on disk. `legacy` and `mpiio` output has to be
-[post-processed](../postprocessing.md) before it can be read; `netcdf` output
-is complete as written, and the post-processor does not touch it.
+GITM can write outputs using three different backends. All three produce the
+same scientific data; they differ only in how files are laid out on disk.
 Which one you use depends on your system and workflow.
-
-Two current restrictions to know up front:
-
-- The `netcdf` backend does not support the probe-style `1D*`/`0D*` types
-  (including 3D types renamed to `1D*` by a 1-D `nLons=nLats=1` run) and
-  stops with an error naming the type; use `legacy` or `mpiio` for those.
-  There is no generated variable table for these types; the `.header` file of a
-  `legacy` or `mpiio` run lists their variables. Satellite (`#SATELLITES`)
-  files are written in the legacy format whatever the backend.
-- The `.nc` files this backend writes are a different dialect from the ones
-  `pGITM.py` produces when converting legacy/mpiio output (see the warning
-  under [`-nc`](../postprocessing.md#nc)). Don't mix the two in one analysis.
 
 To select a backend, add this block to `UAM.in`:
 
@@ -29,6 +13,16 @@ mpiio
 
 Without this block, GITM uses the **legacy** backend, for backwards compatibility
 with existing runs and tools.
+
+| | `legacy` | `mpiio` | `netcdf` |
+|---|---|---|---|
+| Files for each output | `.header` + one `.b####` per MPI rank | `.header` + one raw `.bin` | one `.nc` |
+| [Post-processing](../postprocessing.md) | required | required | none; the post-processor does not touch these files |
+| `1D*`/`0D*` output types | yes | yes | no, GITM stops |
+| Needs to compile | MPI | MPI | MPI and PnetCDF |
+
+Satellite (`#SATELLITES`) files are written in the legacy format whatever the
+backend.
 
 [TOC]
 
@@ -58,9 +52,7 @@ analyzed. `post_process.py` handles this step automatically. See
 The MPI-IO backend writes all blocks into a single shared file using MPI collective
 I/O (`MPI_File_open` / `MPI_File_write_at_all`). Each rank writes its block(s)
 at a fixed byte offset, so all ranks write simultaneously without
-serialization. (The types where only some ranks write, `GRID_MAG_2D` and
-`GRID_HIME`, use independent `MPI_File_write_at` instead; see
-[below](#conditional-participation-types).) The result is:
+serialization. The result is:
 
 - One ASCII `.header` file (same format as legacy, with an added `FORMAT/mpiio` line)
 - One `.bin` file containing all blocks in a single raw-binary file (no Fortran
@@ -77,6 +69,10 @@ This backend is preferred on Lustre-based systems: it produces far fewer
 files per timestep and benefits from large sequential writes rather than many small
 independent ones.
 
+A `0` value in a regional (`2DHME`/`3DHME`) `mpiio` file is expected for cells
+outside the region: the file has a slot for every block, and the blocks that
+do not write leave theirs zero-filled.
+
 ---
 
 ## netcdf
@@ -89,6 +85,22 @@ automatically.
 The result is a single `.nc` file per output type per timestep. No post-processing or
 merging is required. Files can be read directly with xarray, NCO, PyITM, or any
 NetCDF-aware tool.
+
+!!! note "Build requirements"
+    PnetCDF must be installed and `pnetcdf-config` on `PATH` when compiling;
+    the build system detects it and defines `-DHavePNetCDF`. Without it the
+    NetCDF module compiles as a stub and GITM stops if `netcdf` is requested
+    at runtime. NetCDF is entirely optional: `legacy` and `mpiio` need
+    nothing beyond MPI.
+
+Two limits:
+
+- The `netcdf` backend does not support the probe-style `1D*`/`0D*` types
+  (including 3D types renamed to `1D*` by a 1-D `nLons=nLats=1` run) and
+  stops with an error naming the type; use `legacy` or `mpiio` for those.
+- The `.nc` files this backend writes are a different dialect from the ones
+  `pGITM.py` produces when converting legacy/mpiio output (see the warning
+  under [`-nc`](../postprocessing.md#nc)). Don't mix the two in one analysis.
 
 ### Multi-time files, run names, and restarts
 
@@ -154,35 +166,5 @@ Restarts in `single`/`daily` mode depend on whether the run is named:
 
 `#NETCDFOPTIONS` only affects the `netcdf` backend; it is ignored for
 `legacy` and `mpiio`.
-
-### Conditional participation types
-
-For output types where not all blocks write, the NetCDF backend automatically switches from
-collective to **independent I/O mode** (`nfmpi_begin_indep_data` / `nfmpi_end_indep_data`).
-Participation is driven by the container's `gridKind` (see
-`src/ModOutputContainer.f90`):
-
-- **`GRID_MAG_2D`** (e.g., 2DMEL): output is on the magnetic grid; only `iProc == 0`
-  has the data and writes. `prepare()` sets `this_rank_writes` accordingly.
-- **`GRID_HIME`** (e.g., 2DHME/3DHME): regional output; only blocks whose cells fall
-  inside the user-defined HIME region write. Participation is set externally before
-  `prepare()` is called.
-
-The switch exists because a collective call that only some ranks reach is a
-deadlock; independent mode lets the participating ranks write alone.
-
-The `mpiio` backend handles conditional participation by striping output by global
-block offset and leaving non-participating slots zero-filled (no separate per-block
-file to mark NaN). A `0` value in a regional `mpiio` output file is therefore
-expected for cells outside the region. `validate_outputs.py` recognizes HME/HIME
-files and skips the `altitude > 0` sanity check accordingly. The `legacy` backend
-skips file creation on non-participating ranks.
-
-!!! note "Build requirements"
-    PnetCDF must be installed and `pnetcdf-config` on `PATH` when compiling;
-    the build system detects it and defines `-DHavePNetCDF`. Without it the
-    NetCDF module compiles as a stub and GITM stops if `netcdf` is requested
-    at runtime. NetCDF is entirely optional: `legacy` and `mpiio` need
-    nothing beyond MPI.
 
 ---
