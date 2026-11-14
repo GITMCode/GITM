@@ -1,0 +1,2 @@
+$Compiler eq "gfortran"
+	${COMPILE.f90} -DsysLinux -DcompGFORTRAN ${Cflag3} -fcheck=no-recursion ModMsis21.F90
