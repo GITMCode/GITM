@@ -1,6 +1,41 @@
 ! Copyright 2021, the GITM Development Team (see srcDoc/dev_team.md for members)
 ! Full license can be found in LICENSE
 
+! ----------------------------------------------------------------
+! Register user-defined variable names and units for all USR output
+! types.  Called once from write_output before the first output
+! timestep.  Longitude/Latitude/Altitude are defined unconditionally
+! by each define_schema_*dusr and must not be listed here.
+! ----------------------------------------------------------------
+subroutine init_usr_output_registry()
+
+  use ModOutputProducers, only: register_usr_var
+
+  implicit none
+
+  ! ---- 3DUSR ----
+  call register_usr_var(3, 'Joule Heating', 'K/s')
+  call register_usr_var(3, 'JPara', 'A/m2')
+
+  ! ---- 2DUSR ----
+  call register_usr_var(2, 'Potential (kV)', 'kV')
+  call register_usr_var(2, 'Average Energy (keV)', 'keV')
+  call register_usr_var(2, 'Total Energy (ergs)', 'ergs/cm2/s')
+  call register_usr_var(2, 'Discrete Average Energy (keV)', 'keV')
+  call register_usr_var(2, 'Discrete Total Energy (ergs)', 'ergs/cm2/s')
+  call register_usr_var(2, 'Wave Average Energy (keV)', 'keV')
+  call register_usr_var(2, 'Wave Total Energy (ergs)', 'ergs/cm2/s')
+
+  ! ---- 1DUSR ----
+  call register_usr_var(1, 'Electron Density', '/m3')
+
+  ! ---- 0DUSR ----
+  call register_usr_var(0, 'Electron Density', '/m3')
+  call register_usr_var(0, 'Electron Temperature', 'K')
+  call register_usr_var(0, 'Ion Temperature', 'K')
+
+end subroutine init_usr_output_registry
+
 !------------------------------------------------------------------------------
 ! Get mean horizontal neutral wind and neutral temperature values at the
 ! lower boundary for Wave Perturbation (WP) model
@@ -412,113 +447,3 @@ subroutine user_bc_perturbation(LogRhoBc, LogNSBc, VelBc_GD, TempBc)
   enddo
 
 end subroutine user_bc_perturbation
-
-! ----------------------------------------------------------------
-!
-! ----------------------------------------------------------------
-
-subroutine set_nVarsUser3d
-
-  use ModUserGITM
-
-  ! Make sure to include Lat, Lon, and Alt
-
-  nVarsUser3d = 5
-
-  if (nVarsUser3d - 3 > nUserOutputs) &
-    call stop_gitm("Too many user outputs!! Increase nUserOutputs!!")
-
-end subroutine set_nVarsUser3d
-
-! ----------------------------------------------------------------
-!
-! ----------------------------------------------------------------
-
-subroutine set_nVarsUser2d
-
-  use ModUserGITM
-  use ModSources, only: ED_N_Energies
-
-  ! Make sure to include Lat, Lon, and Alt
-
-  nVarsUser2d = 10 + ED_N_Energies
-
-  if (nVarsUser2d - 3 > nUserOutputs) &
-    call stop_gitm("Too many user outputs!! Increase nUserOutputs!!")
-
-end subroutine set_nVarsUser2d
-
-! ----------------------------------------------------------------
-!
-! ----------------------------------------------------------------
-
-subroutine set_nVarsUser1d
-
-  use ModUserGITM
-
-  ! Make sure to include Lat, Lon, and Alt
-
-  nVarsUser1d = 4
-
-  if (nVarsUser1d - 3 > nUserOutputs) &
-    call stop_gitm("Too many user outputs!! Increase nUserOutputs!!")
-
-end subroutine set_nVarsUser1d
-
-! ----------------------------------------------------------------
-!
-! ----------------------------------------------------------------
-
-subroutine set_nVarsUser0d
-
-  use ModUserGITM
-
-  nVarsUser0d = 6
-
-  if (nVarsUser0d - 3 > nUserOutputs) &
-    call stop_gitm("Too many user outputs!! Increase nUserOutputs!!")
-
-end subroutine set_nVarsUser0d
-
-! ----------------------------------------------------------------
-! Register user-defined variable names and units for all USR output
-! types.  Called once from write_output before the first output
-! timestep.  Longitude/Latitude/Altitude are defined unconditionally
-! by each define_schema_*dusr and must not be listed here.
-! ----------------------------------------------------------------
-subroutine init_usr_output_registry()
-
-  use ModOutputProducers, only: register_usr_var
-  use ModSources, only: ED_Energies, ED_N_Energies
-
-  implicit none
-
-  integer :: n
-  character(len=60) :: varname
-
-  ! ---- 3DUSR ----
-  call register_usr_var(3, 'Joule Heating', 'K/s')
-  call register_usr_var(3, 'JPara', 'A/m2')
-
-  ! ---- 2DUSR ----
-  call register_usr_var(2, 'Potential (kV)', 'kV')
-  call register_usr_var(2, 'Average Energy (keV)', 'keV')
-  call register_usr_var(2, 'Total Energy (ergs)', 'ergs/cm2/s')
-  call register_usr_var(2, 'Discrete Average Energy (keV)', 'keV')
-  call register_usr_var(2, 'Discrete Total Energy (ergs)', 'ergs/cm2/s')
-  call register_usr_var(2, 'Wave Average Energy (keV)', 'keV')
-  call register_usr_var(2, 'Wave Total Energy (ergs)', 'ergs/cm2/s')
-  ! do n = 1, ED_N_Energies
-  !   write(varname, "(A5,1P,E9.3,A7)") 'Flux@', ED_Energies(n), 'eV'
-  !   call register_usr_var(2, trim(varname), '/cm2/s')
-  ! enddo
-
-  ! ---- 1DUSR ----
-  call register_usr_var(1, 'Electron Density', '/m3')
-
-  ! ---- 0DUSR ----
-  call register_usr_var(0, 'Electron Density', '/m3')
-  call register_usr_var(0, 'Electron Temperature', 'K')
-  call register_usr_var(0, 'Ion Temperature', 'K')
-
-end subroutine init_usr_output_registry
