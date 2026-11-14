@@ -7,7 +7,7 @@ Skip to [the output type section](#output-types-and-their-variables) if you are 
 
 ## File formats
 
-The format of these files depends on which [output backend\(`#OUTPUTBACKEND`\)](outputs/output_backends.md) was used during the run:
+The format of these files depends on which [output backend](outputs/output_backends.md) (`#OUTPUTBACKEND`) was used during the run:
 
 | Backend | Files for each output type, at each output time | Before you can read them |
 |---|---|---|
@@ -22,7 +22,7 @@ For a given output type all three backends write the same variables, because eac
 
 ## Units
 
-All of the GITM outputs are in MKS units. 
+All of the GITM outputs are in MKS units.
 
 !!! important "Horizontal coordinates: radians in `.bin`, degrees in netcdf"
     The one exception to "MKS units" is geographic longitude and latitude,
@@ -45,7 +45,7 @@ This file can be very useful when sharing runs with other users, when revisiting
 Some example log files can be found in the `srcTests/auto_test/ref_solns/` directory.
 
 The `run_information.txt` file has every setting used by GITM during a run.
-Its format is similar to `UAM.in`, and every variable is written in the same order in which it is parsed by [`set_inputs.f90'](set_inputs.md).
+Its format is similar to `UAM.in`, and every variable is written in the same order in which it is parsed by [`set_inputs.f90`](set_inputs.md).
 
 The `output_schema.csv` file lists every output type and its variables, with units and a description, in the order they appear in the files.
 `legacy` and `mpiio` files carry only the variable names, so this is where to look up their units.
@@ -105,23 +105,23 @@ The `1D` types are altitude profiles and the `0D` types single points.
 A 1-D run (`nLons = nLats = 1`) writes a requested `3D` type as its `1D`
 counterpart. [`#SATELLITES`](common_inputs.md#sat_aux.sec) writes `1DALL` along
 each satellite track (`0DALL` when RCMR is running), or `1DUSR`/`0DUSR` if
-asked. The `netcdf` backend does not write any of them; see
-[Output backends](outputs/output_backends.md).
+asked. The `netcdf` backend does not write any of them (see
+[Output backends](outputs/output_backends.md)).
 
 Notes:
 
 - **Rates are zero at the first output.** Per-step diagnostics that GITM
-  divides by the time step (3DTHM `Conduction`, `Molecular Conduction` and
-  the chemical heating rate, 3DCHM, 3DMOH `Visc_*`, 2DANC `Chem_int`, and
-  the probe types 0DALL, 1DTHM and 1DCHM) are rates. They are written as 0
+  divides by the time step (`3DTHM` `Conduction`, `Molecular Conduction` and
+  the chemical heating rate, `3DCHM`, `3DMOH` `Visc_*`, `2DANC` `Chem_int`, and
+  the probe types `0DALL`, `1DTHM` and `1DCHM`) are rates. They are written as 0
   at the t = 0 output, where the time step is 0.
 - **`3DGLO` and `1DGLO` stop the run.** GLOW computes emissions when `#GLOW`
   is on (`get_glow.f90` fills `vEmissionRate`), but the two output types were
   never wired to that array: their fills put placeholder zeros,
   indistinguishable from real measurements, so GITM stops if either is
   requested in `#SAVEPLOT`. They remain valid type codes so the fills can be
-  pointed at `vEmissionRate` later; they produce nothing today and have no
-  table below.
+  pointed at `vEmissionRate` later. Until then they produce nothing and have
+  no table below.
 - **`2DMEL` is on a magnetic grid**, so its horizontal coordinates are
   `mlon`/`mlat` (in degrees), not `Longitude`/`Latitude`. Its
   `GeoLat`/`GeoLon` variables are the geographic position of each magnetic
@@ -130,9 +130,9 @@ Notes:
   what GITM registers as shipped.
 
 The tables below give each type's variables in the order they appear in the
-file. `Variable` is the name in legacy/mpiio `.header` files; netcdf variable
-names are the same after sanitization, with the original kept in each
-variable's `gitm_name` attribute. The tables are generated from the
+file. `Variable` is the name in `legacy`/`mpiio` `.header` files. The netcdf
+names are the same after sanitization, and each netcdf variable keeps the
+original in its `gitm_name` attribute. The tables are generated from the
 `output_schema.csv` that GITM itself writes, so they are updated
 [with a script](outputs/modifying_outputs.md#update-the-documentation), not by
 hand.

@@ -108,10 +108,10 @@ def validate_variable(name, vals, is_regional=False, in_radians=False):
         ) and passed
 
     # --- Altitude: exact name match only (avoids AltInt* variables) ---
-    # Regional outputs (HME/HIME) only write blocks inside the region; the
-    # mpiio backend stripes one .raw file and leaves out-of-region block slots
-    # zero-filled (no missing file for pGITM to mark NaN), so a 0 here is
-    # expected, not a bug.  Skip the positivity check for regional files.
+    # Regional outputs (HME/HIME) only write blocks inside the region. The
+    # mpiio backend writes one striped file and leaves out-of-region block
+    # slots zero-filled (no missing file for pGITM to mark NaN), so a 0 here is
+    # expected, not a bug. Skip the positivity check for regional files.
     elif name_lower == 'altitude' and not is_regional:
         vmin = float(flat.min())
         passed = log_check(

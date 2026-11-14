@@ -226,8 +226,8 @@ def compare_timestep(name_a, data_a, name_b, data_b,
 
         # Regional/mag-grid outputs leave out-of-region cells unwritten: the
         # legacy/netcdf backends NaN-fill them while mpiio zero-fills them
-        # Compare only cells finite in BOTH backends so the fill region (NaN
-        # in at least one) is dropped; in-region data is still fully checked.
+        # Compare only cells finite in BOTH backends, which drops the fill region
+        # (NaN in at least one). In-region data is still fully checked.
         finite = np.isfinite(a) & np.isfinite(b)
         if not finite.any():
             n_ok += 1

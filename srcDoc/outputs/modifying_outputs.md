@@ -20,10 +20,10 @@ type's variable list for every user of the file.
 
 GITM's output system is built around **containers** (`src/ModOutputContainer.f90`):
 one per output type, holding the variable schema (names, units, shapes), the
-data, and a pointer to the type's `fill_<type>` routine. 
+data, and a pointer to the type's `fill_<type>` routine.
 For most types the schema is derived from the fill itself.
-On initialization, each `put_field` defines its variable & schema ("one-shot").
-The exceptions are HME (regional), magnetic-grid (different block layout), USR (not all variables are known on init).
+On initialization, each `put_field` defines its variable and schema ("one-shot").
+The exceptions are the HME (regional), magnetic-grid (different block layout) and USR (not all variables are known at init) types.
 They declare their schema explicitly in a `define_schema_<type>` routine (the authoritative list is the `define_schema_*` calls in `init_output_containers`).
 The `ModOutputContainer.f90` header describes both patterns, if you need more information.
 
@@ -38,12 +38,12 @@ The recipes below need no more than this. [Under the hood](#under-the-hood) has 
 
     - The per-type header `write` lists are gone. A type's variable names,
       units, and long names come from its `fill_<type>` routine plus the
-      shared table in `src/ModOutputVarRegistry.f90`; headers and netcdf
-      metadata are generated from that one schema, so they can no longer
-      disagree with the data. You never write header strings again.
-    - Units are no longer part of the name string (`'Rho (kg/m3)'` is now
-      name `'Rho'` plus a units field). `.header` variable lists show bare
-      names.
+      shared table in `src/ModOutputVarRegistry.f90`. Headers and netcdf
+      metadata are generated from that one schema, so they cannot disagree
+      with the data.
+    - Units are a separate field, not part of the name string (`'Rho'`
+      with units `kg/m3`, not `'Rho (kg/m3)'`). `.header` variable lists
+      show bare names.
     - The old conditional-write idiom (gating a variable on an
       `i*OutputList`-style flag) now aborts at startup unless the flag is
       fixed before init: the schema is derived by running each fill once at
@@ -121,7 +121,7 @@ See [set_inputs](../set_inputs.md) for the full `#SAVEPLOT` syntax.
     on that first call. Handy for quick diagnostics, but that first call must happen
     **before the first output write**, or the variable won't make it into the file
     schema (and will be missing from netcdf output). Registering in step 1 is the
-    reliable way; on-the-fly registration is best left for throwaway debugging.
+    reliable way. Keep on-the-fly registration for throwaway debugging.
 
 ---
 
@@ -180,10 +180,10 @@ the very next run, not months later on the one run that outputs that type.
 
 Two things to check anyway:
 
-- **A registry row is shared by every type that puts that name.** That is
-  the point (units and long_name cannot drift between types), but it also
-  means editing the `'Rho'` row changes 3DALL, 3DNEU, 3DLST, 3DMOH, and
-  3DTHM at once, and a units-only edit produces **no error anywhere**.
+- **A registry row is shared by every type that puts that name.** This
+  keeps units and long_name from drifting between types, but editing the
+  `'Rho'` row changes `3DALL`, `3DNEU`, `3DLST`, `3DMOH` and `3DTHM` at
+  once, and a units-only edit produces no error.
   Grep the put sites before editing a shared row.
 - Renames propagate to files and user scripts: the `.header` variable
   list, the netcdf variable name after sanitization (the original name
@@ -194,9 +194,9 @@ Two things to check anyway:
 
 ## Create a new output type
 
-Use this only when you want a genuinely new file type, not just more columns in a USR
-file. You write **one fill routine** in `src/ModOutputProducers.f90` and register it;
-the schema is derived from the fill itself. **No need to modify the output backends:**
+Use this only when you want a new file type, not just more columns in a USR
+file. You write **one fill routine** in `src/ModOutputProducers.f90` and register it.
+The schema is derived from the fill itself. **No need to modify the output backends:**
 every backend reads the container directly for the data. (File headers and
 file opens do check the type code in a few places: `2DMEL`, `1DNEW`, and the
 `1D`/`0D` prefixes in the header writers in `ModOutputBackend.f90` and
@@ -204,7 +204,7 @@ file opens do check the type code in a few places: `2DMEL`, `1DNEW`, and the
 A new magnetic-grid or regional type would get a wrong `BLOCKS` header or file
 open until those checks are extended.)
 
-The example below adds a 3-D geographic type called `3DMYT`.
+The example below adds a 3D geographic type called `3DMYT`.
 
 ### 1. Write the fill
 
@@ -264,8 +264,8 @@ the code, but do add the new code to the `#SAVEPLOT` type list in
 [set_inputs](../set_inputs.md) (and to the `#SAVEPLOT` help text in
 `src/set_inputs.f90`), and [update the documentation](#update-the-documentation).
 
-If the new type is a `1D*`/`0D*` probe type, the netcdf backend will refuse it;
-see [Output backends](output_backends.md) for what each backend supports.
+If the new type is a `1D*`/`0D*` probe type, the netcdf backend will refuse it
+(see [Output backends](output_backends.md) for what each backend supports).
 
 ### Types with explicit schemas
 
@@ -278,9 +278,9 @@ authoritative list is the set of `define_schema_*` calls in
 the older two-routine pattern: a `define_schema_<type>` (called in
 `init_output_containers`) declaring every variable with `define_var`, and a
 fill using the plain `put` API against the declared schema. Only use this
-pattern when priming is genuinely impossible; see `define_schema_2dmel` for
-a worked example and the [Under the hood](#under-the-hood) section for
-`define_var`'s arguments.
+pattern when priming is impossible. `define_schema_2dmel` is a worked
+example, and [Under the hood](#under-the-hood) lists `define_var`'s
+arguments.
 
 ---
 
@@ -364,11 +364,11 @@ the parameter to raise (`src/ModOutputContainer.f90`).
 | `GRID_MAG_2D` | magnetic 2D (2DMEL), plus the probe types 1DGLO, 1DTHM, 1DCHM, 1DEMI, which use it purely as a "one rank writes" switch | `iProc == 0` only |
 | `GRID_HIME` | regional (2DHME, 3DHME) | blocks inside the region (set externally) |
 
-For 1-D/0-D types the choice is a participation rule, not a grid statement:
+For 1D/0D types the choice is a participation rule, not a grid statement:
 pick `GRID_MAG_2D` for a probe-like type that should write once from one
 rank, `GRID_GEO_2D` only if every rank should contribute its own values.
 
-For output types where not all blocks write, the NetCDF backend automatically switches from
+For output types where not all blocks write, the `netcdf` backend automatically switches from
 collective to **independent I/O mode** (`nfmpi_begin_indep_data` / `nfmpi_end_indep_data`):
 
 - **`GRID_MAG_2D`** (e.g., 2DMEL): output is on the magnetic grid; only `iProc == 0`

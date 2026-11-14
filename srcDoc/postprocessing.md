@@ -172,8 +172,8 @@ This requires [PyITM](https://github.com/GITMCode/PyITM) be installed.
     GITM's own `netcdf` [output backend](outputs/output_backends.md)
     writes: different variable names, reversed dimension order, edge ghost
     cells kept on some types, no CF attributes. If the run used
-    `#OUTPUTBACKEND netcdf`, use those files directly and skip `-nc`;
-    reserve `-nc` for converting legacy/mpiio output.
+    `#OUTPUTBACKEND netcdf`, use those files directly and skip `-nc`.
+    `-nc` is for converting legacy/mpiio output.
 
 #### combine
 
@@ -197,12 +197,11 @@ The old post processor executable, `PostGITM.exe`, can be created by running `ma
 
 ### pGITM
 
-GITM used a `csh` script, `pGITM`, before the introduction of the Python
-post-processor; it is still available in `src/`. `pGITM` calls `PostGITM.exe`
-on each `.header` file.
-(Not to be confused with `pGITM.py`, the Python module that `post_process.py` uses
-for its own processing; it can also be run on its own.) Like `PostGITM.exe`, `pGITM`
-only handles `legacy` output.
+Before the Python post-processor, GITM used a `csh` script, `pGITM`, which is
+still in `src/`. It calls `PostGITM.exe` on each `.header` file, so it also
+handles only `legacy` output.
+(Not to be confused with `pGITM.py`, the Python module that `post_process.py`
+uses for its own processing, which can also be run on its own.)
 
 `pGITM` will only run one time and requires `csh` which doesn't seem to be available on systems by default anymore. The world has moved on.
 

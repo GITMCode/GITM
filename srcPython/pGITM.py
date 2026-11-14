@@ -128,7 +128,7 @@ def create_netcdf(filename, data, isVerbose=False):
         print(" --> Creating netCDF file:", filename)
     
     # Grid shape from the header (computed in process_one_file).
-    # Magnetic-grid (2DMEL) files have no Longitude variable; (mlon,mlat).
+    # Magnetic-grid (2DMEL) files have no Longitude variable. Their axes are mlon/mlat.
     nz = data['nAltsTotal']
     ny = data['nLatsTotal']
     nx = data['nLonsTotal']
@@ -195,7 +195,7 @@ def create_netcdf(filename, data, isVerbose=False):
 
         # 2DMEL carries geographic lon/lat as DATA variables on a magnetic
         # grid, so they do not fire the axes-only branch above
-        # Detect radians & so convert here
+        # Convert to degrees if the values look like radians
         for _geo_name, _rad_max in (('GeoLon', 8.0), ('GeoLat', 3.5)):
             if _geo_name in data:
                 data[_geo_name] = _to_degrees(data[_geo_name], _rad_max)
@@ -358,7 +358,7 @@ def read_one_binary_file(file, nVars, nLons, nLats, nAlts, isVerbose = False, al
         if allow_missing:
             if (isVerbose):
                 print('   --> Block file not found (expected for skipped/regional blocks): ', file)
-            # Unwritten regional blocks hold no data; mark as NaN so downstream
+            # Unwritten regional blocks hold no data. Mark them NaN so downstream
             # consumers don't misread them as altitude=0 / value=0 samples.
             data[:] = np.nan
             return data
@@ -564,8 +564,8 @@ def remove_files(header, write_nc=False, isVerbose=False):
         os.system(command)
         
         if write_nc:
-            # Then we need to remove .bin file too. MPIIO writes .bin & .header,
-            # we have changed it to .nc
+            # mpiio writes a .bin and a .header. The .nc replaces the .bin, so
+            # remove that too.
             command = 'rm -f ' + header.replace('.header', '.bin')
             if (isVerbose):
                 print('     --> running command : ' + command)

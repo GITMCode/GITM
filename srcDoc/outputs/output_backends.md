@@ -1,9 +1,9 @@
 # Output Backends
 
 GITM can write outputs using three different backends. All three produce the
-same scientific data; they differ in how files are laid out on disk, and in
+same  data. They differ in how files are laid out on disk and in
 the few limits listed in the table below.
-Which one you use depends on your system and workflow.
+Which one you "should" use depends on your system and workflow.
 
 To select a backend, add this block to `UAM.in`:
 
@@ -12,7 +12,7 @@ To select a backend, add this block to `UAM.in`:
 mpiio
 ```
 
-Without this block, GITM uses the **legacy** backend, for backwards compatibility
+Without this block, GITM uses the `legacy` backend, for backwards compatibility
 with existing runs and tools.
 
 | | `legacy` | `mpiio` | `netcdf` |
@@ -39,7 +39,7 @@ block file independently, producing:
 
 These per-block files must be merged into a single `.bin` file before they can be
 analyzed. `post_process.py` handles this step automatically. See
-[Postprocessing](../postprocessing.md) for details.
+[Post-processing](../postprocessing.md) for details.
 
 !!! warning "Lustre and parallel filesystems"
     On Lustre-based HPC systems, having hundreds of MPI ranks each create small files
@@ -79,7 +79,7 @@ do not write leave theirs zero-filled.
 
 ## netcdf
 
-The NetCDF backend uses PnetCDF to write a single self-describing file per
+The `netcdf` backend uses PnetCDF to write a single self-describing file per
 output type per timestep. Each MPI rank writes its interior (non-ghost) grid slices
 directly into the correct position in the global array, and ghost cells are stripped
 automatically.
@@ -98,16 +98,16 @@ NetCDF-aware tool.
 Two limits:
 
 - The `netcdf` backend does not support the probe-style `1D*`/`0D*` types
-  (including 3D types renamed to `1D*` by a 1-D `nLons=nLats=1` run) and
-  stops with an error naming the type; use `legacy` or `mpiio` for those.
+  (including 3D types renamed to `1D*` by a 1D `nLons=nLats=1` run) and
+  stops with an error naming the type. Use `legacy` or `mpiio` for those.
 - The `.nc` files this backend writes are a different dialect from the ones
   `pGITM.py` produces when converting legacy/mpiio output (see the warning
   under [`-nc`](../postprocessing.md#nc)). Don't mix the two in one analysis.
 
 ### Multi-time files, run names, and restarts
 
-By default the NetCDF backend creates one file per output type per timestep
-(e.g., `3DALL_t230101_000000.nc`, `3DALL_t230101_000500.nc`, ...). `#NETCDFOPTIONS`
+By default the `netcdf` backend creates one file per output type per timestep
+(e.g., `3DALL_t021221_000000.nc`, `3DALL_t021221_000500.nc`, ...). `#NETCDFOPTIONS`
 controls this with two sequential flags (the first required, the second
 optional):
 
@@ -123,11 +123,11 @@ storm1          netCDFFileName (optional run name)
 - `daily`: one file per output type per day, e.g. `3DALL_2002-12-21.nc`.
 - `single`: one file per output type for the entire run, e.g. `3DALL.nc`.
 
-`daily` and `single` files use an unlimited time dimension; data variables are
-shaped `(time, [z,] lat, lon)` (time first in C/numpy/xarray order; the same
-layout puts time as the last axis in Fortran order) and read natively by xarray
-(on a magnetic grid the horizontal dimensions are named `mlat`/`mlon`
-instead, and carry plain `degrees`):
+`daily` and `single` files use an unlimited time dimension. Data variables are
+shaped `(time, [z,] lat, lon)` in C/numpy/xarray order (time is the last axis
+in Fortran order). On a magnetic grid the horizontal dimensions are named
+`mlat`/`mlon` instead, and carry plain `degrees`. xarray reads the files
+natively:
 
 ```python
 import xarray as xr
@@ -146,7 +146,7 @@ Restarts in `single`/`daily` mode depend on whether the run is named:
   last record if it is for the same time (a restart can re-emit the epoch
   it starts from), and is appended after it otherwise. GITM stops instead
   if the file has records *after* that time (an earlier run went past the
-  restart point; netcdf cannot remove those records), or if the file's grid
+  restart point, and netcdf cannot remove those records), or if the file's grid
   or variables do not match the run. Move the file aside to start a new
   one.
 - **Named**: a `restart_yymmdd_hhmmss` stamp (the restart's simulation

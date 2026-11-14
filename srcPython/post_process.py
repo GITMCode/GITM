@@ -253,7 +253,7 @@ def get_gitm_dirs(uamFile = 'UAM.in'):
             if line.strip() == '#END':
                 break
             if line.strip() == '#DIRECTORIES':
-                # GITM takes the first word of each line; the rest is a comment
+                # GITM takes the first word of each line and treats the rest as a comment
                 dirs = [l.split()[0].rstrip('/') for l in lines[i + 1:i + 3] if l.split()]
                 if len(dirs) == 2:
                     return dirs[0], dirs[1]
