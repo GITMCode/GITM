@@ -22,15 +22,17 @@ get_help(){
     sequential, but sequential numbers make outputs easier to compare.
 
 > Output backend tests have BACKEND_TEST in the name, plus the backend
-  (UAM.in.##.BACKEND_TEST.[legacy|mpiio|netcdf].*.test). On top of the log diff,
-  these also run:
+  (UAM.in.##.BACKEND_TEST.[legacy|mpiio|netcdf].*.test). Decks that differ only
+  in the backend share one reference log, named without the backend
+  (UAM.in.12.BACKEND_TEST.netcdf.test uses ref_solns/log.UAM.in.12.BACKEND_TEST.test),
+  so any backend can write it. On top of the log diff, these also run:
   - validate_outputs.py on the run's outputs (physical sanity checks).
   - compare_backends.py across backends, after all tests have run.
-  - For appendSingle tests, a check that each netcdf file accumulated time
-    records. A RESTART leg (e.g. 14.1) reopens the files its first leg
-    (14.0) wrote, so run the pair together, not the RESTART leg alone.
+  - For netcdf appendSingle tests, a check that each netcdf file accumulated
+    time records. A RESTART leg reopens the files its first leg wrote, so run
+    the pair together, not the RESTART leg alone.
 
-  netcdf failures are reported as optional, but still fail the run.
+  netcdf tests are skipped when pnetcdf-config is not on PATH.
 
 > After the tests, srcPython/generate_output_docs.py --check compares the
   variable tables in srcDoc/outputs.md with the output_schema.csv GITM wrote.
@@ -98,15 +100,11 @@ get_backend_from_filename(){
   fi
 }
 
-is_optional_backend(){
-  # Returns 0 (true) if backend is optional, 1 (false) if required
-  local backend="$1"
-
-  if [[ "$backend" == "netcdf" ]]; then
-    return 0  # netcdf is optional
-  else
-    return 1  # legacy and mpiio are required
-  fi
+ref_log(){
+  # Reference log for test $1: the test name without its backend, so decks
+  # that differ only in the backend share one reference.
+  local backend=$(get_backend_from_filename "$1")
+  echo "../ref_solns/log.${1/.$backend./.}"
 }
 
 warnsavesolution(){
@@ -140,10 +138,10 @@ checkoutputs(){
 
   # 1. Handle solution saving for global log files
   if [ $do_save = true ]; then
-    cp UA/data/log*.dat ../ref_solns/log.$test_uam
+    cp UA/data/log*.dat $(ref_log $test_uam)
     echo
     echo
-    echo " Created ref solution: log." $test_uam
+    echo " Created ref solution:" $(ref_log $test_uam)
     return 0
   fi
 
@@ -152,7 +150,7 @@ checkoutputs(){
     echo
     # Capture diff status without triggering set -e
     local diff_status=0
-    ../../../share/Scripts/DiffNum.py -r=5e-5 -a=1e-2 -t ../ref_solns/log.$test_uam UA/data/log*.dat || diff_status=$?
+    ../../../share/Scripts/DiffNum.py -r=5e-5 -a=1e-2 -t $(ref_log $test_uam) UA/data/log*.dat || diff_status=$?
 
     if [ $diff_status != 0 ]; then
       echo
@@ -176,7 +174,7 @@ checkoutputs(){
   fi
 
   # 4. Single-file netcdf append: every file must have accumulated records
-  if [[ "$test_uam" == *"appendSingle"* ]]; then
+  if [[ "$test_uam" == *"appendSingle"* ]] && [ "$(get_backend_from_filename "$test_uam")" = netcdf ]; then
     if ! check_append_records; then
       rm -f GITM.DONE
       return 1
@@ -192,9 +190,9 @@ nc_time_records(){
 }
 
 check_append_records(){
-  # The first leg (14.0) writes twice in one run, so each file needs >= 2
-  # records. The RESTART leg (14.1) reopens the files 14.0 left in
-  # $append_carry, so each must end up with more records than it started with.
+  # The first leg writes twice in one run, so each file needs >= 2 records.
+  # The RESTART leg reopens the files the first leg left in $append_carry/netcdf,
+  # so each must end up with more records than it started with.
   # Returns 0 on success, 1 on failure
   echo ">> Checking netcdf append time records..."
   local ok=true
@@ -207,12 +205,12 @@ check_append_records(){
     local name=$(basename "$f")
     local n=$(nc_time_records "$f")
     if [[ "$test_uam" == *"RESTART"* ]]; then
-      if [ ! -f "$append_carry/$name" ]; then
+      if [ ! -f "$append_carry/netcdf/$name" ]; then
         echo "  [FAIL] $name: no file carried over from the first leg"
         ok=false
         continue
       fi
-      local n0=$(nc_time_records "$append_carry/$name")
+      local n0=$(nc_time_records "$append_carry/netcdf/$name")
       if [ "$n" -gt "$n0" ]; then
         echo "  [PASS] $name: $n0 -> $n time records"
       else
@@ -234,8 +232,14 @@ check_append_records(){
 run_a_test(){
   # Run a single test and return status:
   #   0 = success
-  #   1 = failure (required backend)
-  #   2 = failure (optional backend)
+  #   1 = failure
+  #   2 = skipped (netcdf test, GITM built without PnetCDF)
+
+  local backend=$(get_backend_from_filename "$test_uam")
+  if [ "$backend" = netcdf ] && ! command -v pnetcdf-config > /dev/null; then
+    printf "\n\n>> Skipping $test_uam: pnetcdf-config is not on PATH\n"
+    return 2
+  fi
 
   printf "\n\n>> Testing with $test_uam ...\n"
   # Copy UAM
@@ -244,16 +248,15 @@ run_a_test(){
   # Remove output files left over from previous runs
   rm -f GITM.DONE UA/data/*.nc UA/data/*.bin UA/data/*.header UA/data/*.dat UA/data/*.b[0-9][0-9][0-9][0-9]
 
-  # An append RESTART leg must reopen the files its first leg wrote. A first
-  # leg clears any stale carry-over, so a failed 14.0 can't feed an old file
-  # to 14.1.
+  # An append RESTART leg must reopen the netcdf files its first leg wrote. A
+  # first leg clears any stale carry-over, so a failed first leg can't feed an
+  # old file to its RESTART leg.
+  local carry="$append_carry/$backend"
   if [[ "$test_uam" == *"appendSingle"* ]]; then
     if [[ "$test_uam" != *"RESTART"* ]]; then
-      rm -rf "$append_carry"
-    elif [ -d "$append_carry" ]; then
-      cp "$append_carry"/*.nc UA/data/
+      rm -rf "$carry"
     else
-      echo " WARNING: no first-leg output in $append_carry; the append check will fail"
+      cp "$carry"/*.nc UA/data/ 2>/dev/null || true
     fi
   fi
 
@@ -275,23 +278,20 @@ run_a_test(){
       mv UA/data/log*.dat UA/data/log_$test_uam.success
       rm -f GITM.DONE
 
-      # Keep a first append leg's files for its RESTART leg; drop them after
+      # Keep a first append leg's netcdf files for its RESTART leg; drop them after
       if [[ "$test_uam" == *"appendSingle"* ]]; then
-        if [[ "$test_uam" == *"RESTART"* ]]; then
-          rm -rf "$append_carry"
-        else
-          rm -rf "$append_carry"
-          mkdir -p "$append_carry"
-          cp UA/data/*.nc "$append_carry"/
+        rm -rf "$carry"
+        if [[ "$test_uam" != *"RESTART"* ]]; then
+          mkdir -p "$carry"
+          cp UA/data/*.nc "$carry"/ 2>/dev/null || true
         fi
       fi
 
       # Passed: clean up
       if [ $do_save = false ]; then
         # For backend tests, stage outputs for cross-backend comparison.
-        # Only the first run per backend is kept (e.g. netcdf test 13 is
-        # staged, the append variants 14.x are not).
-        local backend=$(get_backend_from_filename "$test_uam")
+        # Only the first run per backend is kept (the 12.* decks are staged,
+        # the 13.* append legs are not).
         local stage_dir="UA/data/backend_compare/${backend}"
         if [[ "$test_uam" == *"BACKEND_TEST"* ]] && [[ "$backend" != "unknown" ]] && [ ! -d "$stage_dir" ]; then
           mkdir -p "$stage_dir"
@@ -308,19 +308,13 @@ run_a_test(){
       mv UA/data/*.nc UA/data/*.bin UA/data/*.header UA/data/*.dat UA/data/*.b[0-9][0-9][0-9][0-9] UA/data/failed_outputs_$test_uam/ 2>/dev/null || true
       rm -f GITM.DONE
       # paths relative to srcTests/auto_test/, where this script is run from
-      if [[ $do_compare = true && -f ../ref_solns/log.$test_uam ]]; then
+      local ref=$(ref_log $test_uam)
+      if [[ $do_compare = true && -f $ref ]]; then
         printf "  To compare (from srcTests/auto_test/):\n"
-        printf "    ../../share/Scripts/DiffNum.py -r=5e-5 -a=1e-2 ref_solns/log.%s run/UA/data/failed_outputs_%s/log*.dat\n\n" \
-          "$test_uam" "$test_uam"
+        printf "    ../../share/Scripts/DiffNum.py -r=5e-5 -a=1e-2 %s run/UA/data/failed_outputs_%s/log*.dat\n\n" \
+          "${ref#../}" "$test_uam"
       fi
-
-      # Determine if this is optional or required backend
-      local backend=$(get_backend_from_filename "$test_uam")
-      if is_optional_backend "$backend"; then
-        return 2  # optional backend failure
-      else
-        return 1  # required backend failure
-      fi
+      return 1
   fi
 
 }
@@ -328,9 +322,9 @@ run_a_test(){
 print_summary(){
   # Print test results summary
   local passed_count=${#passed[@]}
-  local failed_required_count=${#failed_required[@]}
-  local failed_optional_count=${#failed_optional[@]}
-  local total_count=$((passed_count + failed_required_count + failed_optional_count))
+  local failed_count=${#failed[@]}
+  local skipped_count=${#skipped[@]}
+  local total_count=$((passed_count + failed_count + skipped_count))
 
   echo ""
   echo "============================================================"
@@ -339,17 +333,22 @@ print_summary(){
   echo "Total tests: $total_count"
   echo "Passed: $passed_count"
 
-  if [ $failed_required_count -gt 0 ]; then
-    echo "Failed (required): $failed_required_count"
-    for test in "${failed_required[@]}"; do
+  if [ $failed_count -gt 0 ]; then
+    echo "Failed: $failed_count"
+    for test in "${failed[@]}"; do
       echo "   - $test"
+      # How to diff a failed test's log (paths from srcTests/auto_test/)
+      local ref=$(ref_log $test)
+      if [[ $do_compare = true && -f $ref ]]; then
+        echo "       ../../share/Scripts/DiffNum.py -r=5e-5 -a=1e-2 ${ref#../} run/UA/data/failed_outputs_$test/log*.dat"
+      fi
     done
   fi
 
-  if [ $failed_optional_count -gt 0 ]; then
-    echo "Failed (optional): $failed_optional_count"
-    for test in "${failed_optional[@]}"; do
-      echo "   - $test (netcdf - optional feature)"
+  if [ $skipped_count -gt 0 ]; then
+    echo "Skipped (no PnetCDF): $skipped_count"
+    for test in "${skipped[@]}"; do
+      echo "   - $test"
     done
   fi
   echo "============================================================"
@@ -393,8 +392,8 @@ do_tests(){
 
     # Initialize result tracking arrays
     passed=()
-    failed_required=()
-    failed_optional=()
+    failed=()
+    skipped=()
 
     if [ $onlyone = false ]; then
       local test_glob="UAM.*.test"
@@ -407,9 +406,9 @@ do_tests(){
           if [ $status = 0 ]; then
             passed+=("$test_uam")
           elif [ $status = 1 ]; then
-            failed_required+=("$test_uam")
-          elif [ $status = 2 ]; then
-            failed_optional+=("$test_uam")
+            failed+=("$test_uam")
+          else
+            skipped+=("$test_uam")
           fi
       done
 
@@ -424,7 +423,7 @@ do_tests(){
             local compare_status=0
             python3 ../compare_backends.py "$compare_dir"/*/ || compare_status=$?
             if [ $compare_status != 0 ]; then
-              failed_required+=("CROSS_BACKEND_COMPARISON")
+              failed+=("CROSS_BACKEND_COMPARISON")
               # Keep staged per-backend outputs so the failure can be
               # inspected / compare_backends.py re-run by hand.
               echo "   Outputs kept for inspection at: $compare_dir"
@@ -447,19 +446,19 @@ do_tests(){
         echo ">> Checking the output docs against the output schema..."
         if [ ! -f UA/data/output_schema.csv ]; then
           echo "   [FAIL] GITM did not write UA/data/output_schema.csv"
-          failed_required+=("OUTPUT_DOCS_UP_TO_DATE")
+          failed+=("OUTPUT_DOCS_UP_TO_DATE")
         elif python3 ../../../srcPython/generate_output_docs.py --check UA/data/output_schema.csv; then
           passed+=("OUTPUT_DOCS_UP_TO_DATE")
         else
-          failed_required+=("OUTPUT_DOCS_UP_TO_DATE")
+          failed+=("OUTPUT_DOCS_UP_TO_DATE")
         fi
       fi
 
       # Print summary
       print_summary
 
-      # Exit with error code if ANY tests failed (required or optional)
-      if [ ${#failed_required[@]} -gt 0 ] || [ ${#failed_optional[@]} -gt 0 ]; then
+      # Exit with error code if any test failed (skipped tests do not fail the run)
+      if [ ${#failed[@]} -gt 0 ]; then
         exit 1
       else
         exit 0
@@ -469,16 +468,10 @@ do_tests(){
       local status=0
       run_a_test || status=$?
 
-      if [ $status = 0 ]; then
-        exit 0
-      else
-        # Any test failure (required or optional) fails the workflow
-        if [ $status = 2 ]; then
-          # Optional backend failure - still fails workflow, but report as warning
-          echo ""
-          echo "WARNING: Test failed: $test_uam (netcdf - optional feature)"
-        fi
+      if [ $status = 1 ]; then
         exit 1
+      else
+        exit 0
       fi
     fi
 }
@@ -500,7 +493,8 @@ backends_only=false
 do_save=false
 do_compare=true
 
-# Where test 14.0's netcdf files wait for the 14.1 RESTART leg (run dir-relative)
+# Where a first append leg's netcdf files wait for its RESTART leg, one
+# subdirectory per backend (run dir-relative)
 append_carry="UA/data/append_carry"
 
 while [[ $# -gt 0 ]]; do
@@ -566,6 +560,15 @@ while [[ $# -gt 0 ]]; do
   # end arg parsing
   esac 
 done
+
+# mpirun catches Ctrl+C and exits with an error, which would only fail the
+# current test. Stop the whole run instead, after summarizing what has run.
+interrupted(){
+  printf "\n\n>>> Interrupted, stopping the tests. <<<\n"
+  if declare -p passed &> /dev/null; then print_summary; fi
+  exit 130
+}
+trap interrupted INT
 
 # get mad about overwriting ref solutions
 if [ $do_save = true ]; then warnsavesolution; fi
