@@ -22,7 +22,7 @@ For a given output type all three backends write the same variables, because eac
 
 ## Units
 
-All of the GITM outputs are in MKS units.
+Most of GITM's outputs are in MKS units. A file is created in the output directory `output_schema.csv` which contains the variables, units, and long-names from all of the output types.
 
 !!! important "Horizontal coordinates: radians in `.bin`, degrees in netcdf"
     The one exception to "MKS units" is geographic longitude and latitude,
