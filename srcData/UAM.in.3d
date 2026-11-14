@@ -148,7 +148,6 @@ F		UseDynamo
 1.0		MaxResidual
 F		IncludeCowling
 20.0		LongitudinalAveraging
-F               UseNewTrace
 
 -----------------------------------------------------------------
 Some new features:

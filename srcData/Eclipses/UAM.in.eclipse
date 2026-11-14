@@ -69,7 +69,6 @@ T		UseDynamo
 1.0		MaxResidual
 F		IncludeCowling
 40.0		LongitudinalAveraging
-F               UseNewTrace
 
 #NGDC_INDICES
 UA/DataIn/f107.txt
