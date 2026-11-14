@@ -49,7 +49,7 @@ module ModOutputNetCDF
 #ifdef HavePNetCDF
   integer :: ncid = -1       ! PnetCDF file handle; -1 = no file open
   integer, allocatable :: varids(:), & ! variable IDs for all data variables
-                          coordids(:) ! ID's for coordinates (1-D data)
+                          coordids(:) ! IDs for coordinates (1-D data)
   ! Cached from open_file for use in write_container
   integer :: nc_nBlocksLon = 0
   integer :: nc_nDims = 3    ! spatial dims of open file: 2 or 3
@@ -67,12 +67,12 @@ module ModOutputNetCDF
   ! Leg naming (#NETCDFOPTIONS), computed once per process by build_leg_names:
   ! nc_name_part   = '_<runname>' when netCDFFileName is set (all modes)
   ! nc_restart_part= '_restart_yymmdd_hhmmss' at the restart-file simulation
-  !                  time (leg start, NOT wall clock), only for named
+  !                  time (leg start, not wall clock), only for named
   !                  single/daily restart legs, and kept for the whole leg so
   !                  daily rollover files carry it too
   ! nc_guard_active: named single/daily runs refuse (stop_gitm) to overwrite
-  !                  an existing target file; unnamed fresh runs keep the
-  !                  status-quo clobber
+  !                  an existing target file; unnamed fresh runs
+  !                  overwrite it
   ! nc_restart_append: unnamed single/daily restart legs continue the previous
   !                  leg's file when it exists (nc_adopt_file)
   logical :: nc_names_built = .false.
@@ -130,7 +130,7 @@ contains
 
     ! The per-type filename/record caches are fixed-size; overflow would make
     ! types share a cache slot, re-creating (and with the guard below, refusing)
-    ! files mid-run. Fail loudly at the first open instead.
+    ! files mid-run. Fail at the first open instead.
     if (nContainers > nc_max_types) &
       call stop_gitm("ModOutputNetCDF: nContainers exceeds nc_max_types"// &
                      "; raise nc_max_types in ModOutputNetCDF")
@@ -140,15 +140,14 @@ contains
     ! Look up variable metadata from the output container
     iTypeIdx = get_container_idx(cType)
     ! An unregistered type reaching open_file is a programming error (e.g. the
-    ! Is1D 3D->1D rename producing a name with no container); silently skipping
-    ! it would drop the user's requested output.
+    ! Is1D 3D->1D rename producing a name with no container). Skipping it would
+    ! drop the user's requested output.
     if (iTypeIdx < 1) &
       call stop_gitm("ModOutputNetCDF: unknown output type '"//trim(cType)//"'")
     nVars = containers(iTypeIdx)%nVars
     ! Probe types (1DTHM, 0DALL, ...) have no netcdf file layout yet: forcing
     ! them through the 2D path would write a degenerate lon x lat file whose
-    ! x-dimension is really altitude. Until a probe layout is designed, halt
-    ! loudly.
+    ! x-dimension is really altitude. Halt until a probe layout is designed.
     if (cType(1:1) == '0' .or. cType(1:1) == '1') &
       call stop_gitm("ModOutputNetCDF: probe type "//trim(cType)// &
                      " is not supported by the netcdf backend yet; use legacy or mpiio")
@@ -307,10 +306,10 @@ contains
     else
       ! ----------------------------------------------------------------
       ! Single-time mode (default): one file per output type per timestep.
-      ! The run name applies here too (same-directory ensembles); no restart
-      ! stamp and no guard; colliding epochs are recomputed and overwritten
-      ! in place like the legacy/mpiio backends (not guaranteed bit-identical
-      ! on restart; known GITM behavior).
+      ! The run name applies here too (same-directory ensembles), but there is
+      ! no restart stamp and no guard. Colliding epochs are recomputed and
+      ! overwritten in place, as in the legacy/mpiio backends (restarts are not
+      ! guaranteed bit-identical).
       ! ----------------------------------------------------------------
       nc_time_record = 1
       filename = trim(dir)//"/"//trim(cType)//trim(nc_name_part)// &
@@ -361,10 +360,9 @@ contains
   ! ==================================================================
   ! Compute the leg's filename parts once per process (#NETCDFOPTIONS).
   !
-  ! The restart stamp uses the restart-file SIMULATION time (= leg start),
-  ! not wall clock: filenames stay reproducible, and re-running the same
-  ! leg collides with its own earlier file so the NF_NOCLOBBER guard in
-  ! netcdf_open_file fires instead of silently minting a second file.
+  ! The restart stamp uses the restart-file simulation time (the leg start),
+  ! not wall clock, so filenames are reproducible and re-running the same leg
+  ! trips the NF_NOCLOBBER guard in netcdf_open_file.
   ! Computed once and never rebuilt, so every file this leg opens
   ! (including daily-rollover files on later days) carries the same stamp.
   ! ==================================================================
@@ -523,10 +521,8 @@ contains
 #endif
   end subroutine netcdf_close_file
 
-  ! netcdf_write_header is intentionally absent.
-  ! ActiveBackend%writes_header = .false. for the netcdf backend, so
-  ! output_common.f90 never calls write_header and no .header file is created.
-  ! All metadata (time, variable names, units) is embedded in the .nc file.
+  ! No netcdf_write_header: writes_header is .false. for this backend, so no
+  ! .header file is created. All metadata is in the .nc file.
 
 #ifdef HavePNetCDF
   ! ==================================================================
@@ -820,19 +816,17 @@ contains
   end subroutine sanitize_nc_name
 
   ! ---------------------------------------------------------------------------
-  ! nc_is_geo_lonlat: does this variable carry a GEOGRAPHIC longitude/latitude?
+  ! nc_is_geo_lonlat: does this variable carry a geographic longitude/latitude?
   !
-  ! The fills put geographic lon/lat in RADIANS, the .bin contract that
+  ! The fills put geographic lon/lat in radians, the .bin contract that
   ! legacy/mpiio ship.  netcdf is the only backend that publishes degrees, so
   ! the rad->deg conversion lives here, in one place.
   !
-  ! Keyed on the NAME, not on is_axis, because fill_1dnew puts 'Latitude' via
-  ! put_field and an axis-keyed test would miss it.  1DNEW never reaches this
-  ! backend (netcdf_open_file refuses every 1D/0D probe type; see the stop_gitm
-  ! near the top of this file), but name-keying stays correct if that guard is
-  ! ever lifted, and the legacy/mpiio path, which DOES write 1DNEW, would need it.
+  ! Keyed on the name, not on is_axis, because fill_1dnew puts 'Latitude' via
+  ! put_field.  (1DNEW does not reach this backend today: netcdf_open_file
+  ! refuses every 1D/0D probe type.)
   !
-  ! Magnetic coordinates are left out on purpose.  2DMEL's mlon/mlat axes and
+  ! Magnetic coordinates are left out.  2DMEL's mlon/mlat axes and
   ! the 'Magnetic Latitude'/'Magnetic Longitude' fields are already in
   ! degrees and must not be scaled.
   ! ---------------------------------------------------------------------------
@@ -850,13 +844,9 @@ contains
   ! nc_coord_names: horizontal dim/coord names and units for a container.
   !
   ! Magnetic grids get mlon/mlat in plain 'degrees'.  Geographic grids keep
-  ! lon/lat in degrees_east/degrees_north.  Hardcoding lon/lat for a magnetic
-  ! type would ship 2DMEL's dynamo grid under geographic names and put every
-  ! magnetic axis in the file twice, once under each name.
-  !
-  ! Only magnetic grids use the declared names.  Geographic types declare
-  ! 'Longitude'/'Latitude', so a blanket "use the declared name" would rename
-  ! their dims too and change every geographic file.
+  ! lon/lat in degrees_east/degrees_north.  Only magnetic grids use the
+  ! declared axis names, since geographic types declare 'Longitude'/'Latitude',
+  ! which are not their dim names.
   ! ---------------------------------------------------------------------------
   subroutine nc_coord_names(gridKind, cLon, cLat, cLonUnits, cLatUnits)
     use ModOutputContainer, only: GRID_MAG_2D

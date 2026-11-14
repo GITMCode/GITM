@@ -5,15 +5,15 @@
 !
 ! Container-based output producers.  Every output type has a
 !   fill_<type>(c, iBlock)   put data into the container each timestep
-! Most types are ONE-SHOT: the fill also defines the schema (the first put of a
+! Most types are one-shot: the fill also defines the schema (the first put of a
 ! name defines the variable), and init_output_containers primes it once at init.
 ! Eleven types instead declare their schema explicitly in
 !   define_schema_<type>(c)  register variable names/units/shapes once
-! (3DHME, 2DHME, 2DMEL, 1DGLO, 1DTHM, 1DCHM, 1DEMI and the four USR types); their fills
+! (3DHME, 2DHME, 2DMEL, 1DGLO, 1DTHM, 1DCHM, 1DEMI and the four USR types). Their fills
 ! then only put data.  See the header of ModOutputContainer.f90 for both patterns.
 !
-! Module-level containers(:) array lives for the whole run; allocated once in
-! init_output_containers, reused across timesteps.
+! The module-level containers(:) array is allocated once in
+! init_output_containers and reused for the whole run.
 !
 ! Ghost cells (per-type):
 !   c%nGhostCells is metadata for the netcdf backend (it strips that many ghost
@@ -61,13 +61,12 @@ module ModOutputProducers
   ! ---------------------------------------------------------------------------
   ! USR variable registry: populated by register_usr_var() from user.f90 before
   ! the first output timestep.  Coord vars (Longitude/Latitude/Altitude) are
-  ! always defined unconditionally in define_schema_*dusr and are NOT listed here.
+  ! always defined unconditionally in define_schema_*dusr and are not listed here.
   !
   ! Storage strategy: allocatable, grows on demand (doubling) starting from
-  ! UsrInitCap.  The registry itself is uncapped; the real ceiling is
-  ! nUserOutputs (from ModUserGITM), which sizes the actual UserData*D arrays.
-  ! Decoupling them means raising nUserOutputs is the only knob users ever touch
-  ! to support more USR variables.
+  ! UsrInitCap.  The registry itself is uncapped. The real ceiling is
+  ! nUserOutputs (from ModUserGITM), which sizes the UserData*D arrays, so
+  ! raising nUserOutputs is the only change needed to support more USR variables.
   ! ---------------------------------------------------------------------------
   integer, parameter :: UsrInitCap = 16
 
@@ -99,7 +98,6 @@ contains
 
   ! ---------------------------------------------------------------------------
   ! is_known_output_type: return .true. if cType is a registered output code.
-  ! Pure string check, no container state required (safe to call before init).
   ! ---------------------------------------------------------------------------
   logical function is_known_output_type(cType)
     character(len=5), intent(in) :: cType
@@ -126,7 +124,7 @@ contains
   ! register_usr_var: add one user-defined variable to the appropriate USR list.
   ! Called from init_usr_output_registry in user.f90 before the first output.
   ! dims: 3, 2, 1, or 0 (spatial dimensionality of the output type).
-  ! Coord vars (Longitude, Latitude, Altitude) must NOT be registered here;
+  ! Coord vars (Longitude, Latitude, Altitude) must not be registered here;
   ! they are defined unconditionally in each define_schema_*dusr.
   ! ---------------------------------------------------------------------------
   subroutine register_usr_var(dims, name, units, longName)
@@ -332,28 +330,19 @@ contains
 
   ! ---------------------------------------------------------------------------
   ! init_output_containers: allocate and populate every container's schema.
-  ! Called once (idempotent); both output_common and netcdf_open_file call it.
+  ! Idempotent. Both output_common and netcdf_open_file call it.
   !
-  ! Two kinds of type coexist here and the backends cannot tell them apart:
+  ! Explicit-schema types (2DMEL, 3DHME/2DHME, the 1DGLO/1DTHM/1DCHM/1DEMI
+  ! probes and the four USR types) declare their schema via define_schema_<type>.
+  ! The rest are one-shot: priming calls fill_<type>(c, 1) once so the first put
+  ! of each name defines it, then locks the schema. The schema is then complete
+  ! before open_file, where netcdf defines every variable collectively.
   !
-  !   * Explicit-schema types (2DMEL, 3DHME/2DHME, the 1DGLO/1DTHM/1DCHM/1DEMI probes
-  !     and the four USR types) declare their schema via define_schema_<type>.
-  !
-  !   * One-shot types (everything else) have no define side at all; their schema is
-  !     materialized by PRIMING: call fill_<type>(c, 1) once so the first put of
-  !     each name defines it, then lock the schema.  That lets the
-  !     schema be DERIVED from the fill code while still being complete before
-  !     open_file, where netcdf issues collective nfmpi_def_var for the whole
-  !     file.  (Deferring definition to the block loop instead would make
-  !     def_var rank-dependent, the same bug class as the 2DMEL write deadlock.)
-  !
-  ! Priming is safe because it runs at the first output, after the model is
-  ! initialized: every array a one-shot fill touches has been allocated by
-  ! then.  That allocation-timing precondition must hold for EVERY one-shot
-  ! fill in EVERY run (priming runs them all, whether or not the type was
-  ! requested).  The lazily-allocated mag-grid types are therefore not one-shot.
-  ! Priming's VALUES are thrown away (every real fill overwrites them), so only
-  ! the names/shapes/metadata it establishes matter.
+  ! Priming runs at the first output, after the model is initialized, and runs
+  ! every one-shot fill whether or not the type was requested. So a one-shot
+  ! fill may only touch arrays that are allocated by then, which is why the
+  ! lazily-allocated mag-grid types are not one-shot. The primed values are
+  ! discarded.
   ! ---------------------------------------------------------------------------
   subroutine init_output_containers()
     integer :: i
@@ -411,7 +400,7 @@ contains
     ! fill code, so it must not be able to re-enter this routine.
     containers_initialized = .true.
 
-    ! ---- Converted one-shot types: the schema IS the fill routine ----------
+    ! ---- One-shot types: the schema is the fill routine ----------------
     ! Any container still without a schema is a converted type: run its fill
     ! once against block 1 purely for its define-on-first-touch side effect
     ! (the data it stores is garbage that the first real fill overwrites),
@@ -514,7 +503,7 @@ contains
   end subroutine write_output_schema
 
   ! Quote one CSV field.  Variable names carry commas ('Vn (up,O2)'), so every
-  ! field is quoted; a double quote inside one becomes a single quote, which
+  ! field must be quoted. Double quotes in names become single, which
   ! keeps the row valid without an escaping rule.
   function csv_field(s) result(q)
     character(len=*), intent(in) :: s
@@ -548,7 +537,7 @@ contains
   ! Grid: magnetic (nMagLons+1) x nMagLats, no altitude.
   ! Axis variables are 1D; all others are 2D (degenerate 3rd dim = 1).
   ! Units: MagLon/MagLat are already degrees in the model; MLT is hours.
-  ! GeoLat/GeoLon are PUT RAW, in radians.  The declared 'degrees_east' /
+  ! GeoLat/GeoLon are put raw, in radians.  The declared 'degrees_east' /
   ! 'degrees_north' below describe what the NETCDF backend publishes, since it
   ! is the only backend that converts (see nc_is_geo_lonlat in
   ! ModOutputNetCDF.F90).  legacy/mpiio .bin carry radians.
@@ -558,7 +547,7 @@ contains
     type(OutputContainer), intent(inout) :: c
 
     c%cType = '2DMEL'
-    ! gridKind drives BOTH participation (prepare: only iProc==0 writes) AND
+    ! gridKind drives both participation (prepare: only iProc==0 writes) and
     ! file layout (mpiio_write_container: MAG_2D writes at offset 0, not
     ! striped by global block index). Changing the participation rule for
     ! MAG_2D requires updating the offset logic in lockstep.
@@ -573,10 +562,9 @@ contains
                       longName='Magnetic latitude')
 
     ! 2D data variables (nMagLons+1 x nMagLats x 1).
-    ! The magnetic grid has no altitude of its own; the dynamo quantities are
+    ! The magnetic grid has no altitude of its own. The dynamo quantities are
     ! field-line integrals mapped to the IE reference altitude
-    ! (#IEREFERENCEALT, AltIERef), so that one value fills the column, as
-    ! develop's output_2dmel does.
+    ! (#IEREFERENCEALT, AltIERef), so that one value fills the column.
     call c%define_var('Altitude', units='m', &
                       shape3=[nMagLons + 1, nMagLats, 1], &
                       longName='IE reference altitude (constant over the magnetic grid)')
@@ -660,7 +648,7 @@ contains
   ! fill_2dmel: put 2DMEL data into the container for iBlock.
   !
   ! Only iBlock == 1 writes (GRID_MAG_2D); all others return after prepare().
-  ! GeoLat/GeoLon are written RAW, in radians (see define_schema_2dmel).  The
+  ! GeoLat/GeoLon are written raw, in radians (see define_schema_2dmel).  The
   ! netcdf backend converts on write; legacy/mpiio ship radians.  MagLonMC/MagLatMC
   ! are already in degrees, so this type mixes the two on purpose.
   ! ---------------------------------------------------------------------------
@@ -713,12 +701,12 @@ contains
   end subroutine fill_2dmel
 
   ! ---------------------------------------------------------------------------
-  ! fill_2dtec: 2DTEC schema AND data, one-shot (no define_schema_2dtec).
+  ! fill_2dtec: 2DTEC, one-shot.
   !
   ! Interior-writing (nGhostCells = 0), like 2DANC. Longitude/Latitude/
   ! Altitude_GB/VTEC are ghosted (-1:nLons+2, ...) and sliced to the interior;
-  ! Sza is (nLons, nLats, nBlocksMax) with NO ghosts, so the block slice already
-  ! IS the interior.
+  ! Sza is (nLons, nLats, nBlocksMax) with no ghosts, so the block slice already
+  ! is the interior.
   ! ---------------------------------------------------------------------------
   subroutine fill_2dtec(c, iBlock)
     use ModGITM
@@ -744,7 +732,7 @@ contains
   end subroutine fill_2dtec
 
   ! ---------------------------------------------------------------------------
-  ! fill_2dgel: 2DGEL schema AND data, one-shot (no define_schema_2dgel).
+  ! fill_2dgel: 2DGEL, one-shot.
   !
   ! Interior-writing (nGhostCells = 0). Unlike 2DTEC, every array here is
   ! ghosted (-1:nLons+2, -1:nLats+2, ...): Potential/PedersenConductance/
@@ -789,7 +777,7 @@ contains
   end subroutine fill_2dgel
 
   ! ---------------------------------------------------------------------------
-  ! fill_3dneu: 3DNEU schema AND data, one-shot (no define_schema_3dneu).
+  ! fill_3dneu: 3DNEU, one-shot.
   ! 2-ghosted like 3DALL: the whole array is the slice.
   ! ---------------------------------------------------------------------------
   subroutine fill_3dneu(c, iBlock)
@@ -825,7 +813,7 @@ contains
   end subroutine fill_3dneu
 
   ! ---------------------------------------------------------------------------
-  ! fill_3dall: 3DALL schema AND data, one-shot (no define_schema_3dall).
+  ! fill_3dall: 3DALL, one-shot.
   !
   ! Priming (init_output_containers) defines every variable as a side effect of
   ! the first put; later calls just refill, so schema and data can't disagree.
@@ -880,7 +868,7 @@ contains
   end subroutine fill_3dall
 
   ! ---------------------------------------------------------------------------
-  ! fill_3dion: 3DION schema AND data, one-shot (no define_schema_3dion).
+  ! fill_3dion: 3DION, one-shot.
   ! 2-ghosted like 3DALL, including Collisions, MLatitude, MLongitude, B0,
   ! EField, Potential, IonPressureGradient: the whole array is the slice.
   ! ---------------------------------------------------------------------------
@@ -933,9 +921,9 @@ contains
   end subroutine fill_3dion
 
   ! ---------------------------------------------------------------------------
-  ! fill_3demi: 3DEMI schema AND data, one-shot (no define_schema_3demi).
+  ! fill_3demi: 3DEMI, one-shot.
   !
-  ! Interior-writing (nGhostCells = 0), MIXED ghosting: Longitude/Latitude/
+  ! Interior-writing (nGhostCells = 0), mixed ghosting: Longitude/Latitude/
   ! Altitude_GB are 2-ghost and sliced to the interior; Emissions is ghost-less
   ! (nLons,nLats,nAlts,nEmissions,nBlocks) and passes whole.  One variable per
   ! emission, named 'Emission <cEmissions(i)>'.  Units are deliberately empty
@@ -966,9 +954,9 @@ contains
   end subroutine fill_3demi
 
   ! ---------------------------------------------------------------------------
-  ! fill_3dthm: 3DTHM schema AND data, one-shot (no define_schema_3dthm).
+  ! fill_3dthm: 3DTHM, one-shot.
   !
-  ! Interior-writing (nGhostCells = 0), MIXED ghosting: Longitude/Latitude/
+  ! Interior-writing (nGhostCells = 0), mixed ghosting: Longitude/Latitude/
   ! Altitude_GB/Rho/TempUnit/EField/Sigma_Pedersen are 2-ghost and sliced to
   ! the interior; Conduction/MoleConduction carry ghosts only in altitude
   ! (sliced to 1:nAlts); cp is per-dimension (whole lon/lat, sliced altitude);
@@ -1023,9 +1011,9 @@ contains
   end subroutine fill_3dthm
 
   ! ---------------------------------------------------------------------------
-  ! fill_3dchm: 3DCHM schema AND data, one-shot (no define_schema_3dchm).
+  ! fill_3dchm: 3DCHM, one-shot.
   !
-  ! Interior-writing (nGhostCells = 0), MIXED ghosting: Longitude/Latitude/
+  ! Interior-writing (nGhostCells = 0), mixed ghosting: Longitude/Latitude/
   ! Altitude_GB/Rho/TempUnit are 2-ghost and sliced to the interior; cp is
   ! per-dimension (whole lon/lat, sliced altitude); ChemicalHeatingSpecies and
   ! ChemicalHeatingRate are ghost-less and pass whole.
@@ -1090,7 +1078,7 @@ contains
   end subroutine fill_3dchm
 
   ! ---------------------------------------------------------------------------
-  ! fill_3dlst: 3DLST schema AND data, one-shot (no define_schema_3dlst).
+  ! fill_3dlst: 3DLST, one-shot.
   ! 2-ghosted like 3DALL: the whole array is the slice.
   !
   ! Puts are gated by the i*OutputList flags (set per planet in
@@ -1098,7 +1086,7 @@ contains
   ! ranks and time-invariant, so priming sees the same conditions as every fill.
   ! That keeps the conditional puts safe; a rank- or time-dependent
   ! condition would desync the schema. All list flags default .true.
-  ! HARD INVARIANT: the flags are set once (input parse / init_planet) before
+  ! Invariant: the flags are set once (input parse / init_planet) before
   ! the first output and never written again. Anything that mutates them
   ! mid-run, or moves priming earlier, breaks the locked schema and aborts.
   ! ---------------------------------------------------------------------------
@@ -1149,7 +1137,7 @@ contains
   end subroutine fill_3dlst
 
   ! ---------------------------------------------------------------------------
-  ! fill_3dglo: 3DGLO schema AND data, one-shot (no define_schema_3dglo).
+  ! fill_3dglo: 3DGLO, one-shot.
   ! 2-ghosted like 3DALL: the whole array is the slice.
   !
   ! The three emission/photoelectron fields are placeholders (not yet computed);
@@ -1163,18 +1151,14 @@ contains
     integer, intent(in) :: iBlock
     real, allocatable :: zero_buf(:, :, :)  ! model kind, to match the put_field dummy
 
-    ! 3DGLO was never wired to its data.  GLOW itself runs when UseGlow is on
-    ! (get_glow.f90 fills vEmissionRate), but the old output_3dglo returned
-    ! immediately with its entire write commented out, and the puts below are
-    ! placeholder zeros rather than reads of vEmissionRate.  A column of
-    ! zeros labelled '6300 A Emission' cannot be told apart from real data by
-    ! anything downstream, so a run that actually asks for this type stops here
-    ! rather than being handed a file that looks like science.
+    ! 3DGLO is not wired to its data.  GLOW runs when UseGlow is on
+    ! (get_glow.f90 fills vEmissionRate), but the puts below are placeholder
+    ! zeros, not reads of vEmissionRate.  Zeros labelled '6300 A Emission'
+    ! look like real data downstream, so a run that asks for this type stops.
     !
-    ! Guarded on schema_locked because init_output_containers PRIMES this fill
-    ! once at startup, whether or not the type was requested, and the schema below
-    ! comes from that pass.  finish_priming sets schema_locked afterwards, so only
-    ! a real fill can reach the halt.
+    ! Guarded on schema_locked because priming runs this fill once at startup
+    ! to build the schema below. finish_priming locks the schema afterwards, so
+    ! only a real fill reaches the halt.
     if (c%schema_locked) &
       call stop_gitm('3DGLO writes placeholder zeros, not emission data. '// &
                      'Remove 3DGLO from #SAVEPLOT.')
@@ -1199,7 +1183,7 @@ contains
   end subroutine fill_3dglo
 
   ! ---------------------------------------------------------------------------
-  ! fill_3dmag: 3DMAG schema AND data, one-shot (no define_schema_3dmag).
+  ! fill_3dmag: 3DMAG, one-shot.
   ! 2-ghosted like 3DALL: the whole array is the slice.
   ! ---------------------------------------------------------------------------
   subroutine fill_3dmag(c, iBlock)
@@ -1441,9 +1425,9 @@ contains
   end subroutine fill_3dhme
 
   ! ---------------------------------------------------------------------------
-  ! fill_3dmoh: 3DMOH schema AND data, one-shot (no define_schema_3dmoh).
+  ! fill_3dmoh: 3DMOH, one-shot.
   !
-  ! Interior-writing (nGhostCells = 0), MIXED ghosting: Longitude/Latitude/
+  ! Interior-writing (nGhostCells = 0), mixed ghosting: Longitude/Latitude/
   ! Altitude_GB/Rho/Velocity are 2-ghost and sliced to the interior; Viscosity
   ! carries ghosts only in altitude (sliced to 1:nAlts); IonDrag/
   ! HorizAdvection/HorizPressureGrad/HorizCoriolis/Centrifugal are ghost-less
@@ -1482,9 +1466,9 @@ contains
   end subroutine fill_3dmoh
 
   ! ---------------------------------------------------------------------------
-  ! fill_3dmov: 3DMOV schema AND data, one-shot (no define_schema_3dmov).
+  ! fill_3dmov: 3DMOV, one-shot.
   !
-  ! Interior-writing (nGhostCells = 0), MIXED ghosting: Longitude/Latitude/
+  ! Interior-writing (nGhostCells = 0), mixed ghosting: Longitude/Latitude/
   ! Altitude_GB/VerticalVelocity are 2-ghost and sliced to the interior;
   ! VerticalIonDrag/VertAdvection/VertCoriolis/VertCentrifugal/
   ! EffectiveGravity are ghost-less and pass whole.
@@ -1523,19 +1507,19 @@ contains
   end subroutine fill_3dmov
 
   ! ---------------------------------------------------------------------------
-  ! fill_2danc: 2DANC schema AND data, one-shot (no define_schema_2danc).
+  ! fill_2danc: 2DANC, one-shot.
   !
-  ! The arrays feeding this ONE container disagree about ghost cells:
+  ! The arrays feeding this one container disagree about ghost cells:
   !   * VTEC, Altitude_GB, Longitude, Latitude, LocalTime are ghosted
   !     (-1:nLons+2, ...) and must be sliced down to the interior here;
   !   * Sza and the ModSources *2d arrays are declared (nLons, nLats): they
-  !     have NO ghosts, so the whole array already IS the interior;
+  !     have no ghosts, so the whole array already is the interior;
   !   * lt_buf is synthesized at interior size;
-  !   * Altitude is a single altitude LEVEL of a 3-D array.
+  !   * Altitude is a single altitude level of a 3-D array.
   ! No container-level "strip N ghosts" rule can describe that set, so the
   ! caller owns the slice.
   !
-  ! Do NOT reintroduce a 1-nGC:nLons+nGC idiom here: it is only ever correct
+  ! Don't reintroduce a 1-nGC:nLons+nGC idiom here: it is only correct
   ! at nGC=0, and raising it would send Sza and JouleHeating2d out of bounds
   ! while VTEC kept working.  Explicit slices keep the difference visible at
   ! each call site.
@@ -2055,8 +2039,7 @@ contains
 
     do iAlt = 1, nAlts
       iiAlt = max(min(iAlt, nAlts), 1)
-      ! NOCooling, not RadCooling: RadCooling is the combined radiative term, so
-      ! it would label total radiative cooling as NO's.  3DTHM uses NOCooling too.
+      ! NOCooling, not RadCooling (the combined radiative term), as in 3DTHM.
       tmp_data(iAlt) = real(-NOCooling(1, 1, iiAlt)*TempUnit(1, 1, iiAlt), output_kind)
     enddo
     call c%put('NO Cooling (K/s)', tmp_data)
@@ -2074,16 +2057,10 @@ contains
     call c%put('Total Abs EUV', tmp_data)
 
     ! NeutralSourcesTotal/NeutralLossesTotal hold NeutralSources*DtSub from
-    ! calc_chemistry.Earth.f90, i.e. a per-step INTEGRAL (a density, not the
+    ! calc_chemistry.Earth.f90, i.e. a per-step integral (a density, not the
     ! /m3/s these columns are named for).  Dividing by dt gives the named rate.
-    !
-    ! The sub-step loop there (`do while (DtTotal < Dt)`) runs exactly ONCE:
-    ! DtSub is only ever assigned `Dt - DtTotal`, and DtTotal is only ever
-    ! advanced by DtSub, so the first pass sets DtSub = Dt and ends the loop.
-    ! There is no chemistry sub-cycling, so this is not a time-weighted mean
-    ! over sub-steps.  /dt recovers NeutralSources EXACTLY, the instantaneous
-    ! rate.  (With sub-cycling, sum(DtSub) would still be Dt and /dt would give
-    ! the correct mean.)
+    ! The sub-step loop there (`do while (DtTotal < Dt)`) runs once, because
+    ! DtSub = Dt - DtTotal, so /dt recovers the instantaneous NeutralSources.
     do i = 1, nSpeciesTotal
       do iAlt = 1, nAlts
         iiAlt = max(min(iAlt, nAlts), 1)
@@ -2532,7 +2509,7 @@ contains
   ! per_dt: x/Dt, or 0 when Dt is 0.  The forced output before the first step
   ! runs with Dt = 0 and nothing accumulated yet, so the per-step rates are
   ! written as zeros there instead of 0/0 (which traps in -debug builds).
-  ! For Dt > 0 this is exactly x/Dt, element by element.
+  ! For Dt > 0 this is x/Dt, element by element.
   ! ---------------------------------------------------------------------------
   elemental real function per_dt(x)
     use ModGITM, only: Dt

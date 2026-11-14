@@ -31,9 +31,8 @@ subroutine read_inputs(cFile)
 
       read(iInputUnit_, '(a)', iostat=iError) line
 
-      ! A failed (EOF) read leaves line holding stale text; blank it so the
-      ! slot this iteration still writes cannot be mistaken for a real input
-      ! line (e.g. by parsers peeking ahead for optional trailing flags).
+      ! A failed (EOF) read leaves stale text in line. Blank it so a parser
+      ! peeking ahead for optional flags does not read it as input.
       if (iError /= 0) line = ""
 
       if (nInputLines > nInputMaxLines) &

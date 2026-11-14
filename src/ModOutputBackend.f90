@@ -274,9 +274,8 @@ contains
     do i = 1, nV
       if (c%vars(i)%is_axis) then
         iAxis = iAxis + 1
-        ! Copy exactly the target extent: probe types store length-nAlts axes
-        ! against nX=nY=1 fields, so an unclamped full-extent copy would be
-        ! nonconforming (heap overrun).
+        ! Clamp to the target extent: probe types store length-nAlts axes
+        ! against nX=nY=1 fields.
         if (iAxis == 1) then
           ! Longitude axis: replicate 1D data along lat and alt dimensions.
           if (c%vars(i)%shape3(1) < nX) &
@@ -299,9 +298,8 @@ contains
           enddo
         endif
       else
-        ! Non-axis vars must fill the buffer exactly; a smaller stored shape
-        ! would be the same nonconforming assignment the axis clamp above
-        ! guards against (silent heap overrun on the read side).
+        ! Non-axis vars must match the buffer shape (a smaller one would overrun
+        ! on the read side).
         if (any(c%vars(i)%shape3 /= [nX, nY, nZ])) &
           call stop_gitm("legacy_write_container: variable '"// &
                          trim(c%vars(i)%name)//"' shape does not match grid extent")

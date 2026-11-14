@@ -484,7 +484,7 @@ end subroutine set_nVarsUser0d
 ! Register user-defined variable names and units for all USR output
 ! types.  Called once from write_output before the first output
 ! timestep.  Longitude/Latitude/Altitude are defined unconditionally
-! by each define_schema_*dusr and must NOT be listed here.
+! by each define_schema_*dusr and must not be listed here.
 ! ----------------------------------------------------------------
 subroutine init_usr_output_registry()
 

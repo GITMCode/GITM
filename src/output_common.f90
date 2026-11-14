@@ -289,7 +289,7 @@ subroutine output(dir, iBlock, iOutputType)
   if (containers(iContIdx)%nVars > 0) then
     ! Publish the probe location for the probe fills, then
     ! data-driven dispatch: one path for every type. A registered type with
-    ! no fill pointer was already caught loudly by assert_types_fully_wired.
+    ! no fill pointer was already caught by assert_types_fully_wired.
     iProbeLon = iiLon; iProbeLat = iiLat; iProbeAlt = iiAlt
     rProbeLon = rLon; rProbeLat = rLat; rProbeAlt = rAlt
     call containers(iContIdx)%fill(containers(iContIdx), iBlock)

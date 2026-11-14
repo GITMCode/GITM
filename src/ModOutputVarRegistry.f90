@@ -3,7 +3,7 @@
 !
 ! ModOutputVarRegistry.f90
 !
-! Central metadata registry for container outputs: one canonical (units,
+! Metadata registry for container outputs: one canonical (units,
 ! longName) pair per physical variable, keyed by the variable's short name.
 ! Naming each variable once here keeps two types from describing the same
 ! quantity differently.
@@ -13,8 +13,8 @@
 ! '['//trim(cSpecies(i))//']') are not in the table; those call sites pass
 ! units=/longName= to put_field instead.  A name that is neither registered nor
 ! given an explicit units= is an error, so nothing reaches a file with empty
-! metadata.  The table covers the fixed variables of the converted one-shot
-! types and grows as more are converted; entries are shared across types by name.
+! metadata.  The table covers the fixed variables of the one-shot types, and
+! entries are shared across types by name.
 
 module ModOutputVarRegistry
 
@@ -34,7 +34,7 @@ module ModOutputVarRegistry
     character(len=RegLongNameLen) :: longName = ''
   end type VarMeta
 
-  ! One row per PHYSICAL variable, not per schema appearance.  Order is
+  ! One row per physical variable, not per schema appearance.  Order is
   ! irrelevant; lookup is by name.
   type(VarMeta), parameter :: &
     VarTable(*) = [ &
@@ -67,7 +67,7 @@ module ModOutputVarRegistry
     VarMeta('CO2Cool_int', 'W/m2', 'Alt-integrated CO2 cooling'), &
     VarMeta('NOCool_int', 'W/m2', 'Alt-integrated NO cooling'), &
     VarMeta('OCool_int', 'W/m2', 'Alt-integrated O cooling'), &
-    ! -- electrodynamics (introduced by 3DION) ------------------------------
+    ! -- electrodynamics (3DION) -------------------------------------------
     VarMeta('Ed1', 'V/m', 'Electric field component 1 (magnetic east)'), &
     VarMeta('Ed2', 'V/m', 'Electric field component 2 (magnetic north)'), &
     VarMeta('Je1', 'A/m2', 'Current density component 1 (magnetic east)'), &
@@ -89,7 +89,7 @@ module ModOutputVarRegistry
     VarMeta('IonPressGrad (east)', 'm/s2', 'Ion Pressure gradient acceleration eastward'), &
     VarMeta('IonPressGrad (north)', 'm/s2', 'Ion Pressure gradient acceleration northward'), &
     VarMeta('IonPressGrad (up)', 'm/s2', 'Ion Pressure gradient acceleration upward'), &
-    ! -- 2D electrodynamics (introduced by 2DGEL) ---------------------------
+    ! -- 2D electrodynamics (2DGEL) ----------------------------------------
     VarMeta('PedCond', 'S', 'Height-integrated Pedersen conductance'), &
     VarMeta('HalCond', 'S', 'Height-integrated Hall conductance'), &
     VarMeta('AveE', 'keV', 'Diffuse electron precipitation average energy'), &
@@ -105,7 +105,7 @@ module ModOutputVarRegistry
     VarMeta('HalFLCond', 'S', 'Field-line integrated Hall conductance'), &
     VarMeta('DivJuFL', 'A/m2', 'Field-line divergence of current'), &
     VarMeta('FL_length', 'm', 'Field line length'), &
-    ! -- thermal budget (introduced by 3DTHM) -------------------------------
+    ! -- thermal budget (3DTHM) --------------------------------------------
     VarMeta('EUV Heating Rate', 'K/s', 'EUV heating rate'), &
     VarMeta('Conduction', 'K/s', 'Thermal conduction heating rate'), &
     VarMeta('Molecular Conduction', 'K/s', 'Molecular conduction heating rate'), &
@@ -121,11 +121,11 @@ module ModOutputVarRegistry
     VarMeta('Ionization Rate O2', '/m3/s', 'Auroral ionization rate of O2'), &
     VarMeta('Ionization Rate N2', '/m3/s', 'Auroral ionization rate of N2'), &
     VarMeta('Ionization Rate He', '/m3/s', 'Auroral ionization rate of He'), &
-    ! -- chemistry (introduced by 3DCHM) -------------------------------------
+    ! -- chemistry (3DCHM) -------------------------------------------------
     ! Same energy source as 3DTHM's 'Chemical Heating Rate' but volumetric
     ! (eV/m3/s) instead of a temperature tendency (K/s).
     VarMeta('Chemical Heating', 'eV/m3/s', 'Volumetric chemical heating rate'), &
-    ! -- horizontal momentum budget (introduced by 3DMOH) --------------------
+    ! -- horizontal momentum budget (3DMOH) --------------------------------
     VarMeta('Visc_Ve_rshear', 'm/s2', 'Viscous east shear accel'), &
     VarMeta('Visc_Vn_rshear', 'm/s2', 'Viscous north shear accel'), &
     VarMeta('IonDrag_east', 'm/s2', 'Ion drag east accel'), &
@@ -135,11 +135,11 @@ module ModOutputVarRegistry
     VarMeta('Coriolis_east', 'm/s2', 'Coriolis east accel'), &
     VarMeta('Coriolis_north', 'm/s2', 'Coriolis north accel'), &
     VarMeta('Centrifugal_north', 'm/s2', 'Centrifugal north accel'), &
-    ! -- vertical momentum budget (introduced by 3DMOV) -----------------------
+    ! -- vertical momentum budget (3DMOV) ----------------------------------
     VarMeta('Coriolis_up', 'm/s2', 'Coriolis upward accel'), &
     VarMeta('Centrif_up', 'm/s2', 'Centrifugal upward accel'), &
     VarMeta('EffectiveGravity', 'm/s2', 'Effective gravity accel'), &
-    ! -- glow placeholders (introduced by 3DGLO) -------------------------------
+    ! -- glow placeholders (3DGLO) -----------------------------------------
     VarMeta('6300 A Emission', '', '6300 Angstrom emission'), &
     VarMeta('PhotoElectronUp', '', 'Photoelectron flux up'), &
     VarMeta('PhotoElectronDown', '', 'Photoelectron flux down')]

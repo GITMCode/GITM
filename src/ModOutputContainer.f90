@@ -8,13 +8,13 @@
 !
 ! ONE-SHOT (put_field/put_axis) is preferred: a single fill_<type> both defines
 !   and fills.  The first put of a name defines the variable (shape = size(arr)
-!   VERBATIM, metadata from ModOutputVarRegistry); later puts must match.  A
+!   verbatim, metadata from ModOutputVarRegistry); later puts must match.  A
 !   priming pass (init_output_containers runs each fill once, then locks the
 !   schema) makes the schema complete before open_file, where netcdf issues
 !   collective nfmpi_def_var for the whole file.
-!   The CALLER owns the slice: put stores exactly what it is handed, with no
+!   The caller owns the slice: put stores what it is handed, with no
 !   ghost-cell or grid-kind inference (3DALL puts 2-ghost full blocks; 2DANC
-!   puts 0-ghost interior slices plus one altitude LEVEL of a 3-D array).
+!   puts 0-ghost interior slices plus one altitude level of a 3-D array).
 !   nGhostCells is metadata (what the netcdf backend strips), decoupled from
 !   the stored slice.
 !
@@ -22,7 +22,7 @@
 !   put on participating ranks): for magnetic grids (2DMEL), HME/HIME regionals,
 !   the rank-0 probes 1DGLO/1DTHM/1DCHM/1DEMI, and USR.  USR is permanent by design:
 !   users put from anywhere, so a put-derived schema would be empty at the
-!   first output; registration IS its schema.
+!   first output; registration is its schema.
 !
 ! Container precision = kind(1.0), tracking compile-time `real`, matching
 ! mpiio's MPI_REAL convention.
@@ -94,7 +94,7 @@ module ModOutputContainer
     procedure :: put_3d
     generic   :: put => put_0d, put_1d, put_2d, put_3d
     ! One-shot API.  A generic works here (unlike a shape selector) because the
-    ! array's RANK is part of the signature, so the compiler dispatches on it.
+    ! array's rank is part of the signature, so the compiler dispatches on it.
     procedure :: put_field_1d
     procedure :: put_field_2d
     procedure :: put_field_3d
@@ -273,18 +273,16 @@ contains
   end subroutine ensure_var
 
   ! ---------------------------------------------------------------------------
-  ! finish_fill: assert a one-shot fill put EVERY variable exactly once.
+  ! finish_fill: assert a one-shot fill put every variable exactly once.
   !
-  ! This is the primary guard against a stale variable: without it, a fill that
-  ! quietly stops putting some name keeps shipping whatever was in %data (with
-  ! prepare's wipe, zeros), and nothing in the file says so.  It equally catches
-  ! a double put, and a fill that puts nothing at all.
+  ! Without it, a fill that stops putting some name keeps shipping zeros (from
+  ! prepare's wipe) under that name. It also catches a double put and a fill
+  ! that puts nothing.
   !
-  ! Called from ONE place (output_common, after the fill/write dispatch chain)
-  ! so that adding an output type cannot forget it.  It therefore runs after
-  ! reset() has cleared this_rank_writes, which is why participation is read
+  ! Called from one place (output_common, after the fill/write dispatch), so
+  ! reset() has already cleared this_rank_writes and participation is read
   ! from the nPuts sentinel (armed in prepare) rather than re-tested here.
-  ! Unconverted types and non-writing ranks sit at -1 and are skipped.
+  ! Explicit-schema types and non-writing ranks sit at -1 and are skipped.
   ! ---------------------------------------------------------------------------
   subroutine finish_fill(this)
     class(OutputContainer), intent(inout) :: this
@@ -325,9 +323,9 @@ contains
   ! ---------------------------------------------------------------------------
   ! put_field_1d/2d/3d: define-on-first-touch + store, verbatim.
   !
-  ! The dummy is default real (the model's kind), NOT output_kind: taking model
+  ! The dummy is default real (the model's kind), not output_kind: taking model
   ! reals lets the r8 -> output_kind conversion happen in the same assignment
-  ! that stores, so there is exactly ONE copy and call sites need no
+  ! that stores, so there is one copy and call sites need no
   ! real(..., output_kind) wrapper (which would itself materialize a temp).
   ! ---------------------------------------------------------------------------
   subroutine put_field_1d(this, name, arr, units, longName)
@@ -393,8 +391,8 @@ contains
     end select
 
     ! One-shot fill about to run on this rank: arm the put counter and wipe the
-    ! data, so what lands in the file depends only on THIS fill's puts and never
-    ! on a previous block or timestep. Unconverted types and non-writing ranks
+    ! data, so what lands in the file depends only on this fill's puts and never
+    ! on a previous block or timestep. Explicit-schema types and non-writing ranks
     ! keep nPuts = -1 and are left alone: USR in particular relies on
     ! last-known values persisting between puts.
     if (this%is_one_shot .and. this%this_rank_writes) then

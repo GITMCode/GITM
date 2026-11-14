@@ -56,7 +56,7 @@ contains
                        MPI_INFO_NULL, mpiio_fh, ierr)
     ! Collective open over iCommGITM (default file error handler is
     ! MPI_ERRORS_RETURN, so ierr is meaningful). A swallowed failure would
-    ! leave the run producing no output; halt loudly instead. stop_gitm calls
+    ! leave the run producing no output, so halt instead. stop_gitm calls
     ! MPI_Abort, so a stop from any rank tears down the whole job.
     if (ierr /= MPI_SUCCESS) then
       write(*, *) 'ModOutputMPIIO: MPI_File_open failed for ', trim(filename), &
@@ -227,9 +227,8 @@ contains
     do i = 1, nV
       if (c%vars(i)%is_axis) then
         iAxis = iAxis + 1
-        ! Copy exactly the target extent: probe types store length-nAlts axes
-        ! against nX=nY=1 fields, so an unclamped full-extent copy would be
-        ! nonconforming (heap overrun).
+        ! Clamp to the target extent: probe types store length-nAlts axes
+        ! against nX=nY=1 fields.
         if (iAxis == 1) then
           ! Longitude axis: replicate 1D data along lat and alt dimensions.
           if (c%vars(i)%shape3(1) < nX) &
@@ -252,9 +251,8 @@ contains
           enddo
         endif
       else
-        ! Non-axis vars must fill the buffer exactly; a smaller stored shape
-        ! would be the same nonconforming assignment the axis clamp above
-        ! guards against (silent heap overrun on the read side).
+        ! Non-axis vars must match the buffer shape (a smaller one would overrun
+        ! on the read side).
         if (any(c%vars(i)%shape3 /= [nX, nY, nZ])) &
           call stop_gitm("mpiio write_container: variable '"// &
                          trim(c%vars(i)%name)//"' shape does not match grid extent")
@@ -265,7 +263,7 @@ contains
     call MPI_Type_size(MPI_REAL, bytes_per_element, ierr)
     ! Offset is derived from gridKind so it stays consistent with the
     ! participation rule in OutputContainer%prepare. MAG_2D files hold
-    ! exactly one block written by one rank; block-partitioned files
+    ! one block written by one rank; block-partitioned files
     ! stripe by global block index.
     if (c%gridKind == GRID_MAG_2D) then
       offset = 0_MPI_OFFSET_KIND

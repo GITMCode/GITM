@@ -72,9 +72,9 @@ subroutine add_sources
     call report("done with temperature (add_sources)", 5)
 
     !-------------------------------------------
-    ! This is an example of a user output:
-    ! 'Joule Heating' is pre-registered in init_usr_output_registry (user.f90);
-    ! add_usr_output stores it into that slot by name (no slot bookkeeping).
+    ! This is an example of a user output!
+    ! 'Joule Heating' is pre-registered in init_usr_output_registry() (user.f90).
+    ! add_usr_output() stores it into that slot by name.
     ! JouleHeating is a rate of change of the normalized temperature, so it
     ! takes TempUnit to make it K/s (as 3DTHM's 'Joule Heating Rate' does).
     !-------------------------------------------
