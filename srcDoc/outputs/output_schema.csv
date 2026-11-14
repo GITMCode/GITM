@@ -1,6 +1,6 @@
-# GITM output types and their variables, in file order.
-# Units are the ones the netcdf backend writes: legacy and mpiio .bin
-# files hold geographic longitude and latitude in radians.
+# All GITM output types and their variables & units.
+# Legacy and mpiio .bin files hold geographic longitude and
+# latitude in radians.
 type,variable,units,long_name
 "2DMEL","mlon","degrees","Magnetic longitude"
 "2DMEL","mlat","degrees","Magnetic latitude"

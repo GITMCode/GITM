@@ -486,9 +486,9 @@ contains
       return
     endif
 
-    write(iUnit, '(a)') '# GITM output types and their variables, in file order.'
-    write(iUnit, '(a)') '# Units are the ones the netcdf backend writes: legacy and mpiio .bin'
-    write(iUnit, '(a)') '# files hold geographic longitude and latitude in radians.'
+    write(iUnit, '(a)') '# All GITM output types and their variables & units.'
+    write(iUnit, '(a)') '# Legacy and mpiio .bin files hold geographic longitude and'
+    write(iUnit, '(a)') '# latitude in radians.'
     write(iUnit, '(a)') 'type,variable,units,long_name'
     do i = 1, nContainers
       do j = 1, containers(i)%nVars
