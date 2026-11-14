@@ -35,8 +35,9 @@ subroutine set_inputs
   integer, external :: jday
 
   logical :: IsDone, IsStartFound, doUseAeForHp, didDeclareHP = .false.
+  logical :: WasGiven, AllGiven
   integer :: iDebugProc = 0
-  character(len=iCharLen_) :: cLine, cPeekLine
+  character(len=iCharLen_) :: cLine
   integer :: iLine, iSpecies, iSat
   integer :: i, iError, iOutputTypes, iErrorFile, iFreq, iFile
   integer, dimension(7) :: iTimeEnd
@@ -930,17 +931,16 @@ subroutine set_inputs
           IsDone = .true.
         endif
 
-        call read_in_real(BetaLimiter, iError)
-        if (iError /= 0) then
-          BetaLimiter = 1.6
-          if (TypeLimiter == "minmod") BetaLimiter = 1.0
-          if (iProc == 0) then
+        BetaLimiter = 1.6
+        if (TypeLimiter == "minmod") BetaLimiter = 1.0
+        call read_in_real(BetaLimiter, iError, IsOptional=.true., WasGiven=WasGiven)
+        if (.not. WasGiven) then
+          if (iProc == 0 .and. iError == 0) then
             write(*, *) "You can now set the limiter value yourself!"
             write(*, *) '#LIMITER'
             write(*, *) 'TypeLimiter  (string)'
             write(*, *) 'BetaLimiter  (real between 1.0-minmod and 2.0-mc)'
           endif
-          iError = 0
         else
           if (BetaLimiter < 1.0) BetaLimiter = 1.0
           if (BetaLimiter > 2.0) BetaLimiter = 2.0
@@ -1258,22 +1258,18 @@ subroutine set_inputs
           write(*, *) "doDynamoSubtractEquatorialAvg (optional, logical)"
         else if (UseDynamo) then
           ! These settings are optional, code will not complain if they aren't
-          ! included. Stop at the next # line so it is not skipped
-          if (next_is_section()) iError = 1
-          call read_in_real(DynamoFracPotentialCutoff, iError)
-          if (next_is_section()) iError = 1
-          call read_in_logical(doDynamoHemisphericMirror, iError)
-          if (next_is_section()) iError = 1
-          call read_in_logical(doUseMagnetoPotentialBCs, iError)
-          if (next_is_section()) iError = 1
-          call read_in_logical(doDynamoLatBlend, iError)
-          if (next_is_section()) iError = 1
-          call read_in_logical(doDynamoSubtractEquatorialAvg, iError)
-          if (iError /= 0) then
-            iError = 0
-            if (iProc == 0) write(*, *) &
-              " >> NOT all experimental Dynamo options were set. Be careful!!!"
-          endif
+          ! included.
+          call read_in_real(DynamoFracPotentialCutoff, iError, IsOptional=.true., WasGiven=AllGiven)
+          call read_in_logical(doDynamoHemisphericMirror, iError, IsOptional=.true., WasGiven=WasGiven)
+          AllGiven = AllGiven .and. WasGiven
+          call read_in_logical(doUseMagnetoPotentialBCs, iError, IsOptional=.true., WasGiven=WasGiven)
+          AllGiven = AllGiven .and. WasGiven
+          call read_in_logical(doDynamoLatBlend, iError, IsOptional=.true., WasGiven=WasGiven)
+          AllGiven = AllGiven .and. WasGiven
+          call read_in_logical(doDynamoSubtractEquatorialAvg, iError, IsOptional=.true., WasGiven=WasGiven)
+          AllGiven = AllGiven .and. WasGiven
+          if (.not. AllGiven .and. iError == 0 .and. iProc == 0) write(*, *) &
+            " >> NOT all experimental Dynamo options were set. Be careful!!!"
         endif
 
       case ("#IONFORCING")
@@ -1418,15 +1414,12 @@ subroutine set_inputs
         call read_in_real(LatStart, iError)
         call read_in_real(LatEnd, iError)
         call read_in_real(LonStart, iError)
-        if (iError == 0) then
-          call read_in_real(LonEnd, iError)
-          if (iError /= 0) then
-            write(*, *) "You can now model part of the globe in"
-            write(*, *) "longitude.  Include a LonEnd after the LonStart"
-            write(*, *) "variable in #GRID."
-            LonEnd = LonStart
-            iError = 0
-          endif
+        LonEnd = LonStart
+        call read_in_real(LonEnd, iError, IsOptional=.true., WasGiven=WasGiven)
+        if (.not. WasGiven .and. iError == 0) then
+          write(*, *) "You can now model part of the globe in"
+          write(*, *) "longitude.  Include a LonEnd after the LonStart"
+          write(*, *) "variable in #GRID."
         endif
 
         if (LonStart < 0) LonStart = LonStart + 360.0
@@ -1584,7 +1577,7 @@ subroutine set_inputs
         endif
 
       case ('#NETCDFOPTIONS')
-        ! Sequential, optional flags; more can be appended later.
+        ! Sequential flags. More can be appended later.
         ! Flag 1 (required): append method 'single'/'daily'/'none'.
         ! Flag 2 (optional): run name inserted into netcdf filenames.
         call read_in_string(NetCdfAppendOption, iError)
@@ -1598,15 +1591,7 @@ subroutine set_inputs
           iError = iError + 1
         endif
 
-        ! Safe against a #END-less file: read_inputs blanks the slot its EOF
-        ! iteration touches, so a peek past the last real line sees '' and
-        ! fails the len_trim test below.
-        if (iError == 0 .and. iLine + 1 <= nInputLines) then
-          cPeekLine = cInputText(iLine + 1)
-          if (len_trim(cPeekLine) > 0 .and. cPeekLine(1:1) /= '#') then
-            call read_in_string(NetCdfFileName, iError)
-          endif
-        endif
+        call read_in_string(NetCdfFileName, iError, IsOptional=.true.)
 
         if (iError /= 0) then
           write(*, *) ""
@@ -1726,14 +1711,13 @@ subroutine set_inputs
         if (iError == 0) then
           if (RCMROutType == 'F107') then
             RCMRFlag = .true.
-            call read_in_real(f107_est, iError)
+            f107_est = 100
+            call read_in_real(f107_est, iError, IsOptional=.true., WasGiven=WasGiven)
 
-            if (iError /= 0) then
-              write(*, *) 'Unrecognizable initial F10.7 estimate'
+            if (.not. WasGiven .and. iError == 0) then
+              write(*, *) 'No initial F10.7 estimate given,'
               write(*, *) 'running with 100.0, which is only appropriate '
               write(*, *) 'if the actual F10.7 is not close to 100'
-              f107_est = 100
-              iError = 0
             endif
 
             f107a_est = f107_est
@@ -1742,15 +1726,15 @@ subroutine set_inputs
 
           else if (RCMROutType == 'PHOTOELECTRON') then
             RCMRFlag = .true.
-            call read_in_real(PhotoElectronHeatingEfficiency_est, iError)
+            PhotoElectronHeatingEfficiency_est = 0.1
+            call read_in_real(PhotoElectronHeatingEfficiency_est, iError, &
+                              IsOptional=.true., WasGiven=WasGiven)
 
-            if (iError /= 0) then
-              write(*, *) 'Unrecognizable initial photoelectron heating '
-              write(*, *) 'efficiency.  Running with 0.1, which is only '
+            if (.not. WasGiven .and. iError == 0) then
+              write(*, *) 'No initial photoelectron heating '
+              write(*, *) 'efficiency given.  Running with 0.1, which is only '
               write(*, *) 'appropraite if the actual efficiency is not '
               write(*, *) 'close to 0.1'
-              PhotoElectronHeatingEfficiency_est = 0.1
-              iError = 0
             endif
 
             if (RCMROutType == 'PHOTOELECTRON') then
@@ -1760,17 +1744,16 @@ subroutine set_inputs
                  !!ANKIT: TEC read
           else if (RCMROutType == 'EDC') then
             RCMRFlag = .true.
-            call read_in_real(EDC_est_tmp, iError)
-            EDC_est(1, 1) = EDC_est_tmp
-            ! call read_in_real(EDC_est, iError)
+            call read_in_real(EDC_est_tmp, iError, IsOptional=.true., WasGiven=WasGiven)
 
-            if (iError /= 0) then
-              write(*, *) 'Unrecognizable initial eddy diffusion '
-              write(*, *) 'coefficient.  Running with 1750, which is only '
+            if (WasGiven) then
+              EDC_est(1, 1) = EDC_est_tmp
+            else if (iError == 0) then
+              write(*, *) 'No initial eddy diffusion '
+              write(*, *) 'coefficient given.  Running with 1750, which is only '
               write(*, *) 'appropraite if the actual coefficient is not '
               write(*, *) 'close to 1750'
               EDC_est = 1750
-              iError = 0
             endif
 
             if (RCMROutType == 'EDC') then
@@ -1903,10 +1886,7 @@ subroutine set_inputs
           IsDone = .true.
         else
           ! The file name is optional
-          if (.not. next_is_section()) then
-            if (len_trim(cInputText(iline + 1)) > 0) &
-              call read_in_string(cB107File, iError)
-          endif
+          call read_in_string(cB107File, iError, IsOptional=.true.)
         endif
 
       case ("#EUV_DATA")
@@ -1932,18 +1912,15 @@ subroutine set_inputs
         ! Optional blending of the empirical EUV models with the FISM data.
         ! FISM is less energetic than EUVAC/Tobiska, so a run can mix them.
         ! Blending is OFF by default
-        call read_in_real(EUV_Ratio_Empirical, iError)
-        if (iError /= 0) then
-          ! Not given: unmixed
-          if (UseEUVData) then
-            EUV_Ratio_Empirical = 0.0
-          else
-            EUV_Ratio_Empirical = 1.0
-          endif
-          iError = 0
-        else if (EUV_Ratio_Empirical < 0.0 .or. &
-                 EUV_Ratio_Empirical > 1.0 .or. &
-                 (.not. UseEUVData .and. EUV_Ratio_Empirical < 1.0)) then
+        if (UseEUVData) then
+          EUV_Ratio_Empirical = 0.0
+        else
+          EUV_Ratio_Empirical = 1.0
+        endif
+        call read_in_real(EUV_Ratio_Empirical, iError, IsOptional=.true., WasGiven=WasGiven)
+        if (WasGiven .and. (EUV_Ratio_Empirical < 0.0 .or. &
+                            EUV_Ratio_Empirical > 1.0 .or. &
+                            (.not. UseEUVData .and. EUV_Ratio_Empirical < 1.0))) then
           write(*, *) '#EUV_DATA: EUV_Ratio_Empirical must be 0-1, and'
           write(*, *) 'a value below 1 requires UseEUVData = T.'
           call stop_gitm("Must Stop!!")
@@ -2057,25 +2034,23 @@ subroutine set_inputs
         cTempLines(3) = cTempLine
 
         doUseAeForHp = .false.
-        call read_in_logical(doUseAeForHp, iError)
-        if ((iError /= 0) .and. (iDebugProc == iProc)) then
+        call read_in_logical(doUseAeForHp, iError, IsOptional=.true., WasGiven=WasGiven)
+        if (.not. WasGiven .and. iError == 0 .and. (iDebugProc == iProc)) then
           write(*, *) "----------------------------------------------"
           write(*, *) "GITM now allows you to use AE to set the HP"
           write(*, *) "just put a T after the two SME_INDICES files"
           write(*, *) "or put a F if you don't."
           write(*, *) "----------------------------------------------"
-          iError = 0
         endif
 
-        call read_in_logical(doSeparateHPI, iError)
-        if ((iError /= 0) .and. (iDebugProc == iProc) .and. doUseAeForHp) then
+        call read_in_logical(doSeparateHPI, iError, IsOptional=.true., WasGiven=WasGiven)
+        if (.not. WasGiven .and. iError == 0 .and. (iDebugProc == iProc) .and. doUseAeForHp) then
           write(*, *) "----------------------------------------------"
           write(*, *) "GITM allows the use of a 10% seasonal "
           write(*, *) "correction factor in the conversion of AE to HP"
           write(*, *) "Put another T after convert to HP if you want this,"
           write(*, *) "or put an F to silence this message."
           write(*, *) "----------------------------------------------"
-          iError = 0
         endif
 
         ! Check if HPI was read with SME, print warning if so:
@@ -2175,14 +2150,13 @@ subroutine set_inputs
 
         cTempLines(2) = cTempLine
 
-        call read_in_logical(doSeparateHPI, iError)
-        if ((iError /= 0) .and. (iDebugProc == iProc)) then
+        call read_in_logical(doSeparateHPI, iError, IsOptional=.true., WasGiven=WasGiven)
+        if (.not. WasGiven .and. iError == 0 .and. (iDebugProc == iProc)) then
           write(*, *) "----------------------------------------------"
           write(*, *) "GITM now allows you to scale the aurora by hemispheric"
           write(*, *) "power independently in each hemisphere. To enable this,"
           write(*, *) "put a T after your HPI file, or put a F to silence."
           write(*, *) "----------------------------------------------"
-          iError = 0
         endif
 
         cTempLines(3) = " "
@@ -2265,61 +2239,109 @@ subroutine set_inputs
 contains
 
   logical function next_is_section()
-    ! For parsing optional arguments, determine if a new input block was started
+    ! .true. if the current block has no more lines: the next line is past the
+    ! end of the file, blank, or starts a new #block.
     next_is_section = .true.
     if (iline + 1 > nInputLines) return
-    next_is_section = (cInputText(iline + 1) (1:1) == "#")
+    next_is_section = (len_trim(cInputText(iline + 1)) == 0 .or. &
+                       cInputText(iline + 1) (1:1) == "#")
   end function next_is_section
 
-  subroutine read_in_int(variable, iError)
-    integer, intent(out) :: variable
-    integer :: iError
-    if (iError == 0) then
-      iline = iline + 1
-      read(cInputText(iline), *, iostat=iError) variable
+  ! The read_in_* routines read the next line of the current block into
+  ! variable. Nothing is read once iError is set.
+  !
+  ! For an optional value pass IsOptional=.true.. If the block ends first, the
+  ! routine reads nothing, leaves variable (the caller's default) and iError
+  ! unchanged, and does not consume the next block's #line. A value that is
+  ! there but does not parse is an error, as for a required value, and the
+  ! run stops. WasGiven reports whether a value was read.
+  logical function skip_read(iError, IsOptional, WasGiven)
+    integer, intent(in) :: iError
+    logical, intent(in), optional :: IsOptional
+    logical, intent(out), optional :: WasGiven
+    if (present(WasGiven)) WasGiven = .false.
+    skip_read = (iError /= 0)
+    if (skip_read) return
+    if (present(IsOptional)) then
+      if (IsOptional) skip_read = next_is_section()
     endif
+  end function skip_read
+
+  subroutine finish_read(iError, WasGiven)
+    integer, intent(in) :: iError
+    logical, intent(out), optional :: WasGiven
+    if (present(WasGiven)) WasGiven = (iError == 0)
+    if (iError /= 0 .and. iProc == 0) then
+      write(*, *) 'Could not read a value in ', trim(cLine), ', line ', iline, ':'
+      write(*, *) '  "', trim(cInputText(iline)), '"'
+    endif
+  end subroutine finish_read
+
+  subroutine read_in_int(variable, iError, IsOptional, WasGiven)
+    integer, intent(inout) :: variable
+    integer :: iError
+    logical, intent(in), optional :: IsOptional
+    logical, intent(out), optional :: WasGiven
+    integer :: tmp
+    if (skip_read(iError, IsOptional, WasGiven)) return
+    iline = iline + 1
+    read(cInputText(iline), *, iostat=iError) tmp
+    if (iError == 0) variable = tmp
+    call finish_read(iError, WasGiven)
   end subroutine read_in_int
 
-  subroutine read_in_time(variable, iError)
-    real(Real8_), intent(out) :: variable
+  subroutine read_in_time(variable, iError, IsOptional, WasGiven)
+    real(Real8_), intent(inout) :: variable
     integer :: iError
+    logical, intent(in), optional :: IsOptional
+    logical, intent(out), optional :: WasGiven
     integer :: iTimeReadIn(7)
-    if (iError == 0) then
-      iline = iline + 1
-      read(cInputText(iline), *, iostat=iError) iTimeReadIn(1:6)
-      iTimeReadIn(7) = 0
-      call time_int_to_real(iTimeReadIn, variable)
-    endif
+    if (skip_read(iError, IsOptional, WasGiven)) return
+    iline = iline + 1
+    read(cInputText(iline), *, iostat=iError) iTimeReadIn(1:6)
+    iTimeReadIn(7) = 0
+    if (iError == 0) call time_int_to_real(iTimeReadIn, variable)
+    call finish_read(iError, WasGiven)
   end subroutine read_in_time
 
-  subroutine read_in_logical(variable, iError)
-    logical, intent(out) :: variable
+  subroutine read_in_logical(variable, iError, IsOptional, WasGiven)
+    logical, intent(inout) :: variable
     integer :: iError
-    if (iError == 0) then
-      iline = iline + 1
-      read(cInputText(iline), *, iostat=iError) variable
-    endif
+    logical, intent(in), optional :: IsOptional
+    logical, intent(out), optional :: WasGiven
+    logical :: tmp
+    if (skip_read(iError, IsOptional, WasGiven)) return
+    iline = iline + 1
+    read(cInputText(iline), *, iostat=iError) tmp
+    if (iError == 0) variable = tmp
+    call finish_read(iError, WasGiven)
   end subroutine read_in_logical
 
-  subroutine read_in_string(variable, iError)
-    character(len=iCharLen_), intent(out) :: variable
+  subroutine read_in_string(variable, iError, IsOptional, WasGiven)
+    character(len=iCharLen_), intent(inout) :: variable
     integer :: iError
-    if (iError == 0) then
-      iline = iline + 1
-      variable = cInputText(iline)
-      ! Remove anything after a space or TAB
-      i = index(variable, ' '); if (i > 0) variable(i:len(cLine)) = ' '
-      i = index(variable, char(9)); if (i > 0) variable(i:len(cLine)) = ' '
-    endif
+    logical, intent(in), optional :: IsOptional
+    logical, intent(out), optional :: WasGiven
+    if (skip_read(iError, IsOptional, WasGiven)) return
+    iline = iline + 1
+    variable = cInputText(iline)
+    ! Remove anything after a space or TAB
+    i = index(variable, ' '); if (i > 0) variable(i:len(cLine)) = ' '
+    i = index(variable, char(9)); if (i > 0) variable(i:len(cLine)) = ' '
+    call finish_read(iError, WasGiven)
   end subroutine read_in_string
 
-  subroutine read_in_real(variable, iError)
-    real, intent(out) :: variable
+  subroutine read_in_real(variable, iError, IsOptional, WasGiven)
+    real, intent(inout) :: variable
     integer :: iError
-    if (iError == 0) then
-      iline = iline + 1
-      read(cInputText(iline), *, iostat=iError) variable
-    endif
+    logical, intent(in), optional :: IsOptional
+    logical, intent(out), optional :: WasGiven
+    real :: tmp
+    if (skip_read(iError, IsOptional, WasGiven)) return
+    iline = iline + 1
+    read(cInputText(iline), *, iostat=iError) tmp
+    if (iError == 0) variable = tmp
+    call finish_read(iError, WasGiven)
   end subroutine read_in_real
 
 end subroutine set_inputs
