@@ -44,6 +44,7 @@ subroutine write_restart(dir)
   ! used to check if various files exist yet or not and suppressing writes
   logical :: IsThere = .false.
   ! to here to perform driver (f107) inflation
+  real :: f107
 
   call report("write_restart", 1)
 
@@ -360,6 +361,7 @@ subroutine read_restart(dir)
   character(len=5) :: cBlock
   integer :: iBlock, i, iSpecies, iAlt, iError
   real :: LonFile(-1:nLons + 2), LatFile(-1:nLats + 2)
+  real :: f107
   !---------------------------------------------------------------------------
   call report("read_restart", 1)
 

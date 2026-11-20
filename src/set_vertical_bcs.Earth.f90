@@ -21,7 +21,7 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
     iLon1D, iLat1D, iBlock1D, &
     Centrifugal, InvRadialDistance_C, Coriolis, &
     MLatVertical, SZAVertical
-  use ModIndicesInterfaces, only: get_HPI
+  use ModIndicesInterfaces, only: get_HPI, get_f107, get_f107a
   use ModTides, only: TidesNorth, TidesEast, TidesTemp, TidesRhoRat
 
   use EUA_ModMsis90, ONLY: meter6
@@ -81,6 +81,8 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
   ! Temporary arrays of the lower boundary condition to pass to WP (WP-GITM)
   real :: LogNS_LBC(2, nSpecies), VelGD_LBC(2, 3)
 
+  real :: f107, f107a
+
   !------------------------------------------------------------------------
   !------------------------------------------------------------------------
   ! Bottom
@@ -115,6 +117,21 @@ subroutine set_vertical_bcs(LogRho, LogNS, Vel_GD, Temp, LogINS, iVel, VertVel)
     call get_HPI(CurrentTime, HP, iError)
     if (iError > 0) hp = 40.0
     Ap = min(200., max(-40.72 + 1.3*HP, 10.))
+
+    iError = 0
+    call get_f107(CurrentTime, f107, iError)
+    if (iError /= 0) then
+      write(*, *) "Error in getting F107 value.  Is this set?"
+      write(*, *) "Code : ", iError
+      call stop_gitm("Stopping in set_vertical_bcs")
+    endif
+
+    call get_f107a(CurrentTime, f107a, iError)
+    if (iError /= 0) then
+      write(*, *) "Error in getting F107a value.  Is this set?"
+      write(*, *) "Code : ", iError
+      call stop_gitm("Stopping in set_vertical_bcs")
+    endif
 
     do iAlt = -1, 0
       !Alt = Altitude_G(iAlt)/1000.0* &

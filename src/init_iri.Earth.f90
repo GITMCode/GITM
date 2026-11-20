@@ -10,6 +10,7 @@ subroutine init_iri
   use ModConstants
   use ModPlanet
   use ModTime
+  use ModIndicesInterfaces, only: get_f107, get_f107a
 
   implicit none
 
@@ -21,8 +22,8 @@ subroutine init_iri
   logical, dimension(1:12) :: jf
   !  character, dimension(1:80) :: ccirnm, ursinm
 
-  integer :: iBlock, iAlt, iLat, iLon, iIon
-  real :: geo_lat, geo_lon, geo_alt(1), geo_lst
+  integer :: iBlock, iAlt, iLat, iLon, iIon, iError
+  real :: geo_lat, geo_lon, geo_alt(1), geo_lst, f107
 
   call report("init_iri", 0)
 
@@ -113,6 +114,14 @@ subroutine init_iri
   !  Set names of CCIR and URSI coefficient files
   !  ccirnm = 'ccir.cofcnts'
   !  ursinm = 'ursi.cofcnts'
+
+  iError = 0
+  call get_f107(CurrentTime, f107, iError)
+  if (iError /= 0) then
+    write(*, *) "Error in getting F107 value.  Is this set?"
+    write(*, *) "Code : ", iError
+    call stop_gitm("Stopping in euv_ionization_heat")
+  endif
 
   do iBlock = 1, nBlocks
     iTemperature(:, :, :, iBlock) = 200.0

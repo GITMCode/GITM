@@ -121,7 +121,7 @@ subroutine get_msis_temperature(lon, lat, alt, t, h)
 
   real, intent(in) :: lon, lat, alt
   real, intent(out) :: t, h
-  real :: f107m, f107am
+  real :: f107m, f107am, f107, f107a
 
   real, dimension(1:2) :: msis_temp
   real, dimension(1:9) :: msis_dens
@@ -277,7 +277,7 @@ subroutine init_msis
   integer :: iBlock, iAlt, iLat, iLon, iSpecies, iyd, iError
   real :: geo_lat, geo_lon, geo_alt, geo_lst, m, k, ut
   real :: ffactor, h, no
-  real :: f107m, f107am
+  real :: f107m, f107am, f107, f107a
   real, dimension(7)  :: ap = 10.0
 
   real*4 :: hwm_utime, hwm_alt, hwm_lat, hwm_lon, hwm_lst

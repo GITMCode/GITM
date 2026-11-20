@@ -113,6 +113,7 @@ subroutine logfile(dir)
   real    :: minTemp, maxTemp, localVar, minVertVel, maxVertVel
   real    :: AverageTemp, AverageVertVel, TotalVolume, Bx, By, Bz, Vx, Hpi
   real    :: HPn, HPs, HPn_d, HPs_d, HPn_w, HPs_w, HPn_m, HPs_m
+  real    :: f107, f107a
   real    :: SSLon, SSLat, SSVTEC
   integer :: iError
 
@@ -311,7 +312,8 @@ subroutine write_code_information(dir)
   character(len=*), intent(in) :: dir
 
   integer, dimension(7) :: iTime
-  integer :: i, iFile
+  integer :: i, iFile, iError
+  real :: f107, f107a
 
   if (iProc == 0) then
 
@@ -430,6 +432,21 @@ subroutine write_code_information(dir)
     write(iCodeInfoFileUnit_, *) trim(TypeLimiter)
     write(iCodeInfoFileUnit_, *) BetaLimiter
     write(iCodeInfoFileUnit_, *) ""
+
+    iError = 0
+    call get_f107(CurrentTime, f107, iError)
+    if (iError /= 0) then
+      write(*, *) "Error in getting F107 value.  Is this set?"
+      write(*, *) "Code : ", iError
+      call stop_gitm("Stopping in euv_ionization_heat")
+    endif
+    iError = 0
+    call get_f107a(CurrentTime, f107a, iError)
+    if (iError /= 0) then
+      write(*, *) "Error in getting F107a value.  Is this set?"
+      write(*, *) "Code : ", iError
+      call stop_gitm("Stopping in euv_ionization_heat")
+    endif
 
     write(iCodeInfoFileUnit_, *) "#F107"
     write(iCodeInfoFileUnit_, *) f107

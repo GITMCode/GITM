@@ -71,9 +71,6 @@ subroutine initialize_gitm(TimeIn)
     call fix_vernal_time
   endif
 
-  call get_f107(CurrentTime, f107, iError)
-  call get_f107a(CurrentTime, f107a, iError)
-
   call init_grid
 
   ! More than one block per processor (nBlocksMax > 1 in ModSize.f90) is not supported
