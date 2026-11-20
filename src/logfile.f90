@@ -438,14 +438,14 @@ subroutine write_code_information(dir)
     if (iError /= 0) then
       write(*, *) "Error in getting F107 value.  Is this set?"
       write(*, *) "Code : ", iError
-      call stop_gitm("Stopping in euv_ionization_heat")
+      call stop_gitm("Stopping in write_code_info")
     endif
     iError = 0
     call get_f107a(CurrentTime, f107a, iError)
     if (iError /= 0) then
       write(*, *) "Error in getting F107a value.  Is this set?"
       write(*, *) "Code : ", iError
-      call stop_gitm("Stopping in euv_ionization_heat")
+      call stop_gitm("Stopping in write_code_info")
     endif
 
     write(iCodeInfoFileUnit_, *) "#F107"
@@ -700,6 +700,14 @@ subroutine write_code_information(dir)
     write(iCodeInfoFileUnit_, *) trim(cEUVFile)
     write(iCodeInfoFileUnit_, *) EUV_Ratio_Empirical
     write(iCodeInfoFileUnit_, *) ""
+
+    write(iCodeInfoFileUnit_, *) "#EUVMODEL"
+    write(iCodeInfoFileUnit_, *) UseEUVAC
+    write(iCodeInfoFileUnit_, *) UseTobiska
+    write(iCodeInfoFileUnit_, *) UseAboveHigh
+    write(iCodeInfoFileUnit_, *) UseBelowLow
+    write(iCodeInfoFileUnit_, *) UseRidleyEUV
+    write(iCodeInfoFileUnit_, *) RidleyEUVModelNumber
 
     write(iCodeInfoFileUnit_, *) "#RESTART"
     write(iCodeInfoFileUnit_, *) DoRestart
