@@ -74,9 +74,12 @@ module ModEUV
   logical :: ReReadEUVFile = .false.
 
   character(len=iCharLen_) :: cRidleyEUVFile = 'UA/DataIn/waves.dat'
+  character(len=iCharLen_) :: cEUVFileModel1 = 'UA/DataIn/FISM/euv_model1.txt'
+  character(len=iCharLen_) :: cEUVFileModel2 = 'UA/DataIn/FISM/euv_model2.txt'
   real :: RidleySlopes(3, Num_WaveLengths_High)
   real :: RidleyIntercepts(Num_WaveLengths_High)
   real :: RidleyPowers(2, Num_WaveLengths_High)
+  real :: RidleyF107Subtract
 
   real, dimension(nS2WaveLengths) :: &
     S2WaveLengths, S2PhotonEnergy, S2SolarFlux, &
@@ -106,6 +109,7 @@ module ModEUV
     PhotoElec_CH4_CH4Plus, PhotoElec_CH4_CH3Plus, &
     PhotoElec_O_O4SPlus, PhotoElec_O_O2DPlus, PhotoElec_O_O2PPlus, &
     PhotoIon_OPlus2D, PhotoIon_OPLus2P, &
+    waveLengthMid, &
     WAVEL, WAVES, RFLUX, XFLUX, SCALE1, SCALE2, &
     TCHR0, TCHR1, TCHR2, TCOR0, TCOR1, TCOR2, WAR1, WAR2, &
     Solar_Flux, PhotonEnergy, &
