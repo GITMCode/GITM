@@ -409,6 +409,150 @@ contains
 end subroutine euv_ionization_heat
 
 !-------------------------------------------------------------------
+! Subroutine for calculating the Ridley-EUV flux in a vacuum.
+!-------------------------------------------------------------------
+
+subroutine run_tobiska_euv(tobiska_flux, f107, f107a)
+
+  use ModEUV
+  use ModInputs
+
+  implicit none
+
+  real, dimension(1:Num_WaveLengths_High), intent(out) :: tobiska_flux
+  real, intent(in) :: f107, f107a
+
+  real :: f107_Ratio, r1, r2, hlybr, fexvir, hlya, heiew
+  real :: heimod, hlymod, xuvf, xuvfac
+
+  integer :: i, ii, n
+
+  ! This stuff is for Tobiska:
+  hlybr = 0.
+  fexvir = 0.
+  hlya = 3.E+11 + 0.4E+10*(f107 - 70.)
+  heiew = 0.
+
+  ! I think that this is the Hinteregger stuff, which goes from
+  ! 2A - 1750A, so it is used to fill in the Above and Below spectrum
+  f107_ratio = (f107 - 68.0)/(243.0 - 68.0)
+  do N = 1, Num_WaveLengths_High
+    Tobiska_Flux(N) = RFLUX(N) + (XFLUX(N) - RFLUX(N))*f107_Ratio
+  enddo
+
+  xuvfac = 4.0 - f107_ratio
+  if (xuvfac < 1.0) xuvfac = 1.0
+
+  ! This is a total hack, just comparing FISM to these fluxes:
+  tobiska_flux(Num_WaveLengths_High - 4) = &
+    tobiska_flux(Num_WaveLengths_High - 4)*3.0
+  tobiska_flux(Num_WaveLengths_High - 3) = &
+    tobiska_flux(Num_WaveLengths_High - 3)*3.0
+  tobiska_flux(Num_WaveLengths_High - 2) = &
+    tobiska_flux(Num_WaveLengths_High - 2)*5.0
+  tobiska_flux(Num_WaveLengths_High - 1) = &
+    tobiska_flux(Num_WaveLengths_High - 1)*100.0
+  tobiska_flux(Num_WaveLengths_High) = &
+    tobiska_flux(Num_WaveLengths_High)*800.0
+
+  if (.not. UseAboveHigh) tobiska_flux(56:Num_WaveLengths_High) = 0
+  if (.not. UseBelowLow) tobiska_flux(1:Num_WaveLengths_Low) = 0
+
+  if (HLYA > 0.001) then
+    hlymod = hlya
+  else
+    if (heiew > 0.001) then
+      hlymod = heiew*3.77847e9 + 8.40317e10
+    else
+      hlymod = 8.70e8*f107 + 1.90e11
+    endif
+  endif
+
+  if (heiew > 0.001) then
+    heimod = heiew*3.77847e9 + 8.40317e10
+  else
+    heimod = hlymod
+  endif
+
+  ! hlymod is SME Lyman-alpha
+  ! heimod is He I 10,830A, scaled to Lyman-alpha
+  do N = 16, 55
+    Tobiska_Flux(N) = &
+      TCHR0(N) + &
+      TCHR1(N)*hlymod + &
+      TCHR2(N)*heimod + &
+      TCOR0(N) + &
+      TCOR1(N)*f107 + &
+      TCOR2(N)*f107a
+  enddo
+
+  !
+  ! Substitute in H Lyman-alpha and XUVFAC if provided:
+  !
+
+  if (hlya > 0.001) Tobiska_Flux(12) = hlya/1.E9
+  if (xuvfac > 0.001) THEN
+    xuvf = xuvfac
+  else
+    xuvf = 1.0
+  endif
+
+  !
+  ! Convert from gigaphotons to photons, cm^-2 to m^-2, etc.:
+  !
+
+  do N = 1, Num_WaveLengths_High
+    IF (Tobiska_Flux(N) < 0.0) Tobiska_Flux(N) = 0.0
+    ! I don't know why we scale this...
+    IF ((WAVEL(N) < 251.0) .AND. (WAVES(N) > 15.0)) then
+      Tobiska_Flux(N) = Tobiska_Flux(N)*xuvf
+    endif
+    ! Convert to photons/m^2/s
+    Tobiska_Flux(N) = Tobiska_Flux(N)*1.E9*10000.0
+  enddo
+
+end subroutine run_tobiska_euv
+
+
+!-------------------------------------------------------------------
+! Subroutine for calculating the Ridley-EUV flux in a vacuum.
+!-------------------------------------------------------------------
+
+subroutine run_ridley_euv(ridley_flux, f107, f107a)
+
+  use ModEUV
+  use ModInputs, only: iDebugLevel
+
+  implicit none
+
+  integer :: i, ii
+  real, dimension(1:Num_WaveLengths_High), intent(out) :: ridley_flux
+  ! Daily and 81-day solar index to use 
+  real, intent(in) :: f107, f107a
+  real :: f107e, f107ae, flux, wavelength
+  integer :: n
+
+  ! This model was derived WITHOUT the B107 stuff, so let's not
+  ! use that stuff. But, the model subtracted off a low F107
+  ! value to allow the exponential to be stronger:
+  f107e = f107 - RidleyF107Subtract
+  f107ae = f107a - RidleyF107Subtract
+  if (iDebugLevel > 2) &
+    write(*,*) 'Running Ridley EUV model: ',f107e, f107ae, RidleyF107Subtract
+  do N = 1, Num_WaveLengths_High
+    flux = &
+      RidleySlopes(1, N)*(f107e**RidleyPowers(1, N)) + &
+      RidleySlopes(2, N)*(f107ae**RidleyPowers(2, N)) + &
+      RidleySlopes(3, N)*(f107ae - f107e) + &
+      RidleyIntercepts(N)
+    ridley_Flux(N) = &
+      flux * wavelengthmid(n) * 1.0e-10/ &
+      (Planck_Constant*Speed_Light)
+  enddo
+
+end subroutine run_ridley_euv
+
+!-------------------------------------------------------------------
 ! Subroutine for calculating the EUV flux in a vacuum.
 !-------------------------------------------------------------------
 
@@ -458,6 +602,103 @@ subroutine run_euvac(euvac_flux, f107e, f107ae)
 end subroutine run_euvac
 
 !-------------------------------------------------------------------
+! Get FISM Fluxes
+!-------------------------------------------------------------------
+
+subroutine get_FISM_fluxes(FISM_Flux)
+
+  use ModEUV
+  use ModInputs
+  use ModTime
+  use ModIndicesInterfaces
+  use ModGITM, only: dt
+
+  implicit none
+
+  real, dimension(Num_WaveLengths_High), intent(out) :: FISM_Flux
+
+  !DAVES:
+  real :: SeeTime(nSeeTimes), tDiff(nSeeTimes)
+  real :: y1(Num_WaveLengths_High), y2(Num_WaveLengths_High), x1, x2, x
+  real :: m(Num_WaveLengths_High), k(Num_WaveLengths_High)
+  character(len=2) :: dday, dhour, dminute
+  character(len=7) :: dtime
+  integer :: N, NN, iMin(1) = 0, iError
+  real, dimension(Num_WaveLengths_High) :: Timed_Flux
+
+  call Set_Euv(iError, CurrentTime, EndTime)
+
+  if (iError /= 0) then
+    call stop_gitm("Stopping in get_FISM_fluxes. "// &
+                  "Error in EUV data. Check times!")
+  endif
+
+  call start_timing("EUV_Data")
+  SeeTime(:) = 0
+
+  do N = 1, nSeeTimes
+    SeeTime(N) = TimeSee(N)
+  enddo
+
+  tDiff = CurrentTime - SeeTime
+
+  where (tDiff .lt. 0) tDiff = 1.e20
+  iMin = minloc(tDiff)
+
+  Timed_Flux = SeeFlux(:, iMin(1))
+
+  if (CurrentTime .ge. FlareTimes(iFlare) .and. &
+      CurrentTime - dt .le. FlareTimes(iFlare)) then
+
+    FlareStartIndex = iMin(1) + 1
+    FlareEndIndex = iMin(1) + FlareLength
+    Timed_Flux = SeeFlux(:, FlareStartIndex)
+    FlareEndTime = SeeTime(FlareEndIndex)
+    DuringFlare = .true.
+    iFlare = iFlare + 1
+
+  else
+
+    if (DuringFlare) then
+      if (Seetime(iMin(1) + 1) .lt. FlareTimes(iFlare) .or. &
+          FlareTimes(iFlare) .eq. 0) then
+        if (CurrentTime .lt. SeeTime(FlareStartIndex)) then
+          ! We may not be to the point where the flare has begun
+          ! in the SEE data yet...
+          Timed_Flux = SeeFlux(:, FlareStartIndex)
+        else
+          if (CurrentTime .le. FlareEndTime) then
+            !Exponentially interpolate between last seetime and
+            !next seetim using y = kexp(-mx)
+
+            y1 = SeeFlux(:, iMin(1))
+            y2 = SeeFlux(:, iMin(1) + 1)
+            x1 = 0
+            x2 = SeeTime(iMin(1) + 1) - SeeTime(iMin(1))
+            x = CurrentTime - SeeTime(iMin(1))
+
+            m = ALOG(y2/y1)/(x1 - x2)
+            k = y1*exp(m*x1)
+            Timed_Flux = k*exp(-1*m*x)
+          else
+            DuringFlare = .False.
+          endif
+        endif
+      endif
+    endif
+  endif
+
+  !!need to convert from W/m^2 to photons/m^2/s
+  do N = 1, Num_WaveLengths_High
+    FISM_Flux(N) = Timed_Flux(N)*wavelengthmid(N)*1.0e-10/ &
+                   (Planck_Constant*Speed_Light)
+  enddo
+  call end_timing("EUV_Data")
+
+end subroutine get_FISM_fluxes
+
+
+!-------------------------------------------------------------------
 ! Subroutine for calculating scaled solar flux.
 !-------------------------------------------------------------------
 
@@ -479,28 +720,14 @@ subroutine calc_scaled_euv
   integer, parameter :: WoodsAndRottman_20Jun89 = 4
 
   integer :: N, NN, iMin(1) = 0, iError
-  real    :: f107_Ratio, r1, r2, hlybr, fexvir, hlya, heiew
   ! Solar index for the empirical models: F10.7, or B10.7 with #B107
-  real    :: f107e, f107ae
+  real :: f107e, f107ae, f107, f107a
   real    :: EuvScale
-  real    :: xuvfac, hlymod, heimod, xuvf
-  real(Real8_) :: rtime
-  integer, dimension(7) :: Time_Array
-
-  !DAVES:
-  real :: wvavg(Num_WaveLengths_High), SeeTime(nSeeTimes), tDiff(nSeeTimes)
-  real :: y1(Num_WaveLengths_High), y2(Num_WaveLengths_High), x1, x2, x
-  real :: m(Num_WaveLengths_High), k(Num_WaveLengths_High)
-  character(len=2) :: dday, dhour, dminute
-  character(len=7) :: dtime
-
-  real :: e
 
   ! regression coefficients which reduce to solar min. spectrum:
   ! for Hinteregger_Contrast_Ratio model:
 
   real, dimension(1:3) :: B1, B2
-  real, dimension(Num_WaveLengths_High) :: Timed_Flux
   real, dimension(Num_WaveLengths_High) :: FISM_Flux
   real, dimension(Num_WaveLengths_Low) :: EUVAC_Flux
   real, dimension(Num_WaveLengths_High) :: Tobiska_Flux
@@ -527,7 +754,7 @@ subroutine calc_scaled_euv
     call stop_gitm("Stopping in euv_ionization_heat")
   endif
 
-  ! The empirical models (EUVAC, Tobiska, Ridley) use f107e/f107ae: B10.7
+  ! The empirical models (EUVAC, Tobiska) use f107e/f107ae: B10.7
   call b107_convert(f107, f107a, f107e, f107ae)
 
   ! Defaults, and explainations:
@@ -541,238 +768,55 @@ subroutine calc_scaled_euv
 
   FISM_Flux = 0.0
   Empirical_Flux = 0.0
+  Tobiska_Flux = 0.0
+  EUVAC_Flux = 0.0
+
+  ! --------------------------------------------------------
+  ! These are Empirical Models:
+  if (UseRidleyEUV) call run_ridley_euv(Empirical_Flux, f107, f107a)
+  if (UseEUVAC) call run_euvac(EUVAC_Flux, f107e, f107ae)
+  if (UseTobiska) call run_tobiska_euv(Tobiska_Flux, f107e, f107ae)
+
+  if (UseEUVAC .or. UseTobiska) then
+    ! EUVAC is stored in EUVAC_Flux
+    Empirical_Flux = Tobiska_Flux
+    do N = 1, Num_WaveLengths_Low
+      NN = N + 15
+      if (UseTobiska) then
+        Empirical_Flux(NN) = 0.5*(EUVAC_Flux(N) + Tobiska_Flux(NN))
+      else
+        Empirical_Flux(NN) = EUVAC_Flux(N)
+      endif
+    enddo
+  endif
 
   ! --------------------------------------------------------
   ! This is for FISM:
-  if (UseEUVData) then
+  if (UseEUVData) then 
+    call get_FISM_Fluxes(FISM_Flux)
 
-    call Set_Euv(iError, CurrentTime, EndTime)
+    ! #EUVSCALE: flat F10.7a-dependent scaling of the spectrum. It was fit
+    ! against FISM, so it multiplies only the FISM term
+    EuvScale = max(0.0, EuvScaleBase + EuvScaleSlope*(f107a - EuvScaleF107aRef))
 
-    if (iError /= 0) then
-      call stop_gitm("Stopping in euv_ionization_heat. "// &
-                     "Error in EUV data. Check times!")
-    endif
-
-    do N = 1, Num_WaveLengths_High
-      wvavg(N) = (WAVEL(N) + WAVES(N))/2.
-    enddo
-
-    call start_timing("EUV_Data")
-    SeeTime(:) = 0
-
-    do N = 1, nSeeTimes
-      SeeTime(N) = TimeSee(N)
-    enddo
-
-    tDiff = CurrentTime - SeeTime
-
-    where (tDiff .lt. 0) tDiff = 1.e20
-    iMin = minloc(tDiff)
-
-    Timed_Flux = SeeFlux(:, iMin(1))
-
-    if (CurrentTime .ge. FlareTimes(iFlare) .and. &
-        CurrentTime - dt .le. FlareTimes(iFlare)) then
-
-      FlareStartIndex = iMin(1) + 1
-      FlareEndIndex = iMin(1) + FlareLength
-      Timed_Flux = SeeFlux(:, FlareStartIndex)
-      FlareEndTime = SeeTime(FlareEndIndex)
-      DuringFlare = .true.
-      iFlare = iFlare + 1
-
-    else
-
-      if (DuringFlare) then
-        if (Seetime(iMin(1) + 1) .lt. FlareTimes(iFlare) .or. &
-            FlareTimes(iFlare) .eq. 0) then
-          if (CurrentTime .lt. SeeTime(FlareStartIndex)) then
-            ! We may not be to the point where the flare has begun
-            ! in the SEE data yet...
-            Timed_Flux = SeeFlux(:, FlareStartIndex)
-          else
-            if (CurrentTime .le. FlareEndTime) then
-              !Exponentially interpolate between last seetime and
-              !next seetim using y = kexp(-mx)
-
-              y1 = SeeFlux(:, iMin(1))
-              y2 = SeeFlux(:, iMin(1) + 1)
-              x1 = 0
-              x2 = SeeTime(iMin(1) + 1) - SeeTime(iMin(1))
-              x = CurrentTime - SeeTime(iMin(1))
-
-              m = ALOG(y2/y1)/(x1 - x2)
-              k = y1*exp(m*x1)
-              Timed_Flux = k*exp(-1*m*x)
-            else
-              DuringFlare = .False.
-            endif
-          endif
-        endif
-      endif
-    endif
-
-     !!need to convert from W/m^2 to photons/m^2/s
-    do N = 1, Num_WaveLengths_High
-      FISM_Flux(N) = Timed_Flux(N)*wvavg(N)*1.0e-10/ &
-                     (Planck_Constant*Speed_Light)
-    enddo
-    call end_timing("EUV_Data")
-
-  endif
-
-  if (UseRidleyEUV) then
-
-    do N = 1, Num_WaveLengths_High
-      Solar_Flux(N) = &
-        RidleySlopes(1, N)*(f107e**RidleyPowers(1, N)) + &
-        RidleySlopes(2, N)*(f107ae**RidleyPowers(2, N)) + &
-        RidleySlopes(3, N)*(f107ae - f107e) + &
-        RidleyIntercepts(N)
-      wvavg(N) = (WAVEL(N) + WAVES(N))/2.
-      Empirical_Flux(N) = &
-        Solar_Flux(N)*wvavg(N)*1.0e-10/ &
-        (Planck_Constant*Speed_Light)
-    enddo
-
+    ! Blend Data and Empirical (set in set_inputs) and
+    ! take into account the sun distance to the planet.  Applied after
+    ! Flux_of_EUV is assigned, so repeated calls cannot compound it:
+    Flux_of_EUV = &
+      (EUV_Ratio_Empirical*Empirical_Flux + &
+      (1.0 - EUV_Ratio_Empirical)*FISM_Flux*EuvScale)/ &
+      (SunPlanetDistance**2)
   else
-
-    EUVAC_Flux = 0.0
-    Tobiska_Flux = 0.0
-
-    ! This runs EUVAC and puts the data into EUVAC_Flux
-    if (UseEUVAC) call run_euvac(EUVAC_Flux, f107e, f107ae)
-
-    if (iDebugLevel > 1) &
-      write(*, *) " --> euvac : ", euvac_flux, " <<< eol"
-
-    ! This stuff is for Tobiska:
-    hlybr = 0.
-    fexvir = 0.
-    hlya = 3.E+11 + 0.4E+10*(f107e - 70.)
-    heiew = 0.
-
-    ! I think that this is the Hinteregger stuff, which goes from
-    ! 2A - 1750A, so it is used to fill in the Above and Below spectrum
-    f107_ratio = (f107e - 68.0)/(243.0 - 68.0)
-    do N = 1, Num_WaveLengths_High
-      Tobiska_Flux(N) = RFLUX(N) + (XFLUX(N) - RFLUX(N))*f107_Ratio
-      wvavg(N) = (WAVEL(N) + WAVES(N))/2.
-    enddo
-
-    xuvfac = 4.0 - f107_ratio
-    if (xuvfac < 1.0) xuvfac = 1.0
-
-    ! This is a total hack, just comparing FISM to these fluxes:
-    tobiska_flux(Num_WaveLengths_High - 4) = &
-      tobiska_flux(Num_WaveLengths_High - 4)*3.0
-    tobiska_flux(Num_WaveLengths_High - 3) = &
-      tobiska_flux(Num_WaveLengths_High - 3)*3.0
-    tobiska_flux(Num_WaveLengths_High - 2) = &
-      tobiska_flux(Num_WaveLengths_High - 2)*5.0
-    tobiska_flux(Num_WaveLengths_High - 1) = &
-      tobiska_flux(Num_WaveLengths_High - 1)*100.0
-    tobiska_flux(Num_WaveLengths_High) = &
-      tobiska_flux(Num_WaveLengths_High)*800.0
-
-    if (.not. UseAboveHigh) tobiska_flux(56:Num_WaveLengths_High) = 0
-    if (.not. UseBelowLow) tobiska_flux(1:Num_WaveLengths_Low) = 0
-
-    if (HLYA > 0.001) then
-      hlymod = hlya
-    else
-      if (heiew > 0.001) then
-        hlymod = heiew*3.77847e9 + 8.40317e10
-      else
-        hlymod = 8.70e8*f107e + 1.90e11
-      endif
-    endif
-
-    if (heiew > 0.001) then
-      heimod = heiew*3.77847e9 + 8.40317e10
-    else
-      heimod = hlymod
-    endif
-
-    ! hlymod is SME Lyman-alpha
-    ! heimod is He I 10,830A, scaled to Lyman-alpha
-    do N = 16, 55
-      Tobiska_Flux(N) = &
-        TCHR0(N) + &
-        TCHR1(N)*hlymod + &
-        TCHR2(N)*heimod + &
-        TCOR0(N) + &
-        TCOR1(N)*f107e + &
-        TCOR2(N)*f107ae
-    enddo
-
-    !
-    ! Substitute in H Lyman-alpha and XUVFAC if provided:
-    !
-
-    if (hlya > 0.001) Tobiska_Flux(12) = hlya/1.E9
-    if (xuvfac > 0.001) THEN
-      xuvf = xuvfac
-    else
-      xuvf = 1.0
-    endif
-
-    !
-    ! Convert from gigaphotons to photons, cm^-2 to m^-2, etc.:
-    !
-
-    do N = 1, Num_WaveLengths_High
-      IF (Tobiska_Flux(N) < 0.0) Tobiska_Flux(N) = 0.0
-      ! I don't know why we scale this...
-      IF ((WAVEL(N) < 251.0) .AND. (WAVES(N) > 15.0)) then
-        Tobiska_Flux(N) = Tobiska_Flux(N)*xuvf
-      endif
-      !
-      ! Convert to photons/m^2/s
-      !
-      Tobiska_Flux(N) = Tobiska_Flux(N)*1.E9*10000.0
-    enddo
-
-    ! Tobiska_Flux has the Tobiska and Hinteregger fluxes in there already:
-
-    ! We need to preload Tobiska Flux, so that the non-EUVAC bins are
-    ! filled with valid fluxes
-    do N = 1, Num_WaveLengths_High
-      Empirical_Flux(N) = Tobiska_Flux(N)
-    enddo
-
-    if (UseEUVAC) then
-      ! EUVAC is stored in EUVAC_Flux
-      do N = 1, Num_WaveLengths_Low
-        NN = N + 15
-        if (UseTobiska) then
-          Empirical_Flux(NN) = 0.5*(EUVAC_Flux(N) + Tobiska_Flux(NN))
-        else
-          Empirical_Flux(NN) = EUVAC_Flux(N)
-        endif
-      enddo
-    endif
-
+    Flux_of_EUV = &
+      Empirical_Flux / (SunPlanetDistance**2)
   endif
-
-  ! #EUVSCALE: flat F10.7a-dependent scaling of the spectrum. It was fit
-  ! against FISM, so it multiplies only the FISM term
-  EuvScale = max(0.0, EuvScaleBase + EuvScaleSlope*(f107a - EuvScaleF107aRef))
-
-  ! Blend Data and Empirical (set in set_inputs) and
-  ! take into account the sun distance to the planet.  Applied after
-  ! Flux_of_EUV is assigned, so repeated calls cannot compound it:
-  Flux_of_EUV = &
-    (EUV_Ratio_Empirical*Empirical_Flux + &
-     (1.0 - EUV_Ratio_Empirical)*FISM_Flux*EuvScale)/ &
-    (SunPlanetDistance**2)
 
   TotalIntegratedEuvEnergy = 0.0
   do N = 1, Num_WaveLengths_High
     TotalIntegratedEuvEnergy = &
       TotalIntegratedEuvEnergy + &
       Flux_of_EUV(N)*(Planck_Constant*Speed_Light)/ &
-      (wvavg(N)*1.0e-10)
+      (wavelengthmid(N)*1.0e-10)
   enddo
 
 end subroutine calc_scaled_euv
@@ -785,7 +829,8 @@ end subroutine calc_scaled_euv
 subroutine init_euv
 
   use ModEUV
-  use ModInputs, only: UseRidleyEUV
+  use ModTime
+  use ModInputs
 
   implicit none
 
@@ -796,18 +841,16 @@ subroutine init_euv
 
   do N = 1, Num_WaveLengths_High
     ! Calculate the energy in the bin:
-    wavelength_ave = (WAVEL(N) + WAVES(N))/2.0
+    waveLengthMid(n) = (WAVEL(N) + WAVES(N))/2.0
     PhotonEnergy(N) = &
       Planck_Constant*Speed_Light/ &
-      (wavelength_ave*1.0e-10)
+      (waveLengthMid(n)*1.0e-10)
   enddo
 
   EUVEFF = 0.05
 
   do N = 1, 15
-
     RLMSRC(N) = RLMEUV(N)
-
   enddo
 
   DO N = 1, Num_WaveLengths_Low
@@ -863,7 +906,18 @@ subroutine init_euv
   PhotoIon_H2 = PhotoIon_H2/10000.0
   PhotoIon_NO = PhotoIon_NO/10000.0
 
-  if (UseRidleyEUV) call read_euv_waves(iError)
+  if (UseEUVData) call Set_Euv(iError, CurrentTime, EndTime)
+
+  if (UseRidleyEUV) then
+    if (iDebugLevel >= 0) then
+      write(*,*) '> Setting EUV Model to Ridley Version ', RidleyEUVModelNumber
+    endif
+    if (RidleyEUVModelNumber == 0) then
+      call read_euv_waves(iError)
+    else
+      call read_euv2026_model(iError)
+    endif
+  endif
 
 end subroutine init_euv
 
@@ -909,6 +963,7 @@ subroutine Set_Euv(iError, StartTime, EndTime)
   if (.not. IsThere) &
     call stop_gitm(trim(cEUVFile)//" cannot be found by read_inputs")
 
+  if (iDebugLevel >= 0) write(*,*) '> Reading FISM file : ', trim(cEUVFile)
   open(unit=iInputUnit_, file=cEUVFile, status="old", IOSTAT=iError)
 
   if (iError /= 0) then
@@ -997,6 +1052,8 @@ subroutine read_euv_waves(iError)
 
   call report("read_euv_waves", 2)
 
+  RidleyF107Subtract = 0.0
+
   open(unit=iInputUnit_, file=cRidleyEUVFile, status="old", IOSTAT=iError)
 
   if (iError /= 0) then
@@ -1036,4 +1093,88 @@ subroutine read_euv_waves(iError)
   close(iInputUnit_)
 
 end subroutine read_euv_waves
+
+! This is an updated model of the EUV that was made in Nov 2026
+! It uses the form of the "Ridley EUV Model", but is slightly
+! different.  There are two forms:
+! model1 = base + Ca * (F107A-50) ^ Pa + Cd * (F107-50) ^ Pd
+! model2 = base + Ca * (F107A-50) ^ Pa + Cd * (F107-F107A)
+! It seems like the old model assumes:
+! model = Ri + Rs1 * F107 ^ Rp1 + Rs2 * F107A ^ Rp1 + Rs3 * (F107-F107A)
+! So, we need to fit to this form.
+
+subroutine read_euv2026_model(iError)
+
+  use ModKind
+  use ModEUV
+  use ModInputs
+
+  implicit none
+
+  integer, intent(out)     :: iError
+  character(len=80)        :: cline
+  character(len=iCharLen_) :: cFilename
+
+  integer :: nFiles, nWaves, iWave, i
+  real :: tmp1(8), tmp2(7)
+  logical :: isDone
+
+  call report("read_euv2026_model", 0)
+
+  RidleyF107Subtract = 50.0
+
+  if (RidleyEUVModelNumber == 1) then
+    cFilename = cEUVFileModel1
+  endif
+  if (RidleyEUVModelNumber == 2) then
+    cFilename = cEUVFileModel2
+  endif
+
+  open(unit=iInputUnit_, file=cFilename, status="old", IOSTAT=iError)
+
+  if (iError /= 0) then
+    write(*, *) "Error in opening EUV model file  Is this set?"
+    write(*, *) "Code : ", iError, cFilename
+    call stop_gitm("Stopping in read_euv2026_model")
+  endif
+
+  cline = ''
+  isDone = .false.
+  do while (.not.isDone)
+    read(iInputUnit_, *, iostat=iError) cLine
+    if (cLine(1:7) == "#PARAMS") isDone = .true.
+    if (iError /= 0) isDone = .true.
+  enddo
+
+  if (iError /= 0) then
+    write(*, *) "Error in reading EUV model file"
+    write(*, *) "Code : ", iError, cFilename
+    call stop_gitm("Stopping in read_euv2026_model")
+  endif
+
+  do i = 1, Num_WaveLengths_High
+
+    if (RidleyEUVModelNumber == 1) then
+      read(iInputUnit_, *, iostat=iError) iWave, tmp1
+      RidleySlopes(1, i) = tmp1(6)
+      RidleySlopes(2, i) = tmp1(4)
+      RidleySlopes(3, i) = 0.0
+      RidleyIntercepts(i) = tmp1(3)
+      RidleyPowers(1, i) = tmp1(5)
+      RidleyPowers(2, i) = tmp1(7)
+    else
+      read(iInputUnit_, *, iostat=iError) iWave, tmp2
+      RidleySlopes(1, i) = 0.0
+      RidleySlopes(2, i) = tmp2(4)
+      RidleySlopes(3, i) = tmp2(6)
+      RidleyIntercepts(i) = tmp2(3)
+      RidleyPowers(1, i) = 1.0
+      RidleyPowers(2, i) = tmp2(5)
+    endif
+
+  enddo
+
+  close(iInputUnit_)
+
+end subroutine read_euv2026_model
 
