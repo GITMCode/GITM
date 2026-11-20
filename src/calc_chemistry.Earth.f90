@@ -5,16 +5,18 @@ subroutine calc_chemistry(iBlock)
 
   use ModSizeGitm
   use ModGITM
+  use ModTime, only: CurrentTime
   use ModPlanet
   use ModRates
   use ModEUV
   use ModSources
   use ModInputs, only: &
-    iDebugLevel, UseIonChemistry, UseNeutralChemistry, f107, DoCheckForNans, &
+    iDebugLevel, UseIonChemistry, UseNeutralChemistry, DoCheckForNans, &
     minIonDensity, MinIonDensityAdvect
   use ModConstants
   use ieee_arithmetic
   use ModB107, only: b107_convert
+  use ModIndicesInterfaces, only: get_f107, get_f107a
 
   implicit none
 
@@ -28,14 +30,14 @@ subroutine calc_chemistry(iBlock)
   real :: Ions(nIons), Neutrals(nSpeciesTotal)
   real :: tli(nIons), tsi(nIons), tln(nSpeciesTotal), tsn(nSpeciesTotal)
 
-  integer :: iLon, iLat, iAlt, iIon, nIters, iNeutral
+  integer :: iLon, iLat, iAlt, iIon, nIters, iNeutral, iError
 
   real :: lon, lat, alt
   real :: LonDeg, LatDeg, AltKm, LST
   real, dimension(7)    :: AP
 
   real :: ChemicalHeatingSub, percent, o2ptotal
-  real :: f107NO, f107aNO
+  real :: f107, f107NO, f107aNO
   real :: ChemicalHeatingSubI, ChemicalHeatingSubE
   real :: Emission(nEmissions), EmissionTotal(nEmissions)
   real, dimension(nLons, nLats, nAlts) :: &
@@ -106,6 +108,13 @@ subroutine calc_chemistry(iBlock)
   call start_timing("calc_chemistry")
 
   ! NO photodissociation scales with F10.7, convert to B10.7 if #B107
+  iError = 0
+  call get_f107(CurrentTime, f107, iError)
+  if (iError /= 0) then
+    write(*, *) "Error in getting F107 value.  Is this set?"
+    write(*, *) "Code : ", iError
+    call stop_gitm("Stopping in euv_ionization_heat")
+  endif
   call b107_convert(f107, f107, f107NO, f107aNO)
 
   DtAve = 0.0
