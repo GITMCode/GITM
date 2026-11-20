@@ -455,6 +455,8 @@ subroutine run_tobiska_euv(tobiska_flux, f107, f107a)
   tobiska_flux(Num_WaveLengths_High) = &
     tobiska_flux(Num_WaveLengths_High)*800.0
 
+  !   UseAboveHigh is False by default
+  !   UseBelowLow is False by default
   if (.not. UseAboveHigh) tobiska_flux(56:Num_WaveLengths_High) = 0
   if (.not. UseBelowLow) tobiska_flux(1:Num_WaveLengths_Low) = 0
 
@@ -713,31 +715,15 @@ subroutine calc_scaled_euv
 
   implicit none
 
-  integer, parameter :: Hinteregger_Contrast_Ratio = 0
-  integer, parameter :: Hinteregger_Linear_Interp = 1
-  integer, parameter :: Tobiska_EUV91 = 2
-  integer, parameter :: WoodsAndRottman_10Nov88 = 3
-  integer, parameter :: WoodsAndRottman_20Jun89 = 4
-
-  integer :: N, NN, iMin(1) = 0, iError
+  integer :: iError, N, NN
   ! Solar index for the empirical models: F10.7, or B10.7 with #B107
   real :: f107e, f107ae, f107, f107a
-  real    :: EuvScale
+  real :: EuvScale
 
-  ! regression coefficients which reduce to solar min. spectrum:
-  ! for Hinteregger_Contrast_Ratio model:
-
-  real, dimension(1:3) :: B1, B2
   real, dimension(Num_WaveLengths_High) :: FISM_Flux
   real, dimension(Num_WaveLengths_Low) :: EUVAC_Flux
   real, dimension(Num_WaveLengths_High) :: Tobiska_Flux
   real, dimension(Num_WaveLengths_High) :: Empirical_Flux
-
-  data B1/1.0, 0.0138, 0.005/
-  data B2/1.0, 0.59425, 0.3811/
-
-  ! 'best fit' regression coefficients, commented out, for reference:
-  !     DATA B1/1.31, 0.01106, 0.00492/, B2/-6.618, 0.66159, 0.38319/
 
   iError = 0
   call get_f107(CurrentTime, f107, iError)
@@ -761,10 +747,8 @@ subroutine calc_scaled_euv
   !   UseEUVData = FISM. False by default
   !   UseRidleyEUV is False by default
   !
-  !   UseEUVAC is True by default
-  !   UseTobiska is True by default
-  !   UseAboveHigh is True by default
-  !   UseBelowLow is True by default
+  !   UseEUVAC is False by default
+  !   UseTobiska is False by default
 
   FISM_Flux = 0.0
   Empirical_Flux = 0.0
