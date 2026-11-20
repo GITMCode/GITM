@@ -49,6 +49,7 @@ subroutine set_inputs
   real :: EDC_est_tmp
   real*8 :: DTime
   logical :: HasSetAuroraMods = .false.
+  real :: f107, f107a
 
   call report("set_inputs", 1)
 
@@ -1805,11 +1806,8 @@ subroutine set_inputs
         call read_in_logical(UseTobiska, iError)
         call read_in_logical(UseAboveHigh, iError)
         call read_in_logical(UseBelowLow, iError)
-
-        if (.not. UseEUVAC .and. &
-            .not. UseTobiska .and. &
-            .not. UseAboveHigh .and. &
-            .not. UseBelowLow) UseRidleyEUV = .true.
+        call read_in_logical(UseRidleyEUV, iError)
+        call read_in_int(RidleyEUVModelNumber, iError)
 
         if (iError /= 0) then
           write(*, *) 'Incorrect format for #EUVMODEL'
@@ -1823,6 +1821,8 @@ subroutine set_inputs
           write(*, *) 'UseTobiska            (logical)'
           write(*, *) 'UseAboveHigh          (logical)'
           write(*, *) 'UseBelowLow           (logical)'
+          write(*, *) 'UseRidleyEUV           (logical)'
+          write(*, *) 'RidleyEUVModelNumber   (integer)'
         endif
 
       case ("#B107")
@@ -1857,7 +1857,6 @@ subroutine set_inputs
           write(*, *) 'cEUVFile              (string)'
           write(*, *) 'EUV_Ratio_Empirical   (real, optional, 0-1)'
         else
-          if (UseEUVData) call Set_Euv(iError, CurrentTime, EndTime)
           if (iError /= 0) then
             call stop_gitm("Stopping after set_euv in set_inputs. "// &
                            "Error in EUV data. Check times!")
