@@ -78,6 +78,7 @@ OBJECTS = \
 	chapman.o\
 	check_for_nans.o\
 	divergence.o\
+	euv_models.o\
 	exchange_messages_sphere.o\
 	finalize.o\
 	get_glow.o\
