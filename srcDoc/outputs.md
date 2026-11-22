@@ -126,6 +126,12 @@ Notes:
   `mlon`/`mlat` (in degrees), not `Longitude`/`Latitude`. Its
   `GeoLat`/`GeoLon` variables are the geographic position of each magnetic
   grid point (radians in `.bin`, degrees in netcdf).
+- **The two pressure-gradient outputs are in different forms.** `3DMOH`
+  `NeutralPressGrad` is the force per unit mass $-\frac{1}{\rho}\nabla P_n$
+  (m/s2), in the same form as the other momentum-budget terms. `3DION`
+  `IonPressGrad` is the gradient $\nabla(P_i + P_e)$ (Pa/m), with the opposite
+  sign, and is written even when `UseIonPressureGradient` is off. To compare
+  them, use $-$`Rho` $\times$ `NeutralPressGrad`.
 - **USR types** list whatever the user code registered. The tables below show
   what GITM registers as shipped.
 
@@ -333,9 +339,9 @@ hand.
 | E.F. Vertical | V/m | Vertical electric field |
 | E.F. Magnitude | V/m | Electric field magnitude |
 | IN Collision Freq | Hz | Ion-neutral collision frequency |
-| IonPressGrad (east) | m/s2 | Ion Pressure gradient acceleration eastward |
-| IonPressGrad (north) | m/s2 | Ion Pressure gradient acceleration northward |
-| IonPressGrad (up) | m/s2 | Ion Pressure gradient acceleration upward |
+| IonPressGrad (east) | Pa/m | Ion plus electron pressure gradient eastward |
+| IonPressGrad (north) | Pa/m | Ion plus electron pressure gradient northward |
+| IonPressGrad (up) | Pa/m | Ion plus electron pressure gradient upward |
 
 ### 3DLST
 
@@ -392,8 +398,8 @@ hand.
 | IonDrag_north | m/s2 | Ion drag north accel |
 | Horiz_Adv_Ve | m/s2 | Horiz advection east accel |
 | Horiz_Adv_Vn | m/s2 | Horiz advection north accel |
-| PressGrad (east) | m/s2 | Neutral Pressure gradient acceleration eastward |
-| PressGrad (north) | m/s2 | Neutral Pressure gradient acceleration northward |
+| NeutralPressGrad (east) | m/s2 | Neutral pressure gradient acceleration eastward |
+| NeutralPressGrad (north) | m/s2 | Neutral pressure gradient acceleration northward |
 | Coriolis_east | m/s2 | Coriolis east accel |
 | Coriolis_north | m/s2 | Coriolis north accel |
 | Centrifugal_north | m/s2 | Centrifugal north accel |

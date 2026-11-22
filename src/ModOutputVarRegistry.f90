@@ -84,11 +84,11 @@ module ModOutputVarRegistry
     VarMeta('E.F. Vertical', 'V/m', 'Vertical electric field'), &
     VarMeta('E.F. Magnitude', 'V/m', 'Electric field magnitude'), &
     VarMeta('IN Collision Freq', 'Hz', 'Ion-neutral collision frequency'), &
-    VarMeta('PressGrad (east)', 'm/s2', 'Neutral Pressure gradient acceleration eastward'), &
-    VarMeta('PressGrad (north)', 'm/s2', 'Neutral Pressure gradient acceleration northward'), &
-    VarMeta('IonPressGrad (east)', 'm/s2', 'Ion Pressure gradient acceleration eastward'), &
-    VarMeta('IonPressGrad (north)', 'm/s2', 'Ion Pressure gradient acceleration northward'), &
-    VarMeta('IonPressGrad (up)', 'm/s2', 'Ion Pressure gradient acceleration upward'), &
+    VarMeta('NeutralPressGrad (east)', 'm/s2', 'Neutral pressure gradient acceleration eastward'), &
+    VarMeta('NeutralPressGrad (north)', 'm/s2', 'Neutral pressure gradient acceleration northward'), &
+    VarMeta('IonPressGrad (east)', 'Pa/m', 'Ion plus electron pressure gradient eastward'), &
+    VarMeta('IonPressGrad (north)', 'Pa/m', 'Ion plus electron pressure gradient northward'), &
+    VarMeta('IonPressGrad (up)', 'Pa/m', 'Ion plus electron pressure gradient upward'), &
     ! -- 2D electrodynamics (2DGEL) ----------------------------------------
     VarMeta('PedCond', 'S', 'Height-integrated Pedersen conductance'), &
     VarMeta('HalCond', 'S', 'Height-integrated Hall conductance'), &
