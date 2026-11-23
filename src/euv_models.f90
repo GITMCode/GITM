@@ -2,6 +2,93 @@
 ! Full license can be found in LICENSE
 
 !-------------------------------------------------------------------
+! Set EUV Flags
+!-------------------------------------------------------------------
+
+subroutine set_euv_flags(iError)
+
+  use ModInputs
+  implicit none
+
+  logical :: isFound
+
+  integer, intent(out) :: iError
+
+  isFound = .false.
+  ! If this is called, we need to turn everything off, and allow
+  ! the user to set a value
+  UseEUVData = .false.
+  UseEUVAC = .false.
+  UseTobiska = .false.
+  UseAboveHigh = .false.
+  UseBelowLow = .false.
+  UseRidleyEUV = .false.
+  RidleyEUVModelNumber = 2
+
+  ! Turn everything to lower case:
+  call lower_case(cEUVModel)
+
+  if (cEUVModel(1:4) == 'fism') then
+    UseEUVData = .true.
+    isFound = .true.
+  endif
+
+  if (cEUVModel(1:6) == 'ridley') then
+    UseRidleyEUV = .true.
+    if (cEUVModel(7:7) == '0') then
+      RidleyEUVModelNumber = 0
+      isFound = .true.
+      call report(' -> Setting EUV Model to Ridley0', 0)
+    endif
+    if (cEUVModel(7:7) == '1') then
+      RidleyEUVModelNumber = 1
+      isFound = .true.
+      call report(' -> Setting EUV Model to Ridley1', 0)
+    endif
+    if (cEUVModel(7:7) == '2') then
+      RidleyEUVModelNumber = 2
+      isFound = .true.
+      call report(' -> Setting EUV Model to Ridley2', 0)
+    endif
+  endif
+  
+  if (cEUVModel(1:5) == 'euvac') then
+    UseEUVAC = .true.
+    isFound = .true.
+    call report(' -> Setting EUV Model to EUVAC', 0)
+  endif
+
+  ! Augmentation to above
+  if (cEUVModel(1:10) == 'euvacblend') then
+    UseEUVACBlend = .true.
+    call report(' -> Augmenting EUVAC Model', 0)
+  endif
+
+  if (cEUVModel(1:5) == 'tobiska') then
+    UseTobiska = .true.
+    isFound = .true.
+    call report(' -> Setting EUV Model to Tobiska', 0)
+  endif
+
+  if (.not. isFound) then
+    if (iDebugLevel >= 0) then
+      write(*,*) 'EUV Models Available: '
+      write(*,*) '  - EUVAC: the OG, unaltered'
+      write(*,*) '  - EUVACBlend: the OG with some additions from Tobiska'
+      write(*,*) '  - Tobiska: a model made by Kent Tobiska?'
+      write(*,*) '  - Ridley0: the first Ridley model that is unverified'
+      write(*,*) '  - Ridley1: Uses F107-FISM relationship, F107 & F107A have power'
+      write(*,*) '  - Ridley2: Uses F107-FISM relationship, has F107-F107A'
+    endif
+    iError = 1
+  else
+    iError = 0
+  endif
+
+end subroutine set_euv_flags
+
+
+!-------------------------------------------------------------------
 ! Subroutine for calculating scaled solar flux.
 !-------------------------------------------------------------------
 
@@ -59,7 +146,7 @@ subroutine calc_scaled_euv
   ! --------------------------------------------------------
   ! These are Empirical Models:
   if (UseRidleyEUV) call run_ridley_euv(Empirical_Flux, f107, f107a)
-  if (UseEUVAC) call run_euvac(EUVAC_Flux, f107e, f107ae)
+  if (UseEUVAC .or. UseTobiska) call run_euvac(EUVAC_Flux, f107e, f107ae)
   if (UseTobiska) call run_tobiska_euv(Tobiska_Flux, f107e, f107ae)
 
   if (UseEUVAC .or. UseTobiska) then

@@ -156,8 +156,6 @@ module ModInputs
   real :: TimeDelayHighLat = 0.0
   real :: TimeDelayEUV = 0.0
 
-  !real :: f107 = 150.0
-  !real :: f107a = 150.0
   integer :: iModelSolar = 0
 
   real :: dHFactor = 0.3
@@ -365,13 +363,13 @@ module ModInputs
 
   real :: LogNS0(nSpecies)
 
-  logical                   :: UseEUVAC = .false.
-  logical                   :: UseTobiska = .false.
-  logical                   :: UseAboveHigh = .false.
-  logical                   :: UseBelowLow = .false.
-
+  logical :: UseEUVAC = .false., UseEUVACBlend = .false.
+  logical :: UseTobiska = .false.
+  logical :: UseAboveHigh = .false.
+  logical :: UseBelowLow = .false.
   logical :: UseRidleyEUV = .true.
   integer :: RidleyEUVModelNumber = 2
+  character(len=iCharLen_) :: cEUVModel = "ridley2"
 
   logical                   :: UseEUVData = .false.
   ! #B107: use the F10.7 -> B10.7 table (ModB107) for the empirical EUV,

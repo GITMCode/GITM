@@ -44,6 +44,7 @@ subroutine set_inputs
   character(len=iCharLen_)                 :: cTempLine
   character(len=iCharLen_)                 :: sIonChemistry, sNeutralChemistry
   character(len=iCharlen_), dimension(100) :: cTempLines
+  character(len=4) :: cYear
 
   real :: Vx, Bx, Bz, By, Kp, HemisphericPower, tsim_temp, swN, au_val, al_val
   real :: EDC_est_tmp
@@ -1799,6 +1800,36 @@ subroutine set_inputs
           write(*, *) '#LOGFILE'
           write(*, *) 'DtLogFile   (real, seconds)'
           IsDone = .true.
+        endif
+
+      case ("#SETEUVMODEL")
+        call read_in_string(cEUVModel, iError)
+        if (iError /= 0) then
+          write(*, *) 'Incorrect format for #SETEUVMODEL:'
+          write(*, *) '#EUVMODEL'
+          write(*, *) 'cEuvModel        (string)'
+          write(*, *) 'cEUVFile              (string, read if model is fism)'
+          write(*, *) 'EUV_Ratio_Empirical   (real, optional, read if model is fism, 0-1)'
+          write(*, *) ''
+          cEUVModel = 'noneset'
+        endif
+        call set_euv_flags(iError)
+
+        if (iError /= 0) then
+          call stop_gitm("Stopping after seteuvmodel set_inputs.")
+        endif
+        if (UseEUVData) then
+          call read_in_string(cEUVFile, iError)
+          ! If none is provided, set a default:
+          call i2s(iStartTime, cYear, 4)
+          if (iError /= 0) then
+            cEUVFile = 'UA/DataIn/FISM/fismflux_daily_' // cYear // '.dat'
+          endif
+          call read_in_real(EUV_Ratio_Empirical, iError)
+          if (iError /= 0) then
+            ! Not given: unmixed
+            EUV_Ratio_Empirical = 0.0
+          endif
         endif
 
       case ("#EUVMODEL")
