@@ -971,6 +971,8 @@ subroutine set_inputs
           write(*, *) 'DtReport    (real)'
           write(*, *) 'UseBarriers (logical)'
           IsDone = .true.
+        else
+          if (iDebugProc /= iProc) iDebugLevel = -1
         endif
 
       case ("#IONLIMITS")
@@ -1805,31 +1807,31 @@ subroutine set_inputs
       case ("#SETEUVMODEL")
         call read_in_string(cEUVModel, iError)
         if (iError /= 0) then
-          write(*, *) 'Incorrect format for #SETEUVMODEL:'
-          write(*, *) '#EUVMODEL'
-          write(*, *) 'cEuvModel        (string)'
-          write(*, *) 'cEUVFile              (string, read if model is fism)'
-          write(*, *) 'EUV_Ratio_Empirical   (real, optional, read if model is fism, 0-1)'
-          write(*, *) ''
-          cEUVModel = 'noneset'
+           write(*, *) 'Incorrect format for #SETEUVMODEL:'
+           write(*, *) '#EUVMODEL'
+           write(*, *) 'cEuvModel        (string)'
+           write(*, *) 'cEUVFile              (string, read if model is fism)'
+           write(*, *) 'EUV_Ratio_Empirical   (real, optional, read if model is fism, 0-1)'
+           write(*, *) ''
+           cEUVModel = 'noneset'
         endif
         call set_euv_flags(iError)
 
         if (iError /= 0) then
-          call stop_gitm("Stopping after seteuvmodel set_inputs.")
+          call stop_gitm("Stopping after #seteuvmodel set_inputs.")
         endif
         if (UseEUVData) then
-          call read_in_string(cEUVFile, iError)
+           call read_in_string(cEUVFile, iError)
           ! If none is provided, set a default:
-          call i2s(iStartTime, cYear, 4)
-          if (iError /= 0) then
-            cEUVFile = 'UA/DataIn/FISM/fismflux_daily_' // cYear // '.dat'
-          endif
+          if (len_trim(cEUVFile) < 5) cEUVFile = 'auto'
+          if (iDebuglevel >= 0) &
+               write(*,*) ' -> Setting cEUVFile : ', trim(cEUVFile)
           call read_in_real(EUV_Ratio_Empirical, iError)
           if (iError /= 0) then
-            ! Not given: unmixed
-            EUV_Ratio_Empirical = 0.0
+             ! Not given: unmixed
+             EUV_Ratio_Empirical = 0.0
           endif
+          iError = 0
         endif
 
       case ("#EUVMODEL")
@@ -1888,10 +1890,12 @@ subroutine set_inputs
           write(*, *) 'cEUVFile              (string)'
           write(*, *) 'EUV_Ratio_Empirical   (real, optional, 0-1)'
         else
-          if (iError /= 0) then
-            call stop_gitm("Stopping after set_euv in set_inputs. "// &
-                           "Error in EUV data. Check times!")
-          endif
+           ! For sake of compatability, we blend FISM with old models:
+           UseEUVAC = .true.
+           UseTobiska = .true.
+           UseAboveHigh = .true.
+           UseBelowLow = .true.
+           UseRidleyEUV = .false.
         endif
 
         ! Optional blending of the empirical EUV models with the FISM data.
@@ -2034,12 +2038,10 @@ subroutine set_inputs
 
         call read_in_logical(doSeparateHPI, iError)
         if ((iError /= 0) .and. (iDebugProc == iProc) .and. doUseAeForHp) then
-          write(*, *) "----------------------------------------------"
-          write(*, *) "GITM allows the use of a 10% seasonal "
-          write(*, *) "correction factor in the conversion of AE to HP"
-          write(*, *) "Put another T after convert to HP if you want this,"
-          write(*, *) "or put an F to silence this message."
-          write(*, *) "----------------------------------------------"
+          write(*, *) "> GITM allows the use of a 10% seasonal "
+          write(*, *) "  correction factor in the conversion of AE to HP"
+          write(*, *) "  Put another T after convert to HP if you want this,"
+          write(*, *) "  or put an F to silence this message."
           iError = 0
         endif
 
