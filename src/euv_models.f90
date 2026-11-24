@@ -2,6 +2,132 @@
 ! Full license can be found in LICENSE
 
 !-------------------------------------------------------------------
+! Subroutine for calculating scaled solar flux.
+!-------------------------------------------------------------------
+
+subroutine calc_scaled_euv
+
+  use ModEUV
+  use ModInputs
+  use ModTime
+  use ModIndicesInterfaces
+  use ModGITM, only: dt
+  use ModB107, only: b107_convert
+
+  implicit none
+
+  integer :: iError, N, NN
+  ! Solar index for the empirical models: F10.7, or B10.7 with #B107
+  real :: f107e, f107ae, f107, f107a
+  real :: EuvScale
+
+  real, dimension(Num_WaveLengths_High) :: FISM_Flux
+  real, dimension(Num_WaveLengths_Low) :: EUVAC_Flux
+  real, dimension(Num_WaveLengths_High) :: Tobiska_Flux
+  real, dimension(Num_WaveLengths_High) :: Empirical_Flux
+
+  iError = 0
+  call get_f107(CurrentTime, f107, iError)
+  if (iError /= 0) then
+    write(*, *) "Error in getting F107 value.  Is this set?"
+    write(*, *) "Code : ", iError
+    call stop_gitm("Stopping in euv_ionization_heat")
+  endif
+
+  call get_f107a(CurrentTime, f107a, iError)
+  if (iError /= 0) then
+    write(*, *) "Error in getting F107a value.  Is this set?"
+    write(*, *) "Code : ", iError
+    call stop_gitm("Stopping in euv_ionization_heat")
+  endif
+
+  ! The empirical models (EUVAC, Tobiska) use f107e/f107ae: B10.7
+  call b107_convert(f107, f107a, f107e, f107ae)
+
+  ! Defaults, and explainations:
+  !   UseEUVData = FISM. False by default
+  !   UseRidleyEUV is False by default
+  !
+  !   UseEUVAC is False by default
+  !   UseTobiska is False by default
+
+  FISM_Flux = 0.0
+  Empirical_Flux = 0.0
+  Tobiska_Flux = 0.0
+  EUVAC_Flux = 0.0
+
+  ! --------------------------------------------------------
+  ! These are Empirical Models:
+  if (UseRidleyEUV) call run_ridley_euv(Empirical_Flux, f107, f107a)
+  if (UseEUVAC .or. UseTobiska) then
+     ! The old way of doing this is to run both, then blend them
+     call run_euvac(EUVAC_Flux, f107e, f107ae)
+     call run_tobiska_euv(Tobiska_Flux, f107e, f107ae)
+
+     ! EUVAC is stored in EUVAC_Flux
+     if (UseEUVACBlend .or. UseTobiska) &
+          Empirical_Flux = Tobiska_Flux
+     do N = 1, Num_WaveLengths_Low
+        NN = N + 15
+        if (UseTobiska) then
+           Empirical_Flux(NN) = 0.5*(EUVAC_Flux(N) + Tobiska_Flux(NN))
+        else
+           Empirical_Flux(NN) = EUVAC_Flux(N)
+        endif
+     enddo
+  endif
+
+  ! --------------------------------------------------------
+  ! This is for FISM:
+  if (UseEUVData) then 
+    call get_FISM_Fluxes(FISM_Flux)
+
+    ! #EUVSCALE: flat F10.7a-dependent scaling of the spectrum. It was fit
+    ! against FISM, so it multiplies only the FISM term
+    ! If you want PURE FISM, then set:
+    !   #EUVSCALE
+    !   EuvScaleBase = 1.0
+    !   EuvScaleSlope = 0.0
+    !   EuvScaleF107aRef = 100.0 (doesn't matter)
+    !
+    !   and
+    !
+    !   EUV_Ratio_Empirical = 0.0 (should be default)
+    EuvScale = max(0.0, EuvScaleBase + EuvScaleSlope*(f107a - EuvScaleF107aRef))
+
+    ! Blend Data and Empirical (set in set_inputs) and
+    ! take into account the sun distance to the planet.  Applied after
+    ! Flux_of_EUV is assigned, so repeated calls cannot compound it:
+    Flux_of_EUV = &
+      (EUV_Ratio_Empirical * Empirical_Flux + &
+      (1.0 - EUV_Ratio_Empirical) * FISM_Flux*EuvScale)/ &
+      (SunPlanetDistance**2)
+  else
+    Flux_of_EUV = &
+      Empirical_Flux / (SunPlanetDistance**2)
+  endif
+
+  if (iDebugLevel >= 0) then
+     !do N = 1, Num_WaveLengths_High
+     n = 1
+     write(*,*) 'flux of euv in bin : ', n, Flux_of_euv(n)
+     !enddo
+  endif
+
+  ! --------------------------------------------------------
+  ! Calculate total integrated energy for log file:
+
+  TotalIntegratedEuvEnergy = 0.0
+  do N = 1, Num_WaveLengths_High
+    TotalIntegratedEuvEnergy = &
+      TotalIntegratedEuvEnergy + &
+      Flux_of_EUV(N)*(Planck_Constant*Speed_Light)/ &
+      (wavelengthmid(N)*1.0e-10)
+  enddo
+
+end subroutine calc_scaled_euv
+
+!-------------------------------------------------------------------
 ! Set EUV Flags
 !-------------------------------------------------------------------
 
@@ -14,7 +140,9 @@ subroutine set_euv_flags(iError)
 
   integer, intent(out) :: iError
 
+  iError = 0
   isFound = .false.
+
   ! If this is called, we need to turn everything off, and allow
   ! the user to set a value
   UseEUVData = .false.
@@ -29,6 +157,7 @@ subroutine set_euv_flags(iError)
   call lower_case(cEUVModel)
 
   if (cEUVModel(1:4) == 'fism') then
+     call report(' -> Setting EUV Model to FISM', 0)
     UseEUVData = .true.
     isFound = .true.
   endif
@@ -87,121 +216,6 @@ subroutine set_euv_flags(iError)
 
 end subroutine set_euv_flags
 
-
-!-------------------------------------------------------------------
-! Subroutine for calculating scaled solar flux.
-!-------------------------------------------------------------------
-
-subroutine calc_scaled_euv
-
-  use ModEUV
-  use ModInputs
-  use ModTime
-  use ModIndicesInterfaces
-  use ModGITM, only: dt
-  use ModB107, only: b107_convert
-
-  implicit none
-
-  integer :: iError, N, NN
-  ! Solar index for the empirical models: F10.7, or B10.7 with #B107
-  real :: f107e, f107ae, f107, f107a
-  real :: EuvScale
-
-  real, dimension(Num_WaveLengths_High) :: FISM_Flux
-  real, dimension(Num_WaveLengths_Low) :: EUVAC_Flux
-  real, dimension(Num_WaveLengths_High) :: Tobiska_Flux
-  real, dimension(Num_WaveLengths_High) :: Empirical_Flux
-
-  iError = 0
-  call get_f107(CurrentTime, f107, iError)
-  if (iError /= 0) then
-    write(*, *) "Error in getting F107 value.  Is this set?"
-    write(*, *) "Code : ", iError
-    call stop_gitm("Stopping in euv_ionization_heat")
-  endif
-
-  call get_f107a(CurrentTime, f107a, iError)
-  if (iError /= 0) then
-    write(*, *) "Error in getting F107a value.  Is this set?"
-    write(*, *) "Code : ", iError
-    call stop_gitm("Stopping in euv_ionization_heat")
-  endif
-
-  ! The empirical models (EUVAC, Tobiska) use f107e/f107ae: B10.7
-  call b107_convert(f107, f107a, f107e, f107ae)
-
-  ! Defaults, and explainations:
-  !   UseEUVData = FISM. False by default
-  !   UseRidleyEUV is False by default
-  !
-  !   UseEUVAC is False by default
-  !   UseTobiska is False by default
-
-  FISM_Flux = 0.0
-  Empirical_Flux = 0.0
-  Tobiska_Flux = 0.0
-  EUVAC_Flux = 0.0
-
-  ! --------------------------------------------------------
-  ! These are Empirical Models:
-  if (UseRidleyEUV) call run_ridley_euv(Empirical_Flux, f107, f107a)
-  if (UseEUVAC .or. UseTobiska) call run_euvac(EUVAC_Flux, f107e, f107ae)
-  if (UseTobiska) call run_tobiska_euv(Tobiska_Flux, f107e, f107ae)
-
-  if (UseEUVAC .or. UseTobiska) then
-    ! EUVAC is stored in EUVAC_Flux
-    Empirical_Flux = Tobiska_Flux
-    do N = 1, Num_WaveLengths_Low
-      NN = N + 15
-      if (UseTobiska) then
-        Empirical_Flux(NN) = 0.5*(EUVAC_Flux(N) + Tobiska_Flux(NN))
-      else
-        Empirical_Flux(NN) = EUVAC_Flux(N)
-      endif
-    enddo
-  endif
-
-  ! --------------------------------------------------------
-  ! This is for FISM:
-  if (UseEUVData) then 
-    call get_FISM_Fluxes(FISM_Flux)
-
-    ! #EUVSCALE: flat F10.7a-dependent scaling of the spectrum. It was fit
-    ! against FISM, so it multiplies only the FISM term
-    EuvScale = max(0.0, EuvScaleBase + EuvScaleSlope*(f107a - EuvScaleF107aRef))
-
-    ! Blend Data and Empirical (set in set_inputs) and
-    ! take into account the sun distance to the planet.  Applied after
-    ! Flux_of_EUV is assigned, so repeated calls cannot compound it:
-    Flux_of_EUV = &
-      (EUV_Ratio_Empirical*Empirical_Flux + &
-      (1.0 - EUV_Ratio_Empirical)*FISM_Flux*EuvScale)/ &
-      (SunPlanetDistance**2)
-  else
-    Flux_of_EUV = &
-      Empirical_Flux / (SunPlanetDistance**2)
-  endif
-
-  if (iDebugLevel >= 0) then
-    do N = 1, Num_WaveLengths_High
-      write(*,*) n, Flux_of_euv(n)
-    enddo
-    stop
-  endif
-
-  ! --------------------------------------------------------
-  ! Calculate total integrated energy for log file:
-
-  TotalIntegratedEuvEnergy = 0.0
-  do N = 1, Num_WaveLengths_High
-    TotalIntegratedEuvEnergy = &
-      TotalIntegratedEuvEnergy + &
-      Flux_of_EUV(N)*(Planck_Constant*Speed_Light)/ &
-      (wavelengthmid(N)*1.0e-10)
-  enddo
-
-end subroutine calc_scaled_euv
 
 !-------------------------------------------------------------------
 ! Subroutine for calculating the Tobiska-EUV flux in a vacuum.
@@ -341,6 +355,7 @@ subroutine run_ridley_euv(ridley_flux, f107, f107a)
       RidleySlopes(2, N)*(f107ae**RidleyPowers(2, N)) + &
       RidleySlopes(3, N)*(f107ae - f107e) + &
       RidleyIntercepts(N)
+    if (flux < 0) flux = 0.0
     ridley_Flux(N) = &
       flux * wavelengthmid(n) * 1.0e-10/ &
       (Planck_Constant*Speed_Light)
@@ -422,7 +437,7 @@ subroutine get_FISM_fluxes(FISM_Flux)
   integer :: N, NN, iMin(1) = 0, iError
   real, dimension(Num_WaveLengths_High) :: Timed_Flux
 
-  call read_fism_file(iError, CurrentTime, EndTime)
+  call read_fism_file(iError)
 
   if (iError /= 0) then
     call stop_gitm("Stopping in get_FISM_fluxes. "// &
@@ -497,19 +512,21 @@ end subroutine get_FISM_fluxes
 ! Read FISM file.  This works with flares and daily FISM files
 ! -------------------------------------------------------------------------------
 
-subroutine read_fism_file(iError, StartTime, EndTime)
+subroutine read_fism_file(iError)
 
   use ModKind
   use ModEUV
   use ModInputs
+  use ModTime
 
   implicit none
 
   integer, intent(out)     :: iError
-  real(Real8_), intent(in) :: EndTime, StartTime
 
-  character(len=20)                       :: line, cline
-  integer, dimension(7)                   :: TimeOfFlare, TimeArray
+  character(len=4) :: autotest, cYear
+  character(len=20) :: line, cline
+  character(len=iCharLen_) :: cFileToOpen
+  integer, dimension(7) :: TimeOfFlare, TimeArray
   real, dimension(6 + Num_Wavelengths_High) :: temp
 
   real(Real8_) :: TimeDelay, BufferTime = 86400.0
@@ -530,16 +547,37 @@ subroutine read_fism_file(iError, StartTime, EndTime)
     if (StartTime + BufferTime < TimeSee(nSeeTimes)) return
   endif
 
+  write(*,*) 'we are here in read_fism_file!'
+  
   ! Assume that we can read the entire file
   ReReadEUVFile = .false.
 
   cline = ' '
 
+  ! Alter behaviour here a bit....
+  ! Can set cEUVFile to 'auto' and it will find it "automatically"
+  autotest = cEUVFile
+  call lower_case(autotest)
+  if (autotest == 'auto') then
+     ! Find the current year:
+     call i2s(iTimeArray(1), cYear, 4)
+     ! Set the file name
+     cEUVFile = 'UA/DataIn/FISM/fismflux_daily_' // cYear // '.dat'
+  endif
+  
   inquire(file=cEUVFile, EXIST=IsThere)
   if (.not. IsThere) &
     call stop_gitm(trim(cEUVFile)//" cannot be found by read_inputs")
 
-  if (iDebugLevel >= 0) write(*,*) '> Reading FISM file : ', trim(cEUVFile)
+  if (iDebugLevel >= 0) then
+     write(*,*) '> Reading FISM file : ', trim(cEUVFile)
+     if (EUV_Ratio_Empirical > 0.0) &
+          write(*,*) '-> EUV_Ratio_Empirical is set to ', EUV_Ratio_Empirical
+     write(*,*) '-> FISM Scaling Factors set to : '
+     write(*,*) '   EuvScaleBase : ', EuvScaleBase
+     write(*,*) '   EuvScaleSlope : ', EuvScaleSlope
+     write(*,*) '   EuvScaleF107aRef : ', EuvScaleF107aRef
+  endif
   open(unit=iInputUnit_, file=cEUVFile, status="old", IOSTAT=iError)
 
   if (iError /= 0) then
