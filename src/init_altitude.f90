@@ -198,6 +198,8 @@ subroutine init_altitude
   endif
 
   if (iProc == 0) then
+    write(*, *) '--------------------------------------------'
+    write(*, *) '> Altitude Information : '
     write(*, '(a,i6)') '    nAlts (compile-time) : ', nAlts
     write(*, '(a,f9.2)') '    AltMin          (km) : ', AltMin/1000.0
     write(*, '(a,f9.2)') '    AltMax          (km) : ', AltTop/1000.0
