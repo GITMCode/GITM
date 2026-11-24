@@ -107,10 +107,10 @@ subroutine calc_scaled_euv
       Empirical_Flux / (SunPlanetDistance**2)
   endif
 
-  if (iDebugLevel >= 0) then
+  if (iDebugLevel >= 2) then
      !do N = 1, Num_WaveLengths_High
      n = 1
-     write(*,*) 'flux of euv in bin : ', n, Flux_of_euv(n)
+     write(*, *) 'flux of euv in bin : ', n, Flux_of_euv(n)
      !enddo
   endif
 
@@ -348,7 +348,7 @@ subroutine run_ridley_euv(ridley_flux, f107, f107a)
   f107e = f107 - RidleyF107Subtract
   f107ae = f107a - RidleyF107Subtract
   if (iDebugLevel > 2) &
-    write(*,*) 'Running Ridley EUV model: ',f107e, f107ae, RidleyF107Subtract
+    write(*, *) 'Running Ridley EUV model: ',f107e, f107ae, RidleyF107Subtract
   do N = 1, Num_WaveLengths_High
     flux = &
       RidleySlopes(1, N)*(f107e**RidleyPowers(1, N)) + &
@@ -436,6 +436,7 @@ subroutine get_FISM_fluxes(FISM_Flux)
   character(len=7) :: dtime
   integer :: N, NN, iMin(1) = 0, iError
   real, dimension(Num_WaveLengths_High) :: Timed_Flux
+  real :: r
 
   call read_fism_file(iError)
 
@@ -456,20 +457,28 @@ subroutine get_FISM_fluxes(FISM_Flux)
   where (tDiff .lt. 0) tDiff = 1.e20
   iMin = minloc(tDiff)
 
-  Timed_Flux = SeeFlux(:, iMin(1))
+  if (iMin(1) == nSeeTimes .or. &
+       tDiff(iMin(1)) == 0) then
+     Timed_Flux = SeeFlux(:, iMin(1))
+  else
+     ! Do a simple linear interpolation:
+     r = (CurrentTime - SeeTime(iMin(1))) / &
+          (SeeTime(iMin(1)+1) - SeeTime(iMin(1)))
+     Timed_Flux = &
+          (1-r) * SeeFlux(:, iMin(1)) + &
+          (r) * SeeFlux(:, iMin(1) + 1)
+  endif
 
   if (CurrentTime .ge. FlareTimes(iFlare) .and. &
       CurrentTime - dt .le. FlareTimes(iFlare)) then
-
     FlareStartIndex = iMin(1) + 1
     FlareEndIndex = iMin(1) + FlareLength
     Timed_Flux = SeeFlux(:, FlareStartIndex)
     FlareEndTime = SeeTime(FlareEndIndex)
     DuringFlare = .true.
     iFlare = iFlare + 1
-
   else
-
+     
     if (DuringFlare) then
       if (Seetime(iMin(1) + 1) .lt. FlareTimes(iFlare) .or. &
           FlareTimes(iFlare) .eq. 0) then
@@ -529,7 +538,7 @@ subroutine read_fism_file(iError)
   integer, dimension(7) :: TimeOfFlare, TimeArray
   real, dimension(6 + Num_Wavelengths_High) :: temp
 
-  real(Real8_) :: TimeDelay, BufferTime = 86400.0
+  real(Real8_) :: TimeDelay, BufferTime = 86400.0*3
 
   logical :: NotDone, IsThere
   integer :: i, iline, ioerror, nline, nILine = 1, iErrortemp = 0
@@ -544,11 +553,9 @@ subroutine read_fism_file(iError)
   if (ReReadEUVFile) then
     ! If we still have a lot of data in memory, then don't bother
     ! reading more.
-    if (StartTime + BufferTime < TimeSee(nSeeTimes)) return
+    if (CurrentTime < TimeSee(nSeeTimes)) return
   endif
 
-  write(*,*) 'we are here in read_fism_file!'
-  
   ! Assume that we can read the entire file
   ReReadEUVFile = .false.
 
@@ -562,15 +569,17 @@ subroutine read_fism_file(iError)
      ! Find the current year:
      call i2s(iTimeArray(1), cYear, 4)
      ! Set the file name
-     cEUVFile = 'UA/DataIn/FISM/fismflux_daily_' // cYear // '.dat'
+     cFileToOpen = 'UA/DataIn/FISM/fismflux_daily_' // cYear // '.dat'
+  else
+     cFileToOpen = cEUVFile
   endif
   
-  inquire(file=cEUVFile, EXIST=IsThere)
+  inquire(file=cFileToOpen, EXIST=IsThere)
   if (.not. IsThere) &
-    call stop_gitm(trim(cEUVFile)//" cannot be found by read_inputs")
+    call stop_gitm(trim(cFileToOpen)//" cannot be found by read_inputs")
 
   if (iDebugLevel >= 0) then
-     write(*,*) '> Reading FISM file : ', trim(cEUVFile)
+     write(*,*) '> Reading FISM file : ', trim(cFileToOpen)
      if (EUV_Ratio_Empirical > 0.0) &
           write(*,*) '-> EUV_Ratio_Empirical is set to ', EUV_Ratio_Empirical
      write(*,*) '-> FISM Scaling Factors set to : '
@@ -578,11 +587,11 @@ subroutine read_fism_file(iError)
      write(*,*) '   EuvScaleSlope : ', EuvScaleSlope
      write(*,*) '   EuvScaleF107aRef : ', EuvScaleF107aRef
   endif
-  open(unit=iInputUnit_, file=cEUVFile, status="old", IOSTAT=iError)
+  open(unit=iInputUnit_, file=cFileToOpen, status="old", IOSTAT=iError)
 
   if (iError /= 0) then
     write(*, *) "Error in opening EUV file  Is this set?"
-    write(*, *) "Code : ", iError, cEUVFile
+    write(*, *) "Code : ", iError, cFileToOpen
     call stop_gitm("Stopping in calc_euv")
   endif
 
@@ -645,6 +654,12 @@ subroutine read_fism_file(iError)
   close(iInputUnit_)
   nSeeTimes = iline - 1
 
+  ! Let's check to see if we may need to move on to the next file:
+  if (autotest == 'auto') then
+     if (TimeSee(nSeeTimes) < EndTime + BufferTime) &
+          rereadeuvfile = .true.
+  endif
+    
   if (nSeeTimes > 2) iError = 0
   if (nSeeTimes < 1) iError = 1
 
