@@ -114,6 +114,18 @@ subroutine add_sources
     call calc_electron_ion_temperature(iBlock)
 
     !-------------------------------------------------------------------------
+    ! set floors
+    !-------------------------------------------------------------------------
+
+    call correct_min_ion_density
+
+    if (DoCheckForNans) then
+       call check_for_nans_ions("After Sources")
+       call check_for_nans_neutrals("After Sources")
+       call check_for_nans_temps("After Sources")
+    endif
+
+    !-------------------------------------------------------------------------
     ! Bulk Quantities (rho, number den, vertical velocity, electron den)
     !-------------------------------------------------------------------------
 
@@ -149,13 +161,5 @@ subroutine add_sources
     enddo
 
   enddo
-
-  if (DoCheckForNans) then
-    call check_for_nans_ions("After Sources")
-    call check_for_nans_neutrals("After Sources")
-    call check_for_nans_temps("After Sources")
-  endif
-
-  call correct_min_ion_density
 
 end subroutine add_sources
