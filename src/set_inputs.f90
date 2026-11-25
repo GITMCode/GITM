@@ -49,6 +49,7 @@ subroutine set_inputs
   real :: EDC_est_tmp
   real*8 :: DTime
   logical :: HasSetAuroraMods = .false.
+  logical :: hasStartTime = .false.
 
   call report("set_inputs", 1)
 
@@ -119,6 +120,7 @@ subroutine set_inputs
             endif
 
             call fix_vernal_time
+            hasStartTime = .true.
 
           endif
 
@@ -154,6 +156,12 @@ subroutine set_inputs
           else
             call time_int_to_real(iTimeEnd, EndTime)
             PauseTime = EndTime + 1.0
+            if (hasStartTime) then
+               if (EndTime < StartTime) then
+                  write(*, *) "-> StartTime is less than EndTime!!!"
+                  iError = 1
+               endif
+            endif
           endif
 
         endif
