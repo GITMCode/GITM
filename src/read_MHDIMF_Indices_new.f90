@@ -61,6 +61,7 @@ subroutine read_MHDIMF_Indices_new(iOutputError, StartTime, EndTime)
   open(LunIndices_, file=trim(NameOfIMFFile), status="old", iostat=ierror)
 
   if (ierror .ne. 0) then
+    write(*,*) "Issue with opening the IMF file: ", trim(NameOfIMFFile)
     iOutputError = 1
     return
   endif
