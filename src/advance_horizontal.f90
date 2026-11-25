@@ -29,6 +29,18 @@ subroutine advance_horizontal_all
     call advance_horizontal(iBlock)
 
   enddo
+ 
+  !-------------------------------------------------------------------------
+  ! set floors
+  !-------------------------------------------------------------------------
+
+  call correct_min_ion_density
+
+  if (DoCheckForNans) then
+    call check_for_nans_ions("After Horizontal")
+    call check_for_nans_neutrals("After Horizontal")
+    call check_for_nans_temps("After Horizontal")
+  endif
 
   ! Sync everything up again.
 
@@ -37,14 +49,6 @@ subroutine advance_horizontal_all
   do iBlock = 1, nBlocks
     if (.not. IsFullSphere) call set_horizontal_bcs(iBlock)
   enddo
-
-  if (DoCheckForNans) then
-    call check_for_nans_ions("After Horizontal")
-    call check_for_nans_neutrals("After Horizontal")
-    call check_for_nans_temps("After Horizontal")
-  endif
-
-  call correct_min_ion_density
 
   call end_timing("horizontal_all")
 
